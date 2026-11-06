@@ -1,6 +1,9 @@
 """Reviewed typed-default search projection; every write/ownership contract stays exact."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-finder-defaults-delta.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if (r/'docs/v666-declaration-reload-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_declaration_reload_copy.py'),str(r)],check=True);raise SystemExit(0)
+plan=json.loads((r/'docs/v666-finder-defaults-delta.json').read_text())
 def old(name):return subprocess.check_output(['git','show',plan['baseCommit']+':'+name],cwd=r,text=True)
 for name in {row['path']for row in plan['deltas']}:
  expected=old(name)

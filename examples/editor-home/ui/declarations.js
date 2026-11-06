@@ -4,6 +4,7 @@ import {createFeatureEditors} from './feature-editor.js';
 // Human declaration editing over the consumer's scoped draft operations.
 export function createDeclarationEditors(api){
  const features=createFeatureEditors(api),headerIcons=createDeclarationIcons(api,features);
+ const inputEpochs=new WeakMap();
  const {$,$$,esc,inputs}=api,types=['bool','int','long','float','double','string','object'],returns=['void',...types,...types.map(t=>t+'[]')],argumentsTypes=returns.filter(t=>t!=='void');
  const roleNames={module:'적용 모듈',include:'포함 모듈',require:'필요 기능',default:'기본 구현',provide:'제공 구현',use:'사용 관계',contain:'소속 관계',import:'가져온 기능'};
  const signature=value=>({args:(value?.Args||value?.args||[]).map(p=>({type:p.Type??p.type,name:p.Name??p.name,...(['out','ref'].includes(p.mode??p.Mode)?{mode:p.mode??p.Mode}:{})})),return:value?.return||'int'});
@@ -12,7 +13,7 @@ export function createDeclarationEditors(api){
  const key=(info,row)=>api.current.projectId+'|'+(row?.view||'primary')+'|'+info.id;
  const fresh=(id,row)=>row?(api.current.editorViews||[]).find(v=>v.view===row.view&&v.id===id)?.declaration:api.current.declaration?.id===id?api.current.declaration:null;
  const typed=(selected,list)=>list.map(type=>`<option ${type===selected?'selected':''} value="${esc(type)}">${esc(type)}</option>`).join('');
- function local(info,row,section,value){const id=key(info,row),record=inputs.get(id)||{};record[section]??={revision:info.revision,hash:info.textHash,value:structuredClone(value)};inputs.set(id,record);return record[section];}
+ function local(info,row,section,value){const id=key(info,row),record=inputs.get(id)||{};record[section]??={revision:info.revision,hash:info.textHash,value:structuredClone(value)};inputEpochs.set(record,(inputEpochs.get(record)||0)+1);inputs.set(id,record);return record[section];}
  function persist(){api.persist();}
  function show(info=api.current.declaration,row=null,force=false){
   if(!info)return null;if(info.kind==='function'&&!row){headerIcons.reset(api.windows.get('declaration'));return features.show(info,force);}features.reset(api.windows.get(row?'editor-'+row.view:'declaration'));const scope=api.current.projectId,cacheKey=key(info,row),panelKey=row?'editor-'+row.view:'declaration',old=api.windows.get(panelKey),stamp=JSON.stringify(info);
@@ -152,7 +153,25 @@ export function createDeclarationEditors(api){
   const references=[...new Set((info.relations?.edges||[]).flatMap(edge=>[edge.target,edge.function,edge.scope]).filter(Boolean))];
   if(references.length){const list=document.createElement('details');list.dataset.declarationReferences='';list.innerHTML='<summary>참조한 선언의 정의 · '+references.length+'</summary>';for(const id of references){const button=document.createElement('button');button.dataset.operation='reference-definition';button.dataset.referenceTarget=id;button.textContent=id;button.onclick=()=>api.reference(info,id);list.append(button);}w.body.querySelector('.window-content').append(list);}
 
-  $('[data-declaration-current]',w.body).onclick=()=>api.work(async()=>{if(api.current.projectId!==scope)throw Error('프로젝트가 바뀌었습니다.');const saved=JSON.stringify(inputs.get(cacheKey));if(row)await api.view.call('openEditorView',{view:row.view,id:info.id,viewMode:'declaration'});else await api.view.call('inspectDeclaration',{id:info.id});if(fresh(info.id,row)&&JSON.stringify(inputs.get(cacheKey))===saved)inputs.delete(cacheKey);show(fresh(info.id,row),row,true);persist();},'현재 선언 초안 다시 읽음');
+  const reloadOwns=()=>api.current.projectId===scope&&api.windows.get(panelKey)===w&&w.el.isConnected&&w.meta.id===info.id&&(!row||(api.current.editorViews||[]).some(v=>v.view===row.view&&v.id===info.id&&v.mode==='declaration'));
+  const captureReload=()=>{const record=inputs.get(cacheKey);return {record,epoch:record?inputEpochs.get(record)||0:0,json:JSON.stringify(record)};};
+  const sameReload=held=>{const record=inputs.get(cacheKey);return record===held.record&&(record?inputEpochs.get(record)||0:0)===held.epoch&&JSON.stringify(record)===held.json;};
+  const reload=held=>api.work(async()=>{
+   if(!reloadOwns())throw Error('다시 읽을 선언이 바뀌었습니다. 입력은 유지됩니다.');
+   if(!sameReload(held))throw Error('확인 중 새 입력이 생겼습니다. 입력을 유지했으니 다시 확인해 주십시오.');
+   if(row)await api.view.call('openEditorView',{view:row.view,id:info.id,viewMode:'declaration'});else await api.view.call('inspectDeclaration',{id:info.id});
+   if(!reloadOwns()||!fresh(info.id,row))throw Error('다시 읽을 창의 대상이 바뀌었습니다. 입력은 유지됩니다.');
+   const unchanged=sameReload(held);if(unchanged)inputs.delete(cacheKey);show(fresh(info.id,row),row,true);persist();if(!unchanged){api.toast('조회 중 새 입력은 보존했습니다. 현재 초안과 함께 확인해 주십시오.');return false;}
+  },'현재 선언 초안을 다시 읽었습니다. 최종 소스는 유지됩니다.');
+  $('[data-declaration-current]',w.body).onclick=()=>{
+   if(!reloadOwns())return;const held=captureReload();if(!Object.keys(held.record||{}).length)return reload(held);
+   api.modal('현재 초안 다시 읽기','<p>현재 초안을 다시 읽으면 이 창의 미적용 선언 입력이 사라집니다. 입력을 버리고 계속하시겠습니까?</p><div class="actions"><button type="button" class="secondary" data-declaration-reload-cancel>취소</button><button type="button" class="danger" data-declaration-reload-confirm>입력 버리고 다시 읽기</button></div>',(root,close)=>{
+    const observer=new MutationObserver(()=>{if(!root.isConnected){observer.disconnect();return;}if(!reloadOwns())finish();});
+    const finish=()=>{observer.disconnect();close();};root._ownedCleanup=()=>observer.disconnect();observer.observe(document.body,{subtree:true,childList:true});
+    $('[data-declaration-reload-cancel]',root).onclick=finish;
+    $('[data-declaration-reload-confirm]',root).onclick=()=>{finish();if(!reloadOwns())return;if(!sameReload(held)){api.toast('확인 중 새 입력이 생겼습니다. 입력을 유지했으니 다시 확인해 주십시오.');return;}return reload(held);};
+   });
+  };
   $('[data-declaration-save]',w.body).onclick=()=>api.work(()=>header?.has()?header.save():api.view.call(row?'saveEditorView':'saveDraft',row?{view:row.view,id:info.id}:{}),'Draft saved; final sources unchanged');
   $('[data-declaration-review]',w.body).onclick=()=>{if(header?.has())return api.work(()=>header.save(true),'');if(Object.keys(inputs.get(cacheKey)||{}).length){api.toast('미적용 입력을 먼저 적용하세요.');return;}api.review(info.id);};
   $('[data-declaration-keep]',w.body)?.addEventListener('click',()=>api.keep());
