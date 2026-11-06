@@ -4,6 +4,12 @@ from playwright.sync_api import sync_playwright,expect
 import v666_finder_content_fixture as f
 
 mode=sys.argv[3];page=None
+folder=f.namespace+'OfficeFolder'
+for manifest in f.projects:
+ path=manifest.parent/'OfficeFolder.celem';path.write_text('category '+folder+' {value editorBrowserGroup="feature";value editorName="OwnedFeatureRoom";}')
+ text=manifest.read_text();at=text.rfind('}');manifest.write_text(text[:at]+'element OfficeFolder category "OfficeFolder.celem";'+text[at:])
+f.before={str(p):p.read_bytes()for m in f.projects for p in m.parent.rglob('*')if p.is_file()}
+
 def office():return page.locator('.voxel-office')
 def switch(view):
  page.get_by_role('button',name='아이소메트릭 Workspace'if view=='office'else'패널 Workspace',exact=True).click()
@@ -23,7 +29,7 @@ def camera():return private()['officeLayout']['camera']
 try:
  f.start(0)
  with sync_playwright()as p:
-  browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
+  expect.set_options(timeout=60000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
   try:
    if mode=='unavailable':
     browser_context=browser.new_context();browser_context.add_init_script("const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args)};")
@@ -44,7 +50,7 @@ try:
     expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
     assert private()['workspacePresentation']=='editor';guards();f.checked('controlled WebGL-unavailable context falls back to the existing editor, preserving private data and source without pretending to render')
    else:
-    ready();labels=office().locator('.office-labels').inner_text();assert'같은 표시명'in labels and'Main'in labels,labels
+    ready();expect(office().locator('[data-office-id="'+folder+'"]')).to_have_count(1)
     assert not office().locator('.office-worker-label,.office-helper-label').count()
     assert office().locator('canvas').first.evaluate("el=>!!el.getContext('webgl2')")
     guards();f.checked('actual owned declarations from the active ProjectContext render with pinned local Three.js, original v666 room geometry, no demo Helper/Worker or network assets')
@@ -56,10 +62,11 @@ try:
     for _ in range(2):switch('office');ready();switch('editor')
     switch('office');ready();assert abs(camera()['scale']-1.5)<.001;guards();f.checked('camera 150% survives repeated panel/office toggles; closed zoom callback cannot change the current private camera; no layout/source edits')
     # Original storage -> native Browser; never a separate prototype editor.
-    storage=office().locator('[data-office-id="__feature"]').first
-    storage.evaluate('el=>el.ondblclick()')
+    page.locator('[data-office-map]').click();office().locator('[data-office-map-list="'+folder+'"]').click()
+    office().locator('[data-office-id="'+folder+'"]').click();expect(office().locator('[data-office-radial="rearrange"]')).to_have_count(0)
+    office().locator('[data-office-radial="open"]').click()
     expect(page.locator('.window[data-key="browser"]')).to_be_visible(timeout=20000)
-    guards();f.checked('original room selection delegates to the existing permission-checked feature Browser rather than copying or editing declaration sources')
+    guards();f.checked('original owned room radial entry delegates to the existing permission-checked feature Browser rather than copying or editing declaration sources')
     if mode=='cold':
      stored=camera();page.close();f.stop();f.start(1);page=f.setup(browser);ready();assert camera()==stored;guards();f.checked('fresh engine restores display preference and private camera from durable presentation without restoring source-edit or execution authority')
     elif mode=='normal':

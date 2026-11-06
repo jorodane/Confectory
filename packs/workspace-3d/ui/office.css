@@ -159,7 +159,9 @@
 .workspace-view-controls>.workspace-zoom{box-sizing:border-box;width:80px;min-width:80px;height:34px;min-height:34px;padding:5px 3px;border-left:1px solid #555;font-variant-numeric:tabular-nums;text-align:center}
 .workspace.is-window-tab-open>.workspace-view-controls{display:none}
 .workspace:has(.office-map-dialog:not([hidden]))>.workspace-view-controls{visibility:hidden;pointer-events:none}
+.workspace-map-button{display:none;grid-column:1 / -1;width:100%;padding:4px 0 0;border:0;border-top:1px solid #555;border-radius:0;background:transparent;color:#ffdbA3;cursor:pointer}
 .workspace.is-voxel-office .workspace-map-button{display:block}
+.workspace-map-button[aria-expanded=true],.workspace-map-button:hover{border-color:#dfbb82;background:#44392b}
 .workspace-map-button .office-map-preview{display:block;width:100%;height:auto;aspect-ratio:1;background:#1b2020;border-radius:4px}
 .workspace-map-button .office-map-preview text{display:none}
 .bubble-dock #office-arrange-bubble{display:grid;place-items:center}
@@ -218,7 +220,11 @@
 .office-map-list button[data-current=true]{background:color-mix(in srgb,var(--map-color) 35%,#332a23);border-color:#ffe1b3}
 .office-map-list button[data-hover=true],.office-map-list button:hover,.office-map-list button:focus-visible{background:color-mix(in srgb,var(--map-color) 39%,#332a23);border-color:#fff0d4;box-shadow:inset 0 0 0 1px #fff0d4}
 .office-map-full [data-office-map-room][data-hover=true] rect,.office-map-full [data-office-map-room]:hover rect,.office-map-full [data-office-map-room]:focus-visible rect,.office-map-full [data-office-map-room][data-current=true] rect{fill-opacity:.75;stroke:#fff0d4;stroke-width:1.5}
+.workspace-map-open-label{display:none}
+.workspace-map-toggle{display:none;position:absolute;top:42px;right:7px;z-index:2;width:25px;height:25px;padding:0;border:1px solid #897664;border-radius:5px;background:#292725ed;color:#ffe2b3}
 .workspace.is-voxel-office .workspace-map-toggle{display:grid;place-items:center}
+.workspace-map-toggle:hover,.workspace-map-toggle:focus-visible{background:#5a4431;border-color:#ffe2b3}
+.workspace-map-toggle span{width:9px;height:9px;border-left:2px solid currentColor;border-top:2px solid currentColor;transform:translateY(2px) rotate(45deg)}
 .workspace-view-controls.is-map-collapsed .workspace-map-button{height:34px;padding:0 29px 0 7px;text-align:left}
 .workspace-view-controls.is-map-collapsed .office-map-preview{display:none}
 .workspace-view-controls.is-map-collapsed .workspace-map-open-label{display:block;white-space:nowrap;font-size:11px}

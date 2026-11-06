@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 4770,
-    "sha256": "c0e0ea50e7e5e547d252871e5189d04906f0761d0c3c0157230177e970fc020d",
+    "size": 6618,
+    "sha256": "e5ba25eb7e873439146c5bc2efb354e1654353508fb2229d8aa361a7f328ee30",
     "mime": "text/javascript"
   },
   "assets/three.module-0.160.1.js": {
@@ -25,8 +25,8 @@
     "mime": "text/javascript"
   },
   "office.css": {
-    "size": 39351,
-    "sha256": "ce8b86d63333b8812b39bb9bb64a6b315439cbc99196e07f2d85c6ba5faa8882",
+    "size": 40144,
+    "sha256": "4f19a77398958c41226b2bc0c649c3a890ec50eca67f941f9b8f36d3f1d632d0",
     "mime": "text/css"
   },
   "office.js": {
