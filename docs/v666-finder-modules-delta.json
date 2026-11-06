@@ -1,0 +1,12 @@
+{
+  "baseCommit": "0d364f21ab3f92783c252f8cde3e3f12f95185ed",
+  "source": "reference/site-ui/Confectory-Editor-Prototype-v666.zip",
+  "reference": [
+    "Confectory-v666/dist/app.js:4000-4003",
+    "Confectory-v666/dist/app.js:2641-2643"
+  ],
+  "scope": "Existing owned module direct required-function labels only; no include/parent/foreign-source traversal or type/storage policy",
+  "path": "packs/editor-home-model/TableCommand.csbody",
+  "before": "   foreach(var member in info[\"enumValues\"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())definition.Add(member![\"name\"]!.DeepClone());\n",
+  "after": "   foreach(var member in info[\"enumValues\"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())definition.Add(member![\"name\"]!.DeepClone());\n   if(source[1]==\"module\")foreach(var requirement in info[\"relations\"]![\"edges\"]!.AsArray())if(requirement![\"role\"]!.ToString()==\"require\")definition.Add(requirement[\"target\"]!.ToString().Split(\"::\",StringSplitOptions.None)[^1]);\n"
+}

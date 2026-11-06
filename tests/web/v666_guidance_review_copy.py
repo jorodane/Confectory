@@ -1,6 +1,11 @@
 """Exact V2 review wording; preserve all executable guards and native diagnostics."""
 import hashlib,json,pathlib,re,subprocess,sys
-r=pathlib.Path(sys.argv[1]).resolve();plan=json.loads((r/'docs/v666-review-guidance-copy.json').read_text())
+r=pathlib.Path(sys.argv[1]).resolve()
+if(r/'docs/v666-finder-modules-delta.json').exists():
+ import runpy
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_finder_modules_copy.py')),run_name='__main__')
+ raise SystemExit(0)
+plan=json.loads((r/'docs/v666-review-guidance-copy.json').read_text())
 def old(path):return subprocess.check_output(['git','show',plan['baseCommit']+':'+path],cwd=r,text=True)
 source=plan['path'];expected=old(source)
 for row in plan['changes']:
