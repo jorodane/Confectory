@@ -28,3 +28,5 @@ source 충돌을 이 표시 조작으로 만들어 내거나 기존 CAS 검증�
 독립 정보 편집 창 안의 모든 확대 문맥·DPI/IME·실제 Windows/WebView2·모바일 기기·
 전체 UI·Library/Space 전달은 이 단위의 완료가 아니다. V3–V7의 실제 backend/packs,
 V8의 실제 renderer/audio provider와 V9의 실제 신원/권한 adapter 잔여도 유지한다.
+
+[최종 검증·보관 기록](VALIDATION_V666_ZOOM_LIFETIME.md): 31단계, 신규 31·재사용 0.
