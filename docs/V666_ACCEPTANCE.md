@@ -256,4 +256,4 @@ Result 없는 ordinary 동작 완료 어댑터의 최종 동결 `76f9837`은 **�
 기존 원자 저장/receipt에 연결한다. 이미 마감한 out 둘 경로와 원문/계약/권한/레이아웃·
 Review→Confirm/CAS는 보존한다. out 상대 순서 변경은 실제 ABI 변경이므로 계속 거절하며
 새 필수 마이그레이션으로 늘리지 않는다. [닫힌 범위](V2_ROOT_RETURN_POSITION_RECOVERY.md)와
-[검증 기록](VALIDATION_V666_ROOT_RETURN_POSITION_RECOVERY.md)을 따른다. 최종 검증은 진행 중이다.
+[검증 기록](VALIDATION_V666_ROOT_RETURN_POSITION_RECOVERY.md)을 따른다. 최종 **LF 17·CRLF 17·패키지/전체 복원/실패 수명관리 8, 총 42단계(신규 42·재사용 0)**를 통과했다.
