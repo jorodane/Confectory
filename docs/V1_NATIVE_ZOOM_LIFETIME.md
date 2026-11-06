@@ -30,3 +30,5 @@
 실제 Windows/WebView2·모바일 기기·전체 UI·Library/Space 전달은 별도 미검증이다.
 V3–V7 실제 상태/권한/자산 backend와 V8의 실제 surface/audio provider 및 V9 신원/
 가시성 adapter 잔여를 유지한다. M11/M12/M4의 실행 의미를 다시 확장하지 않는다.
+
+[최종 검증·보관 기록](VALIDATION_V666_NATIVE_ZOOM_LIFETIME.md): 31단계, 신규 31·재사용 0.

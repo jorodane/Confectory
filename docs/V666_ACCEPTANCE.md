@@ -56,7 +56,7 @@ Workspace 확대 팝오버의 재개방·프로젝트 전환 후 폐기 콜백 �
 
 일반 Blueprint의 별도 viewport 읽기·확대 수명은 [현재 지원 경계](V1_NATIVE_ZOOM_LIFETIME.md)에
 연결한다. Browser 갱신과 겹친 진입 읽기의 제한적 stale 재관측과 재개방/숨김/폐기 popup
-보호를 다루며 source 저장·실행 계약은 미변경이다. 최종 수치는 마감 기록에서 확정한다.
+보호를 다루며 source 저장·실행 계약은 미변경이다. [최종 31단계(신규 31·재사용 0)](VALIDATION_V666_NATIVE_ZOOM_LIFETIME.md)를 통과했다.
 
 ## 기존 미완료 사용자 흐름
 
