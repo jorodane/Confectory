@@ -1,6 +1,10 @@
 """Exact private display-layout delta: no source/execution/permission backend changes."""
 import hashlib,json,pathlib,subprocess,sys
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-office-arrangement-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-office-io-delta.json').exists():
+ import runpy
+ runpy.run_path(str(r/'tests/web/v666_office_io_copy.py'),run_name='__main__');raise SystemExit(0)
+d=json.loads((r/'docs/v666-office-arrangement-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 assert not any(p.startswith(('src/','targets/','packs/editor-home-model/','packs/worker-tasks/'))for p in paths)
 assert {p for p in paths if p.endswith(('.csbody','.celem','.cpack'))}=={'examples/editor-home/WebBundle.csbody'}

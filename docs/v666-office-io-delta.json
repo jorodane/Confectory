@@ -1,0 +1,12 @@
+{
+  "baseCommit": "384577e8bfd46dc52e687565a6dcb8176316bd9e",
+  "productFiles": {
+    "packs/development-tools/Invoke.csbody": "6decd2300e6609551e2019849fa54570bcd5d3e40233e11e97e03bd6556146a8",
+    "packs/editor-home-model/Command.csbody": "9ff90f2276248296c63b8d00e2165fb653e59512dfbe45552f95bbe33e26c49a",
+    "packs/project-ai/Poll.csbody": "714e236f84522345865399c3a2f41420005019ff83c1ed7c9730eecc05972e57",
+    "packs/workspace-3d/README.md": "ee5a61c5d7644cef50196a78310d1693af8dfe5877d32b8403884af6b168d7fe",
+    "packs/workspace-3d/ui/manifest.json": "82c40889f3c5bea1793f260c2f6c31af888897d01f92f26f928e8bb0ce5786ab",
+    "packs/workspace-3d/ui/office-actors.js": "93200a9b03dbbcbae3e80b113b3e76ee7f5b3c1ac4a8e84e5784a53e221060ff",
+    "packs/workspace-3d/ui/workers.js": "fe27bfd88c5fd44280c5059a1e4c6e26a085acdef1662d1240336a677181fdba"
+  }
+}

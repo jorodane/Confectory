@@ -25,4 +25,16 @@ assert.equal(project(observation([task(),task()]),objects)[0].workers.length,1);
 for(const extra of [{assignedSourceIds:['Own::Other']},{assignedNode:'External::Fn'},{assignedNode:'Missing::Unknown'}])assert.equal(project(observation([task(extra)]),objects)[0].workers[0].objectId,undefined);
 assert.equal(project(observation([task({assignedSourceIds:['Own::Impl']})]),objects)[0].workers[0].objectId,'Own::Impl');
 assert.equal(project({...observation([]),workers:undefined,actionWorkers:[task()]},objects)[0].workers.length,0);
-console.log('PASS native public Worker identity/project/participant scope, eight factual statuses, no IO/name/target inference, immutable state independent of arrival, no execution timestamps or journal writes');
+// Only the already-authorized, explicitly assigned, completed tool receipt is displayed.
+const io={projectId:'p',receipt:'b'.repeat(64),ordinal:2,targetId:'Own::Impl/body:common/node:n',kind:'read',outcome:'completed'};
+const withIO=(extra={},row={})=>project(observation([task({status:'running',...row,lastToolIO:{...io,...extra}})]),objects)[0].workers[0];
+for(const [kind,outcome,label]of [['read','completed','읽기 완료'],['draft-stage','applied','초안 변경 확인'],['draft-stage','unchanged','초안 동일 확인']]){
+ const raw=withIO({kind,outcome});assert.equal(raw.ioLabel,label);assert(Object.isFrozen(raw.lastToolIO));assert.equal(raw.access,'idle');
+ const activity=actorMethods.workerActivity.call(context,{id:'h'},{raw},0),actor={activity};actor.job=actorMethods.createWorkerJob.call(context,actor,{});
+ assert.equal(actorMethods.jobAction.call(context,actor),'작업 중 · 최근 '+label);assert.equal(actor.job.startedAt,null);assert.equal(actor.job.finishedAt,null);
+}
+for(const bad of [{projectId:'other'},{receipt:'capability'},{ordinal:0},{ordinal:257},{ordinal:1.5},{targetId:''},{targetId:'Own::Other'},{targetId:'External::Fn'},{kind:'writing'},{kind:'read',outcome:'applied'},{kind:'draft-stage',outcome:'conflict'}])assert.equal(withIO(bad).lastToolIO,null);
+for(const row of [{needsCheck:true},{status:'ready'},{status:'dispatching'}])assert.equal(withIO({},row).lastToolIO,null);
+const multiple=withIO({},{assignedSourceIds:['Own::Other']});assert.equal(multiple.objectId,undefined);assert.equal(multiple.ioLabel,'읽기 완료');
+assert.equal(project(observation([task({status:'running',changedIds:['Own::Impl'],access:'write'})]),objects)[0].workers[0].lastToolIO,null);
+console.log('PASS native public Worker identity/project/participant scope, eight factual statuses, completed assigned IO only; no phase/name/target inference, immutable state independent of arrival, no execution timestamps or journal writes');

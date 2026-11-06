@@ -1,9 +1,9 @@
 """Actual native Worker records and owned loopback provider; no live AI or credentials."""
-import hashlib,json,pathlib,shutil,time,uuid,sys,traceback,threading
+import hashlib,json,pathlib,shutil,time,uuid,sys,traceback,threading,io
 from playwright.sync_api import sync_playwright,expect
 from owned_responses import OwnedResponses
 import v536_wide_mixed as f
-mode=sys.argv[3];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
+mode=sys.argv[3];live=mode in ['live','io'];checkIO=mode in ['io','io-cold'];ioGates=[threading.Event(),threading.Event()];ioEntered=[threading.Event(),threading.Event()];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
 def invoke(endpoint,**body):
  for _ in range(4):
   v=f.mount();rid=uuid.uuid4().hex
@@ -63,11 +63,15 @@ def restart(index,project=None):
  f.start(index);f.page=f.setup();f.idle()
 def unchanged_journal(path,value):assert path.read_bytes()==value
 try:
- if mode=='live':
+ if live:
   owned=OwnedResponses(node,'slotCount=amount+2;slotReady=true;return amount+4;');Base=owned.server.RequestHandlerClass
   class Gated(Base):
    def do_POST(self):
-    entered.set();assert gate.wait(timeout=45),'owned provider release deadline';super().do_POST()
+    raw=self.rfile.read(int(self.headers['Content-Length']));self.rfile=io.BytesIO(raw);body=json.loads(raw);outputs=[row for row in body['input']if row.get('type')=='function_call_output']
+    if checkIO and outputs:
+     index=min(len(outputs)-1,1);ioEntered[index].set();assert ioGates[index].wait(timeout=60),'owned IO provider release deadline'
+    else:entered.set();assert gate.wait(timeout=60),'owned provider release deadline'
+    super().do_POST()
   owned.server.RequestHandlerClass=Gated
  f.start(0)
  with sync_playwright()as pw:
@@ -75,17 +79,29 @@ try:
   try:
    switch('office');ready();projected(0);assert not(f.project/'.confectory/ai-development').exists();physical();f.checked('3D empty read creates no Task owner/journal or demo Helper/Worker')
    switch('editor');chief=setup_agent(owned.endpoint if owned else'http://127.0.0.1:9');switch('office');ready()
-   if mode=='live':
+   if live:
     invoke('bindHelperAgent',helper=chief);invoke('select',id=graph);u=f.state()['draft'];doc=json.loads(u['text']);doc['nodes'][0]['intent']+=' (owned separately reviewed support input)';invoke('editDraft',id=graph,revision=u['revision'],text=json.dumps(doc));invoke('saveDraft')
    task,id=assign();projected(1);expect(status(id,'ready')).to_contain_text('배정 대기');physical();f.checked('existing explicit native assignment appears with its stable public Worker identity and current project Helper, without dispatch or IO inference')
    f.page.evaluate("()=>window.dispatchEvent(new CustomEvent('confectory:worker-activity',{detail:{projectId:'foreign',helperId:'fake',workerId:'fake',state:'writing'}}))");projected(1);status(id,'ready');physical()
-   if mode=='live':
+   if live:
     invoke('prepareWorker',task=task['task']);preview=f.state()['aiPreview'];f.invoke('startAI',dict(token=preview['token']),False);assert not entered.is_set()and not owned.requests;invoke('cancelPreview');status(id,'ready');physical();f.checked('3D display grants no execution approval; denied start and explicit preview cancellation preserve assignment/source')
     invoke('prepareWorker',task=task['task']);preview=f.state()['aiPreview']
     for requirement in preview['requirements']:invoke('permission',token=preview['token'],id=requirement['id'],approved=True)
     invoke('startAI',token=preview['token']);assert entered.wait(timeout=10);expect(status(id,'running')).to_contain_text('작업 중');assert not owned.requests
     f.page.evaluate("args=>window.dispatchEvent(new CustomEvent('confectory:worker-activity',{detail:{...args,state:'writing',access:'write'}}))",dict(projectId=f.state()['projectId'],helperId=chief,workerId=id));expect(status(id,'running')).to_contain_text('작업 중');physical();f.checked('actual approved Worker is running while owned HTTP is held; movement/arrival and forged visual events cannot start, finish or relabel it as a write')
-    switch('editor');gate.set();deadline=time.monotonic()+45
+    switch('editor');gate.set()
+    if checkIO:
+     for index,label in enumerate(['읽기 완료','초안 변경 확인']):
+      assert ioEntered[index].wait(timeout=20),'actual tool completion deadline'
+      switch('office');ready();expect(status(id,'running')).to_contain_text('최근 '+label)
+      row=next(row for row in f.state()['assignmentWorkers']if row['id']==id);receipt=row['lastToolIO'];assert receipt['targetId']==node and receipt['projectId']==f.state()['projectId'];assert receipt['ordinal']==index+1
+      assert receipt['kind']==['read','draft-stage'][index] and receipt['outcome']==['completed','applied'][index];assert set(receipt)=={'projectId','receipt','ordinal','targetId','kind','outcome'}
+      assert len(receipt['receipt'])==64 and 'originHash'not in receipt
+      f.page.evaluate("()=>window.dispatchEvent(new CustomEvent('confectory:worker-activity',{detail:{state:'writing',access:'write'}}))");expect(status(id,'running')).to_contain_text('최근 '+label);physical()
+      path=f.project/'.confectory/ai-development/helpers'/hashlib.sha256(chief.encode()).hexdigest()[:16]/'tasks.json';assert 'lastToolIO'not in path.read_text()
+      f.checked('actual authorized '+['read','draft-stage'][index]+' completed receipt reaches matching public Worker and authored status text; no active phase, source write, raw capability, visual inference or journal persistence')
+      switch('editor');ioGates[index].set()
+    deadline=time.monotonic()+45
     while time.monotonic()<deadline:
      s=f.state()
      if next(w for w in s['workers']if w['id']==task['task'])['status']=='awaiting-verification':break
@@ -98,7 +114,11 @@ try:
     allowed.update({p:(f.project/p).read_bytes()for p in ['Slot.node.json','Slot.graph.json']});physical();assert len(owned.requests)==count;f.checked('only existing explicit Review/compiler Confirm/adoption changes owned fixture sources and publishes completed status; observing never approves or replays work')
     second,secondid=assign();projected(2);invoke('selectWorker',task=second['task']);invoke('cancelReadyWorker',task=second['task'],commandID=uuid.uuid4().hex,reason='owned fixture explicit cancellation');expect(status(secondid,'cancelled')).to_contain_text('취소됨');status(id,'completed');physical();assert len(owned.requests)==count;f.checked('explicit ready cancellation is shown alongside the distinct completed Worker; original journal retention and other tasks are unchanged')
    else:
-    path=f.project/'.confectory/ai-development/helpers'/hashlib.sha256(chief.encode()).hexdigest()[:16]/'tasks.json';f.pending();f.page.close();f.stop();document=json.loads(path.read_bytes());first=next(iter(document['tasks']));document['tasks'][first]['status']='running';crash=json.dumps(document,ensure_ascii=False).encode();path.write_bytes(crash);f.start(1);f.page=f.setup();ready();f.idle();projected(1);expect(status(id,'interrupted')).to_contain_text('실행 확인 필요');assert not f.state()['planningOwnerAvailable'];unchanged_journal(path,crash);physical();f.checked('owned crash fixture cold-running record is read as check-required interruption; camera/source observation never opens an owner, recovers, dispatches or rewrites the journal')
+    path=f.project/'.confectory/ai-development/helpers'/hashlib.sha256(chief.encode()).hexdigest()[:16]/'tasks.json';f.pending();f.page.close();f.stop();document=json.loads(path.read_bytes());first=next(iter(document['tasks']));document['tasks'][first]['status']='running';
+    if checkIO:document['tasks'][first]['lastToolIO']={'projectId':document['project'],'receipt':'b'*64,'ordinal':1,'targetId':node,'kind':'draft-stage','outcome':'applied'}
+    crash=json.dumps(document,ensure_ascii=False).encode();path.write_bytes(crash);f.start(1);f.page=f.setup();ready();f.idle();projected(1);expect(status(id,'interrupted')).to_contain_text('실행 확인 필요');assert not f.state()['planningOwnerAvailable'];unchanged_journal(path,crash);physical();
+    if checkIO:assert next(row for row in f.state()['assignmentWorkers']if row['id']==id)['lastToolIO']is None;assert '최근 초안 변경 확인'not in office().inner_text();f.checked('cold journal cannot forge or restore a volatile completed IO receipt; no owner recovery or replay')
+    f.checked('owned crash fixture cold-running record is read as check-required interruption; camera/source observation never opens an owner, recovers, dispatches or rewrites the journal')
     # Original distant LOD exposes Worker labels. Also inspect the actual native
     # object-form Helper workers, rather than the prototype array-form alone.
     f.page.locator('[data-workspace-zoom]').click();zoom=f.page.get_by_role('dialog',name='복셀 작업실 배율',exact=True);zoom.locator('input[type=number]').fill('50');zoom.locator('input[type=number]').press('Tab');zoom.press('Escape')
@@ -121,7 +141,7 @@ try:
    except Exception:pass
    (f.case/'failure.json').write_text(json.dumps(dict(error=repr(e),traceback=traceback.format_exc()),ensure_ascii=False));raise
 finally:
- gate.set();f.stop()
+ [event.set()for event in ioGates];gate.set();f.stop()
  if owned:owned.close()
  (f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False,indent=2));(f.case/'office-workers.json').write_text(json.dumps(dict(mode=mode,checks=f.checks,ownedHttpRequests=owned.requests if owned else[],ownedHttpErrors=owned.errors if owned else[],actualManagedEngine=True,actualWindows=False,actualMobile=False,liveAI=False),ensure_ascii=False,indent=2))
 print('OFFICE_WORKERS_FIXTURE',f.case,flush=True)
