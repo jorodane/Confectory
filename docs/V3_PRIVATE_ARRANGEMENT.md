@@ -37,7 +37,7 @@ officeLayout은 각각의 실제 private record에 귀속한다. 같은 프로�
 
 이동·도착과 Worker snapshot/실행은 계속 분리한다. 이미 완료된 [실제 Worker 관측](V3_WORKSPACE_WORKERS.md)
 과 [읽기 전용 3D 기반](V3_WORKSPACE_VIEW.md)을 보존한다. 별도 권한 팩·공유 신원/세션 backend,
-개별 read/write 신호, 리소스 저장/미리보기·Run 영상/오디오 backend와 그 밖의 고정 잔여는
+진행 중 IO phase(마지막 완료 사실은 [별도 연결](V3_WORKSPACE_IO.md)), 리소스 저장/미리보기·Run 영상/오디오 backend와 그 밖의 고정 잔여는
 [수용 목록](V666_ACCEPTANCE.md)에 남는다. 가능한 가구/모양/문맥마다 새 필수 기능을 늘리지 않는다.
 
 [최종 검증·보관·실제 검증 한계](VALIDATION_V666_OFFICE_ARRANGEMENT.md)를 따른다.

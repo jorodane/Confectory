@@ -16,7 +16,7 @@ presentation에만 저장한다. 이미 저장된 3D 선택은 새 엔진에서�
 완료, 잠금이나 허용 조건으로 사용하지 않는다. 표시 팩에는 작업 dispatch나 ACL 판정 API가
 없다. 현재 개인 배치의 canArrange/canWrite는 [후속 private 경계](V3_PRIVATE_ARRANGEMENT.md)를 따르며 source 권한을 부여하지 않는다. canChat은 false다. 이미 공개된 현재 Worker DTO의
 표시 일치만 확인하는 `canInspectTask`와 실제 상태 adapter는 [후속](V3_WORKSPACE_WORKERS.md)에
-연결했다. 권한 grant나 개별 read/write 신호를 만들지 않으며 개인 배치는 위 후속으로 연결했다. 별도 권한 팩의 미구현을
+연결했다. 권한 grant를 만들지 않으며 실제 read/stage 완료는 [후속 연결](V3_WORKSPACE_IO.md)을 따른다. 개인 배치는 위 후속으로 연결했다. 별도 권한 팩의 미구현을
 allow-all로 대체하지 않는다.
 
 자산은 pack의 고정 manifest와 전체 SHA/크기를 검증하고 LF로 정규화한 bounded inline
@@ -27,7 +27,7 @@ context가 손실되면 기존 패널로 복귀하고 개인 배치/입력을 �
 
 기존 원본 C#·값·설명·부모/외부 source·공개/override 계약·권한·CAS·Undo·Review/Confirm
 경계는 변경하지 않는다. 원본의 읽기/쓰기·이동 연출 전체와 자식 Workspace의 모든 배치
-조작을 완료로 표시하지 않는다. V3의 나머지 실제 read/write 신호와 하위 Workspace의 기존 지원 대조/전체 UI 검증, V4/V5의 신원/가시성,
+조작을 완료로 표시하지 않는다. V3의 진행 중 IO phase 구분과 하위 Workspace의 기존 지원 대조/전체 UI 검증, V4/V5의 신원/가시성,
 V6/V7의 자산 저장·미리보기, V8의 실제 Run 화면·오디오는 [기존 목록](V666_ACCEPTANCE.md)에
 남는다. 이 WebGL 방 보기는 프로젝트 Run 렌더러나 오디오 backend의 구현이 아니다.
 
