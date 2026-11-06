@@ -50,3 +50,5 @@ V6/V7 자산과 V8 내장 surface/audio provider는 기존 고정 잔여다. 현
 Space 검증도 별도다. M11/M12/M4는 구체적 회귀 없이 재개하지 않는다.
 
 최종 독립 LF/CRLF·새 패키지/전체 복원·실패 수명관리 결과는 검증 마감 기록에서 확정한다.
+
+[최종 61단계(신규 61·재사용 0) 검증](VALIDATION_V666_FINDER_DEFAULTS.md)을 통과했다.
