@@ -2,6 +2,8 @@
 import hashlib,json,pathlib,subprocess,sys,re
 from zipfile import ZipFile
 r=pathlib.Path(sys.argv[1]);base='3a1d6df3643ebad6a64931249963a71c406061b3'
+if(r/'docs/v666-office-workers-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_office_workers_copy.py'),str(r)],check=True);sys.exit(0)
 delta=json.loads((r/'docs/v666-office-view-delta.json').read_text())
 for name,digest in delta['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 root=r/'packs/workspace-3d/ui';manifest=json.loads((root/'manifest.json').read_text())

@@ -1,3 +1,4 @@
+import {projectOfficeWorkers} from './workers.js';
 // Display-only pack: no source, permission, execution or Worker dispatch API.
 export function createOfficeView(api){
  let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,zoom=null,editorZoom=null;
@@ -21,7 +22,7 @@ export function createOfficeView(api){
   const active=visible(),wasActive=canvas.classList.contains('is-voxel-office');canvas.classList.toggle('is-voxel-office',active);controls.hidden=!api.visible();
   for(const b of controls.querySelectorAll('[data-workspace-view]'))b.setAttribute('aria-pressed',String(b.dataset.workspaceView===(owner.workspacePresentation==='office'?'office':'editor')));
   if(zoom){const generation=epoch,button=zoom;zoom.onclick=active?()=>{if(alive(generation,host,record)&&visible()&&zoom===button)engine?.showZoom(button);}:editorZoom;if(active)zoom.textContent=Math.round((engine?.layout.camera.scale||owner.officeLayout?.camera?.scale||1)*10000)/100+'%';else if(wasActive)canvas.updateWorkspaceView?.();}
-  if(engine&&engine.active!==active)engine.setVisible(active);
+  if(engine&&engine.active!==active)engine.setVisible(active);else if(engine?.active)engine.refreshSource();
   if(active&&!observed){observed=true;api.observe();}
   if(!active||engine||loading)return;
   loading=true;const token=epoch;
@@ -29,12 +30,12 @@ export function createOfficeView(api){
    if(!alive(token,host,record)||!visible())return;
    const valid=()=>alive(token,host,record)&&visible();
    const wheel=api.steppedZoom();
-   const read=()=>{if(!valid())return {name:'',objects:[],helpers:[],helperTitles:{},issues:[],skins:{},resources:[]};return api.read();};
-   engine=mount(host,{read,owner:()=>record,workspaceId:()=>key,save:()=>{if(valid())api.persist();},zoom:()=>{if(valid()&&zoom)zoom.textContent=Math.round((record.officeLayout?.camera?.scale||1)*10000)/100+'%';},steppedZoom:wheel,
+   const read=()=>{if(!valid())return {name:'',objects:[],helpers:[],helperTitles:{},issues:[],skins:{},resources:[]};const source=api.read(),observation=api.workerState();source.helpers=observation?.projectId===source.id?projectOfficeWorkers(observation,source.objects):[];return source;};
+   engine=mount(host,{observedOnly:true,read,owner:()=>record,workspaceId:()=>key,save:()=>{if(valid())api.persist();},zoom:()=>{if(valid()&&zoom)zoom.textContent=Math.round((record.officeLayout?.camera?.scale||1)*10000)/100+'%';},steppedZoom:wheel,
     announce:text=>{if(valid())controls.dataset.lastSelection=text;},notify:text=>{if(valid())api.toast(text);},
     openObject:id=>{if(valid()&&read().objects.some(row=>row.id===id))api.openObject(id);},
     openCategory:(group,parent)=>{if(valid()&&['concept','info','feature','module'].includes(group)&&(!parent||read().objects.some(row=>row.id===parent&&row.kind==='Category')))api.openCategory(group,parent);else if(valid()&&group==='resource')api.toast('자료 Browser는 아직 연결되지 않았습니다.');},
-    canChat:()=>false,chat:()=>{},canWrite:()=>false,canArrange:()=>false,canInspectTask:()=>false,
+    canChat:()=>false,chat:()=>{},canWrite:()=>false,canArrange:()=>false,canInspectTask:(helper,row)=>valid()&&read().helpers.some(h=>h.id===helper.id&&h.workers.some(w=>w.id===row.id&&w.objectId===row.objectId)),
     recover:()=>{if(valid())fail(new Error('Workspace3D context lost'),token,host,record);}});
    engine.root.addEventListener('pointerdown',e=>e.stopPropagation(),{signal:engine.events.signal});engine.root.addEventListener('contextmenu',e=>e.stopPropagation(),{signal:engine.events.signal});engine.root.addEventListener('keydown',e=>e.stopPropagation(),{signal:engine.events.signal});engine.setVisible(true);host.dataset.officeRenderer='ready';
   }).catch(error=>fail(error,token,host,record)).finally(()=>{if(alive(token,host,record))loading=false;});

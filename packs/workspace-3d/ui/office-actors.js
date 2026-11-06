@@ -5,7 +5,7 @@ import {zones} from './office-world.js';
 const hash=value=>[...String(value)].reduce((n,c)=>(n*31+c.charCodeAt(0))>>>0,0);
 const rank={conflict:9,error:8,working:7,writing:7,review:6,reading:6,waiting:1,idle:1,done:0};
 const accessFor=state=>['working','writing'].includes(state)?'write':['review','reading'].includes(state)?'read':'idle';
-const active=activity=>['read','write'].includes(activity.access)||['conflict','error'].includes(activity.state);
+const active=activity=>activity.nativeStatus&&['running','verification'].includes(activity.jobState)||['read','write'].includes(activity.access)||['conflict','error'].includes(activity.state);
 const keyFor=activity=>JSON.stringify([activity.state,activity.access,activity.objectId,activity.peerHelperId]);
 
 // Helpers coordinate; only their half-size Workers handle objects and terminals.
@@ -22,6 +22,11 @@ export const actorMethods={
   return rows;
  },
  workerActivity(helper,row,index){
+  if(this.bridge.observedOnly){
+   const raw=row.raw,allowed=raw.projectId===this.source.id&&raw.ownerHelper===helper.id&&this.bridge.canInspectTask?.(helper,raw)===true;
+   return {state:raw.state,access:'idle',nativeStatus:raw.nativeStatus,jobState:raw.jobState,jobLabel:raw.jobLabel,
+    objectId:allowed&&this.objectsById.has(raw.objectId)?raw.objectId:undefined,text:raw.jobLabel};
+  }
   const raw=row.raw,meta=Array.isArray(raw)?raw[4]||{}:raw,legacy=this.activityOverrides.get(helper.id),override=this.workerOverrides.get(this.workerKey(helper.id,row.workerId))||(legacy&&(legacy.workerId?String(legacy.workerId)===row.workerId:index===0)?legacy:null),state=override?.state||(Array.isArray(raw)?raw[1]:raw.state)||'waiting',location=(Array.isArray(raw)?raw[3]:raw.location)||'';
   const targetId=override?.objectId||meta.objectId,object=targetId?this.objectsById.get(targetId):[...this.objectsById.values()].filter(o=>o.kind!=='folder'&&o.name&&location.includes(o.name)).sort((a,b)=>location.lastIndexOf(b.name)-location.lastIndexOf(a.name)||b.name.length-a.name.length)[0]||this.source.objects.find(o=>o.helper===helper.id);
   const access=override?.access||meta.access,hiddenTarget=!!meta.hiddenTarget||this.bridge.canInspectTask?.(helper,{...meta,objectId:targetId||object?.id})===false;
@@ -29,6 +34,9 @@ export const actorMethods={
   return {state,access:['read','write','idle'].includes(access)?access:accessFor(state),objectId:object?.id||override?.objectId||meta.objectId,text:String(override?.text||(Array.isArray(raw)?raw[2]:raw.text)||''),peerHelperId:override?.peerHelperId||meta.peerHelperId};
  },
  createWorkerJob(actor,old){
+  if(this.bridge.observedOnly){const a=actor.activity,o=this.objectsById.get(a.objectId);return Object.freeze({
+   key:JSON.stringify([a.nativeStatus,a.objectId]),state:a.jobState,objectId:a.objectId,access:'idle',
+   nativeStatus:a.nativeStatus,label:a.jobLabel,roomId:o?this.roomFor(o).id:'__lobby',startedAt:null,finishedAt:null});}
   const activity=actor.activity,state=['error','conflict','done'].includes(activity.state)?activity.state:['read','write'].includes(activity.access)?'running':'idle',key=JSON.stringify([activity.objectId,activity.access,state]),prior=old?.job,now=performance.now(),sameTarget=prior?.objectId===activity.objectId,object=this.objectsById.get(activity.objectId);
   // This snapshot follows Worker signals. Walking, reporting and seat availability never advance it.
   return Object.freeze({key,state,objectId:activity.objectId,access:activity.access,roomId:object?this.roomFor(object).id:'__lobby',startedAt:state==='running'?prior?.key===key?prior.startedAt:now:sameTarget?prior?.startedAt??null:null,finishedAt:state==='done'?prior?.key===key?prior.finishedAt:now:null});
@@ -64,7 +72,7 @@ export const actorMethods={
    const rows=this.workerRows(host.helper);host.workers=[];
    rows.forEach((row,index)=>{
     const id='worker:'+this.workerKey(host.id,row.workerId),actor=this.buildActor(host.helper,id,'worker',row.workerId),old=previous.get(id);
-    actor.host=host;actor.activity=this.workerActivity(host.helper,row,index);actor.job=this.createWorkerJob(actor,old);actor.suspended=host.arriving;actor.group.visible=!actor.suspended;
+    actor.host=host;actor.activity=this.workerActivity(host.helper,row,index);actor.job=this.createWorkerJob(actor,old);actor.suspended=!this.bridge.observedOnly&&host.arriving;actor.group.visible=!actor.suspended;
     this.placeActor(actor,old,{x:host.group.position.x+(index%3-1)*.7,z:host.group.position.z+.8});actor.old=old;host.workers.push(actor);this.workerActors.push(actor);
    });
    host.activity=[...host.workers].sort((a,b)=>(rank[b.activity.state]||0)-(rank[a.activity.state]||0))[0]?.activity||{state:'waiting',access:'idle',text:'다음 작업을 기다리고 있습니다'};
@@ -114,7 +122,7 @@ export const actorMethods={
   if(object&&room.zone==='concept')this.world.conceptCube(actor.props.specimen,object,0,0,.21,.32);
   if(['error','conflict'].includes(actor.activity.state))actor.tasks=[{kind:'report',duration:2.4},{kind:'awaitReply',duration:8}];
   else if(['idle','done'].includes(actor.job.state))actor.tasks=this.loungeLeisureTasks(actor.id);
-  else if(actor.job.state!=='running'||!station)actor.tasks=[{kind:'standby'}];
+  else if(actor.job.state!=='running'||!station||this.bridge.observedOnly)actor.tasks=[{kind:'standby'}];
   else{
    actor.tasks=[{kind:'receive',duration:1.1},{kind:'collect',duration:.85,...this.world.stationPoint(station,actor.id)}];
    if(access==='read'){if(room.zone==='resource')actor.tasks.push({kind:'observe'});actor.tasks.push({kind:'read',duration:9+hash(actor.id)%5,...(room.zone==='resource'?{}:this.world.stationPoint(station,actor.id))})}
@@ -150,6 +158,7 @@ export const actorMethods={
   actor.taskIndex=(actor.taskIndex+1)%actor.tasks.length;this.routeActor(actor);
  },
  jobAction(actor){
+  if(this.bridge.observedOnly)return actor.job?.label||'';
   if(actor.activity?.hiddenTarget)return '작업 중';const job=actor.job;if(!job)return '';
   if(job.state==='done')return '작업 완료';if(job.state==='error')return '오류 / 중단';if(job.state==='conflict')return '협의 필요';if(job.state==='idle')return '작업 대기';
   const theme=zones[this.rooms.get(job.roomId)?.zone];return (job.access==='read'?theme?.read||'읽기':theme?.write||'쓰기')+' 중';
@@ -184,7 +193,7 @@ export const actorMethods={
   for(const host of this.helperActors)host.commanding=this.workerActors.find(w=>w.host===host&&!w.path.length&&['receive','report'].includes(w.task.kind)&&Math.hypot(w.group.position.x-host.group.position.x,w.group.position.z-host.group.position.z)<2.3);
   for(const chair of this.world.chairs)chair.group.rotation.y=chair.rotation;
   for(const actor of this.actors){
-   if(actor.role==='worker'&&actor.host.arriving){actor.group.visible=false;actor.suspended=true;continue}
+   if(actor.role==='worker'&&actor.host.arriving&&!this.bridge.observedOnly){actor.group.visible=false;actor.suspended=true;continue}
    if(actor.suspended){actor.suspended=false;actor.group.visible=true;this.placeActor(actor,null,{x:actor.host.group.position.x+.8,z:actor.host.group.position.z});this.routeActor(actor)}
    if(actor.role==='helper'&&actor.arriving&&actor.arrivalPhase==='queue'&&actor===firstArrival){actor.arrivalPhase='approach';this.routeActor(actor)}
    const moving=actor.path.length>0&&!actor.blocked;

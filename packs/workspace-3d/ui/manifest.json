@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 6692,
-    "sha256": "d35bbfddb0d54fa6e7b31fd68ad65e355198d3314e07d750cb0d261676120639",
+    "size": 7074,
+    "sha256": "7798a972784b9de89ceedbc1e31b5b9220f59557d727fecfd557e2f6be27735b",
     "mime": "text/javascript"
   },
   "assets/three.module-0.160.1.js": {
@@ -15,8 +15,8 @@
     "mime": "text/javascript"
   },
   "office-actors.js": {
-    "size": 26272,
-    "sha256": "fa2db8afa71b15f909232cd7bd3e9b3b0af65b6829a44331b72961d3237392d2",
+    "size": 27217,
+    "sha256": "846b3ef105c1895b2d6f30ab2aa3776a65b30e6af6cae3a058b3447a15791011",
     "mime": "text/javascript"
   },
   "office-world.js": {
@@ -30,13 +30,18 @@
     "mime": "text/css"
   },
   "office.js": {
-    "size": 165570,
-    "sha256": "a04cb4e396d6f894f01cab2663616e9589a040461485e37851658022e0b33c40",
+    "size": 165762,
+    "sha256": "9dee10e8542e63d74d68e7f501e07d01b9aa777f7be402221942af44d876e0a6",
     "mime": "text/javascript"
   },
   "voxel-character.js": {
     "size": 28602,
     "sha256": "089591c160cc5d2dcebb586fc747f1148f223a9eadf446070e1c0f02d6bbfd9b",
+    "mime": "text/javascript"
+  },
+  "workers.js": {
+    "size": 2065,
+    "sha256": "4f2614183a3667bfc876a12d28ddd8961c16d772d7fb165a6e615cbcf8e14cd0",
     "mime": "text/javascript"
   }
 }
