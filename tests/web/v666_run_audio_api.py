@@ -31,7 +31,7 @@ try:
   for key,value in [('lease','0'*32),('handle','0'*32),('view','0'*32)]:
    body={'op':'observe','view':view['view'],'scope':view['scope'],'endpoint':'runAudio','input':{'view':row['view'],'lease':row['lease'],'handle':row['handle'],key:value}};assert not f.raw(body)['ok'],key
   # PCM is never retained in ordinary invoke/update result rows.
-  assert not f.raw({'op':'invoke','view':view['view'],'scope':view['scope'],'expectedRevision':view['revision'],'requestId':'b'*32,'endpoint':'runWindow','input':{'operation':'audio','view':row['view'],'lease':row['lease'],'handle':row['handle']}})['ok'];f.checked('foreign view/lease/handle and normal mutation entry are rejected; PCM stays on unretained scoped observations')
+  f.run('audio',row,False);f.checked('foreign view/lease/handle and normal mutation entry are rejected; PCM stays on unretained scoped observations')
  f.run('close',row);assert not f.raw({'op':'observe','view':view['view'],'scope':view['scope'],'endpoint':'runAudio','input':{'view':row['view'],'lease':row['lease'],'handle':row['handle']}})['ok'];f.original()
 except Exception as error:
  (f.root/'failure.json').write_text(json.dumps(dict(error=repr(error),traceback=traceback.format_exc())));raise

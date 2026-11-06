@@ -40,3 +40,5 @@ source/프로젝트 설정·개인 레이아웃에 저장하지 않는다. cold�
 새 API를 사용하는 프로젝트에는 최신의 짝맞춘 RunSurface/FrameControl provider가 필요하다. 이전 롤백본의 새 API 지원은 보장하지 않는다.
 
 [최종 검증·보관·공간 기록](VALIDATION_V666_RUN_RESOLUTION.md)을 따른다.
+
+후속: 명시적 소프트웨어 PCM 오디오의 별도 지원 경계는 [Run 오디오](V8_RUN_AUDIO.md)를 따른다. 이 문서의 당시 검증 기록은 보존한다.
