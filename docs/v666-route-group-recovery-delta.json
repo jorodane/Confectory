@@ -1,0 +1,41 @@
+{
+  "baseCommit": "669d6770593468d40de9c1925a986e520ed870f7",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedTextFields(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length>=2&&cells.length<=64&&(cells.length<=3&&new Set(cells.map(([,v])=>v.type)).size===cells.length&&cells.every(([,v])=>['rename','intent','source'].includes(v.type)&&v.node===cells[0][1].node)||cells.every(([,v])=>v.type==='rename')&&new Set(cells.map(([,v])=>v.node)).size===cells.length)&&cells.every(([key,v])=>typeof v.text==='string'&&(!cellFrame(w,key)||cellFrame(w,key)===data.id)&&data.nodes.some(node=>node.id===v.node&&node.kind==='code'&&node.control==='next'&&!node.implementationContext&&!node.forwardCallerStorage));}",
+      "after": " function ownedTextFields(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length>=2&&cells.length<=64&&(cells.length<=3&&new Set(cells.map(([,v])=>v.type)).size===cells.length&&cells.every(([,v])=>['rename','intent','source'].includes(v.type)&&v.node===cells[0][1].node)||cells.every(([,v])=>v.type==='rename')&&new Set(cells.map(([,v])=>v.node)).size===cells.length)&&cells.every(([key,v])=>typeof v.text==='string'&&(!cellFrame(w,key)||cellFrame(w,key)===data.id)&&data.nodes.some(node=>node.id===v.node&&node.kind==='code'&&node.control==='next'&&!node.implementationContext&&!node.forwardCallerStorage));}\n function ownedNextRoutes(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length>=2&&cells.length<=64&&new Set(cells.map(([,v])=>v.node)).size===cells.length&&cells.every(([key,v])=>v.type==='route'&&typeof v.text==='string'&&(!cellFrame(w,key)||cellFrame(w,key)===data.id)&&data.nodes.some(node=>node.id===v.node&&node.kind==='code'&&node.control==='next'&&!node.branchOwner&&!node.implementationContext&&!node.forwardCallerStorage));}",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "(ownedTextFields(w,captured,current)||ownedTextFields(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||captured.length>0",
+      "after": "(ownedNextRoutes(w,captured,current)||ownedNextRoutes(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||ownedTextFields(w,captured,current)||ownedTextFields(w,inputs.get(authorAttemptKey(w))?.cells||[],current)||captured.length>0",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": "||ownedTextFields(w,journal.cells)&&ownedTextFields(w,captured))&&journal.cells.some",
+      "after": "||ownedTextFields(w,journal.cells)&&ownedTextFields(w,captured)||ownedNextRoutes(w,journal.cells)&&ownedNextRoutes(w,captured))&&journal.cells.some",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedRouteBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"route\"&&edits[0]?[\"port\"]?.ToString()==\"next\";",
+      "after": " bool ownedRouteBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&(edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"route\"&&edits[0]?[\"port\"]?.ToString()==\"next\"||edits.Count is >=2 and <=64&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?[\"node\"]?.ToString()),StringComparer.Ordinal))==edits.Count&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row&&row.Count==4&&row[\"action\"]?.ToString()==\"route\"&&row[\"port\"]?.ToString()==\"next\"&&row[\"node\"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&row[\"to\"]?.GetValueKind()==System.Text.Json.JsonValueKind.String));",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    if(ownedNodeInputBatch&&(current[\"slotContext\"] is not null||current[\"privatePath\"]?.ToString()!=\"\"||candidate[\"units\"]?[physicalGraphId]?[\"copySource\"] is not null||System.Linq.Enumerable.Any(edits,edit=>!ownedRootInputNameBatch&&!ownedRootOutputOrderBatch&&!ownedRootReturnBatch&&!ownedOutputBatch&&!(ownedEntryBatch&&edit![\"node\"]?.ToString()==\"$entry\")&&!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),node=>node![\"id\"]?.ToString()==edit![\"node\"]?.ToString()&&node[\"kind\"]?.ToString()==\"code\"&&(!(ownedRouteBatch||ownedTextFieldsBatch||ownedRenameBatch&&edits.Count>1)||node[\"control\"]?.ToString()==\"next\")&&node[\"implementationContext\"] is null&&node[\"forwardCallerStorage\"]?.GetValue<bool>()!=true))))throw new InvalidOperationException(\"Owned root entry or direct code input batch required; preserve input\");",
+      "after": "    if(ownedNodeInputBatch&&(current[\"slotContext\"] is not null||current[\"privatePath\"]?.ToString()!=\"\"||candidate[\"units\"]?[physicalGraphId]?[\"copySource\"] is not null||System.Linq.Enumerable.Any(edits,edit=>!ownedRootInputNameBatch&&!ownedRootOutputOrderBatch&&!ownedRootReturnBatch&&!ownedOutputBatch&&!(ownedEntryBatch&&edit![\"node\"]?.ToString()==\"$entry\")&&!System.Linq.Enumerable.Any(current[\"nodes\"]!.AsArray(),node=>node![\"id\"]?.ToString()==edit![\"node\"]?.ToString()&&node[\"kind\"]?.ToString()==\"code\"&&(!(ownedRouteBatch||ownedTextFieldsBatch||ownedRenameBatch&&edits.Count>1)||node[\"control\"]?.ToString()==\"next\")&&(!ownedRouteBatch||edits.Count==1||node[\"branchOwner\"] is null)&&node[\"implementationContext\"] is null&&node[\"forwardCallerStorage\"]?.GetValue<bool>()!=true))))throw new InvalidOperationException(\"Owned root entry or direct code input batch required; preserve input\");",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "    var connections=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>nestedBodyEdits&&(e![\"action\"]?.ToString() is \"route\" or \"entry\")),e=>e!.DeepClone())));",
+      "after": "    if(ownedRouteBatch&&edits.Count>1){foreach(var edit in edits){string source=edit![\"node\"]!.GetValue<string>();var pending=new System.Collections.Generic.Stack<string>();pending.Push(source);var visited=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){source};while(pending.Count>0){string from=pending.Pop();foreach(var edge in current[\"edges\"]!.AsArray())if(edge?[\"from\"]?.ToString()==from){string to=edge[\"to\"]!.ToString();if(to==source)throw new InvalidOperationException(\"Explicit next routes cannot form a cycle; retain all input\");if(visited.Add(to))pending.Push(to);}}}}\n    var connections=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>nestedBodyEdits&&(e![\"action\"]?.ToString() is \"route\" or \"entry\")),e=>e!.DeepClone())));",
+      "count": 1
+    }
+  ]
+}
