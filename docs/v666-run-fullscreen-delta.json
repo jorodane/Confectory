@@ -1,0 +1,101 @@
+{
+  "baseCommit": "593ffa603cf1ac9a2dfa918255ef4a9609de47c9",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": " const active=data=>['building','running'].includes(data?.state);",
+      "after": " const active=data=>['building','running'].includes(data?.state);\n // Fullscreen is transient presentation. It never owns a process, lease or command.\n let fullscreen=null,nativeLease=null,nativePending=null,nativeExiting=false,fullscreenEpoch=0;\n const fullscreenOwns=state=>!!state&&owns(state.w)&&state.scope===api.current?.projectId&&state.generation===api.generation;\n function paintFullscreen(w){const button=$('[data-run-maximize]',w.el);if(!button)return;const active=fullscreen?.w===w;button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-label',active?'창 크기 복원':'창 최대화');button.title=active?'창 크기 복원':'창 최대화';button.textContent=active?'▢':'□';button.disabled=api.restoring||!!w.runClosing;}\n function releaseNative(){const lease=nativeLease;if(!lease)return;nativeLease=null;const doc=lease.doc;if(doc.fullscreenElement!==doc.body||typeof doc.exitFullscreen!=='function')return;nativeExiting=true;const epoch=fullscreenEpoch;try{Promise.resolve(doc.exitFullscreen()).catch(()=>{if(doc.fullscreenElement===doc.body&&fullscreenEpoch===epoch&&!nativeLease)nativeLease=lease;}).finally(()=>{nativeExiting=false;});}catch{nativeExiting=false;if(doc.fullscreenElement===doc.body)nativeLease=lease;}}\n function restoreFullscreen({focus=false,native=true}={}){const state=fullscreen;if(!state){if(native)releaseNative();return;}fullscreen=null;state.observer.disconnect();const {w,marker,doc}=state;w.el.classList.remove('is-run-fullscreen');if(w.el.parentNode===doc.body){if(fullscreenOwns(state)&&marker.isConnected)marker.replaceWith(w.el);else w.el.remove();}else marker.remove();paintFullscreen(w);if(native)releaseNative();if(focus&&fullscreenOwns(state)&&w.el.isConnected&&!w.el.hidden)$('[data-run-maximize]',w.el)?.focus({preventScroll:true});}\n function reconcileFullscreen(){const state=fullscreen;if(state&&(!fullscreenOwns(state)||state.w.el.hidden||!state.marker.isConnected||state.w.el.parentNode!==state.doc.body||state.w.folded))restoreFullscreen();}\n function maximize(w){reconcileFullscreen();if(!owns(w)||w.runClosing||api.restoring)return;if(fullscreen?.w===w){restoreFullscreen({focus:true});return;}if(fullscreen)restoreFullscreen({native:false});if(w.folded)$('[data-fold]',w.el)?.click();if(!owns(w)||w.el.hidden)return;const doc=w.el.ownerDocument,marker=doc.createComment('run fullscreen position');w.el.before(marker);doc.body.append(w.el);const state={w,marker,doc,scope:api.current.projectId,generation:api.generation,observer:new MutationObserver(reconcileFullscreen)};fullscreen=state;w.el.classList.add('is-run-fullscreen');state.observer.observe(w.el,{attributes:true,attributeFilter:['hidden','class']});state.observer.observe(doc.body,{childList:true,subtree:true});paintFullscreen(w);\n  if(nativeLease&&doc.fullscreenElement===doc.body||nativePending||nativeExiting||doc.fullscreenElement||typeof doc.body.requestFullscreen!=='function')return;\n  const request={doc,scope:state.scope,generation:state.generation,epoch:fullscreenEpoch};nativePending=request;try{Promise.resolve(doc.body.requestFullscreen()).then(()=>{if(nativePending===request)nativePending=null;if(doc.fullscreenElement!==doc.body||fullscreenEpoch>request.epoch+1)return;nativeLease={doc};if(!fullscreenOwns(fullscreen)||fullscreen.scope!==request.scope||fullscreen.generation!==request.generation)releaseNative();},()=>{if(nativePending===request)nativePending=null;});}catch{if(nativePending===request)nativePending=null;}\n }\n document.addEventListener('fullscreenchange',()=>{fullscreenEpoch++;if(nativeLease&&nativeLease.doc.fullscreenElement!==nativeLease.doc.body){nativeLease=null;restoreFullscreen({focus:true,native:false});}});\n document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.isComposing&&fullscreen){event.preventDefault();event.stopImmediatePropagation();restoreFullscreen({focus:true});}},true);\n",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": " function render(w){if(!owns(w))return;",
+      "after": " function render(w){reconcileFullscreen();if(!owns(w))return;paintFullscreen(w);",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": "  if(!w.body.querySelector('[data-run-surface]'))w.body.innerHTML='<div class=\"run-viewport\"><div class=\"run-screen\"><div class=\"run-scene\"><strong data-run-project></strong><small data-run-surface data-run-status role=\"status\"></small><small data-run-frame></small><button type=\"button\" data-run-retry hidden>상태 다시 확인</button></div></div></div>';",
+      "after": "  if(!header.querySelector('[data-run-maximize]')){const button=document.createElement('button');button.type='button';button.dataset.runMaximize='';const row=header.querySelector('.run-window-actions>.row');(row||header.querySelector('.run-window-actions')).insertBefore(button,row?.querySelector('[data-close]')||null);button.onclick=()=>maximize(w);$('[data-fold]',header)?.addEventListener('click',()=>{if(fullscreen?.w===w)restoreFullscreen();},{capture:true});w.el.addEventListener('pointerdown',event=>{if(fullscreen?.w===w&&(event.target.closest?.('.window-resize-handle')||event.target.closest?.('.window-title')&&!event.target.closest?.('button,input,textarea,select,a'))){event.preventDefault();event.stopImmediatePropagation();}},true);}\n  if(!w.body.querySelector('[data-run-surface]'))w.body.innerHTML='<div class=\"run-viewport\"><div class=\"run-screen\"><div class=\"run-scene\"><strong data-run-project></strong><small data-run-surface data-run-status role=\"status\"></small><small data-run-frame></small><button type=\"button\" data-run-retry hidden>상태 다시 확인</button></div></div></div>';",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": " function beforeClose(w,close){if(!isRun(w))return false;",
+      "after": " function beforeClose(w,close){if(!isRun(w))return false;if(fullscreen?.w===w)restoreFullscreen();",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": "update:()=>{for(const w of api.windows.values())if(isRun(w))render(w);}",
+      "after": "update:()=>{reconcileFullscreen();for(const w of api.windows.values())if(isRun(w))render(w);}",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "before": ".is-mobile-editor .bp-script-backdrop>pre,.is-mobile-editor .bp-script-editor>textarea{font-size:16px;padding:8px}\n.is-mobile-editor .bp-script-dialog .bp-wrapper-bindings{max-height:48px;overflow:auto;font-size:11px;flex:none}\n.is-mobile-editor.is-mobile-keyboard .bp-script-guide,.is-mobile-editor.is-mobile-keyboard .bp-script-dialog>p.small,.is-mobile-editor.is-mobile-keyboard .bp-wrapper-bindings{display:none}\n",
+      "after": ".is-mobile-editor .bp-script-backdrop>pre,.is-mobile-editor .bp-script-editor>textarea{font-size:16px;padding:8px}\n.is-mobile-editor .bp-script-dialog .bp-wrapper-bindings{max-height:48px;overflow:auto;font-size:11px;flex:none}\n.is-mobile-editor.is-mobile-keyboard .bp-script-guide,.is-mobile-editor.is-mobile-keyboard .bp-script-dialog>p.small,.is-mobile-editor.is-mobile-keyboard .bp-wrapper-bindings{display:none}\n\n/* v666 Run fullscreen presentation; renderer capabilities are unchanged. */\n.run-window-actions>.row [data-run-maximize]{font-size:12px}\n.run-window-actions [data-run-maximize][aria-pressed=true]{color:var(--accent);background:#ffdbA322}\nbody>.run-window.is-run-fullscreen{position:fixed!important;inset:0!important;left:0!important;top:0!important;right:0!important;bottom:0!important;display:flex!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;transform:none!important;transform-origin:center!important;margin:0!important;border-radius:0;z-index:120000;box-shadow:none}\nbody>.run-window.is-run-fullscreen>.window-body{display:flex;flex:1;min-height:0;height:auto;overflow:hidden}\nbody>.run-window.is-run-fullscreen .run-viewport{flex:1;min-height:0}\nbody>.run-window.is-run-fullscreen>.window-title{cursor:default;touch-action:auto}\nbody>.run-window.is-run-fullscreen .window-resize-handle{display:none}\n",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "before": "border-radius:0;z-index:120000;box-shadow:none}",
+      "after": "border-radius:0;z-index:120000!important;box-shadow:none}",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "before": "body>.run-window.is-run-fullscreen .window-resize-handle{display:none}\n",
+      "after": "body>.run-window.is-run-fullscreen .window-resize-handle{display:none}\nbody>.run-window.is-run-fullscreen>.document-toolbar [data-close]{display:block}\n",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace.js",
+      "before": "function placeWindow(w){if(w.documentDocked)return;",
+      "after": "function placeWindow(w){if(w.documentDocked||w.el.classList.contains('is-run-fullscreen'))return;",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/workspace.js",
+      "before": "function clampWindow(w){if(w.overlay||w.documentDocked)return;",
+      "after": "function clampWindow(w){if(w.overlay||w.documentDocked||w.el.classList.contains('is-run-fullscreen'))return;",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/window-documents.js",
+      "before": "if(view.overlay||view.documentDocked)continue;",
+      "after": "if(view.overlay||view.documentDocked||view.el.classList.contains('is-run-fullscreen'))continue;",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "const runWindowsUI=createRunWindows({$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},whenIdle,work,backgroundRead:backgroundRuntimeRead,openWindow,reveal:key=>actualWorkspace.reveal(key),focus:w=>actualWorkspace.windowDocuments.open(w),persist:()=>actualWorkspace.schedule(),target:()=>targetChoices.get(current.projectId)||current.runTarget,toast,export:(event,w)=>runExportsUI.menu(event,w)});",
+      "after": "const runWindowsUI=createRunWindows({$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},whenIdle,work,backgroundRead:backgroundRuntimeRead,openWindow,reveal:key=>actualWorkspace.reveal(key),fit:w=>workspaceRuntime.clampWindow(w),focus:w=>actualWorkspace.windowDocuments.open(w),persist:()=>actualWorkspace.schedule(),target:()=>targetChoices.get(current.projectId)||current.runTarget,toast,export:(event,w)=>runExportsUI.menu(event,w)});",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/run-windows.js",
+      "before": "else marker.remove();paintFullscreen(w);if(native)",
+      "after": "else marker.remove();if(fullscreenOwns(state)&&w.el.isConnected&&!w.el.hidden)api.fit?.(w);paintFullscreen(w);if(native)",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "before": "body>.run-window.is-run-fullscreen>.document-toolbar [data-close]{display:block}\n",
+      "after": "body>.run-window.is-run-fullscreen>.document-toolbar [data-close]{display:block}\nbody:has(>.run-window.is-run-fullscreen) .modal-shade{z-index:122000!important}\nbody:has(>.run-window.is-run-fullscreen) .context-menu{z-index:122200!important}\nbody:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}\n",
+      "count": 1
+    }
+  ],
+  "referenceCss": [
+    ".run-window-actions>.row [data-run-maximize]{font-size:12px}",
+    ".run-window-actions [data-run-maximize][aria-pressed=true]{color:var(--accent);background:#ffdbA322}",
+    "body>.run-window.is-run-fullscreen{position:fixed!important;inset:0!important;left:0!important;top:0!important;right:0!important;bottom:0!important;display:flex!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;transform:none!important;transform-origin:center!important;margin:0!important;border-radius:0;z-index:120000;box-shadow:none}",
+    "body>.run-window.is-run-fullscreen>.window-body{display:flex;flex:1;min-height:0;height:auto;overflow:hidden}",
+    "body>.run-window.is-run-fullscreen .run-viewport{flex:1;min-height:0}",
+    "body>.run-window.is-run-fullscreen>.window-title{cursor:default;touch-action:auto}",
+    "body>.run-window.is-run-fullscreen .window-resize-handle{display:none}"
+  ],
+  "nativeCssAdaptation": "Fullscreen z-index is important because native window focus retains an inline z-index; all original visual rules/geometry remain unchanged.",
+  "nativeCloseAdaptation": "The docked native document normally hides its header close button. Fullscreen exposes only this existing close path because its tab close is covered; existing Run lease/stop checks are unchanged.",
+  "nativeOverlayAdaptation": "Native modal/context-menu/toast layers stay above maximized Run while preserving their existing relative order, so export choices and cancel/permission feedback remain usable."
+}

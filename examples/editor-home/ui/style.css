@@ -2880,3 +2880,16 @@ body.project-create-open{overflow:hidden}
 .is-mobile-editor .bp-script-backdrop>pre,.is-mobile-editor .bp-script-editor>textarea{font-size:16px;padding:8px}
 .is-mobile-editor .bp-script-dialog .bp-wrapper-bindings{max-height:48px;overflow:auto;font-size:11px;flex:none}
 .is-mobile-editor.is-mobile-keyboard .bp-script-guide,.is-mobile-editor.is-mobile-keyboard .bp-script-dialog>p.small,.is-mobile-editor.is-mobile-keyboard .bp-wrapper-bindings{display:none}
+
+/* v666 Run fullscreen presentation; renderer capabilities are unchanged. */
+.run-window-actions>.row [data-run-maximize]{font-size:12px}
+.run-window-actions [data-run-maximize][aria-pressed=true]{color:var(--accent);background:#ffdbA322}
+body>.run-window.is-run-fullscreen{position:fixed!important;inset:0!important;left:0!important;top:0!important;right:0!important;bottom:0!important;display:flex!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;transform:none!important;transform-origin:center!important;margin:0!important;border-radius:0;z-index:120000!important;box-shadow:none}
+body>.run-window.is-run-fullscreen>.window-body{display:flex;flex:1;min-height:0;height:auto;overflow:hidden}
+body>.run-window.is-run-fullscreen .run-viewport{flex:1;min-height:0}
+body>.run-window.is-run-fullscreen>.window-title{cursor:default;touch-action:auto}
+body>.run-window.is-run-fullscreen .window-resize-handle{display:none}
+body>.run-window.is-run-fullscreen>.document-toolbar [data-close]{display:block}
+body:has(>.run-window.is-run-fullscreen) .modal-shade{z-index:122000!important}
+body:has(>.run-window.is-run-fullscreen) .context-menu{z-index:122200!important}
+body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}

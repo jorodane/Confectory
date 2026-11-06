@@ -113,7 +113,7 @@ def main():
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
-    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','async-information'],default='headers')
+    parser.add_argument('--suite',choices=['headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -347,6 +347,15 @@ def main():
                 regression='v666_node_branch_exit_api.py' if label=='lf' else 'v666_node_internal_external_override_api.py'
                 work.run(label+'-m11-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report)],cwd=checkout,env=env)
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
+            elif args.suite=='run-fullscreen':
+                work.run(label+'-run-fullscreen-source-boundary',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_copy.py'),str(checkout)],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run(label+'-run-owner-backend',[sys.executable,str(checkout/'tests/web/v536_run_windows_backend.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                else:
+                    work.run(label+'-document-floating-renderer',[sys.executable,str(checkout/'tests/web/v536_document_windows_renderer.py'),str(checkout)],cwd=checkout,env=env)
+                for mode in (['normal','fallback','lifecycle']if label=='lf'else['normal','race','scope']):
+                    work.run(label+'-run-fullscreen-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+
             elif args.suite=='route-group-recovery':
                 work.run(label+'-route-group-copy-boundary',[sys.executable,str(checkout/'tests/web/v666_guidance_code_editor_copy.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-route-group-script',['node','--check',str(checkout/'examples/editor-home/ui/feature-authoring.js')],cwd=checkout,env=env)
@@ -1147,6 +1156,10 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('packaged-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('packaged-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='run-fullscreen':
+            for mode in ['normal','fallback']:
+                work.run('packaged-run-fullscreen-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(package/'content'),str(packaged_report),mode],cwd=checkout,env=env)
+
         elif args.suite=='route-group-recovery':
             for mode in ['normal', 'loss']:
                 work.run('packaged-route-group-'+mode,[sys.executable,str(checkout/'tests/web/v666_route_group_recovery_ui.py'),str(package/'content'),str(packaged_report),mode,'--out-root'],cwd=checkout,env=env)
@@ -1387,6 +1400,10 @@ def main():
         elif args.suite=='node-internal-storage':
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
+        elif args.suite=='run-fullscreen':
+            for mode in ['lifecycle','race']:
+                work.run('restored-run-fullscreen-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
+
         elif args.suite=='route-group-recovery':
             for mode in ['storage-new', 'late']:
                 work.run('restored-route-group-'+mode,[sys.executable,str(checkout/'tests/web/v666_route_group_recovery_ui.py'),str(restored/'content'),str(packaged_report),mode,'--out-root'],cwd=checkout,env=env)

@@ -12,7 +12,7 @@ export function createWindowDocuments(api){
  function syncFloating(w=null){
   if(!ensure()||w&&api.runtime.state.windows.get(w.key)!==w)return;const active=background();canvas.classList.toggle('is-window-tab-open',!!active);
   for(const view of w?[w]:api.runtime.state.windows.values()){
-   if(view.overlay||view.documentDocked)continue;view.el.classList.toggle('is-tab-floating',!view.placed&&!!active);
+   if(view.overlay||view.documentDocked||view.el.classList.contains('is-run-fullscreen'))continue;view.el.classList.toggle('is-tab-floating',!view.placed&&!!active);
    if(!view.placed){let floating=canvas.querySelector('.workspace-floating-window-layer');if(!floating){floating=document.createElement('div');floating.className='workspace-window-layer workspace-floating-window-layer';canvas.append(floating);}if(view.el.parentElement!==floating)floating.append(view.el);}
    else if(view.el.parentElement?.classList.contains('workspace-floating-window-layer')){let world=canvas.querySelector('.workspace-world-layer .workspace-window-layer');if(!world){world=document.createElement('div');world.className='workspace-window-layer';(canvas.querySelector('.workspace-world-layer')||canvas).append(world);}world.append(view.el);}
   }
