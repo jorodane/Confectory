@@ -245,7 +245,7 @@ export function createBlueprint(api){
   api.controls();return w;
  }
  function open(feature=null,id=null){const scope=api.current.projectId,prior=api.windows.get('blueprint');return api.work(async()=>{
-  const observe=async input=>{for(let attempt=0;;attempt++){if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');await api.view.update();if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');try{return await api.view.call('blueprint',input);}catch(error){if(error.code!=='stale_revision'||attempt>=2)throw error;}}};
+  const observe=async input=>{for(let attempt=0;;attempt++){if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');await api.view.update();if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');try{return await api.view.call('blueprint',input);}catch(error){if(error.message!=='stale_revision'||attempt>=2)throw error;}}};
   const list=await observe({action:'list',...(feature?{feature}:{})}),selected=id||list.rows[0]?.id;
   if(id&&!list.rows.some(row=>row.id===id))list.rows.unshift({id});let data=null,readError=null;if(selected)try{data=await observe({action:'read',id:selected});}catch(error){readError=error;}
   if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');if(prior&&(!prior.el.isConnected||api.windows.get('blueprint')!==prior))return false;
