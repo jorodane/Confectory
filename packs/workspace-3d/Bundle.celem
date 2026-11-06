@@ -1,0 +1,3 @@
+function Confectory.Workspace3D::Bundle () -> string {
+provide Confectory.Workspace3D::Bundle with Confectory.Workspace3D::BundleBody;
+}

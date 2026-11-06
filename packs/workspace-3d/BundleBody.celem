@@ -1,0 +1,3 @@
+implementation Confectory.Workspace3D::BundleBody for Confectory.Workspace3D::Bundle () -> string {
+body common "Bundle.csbody";
+}

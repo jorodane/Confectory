@@ -1,0 +1,5 @@
+pack Confectory.Workspace3D version "0.1.0" {
+standalone false;
+element Bundle function "Bundle.celem";
+element BundleBody implementation "BundleBody.celem";
+}

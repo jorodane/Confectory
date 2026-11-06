@@ -1,0 +1,75 @@
+"""Real managed-engine project projection + local WebGL renderer; no devices/AI."""
+import json,sys,traceback,time
+from playwright.sync_api import sync_playwright,expect
+import v666_finder_content_fixture as f
+
+mode=sys.argv[3];page=None
+def office():return page.locator('.voxel-office')
+def switch(view):
+ page.get_by_role('button',name='아이소메트릭 Workspace'if view=='office'else'패널 Workspace',exact=True).click()
+def ready():
+ expect(page.locator('#workspace')).to_have_attribute('data-office-renderer','ready',timeout=60000)
+ expect(office()).to_be_visible()
+def private():
+ page.evaluate('()=>confectoryFlushPresentation()');return f.state()['presentation']
+def guards():
+ f.original();assert not f.external and not f.errors,(f.external,f.errors)
+ forbidden={'editDraft','saveDraft','reviewDraft','confirmDraft','startAI','startConnectionCheck','runProject','prepareWorker','startBuild','editDefinition','editDeclaration','editFunctionContract'}
+ assert not forbidden.intersection(row.get('endpoint')for row in f.requests)
+def zoom(value):
+ page.locator('[data-workspace-zoom]').click();menu=page.get_by_role('dialog',name='복셀 작업실 배율',exact=True)
+ menu.locator('input[type=number]').fill(str(value));menu.locator('input[type=number]').press('Tab');menu.press('Escape')
+def camera():return private()['officeLayout']['camera']
+try:
+ f.start(0)
+ with sync_playwright()as p:
+  browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
+  try:
+   if mode=='unavailable':
+    browser_context=browser.new_context();browser_context.add_init_script("const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args)};")
+    page=f.setup(browser_context)
+   else:page=f.setup(browser)
+   expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
+   if mode=='interrupted':
+    held={}
+    def pause(route):held['route']=route
+    page.route('**/workspace-3d/office.js',pause);switch('office')
+    end=time.monotonic()+15
+    while not held and time.monotonic()<end:page.wait_for_timeout(50)
+    assert held;switch('editor');held['route'].continue_();page.unroute('**/workspace-3d/office.js',pause);page.wait_for_timeout(200)
+    expect(office()).to_have_count(0);guards();f.checked('late module import after explicit panel return cannot mount a retired 3D view or mutate project source')
+   switch('office')
+   if mode=='unavailable':
+    expect(page.locator('#workspace')).to_have_attribute('data-office-renderer','unavailable',timeout=30000);expect(office()).to_have_count(0)
+    expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true')
+    assert private()['workspacePresentation']=='editor';guards();f.checked('controlled WebGL-unavailable context falls back to the existing editor, preserving private data and source without pretending to render')
+   else:
+    ready();labels=office().locator('.office-labels').inner_text();assert'같은 표시명'in labels and'Main'in labels,labels
+    assert not office().locator('.office-worker-label,.office-helper-label').count()
+    assert office().locator('canvas').first.evaluate("el=>!!el.getContext('webgl2')")
+    guards();f.checked('actual owned declarations from the active ProjectContext render with pinned local Three.js, original v666 room geometry, no demo Helper/Worker or network assets')
+    zoom(150);assert abs(camera()['scale']-1.5)<.001
+    page.locator('[data-workspace-zoom]').click();menu=page.get_by_role('dialog',name='복셀 작업실 배율',exact=True)
+    menu.locator('input[type=range]').evaluate('el=>globalThis.__officeRetired={el,callback:el.oninput}')
+    switch('editor');expect(office()).to_be_hidden()
+    old=camera();page.evaluate('()=>{__officeRetired.el.value="400";__officeRetired.callback()}');assert camera()==old
+    for _ in range(2):switch('office');ready();switch('editor')
+    switch('office');ready();assert abs(camera()['scale']-1.5)<.001;guards();f.checked('camera 150% survives repeated panel/office toggles; closed zoom callback cannot change the current private camera; no layout/source edits')
+    # Original storage -> native Browser; never a separate prototype editor.
+    storage=office().locator('[data-office-id="__feature"]').first
+    storage.evaluate('el=>el.ondblclick()')
+    expect(page.locator('.window[data-key="browser"]')).to_be_visible(timeout=20000)
+    guards();f.checked('original room selection delegates to the existing permission-checked feature Browser rather than copying or editing declaration sources')
+    if mode=='cold':
+     stored=camera();page.close();f.stop();f.start(1);page=f.setup(browser);ready();assert camera()==stored;guards();f.checked('fresh engine restores display preference and private camera from durable presentation without restoring source-edit or execution authority')
+    elif mode=='normal':
+     old=camera();f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'manifest':str(f.projects[1])});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
+     f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'manifest':str(f.projects[0])});page.wait_for_selector('.work-body');ready();assert camera()==old;guards();f.checked('actual project A/home/B/A isolates office preference/camera and restores A; same displayed declaration names never select another project')
+   page.screenshot(path=str(f.root/('office-view-'+mode+'.png')));guards();browser.close()
+  except Exception as e:
+   try:page.screenshot(path=str(f.root/'failure.png'));(f.root/'failure.html').write_text(page.content())
+   except Exception:pass
+   (f.root/'failure.json').write_text(json.dumps(dict(error=repr(e),traceback=traceback.format_exc()),ensure_ascii=False));raise
+finally:
+ f.stop();f.save_evidence();(f.root/'office-view.json').write_text(json.dumps(dict(mode=mode,checks=f.checks,actualManagedEngine=True,softwareWebGL=True,simulatedUnavailable=mode=='unavailable',actualWindows=False,actualMobile=False,workerDisplay=False),ensure_ascii=False,indent=2))
+print('OFFICE_VIEW_FIXTURE',f.root,flush=True)

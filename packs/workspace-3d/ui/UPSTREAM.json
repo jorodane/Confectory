@@ -1,0 +1,34 @@
+{
+  "zipSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "files": {
+    "office.js": {
+      "originalSha256": "30c7bfb54933f89497cda48e3e66564fc8578b05bf9a1cc4dc187f842b7dfbdf",
+      "changes": true
+    },
+    "office-world.js": {
+      "originalSha256": "b3e3385313136ee43fbec06a336247ea01a89f9d30183ddb3e4aefa1ef74d81d",
+      "changes": false
+    },
+    "office-actors.js": {
+      "originalSha256": "cf1c81443d341e34b123b47de1b7652911dcc51b48352e584d8ed9f166d2bc91",
+      "changes": true
+    },
+    "voxel-character.js": {
+      "originalSha256": "089591c160cc5d2dcebb586fc747f1148f223a9eadf446070e1c0f02d6bbfd9b",
+      "changes": false
+    },
+    "assets/three.module-0.160.1.js": {
+      "originalSha256": "3e690ac7d180b0aadf0891bea39eec643e29e2d3e75c99b18689518665f69ba6",
+      "changes": false
+    },
+    "assets/three-LICENSE.txt": {
+      "originalSha256": "852e0e8699169bf9f6fdc6bda3e682d078dcbc738b5d33e74df594721bff271d",
+      "changes": false
+    },
+    "office.css": {
+      "source": "style.css",
+      "originalSha256": "4ae2e9f849e556cf95c7d33bbf69f0bfc2c921d13b860e5f8dac4e7956261fbd",
+      "extraction": "office / workspace-view selector rules and their media wrappers only; host placement isolation appended"
+    }
+  }
+}

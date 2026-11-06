@@ -1,0 +1,15 @@
+// Consumer-configured local assets. This is not a browser-readable file endpoint.
+string root=System.IO.Path.Combine(Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")??Environment.CurrentDirectory,"packs","workspace-3d","ui");
+var manifest=System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(System.IO.Path.Combine(root,"manifest.json")))!.AsObject();
+var resources=new System.Text.Json.Nodes.JsonObject();int total=0;
+foreach(var pair in manifest){
+ string name=pair.Key;if(name.Contains("..",StringComparison.Ordinal)||name.StartsWith('/')||name.Contains('\\')||name.Length>160)throw new InvalidOperationException("Workspace3D resource identity");
+ string path=System.IO.Path.Combine(root,name);var info=new System.IO.FileInfo(path);
+ if(info.LinkTarget is not null||info.Length>2097152)throw new InvalidOperationException("Workspace3D resource boundary");
+ string text=System.IO.File.ReadAllText(path,new System.Text.UTF8Encoding(false,true)).Replace("\r\n","\n");
+ byte[] bytes=System.Text.Encoding.UTF8.GetBytes(text);total+=bytes.Length;
+ string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+ if(total>4194304||bytes.Length!=pair.Value!["size"]!.GetValue<int>()||hash!=pair.Value["sha256"]!.ToString())throw new InvalidOperationException("Workspace3D resource integrity");
+ resources["workspace-3d/"+name]=new System.Text.Json.Nodes.JsonObject{["mime"]=pair.Value["mime"]!.ToString(),["base64"]=Convert.ToBase64String(bytes)};
+}
+return resources.ToJsonString();

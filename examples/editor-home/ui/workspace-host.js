@@ -7,7 +7,7 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
-  const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';
+  const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';let office=null;
   // Browser Data borrows an editor owner once it has an explicit field definition.
   const keepsEditing=(key,meta)=>key==='blueprint'||key.startsWith('blueprint-code:')||key==='source'||key.startsWith('editor-')||key.startsWith('table:')||((key==='browser'||key.startsWith('browser:')||key.startsWith('browser-tree:'))&&!!meta?.tableDefinition);
   const host={
@@ -26,7 +26,7 @@ export function createActualWorkspace(api) {
     hideWindowOnClose:key=>keepsEditing(key,runtime.state.windows.get(key)?.meta),
     layoutMetadata:w=>Object.fromEntries(['id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','schemaCollapsed','ownPropertiesCollapsed','inheritedSourceCollapsed','functionsCollapsed','ownFunctionsCollapsed','variationsCollapsed','variations','elementBrowsers','browserData','propertyExpanded','propertyCollapsedInfo','propertyCollapsedValues','behaviorSourceCollapsed','hierarchyVisible','treeWidth','treeRestoreWidth','closedNamespaces','treeExpanded','treeSelection','treeQuery','workerId','copyDraft','implementationBody','conversionDraft','nodeFlowDraft','creationPending','creationDeclaration','slotOwner','slotHash','slotRevision','slotImplementation','authorView','moduleAuthor','blueprintGraph','blueprintV508','blueprintNode','blueprintPropertyAccess','blueprintPropertyNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','recordId','conflictFilter','collapsedConflictSections','readRecordIds','battlePage','runView','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildTarget','buildCommand','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','fieldDiscovery','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
-    afterSwitchWorkspace:()=>{const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
+    afterSwitchWorkspace:()=>{office?.update();const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
     beforePrivateLayout:()=>deletionHistory.before('layout'),recordPrivateLayout:before=>deletionHistory.record(before),beforePrivateDelete:()=>deletionHistory.before(),recordPrivateDelete:before=>deletionHistory.record(before),privateHistoryMenu:()=>deletionHistory.menu(),
     beforeDeleteWorkspaces:ids=>{
       // Closing a child presentation must never release the domain editor view.
@@ -52,6 +52,15 @@ export function createActualWorkspace(api) {
     objectContext:(event,object,w)=>api.objectContext(object.id,event,w),
   };
   const runtime=createWorkspaceRuntime(host);
+  import('./workspace-3d/adapter.js').then(({createOfficeView})=>{
+    office=createOfficeView({canvas:()=>api.$('#workspace'),owner:()=>project?runtime.workspaceRecord():null,
+      identity:()=>scope+'|'+runtime.state.activeWorkspaceId,visible:()=>!!project&&!host.activeFixedTab,
+      persist:()=>schedule('layout'),toast:api.toast,
+      read:()=>({id:scope,name:api.current.title||api.current.namespace||scope,objects:api.projection.workspaceRows().filter(row=>row.owned===true).map(row=>({...row,kind:({category:'Category',object:'Concept',schema:'Info',function:'Feature',module:'Module',enum:'Enum'})[row.kind]||row.kind,parent:api.projection.browserParent(row.id)})),helpers:[],helperTitles:{},issues:[],skins:{},resources:[]}),
+      openObject:id=>api.openDeclaration(id),openCategory:(group,parent)=>api.openBrowser(group,null,false,'browser',parent)
+    });office.update();
+  }).catch(()=>api.toast('3D 표시 팩을 열지 못했습니다. 기존 편집 기능은 계속 사용할 수 있습니다.'));
+
   const noteDocuments=createNoteDocuments({activateDocument:()=>deactivatePackManager(),get project(){return project},get scope(){return scope},get loading(){return loading},canvas:()=>api.$('#workspace'),persist:()=>schedule('input'),refreshWindows:()=>windowDocuments.render(),toast:api.toast,renderTabs:()=>runtime.renderWorkspaceTabs(),renderDecorations:()=>runtime.renderWorkspaceDecorations(),editTitle:(item,owns)=>runtime.editWorkspaceTitle(item,owns,true)});
   const windowDocuments=createWindowDocuments({activateDocument:()=>deactivatePackManager(),get project(){return project},get loading(){return loading},canvas:()=>api.$('#workspace'),runtime,persist:()=>schedule('layout'),toast:api.toast,contextMenu:api.contextMenu,renderTabs:()=>runtime.renderWorkspaceTabs(),refreshNotes:()=>noteDocuments.render(),activateBackground:activateBackground,retain:w=>host.detachWindow(w),beforeCloseWindow:host.beforeCloseWindow});
   const deletionHistory=createPrivateLayoutHistory({project:()=>project,ready:()=>!!project&&!loading&&!api.isBusy&&!runtime.state.gesture&&!runtime.state.cancelDrag,capture:()=>{capture();runtime.saveLayouts();},restore:restorePrivate,toast:api.toast,persist:()=>schedule('layout')});
@@ -186,7 +195,7 @@ export function createActualWorkspace(api) {
     // Rendering the saved Pack Manager may capture before domain views reopen.
     // Keep the original binding plan intact until recovery has actually succeeded.
     if(missing.length||(selected&&selected!==state.draft?.id))project.recoveryFailed=true;
-    loading=false;changed=0;saved=0;panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
+    loading=false;changed=0;saved=0;office?.update();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
     api.$('#workspace').addEventListener('input',()=>schedule());
     if(missing.length||(selected&&selected!==state.draft?.id)){
       loading=true;api.setWorkspaceStatus('편집창 복원 중');const owner=scope;
@@ -201,7 +210,7 @@ export function createActualWorkspace(api) {
       })();
     }
   }
-  function detach(){if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {updateOffice:()=>office?.update(),runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
 }
