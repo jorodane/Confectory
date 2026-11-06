@@ -36,7 +36,7 @@ try:
    while not paused and time.monotonic()<end:f.page.wait_for_timeout(30)
    assert paused;expect(field()).to_be_disabled()
    if mode=='normal':
-    field().evaluate('el=>globalThis.__intentBeforeRemount=el');f.author().locator('[data-bp-select="body"]').evaluate('el=>el.click()');assert field().evaluate('el=>el!==__intentBeforeRemount');expect(field()).to_be_disabled()
+    field().evaluate('el=>globalThis.__intentBeforeRemount=el');f.author().locator('[data-bp-select="body"]').evaluate('el=>el.onclick()');assert field().evaluate('el=>el!==__intentBeforeRemount');expect(field()).to_be_disabled()
    field().evaluate('el=>globalThis.__retiredIntent={el,input:el.oninput}')
    wanted=submitted if mode=='aba'else base
    field().evaluate('''(el,values)=>{for(const value of values){el.value=value;el.dispatchEvent(new InputEvent('input',{bubbles:true,inputType:'insertReplacementText'}));}}''',['중간 입력',wanted]);expect(field()).to_have_value(wanted)
