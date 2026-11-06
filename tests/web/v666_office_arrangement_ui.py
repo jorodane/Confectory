@@ -17,7 +17,7 @@ def place():
  # Original room labels are intentionally hidden above 90%; use the real zoom
  # control to choose a visible ground anchor, without forcing hidden elements.
  zoom(90)
- button=office().locator('[data-office-build-kind=plant]');button.focus();button.press('Enter');box=office().locator('.office-room-label[data-office-id="__lobby"]').bounding_box();assert box;cx=box['x']+box['width']/2;cy=box['y']+box['height']/2
+ button=office().locator('[data-office-build-kind=plant]');button.focus();button.press('Enter');label=office().locator('.office-room-label[data-office-id="__lobby"]');expect(label).to_be_visible();box=label.bounding_box();assert box;cx=box['x']+box['width']/2;cy=box['y']+box['height']/2
  for dx,dy in [(-70,35),(70,35),(-110,30),(110,30),(0,85),(-60,-40),(60,-40),(-120,0),(120,0)]:
   page.mouse.move(cx+dx,cy+dy);page.mouse.click(cx+dx,cy+dy)
   if button.get_attribute('aria-pressed')!='true':break
