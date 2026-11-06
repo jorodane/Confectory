@@ -358,7 +358,7 @@ def main():
                 work.run(label+'-owned-final-read-cas',[sys.executable,str(checkout/'tests/web/v536_copy_read_guards_core.py'),str(checkout)],cwd=checkout,env=env)
             elif args.suite=='office-view':
                 work.run(label+'-office-source-boundary',[sys.executable,str(checkout/'tests/web/v666_office_view_copy.py'),str(checkout)],cwd=checkout,env=env)
-                for mode in (['normal','interrupted']if label=='lf'else['cold','unavailable','tampered']):
+                for mode in (['normal','interrupted']if label=='lf'else['cold','late','unavailable','tampered']):
                     work.run(label+'-office-'+mode,[sys.executable,str(checkout/'tests/web/v666_office_view_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 regression='v666_native_intent_late_ui.py'if label=='lf'else'v666_zoom_lifetime_ui.py'
                 work.run(label+'-existing-editor-regression',[sys.executable,str(checkout/'tests/web'/regression),str(checkout),str(report),'normal'],cwd=checkout,env=env)
@@ -1546,7 +1546,7 @@ def main():
             work.run('restored-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-storage-node-internal',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_ui.py'),str(restored/'content'),str(packaged_report),'loss','--private','--local'],cwd=checkout,env=env)
         elif args.suite=='office-view':
-            for mode in ['cold','unavailable','tampered']:
+            for mode in ['cold','late','unavailable','tampered']:
                 work.run('restored-office-'+mode,[sys.executable,str(checkout/'tests/web/v666_office_view_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
 
         elif args.suite=='native-intent-late':

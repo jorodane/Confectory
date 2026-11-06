@@ -34,7 +34,7 @@ try:
   try:
    if mode=='unavailable':
     browser_context=browser.new_context();browser_context.add_init_script("const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return /webgl/i.test(type)?null:original.call(this,type,...args)};")
-    page=f.setup(browser_context)
+    page=f.setup(type('UnavailableBrowser',(),{'new_page':lambda self,**options:browser_context.new_page()})());page.set_viewport_size({'width':1440,'height':1000})
    else:page=f.setup(browser)
    if mode=='tampered':
     expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_count(0);page.locator('[data-workspace-zoom]').click();page.get_by_role('button',name='150%',exact=True).click();assert abs(private()['workspaceView']['scale']-1.5)<.001;guards();f.checked('tampered optional display asset fails its full SHA and withholds the 3D bundle; existing editor/private zoom and source protections still work')
@@ -67,11 +67,27 @@ try:
     switch('office');ready();assert abs(camera()['scale']-1.5)<.001;guards();f.checked('camera 150% survives repeated panel/office toggles; closed zoom callback cannot change the current private camera; no layout/source edits')
     # Original storage -> native Browser; never a separate prototype editor.
     page.locator('[data-office-map]').click();office().locator('[data-office-map-list="'+folder+'"]').click()
-    office().locator('[data-office-id="'+folder+'"]').click();expect(office().locator('[data-office-radial="rearrange"]')).to_have_count(0)
+    expect(office().locator('[data-office-radial="rearrange"]')).to_have_count(0)
     office().locator('[data-office-radial="open"]').click()
     expect(page.locator('.window[data-key="browser"]')).to_be_visible(timeout=20000)
     guards();f.checked('original owned room radial entry delegates to the existing permission-checked feature Browser rather than copying or editing declaration sources')
-    if mode=='cold':
+    if mode=='late':
+     zoom(200);held={};ids=set()
+     def pause_save(route):
+      body=route.request.post_data_json
+      if body.get('op')=='invoke'and body.get('endpoint')=='savePresentation':ids.add(body['requestId'])
+      response=route.fetch();data=response.json()
+      if not held and any(row.get('requestId')in ids and row.get('ok')for row in data.get('results',[])):held.update(route=route,response=response,data=data);return
+      route.fulfill(response=response,json=data)
+     page.route('**/api/request',pause_save);page.evaluate("()=>{globalThis.__officeSaved=null;confectoryFlushPresentation().then(()=>globalThis.__officeSaved='done').catch(e=>globalThis.__officeSaved=e.message)}")
+     end=time.monotonic()+30
+     while not held and time.monotonic()<end:page.wait_for_timeout(30)
+     assert held;zoom(300)
+     for row in held['data']['results']:
+      if row.get('requestId')in ids:row['ok']=False;row['error']={'code':'transport-interrupted'};row.pop('result',None)
+     held['route'].fulfill(response=held['response'],json=held['data']);page.unroute('**/api/request',pause_save);page.wait_for_function('globalThis.__officeSaved!==null');assert page.evaluate('globalThis.__officeSaved')!='done'
+     assert abs(camera()['scale']-3)<.001;guards();f.checked('controlled lost checkpoint reply after server commit preserves a newer 300% camera and explicit retry saves that camera under the same project, without source or execution changes')
+    elif mode=='cold':
      stored=camera();page.close();f.stop();f.start(1);page=f.setup(browser);ready();assert camera()==stored;guards();f.checked('fresh engine restores display preference and private camera from durable presentation without restoring source-edit or execution authority')
     elif mode=='normal':
      old=camera();f.call('leaveProject',{});page.wait_for_selector('.home-grid');f.call('openProject',{'manifest':str(f.projects[1])});page.wait_for_selector('.work-body');expect(page.get_by_role('button',name='패널 Workspace',exact=True)).to_have_attribute('aria-pressed','true');expect(office()).to_have_count(0)
