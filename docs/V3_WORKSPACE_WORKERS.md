@@ -33,7 +33,7 @@ native 관측의 전체 64자리 ID를 actor key와 갱신 식별에 보존하�
 작업 snapshot은 불변이며 이동/도착·자리와 독립적이다. Helper 도착 전에도 실제 Worker
 상태를 표시하고 3D를 끈 동안에도 기존 실행은 계속된다. 이 연결은 레거시 window 활동
 이벤트를 실제 관측으로 채택하지 않는다. `canInspectTask`는 이미 공개된 현재 DTO의 표시
-일치를 확인할 뿐 native 권한을 부여하지 않는다. `canArrange`/`canWrite`/`canChat`는 false다.
+일치를 확인할 뿐 native 권한을 부여하지 않는다. 개인 배치의 canArrange/canWrite는 [후속](V3_PRIVATE_ARRANGEMENT.md)에 연결하며 source 권한을 부여하지 않는다. canChat은 false다.
 실제 배정·승인·실행·Review→Confirm·채택·취소는 기존 경로만 사용한다. source·C# bytes·
 계약/override IO·CAS/Undo/입력 보존이나 작업 journal 저장 코드는 변경하지 않는다.
 
@@ -44,8 +44,9 @@ native 관측의 전체 64자리 ID를 actor key와 갱신 식별에 보존하�
 Helper 상세는 실제 객체형 Worker와 원본 배열형을 모두 읽고, 확인된 작업 수와 실제 상태를
 표시한다. 움직이는 actor의 원본 메뉴·레이아웃을 유지하며 기존 버튼의 키보드 조작도 사용한다.
 
-유한한 잔여는 실제 read/write 신호의 native 제공·연결, 원본 배치 편집과 자식 Workspace의
-넓은 조작이다. 없는 신호를 쓰기 연출로 대체하지 않는다. V4/V5의 별도 신원/권한·가시성
+V3의 실제 구현 잔여는 개별 read/write 신호의 native 제공·연결이다. 개인 배치·확정 전
+snapshot 분리·root/child 격리는 위 후속으로 연결했다. 자식 Workspace의 다른 원본 조작은
+기존 지원 대조/검증 대상이며 조합마다 새 필수 기능을 늘리지 않는다. 없는 신호를 쓰기 연출로 대체하지 않는다. V4/V5의 별도 신원/권한·가시성
 backend, V6 자산 저장과 V7 미리보기, V8 Run 영상·오디오 backend 및 V9 참여자/대화 연결은
 각 고정 행에 남는다. M11/M12/M4는 새 회귀 없이 재개하지 않는다. 실제 Windows/모바일·
 전체 UI·Space/Library 전달 완료를 뜻하지 않는다.
