@@ -1,0 +1,23 @@
+{
+  "baseCommit": "1055fd0a0c083a00a52cabc71a9df145081d49f7",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/feature-authoring.js",
+      "before": " function ownedTextFields(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length>=2&&cells.length<=3&&new Set(cells.map(([,v])=>v.type)).size===cells.length&&cells.every(([key,v])=>['rename','intent','source'].includes(v.type)&&(!cellFrame(w,key)||cellFrame(w,key)===data.id)&&v.node===cells[0][1].node&&typeof v.text==='string')&&data.nodes.some(node=>node.id===cells[0][1].node&&node.kind==='code'&&node.control==='next'&&!node.implementationContext&&!node.forwardCallerStorage);}",
+      "after": " function ownedTextFields(w,cells,data=w.authorData){return !!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&cells.length>=2&&cells.length<=64&&(cells.length<=3&&new Set(cells.map(([,v])=>v.type)).size===cells.length&&cells.every(([,v])=>['rename','intent','source'].includes(v.type)&&v.node===cells[0][1].node)||cells.every(([,v])=>v.type==='rename')&&new Set(cells.map(([,v])=>v.node)).size===cells.length)&&cells.every(([key,v])=>typeof v.text==='string'&&(!cellFrame(w,key)||cellFrame(w,key)===data.id)&&data.nodes.some(node=>node.id===v.node&&node.kind==='code'&&node.control==='next'&&!node.implementationContext&&!node.forwardCallerStorage));}",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": " bool ownedRenameBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"rename\";",
+      "after": " bool ownedRenameBatch=request[\"owner\"] is null&&graphId==physicalGraphId&&(edits.Count==1&&edits[0]?[\"frame\"] is null&&edits[0]?[\"action\"]?.ToString()==\"rename\"||edits.Count is >=2 and <=64&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?[\"node\"]?.ToString()),StringComparer.Ordinal))==edits.Count&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row&&row.Count==3&&row[\"action\"]?.ToString()==\"rename\"&&row[\"node\"] is System.Text.Json.Nodes.JsonValue nodeValue&&nodeValue.TryGetValue<string>(out _)&&row[\"text\"]?.GetValueKind()==System.Text.Json.JsonValueKind.String));",
+      "count": 1
+    },
+    {
+      "path": "packs/pack-workspace/Blueprint.csbody",
+      "before": "(!(ownedRouteBatch||ownedTextFieldsBatch)||node[\"control\"]?.ToString()==\"next\")",
+      "after": "(!(ownedRouteBatch||ownedTextFieldsBatch||ownedRenameBatch&&edits.Count>1)||node[\"control\"]?.ToString()==\"next\")",
+      "count": 1
+    }
+  ]
+}
