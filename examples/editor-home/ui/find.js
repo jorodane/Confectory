@@ -7,7 +7,7 @@ export function createPlacedTextFind(api){
   while(node=walker.nextNode()){const parent=node.parentElement;if(parent&&!parent.closest('input,textarea,select,script,style,template,[hidden],[aria-hidden="true"]')&&visible(parent))parts.push(node.textContent);}
   for(const input of el.querySelectorAll('input,textarea,select')){
    const identity=[input.type,input.id,input.name,input.autocomplete,...[...input.attributes].filter(a=>a.name.startsWith('data-')).map(a=>a.name+' '+a.value)].join(' ');
-   if(visible(input)&&input.type!=='hidden'&&!/password|secret|token|api[-_]?key/i.test(identity))parts.push(input.value);
+   if(visible(input)&&!input.closest('[aria-hidden="true"]')&&input.type!=='hidden'&&!/password|secret|token|api[-_]?key/i.test(identity))parts.push(input.value);
   }
   return parts.join(' ').replace(/\s+/g,' ').trim();
  }
@@ -44,5 +44,5 @@ export function createPlacedTextFind(api){
  function track(event){if(event.target.closest?.('.placed-text-find,.nav-menu'))return;lastHost=event.target.closest?.('.window,.tab-document')||null;}
  document.addEventListener('pointerdown',track,true);document.addEventListener('focusin',track,true);
  document.addEventListener('keydown',event=>{if(event.isComposing||event.keyCode===229||event.defaultPrevented||!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='f')return;const context=api.context(lastHost);if(!context)return;event.preventDefault();open(context);});
- return {open,close};
+ return {open,close,text:placedText};
 }

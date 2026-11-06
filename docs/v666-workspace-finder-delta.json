@@ -1,0 +1,120 @@
+{
+  "baseCommit": "b24fe4cc82ecaf5131007632b16975a59ed66ab9",
+  "deltas": [
+    {
+      "path": "examples/editor-home/ui/find.js",
+      "before": "return {open,close};",
+      "after": "return {open,close,text:placedText};",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "import {createPlacedTextFind} from './find.js';",
+      "after": "import {createPlacedTextFind} from './find.js';\nimport {createWorkspaceFinder} from './workspace-finder.js';",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "function openDefinitionTarget(source,id){",
+      "after": "const workspaceFinder=createWorkspaceFinder({\n context:()=>{const host=$('#workspace'),anchor=$('#worker-finder-bubble');return page==='work'&&current.projectId&&host&&anchor&&!actualWorkspace.loading?{host,anchor,key:current.projectId+'|'+view.generation+'|'+workspaceRuntime.state.activeWorkspaceId}:null;},\n ready:()=>!busy&&!actualWorkspace.loading&&!$('.modal[aria-modal=\"true\"]'),beforeOpen:()=>placedFind.close(),\n nodes:()=>workspaceRuntime.state.workspaceNodes.values(),windows:()=>windows.values(),objects:()=>browserProjection.workspaceRows(),text:element=>placedFind.text(element),decorationName:item=>workspaceRuntime.decorationName(item),\n openObject:id=>{if(browserProjection.workspaceRows().some(row=>row.id===id))actualWorkspaceOpenDeclaration(id);},\n focusNode:key=>{const node=workspaceRuntime.state.workspaceNodes.get(key)||windows.get(key);if(!node?.el.isConnected||node.el.hidden)return;if(windows.get(key)===node){actualWorkspace.reveal(key);if(!node.documentDocked)workspaceRuntime.focusWorkspaceWindow(node);}else{actualWorkspace.activateBackground();workspaceRuntime.focusWorkspaceNode(node);workspaceRuntime.workspaceCenterOn(node.x+node.width/2,node.y+node.height/2);}}\n});\nfunction actualWorkspaceOpenDeclaration(id){const row=browserProjection.rows().find(row=>row.id===id);if(row)return openBrowserDefinition(row);}\n\nfunction openDefinitionTarget(source,id){",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "function drawHome(){",
+      "after": "function drawHome(){workspaceFinder.close();",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "function drawWork(){",
+      "after": "function drawWork(){workspaceFinder.close();",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "<button class=\"bubble\" id=\"issues\"",
+      "after": "<button class=\"bubble\" id=\"worker-finder-bubble\" aria-label=\"검색\" title=\"검색 · 창과 요소\" aria-expanded=\"false\" aria-controls=\"workspace-find-panel\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" aria-hidden=\"true\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"m15.5 15.5 5 5\"/></svg><span class=\"dock-label\">검색</span></button><button class=\"bubble\" id=\"issues\"",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "$('#nav').onclick=toggleNav;",
+      "after": "$('#worker-finder-bubble').onclick=()=>workspaceFinder.open();$('#nav').onclick=toggleNav;",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "function controls(){",
+      "after": "function controls(){workspaceFinder.update();",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "#conflict-log,#issues,#open-local",
+      "after": "#conflict-log,#issues,#worker-finder-bubble,#open-local",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/style.css",
+      "before": "body:has(>.run-window.is-run-fullscreen) .modal-shade{z-index:122000!important}\nbody:has(>.run-window.is-run-fullscreen) .context-menu{z-index:122200!important}\nbody:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}\n",
+      "after": "body:has(>.run-window.is-run-fullscreen) .modal-shade{z-index:122000!important}\nbody:has(>.run-window.is-run-fullscreen) .context-menu{z-index:122200!important}\nbody:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}\n\n/* Authored v666 project workspace finder. */\n.bubble-dock #worker-finder-bubble{display:grid;place-items:center}\n.bubble-dock #worker-finder-bubble svg{width:29px;height:29px}\n.bubble-dock #worker-finder-bubble[aria-expanded=true]{border-color:#f2d1a0;background:#4b4740}\n.workspace-find-panel{position:fixed;z-index:1900;width:min(385px,calc(100vw - 16px));min-height:185px;display:flex;flex-direction:column;gap:9px;padding:13px;background:#252525f7;border:1px solid #696057;border-radius:10px;box-shadow:0 16px 45px #000b;color:#f0e8da}\n.workspace-find-panel header{display:flex;align-items:center;justify-content:space-between;gap:8px}\n.workspace-find-panel header strong{color:#f2d5a3;font-size:14px}\n.workspace-find-panel header button{padding:1px 7px;font-size:20px;line-height:1.3}\n.workspace-find-panel>input{width:100%;padding:9px 10px;border:1px solid #706458;border-radius:6px;background:#1b1b1b;color:#f6eee0;font-size:13px}\n.workspace-find-modes{display:flex;gap:4px;padding:3px;background:#1d1d1d;border:1px solid #54504b;border-radius:6px}\n.workspace-find-modes button{flex:1;padding:6px;border-radius:4px;color:#c8c2b9;font-size:12px}\n.workspace-find-modes button[aria-pressed=true]{background:#514434;color:#ffdbA3;box-shadow:inset 0 0 0 1px #b98648}\n.workspace-find-status{font-size:11px;color:#beb7ac}\n.workspace-find-results{min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:3px;padding-right:2px}\n.workspace-find-results h3{margin:8px 0 3px;padding-bottom:4px;border-bottom:1px solid #59534a;color:#f1c98c;font-size:11px;font-weight:600}\n.workspace-find-result{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:7px 8px;background:#303030;border:1px solid #515151;border-radius:6px;text-align:left}\n.workspace-find-result:hover,.workspace-find-result[data-active=true],.workspace-find-result:focus-visible{background:#4b4033;border-color:#d49a50}\n.workspace-find-result>span:last-child{display:flex;min-width:0;flex-direction:column;gap:2px}\n.workspace-find-result strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#f1e8d5}\n.workspace-find-result small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c0b9ae;font-size:10px}\n.workspace-find-icon{display:grid;place-items:center;flex:none;width:27px;height:27px;border:1px solid #685b4b;border-radius:5px;background:#262626;color:#f1c98c;font-size:15px}\n.workspace-find-empty{padding:20px 8px;text-align:center;color:#bcb5a9;font-size:12px}\n.workspace-find-panel{box-sizing:border-box;overflow:hidden}\n.workspace-find-panel>input{flex:none}\n.workspace-find-results{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#9a8466 #303030}\n.workspace-find-results>*{flex:none}\n@media(max-width:700px){.workspace-find-panel{width:min(385px,calc(100vw - 16px));padding:11px}}\n.is-mobile-editor .workspace-find-panel{left:8px!important;right:8px!important;top:8px!important;bottom:auto!important;width:auto!important;height:min(580px,calc(var(--mobile-height,100svh) - 16px))!important;max-height:none!important}\n",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/find.js",
+      "before": "if(visible(input)&&input.type!=='hidden'&&!/password|secret|token|api[-_]?key/i.test(identity))",
+      "after": "if(visible(input)&&!input.closest('[aria-hidden=\"true\"]')&&input.type!=='hidden'&&!/password|secret|token|api[-_]?key/i.test(identity))",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "ready:()=>!busy&&!actualWorkspace.loading&&!$('.modal[aria-modal=\"true\"]'),beforeOpen:()=>placedFind.close(),",
+      "after": "ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!$('.modal[aria-modal=\"true\"]'),beforeOpen:()=>placedFind.close(),\n loadState:()=>inventoryLoadScheduled?'loading':browserProjection.error?'failed':null,load:()=>{if(browserProjection.error)browserProjection.retry();ensureBrowserInventory();},",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "const hasBrowser=[...windows.values()].some(w=>w.key==='browser'",
+      "after": "const hasBrowser=!!$('#workspace-find-panel')||[...windows.values()].some(w=>w.key==='browser'",
+      "count": 1
+    },
+    {
+      "path": "examples/editor-home/ui/v508-runtime.js",
+      "before": "#conflict-log,#run,#title,.run-window button,[data-window-tab],.workspace-tab-close",
+      "after": "#conflict-log,#run,#title,#worker-finder-bubble,.run-window button,[data-window-tab],.workspace-tab-close",
+      "count": 2
+    }
+  ],
+  "referenceCss": [
+    ".bubble-dock #worker-finder-bubble{display:grid;place-items:center}",
+    ".bubble-dock #worker-finder-bubble svg{width:29px;height:29px}",
+    ".bubble-dock #worker-finder-bubble[aria-expanded=true]{border-color:#f2d1a0;background:#4b4740}",
+    ".workspace-find-panel{position:fixed;z-index:1900;width:min(385px,calc(100vw - 16px));min-height:185px;display:flex;flex-direction:column;gap:9px;padding:13px;background:#252525f7;border:1px solid #696057;border-radius:10px;box-shadow:0 16px 45px #000b;color:#f0e8da}",
+    ".workspace-find-panel header{display:flex;align-items:center;justify-content:space-between;gap:8px}",
+    ".workspace-find-panel header strong{color:#f2d5a3;font-size:14px}",
+    ".workspace-find-panel header button{padding:1px 7px;font-size:20px;line-height:1.3}",
+    ".workspace-find-panel>input{width:100%;padding:9px 10px;border:1px solid #706458;border-radius:6px;background:#1b1b1b;color:#f6eee0;font-size:13px}",
+    ".workspace-find-modes{display:flex;gap:4px;padding:3px;background:#1d1d1d;border:1px solid #54504b;border-radius:6px}",
+    ".workspace-find-modes button{flex:1;padding:6px;border-radius:4px;color:#c8c2b9;font-size:12px}",
+    ".workspace-find-modes button[aria-pressed=true]{background:#514434;color:#ffdbA3;box-shadow:inset 0 0 0 1px #b98648}",
+    ".workspace-find-status{font-size:11px;color:#beb7ac}",
+    ".workspace-find-results{min-height:0;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:3px;padding-right:2px}",
+    ".workspace-find-results h3{margin:8px 0 3px;padding-bottom:4px;border-bottom:1px solid #59534a;color:#f1c98c;font-size:11px;font-weight:600}",
+    ".workspace-find-result{display:flex;align-items:center;gap:9px;width:100%;min-width:0;padding:7px 8px;background:#303030;border:1px solid #515151;border-radius:6px;text-align:left}",
+    ".workspace-find-result:hover,.workspace-find-result[data-active=true],.workspace-find-result:focus-visible{background:#4b4033;border-color:#d49a50}",
+    ".workspace-find-result>span:last-child{display:flex;min-width:0;flex-direction:column;gap:2px}",
+    ".workspace-find-result strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600;color:#f1e8d5}",
+    ".workspace-find-result small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c0b9ae;font-size:10px}",
+    ".workspace-find-icon{display:grid;place-items:center;flex:none;width:27px;height:27px;border:1px solid #685b4b;border-radius:5px;background:#262626;color:#f1c98c;font-size:15px}",
+    ".workspace-find-empty{padding:20px 8px;text-align:center;color:#bcb5a9;font-size:12px}",
+    ".workspace-find-panel{box-sizing:border-box;overflow:hidden}",
+    ".workspace-find-panel>input{flex:none}",
+    ".workspace-find-results{flex:1;min-height:0;overflow-y:auto;scrollbar-gutter:stable;scrollbar-width:thin;scrollbar-color:#9a8466 #303030}",
+    ".workspace-find-results>*{flex:none}",
+    ".is-mobile-editor .workspace-find-panel{left:8px!important;right:8px!important;top:8px!important;bottom:auto!important;width:auto!important;height:min(580px,calc(var(--mobile-height,100svh) - 16px))!important;max-height:none!important}"
+  ],
+  "newFiles": {
+    "examples/editor-home/ui/workspace-finder.js": "9713a473ad6e500c6c043ba659d9b85ebde71f35c4dc80ab462b815b42b9ce07"
+  }
+}
