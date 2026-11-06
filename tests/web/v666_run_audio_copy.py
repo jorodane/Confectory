@@ -1,6 +1,9 @@
 """Finite software PCM feature, pinned authored source and unaffected execution contracts."""
 import pathlib,json,subprocess,hashlib,sys
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-run-audio-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-run-presets-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_run_presets_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-run-audio-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles']),paths
 for p,digest in d['productFiles'].items():assert hashlib.sha256((r/p).read_text().encode()).hexdigest()==digest,p
 assert not any(p.startswith(('src/','targets/','packs/web-ui/','packs/project-ai/','packs/development-tools/'))for p in paths)
 for p in ['examples/software-output/Main.csbody','examples/resizable-output/Main.csbody','packs/frame-control/Begin.csbody','packs/frame-control/Complete.csbody','packs/project-execution/Surface.csbody','packs/project-execution/ResizeSurface.csbody','packs/run-surface/Open.csbody']:

@@ -115,7 +115,7 @@ def main():
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
     parser.add_argument('--reuse-audio',type=Path,help='Sealed identical LF/CRLF audio checks after exact package raw-string parser correction')
-    parser.add_argument('--suite',choices=['run-audio','run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
+    parser.add_argument('--suite',choices=['run-presets','run-audio','run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +148,7 @@ def main():
             if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
             from verification_source_reuse import bind
             bind(repo,args.reuse_source,commit,inputs,work)
-        if args.suite in ['run-audio','run-resolution','run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
+        if args.suite in ['run-presets','run-audio','run-resolution','run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
             work.run(args.suite+'-owned-ipc-lifetime',
                 [sys.executable,str(repo/'tests/probes/verification_workspace_test.py')],cwd=repo,
                 env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
@@ -470,6 +470,15 @@ def main():
                     work.run(label+'-run-fullscreen-regression',[sys.executable,str(checkout/'tests/web/v666_run_fullscreen_ui.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
                 for mode in (['basic','scope','load']if label=='lf'else['basic','scope']):
                     work.run(label+'-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+
+            elif args.suite=='run-presets':
+                work.run(label+'-run-presets-copy',[sys.executable,str(checkout/'tests/web/v666_run_presets_copy.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-run-presets-projection',['node',str(checkout/'tests/web/v666_run_presets_projection.mjs'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-run-presets-api',[sys.executable,str(checkout/'tests/web/v666_run_presets_api.py'),str(checkout),str(report)],cwd=checkout,env=env)
+                work.run(label+'-run-presets-ui',[sys.executable,str(checkout/'tests/web/v666_run_presets_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-run-resolution-ui',[sys.executable,str(checkout/'tests/web/v666_run_resolution_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-run-audio-ui',[sys.executable,str(checkout/'tests/web/v666_run_audio_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-run-view-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RunSurfaceTests','test_web_ui_read_observations','test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
 
             elif args.suite=='run-audio':
                 for name,kind in [('copy','py'),('projection','mjs')]:
@@ -1373,6 +1382,9 @@ def main():
             for mode in ['basic','scope']:
                 work.run('packaged-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(package/'content'),str(packaged_report),mode],cwd=checkout,env=env)
 
+        elif args.suite=='run-presets':
+            work.run('packaged-run-presets',[sys.executable,str(checkout/'tests/web/v666_run_presets_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+
         elif args.suite=='run-audio':
             work.run('packaged-run-audio',[sys.executable,str(checkout/'tests/web/v666_run_audio_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
 
@@ -1686,6 +1698,9 @@ def main():
         elif args.suite=='workspace-finder':
             for mode in ['basic','load']:
                 work.run('restored-workspace-finder-'+mode,[sys.executable,str(checkout/'tests/web/v666_workspace_finder_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
+
+        elif args.suite=='run-presets':
+            work.run('restored-run-presets',[sys.executable,str(checkout/'tests/web/v666_run_presets_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
 
         elif args.suite=='run-audio':
             work.run('restored-run-audio',[sys.executable,str(checkout/'tests/web/v666_run_audio_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)

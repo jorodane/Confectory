@@ -1,0 +1,8 @@
+function Confectory.EditorHome.Model::RunPresets (string session,string operation,string payload) -> string {
+description "Private per-project resolution registrations; caller context, storage CAS and exact replay receipt do not grant execution or source permissions.";
+provide Confectory.EditorHome.Model::RunPresets with Confectory.EditorHome.Model::RunPresetsBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::Snapshot with Confectory.FileStream::SnapshotBody;
+}

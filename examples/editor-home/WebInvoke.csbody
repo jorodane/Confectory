@@ -36,6 +36,8 @@ if(endpoint is "projectInformation" or "saveProjectInformation"){
 if(endpoint=="saveHelperPresentation"){
  Command("helper-presentation-save",new(){["helper"]=args["helper"]!.DeepClone(),["revision"]=args["revision"]!.DeepClone(),["value"]=args["value"]!.DeepClone()});return "{\"accepted\":true}";
 }
+if(endpoint=="runPresetRead"){if(args.Count!=0)throw new UnauthorizedAccessException("run_preset_fields");return calls.RunPresets.Invoke(context,"load","{}");}
+if(endpoint=="runPresets"){string operation=args["operation"]?.GetValue<string>()??"";if(operation is not ("add" or "remove"))throw new UnauthorizedAccessException("run_preset_operation");var request=args.DeepClone().AsObject();request.Remove("operation");return calls.RunPresets.Invoke(context,operation,request.ToJsonString());}
 if(endpoint is "runWindowRead" or "runSurface" or "runAudio"){
  foreach(var field in args)if(field.Key is not ("view" or "lease" or "handle" or "cursor"))throw new UnauthorizedAccessException("Run observation fields");if(endpoint=="runWindowRead"&&args["cursor"]is not null)throw new UnauthorizedAccessException("Run metadata fields");var query=args.DeepClone().AsObject();query["context"]=before["selected"]?["context"]?.DeepClone()??throw new UnauthorizedAccessException("Open project first");return calls.RunWindows.Invoke(context,endpoint=="runSurface"?"surface":endpoint=="runAudio"?"audio":"read",query.ToJsonString());
 }

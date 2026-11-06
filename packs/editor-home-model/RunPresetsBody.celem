@@ -1,0 +1,7 @@
+implementation Confectory.EditorHome.Model::RunPresetsBody for Confectory.EditorHome.Model::RunPresets (string session,string operation,string payload) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.ProjectManager::Identity as Identity (string[],string) -> string;
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[];
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "RunPresets.csbody";
+}
