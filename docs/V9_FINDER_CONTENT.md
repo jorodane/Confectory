@@ -7,7 +7,7 @@
 
 ## 이번 사용자 흐름
 
-- 검색 버블 → 글자 → 검색어 입력으로 소유 선언의 설명과 Browser Data의 값/기본값을 찾는다.
+- 검색 버블 → 글자 → 검색어 입력으로 소유 선언의 설명과 Browser Data가 노출하는 값을 찾는다.
   현재 탐색기가 허용한 qualified ID만 기존 `browserElements` 읽기에 64개씩 전달한다.
   객체의 상속된 유효 값과 복합 문자열도 기존 Describe 표현을 사용한다.
 - 문자열은 Unicode를 복원하고 정수는 JSON 숫자의 원래 표기를 유지한다. 큰 정수를
@@ -48,3 +48,5 @@ Run 내장 surface IPC와 audio provider는 아직 없다. 이 환경에는 DISP
 V6/V7 자산·편집, 기타 고정 팩/backend·종류 결정·V1/V2 잔여는 확대하지 않고 유지한다.
 Linux .NET/Chromium·Windows 교차 패키지/복원 검사와 실제 Windows/WebView2·모바일·
 DPI/IME·전체 UI·Library/Space 전달을 구분한다.
+
+[최종 39단계 검증(신규 39·재사용 0)](VALIDATION_V666_FINDER_CONTENT.md)을 통과했다.
