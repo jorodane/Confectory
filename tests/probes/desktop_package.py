@@ -51,7 +51,7 @@ def main():
   for key in ['CONFECTORY_EDITOR_REPO','CONFECTORY_WEBVIEW_HOST','CONFECTORY_ELEMENT_AUTHORING_HOST','CONFECTORY_PROJECT_EXECUTION_HOST']:
    assert pathlib.Path(plan['environment'][key]).is_relative_to(package),key
   assert pathlib.Path(plan['environment']['CONFECTORY_HOME_STORAGE'])==storage
-  resources=json.loads(re.search(r'\n(\{.*\})\n',(content/'examples/editor-home/WebBundle.csbody').read_text()).group(1))
+  bundle=(content/'examples/editor-home/WebBundle.csbody').read_text().split('"""');assert len(bundle)==3;resources=json.loads(bundle[1])
   # Verification rejects a changed resource and missing dependency before starting.
   asset=content/'examples/editor-home/ui/index.html';original=asset.read_bytes()
   try:asset.write_bytes(original+b'fixture corruption');assert 'missing or changed' in check(False)
