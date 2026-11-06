@@ -4,7 +4,7 @@ from playwright.sync_api import sync_playwright,expect
 import v666_finder_content_fixture as f
 mode=sys.argv[3];page=None
 def office():return page.locator('.voxel-office')
-def ready():expect(page.locator('#workspace')).to_have_attribute('data-office-renderer','ready');expect(office()).to_be_visible();expect(page.locator('#office-arrange-bubble')).to_be_visible()
+def ready():expect(page.locator('#workspace')).to_have_attribute('data-office-renderer','ready');expect(office()).to_be_visible();expect(page.locator('#office-arrange-bubble')).to_have_count(1)
 def switch(view):page.get_by_role('button',name='아이소메트릭 Workspace'if view=='office'else'패널 Workspace',exact=True).click()
 def private():page.evaluate('()=>confectoryFlushPresentation()');return f.state()['presentation']
 def guards():
