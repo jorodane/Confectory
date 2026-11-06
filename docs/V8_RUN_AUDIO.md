@@ -17,7 +17,7 @@ software-output/resizable-output의 바이트는 바꾸지 않는다. 오디오�
 청크/32000개 샘플이다. wire는 정수 문자열 Int64 sequence·누적 샘플·청크 offset, publisher
 GUID,전체 PCM SHA256과 canonical base64url로 검증한다. 이전 샘플을 요청하지 않은 첫 관측은
 현재 cursor만 반환한다. 보관 범위를 넘긴 요청은 명시적 gap/reset이며 유실 샘플을 만들거나
-이전 재생을 반복하지 않는다. publisher 교체/과거 publisher 재등장도 검증한다.
+이전 재생을 반복하지 않는다. 새 청크가 없는 반복 읽기는 예약된 소리를 중단하거나 다시 예약하지 않는다. publisher 교체/과거 publisher 재등장도 검증한다.
 
 `ProjectExecution.Audio`는 이미 실행에 발급된 같은 사용자 FrameControl pipe의 인증·소유
 handle·runtime envelope를 검증한다. 별도 socket·자격증명·권한 부여는 없다. 활성
@@ -31,7 +31,7 @@ frame ACK·heartbeat·Resume·Step을 발생시키지 않는다. source/실행/�
 
 처음에는 Off다. 실제 producer가 관측된 창에서 사용자가 스위치를 클릭할 때만 해당 창의
 실제 AudioContext를 만들고 resume한다. 지원이 없거나 context 시작이 거절되면 재생을
-꾸미지 않는다. browser queue는 최대12000개 샘플(.75초)이고 오래된 적체는 명시적으로
+꾸미지 않는다. browser queue는 기존 대기량과 새 묶음을 합해 최대12000개 샘플(.75초)이고 오래된 적체는 명시적으로
 건너뛴다. 네트워크/스케줄링 지연을 보상하는 무음·합성 sample이나 실행 제어는 넣지 않는다.
 원본 `테스트` 버튼은 사용자가 켠 context에서만 별도의 짧은440Hz 로컬 장치 테스트다.
 이 신호는 프로젝트에서 온 오디오라는 증거로 쓰지 않는다.
