@@ -16,7 +16,7 @@
   추가한다. 이미 관측한 원문과 `inspect.relations`를 재사용하며 파일이나 실행기를 새로
   읽지 않는다. 표시명 해석을 위해 다른 기능 정의를 가져오지도 않는다.
 - `include`·부모·상속 요구 기능을 따라가지 않는다. 다른 선언의 본문/설명·외부 source·
-  private ID·경로를 합치지 않는다. 같은 표시명의 모듈도 원래 qualified owner ID로 구별한다.
+  private 세션/뷰 식별자·경로를 합치지 않는다. 같은 표시명의 모듈도 원래 qualified owner ID로 구별한다.
 - 기존 source/owner/revision/hash 전후 확인과 20,000자 부분 색인 상태, 요청 ID 개수·
   종류/namespace·추가 필드 거절을 유지한다. 새 저장 타입이나 권한 정책은 없다.
 - 현재 공유 초안의 바뀐 요구 이름과 Undo/Redo는 기존 전역 source-basis 색인 갱신을
@@ -24,7 +24,7 @@
   모듈 인터페이스 열기를 호출한다. 검색어와 색인은 cold·다른 프로젝트로 재생하지 않는다.
 
 제품 변경은 [정확한 delta](v666-finder-modules-delta.json)의 TableCommand 한 삽입뿐이다.
-일반 Browser/Data API와 편집/실행 계약·권한·원본/부모/외부·C# bytes·ID/연결·UI/레이아웃·
+일반 Browser/Data API와 편집/실행 계약·권한·원본/부모/외부·사용자 C# 본문·ID/연결·UI/레이아웃·
 Review→Confirm·원자 저장·최종 CAS·Undo는 유지한다. 검색을 위해 자동 Save/Confirm·
 계약 보정·상속 원본 열기나 쓰기를 추가하지 않는다. 가능한 관계/타입 조합을 새 필수
 검색 기능으로 늘리지 않는다.
@@ -39,3 +39,5 @@ V9 참가자/Helper/연락처는 V4/V5 실제 신원·가시성, office는 V3 �
 완료된 보호는 구체적 회귀 없이 다시 열지 않는다. main은 사용자가 검토 후 병합한다.
 
 최종 독립 LF/CRLF·새 패키지/전체 복원·실패 수명관리 결과는 마감 검증 문서에 남긴다.
+
+[최종 33단계(신규 33·재사용 0) 검증](VALIDATION_V666_FINDER_MODULES.md)을 통과했다.
