@@ -39,6 +39,28 @@ lock(state){
   string contentHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(content.ToJsonString()))).ToLowerInvariant();
   return new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="available",["revision"]=observed["revision"]!.DeepClone(),["textHash"]=observed["textHash"]!.DeepClone(),["viewHash"]=observed["viewHash"]!.DeepClone(),["contentHash"]=contentHash,["fields"]=fields};
  }
+ string finderDraft="";int finderBodyCount=0,finderBodyBytes=0;var finderBodyProofs=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
+ (System.Text.Json.Nodes.JsonArray Rows,bool Incomplete) FinderBodies(string owner,string text,string ownerRevision){
+  var found=new System.Text.Json.Nodes.JsonArray();bool incomplete=false;
+  System.Text.Json.Nodes.JsonArray declarations;try{var declared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyDeclarations",System.Text.Json.JsonSerializer.Serialize(new{project=selected["path"]!.ToString(),id=owner,text})))!;declarations=declared["bodies"]!.AsArray();incomplete=declared["incomplete"]?.GetValue<bool>()==true;}catch{return(found,true);}
+  foreach(var locator in declarations){
+   if(finderBodyCount>=64||finderBodyBytes>=1048576){incomplete=true;continue;}finderBodyCount++;
+   try{string bodyId=locator!["id"]!.ToString(),bodyPath=locator["path"]!.ToString();var body=calls.ReadBoundedBody.Invoke(finderDraft,bodyId,bodyPath,1048576-finderBodyBytes);finderBodyBytes+=System.Text.Encoding.UTF8.GetByteCount(body[3]);
+    string fullHash=BrowserHash(body[3]);found.Add(new System.Text.Json.Nodes.JsonObject{["id"]=bodyId,["target"]=locator["target"]!.DeepClone(),["text"]=body[3],["revision"]=body[4],["ownerRevision"]=ownerRevision,["ownerHash"]=BrowserHash(text),["textHash"]=fullHash});
+    finderBodyProofs[bodyId]=new[]{bodyPath,body[4],fullHash};
+   }catch{incomplete=true;}
+  }
+  return(found,incomplete);
+ }
+ if(action=="finder-body"){
+  foreach(var field in args)if(field.Key is not ("action" or "context" or "id" or "target" or "ownerRevision" or "ownerHash" or "revision" or "textHash"))throw new UnauthorizedAccessException("finder-body-fields");
+  string owner=args["id"]!.ToString(),target=args["target"]!.ToString();if(!owner.StartsWith(selected["namespace"]!.ToString()+"::",StringComparison.Ordinal))throw new UnauthorizedAccessException("finder-body-owner");
+  string draft=calls.Borrow.Invoke(workspace);var source=calls.Read.Invoke(draft,owner);if(source[1]!="implementation"||source[4]!=args["ownerRevision"]?.ToString()||BrowserHash(source[3])!=args["ownerHash"]?.ToString())throw new InvalidOperationException("Finder owner changed; read again");
+  var declarations=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("bodyDeclarations",System.Text.Json.JsonSerializer.Serialize(new{project=selected["path"]!.ToString(),id=owner,text=source[3]})))!["bodies"]!.AsArray();var locator=System.Linq.Enumerable.SingleOrDefault(declarations,row=>row!["target"]?.ToString()==target)??throw new InvalidOperationException("Finder body no longer declared");
+  var body=calls.ReadBoundedBody.Invoke(draft,locator["id"]!.ToString(),locator["path"]!.ToString(),1048576);if(body[4]!=args["revision"]?.ToString()||BrowserHash(body[3])!=args["textHash"]?.ToString())throw new InvalidOperationException("Finder body changed; read again");
+  var latest=calls.Read.Invoke(draft,owner);if(latest[4]!=source[4]||latest[3]!=source[3])throw new InvalidOperationException("Finder owner changed during open");
+  calls.PackCommand.Invoke(workspace,"select",new System.Text.Json.Nodes.JsonObject{["id"]=body[0]}.ToJsonString());model["finderBody"]=new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["id"]=body[0]};return;
+ }
  if(action=="finder-content"){
   // Search adds declared structure to the existing owned Data projection. It
   // never exposes source paths/bodies or extends the generic Browser edit kinds.
@@ -48,7 +70,7 @@ lock(state){
   if(ids.Length<1||ids.Length>64||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(ids,StringComparer.Ordinal))!=ids.Length)throw new ArgumentException("Bounded unique finder owners required");
   string draft=calls.Borrow.Invoke(workspace),ns=selected["namespace"]!.ToString()+"::";
   foreach(string id in ids){string kind=calls.Status.Invoke(draft,id)[1];if(!id.StartsWith(ns,StringComparison.Ordinal)||!BrowserKind(kind)&&kind!="enum")throw new UnauthorizedAccessException("finder-content-owner");}
-  var result=new System.Text.Json.Nodes.JsonArray();
+  finderDraft=draft;var result=new System.Text.Json.Nodes.JsonArray();
   foreach(string id in ids){try{
    var source=calls.Read.Invoke(draft,id);var info=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=source[3]})))!;
    if(info["id"]?.ToString()!=id||info["kind"]?.ToString()!=source[1])throw new UnauthorizedAccessException("finder-content-identity");
@@ -58,9 +80,11 @@ lock(state){
    foreach(var member in info["enumValues"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())definition.Add(member!["name"]!.DeepClone());
    string hash=BrowserHash(source[3]);var row=source[1]=="enum"?new System.Text.Json.Nodes.JsonObject{["id"]=id,["kind"]="enum",["status"]="available",["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["viewHash"]=hash,["contentHash"]=hash,["fields"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["name"]="설명",["state"]="present",["valueJson"]=BrowserJson(info["description"]??System.Text.Json.Nodes.JsonValue.Create(""))})}:BrowserRow(draft,id);
    row["fields"]!.AsArray().Add(new System.Text.Json.Nodes.JsonObject{["name"]="정의",["state"]="present",["valueJson"]=BrowserJson(definition)});
+   if(source[1]=="implementation"){var bodyResult=FinderBodies(id,source[3],source[4]);row["bodies"]=bodyResult.Rows;row["incomplete"]=bodyResult.Incomplete;}
    var latest=calls.Read.Invoke(draft,id);if(latest[4]!=source[4]||latest[3]!=source[3]||row["textHash"]?.ToString()!=hash)throw new InvalidOperationException("Finder owner changed during read");
-   row["contentHash"]=BrowserHash(row["contentHash"]!.ToString()+"\n"+definition.ToJsonString());result.Add(row);
+   row["contentHash"]=BrowserHash(row["contentHash"]!.ToString()+"\n"+definition.ToJsonString()+"\n"+(row["bodies"]?.ToJsonString()??""));result.Add(row);
   }catch{result.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["status"]="unavailable",["code"]="finder-content-unavailable"});}}
+  foreach(var proof in finderBodyProofs){var current=calls.ReadBoundedBody.Invoke(draft,proof.Key,proof.Value[0],1048576);if(current[4]!=proof.Value[1]||BrowserHash(current[3])!=proof.Value[2])throw new InvalidOperationException("Finder body changed during read");}
   model["finderContent"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=selected["projectId"]!.DeepClone(),["rows"]=result};return;
  }
  if(action=="browser-elements"){

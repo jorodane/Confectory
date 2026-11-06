@@ -151,6 +151,7 @@ provide Confectory.SchemaEditing::Create with Confectory.SchemaEditing::CreateBo
 provide Confectory.SchemaEditing::Register with Confectory.SchemaEditing::RegisterBody;
 provide Confectory.EditWorkspace::SetValue with Confectory.EditWorkspace::SetValueBody;
 provide Confectory.EditWorkspace::Read with Confectory.EditWorkspace::ReadBody;
+provide Confectory.EditWorkspace::ReadBoundedBody with Confectory.EditWorkspace::ReadBoundedBodyBody;
 provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
 provide Confectory.EditWorkspace::DiscoverBodies with Confectory.EditWorkspace::DiscoverBodiesBody;
 provide Confectory.SchemaEditing::SetValue with Confectory.SchemaEditing::SetValueBody;

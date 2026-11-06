@@ -1,0 +1,1 @@
+function Confectory.EditWorkspace::ReadBoundedBody (string handle, string id, string expectedPath, int limit) -> string[] {description "Read one registered owned C# body with an asserted current locator and byte bound, retaining the normal lazy draft baseline. No caller path can select a file.";}

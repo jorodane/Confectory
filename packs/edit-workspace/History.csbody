@@ -1,5 +1,7 @@
-if(operation is not ("inspect" or "undo" or "redo")||payload.Length>4096)throw new ArgumentException("Explicit bounded history operation required");
+if(operation is not ("inspect" or "undo" or "redo" or "version")||payload.Length>4096)throw new ArgumentException("Explicit bounded history operation required");
 string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+// A display invalidation token never materializes undo records or changes history.
+if(operation=="version")lock(state){var clock=state["history"];return clock is null?"{\"available\":false}":new System.Text.Json.Nodes.JsonObject{["available"]=true,["epoch"]=clock["epoch"]!.DeepClone(),["revision"]=clock["revision"]!.ToString()}.ToJsonString();}
 string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 string[] materialize;
 lock(state){var history=state["history"]!;var ids=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(string direction in new[]{"undo","redo"}){var stack=history[direction]!.AsArray();if(stack.Count>0)foreach(var unit in stack[^1]!["units"]!.AsArray())ids.Add(unit!["id"]!.ToString());}materialize=System.Linq.Enumerable.ToArray(ids);}

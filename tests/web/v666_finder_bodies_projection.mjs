@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {pathToFileURL} from 'node:url';
+import {setTimeout as pause} from 'node:timers/promises';
+const {createFinderContent}=await import(pathToFileURL(process.argv[2]+'/examples/editor-home/ui/finder-content.js'));
+const owner='Owned.Bodies::Impl',hash='a'.repeat(64);let calls=[];
+const controller=createFinderContent({context:()=>({key:'A',basis:'one',projectId:'A',namespace:'Owned.Bodies'}),objects:()=>[{id:owner,kind:'implementation',owned:true},{id:'Owned.Bodies::Info',kind:'schema',owned:true},{id:'Owned.Bodies::Second',kind:'implementation',owned:true}],ready:()=>true,changed:()=>{},read:async ids=>{calls.push(ids);return {projectId:'A',rows:ids.map(id=>({id,status:'available',textHash:hash,fields:[],bodies:id===owner?[{id:owner+'/body:common',target:'common',text:'// ExactBodyNeedle\n'+'x'.repeat(22000)+'TailNeedle',revision:'9223372036854775806',ownerRevision:'9007199254740993',ownerHash:hash,textHash:'b'.repeat(64)},{id:'External::Body/body:common',target:'common',text:'NeverIndexForeignBody',revision:'0',ownerRevision:'0',ownerHash:hash,textHash:hash}]:[]}))};}});
+controller.ensure(true);const until=Date.now()+6000;while(controller.status.phase!=='partial'){assert.ok(Date.now()<until);await pause(10);}
+assert.deepEqual(calls,[[owner],['Owned.Bodies::Info'],['Owned.Bodies::Second']]);const body=controller.rows.get(owner).bodies[0];assert.equal(controller.rows.get(owner).bodies.length,1);assert.ok(body.text.includes('TailNeedle')&&!body.text.includes('NeverIndexForeignBody'));assert.equal(body.revision,'9223372036854775806');assert.equal(body.ownerRevision,'9007199254740993');controller.close();assert.equal(controller.rows.size,0);
+console.log('PASS implementation reads are isolated from unrelated owners; bounded long code and exact revision strings survive while foreign body receipts fail closed and close clears every code result');

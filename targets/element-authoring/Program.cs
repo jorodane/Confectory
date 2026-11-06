@@ -73,6 +73,10 @@ try
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
         case "browserFolderMove":case "browserFolderValidate":reply=BrowserFolderLayout.Execute(request,Format,S("operation")=="browserFolderValidate");break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;
+        case "bodyDeclarations":{
+            var element=new Parser(S("text"),"<owned-body-locators>").ParseElement();if(element.Id!=S("id")||element.Kind!="implementation"||element.Bodies.Count>256)throw new ArgumentException("Owned implementation body declarations required");
+            string root=Path.GetDirectoryName(Path.GetFullPath(S("project")))!;reply=new JsonObject{["incomplete"]=element.Bodies.Any(p=>p.Value.SourceKind!="csharp"),["bodies"]=new JsonArray(element.Bodies.Where(p=>p.Value.SourceKind=="csharp").OrderBy(p=>p.Key,StringComparer.Ordinal).Select(p=>(JsonNode)new JsonObject{["target"]=p.Key,["id"]=element.Id+"/body:"+p.Key,["path"]=Path.GetRelativePath(root,PackPaths.Owned(root,p.Value.Path))}).ToArray())};break;
+        }
         case "bodyUnits":reply=BodyUnitMetadata.Query(request);break;
         case "describe":
         {

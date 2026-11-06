@@ -24,6 +24,7 @@ export function createWorkspaceFinder(api){
   // Do not recursively search raw metadata, source paths or unobserved parents.
   if(query)for(const row of objects){
    const title=row.name||row.title||row.id.split('::').at(-1),detail=labels[row.kind]||row.kind||'요소',owned=row.owned!==false&&row.id.startsWith((api.namespace?.()||'')+'::'),content=title+' '+detail+(mode==='text'&&owned?' '+(row.description||'')+' '+(api.contentRows?.().get(row.id)?.text||''):'');
+   if(mode==='text'&&owned)for(const body of api.contentRows?.().get(row.id)?.bodies||[])if(matches(body.text))found.push({key:'body:'+body.id,id:body.id,owner:row.id,body,kind:'body',title:title+' · C# · '+body.target,detail:excerpt(body.text),icon:glyph(row.icon)});
    if(mode!=='text'&&represented.has(row.id)||!matches(content))continue;
    found.push({key:'object:'+row.id,id:row.id,kind:'object',title,detail:mode==='text'?detail+' · '+excerpt(content):detail,icon:glyph(row.icon)});
   }
@@ -42,7 +43,7 @@ export function createWorkspaceFinder(api){
    status.textContent=load==='loading'?'프로젝트 요소 목록을 확인하고 있습니다.':load==='failed'?'프로젝트 요소 목록을 확인하지 못했어요. 열린 항목은 계속 찾을 수 있어요.':query?rows.length+'개 결과':mode==='text'?'찾을 글자를 입력해 주십시오.':'배치된 요소를 찾거나 이름을 입력해 주십시오.';
    if(load==='failed'){const retry=document.createElement('button');retry.type='button';retry.dataset.findRetry='';retry.textContent='다시 불러오기';retry.onclick=()=>api.load?.();status.append(retry);}
    if(mode==='text'&&query&&load!=='loading'&&load!=='failed'&&content){
-    if(['queued','loading'].includes(content.phase))status.textContent='소유 객체의 정의·값 내용을 확인하고 있어요. '+content.loaded+'개 확인';
+    if(['queued','loading'].includes(content.phase))status.textContent='소유 요소의 정의·값·본문을 확인하고 있어요. '+content.loaded+'개 확인';
     else if(content.phase==='restricted')status.textContent='이 설정 프로젝트는 내용 조회를 허용하지 않아요. 이름·배치된 글자 찾기는 유지해요.';
     else if(content.phase==='failed')status.textContent='객체 내용을 확인하지 못했어요. 현재 결과는 일부일 수 있어요.';
     else if(content.phase==='partial')status.textContent=rows.length+'개 결과 · 정의·값 '+content.loaded+'개 확인 · '+(content.unsupported+content.unavailable)+'개 미지원/확인 불가';
@@ -52,7 +53,7 @@ export function createWorkspaceFinder(api){
    let section='';for(const row of rows.slice(0,80)){
     const group=mode==='text'?'글자 일치':row.kind==='node'?'열린 창·작업 공간 항목':'요소';if(section!==group){section=group;const heading=document.createElement('h3');heading.textContent=group;list.append(heading);}
     const button=document.createElement('button');button.type='button';button.className='workspace-find-result';button.dataset.findKey=row.key;button.disabled=!ready;const icon=document.createElement('span');icon.className='workspace-find-icon';icon.textContent=row.icon;const content=document.createElement('span'),title=document.createElement('strong'),detail=document.createElement('small');title.textContent=row.title;detail.textContent=row.detail;content.append(title,detail);button.append(icon,content);button.onclick=()=>{
-     if(!valid()||!api.ready()||['queued','loading'].includes(api.contentStatus?.().phase))return;const current=candidates(mode,input.value.trim().toLocaleLowerCase()).find(item=>item.key===row.key);if(!current){render();return;}close();if(current.kind==='object')api.openObject(current.id);else api.focusNode(current.id);
+     if(!valid()||!api.ready()||['queued','loading'].includes(api.contentStatus?.().phase))return;const current=candidates(mode,input.value.trim().toLocaleLowerCase()).find(item=>item.key===row.key);if(!current){render();return;}close();if(current.kind==='body')api.openBody(current.owner,current.body);else if(current.kind==='object')api.openObject(current.id);else api.focusNode(current.id);
     };list.append(button);
    }
    if(query&&!rows.length){const empty=document.createElement('p');empty.className='workspace-find-empty';empty.textContent='일치하는 결과가 없습니다.';list.append(empty);}

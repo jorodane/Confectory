@@ -1,0 +1,4 @@
+implementation Confectory.EditWorkspace::ReadBoundedBodyBody for Confectory.EditWorkspace::ReadBoundedBody (string handle, string id, string expectedPath, int limit) -> string[] {
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
+body common "ReadBoundedBody.csbody";
+}

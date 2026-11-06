@@ -148,6 +148,10 @@ if(endpoint=="editBrowserElement"){
  foreach(var field in args)if(field.Key is not ("id" or "column" or "valueJson" or "version"))throw new UnauthorizedAccessException("browser-cell-ui-fields");
  var payload=args.DeepClone().AsObject();payload["context"]=selected["context"]!.DeepClone();payload["action"]="browser-element-edit";return Command("table",payload)["browserElementEdit"]!.ToJsonString();
 }
+if(endpoint=="finderBody"){
+ foreach(var field in args)if(field.Key is not ("id" or "target" or "ownerRevision" or "ownerHash" or "revision" or "textHash"))throw new UnauthorizedAccessException("finder-body-ui-fields");
+ var payload=args.DeepClone().AsObject();payload["context"]=selected["context"]!.DeepClone();payload["action"]="finder-body";return Command("table",payload)["finderBody"]!.ToJsonString();
+}
 if(endpoint=="finderContent"){
  foreach(var field in args)if(field.Key!="ids")throw new UnauthorizedAccessException("finder-content-ui-fields");
  return Command("table",new(){["context"]=selected["context"]!.DeepClone(),["action"]="finder-content",["ids"]=args["ids"]?.DeepClone()})["finderContent"]!.ToJsonString();

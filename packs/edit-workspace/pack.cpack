@@ -33,6 +33,7 @@ element DiscoverBodies function "DiscoverBodies.celem";
 element DiscoverBodiesBody implementation "DiscoverBodiesBody.celem";
 element Status function "Status.celem";
 element StatusBody implementation "StatusBody.celem";
+element ReadBoundedBody function "ReadBoundedBody.celem";element ReadBoundedBodyBody implementation "ReadBoundedBodyBody.celem";
 element Read function "Read.celem";
 element ReadBody implementation "ReadBody.celem";
 element SetText function "SetText.celem";

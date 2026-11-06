@@ -37,7 +37,8 @@ Review→Confirm·최종 CAS·권한·override 원계약·완료된 M11/M12/M4�
 ## 유한 잔여와 환경
 
 이번 경계는 직접 선언된 필드/서명/종류 항목과 기존 Data 표현이다. 원본 객체의
-`functionDefinition.body`처럼 보관된 구현 본문의 깊이/문자 한도 내 검색은 별도 읽기 경계다.
+`functionDefinition.body`처럼 보관된 본문 중 직접 등록한 소유 C# target은
+[후속 본문 검색](V9_FINDER_BODIES.md)에 연결한다. graph 등 다른 표현은 별도 읽기 경계다.
 임의 파일 전체 스캔·모든 graph 깊이를 새 필수 요구로 만들거나 타입/문맥 조합을 늘리지 않는다. 참가자/Helper·연락처/대화는 V4/V5 실제 신원/가시성, office 검색은 V3 표시 팩에
 의존한다. 종류의 C# 실행 표현/사용중 삭제 대응 정책은 이번 읽기로 결정하지 않는다.
 

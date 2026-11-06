@@ -4,6 +4,7 @@ import Confectory.PackWorkspace::BorrowDraft as Borrow (string) -> string;
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Status as Status (string,string) -> string[];
 import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.EditWorkspace::ReadBoundedBody as ReadBoundedBody (string,string,string,int) -> string[];
 import Confectory.EditWorkspace::SetTextIfRevision as SetText (string,string,string,long) -> bool;
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.EditWorkspace::DescribeSchema as Describe (string,string,string) -> string;

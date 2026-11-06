@@ -1,0 +1,12 @@
+if(limit<1||limit>1048576)throw new ArgumentException("Owned body byte bound required");
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+lock(state){
+ var unit=state["units"]![id] as System.Text.Json.Nodes.JsonObject??throw new ArgumentException("Unknown owned body");
+ if(unit["kind"]?.ToString()!="body"||!id.StartsWith(state["namespace"]!.ToString()+"::",StringComparison.Ordinal)||id.IndexOf("/body:",StringComparison.Ordinal)<1)throw new UnauthorizedAccessException("Registered owned C# body required");
+ string root=state["root"]!.ToString(),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,unit["path"]!.ToString())),expected=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,expectedPath));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+ if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison)||!path.Equals(expected,comparison))throw new UnauthorizedAccessException("Owned body locator changed; retain input");
+ for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new UnauthorizedAccessException("Owned body cannot traverse links");if(node.FullName.Equals(root,comparison))break;}
+ if(unit["draft"] is null){var snapshot=calls.Snapshot.Invoke(path,limit);if(snapshot[0]!="exists")throw new System.IO.FileNotFoundException("Owned body missing");if(System.Text.Encoding.UTF8.GetByteCount(snapshot[1])>limit)throw new ArgumentException("Decoded body exceeds byte bound");unit["baseline"]=snapshot[2];unit["original"]=snapshot[1];unit["draft"]=snapshot[1];}
+ string text=unit["draft"]!.GetValue<string>();if(System.Text.Encoding.UTF8.GetByteCount(text)>limit)throw new ArgumentException("Owned draft body exceeds byte bound");
+ return new[]{id,"body",unit["path"]!.ToString(),text,unit["revision"]!.GetValue<long>().ToString(System.Globalization.CultureInfo.InvariantCulture),unit["baseline"]!.ToString(),text!=unit["original"]!.ToString()||unit["baseline"]!.ToString()=="missing"?"dirty":"clean"};
+}

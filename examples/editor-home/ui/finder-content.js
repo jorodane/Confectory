@@ -17,7 +17,7 @@ export function createFinderContent(api){
   const serial=epoch;phase='queued';changed();timer=setTimeout(()=>{timer=null;if(enabled&&epoch===serial)void load(own,serial);},180);
  }
  function text(row){
-  let size=0,incomplete=false;const parts=[];const add=value=>{if(size>=20000)return;const flat=String(value??'').replace(/\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};
+  let size=0,incomplete=row.incomplete===true;const parts=[];const add=value=>{if(size>=20000)return;const flat=String(value??'').replace(/\s+/g,' ').trim();if(!flat||/^data:/i.test(flat))return;const part=flat.slice(0,20000-size);parts.push(part);size+=part.length;};
   if(!Array.isArray(row.fields))throw Error('finder-content-fields');
   for(const field of row.fields){
    if(typeof field.name!=='string')throw Error('finder-content-field');if(skipped.has(field.name))continue;add(field.name);if(field.state!=='present'){incomplete=true;continue;}if(typeof field.valueJson!=='string')throw Error('finder-content-value');JSON.parse(field.valueJson);
@@ -26,7 +26,9 @@ export function createFinderContent(api){
    const tokens=field.valueJson.match(/"(?:\\.|[^"\\])*"|[{}\[\],:]|true|false|null|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/g);let index=0;
    const visit=(depth,allowed)=>{const token=tokens[index++];if(token==='{'){while(tokens[index]!=='}'){const key=JSON.parse(tokens[index++]);index++;const include=allowed&&!skipped.has(key);if(include&&depth<4)add(key);visit(depth+1,include);if(tokens[index]===',')index++;}index++;}else if(token==='['){while(tokens[index]!==']'){visit(depth+1,allowed);if(tokens[index]===',')index++;}index++;}else if(allowed&&depth<=4)add(token[0]==='"'?JSON.parse(token):token);};visit(0,true);
   }
-  return {text:parts.join(' · '),incomplete};
+  const bodies=[];if(row.bodies!==undefined&&!Array.isArray(row.bodies))throw Error('finder-body-rows');
+  for(const body of row.bodies||[]){if(typeof body.target!=='string'||!body.target||body.id!==row.id+'/body:'+body.target||typeof body.text!=='string'||body.text.length>1048576||!/^\d+$/.test(body.revision)||!/^\d+$/.test(body.ownerRevision)||body.ownerHash!==row.textHash||!/^[0-9a-f]{64}$/.test(body.textHash)){incomplete=true;continue;}incomplete||=body.truncated===true;bodies.push({id:body.id,target:body.target,text:body.text.replace(/\s+/g,' ').trim(),revision:body.revision,ownerRevision:body.ownerRevision,ownerHash:body.ownerHash,textHash:body.textHash});}
+  return {text:parts.join(' · '),bodies,incomplete};
  }
  async function load(own,serial){
   const token={};job=token;const alive=()=>enabled&&job===token&&epoch===serial&&context()?.key===own.key&&context()?.basis===own.basis;
@@ -35,10 +37,11 @@ export function createFinderContent(api){
    const selected=all.filter(row=>supported.has(row.kind));unsupported=all.length-selected.length;
    if(own.namespace==='Confectory.AISettings'){unsupported=all.length;phase='restricted';changed();return;}
    phase='loading';changed();
-   for(let offset=0;offset<selected.length;offset+=64){
-    if(!alive())return;const ids=selected.slice(offset,offset+64).map(row=>row.id),reply=await api.read(ids,alive);if(!alive())return;
+   const batches=[];let batch=[];for(const row of selected){if(row.kind==='implementation'){if(batch.length){batches.push(batch);batch=[];}batches.push([row.id]);}else{batch.push(row.id);if(batch.length===64){batches.push(batch);batch=[];}}}if(batch.length)batches.push(batch);
+   for(const ids of batches){
+    if(!alive())return;const reply=await api.read(ids,alive);if(!alive())return;
     if(reply?.projectId!==own.projectId||!Array.isArray(reply.rows)||reply.rows.length!==ids.length||new Set(reply.rows.map(row=>row.id)).size!==ids.length||reply.rows.some(row=>!ids.includes(row.id)))throw Error('finder-content-owner');
-    for(const row of reply.rows){if(row.status!=='available'){++unavailable;continue;}try{const value=text(row);if(value.incomplete)++unavailable;rows.set(row.id,{id:row.id,text:value.text,revision:row.revision,textHash:row.textHash,viewHash:row.viewHash,contentHash:row.contentHash});}catch{++unavailable;}}
+    for(const row of reply.rows){if(row.status!=='available'){++unavailable;continue;}try{const value=text(row);if(value.incomplete)++unavailable;rows.set(row.id,{id:row.id,text:value.text,bodies:value.bodies,revision:row.revision,textHash:row.textHash,viewHash:row.viewHash,contentHash:row.contentHash});}catch{++unavailable;}}
     changed();
    }
    if(alive()){phase=unavailable||unsupported?'partial':'ready';changed();}
