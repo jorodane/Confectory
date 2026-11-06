@@ -244,11 +244,11 @@ export function createBlueprint(api){
   if(data?.privatePath)for(const selector of ['[data-bp-call-open]','[data-bp-contract-read]','[data-bp-convert-open]']){const button=$(selector,w.body);if(button){button.hidden=true;button.dataset.supported='false';}}
   api.controls();return w;
  }
- function open(feature=null,id=null){const scope=api.current.projectId,prior=api.windows.get('blueprint');return api.work(async()=>{
+ function open(feature=null,id=null){const scope=api.current.projectId,prior=api.windows.get('blueprint'),wasVisible=!!prior&&!prior.el.hidden;return api.work(async()=>{
   const observe=async input=>{for(let attempt=0;;attempt++){if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');await api.view.update();if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');try{return await api.view.call('blueprint',input);}catch(error){if(error.message!=='stale_revision'||attempt>=2)throw error;}}};
   const list=await observe({action:'list',...(feature?{feature}:{})}),selected=id||list.rows[0]?.id;
   if(id&&!list.rows.some(row=>row.id===id))list.rows.unshift({id});let data=null,readError=null;if(selected)try{data=await observe({action:'read',id:selected});}catch(error){readError=error;}
-  if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');if(prior&&(!prior.el.isConnected||api.windows.get('blueprint')!==prior))return false;
+  if(api.current.projectId!==scope)throw Error('기능의 프로젝트가 바뀌었습니다.');if(prior&&(!prior.el.isConnected||api.windows.get('blueprint')!==prior||wasVisible&&prior.el.hidden))return false;
   api.reveal('blueprint');api.focus(show(data,data?prior?.meta||{}:{...prior?.meta,blueprintGraph:selected},list));if(readError)$('[data-bp-summary]',api.windows.get('blueprint').body).textContent='현재 graph 검사가 필요합니다. 외부 계약을 바꿨다면 계약 재검토를 선택하세요.';if(data)refreshCode(data);api.persist();
  },'실제 기능 원본 · AI 전송과 프로젝트 실행 없음');}
  function findContext(){

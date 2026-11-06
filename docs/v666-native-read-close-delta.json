@@ -1,0 +1,14 @@
+{
+  "baseCommit": "54347f19de7d856c3ea4fce86a4c7fe044e91fc7",
+  "path": "examples/editor-home/ui/blueprint.js",
+  "changes": [
+    {
+      "before": "function open(feature=null,id=null){const scope=api.current.projectId,prior=api.windows.get('blueprint');return api.work(async()=>{",
+      "after": "function open(feature=null,id=null){const scope=api.current.projectId,prior=api.windows.get('blueprint'),wasVisible=!!prior&&!prior.el.hidden;return api.work(async()=>{"
+    },
+    {
+      "before": "if(prior&&(!prior.el.isConnected||api.windows.get('blueprint')!==prior))return false;",
+      "after": "if(prior&&(!prior.el.isConnected||api.windows.get('blueprint')!==prior||wasVisible&&prior.el.hidden))return false;"
+    }
+  ]
+}
