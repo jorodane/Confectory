@@ -399,6 +399,7 @@ def main():
                 work.run(label+'-resource-content-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_content_copy.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-content-codec',['node',str(checkout/'tests/web/v666_resource_content_codec.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-content-provider',[sys.executable,str(checkout/'tests/probes/resource_content_test.py'),str(checkout),str(checkout/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll')],cwd=checkout,env=env)
+                work.run(label+'-resource-content-draft-cas',[sys.executable,str(checkout/'tests/probes/resource_content_draft_cas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-content-final-cas',[sys.executable,str(checkout/'tests/probes/resource_content_cas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-content-ui',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 work.run(label+'-resource-multi-deletion-final-cas',[sys.executable,str(checkout/'tests/probes/resource_multi_deletion_cas.py'),str(checkout)],cwd=checkout,env=env)
