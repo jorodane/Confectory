@@ -3069,3 +3069,7 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .resource-paragraph-field>span{font-size:10px;color:#747a72}
 .resource-paragraph-field textarea{width:100%;min-width:0;padding:7px;background:#fffdfa;color:#303238;border:1px solid #cbd0c8;border-radius:4px;font:inherit;font-size:12px;line-height:1.6;resize:vertical}
 .resource-paragraph-field textarea[readonly]{background:#e9eae5;color:#676d64}
+
+.resource-sheet-editor td{padding:0;min-width:110px}
+.resource-sheet-cell{display:block;width:100%;min-width:110px;min-height:34px;padding:7px;border:0;border-radius:0;background:#fffdfa;color:#303238;font:inherit;font-size:11px;line-height:1.6;resize:vertical}
+.resource-sheet-cell[readonly]{background:#e7e9e2;color:#656b60}

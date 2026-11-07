@@ -1,0 +1,16 @@
+{
+  "baseCommit": "4465238c660315627539f0c81b52a84b2944aa91",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "5344a6fc8b3d591d5091b695973e60a6e4a129e8ecc054f19f15a63ab8f3466a",
+    "examples/editor-home/ui/resource-docx-zip.js": "bce66e76e85f716de29f1960cae389116b5061dcb786151a8fafbb916fe615ac",
+    "examples/editor-home/ui/resource-docx.js": "0de47a9b354538cb166196299d4b16f0192e56e1b6c6d0a247b7b666a9800adc",
+    "examples/editor-home/ui/resource-previews.js": "85de85843c20bd5f286c4498ba4ee31b1046cd2a594c18b511f4cb18a9f93a78",
+    "examples/editor-home/ui/resource-xlsx-dom.js": "8eba05f08706193a96a87869cf0c7dab94fd128b945aab7b3b59b5b4a067df9d",
+    "examples/editor-home/ui/resource-xlsx-worker.js": "7587db8a7c370ef6c1bb7b2f6f69e73de2f75fa7ffd08331a255489809c7ec4a",
+    "examples/editor-home/ui/resource-xlsx.js": "6261a696123f6ee9a52a9353e6ede44b5e3d17ef75cf3d7af9f6f556e564a1d9",
+    "examples/editor-home/ui/style.css": "ac93c7f9ea3970c29a12e107452d28ee8f5139b17847621cbc9e8b3049aeb2bd",
+    "packs/editor-home-model/Resources.csbody": "1b2b7532f91c3b10010dd53f115ed03448b191ed9ac1c3b673f6ded4fc8ce1d3",
+    "packs/project-resources/Layout.csbody": "7750ca5b51c60b4b6dc627e5afdfab79e8a442ee291baf7232f1421b80f7d76f"
+  }
+}
