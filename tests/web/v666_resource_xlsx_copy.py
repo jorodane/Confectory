@@ -1,6 +1,9 @@
 """Finite XLSX editing source inventory; existing byte/permission/public contracts retained."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-xlsx-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-webp-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_webp_copy.py'),str(r)],check=True);raise SystemExit(0)
+d=json.loads((r/'docs/v666-resource-xlsx-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 for path in ['src','targets','packs/file-stream','packs/project-resources/Request.csbody','packs/project-resources/DeletionRecords.csbody','packs/project-resources/pack.cpack','packs/web-ui','packs/browser-host','examples/editor-home/WebInvoke.csbody','examples/editor-home/Main.celem','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-pdf.js','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/resource-browser.js','examples/editor-home/ui/resource-description.js']:

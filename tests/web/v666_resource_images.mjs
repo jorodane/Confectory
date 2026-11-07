@@ -5,7 +5,8 @@ const png=(w=8,h=4,extras=[])=>{const head=Buffer.alloc(13);head.writeUInt32BE(w
 const jpeg=(marker=192,w=8,h=4)=>Buffer.from([255,216,255,marker,0,11,8,h>>8,h&255,w>>8,w&255,1,1,17,0,255,218,0,2,255,217]);
 assert.deepEqual(info(png()),{width:8,height:4,pixels:32,type:'image/png'});for(const m of[192,194])assert.equal(info(jpeg(m)).type,'image/jpeg');
 for(const bytes of[png(0,2),png(16385,1),png(4097,4096),png(8,4,[chunk('acTL',Buffer.alloc(8))]),png(8,4,[chunk('IHDR',Buffer.alloc(13))]),png().subarray(0,25),Buffer.concat([png(),Buffer.of(0)]),jpeg(193),jpeg(192).subarray(0,17),jpeg(192,0,2),new Uint8Array(1048577)])assert.throws(()=>info(bytes));
-for(const text of['<svg onload="alert(1)"/>','<html><img src="https://never.invalid"></html>','GIF89a','RIFFxxxxWEBP'])assert.equal(info(Buffer.from(text)),null);
+for(const text of['<svg onload="alert(1)"/>','<html><img src="https://never.invalid"></html>','GIF89a'])assert.equal(info(Buffer.from(text)),null);
+assert.throws(()=>info(Buffer.from('RIFFxxxxWEBP')));
 let observerCallback=null;globalThis.MutationObserver=class{constructor(fn){observerCallback=fn;}observe(){}disconnect(){}};
 let created=0,revoked=0,errors=0,live=new Set(),images=[];globalThis.URL={createObjectURL:()=>{const value='blob:owned-'+(++created);live.add(value);return value;},revokeObjectURL:value=>{assert(live.delete(value));revoked++;}};globalThis.document={body:{},createElement:tag=>{assert.equal(tag,'img');const img={dataset:{},removeAttribute:()=>{},remove:()=>{}};images.push(img);return img;}};
 const ui=()=>({preview:{replaceChildren:()=>{},setAttribute:()=>{}},toolbar:{},status:{},item:{name:'generated.png'},active:()=>true,onError:()=>errors++});

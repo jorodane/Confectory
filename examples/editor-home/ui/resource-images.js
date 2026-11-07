@@ -28,18 +28,44 @@ export function resourceImageInfo(bytes){
   }
   throw Error('resource_image_jpeg_incomplete');
  }
+ if(bytes.length>=12&&tag(0,4)==='RIFF'&&tag(8,4)==='WEBP'){
+  if(view.getUint32(4,true)+8!==bytes.length)throw Error('resource_image_webp_size');
+  let offset=12,canvas=null,info=null,frame=null,alpha=false,flags=0;
+  const u24=at=>bytes[at]|bytes[at+1]<<8|bytes[at+2]<<16;
+  while(offset<bytes.length){
+   if(offset+8>bytes.length)throw Error('resource_image_webp_chunk');const kind=tag(offset,4),length=view.getUint32(offset+4,true),data=offset+8,next=data+length+(length&1);
+   if(next>bytes.length||(length&1)&&bytes[data+length]!==0)throw Error('resource_image_webp_chunk');
+   if(kind==='ANIM'||kind==='ANMF')throw Error('resource_image_animation_unsupported');
+   if(kind==='VP8X'){
+    if(offset!==12||canvas||length!==10)throw Error('resource_image_webp_header');flags=bytes[data];if(flags&2)throw Error('resource_image_animation_unsupported');if(flags&0xc1||u24(data+1))throw Error('resource_image_webp_features');canvas=size(u24(data+4)+1,u24(data+7)+1,'image/webp');
+   }else if(kind==='ALPH'){
+    if(!canvas||!(flags&16)||alpha||frame||!length)throw Error('resource_image_webp_alpha');alpha=true;
+   }else if(kind==='VP8 '){
+    if(frame||length<10)throw Error('resource_image_webp_frame');const header=u24(data),partition=header>>>5;if(header&1||(header>>>1&7)>3||!(header&16)||!partition||partition+10>length||tag(data+3,3)!=='\x9d\x01\x2a')throw Error('resource_image_webp_frame');info=size(view.getUint16(data+6,true)&0x3fff,view.getUint16(data+8,true)&0x3fff,'image/webp');frame=kind;
+   }else if(kind==='VP8L'){
+    if(frame||alpha||length<5||bytes[data]!==47)throw Error('resource_image_webp_frame');const header=view.getUint32(data+1,true);if(header>>>29)throw Error('resource_image_webp_features');info=size((header&0x3fff)+1,(header>>>14&0x3fff)+1,'image/webp');frame=kind;
+   }
+   offset=next;
+  }
+  if(!info||offset!==bytes.length||canvas&&(info.width!==canvas.width||info.height!==canvas.height)||alpha&&frame!=='VP8 ')throw Error('resource_image_webp_incomplete');return info;
+ }
  return null;
 }
 export function mountResourceImage({preview,toolbar,status,bytes,item,active,onError,onDetached}){
  const info=resourceImageInfo(bytes);if(!info)return null;
+ if(info.type==='image/webp'&&typeof createImageBitmap!=='function')throw Error('resource_image_decoder_unsupported');
  if(leasedPixels+info.pixels>TOTAL_PIXELS)throw Error('resource_image_total_budget');
- leasedPixels+=info.pixels;let disposed=false,url=null,image=null,observer=null;
- const dispose=()=>{if(disposed)return;disposed=true;observer?.disconnect();leasedPixels-=info.pixels;if(image){image.onload=null;image.onerror=null;image.removeAttribute('src');image.remove();}if(url){URL.revokeObjectURL(url);url=null;}};
+ leasedPixels+=info.pixels;let disposed=false,url=null,image=null,observer=null,decoding=false,released=false;
+ const release=()=>{if(!decoding&&!released){released=true;leasedPixels-=info.pixels;}};
+ const dispose=()=>{if(disposed)return;disposed=true;observer?.disconnect();release();if(image){image.onload=null;image.onerror=null;image.removeAttribute('src');image.remove();}if(url){URL.revokeObjectURL(url);url=null;}};
  const failure=()=>{if(disposed)return;if(active()){dispose();onError();}else{dispose();onDetached?.();}};
  try{
   image=document.createElement('img');image.alt=item.name;image.dataset.resourceRaster='';image.decoding='async';image.referrerPolicy='no-referrer';
   image.onload=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
   if(typeof MutationObserver==='function'&&document.body){observer=new MutationObserver(()=>{if(!disposed&&!active()){dispose();onDetached?.();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});}
-  image.onerror=failure;url=URL.createObjectURL(new Blob([bytes],{type:info.type}));preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');preview.replaceChildren(image);image.src=url;return dispose;
+  image.onerror=failure;const blob=new Blob([bytes],{type:info.type}),display=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}url=URL.createObjectURL(blob);preview.replaceChildren(image);image.src=url;};preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');
+  if(info.type==='image/webp'){
+   decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
+  }else display();return dispose;
  }catch(error){dispose();throw error;}
 }
