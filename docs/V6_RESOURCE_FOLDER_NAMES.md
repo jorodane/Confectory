@@ -11,3 +11,5 @@ v666 원본 ZIP의 `dist/app.js::resourceContextMenu/renameResourceInline`을 �
 미확정 입력은 owner/ID/원래 이름/입력/고정 revision을 개인 화면에 보존한다. 저장 제출 뒤 실패·응답 유실은 기존 pending intent에 정확한 command를 보존한다. 재시작은 입력만 다시 연결하고 자동 저장/재시도하지 않는다. Escape와 실패 입력 취소는 이미 저장된 이름을 지우지 않는다. 원본 소유·권한·Review→Confirm 및 기존 source Undo를 보존하며 별도 자산 Undo 정책은 추가하지 않는다.
 
 [최종 검증 기록](VALIDATION_V666_RESOURCE_FOLDER_NAMES.md)에서 신규/재사용·실패/복구·패키지 복원과 공간을 구분한다. 초기화 빈 화면의 원인은 미확정이고 실제 Windows/WebView2·모바일·전체 UI·Space/Library 전달은 이번 Linux 자동화 검증과 구분한다.
+
+파일의 인라인 표시명과 readonly 미리보기 갱신은 [후속 파일 이름 경계](V6_RESOURCE_FILE_NAMES.md)에 연결했다. 카테고리의 기존 데이터/receipt 형식은 변경하지 않는다.
