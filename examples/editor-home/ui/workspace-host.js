@@ -47,8 +47,8 @@ export function createActualWorkspace(api) {
     browserCanEnter:row=>api.projection.children(row.id).length>0,browserHierarchyParent:row=>api.projection.parent(row?.id),
     projectIdentity:()=>scope,placeObjects:(ids,spot,target)=>api.placeBrowserElements(ids,spot,target),selectObject:id=>api.openDeclaration(id),openEditor:id=>{api.openDeclaration(id);return null},
     createWorkspaceObject:(kind,x,y)=>api.createWorkspaceObject(kind,x,y),createWorkspaceVariation:(row,x,y)=>api.createWorkspaceVariation(row,x,y),openObjectTable:at=>api.openObjectTable(at),openBrowser:(...args)=>api.openBrowser(...args),renderBrowser:()=>api.renderObjects(),
-    browserTreeCreateMenu:()=>api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
-    browserCreateMenu:()=>api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
+    browserTreeCreateMenu:(w,parent,event)=>w.meta.group==='resource'?api.resourceCreateMenu(w,event,parent):api.unsupported('분류 편집','실제 계층 편집 계약은 아직 연결되지 않았습니다.'),
+    browserCreateMenu:(w,event)=>w.meta.group==='resource'?api.resourceCreateMenu(w,event):api.unsupported('생성','실제 브라우저의 + 버튼에서 기존 선언 생성 계약을 사용하세요.'),
     duplicateChildBrowser:w=>api.duplicateBrowser(w),
     objectContext:(event,object,w)=>api.objectContext(object.id,event,w),
   };
