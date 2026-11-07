@@ -23,7 +23,7 @@ def opened(id):
  b.locator('[data-resource-id="'+id+'"]').press('Enter');w=viewer(id);expect(w).to_be_visible();return w
 def ready(w,text):
  expect(w.locator('.resource-preview')).to_have_attribute('aria-busy','false');expect(w.locator('.resource-preview')).to_contain_text(text);expect(w.locator('[data-resource-content-edit],[data-resource-content-save]')).to_have_count(0)
-def closed(id):viewer(id).locator('[data-close]').first.click();expect(viewer(id)).to_have_count(0)
+def closed(id):opened(id).locator('[data-close]').first.click();expect(viewer(id)).to_have_count(0)
 def workers():return f.page.evaluate('()=>__officeWorkers')
 def release():f.page.evaluate('()=>{__holdOffice=false;__releaseOffice.splice(0).forEach(fn=>fn());}')
 def unchanged():
@@ -53,7 +53,7 @@ try:
    x=viewer(ids[1]);expect(x.locator('td').nth(1)).to_have_text('2');expect(x.locator('td').nth(2)).to_have_text('TRUE');select=x.locator('[data-resource-office-sheet]')
    for _ in range(3):select.select_option('1');ready(x,'두 번째 값');expect(x.locator('.resource-preview')).to_contain_text('=HYPERLINK');select.select_option('0');ready(x,'문자 <img>')
    expect(viewer(ids[2]).locator('.resource-document-slide p')).to_have_text(['첫 슬라이드','둘째 슬라이드']);unchanged();f.checked('real XLSX cached values/bool/shared text and repeated worksheet switching, numeric ordered PPTX and ODT text; formula remains literal and external relation never fetched')
-   count=workers()['created'];fifth=opened(ids[4]);expect(fifth.locator('[data-resource-preview-retry]')).to_be_enabled();assert workers()['created']==count;closed(ids[0]);fifth.locator('[data-resource-preview-retry]').click();ready(fifth,'생성 문서');closed(ids[4]);[closed(id)for id in ids[1:4]];f.checked('four active Office view leases enforce quota without fifth Worker; closing releases slot and explicit retry succeeds')
+   count=workers()['created'];fifth=opened(ids[4]);expect(fifth.locator('[data-resource-preview-retry]')).to_be_enabled();assert workers()['created']==count;closed(ids[0]);fifth=opened(ids[4]);fifth.locator('[data-resource-preview-retry]').click();ready(fifth,'생성 문서');closed(ids[4]);[closed(id)for id in ids[1:4]];f.checked('four active Office view leases enforce quota without fifth Worker; closing releases slot and explicit retry succeeds')
    for id in [bad,badcrc,bad64,broken]:
     w=opened(id);expect(w.locator('[data-resource-preview-retry]')).to_be_enabled();w.locator('[data-resource-preview-retry]').click();expect(w.locator('[data-resource-preview-retry]')).to_be_enabled();closed(id);unchanged()
    assert workers()['created']==workers()['terminated'];f.checked('DTD/external entity, CRC mismatch, ZIP64 and broken ZIP fail in real browser with bounded explicit retry; every failed Worker terminated and copies retained')
