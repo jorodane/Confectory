@@ -3,10 +3,10 @@
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
     "examples/editor-home/Main.celem": "63e6f5d1223d0020c633b939981518a911d55a5ed05b88ee72fc105c5d81334d",
-    "examples/editor-home/WebBundle.csbody": "c7578e85b93c7f2d91152e1a831a2cecda290e1084d31e5106c4b3dd3c51a9d1",
+    "examples/editor-home/WebBundle.csbody": "2b6209d9e9780b11236329f598be9e0dcf878ae3561c44fc03c7f7349d44d771",
     "examples/editor-home/WebInvoke.csbody": "3f9c2574fe5fea3c55ab86cf5561f35667c325f272bab29c6395ffcc47b3f28d",
     "examples/editor-home/ui/resource-browser.js": "c0089395237d11f3042b98fe35dda4d2ebdaa69540a0f45399a85021e52b5501",
-    "examples/editor-home/ui/resource-layout.js": "2f6259ab40fbf54eef5e8d41edd3000985348a25e74e18a7cd463105e59920fe",
+    "examples/editor-home/ui/resource-layout.js": "555df02efc9bd5f95f244f12b185ff335b0443819e2b44dde46ef48bbc180b5d",
     "examples/editor-home/ui/v508-runtime.js": "3b4ce7102168f53665f10248961ad3abf15f4417130f8af82e11ce062d5b5d93",
     "examples/editor-home/ui/workspace-host.js": "06385fa80c998da0501d024679fe95357c05d5147665ae5642ceaaea45e2bb2f",
     "packs/editor-home-model/Resources.csbody": "423cab32399bf21cd9478ac846a5d40150946da4e935ba284471191712f4eaea",
