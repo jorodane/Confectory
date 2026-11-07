@@ -3032,6 +3032,8 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .resource-preview-status:empty{display:none}
 .resource-settings{display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0;padding:15px 14px;border-left:1px solid var(--line);overflow:auto;background:#202122}
 .resource-settings h3{margin:0;font-size:12px;font-weight:600;color:var(--accent)}
+.resource-name-label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--muted)}
+.resource-name-label input{width:100%;padding:7px;font-size:12px}
 .resource-settings .resource-storage-note{margin-top:auto;line-height:1.6}
 .resource-content-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap}
 @container resource-editor (max-width:560px){.resource-editor-body{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(260px,1fr) auto;overflow:auto}.resource-settings{border-left:0;border-top:1px solid var(--line);overflow:visible;gap:12px}.resource-settings .resource-description-label textarea{min-height:70px;height:70px}.resource-settings .resource-storage-note{margin-top:0}}
