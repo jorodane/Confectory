@@ -1,5 +1,8 @@
 """Closed static PNG/JPEG display, unchanged native read/storage/source/permission contracts."""
 import sys,pathlib,json,hashlib,subprocess,zipfile
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-batch-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_batch_copy.py'),str(r)],check=True);raise SystemExit(0)
 r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-images-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 assert changed=={'examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-previews.js','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/style.css'}

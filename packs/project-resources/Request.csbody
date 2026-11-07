@@ -40,7 +40,7 @@ if(identity["version"]?.GetValue<int>()!=1||identity["manifest"]?.ToString()!=ma
 if(System.IO.Directory.Exists(path)||System.IO.File.Exists(path)&&new System.IO.FileInfo(path).Length>storeLimit)throw new InvalidOperationException("resource_storage_budget");
 var snapshot=calls.Snapshot.Invoke(path,storeLimit);var saved=snapshot[0]=="exists"?Validate(snapshot[1]):new System.Text.Json.Nodes.JsonObject{["version"]=1,["project"]=project,["manifest"]=manifest,["items"]=new System.Text.Json.Nodes.JsonArray(),["receipt"]=null};
 System.Text.Json.Nodes.JsonObject Metadata(System.Text.Json.Nodes.JsonNode row){var result=row.DeepClone().AsObject();result.Remove("data");result.Remove("import");return result;}
-string Reply(System.Text.Json.Nodes.JsonObject value,string revision,string command="",string? selected=null,bool replayed=false){var rows=new System.Text.Json.Nodes.JsonArray();foreach(var row in value["items"]!.AsArray())rows.Add(Metadata(row!));return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["revision"]=revision,["items"]=rows,["command"]=command,["selected"]=selected,["replayed"]=replayed,["limits"]=new System.Text.Json.Nodes.JsonObject{["fileBytes"]=fileLimit,["totalBytes"]=totalLimit,["items"]=countLimit,["importBatch"]=1}}.ToJsonString();}
+string Reply(System.Text.Json.Nodes.JsonObject value,string revision,string command="",string? selected=null,bool replayed=false){var rows=new System.Text.Json.Nodes.JsonArray();foreach(var row in value["items"]!.AsArray())rows.Add(Metadata(row!));return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["revision"]=revision,["items"]=rows,["command"]=command,["selected"]=selected,["replayed"]=replayed,["limits"]=new System.Text.Json.Nodes.JsonObject{["fileBytes"]=fileLimit,["totalBytes"]=totalLimit,["items"]=countLimit,["importBatch"]=countLimit,["importBytes"]=fileLimit}}.ToJsonString();}
 var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
 if(operation=="load"){Keys(input);return Reply(saved,snapshot[2]);}
 if(operation=="read"){
@@ -48,14 +48,29 @@ if(operation=="read"){
  var found=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),row=>row!["id"]!.ToString()==id)??throw new InvalidOperationException("resource_missing");if(found["hash"]!.ToString()!=expected)throw new InvalidOperationException("resource_content_changed");
  return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["item"]=Metadata(found),["encoding"]="base64url",["data"]=found["data"]!.DeepClone()}.ToJsonString();
 }
-if(operation!="import")throw new ArgumentException("resource_operation");Keys(input,"revision","command","item");string basis=Text(input["revision"]),command=Text(input["command"]);if(basis!="missing"&&!IsHash(basis)||!IsId(command))throw new ArgumentException("resource_command");
-var item=Item(input["item"],false);string itemId=Text(item["id"]);var intent=new System.Text.Json.Nodes.JsonObject{["revision"]=basis,["command"]=command,["item"]=item.DeepClone()};string digest=TextHash(intent.ToJsonString());
-var deletions=calls.Deletions.Invoke(manifest,project);if(System.Linq.Enumerable.Any(System.Text.Json.Nodes.JsonNode.Parse(deletions[3])!["imports"]!.AsArray(),row=>Text(row)==command))throw new InvalidOperationException("resource_import_deleted");
-var prior=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),p=>p!["import"]!["command"]!.ToString()==command);
-if(prior is not null){if(prior["import"]!["digest"]?.ToString()!=digest||prior["id"]?.ToString()!=itemId||!System.Text.Json.Nodes.JsonNode.DeepEquals(Item(prior,true),item))throw new InvalidOperationException("resource_command_reused");return Reply(saved,snapshot[2],command,itemId,true);}
+// A batch is a set of explicit single-import intents sharing one observed basis.
+// Stored per-item receipts retain the v1 grammar and exact single-import replay.
+bool batch=operation=="import-many";
+if(operation!="import"&&!batch)throw new ArgumentException("resource_operation");
+Keys(input,batch?new[]{"revision","imports"}:new[]{"revision","command","item"});string basis=Text(input["revision"]);if(basis!="missing"&&!IsHash(basis))throw new ArgumentException("resource_command");
+var entries=batch?input["imports"]?.AsArray()??throw new ArgumentException("resource_batch"):new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["command"]=input["command"]!.DeepClone(),["item"]=input["item"]!.DeepClone()});
+if(entries.Count is <1 or >countLimit)throw new ArgumentException("resource_batch_budget");
+var intents=new System.Collections.Generic.List<(string command,string id,System.Text.Json.Nodes.JsonObject item,string digest)>();var ids=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);var commands=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);long selectedBytes=0;
+foreach(var value in entries){var entry=value?.AsObject()??throw new ArgumentException("resource_batch");Keys(entry,"command","item");string command=Text(entry["command"]);if(!IsId(command)||!commands.Add(command))throw new ArgumentException("resource_command");var item=Item(entry["item"],false);string id=Text(item["id"]);if(!ids.Add(id))throw new ArgumentException("resource_duplicate_identity");selectedBytes+=item["size"]!.GetValue<int>();if(batch&&selectedBytes>fileLimit)throw new ArgumentException("resource_batch_bytes");var intent=new System.Text.Json.Nodes.JsonObject{["revision"]=basis,["command"]=command,["item"]=item.DeepClone()};intents.Add((command,id,item,TextHash(intent.ToJsonString())));}
+string ImportReply(System.Text.Json.Nodes.JsonObject value,string revision,bool replayed=false){string result=Reply(value,revision,batch?"":intents[0].command,intents[^1].id,replayed);if(!batch)return result;var reply=System.Text.Json.Nodes.JsonNode.Parse(result)!.AsObject();var selected=new System.Text.Json.Nodes.JsonArray();foreach(var intent in intents)selected.Add(intent.id);reply["selectedIds"]=selected;return reply.ToJsonString();}
+var deletions=calls.Deletions.Invoke(manifest,project);var deleted=System.Text.Json.Nodes.JsonNode.Parse(deletions[3])!["imports"]!.AsArray();int present=0;
+foreach(var intent in intents){
+ if(System.Linq.Enumerable.Any(deleted,row=>Text(row)==intent.command))throw new InvalidOperationException("resource_import_deleted");
+ var prior=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),p=>p!["import"]!["command"]!.ToString()==intent.command);
+ if(prior is not null){if(prior["import"]!["digest"]?.ToString()!=intent.digest||prior["id"]?.ToString()!=intent.id||!System.Text.Json.Nodes.JsonNode.DeepEquals(Item(prior,true),intent.item))throw new InvalidOperationException("resource_command_reused");present++;}
+}
+if(present>0){if(present!=intents.Count)throw new InvalidOperationException("resource_batch_partial");return ImportReply(saved,snapshot[2],true);}
 if(snapshot[2]!=basis)throw new InvalidOperationException("resource_storage_changed");
-var candidate=saved.DeepClone().AsObject();if(System.Linq.Enumerable.Any(candidate["items"]!.AsArray(),row=>row!["id"]!.ToString()==itemId))throw new InvalidOperationException("resource_id_in_use");
-item["kind"]=Kind(Text(item["name"]),Text(item["type"]));item["createdAt"]=DateTimeOffset.UtcNow.ToString("O",System.Globalization.CultureInfo.InvariantCulture);item["import"]=new System.Text.Json.Nodes.JsonObject{["command"]=command,["digest"]=digest,["base"]=basis};candidate["items"]!.AsArray().Add(item);
-candidate["receipt"]=new System.Text.Json.Nodes.JsonObject{["command"]=command,["digest"]=digest,["base"]=basis,["id"]=itemId};string serialized=candidate.ToJsonString();Validate(serialized);
+var candidate=saved.DeepClone().AsObject();foreach(var intent in intents){
+ if(System.Linq.Enumerable.Any(candidate["items"]!.AsArray(),row=>row!["id"]!.ToString()==intent.id))throw new InvalidOperationException("resource_id_in_use");
+ var item=intent.item;item["kind"]=Kind(Text(item["name"]),Text(item["type"]));item["createdAt"]=DateTimeOffset.UtcNow.ToString("O",System.Globalization.CultureInfo.InvariantCulture);item["import"]=new System.Text.Json.Nodes.JsonObject{["command"]=intent.command,["digest"]=intent.digest,["base"]=basis};candidate["items"]!.AsArray().Add(item);
+ candidate["receipt"]=new System.Text.Json.Nodes.JsonObject{["command"]=intent.command,["digest"]=intent.digest,["base"]=basis,["id"]=intent.id};
+}
+string serialized=candidate.ToJsonString();Validate(serialized);
 var plan=new System.Text.Json.Nodes.JsonObject{["writes"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=relative,["hash"]=basis,["text"]=serialized}),["checks"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=".confectory/resource-deletions.v1.json",["hash"]=deletions[2]},new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.GetFileName(manifest),["hash"]=manifestSnapshot[2]},new System.Text.Json.Nodes.JsonObject{["path"]=".confectory/project-identity.json",["hash"]=identitySnapshot[2]})};
-if(calls.CommitPlan.Invoke(root,plan.ToJsonString())[0]!="applied")throw new InvalidOperationException("resource_storage_changed");return Reply(candidate,TextHash(serialized),command,itemId);
+if(calls.CommitPlan.Invoke(root,plan.ToJsonString())[0]!="applied")throw new InvalidOperationException("resource_storage_changed");return ImportReply(candidate,TextHash(serialized));

@@ -19,24 +19,25 @@ class Program {
  static string Hash(string value)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
  static JsonObject Item(string name)=>new(){["id"]=Guid.NewGuid().ToString("N"),["name"]=name,["type"]="text/plain",["size"]=3,["hash"]=Hash("abc"),["modifiedAt"]=0,["data"]="YWJj"};
  static void Main(string[] args){
-  foreach(string mode in new[]{"success","manifest-race","identity-race","store-race","write-failure"}){
-   string root=Path.Combine(args[0],mode);Directory.CreateDirectory(Path.Combine(root,".confectory"));string manifest=Path.Combine(root,"project.cproj"),identityPath=Path.Combine(root,".confectory/project-identity.json"),store=Path.Combine(root,".confectory/resources.v1.json"),project=Guid.NewGuid().ToString("N");
+  foreach(bool batch in new[]{false,true})foreach(string mode in new[]{"success","manifest-race","identity-race","store-race","deletions-race","write-failure"}){
+   string root=Path.Combine(args[0],(batch?"batch-":"single-")+mode);Directory.CreateDirectory(Path.Combine(root,".confectory"));string manifest=Path.Combine(root,"project.cproj"),identityPath=Path.Combine(root,".confectory/project-identity.json"),store=Path.Combine(root,".confectory/resources.v1.json"),project=Guid.NewGuid().ToString("N");
    File.WriteAllText(manifest,"original manifest");var identity=new JsonObject{["version"]=1,["projectId"]=project,["manifest"]=manifest,["namespace"]="Owned"};File.WriteAllText(identityPath,identity.ToJsonString());string originalManifest=File.ReadAllText(manifest),originalIdentity=File.ReadAllText(identityPath);
    var calls=new Calls();calls.CommitPlan=(r,p)=>Plan(r,p,calls);
    var first=JsonNode.Parse(Resource(manifest,project,"import",new JsonObject{["revision"]="missing",["command"]=Guid.NewGuid().ToString("N"),["item"]=Item("already stored.txt")}.ToJsonString(),calls))!;
-   string before=File.ReadAllText(store),peer=before+" ";var input=new JsonObject{["revision"]=first["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=Item("explicit pending.txt")};string submitted=input.ToJsonString();int commits=0,writes=0;
+   string before=File.ReadAllText(store),peer=before+" ";var input=new JsonObject{["revision"]=first["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=Item("explicit pending.txt")};if(batch)input=new JsonObject{["revision"]=first["revision"]!.DeepClone(),["imports"]=new JsonArray(new JsonObject{["command"]=input["command"]!.DeepClone(),["item"]=input["item"]!.DeepClone()},new JsonObject{["command"]=Guid.NewGuid().ToString("N"),["item"]=Item("second pending.txt")})};string submitted=input.ToJsonString();int commits=0,writes=0;
    calls.CommitPlan=(r,p)=>{
     commits++;var plan=JsonNode.Parse(p)!;Check(plan["writes"]!.AsArray().Count==1&&plan["writes"]![0]!["path"]!.ToString()==".confectory/resources.v1.json","source became an asset write");
     Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{".confectory/resource-deletions.v1.json","project.cproj",".confectory/project-identity.json"}),"final owner/manifest check was omitted");
     if(mode=="manifest-race")File.WriteAllText(manifest,"peer manifest");if(mode=="identity-race"){identity["projectId"]=Guid.NewGuid().ToString("N");File.WriteAllText(identityPath,identity.ToJsonString());}if(mode=="store-race")File.WriteAllText(store,peer);
+    if(mode=="deletions-race")File.WriteAllText(Path.Combine(root,".confectory/resource-deletions.v1.json"),"peer deletion ledger");
     return Plan(r,p,calls);
    };
    calls.WriteAtomic=(p,t)=>{writes++;if(mode=="write-failure")throw new IOException("owned fixture exact write boundary");Write(p,t);};
-   bool rejected=false;try{Resource(manifest,project,"import",submitted,calls);}catch{rejected=true;}
+   bool rejected=false;try{Resource(manifest,project,batch?"import-many":"import",submitted,calls);}catch{rejected=true;}
    Check(commits==1,"case never reached actual final CommitPlan");Check(input.ToJsonString()==submitted,"pending caller input changed");
-   if(mode=="success")Check(!rejected&&writes==1&&JsonNode.Parse(File.ReadAllText(store))!["items"]!.AsArray().Count==2,"successful atomic append failed");
+   if(mode=="success")Check(!rejected&&writes==1&&JsonNode.Parse(File.ReadAllText(store))!["items"]!.AsArray().Count==(batch?3:2),"successful atomic append failed");
    else{Check(rejected,"late change/failure was accepted");Check(File.ReadAllText(store)==(mode=="store-race"?peer:before),"partial append or peer data loss");Check(writes==(mode=="write-failure"?1:0),"writes occurred before final checks");}
-   Check(File.ReadAllText(manifest)==(mode=="manifest-race"?"peer manifest":originalManifest),"manifest was rewritten or peer lost");Check(File.ReadAllText(identityPath)==(mode=="identity-race"?identity.ToJsonString():originalIdentity),"identity was rewritten or peer lost");Console.WriteLine("PASS production resource/final CAS bodies "+mode);
+   Check(File.ReadAllText(manifest)==(mode=="manifest-race"?"peer manifest":originalManifest),"manifest was rewritten or peer lost");Check(File.ReadAllText(identityPath)==(mode=="identity-race"?identity.ToJsonString():originalIdentity),"identity was rewritten or peer lost");Console.WriteLine("PASS production resource/final CAS bodies "+(batch?"batch ":"single ")+mode);
   }
  }
 }
