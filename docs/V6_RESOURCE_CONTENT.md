@@ -12,4 +12,4 @@
 
 개인 초안의 저장 실패는 화면에 알리고 메모리 입력을 유지한다. 재시작 복구는 **보관이 확인된 1MiB 이하 입력**에 적용된다. 1MiB를 넘는 지원 밖 입력은 화면에 유지하고 저장을 막으며, 그 초과 입력의 cold 복구를 보장하지 않는다. 다른 프로젝트는 입력이나 요청을 이어받지 않는다. 새 storage를 모르는 과거 패키지가 편집본을 읽는다고 주장하지 않는다. 원본 import bytes는 보존되지만 구버전 실행은 현재 편집본을 표시하지 못한다.
 
-C# 원문/공개 override 계약·권한/부모외부 원본·Review→Confirm·소스 Undo는 변경하지 않는다. 검증은 `VALIDATION_V666_RESOURCE_CONTENT.md`에 최종 기록한다. 자료 설명, 큰/다중 import와 현재 폴더 첫 import 결합, Office 내용 편집·rich preview는 고정 잔여다. 초기화 빈 화면은 원인 미확정이고 실제 Windows/mobile·전체 UI·Space/Library 전달은 별도 미검증이다.
+C# 원문/공개 override 계약·권한/부모외부 원본·Review→Confirm·소스 Undo는 변경하지 않는다. 검증은 [최종58단계(신규29·재사용29)](VALIDATION_V666_RESOURCE_CONTENT.md)에 기록한다. 자료 설명, 큰/다중 import와 현재 폴더 첫 import 결합, Office 내용 편집·rich preview는 고정 잔여다. 초기화 빈 화면은 원인 미확정이고 실제 Windows/mobile·전체 UI·Space/Library 전달은 별도 미검증이다.
