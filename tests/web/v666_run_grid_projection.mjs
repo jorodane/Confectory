@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';import fs from'node:fs';
+const{runGridBox:box}=await import('data:text/javascript;base64,'+Buffer.from(fs.readFileSync(process.argv[2]+'/examples/editor-home/ui/run-grid.js')).toString('base64'));
+assert.deepEqual(box(400,300,640,360),{left:0,top:37.5,width:400,height:225});assert.deepEqual(box(300,500,640,360),{left:0,top:165.625,width:300,height:168.75});assert.deepEqual(box(500,300,320,480),{left:150,top:0,width:200,height:300});assert.deepEqual(box(300,500,512,512),{left:0,top:100,width:300,height:300});
+for(const args of [[0,500,640,360],[300,NaN,640,360],[300,500,0,1],[300,500,1.5,2],[-1,500,1,1],[Infinity,500,1,1]])assert.equal(box(...args),null);
+const fractional=box(400.5,300.25,640,360);assert(Object.isFrozen(fractional));assert.equal(fractional.width,400.5);assert(Math.abs(fractional.height/fractional.width-360/640)<1e-12);assert(fractional.top>=0&&fractional.left>=0);console.log('PASS exact contain geometry/letterbox/portrait/square/fractional viewport, immutable result and invalid/hidden geometry rejection; no viewport-sized fake render');

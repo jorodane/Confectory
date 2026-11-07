@@ -2978,3 +2978,7 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 /* Actual software pixels fit the authored Run viewport; no synthetic scene. */
 .run-screen>canvas[data-run-pixels]{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .run-screen>canvas[data-run-pixels][hidden],.run-screen>.run-scene[hidden]{display:none}
+
+.run-debug-grid{display:none;position:absolute;inset:0;z-index:3;pointer-events:none;background-image:linear-gradient(to right,#91e5d22e var(--run-debug-line,1px),transparent var(--run-debug-line,1px)),linear-gradient(to bottom,#91e5d22e var(--run-debug-line,1px),transparent var(--run-debug-line,1px));background-size:10% 10%}
+.run-show-grid .run-debug-grid{display:block}
+.run-debug-grid[data-run-grid][hidden]{display:none}

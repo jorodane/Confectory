@@ -1,6 +1,9 @@
 """Original 640x360 option within the existing immutable pixel and transport ceilings."""
 import pathlib,json,subprocess,hashlib,sys,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-run-wide-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles'])
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-run-grid-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_run_grid_copy.py'),str(r)],check=True);sys.exit(0)
+d=json.loads((r/'docs/v666-run-wide-delta.json').read_text());paths=set(subprocess.check_output(['git','diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples'],cwd=r,text=True).splitlines());assert paths==set(d['productFiles'])
 allowed={'packs/run-surface/README.md','packs/run-surface/Open.csbody','packs/project-execution/Surface.csbody','packs/project-execution/ResizeSurface.csbody','packs/editor-home-model/RunPresets.csbody','examples/editor-home/ui/run-surface.js','examples/editor-home/ui/run-windows.js','examples/editor-home/ui/run-auto-fit.js','examples/editor-home/ui/run-presets.js','examples/editor-home/WebBundle.csbody'};assert paths==allowed,paths
 for p,h in d['productFiles'].items():assert hashlib.sha256((r/p).read_text().encode()).hexdigest()==h,p
 for p in ['packs/frame-control/Open.csbody','examples/resizable-output/Main.csbody','examples/software-output/Main.csbody','examples/editor-home/ui/style.css']:
