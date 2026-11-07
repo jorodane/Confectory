@@ -4,8 +4,8 @@
   "productFiles": {
     "packs/project-resources/Layout.csbody": "3c72d2c1c3df68f83e9fd1474b0f494b4d0e5a1442efa0500bb4cced4d0d0301",
     "examples/editor-home/WebInvoke.csbody": "962d74d689afbbeabb6235a2b1e7fbfaf187717e31de41470e95af2eabee4b66",
-    "examples/editor-home/WebBundle.csbody": "518cf0c7a00531ecbf723eaaf5aebcd5787b7ea84762f907f6b04769c85dd08f",
-    "examples/editor-home/ui/resource-description.js": "da945d42eb12abacd6330b884afe0dedbcfe342e47905a4c068ef1b7dd662d0b",
+    "examples/editor-home/WebBundle.csbody": "e98b51f50b615811c6f862a776e8c01282158944c3684e3a944b33b1cb7c767a",
+    "examples/editor-home/ui/resource-description.js": "7ca38072f4b5df3d62b2b9661febfc80326f77fe5e11afce4ad29b1351f29798",
     "examples/editor-home/ui/resource-browser.js": "0fb4adc1becb2d8d0f317f6b60ee0ede1bede664e962e48bf3fb3bfb6bcb2686",
     "examples/editor-home/ui/resource-previews.js": "59d679c0cd454e7a0f99421028563aec9975bf7d3b49b3a9acd57596646bf15d",
     "examples/editor-home/ui/v508-runtime.js": "f1c8ee7a054b829106daa5a88b2eaef6d1a38bacd5ec46889bf9ffc5baaa0880",
