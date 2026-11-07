@@ -3,9 +3,11 @@
 Compiles the product Serve body with a deterministic owner; this does not replace
 the separate full-engine/browser/package checks. Only generated loopback clients.
 """
-import hashlib,json,os,pathlib,socket,subprocess,sys,time,urllib.error,urllib.request
+import hashlib,http.client,json,os,pathlib,socket,subprocess,sys,time,urllib.error,urllib.request
 repo=pathlib.Path(sys.argv[1]).resolve();out=pathlib.Path(sys.argv[2]).resolve();out.mkdir(parents=True,exist_ok=True)
 program=r'''
+using System;
+using System.Threading;
 using System.Text.Json;
 using System.Security.Cryptography;
 var calls=new Calls();int thread=Environment.CurrentManagedThreadId,requests=0,closed=0;
@@ -37,7 +39,7 @@ class Calls{
  public Func<string,int> Run=null!;
 }
 '''.replace('__BODY__',(repo/'packs/browser-host/Serve.csbody').read_text())
-(out/'Program.cs').write_text(program);(out/'Probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>')
+(out/'Program.cs').write_text(program);(out/'Probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>')
 sdk=os.environ.get('CONFECTORY_DOTNET','dotnet');subprocess.run([sdk,'build',str(out/'Probe.csproj'),'-c','Release','--nologo'],check=True)
 env=dict(os.environ,CONFECTORY_WEB_PORT='0');host=subprocess.Popen([sdk,str(out/'bin/Release/net10.0/Probe.dll')],env=env,stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True);peers=[];checks=[]
 def checked(text):checks.append(text);print('PASS '+text,flush=True)
@@ -51,6 +53,10 @@ def retire(s):s.close();peers.remove(s)
 try:
  line=host.stdout.readline().strip();assert line.startswith('CONFECTORY_WEB_UI '),line
  origin,token=line.split(' ',1)[1].split('/#');port=int(origin.rsplit(':',1)[1])
+ connection=http.client.HTTPConnection('127.0.0.1',port,timeout=3)
+ for _ in range(6):
+  connection.request('GET','/small');reply=connection.getresponse();assert reply.status==200 and reply.read()==b'owned-resource';time.sleep(.01)
+ connection.close();checked('completed transfers preserve a reused HTTP connection across serial owner turns')
  slow=peer();time.sleep(.1);payload,headers=get('/small');assert payload==b'owned-resource';assert headers['ETag']=='"'+hashlib.sha256(payload).hexdigest()+'"';assert 'no-store'in headers['Cache-Control']and"default-src 'self'"in headers['Content-Security-Policy'];checked('unconsumed real 4MiB response does not block another asset; MIME/hash/CSP/cache policy retained')
  retire(slow);assert json.loads(get()[0])['requests']==0;checked('broken static response does not kill the host or invoke the owner API')
  slow=peer(body=b'{',token=token,length=1024);time.sleep(.1);assert json.loads(get()[0])['requests']==0;retire(slow);checked('authenticated partial POST never blocks the host or reaches the owner')

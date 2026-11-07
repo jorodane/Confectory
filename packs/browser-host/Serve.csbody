@@ -8,7 +8,7 @@ bool stopping=false,closed=false;System.Threading.Tasks.Task<System.Net.HttpList
 // Socket progress must not own the single host/owner execution thread. In
 // particular a page retired during reload may stop reading a large resource.
 // Owner Request/Resource calls still run serially on Step, never on I/O tasks.
-var transfers=new Dictionary<System.Net.HttpListenerContext,(System.Threading.Tasks.Task<string> Read,System.Threading.Tasks.Task? Write,System.Threading.CancellationTokenSource Deadline,System.Threading.CancellationTokenRegistration Abort)>();
+var transfers=new System.Collections.Generic.Dictionary<System.Net.HttpListenerContext,(System.Threading.Tasks.Task<string> Read,System.Threading.Tasks.Task? Write,System.Threading.CancellationTokenSource Deadline,System.Threading.CancellationTokenRegistration Abort)>();
 async System.Threading.Tasks.Task<string> Read(System.Net.HttpListenerContext context,System.Threading.CancellationToken cancel){
  using var reader=new System.IO.StreamReader(context.Request.InputStream,System.Text.Encoding.UTF8);
  return await reader.ReadToEndAsync(cancel).ConfigureAwait(false);
@@ -19,13 +19,14 @@ async System.Threading.Tasks.Task Write(System.Net.HttpListenerContext context,b
  finally{try{context.Response.Close();}catch(Exception){}}
 }
 void Retire(System.Net.HttpListenerContext context){
- var transfer=transfers[context];transfers.Remove(context);transfer.Deadline.Cancel();
+ var transfer=transfers[context];transfers.Remove(context);
+ if(transfer.Write?.IsCompleted!=true)transfer.Deadline.Cancel();
  // Observe every task even if cancellation precedes its completion.
  _=transfer.Read.ContinueWith(task=>{_ = task.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
  if(transfer.Write is not null)_=transfer.Write.ContinueWith(task=>{_ = task.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
  transfer.Abort.Dispose();transfer.Deadline.Dispose();
 }
-void Cleanup(){stopping=true;foreach(var context in transfers.Keys.ToArray())Retire(context);listener.Close();closed=calls.Close.Invoke(owner);}
+void Cleanup(){stopping=true;foreach(var context in System.Linq.Enumerable.ToArray(transfers.Keys))Retire(context);listener.Close();closed=calls.Close.Invoke(owner);}
 bool Step(){
  if(stopping){Cleanup();return !closed;}
  pending??=listener.GetContextAsync();
@@ -57,7 +58,7 @@ bool Step(){
    }
   }
  }
- foreach(var pair in transfers.ToArray()){
+ foreach(var pair in System.Linq.Enumerable.ToArray(transfers)){
   var context=pair.Key;var transfer=pair.Value;
   if(transfer.Deadline.IsCancellationRequested||transfer.Write?.IsCompleted==true){Retire(context);continue;}
   if(transfer.Write is not null||!transfer.Read.IsCompleted)continue;
