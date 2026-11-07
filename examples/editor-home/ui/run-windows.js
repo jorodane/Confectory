@@ -1,4 +1,4 @@
-import {decodeRunSurface} from './run-surface.js';
+import {decodeRunSurface,decodeRunRate} from './run-surface.js';
 import {decodeRunAudio,RunAudioPlayer} from './run-audio.js';
 import {createRunPresets} from './run-presets.js';
 import {createRunAutoFit,runAutoDimensions} from './run-auto-fit.js';
@@ -8,7 +8,8 @@ export function runDebugFacts(data,error=false,surface=null,audio=null){
  const c=data?.control||{},decimal=value=>{if(typeof value==='number')return Number.isSafeInteger(value)&&value>=0?String(value):null;if(typeof value!=='string'||! /^(0|[1-9][0-9]{0,18})$/.test(value))return null;return BigInt(value)<=9223372036854775807n?value:null;};
  const counters=['frame','ack','sequence','pending'].map(k=>decimal(c[k])),connected=!error&&data?.state==='running'&&data.closed!==true&&c.available===true&&c.connected===true&&['running','paused'].includes(c.mode)&&counters.every(x=>x!==null);
  const states={idle:'실행 대기',building:'빌드 중',running:'실행 중',exited:'실행 종료',stopped:'중단됨',built:'빌드 완료',failed:'실행 실패','owner-unavailable':'소유자 확인 필요'};
- return Object.freeze({connected,lines:Object.freeze(['상태: '+(error?'확인 필요':Object.hasOwn(states,data?.state)?states[data.state]:'확인 필요'),'렌더 FPS: 미지원','렌더 해상도: '+(surface?surface.width+' × '+surface.height+' px':'미지원'),audio?'오디오: PCM16 · 16000 Hz · 모노':'오디오: 미지원',...(connected?['프레임: '+counters[0],'제어: '+(c.mode==='paused'?'일시 정지':'실행 중'),'명령 확인: '+counters[1]+' / '+counters[2],'대기 명령: '+counters[3]]:['프레임 제어: 확인할 수 없음'])])});
+ let rate=null;if(connected)try{rate=decodeRunRate(surface?.renderRate,null,surface?.revision);}catch{}const rateText=rate?(rate.ready?(Number(rate.frames)*1000/rate.windowMs).toFixed(1)+' fps · 최근 '+rate.windowMs+' ms':'집계 중'):null;
+ return Object.freeze({connected,lines:Object.freeze(['상태: '+(error?'확인 필요':Object.hasOwn(states,data?.state)?states[data.state]:'확인 필요'),rateText?'소프트웨어 출력 FPS: '+rateText:'렌더 FPS: 미지원','렌더 해상도: '+(surface?surface.width+' × '+surface.height+' px':'미지원'),audio?'오디오: PCM16 · 16000 Hz · 모노':'오디오: 미지원',...(connected?['프레임: '+counters[0],'제어: '+(c.mode==='paused'?'일시 정지':'실행 중'),'명령 확인: '+counters[1]+' / '+counters[2],'대기 명령: '+counters[3]]:['프레임 제어: 확인할 수 없음'])])});
 }
 // Original v536 Run chrome. Owners/leases are transient server facts, never layout data.
 export function createRunWindows(api){
@@ -87,7 +88,7 @@ export function createRunWindows(api){
   try{const packet=await api.view.observe('runSurface',{view:w.meta.runView,lease:data.lease,handle,cursor:w.runSurface?.handle===handle?w.runSurface.cursor:''},controller.signal);const decoded=await decodeRunSurface(packet,w.runSurface,handle);
    if(!owns(w)||w.runSurfaceSerial!==serial||w.runData?.handle!==handle||w.runError)return;
    if(!decoded){clearSurface(w,w.runSurfaceSeen===handle);render(w);return;}w.runSurfaceSeen=handle;const canvas=w.body.querySelector('[data-run-pixels]');if(!canvas)throw Error('surface_missing');
-   if(w.runSurface!==decoded){canvas.width=decoded.width;canvas.height=decoded.height;const context=canvas.getContext('2d');if(!context)throw Error('surface_canvas_unavailable');context.putImageData(new ImageData(decoded.pixels,decoded.width,decoded.height),0,0);}w.runSurfaceError=false;w.runSurface=decoded;if(decoded.runtime===w.runSizeRequest?.publisher&&decoded.resize?.command===w.runSizeRequest?.command)w.runSizeUnconfirmed=false;canvas.hidden=false;canvas.dataset.surfaceCursor=decoded.cursor;render(w);
+   if(w.runSurface?.handle!==decoded.handle||w.runSurface?.cursor!==decoded.cursor){canvas.width=decoded.width;canvas.height=decoded.height;const context=canvas.getContext('2d');if(!context)throw Error('surface_canvas_unavailable');context.putImageData(new ImageData(decoded.pixels,decoded.width,decoded.height),0,0);}w.runSurfaceError=false;w.runSurface=decoded;if(decoded.runtime===w.runSizeRequest?.publisher&&decoded.resize?.command===w.runSizeRequest?.command)w.runSizeUnconfirmed=false;canvas.hidden=false;canvas.dataset.surfaceCursor=decoded.cursor;render(w);
   }catch{if(owns(w)&&w.runSurfaceSerial===serial&&!controller.signal.aborted){clearSurface(w,true);render(w);}}finally{if(w.runSurfaceAbort===controller)w.runSurfaceAbort=null;}
  }
  function clearAudio(w,{keepInfo=false,failed=false}={}){w.runAudioSerial=(w.runAudioSerial||0)+1;w.runAudioAbort?.abort();w.runAudioAbort=null;w.runAudioPlayer?.close();w.runAudioPlayer=null;w.runAudioEnabled=false;w.runAudioStarting=false;w.runAudioPacket=null;w.runAudioCursor='';w.runAudioError=failed;if(!keepInfo)w.runAudioInfo=null;}

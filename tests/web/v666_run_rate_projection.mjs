@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';import {pathToFileURL}from'node:url';
+const r=process.argv[2],{decodeRunSurface:decode,decodeRunRate:rate}=await import(pathToFileURL(r+'/examples/editor-home/ui/run-surface.js')),{runDebugFacts:facts}=await import(pathToFileURL(r+'/examples/editor-home/ui/run-windows.js'));
+const pixels=Buffer.from([1,2,3,255]),sha256=Buffer.from(await crypto.subtle.digest('SHA-256',pixels)).toString('hex'),runtime='a'.repeat(32),packet={available:true,runtime,revision:'20',cursor:runtime+':20',format:'rgba8',encoding:'base64url',width:1,height:1,sha256,pixels:pixels.toString('base64url'),unchanged:false},sample={basis:'software-present-v1',observation:'2',ready:true,frames:'10',windowMs:950};
+const state={state:'running',control:{available:true,connected:true,mode:'running',frame:'9007199254740993',ack:0,sequence:0,pending:0}};
+const legacy=await decode(packet,null,'owned');assert.equal(legacy.renderRate,null);assert(facts(state,false,legacy).lines.includes('렌더 FPS: 미지원'));
+const first=await decode({...packet,renderRate:sample},null,'owned');assert.equal(first.renderRate.frames,'10');assert(Object.isFrozen(first.renderRate));assert(facts(state,false,first).lines.includes('소프트웨어 출력 FPS: 10.5 fps · 최근 950 ms'));assert.equal(sample.observation,'2');
+const unchanged=await decode({...packet,pixels:undefined,unchanged:true,renderRate:{...sample,observation:'3',frames:'0'}},first,'owned');assert.equal(unchanged.pixels,first.pixels);assert.notEqual(unchanged,first);assert(facts(state,false,unchanged).lines.some(x=>x.includes('0.0 fps')));
+for(const bad of [null,[],{},...['gpu','raf','frame-control'].map(basis=>({...sample,basis})),...['0','01','-1','9223372036854775808',1].map(observation=>({...sample,observation})),...['21','-1','1e2',2].map(frames=>({...sample,frames})),...[0,899,1000,NaN,950.1].map(windowMs=>({...sample,windowMs})),{...sample,ready:false},{...sample,ready:'true'}])await assert.rejects(()=>decode({...packet,renderRate:bad},first,'owned'));
+for(const renderRate of [undefined,{...sample,observation:'1'},{...sample,frames:'11'},{...sample,ready:false,frames:'0',windowMs:0}])await assert.rejects(()=>decode({...packet,pixels:undefined,unchanged:true,renderRate},first,'owned'));
+assert.equal(rate({...sample,observation:'1',ready:false,frames:'0',windowMs:0},null,'1').ready,false);
+const next=await decode({...packet,runtime:'b'.repeat(32),cursor:'b'.repeat(32)+':20'},first,'owned');assert.equal(next.renderRate,null);
+for(const data of [{...state,closed:true},{...state,state:'exited'},{...state,control:{...state.control,connected:false}}])assert(!facts(data,false,first).lines.some(x=>x.startsWith('소프트웨어 출력 FPS:')));
+assert(!facts(state,true,first).lines.some(x=>x.startsWith('소프트웨어 출력 FPS:')));
+assert(!facts(state,false,{...first,renderRate:{...sample,windowMs:0}}).lines.some(x=>x.includes('NaN')||x.includes('Infinity')||x.startsWith('소프트웨어 출력 FPS:')));
+console.log('PASS software publication rate: bounded canonical counters/window, stale/disappeared/capability replacement, immutable unchanged pixels without redraw, no control-counter/poll/GPU FPS or stale error display');

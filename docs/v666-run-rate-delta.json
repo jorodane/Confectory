@@ -1,0 +1,12 @@
+{
+  "baseCommit": "983c74391ad1fa74344ff771d87ae99dd753ea84",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "c6a47c46542ea2bd74b43b345cbc64968945f48e83e7dca6348f903957f726b4",
+    "examples/editor-home/ui/run-surface.js": "a47c23bee2a6950ab378e7f4ef62f29ebad577ade626f9fb2bcee61f1207e7f8",
+    "examples/editor-home/ui/run-windows.js": "bdea7305a60f80fc280e6f0e3ef399001dfe67fb42756ee2afb9247c50d4b573",
+    "packs/project-execution/LaunchConfigured.csbody": "11a8747bdb4c8c96e41446b85185e6dff42307cfa9fe4c043f4061ed1781561d",
+    "packs/project-execution/Surface.csbody": "176665485fbfef02adce36ea911663bb22c148195e764a613ba60c4c9513ca69",
+    "packs/run-surface/Open.csbody": "a6025705b50e2535bd32d7eae66e371594dab0bbfbbd5bf41fc39364f8b29405"
+  }
+}

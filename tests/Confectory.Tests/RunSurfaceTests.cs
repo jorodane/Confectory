@@ -2,6 +2,28 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RunSurfaceTests : TestCase
 {
+ public void test_software_rate_counts_publications_not_reads_or_control_frames()
+ {
+  foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
+  f.Main("");f.Add("App","implementation","MainBody","""
+  implementation App::MainBody for App::Main () -> int {
+  import Confectory.RunSurface::Open as Open (string) -> string;import Confectory.RunSurface::Present as Present (string,int,int,string) -> long;import Confectory.RunSurface::Close as Close (string) -> void;import Confectory.FrameControl::Open as OpenFrame () -> string;import Confectory.FrameControl::Close as CloseFrame (string) -> void;body common "main.csbody";}
+  """);f.Body("App","main.csbody","""
+  void Check(bool b,string message){if(!b)throw new Exception(message);}
+  string pipe="confectory-rate-"+Guid.NewGuid().ToString("N"),secret=new string('a',64),handle=new string('b',32);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_PIPE",pipe);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_SECRET",secret);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_HANDLE",handle);
+  string frame=calls.OpenFrame.Invoke(),owner=calls.Open.Invoke(frame);
+  System.Text.Json.Nodes.JsonObject Read(string operation,string runtime="",string cursor=""){
+   using var deadline=new System.Threading.CancellationTokenSource(2000);using var stream=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);stream.ConnectAsync(deadline.Token).GetAwaiter().GetResult();var query=new System.Text.Json.Nodes.JsonObject{["version"]=1,["handle"]=handle,["secret"]=secret,["request"]=Guid.NewGuid().ToString("N"),["operation"]=operation,["runtime"]=runtime,["cursor"]=cursor,["sequence"]=0};byte[] bytes=System.Text.Encoding.UTF8.GetBytes(query.ToJsonString()),header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header,bytes.Length);stream.WriteAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();stream.WriteAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();stream.ReadExactlyAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();int length=System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header);Check(length<4096,"bounded rate metadata");bytes=new byte[length];stream.ReadExactlyAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();return System.Text.Json.Nodes.JsonNode.Parse(bytes)!.AsObject();
+  }
+  try{
+   string runtime=Read("observe")["runtime"]!.ToString();Check(calls.Present.Invoke(owner,1,1,"AAAAAA==")==1,"first actual publication");var first=Read("surface",runtime);Check(first["renderRate"]!["observation"]!.ToString()=="1","first observation");
+   System.Threading.Thread.Sleep(1100);long revision=1;for(int i=0;i<7;i++)revision=calls.Present.Invoke(owner,1,1,"AAAAAA==");bool denied=false;try{calls.Present.Invoke(owner,1,1,"AAAA");}catch(ArgumentException){denied=true;}Check(denied,"bad Present rejected before rate accounting");var current=Read("surface",runtime);Check(current["revision"]!.ToString()=="8"&&current["renderRate"]!["frames"]!.ToString()=="7","exact successful publications in fresh window");Check(current["renderRate"]!["ready"]!.GetValue<bool>(),"real warmup elapsed");string cursor=current["cursor"]!.ToString();
+   for(int i=0;i<12;i++){var same=Read("surface",runtime,cursor);Check(same["unchanged"]!.GetValue<bool>()&&same["pixels"]is null&&same["revision"]!.ToString()=="8"&&same["renderRate"]!["frames"]!.ToString()=="7","reads neither publish nor count control frames");Check(same["renderRate"]!["observation"]!.GetValue<string>()!=current["renderRate"]!["observation"]!.GetValue<string>(),"fresh observation without new pixels");current=same;}
+   System.Threading.Thread.Sleep(1100);var idle=Read("surface",runtime,cursor);Check(idle["renderRate"]!["frames"]!.ToString()=="0"&&idle["revision"]!.ToString()=="8","idle window decays without a timer or new Present");var control=Read("observe");Check(control["frame"]!.ToString()=="0"&&control["ack"]!.GetValue<int>()==0,"software publications are not cooperative frame completions");
+   string previous=first["runtime"]!.ToString();calls.Close.Invoke(owner);Check(!Read("surface",runtime)["available"]!.GetValue<bool>(),"retired output has no rate");owner=calls.Open.Invoke(frame);calls.Present.Invoke(owner,1,1,"AAAAAA==");var next=Read("surface",runtime);Check(next["runtime"]!.ToString()!=previous&&next["renderRate"]!["observation"]!.ToString()=="1","new publisher resets rate identity");
+  }finally{calls.Close.Invoke(owner);calls.CloseFrame.Invoke(frame);}Console.WriteLine("Software rate actual authenticated pipe/publication/read/control/idle/replacement PASS");return 0;
+  """);f.Sync();Output(Build(),"Software rate actual authenticated pipe/publication/read/control/idle/replacement PASS");
+ }
  public void test_size_opt_in_thread_copy_once_and_legacy_output()
  {
   foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
