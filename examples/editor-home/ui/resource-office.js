@@ -39,7 +39,7 @@ function renderOfficeFiles({files,extension,controls,owns,onError}){
  }
  return {content,dispose:()=>{parts.clear();parsed.clear();}};
 }
-export function mountResourceOffice({preview,toolbar,controls,status,bytes,extension,active,onError,onDetached}){
+export function mountResourceOffice({preview,toolbar,controls,status,bytes,extension,active,onError,onDetached,onReady}){
  if(!officeExtensions.has(extension))return null;if(!active()){onDetached?.();return ()=>{};}if(views>=4)throw Error('office_view_budget');views++;let disposed=false,worker=null,timer=null,observer=null,renderer=null;
  const dispose=()=>{if(disposed)return;disposed=true;views--;clearTimeout(timer);observer?.disconnect();if(worker){worker.onmessage=null;worker.onerror=null;worker.terminate();worker=null;}renderer?.dispose();renderer=null;controls.replaceChildren();preview.replaceChildren();};
  const fail=()=>{if(disposed)return;const current=active();dispose();if(current)onError();else onDetached?.();};
@@ -47,7 +47,7 @@ export function mountResourceOffice({preview,toolbar,controls,status,bytes,exten
   worker=new Worker(new URL('./resource-office-worker.js',import.meta.url),{type:'module',name:'resource-office-preview'});timer=setTimeout(fail,5000);
   worker.onerror=event=>{event.preventDefault();fail();};worker.onmessage=event=>{
    if(disposed||!worker)return;if(!active()){dispose();onDetached?.();return;}clearTimeout(timer);worker.onmessage=null;worker.onerror=null;worker.terminate();worker=null;
-   try{if(event.data?.ok!==true)throw Error('office_parse');renderer=renderOfficeFiles({files:event.data.files,extension,controls,owns:()=>!disposed&&active(),onError:fail});if(disposed){renderer.dispose();return;}preview.className='resource-preview is-document-preview';preview.replaceChildren(renderer.content);preview.setAttribute('aria-busy','false');toolbar.textContent=extension.toUpperCase()+(extension==='xlsx'?' 값 미리보기':' 텍스트 미리보기');status.textContent=extension==='xlsx'?'워크시트당 최대 200행 · 30열':'문서 내용 미리보기 · 원본 서식과 다를 수 있습니다.';}catch{fail();}
+   try{if(event.data?.ok!==true)throw Error('office_parse');renderer=renderOfficeFiles({files:event.data.files,extension,controls,owns:()=>!disposed&&active(),onError:fail});if(disposed){renderer.dispose();return;}preview.className='resource-preview is-document-preview';preview.replaceChildren(renderer.content);preview.setAttribute('aria-busy','false');toolbar.textContent=extension.toUpperCase()+(extension==='xlsx'?' 값 미리보기':' 텍스트 미리보기');status.textContent=extension==='xlsx'?'워크시트당 최대 200행 · 30열':'문서 내용 미리보기 · 원본 서식과 다를 수 있습니다.';onReady?.();}catch{fail();}
   };
   observer=new MutationObserver(()=>{if(!disposed&&!active()){dispose();onDetached?.();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});worker.postMessage({bytes:bytes.buffer,extension},[bytes.buffer]);return dispose;
  }catch(error){dispose();throw error;}

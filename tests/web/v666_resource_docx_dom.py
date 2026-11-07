@@ -1,0 +1,28 @@
+"""Actual Chromium DOM/Worker codec checks, independent of native storage tests."""
+import pathlib,sys,tempfile,http.server,threading,zipfile,io,base64,json,traceback
+from functools import partial
+from playwright.sync_api import sync_playwright
+r=pathlib.Path(sys.argv[1]).resolve();case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-docx-dom-'))
+word='http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+xml='<w:document xmlns:w="'+word+'" xmlns:r="urn:relationships"><w:body><w:p w:rsidR="keep"><w:r><w:rPr><w:b/></w:rPr><w:t>A🙂B</w:t></w:r><w:r><w:t xml:space="preserve"> tail</w:t></w:r><w:hyperlink r:id="never-fetch"><w:r><w:t> link</w:t></w:r></w:hyperlink></w:p><w:p><w:r><w:fldChar w:fldCharType="begin"/><w:instrText>FIELD</w:instrText><w:t>protected</w:t></w:r></w:p><w:tbl><w:tr><w:tc><w:p><w:r><w:t>cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl><w:sectPr><w:pgSz w:w="keep"/></w:sectPr></w:body></w:document>'
+out=io.BytesIO()
+with zipfile.ZipFile(out,'w',zipfile.ZIP_DEFLATED)as z:z.writestr('word/document.xml',xml);z.writestr('word/styles.xml','<style unchanged="true"/>');z.writestr('word/media/image.bin',bytes([0,255,45,2]));z.writestr('word/_rels/document.xml.rels','<Relationships><Relationship Target="https://must-not-load.invalid"/></Relationships>')
+class Handler(http.server.SimpleHTTPRequestHandler):
+ def log_message(self,*args):pass
+server=http.server.ThreadingHTTPServer(('127.0.0.1',0),partial(Handler,directory=str(r/'examples/editor-home/ui')));thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start();errors=[];external=[]
+try:
+ with sync_playwright()as p:
+  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',lambda route:route.continue_()if route.request.url.startswith('http://127.0.0.1:'+str(server.server_port))else(external.append(route.request.url),route.abort())[-1]);page.goto('http://127.0.0.1:'+str(server.server_port)+'/resource-docx.js');
+  data=page.evaluate('''async ({xml,zip})=>{const {docxDocument,editedDocxXML,renderDocxEditor}=await import('/resource-docx-dom.js'),encode=s=>new TextEncoder().encode(s),read=docxDocument(encode(xml));const changes={},root=renderDocxEditor(encode(xml),changes,(k,v)=>changes[k]=v);document.body.replaceChildren(root);const first=root.querySelector('[data-resource-docx-paragraph="p:0"]'),protectedField=root.querySelector('[data-resource-docx-paragraph="p:1"]');if(!protectedField.readOnly)throw Error('protected field editable');first.value='A🙂X\\n\\t<literal> link';first.dispatchEvent(new Event('input'));const output=editedDocxXML(encode(xml),changes),next=docxDocument(output);if(next.paragraphs.length!==3||next.paragraphs[0].textContent!=='A🙂X<literal> link')throw Error('paragraph structure/text');if(next.xml.getElementsByTagNameNS('*','b').length!==1||next.xml.getElementsByTagNameNS('*','pgSz')[0].getAttribute('w:w')!=='keep')throw Error('formatting/section lost');let denied=0;for(const edit of[{'p:1':'overwrite field'},{'p:1500':'out of scope'},{'p:0':'invalid\\u0000'}])try{editedDocxXML(encode(xml),edit);}catch{denied++;}if(denied!==3)throw Error('forged edit accepted');for(const value of['<!DOCTYPE x SYSTEM "https://must-not-load.invalid"><x/>','<w:document><broken>']){let rejected=false;try{docxDocument(encode(value))}catch{rejected=true;}if(!rejected)throw Error('bad XML');}
+   let live=0;const job=(action,bytes,xml)=>new Promise((resolve,reject)=>{const worker=new Worker('/resource-docx-worker.js',{type:'module'});live++;worker.onerror=e=>{e.preventDefault();worker.terminate();live--;reject(Error('worker'));};worker.onmessage=e=>{worker.terminate();live--;e.data.ok?resolve(new Uint8Array(e.data.bytes)):reject(Error(e.data.error));};const source=bytes.slice(),part=xml?.slice();worker.postMessage({action,bytes:source.buffer,...(part?{xml:part.buffer}:{})},part?[source.buffer,part.buffer]:[source.buffer]);});const original=Uint8Array.from(atob(zip),c=>c.charCodeAt(0)),workerXML=await job('read',original);if(new TextDecoder().decode(workerXML)!==xml)throw Error('read changed bytes');const built=await job('write',original,output),round=await job('read',built);if(docxDocument(round).paragraphs[0].textContent!==next.paragraphs[0].textContent||live!==0)throw Error('roundtrip/lifetime');let text='';for(const b of built)text+=String.fromCharCode(b);return {output:btoa(text),protected:true,formatting:true,forgedRejected:denied,externalFetch:false,live,docxXML:new TextDecoder().decode(output)};}''',dict(xml=xml,zip=base64.b64encode(out.getvalue()).decode()))
+  built=base64.b64decode(data.pop('output'));(case/'original.docx').write_bytes(out.getvalue());(case/'edited.docx').write_bytes(built)
+  with zipfile.ZipFile(io.BytesIO(out.getvalue()))as before,zipfile.ZipFile(io.BytesIO(built))as after:
+   assert after.testzip()is None
+   assert set(before.namelist())==set(after.namelist())
+   for name in before.namelist():
+    if name!='word/document.xml':assert before.read(name)==after.read(name),name
+  assert not errors and not external,(errors,external);(case/'checks.json').write_text(json.dumps(data,ensure_ascii=False,indent=2));browser.close();print('PASS actual Chromium Word DOM/Worker, protected fields/Unicode/formatting/section and independent ZIP untouched-parts checks',flush=True)
+except Exception as e:
+ (case/'failure.json').write_text(json.dumps(dict(error=repr(e),traceback=traceback.format_exc(),errors=errors,external=external),indent=2));raise
+finally:server.shutdown();server.server_close();thread.join()
+print('RESOURCE_DOCX_DOM_FIXTURE',case,flush=True)

@@ -6,7 +6,7 @@ const wanted=(name,extension)=>extension==='docx'?name==='word/document.xml':ext
 const fail=code=>{throw Error('office_zip_'+code);};
 const crcTable=Uint32Array.from({length:256},(_,i)=>{let c=i;for(let n=0;n<8;n++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
 export function officeCRC(bytes){let crc=0xffffffff;for(const byte of bytes)crc=crcTable[(crc^byte)&255]^(crc>>>8);return (crc^0xffffffff)>>>0;}
-export function officeDirectory(bytes,extension){
+export function officeDirectory(bytes,extension,archive=false){
  if(!(bytes instanceof Uint8Array)||bytes.length<22||bytes.length>SOURCE||!officeExtensions.has(extension))fail('input');
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),range=(at,size,end=bytes.length)=>{if(!Number.isSafeInteger(at)||at<0||size<0||at+size>end)fail('bounds');},u16=at=>{range(at,2);return view.getUint16(at,true);},u32=at=>{range(at,4);return view.getUint32(at,true);};
  let end=-1;for(let at=bytes.length-22;at>=Math.max(0,bytes.length-65557);at--)if(u32(at)===0x06054b50&&at+22+u16(at+20)===bytes.length){end=at;break;}
@@ -24,21 +24,21 @@ export function officeDirectory(bytes,extension){
   if(flags&8){for(const [field,value]of[[14,crc],[18,packed],[22,raw]])if(u32(local+field)!==0&&u32(local+field)!==value)fail('local_size');const descriptor=u32(finish)===0x08074b50?finish+4:finish;range(descriptor,12,start);if(u32(descriptor)!==crc||u32(descriptor+4)!==packed||u32(descriptor+8)!==raw)fail('descriptor');finish=descriptor+12;}
   else if(u32(local+14)!==crc||u32(local+18)!==packed||u32(local+22)!==raw)fail('local_size');
   if(method===0&&packed!==raw)fail('stored_size');intervals.push([local,finish]);
-  if(wanted(name,extension)){total+=raw;if(raw>ENTRY||total>TOTAL||parts.length>=PARTS)fail('decoded_budget');parts.push({name,data,packed,raw,crc,method});}
+  if(archive||wanted(name,extension)){total+=raw;if(raw>(archive?8388608:ENTRY)||total>(archive?16777216:TOTAL)||parts.length>=(archive?COUNT:PARTS))fail('decoded_budget');parts.push(archive?{name,data,packed,raw,crc,method,local,finish,central:at,centralSize:46+nameSize+extraSize+comment}:{name,data,packed,raw,crc,method});}
   at+=46+nameSize+extraSize+comment;
  }
  if(at!==end||!parts.length)fail('parts');intervals.sort((a,b)=>a[0]-b[0]);for(let i=1;i<intervals.length;i++)if(intervals[i][0]<intervals[i-1][1])fail('overlap');return parts;
 }
-export async function extractOfficeFiles(bytes,extension){
- const parts=officeDirectory(bytes,extension),files=[];let total=0;
+export async function extractOfficeFiles(bytes,extension,archive=false){
+ const parts=officeDirectory(bytes,extension,archive),files=[],budget=archive?16777216:TOTAL;let total=0;
  for(const part of parts){
   let result;if(part.method===0)result=bytes.slice(part.data,part.data+part.packed);
   else{
    const reader=new Blob([bytes.subarray(part.data,part.data+part.packed)]).stream().pipeThrough(new DecompressionStream('deflate-raw')).getReader(),chunks=[];let length=0;
-   try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>part.raw||total+length>TOTAL)fail('actual_budget');chunks.push(value);}if(length!==part.raw)fail('actual_size');result=new Uint8Array(length);let offset=0;for(const chunk of chunks){result.set(chunk,offset);offset+=chunk.length;}}
+   try{for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;if(length>part.raw||total+length>budget)fail('actual_budget');chunks.push(value);}if(length!==part.raw)fail('actual_size');result=new Uint8Array(length);let offset=0;for(const chunk of chunks){result.set(chunk,offset);offset+=chunk.length;}}
    catch(error){try{await reader.cancel();}catch{}throw error;}finally{reader.releaseLock();}
   }
-  total+=result.length;if(result.length!==part.raw||total>TOTAL||officeCRC(result)!==part.crc)fail('integrity');files.push([part.name,result.buffer]);
+  total+=result.length;if(result.length!==part.raw||total>budget||officeCRC(result)!==part.crc)fail('integrity');files.push([part.name,result.buffer]);
  }
  return files;
 }

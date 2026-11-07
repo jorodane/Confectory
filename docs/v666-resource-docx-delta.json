@@ -1,0 +1,18 @@
+{
+  "baseCommit": "2e3c498bef224df44f8ad8d0bfaf5a94be82ae9b",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "packs/project-resources/Layout.csbody": "62802f89fc3f4a224ad968cd3ede85d4230cb81b1bceaf5c0b6ea28f7f156db9",
+    "packs/editor-home-model/Resources.csbody": "b49be62d26a8b0a0482b30846f0733ad3d6f651f714997392c82ead087ad2294",
+    "examples/editor-home/WebBundle.csbody": "5835e546823853a612bc54280eba77e6a7008bf678ef4da02a6d7481e2c77d11",
+    "examples/editor-home/ui/style.css": "e5290adb015b4601b702e704bb1d0e7a06d6712bd4b0f6a7cced04437019bc0b",
+    "examples/editor-home/ui/resource-docx.js": "c4204b3ccc2bb65a90c20b30f362727a412684e974e27507dbd5d0b8df09f326",
+    "examples/editor-home/ui/resource-docx-dom.js": "f6acc128c2f37c2ef2745f5acc0612283823e5741a2f3d30f8e529535d76024b",
+    "examples/editor-home/ui/resource-docx-zip.js": "4618ed79a28bdac88348451c1a148422c9387b6ebc97f351721a186c0b9d1a4b",
+    "examples/editor-home/ui/resource-docx-worker.js": "37b42cabd4052d1a10e25646cc47e184e7a21733e1d8f8cde777802c505cf00f",
+    "examples/editor-home/ui/resource-office.js": "1a3f06964a6ec11e6362d3293409baca8442eaa590faa5e8afdf10eb48493e5b",
+    "examples/editor-home/ui/resource-office-zip.js": "d30163d157b5f03023d0216250bd22f2a4bb1bbb66eba19f6acc7d4ff2014aa2",
+    "examples/editor-home/ui/resource-previews.js": "af93be248174c007043001a2ad9ea20f33452f238610b21508b3551e1630c3de",
+    "examples/editor-home/ui/v508-runtime.js": "15f0514f724cad73b2fa121b4db2c9b5f0d67f4caccac602795d2d32c05221ed"
+  }
+}

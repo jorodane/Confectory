@@ -22,7 +22,9 @@ def viewer(id):return f.page.locator('.window[data-key="resource-file:'+id+'"]')
 def opened(id):
  b.locator('[data-resource-id="'+id+'"]').press('Enter');w=viewer(id);expect(w).to_be_visible();return w
 def ready(w,text):
- expect(w.locator('.resource-preview')).to_have_attribute('aria-busy','false');expect(w.locator('.resource-preview')).to_contain_text(text);expect(w.locator('[data-resource-content-edit],[data-resource-content-save]')).to_have_count(0)
+ expect(w.locator('.resource-preview')).to_have_attribute('aria-busy','false');expect(w.locator('.resource-preview')).to_contain_text(text);expect(w.locator('[data-resource-content-save]')).to_have_count(0)
+ if w.locator('[data-resource-preview-title]').inner_text().startswith('DOCX'):expect(w.locator('[data-resource-content-edit]')).to_be_enabled()
+ else:expect(w.locator('[data-resource-content-edit]')).to_have_count(0)
 def closed(id):opened(id).locator('[data-close]').first.click();expect(viewer(id)).to_have_count(0)
 def workers():return f.page.evaluate('()=>__officeWorkers')
 def release():f.page.evaluate('()=>{__holdOffice=false;__releaseOffice.splice(0).forEach(fn=>fn());}')

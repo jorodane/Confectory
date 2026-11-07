@@ -1,6 +1,10 @@
 """Final bounded display-metadata source and authored-layout inventory."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-description-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-docx-delta.json').exists():
+ import runpy
+ runpy.run_path(str(r/'tests/web/v666_resource_docx_copy.py'),run_name='__main__');raise SystemExit
+d=json.loads((r/'docs/v666-resource-description-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 for path in ['src','targets','packs/file-stream','packs/project-resources/Request.csbody','packs/project-resources/DeletionRecords.csbody','packs/project-resources/pack.cpack','packs/web-ui','packs/edit-workspace','packs/editor-home-model','examples/editor-home/ui/style.css','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-pdf.js','examples/editor-home/ui/resource-office.js','examples/editor-home/ui/resource-layout.js']:

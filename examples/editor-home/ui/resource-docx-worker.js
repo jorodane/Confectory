@@ -1,0 +1,3 @@
+import {readDocxArchive,rewriteDocxArchive} from './resource-docx-zip.js';
+let used=false;
+onmessage=async event=>{if(used)return;used=true;try{const{action,bytes,xml}=event.data;if(!(bytes instanceof ArrayBuffer))throw Error('docx_input');const output=action==='read'?(await readDocxArchive(new Uint8Array(bytes))).xml:action==='write'&&xml instanceof ArrayBuffer?(await rewriteDocxArchive(new Uint8Array(bytes),new Uint8Array(xml))).buffer:null;if(!output)throw Error('docx_operation');postMessage({ok:true,bytes:output},[output]);}catch(e){postMessage({ok:false,error:['docx_signed_or_macro','docx_output_budget'].includes(e.message)?e.message:'docx_archive'});}finally{close();}};

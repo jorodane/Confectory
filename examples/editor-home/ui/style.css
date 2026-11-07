@@ -3064,3 +3064,8 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 
 /* Authored v666 PDF page/canvas rules. */
 .resource-pdf-page{width:max-content;margin:0 auto;background:white;box-shadow:0 2px 10px #0005}.resource-pdf-canvas{display:block;max-width:none}
+
+.resource-paragraph-field{display:flex;flex-direction:column;gap:4px;margin:0 0 12px}
+.resource-paragraph-field>span{font-size:10px;color:#747a72}
+.resource-paragraph-field textarea{width:100%;min-width:0;padding:7px;background:#fffdfa;color:#303238;border:1px solid #cbd0c8;border-radius:4px;font:inherit;font-size:12px;line-height:1.6;resize:vertical}
+.resource-paragraph-field textarea[readonly]{background:#e9eae5;color:#676d64}
