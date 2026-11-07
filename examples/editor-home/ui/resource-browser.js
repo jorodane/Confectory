@@ -34,8 +34,8 @@ export function createResourceBrowser(api){
  async function request(w,owner,action,input,token,endpoint='projectResources'){
   for(let attempt=0;attempt<3;attempt++){if(!alive(w,owner,token))throw Error('scope_changed');await api.view.update();if(!alive(w,owner,token))throw Error('scope_changed');try{const result=await api.view.call(endpoint,{action,project:owner,...input});if(!alive(w,owner,token))throw Error('scope_changed');return result;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}
  }
- function load(w,token=w.resourceLifetime){const owner=scope(),c=catalogue(owner),local=state(w);if(c.phase==='loading')return;c.phase='loading';update();
-  (async()=>{await api.idle();if(!alive(w,owner,token)){c.phase=c.value?'ready':'empty';return;}await api.work(async()=>{try{accept(owner,await request(w,owner,'load',{},token,'projectResourceLayout'));}catch(error){if(!alive(w,owner,token)){c.phase=c.value?'ready':'empty';return;}c.phase='failed';local.message='자료를 확인하지 못했어요. 기존 보관본은 그대로예요.';throw error;}finally{if(scope()===owner)update();}},null,{flushWorkspace:false});})();
+ function load(w,token=w.resourceLifetime){const owner=scope(),c=catalogue(owner),local=state(w);if(!alive(w,owner,token)||c.phase==='loading')return;c.phase='loading';update();
+  (async()=>{await api.idle();if(!alive(w,owner,token)){c.phase=c.value?'ready':'empty';update();return;}await api.work(async()=>{try{accept(owner,await request(w,owner,'load',{},token,'projectResourceLayout'));}catch(error){if(!alive(w,owner,token)){c.phase=c.value?'ready':'empty';update();return;}c.phase='failed';local.message='자료를 확인하지 못했어요. 기존 보관본은 그대로예요.';throw error;}finally{if(scope()===owner)update();}},null,{flushWorkspace:false});})();
  }
  async function importResult(w,owner,job,token){
   if(!job.transfer)return request(w,owner,job.action,job.input,token,job.endpoint);
