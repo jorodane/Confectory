@@ -1,0 +1,3 @@
+implementation Confectory.DevelopmentTools::ObserveBody for Confectory.DevelopmentTools::Observe (string[] capabilities) -> string {
+import Confectory.DevelopmentTools::Snapshot as Snapshot (string) -> string;
+body common "Observe.csbody";}

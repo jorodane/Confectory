@@ -1,5 +1,6 @@
 pack Confectory.DevelopmentTools version "0.1.0" {
 standalone false;
+element Observe function "Observe.celem"; element ObserveBody implementation "ObserveBody.celem";
 element OpenNode function "OpenNode.celem"; element OpenNodeBody implementation "OpenNodeBody.celem";
 dependency Confectory.FileStream version "0.1.0";
 element BindOrigin function "BindOrigin.celem"; element BindOriginBody implementation "BindOriginBody.celem";

@@ -21,9 +21,14 @@ export function projectOfficeWorkers(observation,objects){
    if(assigned&&owned.has(root))ioLabel=io.kind==='read'&&io.outcome==='completed'?'읽기 완료':io.kind==='draft-stage'&&io.outcome==='applied'?'초안 변경 확인':io.kind==='draft-stage'&&io.outcome==='unchanged'?'초안 동일 확인':'';
    if(ioLabel)lastToolIO=Object.freeze({receipt:io.receipt,ordinal:io.ordinal,kind:io.kind,outcome:io.outcome,targetId:io.targetId});
   }
+  let activeToolIO=null,activeIOLabel='',access='idle';const currentIO=row.activeToolIO;
+  if(!row.needsCheck&&row.status==='running'&&currentIO?.projectId===project&&typeof currentIO.receipt==='string'&&/^[a-f0-9]{64}$/.test(currentIO.receipt)&&Number.isInteger(currentIO.ordinal)&&currentIO.ordinal>=1&&currentIO.ordinal<=256&&typeof currentIO.targetId==='string'&&currentIO.targetId.length>0&&currentIO.targetId.length<=1024&&currentIO.phase==='in-progress'){
+   const at=currentIO.targetId.indexOf('/body:'),root=at<0?currentIO.targetId:currentIO.targetId.slice(0,at),assigned=[row.assignedNode,...(Array.isArray(row.assignedSourceIds)?row.assignedSourceIds:[])].includes(currentIO.targetId);
+   if(assigned&&owned.has(root)&&['read','draft-stage'].includes(currentIO.kind)){access=currentIO.kind==='read'?'read':'write';activeIOLabel=currentIO.kind==='read'?'읽는 중':'초안 처리 중';activeToolIO=Object.freeze({receipt:currentIO.receipt,ordinal:currentIO.ordinal,targetId:currentIO.targetId,kind:currentIO.kind,phase:currentIO.phase});}
+  }
   const [state,jobState,label]=states[row.status];
   helpers.get(row.ownerHelper).workers.push(Object.freeze({id:row.id,label:'Worker '+row.id.slice(0,12),projectId:project,ownerHelper:row.ownerHelper,
-   state,access:'idle',objectId,nativeStatus:row.status,jobState,lastToolIO,ioLabel,
+   state:access==='read'?'reading':access==='write'?'writing':state,access,objectId,nativeStatus:row.status,jobState,lastToolIO,ioLabel,activeToolIO,activeIOLabel,
    jobLabel:row.needsCheck?'실행 확인 필요':label,needsCheck:row.needsCheck===true}));
  }
  for(const helper of helpers.values()){helper.workers.sort((a,b)=>a.id.localeCompare(b.id));helper.status='확인된 작업 '+helper.workers.length+'건';}

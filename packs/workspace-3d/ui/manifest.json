@@ -20,8 +20,8 @@
     "mime": "text/javascript"
   },
   "office-actors.js": {
-    "size": 27449,
-    "sha256": "93200a9b03dbbcbae3e80b113b3e76ee7f5b3c1ac4a8e84e5784a53e221060ff",
+    "size": 27712,
+    "sha256": "4ad4e09d69a5e33b354a7ff4cdb534916b739b363401b79b406ad17c88833c16",
     "mime": "text/javascript"
   },
   "office-world.js": {
@@ -45,8 +45,8 @@
     "mime": "text/javascript"
   },
   "workers.js": {
-    "size": 3136,
-    "sha256": "fe27bfd88c5fd44280c5059a1e4c6e26a085acdef1662d1240336a677181fdba",
+    "size": 4269,
+    "sha256": "ec8eb18707208e996fb5c5d485acf9d0380bd5560819a65b05aca36c1721f873",
     "mime": "text/javascript"
   }
 }

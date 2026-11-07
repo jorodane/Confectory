@@ -3,7 +3,7 @@ import hashlib,json,pathlib,shutil,time,uuid,sys,traceback,threading,io
 from playwright.sync_api import sync_playwright,expect
 from owned_responses import OwnedResponses
 import v536_wide_mixed as f
-mode=sys.argv[3];live=mode in ['live','io'];checkIO=mode in ['io','io-cold'];ioGates=[threading.Event(),threading.Event()];ioEntered=[threading.Event(),threading.Event()];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
+mode=sys.argv[3];live=mode in ['live','io','phase-ui'];checkIO=mode in ['io','io-cold'];ioGates=[threading.Event(),threading.Event()];ioEntered=[threading.Event(),threading.Event()];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
 def invoke(endpoint,**body):
  for _ in range(4):
   v=f.mount();rid=uuid.uuid4().hex
@@ -89,6 +89,17 @@ try:
     for requirement in preview['requirements']:invoke('permission',token=preview['token'],id=requirement['id'],approved=True)
     invoke('startAI',token=preview['token']);assert entered.wait(timeout=10);expect(status(id,'running')).to_contain_text('작업 중');assert not owned.requests
     f.page.evaluate("args=>window.dispatchEvent(new CustomEvent('confectory:worker-activity',{detail:{...args,state:'writing',access:'write'}}))",dict(projectId=f.state()['projectId'],helperId=chief,workerId=id));expect(status(id,'running')).to_contain_text('작업 중');physical();f.checked('actual approved Worker is running while owned HTTP is held; movement/arrival and forged visual events cannot start, finish or relabel it as a write')
+    if mode=='phase-ui':
+     # UI receipt injection is separate from the native gated-reader test. The
+     # actual approved Worker exists, but its owned provider is still held.
+     f.page.locator('#chat-input').fill('진행 표시 중 새 입력 보존')
+     f.page.evaluate("""args=>{globalThis.__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'read',phase:'in-progress'};const base=fetch;fetch=async(...a)=>{const response=await base(...a);let p;try{p=await response.clone().json()}catch{return response}let found=false;for(const row of p.state?.assignmentWorkers||[])if(row.id===args.id){row.activeToolIO=__phaseFixture;found=true}return found?new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}}):response;};}""",dict(project=f.state()['projectId'],id=id,node=node))
+     expect(status(id,'running')).to_contain_text('읽는 중');assert not owned.requests;physical()
+     f.page.evaluate("()=>__phaseFixture={...__phaseFixture,kind:'draft-stage'}");expect(status(id,'running')).to_contain_text('초안 처리 중');physical()
+     for bad in [dict(targetId='External::Hidden'),dict(projectId='foreign'),dict(receipt='bad')]:
+      f.page.evaluate('bad=>__phaseFixture={...__phaseFixture,...bad}',bad);expect(status(id,'running')).not_to_contain_text('초안 처리 중');f.page.evaluate("args=>__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'draft-stage',phase:'in-progress'}",dict(project=f.state()['projectId'],node=node));expect(status(id,'running')).to_contain_text('초안 처리 중')
+     f.page.evaluate('()=>__phaseFixture=null');expect(status(id,'running')).not_to_contain_text('초안 처리 중');expect(status(id,'running')).not_to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('진행 표시 중 새 입력 보존');assert not owned.requests
+     f.checked('UI-only receipt injection on a real approved held Worker verifies read/draft labels, foreign/hidden/malformed rejection, removal and late input; it is not evidence of native I/O timing or completion')
     switch('editor');gate.set()
     if checkIO:
      for index,label in enumerate(['읽기 완료','초안 변경 확인']):
@@ -116,7 +127,9 @@ try:
    else:
     path=f.project/'.confectory/ai-development/helpers'/hashlib.sha256(chief.encode()).hexdigest()[:16]/'tasks.json';f.pending();f.page.close();f.stop();document=json.loads(path.read_bytes());first=next(iter(document['tasks']));document['tasks'][first]['status']='running';
     if checkIO:document['tasks'][first]['lastToolIO']={'projectId':document['project'],'receipt':'b'*64,'ordinal':1,'targetId':node,'kind':'draft-stage','outcome':'applied'}
+    if mode=='phase-cold':document['tasks'][first]['activeToolIO']={'projectId':document['project'],'receipt':'c'*64,'ordinal':1,'targetId':node,'kind':'read','phase':'in-progress'}
     crash=json.dumps(document,ensure_ascii=False).encode();path.write_bytes(crash);f.start(1);f.page=f.setup();ready();f.idle();projected(1);expect(status(id,'interrupted')).to_contain_text('실행 확인 필요');assert not f.state()['planningOwnerAvailable'];unchanged_journal(path,crash);physical();
+    if mode=='phase-cold':assert next(row for row in f.state()['assignmentWorkers']if row['id']==id)['activeToolIO']is None;assert '읽는 중'not in office().inner_text();f.checked('cold journal cannot recreate a volatile active I/O signal or resume tool execution')
     if checkIO:assert next(row for row in f.state()['assignmentWorkers']if row['id']==id)['lastToolIO']is None;assert '최근 초안 변경 확인'not in office().inner_text();f.checked('cold journal cannot forge or restore a volatile completed IO receipt; no owner recovery or replay')
     f.checked('owned crash fixture cold-running record is read as check-required interruption; camera/source observation never opens an owner, recovers, dispatches or rewrites the journal')
     # Original distant LOD exposes Worker labels. Also inspect the actual native

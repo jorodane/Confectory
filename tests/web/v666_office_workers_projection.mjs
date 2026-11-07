@@ -38,3 +38,17 @@ for(const row of [{needsCheck:true},{status:'ready'},{status:'dispatching'}])ass
 const multiple=withIO({},{assignedSourceIds:['Own::Other']});assert.equal(multiple.objectId,undefined);assert.equal(multiple.ioLabel,'읽기 완료');
 assert.equal(project(observation([task({status:'running',changedIds:['Own::Impl'],access:'write'})]),objects)[0].workers[0].lastToolIO,null);
 console.log('PASS native public Worker identity/project/participant scope, eight factual statuses, completed assigned IO only; no phase/name/target inference, immutable state independent of arrival, no execution timestamps or journal writes');
+
+// Live signals are distinct from completion, with the same assigned/visible boundary.
+const phase={projectId:'p',receipt:'c'.repeat(64),ordinal:1,targetId:'Own::Impl/body:common/node:n',kind:'read',phase:'in-progress'};
+const withPhase=(extra={},row={})=>project(observation([task({status:'running',...row,activeToolIO:{...phase,...extra}})]),objects)[0].workers[0];
+for(const [kind,access,label]of [['read','read','읽는 중'],['draft-stage','write','초안 처리 중']]){
+ const raw=withPhase({kind});assert.equal(raw.access,access);assert.equal(raw.activeIOLabel,label);assert(Object.isFrozen(raw.activeToolIO));assert.equal(raw.lastToolIO,null);
+ const activity=actorMethods.workerActivity.call(context,{id:'h'},{raw},0),actor={activity,path:[{x:1,z:2}],host:{arriving:true}};actor.job=actorMethods.createWorkerJob.call(context,actor,{});
+ assert.equal(actor.job.access,access);assert.equal(actor.job.state,'running');assert.equal(actor.job.startedAt,null);assert.equal(actor.job.finishedAt,null);assert.equal(actorMethods.jobAction.call(context,actor),'작업 중 · '+label);
+}
+for(const bad of [{projectId:'foreign'},{receipt:'raw-capability'},{ordinal:0},{ordinal:257},{targetId:'Own::Other'},{targetId:'External::Fn'},{kind:'write'},{phase:'completed'}]){const row=withPhase(bad);assert.equal(row.activeToolIO,null);assert.equal(row.access,'idle');}
+for(const row of [{needsCheck:true},{status:'ready'},{status:'dispatching'},{status:'completed'},{status:'error'},{status:'cancelled'}])assert.equal(withPhase({},row).activeToolIO,null);
+const denied=actorMethods.workerActivity.call({...context,bridge:{observedOnly:true,canInspectTask:()=>false}},{id:'h'},{raw:withPhase()},0);assert.equal(denied.activeToolIO,null);assert.equal(denied.access,'idle');
+assert.equal(withPhase({},{assignedSourceIds:['Own::Other']}).objectId,undefined);
+console.log('PASS active tool receipt/phase and visibility bounds, immutable snapshot, no completion/timestamps/arrival gate or automatic target selection');

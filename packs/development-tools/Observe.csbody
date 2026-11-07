@@ -1,0 +1,17 @@
+// A read-only batch never waits for an executing capability. All snapshots keep
+// their original locks/validation; mutation and critical Snapshot callers are unchanged.
+if(capabilities.Length<1||capabilities.Length>1025||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(capabilities,StringComparer.Ordinal))!=capabilities.Length)throw new ArgumentException("Explicit bounded distinct capabilities required");
+var states=new System.Collections.Generic.List<object[]>();
+foreach(string id in capabilities){if(!System.Text.RegularExpressions.Regex.IsMatch(id??"","^[a-f0-9]{32}$"))throw new ArgumentException("Explicit capability required");states.Add(AppDomain.CurrentDomain.GetData("Confectory.DevelopmentTools."+id) as object[]??throw new ObjectDisposedException("DevelopmentTools"));}
+var held=new System.Collections.Generic.List<object>();bool busy=false;
+try{
+ foreach(var state in states){if(!System.Threading.Monitor.TryEnter(state[0])){busy=true;break;}held.Add(state[0]);}
+ var snapshots=new System.Text.Json.Nodes.JsonObject();var activities=new System.Text.Json.Nodes.JsonObject();
+ for(int n=0;n<states.Count;n++){
+  var state=states[n];if((bool)System.Threading.Volatile.Read(ref state[4]))throw new ObjectDisposedException("DevelopmentTools");
+  if(busy){string? text=System.Threading.Volatile.Read(ref state[9]) as string;if(text is not null)activities[capabilities[n]]=System.Text.Json.Nodes.JsonNode.Parse(text);}
+  else snapshots[capabilities[n]]=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(capabilities[n]));
+ }
+ foreach(var state in states)if((bool)System.Threading.Volatile.Read(ref state[4]))throw new ObjectDisposedException("DevelopmentTools");
+ return new System.Text.Json.Nodes.JsonObject{["pending"]=busy,["snapshots"]=snapshots,["activities"]=activities}.ToJsonString();
+}finally{for(int n=held.Count-1;n>=0;n--)System.Threading.Monitor.Exit(held[n]);}

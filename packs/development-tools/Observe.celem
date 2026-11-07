@@ -1,0 +1,1 @@
+function Confectory.DevelopmentTools::Observe (string[] capabilities) -> string {provide Confectory.DevelopmentTools::Observe with Confectory.DevelopmentTools::ObserveBody;}

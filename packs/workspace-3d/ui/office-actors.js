@@ -24,7 +24,7 @@ export const actorMethods={
  workerActivity(helper,row,index){
   if(this.bridge.observedOnly){
    const raw=row.raw,allowed=raw.projectId===this.source.id&&raw.ownerHelper===helper.id&&this.bridge.canInspectTask?.(helper,raw)===true;
-   return {state:raw.state,access:'idle',nativeStatus:raw.nativeStatus,jobState:raw.jobState,jobLabel:raw.jobLabel,lastToolIO:raw.lastToolIO,ioLabel:raw.ioLabel,
+   return {state:raw.state,access:raw.activeToolIO&&allowed?raw.access:'idle',nativeStatus:raw.nativeStatus,jobState:raw.jobState,jobLabel:raw.jobLabel,lastToolIO:raw.lastToolIO,ioLabel:raw.ioLabel,activeToolIO:allowed?raw.activeToolIO:null,activeIOLabel:allowed?raw.activeIOLabel:'',
     objectId:allowed&&this.objectsById.has(raw.objectId)?raw.objectId:undefined,text:raw.jobLabel};
   }
   const raw=row.raw,meta=Array.isArray(raw)?raw[4]||{}:raw,legacy=this.activityOverrides.get(helper.id),override=this.workerOverrides.get(this.workerKey(helper.id,row.workerId))||(legacy&&(legacy.workerId?String(legacy.workerId)===row.workerId:index===0)?legacy:null),state=override?.state||(Array.isArray(raw)?raw[1]:raw.state)||'waiting',location=(Array.isArray(raw)?raw[3]:raw.location)||'';
@@ -35,8 +35,8 @@ export const actorMethods={
  },
  createWorkerJob(actor,old){
   if(this.bridge.observedOnly){const a=actor.activity,o=this.objectsById.get(a.objectId);return Object.freeze({
-   key:JSON.stringify([a.nativeStatus,a.objectId,a.lastToolIO?.receipt]),state:a.jobState,objectId:a.objectId,access:'idle',
-   nativeStatus:a.nativeStatus,label:a.jobLabel,lastToolIO:a.lastToolIO,ioLabel:a.ioLabel,roomId:o?this.roomFor(o).id:'__lobby',startedAt:null,finishedAt:null});}
+   key:JSON.stringify([a.nativeStatus,a.objectId,a.lastToolIO?.receipt,a.activeToolIO?.receipt]),state:a.jobState,objectId:a.objectId,access:a.access,
+   nativeStatus:a.nativeStatus,label:a.jobLabel,lastToolIO:a.lastToolIO,ioLabel:a.ioLabel,activeToolIO:a.activeToolIO,activeIOLabel:a.activeIOLabel,roomId:o?this.roomFor(o).id:'__lobby',startedAt:null,finishedAt:null});}
   const activity=actor.activity,state=['error','conflict','done'].includes(activity.state)?activity.state:['read','write'].includes(activity.access)?'running':'idle',key=JSON.stringify([activity.objectId,activity.access,state]),prior=old?.job,now=performance.now(),sameTarget=prior?.objectId===activity.objectId,object=this.objectsById.get(activity.objectId);
   // This snapshot follows Worker signals. Walking, reporting and seat availability never advance it.
   return Object.freeze({key,state,objectId:activity.objectId,access:activity.access,roomId:object?this.roomFor(object).id:'__lobby',startedAt:state==='running'?prior?.key===key?prior.startedAt:now:sameTarget?prior?.startedAt??null:null,finishedAt:state==='done'?prior?.key===key?prior.finishedAt:now:null});
@@ -158,7 +158,7 @@ export const actorMethods={
   actor.taskIndex=(actor.taskIndex+1)%actor.tasks.length;this.routeActor(actor);
  },
  jobAction(actor){
-  if(this.bridge.observedOnly)return (actor.job?.label||'')+(actor.job?.ioLabel?' · 최근 '+actor.job.ioLabel:'');
+  if(this.bridge.observedOnly)return (actor.job?.label||'')+(actor.job?.activeIOLabel?' · '+actor.job.activeIOLabel:actor.job?.ioLabel?' · 최근 '+actor.job.ioLabel:'');
   if(actor.activity?.hiddenTarget)return '작업 중';const job=actor.job;if(!job)return '';
   if(job.state==='done')return '작업 완료';if(job.state==='error')return '오류 / 중단';if(job.state==='conflict')return '협의 필요';if(job.state==='idle')return '작업 대기';
   const theme=zones[this.rooms.get(job.roomId)?.zone];return (job.access==='read'?theme?.read||'읽기':theme?.write||'쓰기')+' 중';
