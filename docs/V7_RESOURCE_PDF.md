@@ -23,11 +23,14 @@ PDF 창은 최대2개, 최대1,000페이지다. 페이지 원래 viewport는 한
 제한한다. 이미지16M 픽셀 제한과 library image canvas16MiB 예산을 지정한다.
 초과 이미지/복잡한 글꼴은 완전 재현되지 않을 수 있으며 원본 사본은 유지한다.
 로딩/각 렌더에 10초 이벤트 타이머를 둔다. 이는 main-thread가 응답하지 않는 모든
-경우의 강제 CPU 제한을 보장하지 않는다.
+경우의 강제 CPU 제한을 보장하지 않는다. PDF.js 내부 전체 디코딩 메모리의
+하드 한도와 canvas/입력 한도도 구분한다.
 
 페이지/배율/resize가 바뀌면 이전 렌더를 취소하고 소유 세대/version을 다시 확인한다.
 닫기·접기·이름 변경·Home/프로젝트 전환/실패에서 canvas/observer/RAF를 해제하고
-document/bridge를 파기한다. 파기 응답이 없더라도 500ms 뒤 직접 생성한 Worker를
+document/bridge를 파기한다. 고정4.10.38의 해당 transport에 속한 FontLoader/FilterFactory를
+정리해 종료 RPC 응답이 없어도 전역 FontFace/필터 DOM이 남지 않게 한다. vendor 자체나
+다른 문서/시스템 글꼴은 수정하지 않는다. 파기 응답이 없더라도 500ms 뒤 직접 생성한 Worker를
 종료하고 lease를 반환한다. 성공/실패 뒤 개인 레이아웃에는 기존 owner/ID/hash만 남는다.
 
 Mozilla [공개 보안 공지 목록](https://github.com/mozilla/pdf.js/security/advisories)을 확인했다.

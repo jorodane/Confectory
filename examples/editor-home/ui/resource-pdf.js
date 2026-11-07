@@ -3,10 +3,14 @@ let library,views=0;
 export function mountResourcePDF({preview,toolbar,controls,status,bytes,item,active,onError,onDetached}){
  if(!(bytes instanceof Uint8Array)||bytes.length>1048576||new TextDecoder('ascii').decode(bytes.subarray(0,5))!=='%PDF-')throw Error('pdf_input');
  if(!active()){onDetached?.();return ()=>{};}if(views>=2)throw Error('pdf_view_budget');views++;
- let disposed=false,worker=null,bridge=null,documentTask=null,pdf=null,renderTask=null,canvas=null,observer=null,visibility=null,frame=0,timer=null,releaseTimer=null,version=0,pageNumber=1,zoom='fit',lastWidth=0,released=false,abortReady=null;
- const owns=()=>!disposed&&active(),clearCanvas=node=>{if(node){node.width=0;node.height=0;node.remove();}},release=()=>{if(released)return;released=true;clearTimeout(releaseTimer);abortReady?.();abortReady=null;try{bridge?.destroy();}catch{}bridge=null;if(worker){worker.onerror=null;worker.terminate();worker=null;}views--;};
+ let disposed=false,worker=null,bridge=null,documentTask=null,pdf=null,renderTask=null,canvas=null,observer=null,visibility=null,frame=0,timer=null,releaseTimer=null,version=0,pageNumber=1,zoom='fit',lastWidth=0,released=false,abortReady=null,ownedTransport=null;
+ const owns=()=>!disposed&&active(),clearCanvas=node=>{if(node){node.width=0;node.height=0;node.remove();}},release=()=>{if(released)return;released=true;clearTimeout(releaseTimer);abortReady?.();abortReady=null;
+  // Pinned 4.10.38 defers these owned DOM resources until the Terminate RPC.
+  // Release them even when that acknowledgement cannot arrive; never clear other documents.
+  try{ownedTransport?.fontLoader?.clear();}catch{}try{ownedTransport?.filterFactory?.destroy();}catch{}ownedTransport=null;
+  try{bridge?.destroy();}catch{}bridge=null;if(worker){worker.onerror=null;worker.terminate();worker=null;}views--;};
  const dispose=()=>{
-  if(disposed)return;disposed=true;version++;clearTimeout(timer);cancelAnimationFrame(frame);observer?.disconnect();visibility?.disconnect();renderTask?.cancel();renderTask=null;clearCanvas(canvas);canvas=null;controls.replaceChildren();preview.replaceChildren();pdf=null;
+  if(disposed)return;ownedTransport=pdf?._transport||documentTask?._transport||null;disposed=true;version++;clearTimeout(timer);cancelAnimationFrame(frame);observer?.disconnect();visibility?.disconnect();renderTask?.cancel();renderTask=null;clearCanvas(canvas);canvas=null;controls.replaceChildren();preview.replaceChildren();pdf=null;
   const task=documentTask;documentTask=null;releaseTimer=setTimeout(release,500);if(task){try{Promise.resolve(task.destroy()).catch(()=>{}).finally(release);}catch{release();}}else release();
  };
  const fail=reason=>{if(disposed)return;const current=active();dispose();if(current)onError(reason);else onDetached?.();};
