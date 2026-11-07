@@ -42,3 +42,8 @@ for grouped ID/import receipts, moved-out history and stale-confirmation boundar
 See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
 late import replay protection, final CAS and old-writer limitations. Explicit multi-root selection deletion is documented in
 docs/V6_RESOURCE_MULTI_DELETION.md. Content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.
+
+Selected groups now support 4MiB total while each file remains at most 1MiB.
+EditorHome sends larger groups through bounded session chunks and invokes the same
+atomic provider only after complete SHA/UTF-8 verification. Stored v1 grammar and
+rollback readers remain unchanged. See docs/V6_RESOURCE_TRANSFER.md.

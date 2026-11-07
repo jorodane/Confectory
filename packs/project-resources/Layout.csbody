@@ -1,6 +1,6 @@
 // Display metadata and explicit project-copy removal; original OS files are never paths here.
 const int limit=524288,folderLimit=64;
-if(payload.Length>(operation is "save-content" or "import-files"?1501000:16384))throw new ArgumentException("resource_layout_input_budget");
+if(payload.Length>(operation=="import-files"?6000000:operation=="save-content"?1501000:16384))throw new ArgumentException("resource_layout_input_budget");
 manifest=System.IO.Path.GetFullPath(manifest);string root=System.IO.Path.GetDirectoryName(manifest)!,relative=".confectory/resource-layout.v1.json",path=System.IO.Path.Combine(root,relative),filesPath=System.IO.Path.Combine(root,".confectory/resources.v1.json"),identityPath=System.IO.Path.Combine(root,".confectory/project-identity.json"),namesRelative=".confectory/resource-folder-names.v1.json",namesPath=System.IO.Path.Combine(root,namesRelative),fileNamesRelative=".confectory/resource-file-names.v1.json",fileNamesPath=System.IO.Path.Combine(root,fileNamesRelative);
 string Hash(string value)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
 string Text(System.Text.Json.Nodes.JsonNode? value)=>value?.GetValue<string>()??throw new ArgumentException("resource_layout_text");

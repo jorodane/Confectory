@@ -6,6 +6,40 @@ lock(owner){
  string context=selected["context"]!.GetValue<string>(),project=selected["projectId"]!.GetValue<string>();var manager=(string[])owner[0];
  var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();if(input["project"]?.GetValue<string>()!=project)throw new UnauthorizedAccessException("resource_project_changed");input.Remove("project");
  var active=calls.Context.Invoke(manager,context);if(active[1]!=selected["path"]!.GetValue<string>()||active[5]!="open"||calls.Identity.Invoke(manager,context)!=project)throw new UnauthorizedAccessException("resource_project_changed");
+ // One bounded volatile upload per editor session, never part of model/presentation/disk.
+ if(operation.StartsWith("upload-",StringComparison.Ordinal)){
+  const int maxBody=6000000,maxChunk=1048576;
+  string key="Confectory.EditorHome.ResourceUpload."+session;var row=AppDomain.CurrentDomain.GetData(key)as object[];
+  void Drop(){if(row is not null)((System.IO.MemoryStream)row[6]).Dispose();AppDomain.CurrentDomain.SetData(key,null);row=null;}
+  if(row is not null&&((string)row[0]!=context||(string)row[1]!=project||(string)row[2]!=active[1]))Drop();
+  string Text(string name)=>input[name]?.GetValue<string>()??throw new ArgumentException("resource_upload_text");
+  void Keys(params string[] keys){if(input.Count!=keys.Length||System.Linq.Enumerable.Any(input,p=>!System.Linq.Enumerable.Contains(keys,p.Key)))throw new ArgumentException("resource_upload_fields");}
+  string id=Text("id");if(!Guid.TryParseExact(id,"N",out _))throw new ArgumentException("resource_upload_id");
+  string Reply()=>new System.Text.Json.Nodes.JsonObject{["status"]="receiving",["project"]=project,["id"]=id,["offset"]=((System.IO.MemoryStream)row![6]).Length,["length"]=(int)row[5]}.ToJsonString();
+  if(operation=="upload-cancel"){Keys("id");if(row is not null&&(string)row[3]==id)Drop();return new System.Text.Json.Nodes.JsonObject{["status"]="cancelled",["project"]=project,["id"]=id}.ToJsonString();}
+  if(operation=="upload-begin"){
+   Keys("id","target","length","hash");string target=Text("target"),hash=Text("hash");int length=input["length"]!.GetValue<int>();
+   if(target is not ("import-many" or "layout-import-files")||length is <1 or >maxBody||!System.Text.RegularExpressions.Regex.IsMatch(hash,@"\A[a-f0-9]{64}\z"))throw new ArgumentException("resource_upload_intent");
+   _=calls.Request.Invoke(active[1],project,"load","{}");
+   if(row is not null&&(string)row[3]==id){if((string)row[4]!=target||(int)row[5]!=length||(string)row[7]!=hash)throw new InvalidOperationException("resource_upload_reused");return Reply();}
+   if(row is not null&&!(bool)row[8])throw new InvalidOperationException("resource_upload_pending");
+   Drop();row=new object[]{context,project,active[1],id,target,length,new System.IO.MemoryStream(length),hash,false};AppDomain.CurrentDomain.SetData(key,row);return Reply();
+  }
+  if(row is null||(string)row[3]!=id)throw new InvalidOperationException("resource_upload_missing");
+  var data=(System.IO.MemoryStream)row[6];
+  if(operation=="upload-chunk"){
+   Keys("id","offset","data");int offset=input["offset"]!.GetValue<int>();string encoded=Text("data");
+   if(offset<0||encoded.Length>1398104)throw new ArgumentException("resource_upload_chunk");byte[] bytes=Convert.FromBase64String(encoded.Replace('-','+').Replace('_','/'));
+   if(bytes.Length is <1 or >maxChunk||Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_')!=encoded||offset>(long)data.Length||(long)offset+bytes.Length>(int)row[5])throw new ArgumentException("resource_upload_chunk");
+   if(offset<data.Length){if((long)offset+bytes.Length>data.Length)throw new InvalidOperationException("resource_upload_overlap");var buffer=data.GetBuffer();for(int n=0;n<bytes.Length;n++)if(buffer[offset+n]!=bytes[n])throw new InvalidOperationException("resource_upload_chunk_changed");}
+   else{data.Write(bytes,0,bytes.Length);}return Reply();
+  }
+  if(operation!="upload-commit")throw new ArgumentException("resource_upload_operation");Keys("id");
+  if(data.Length!=(int)row[5])throw new InvalidOperationException("resource_upload_incomplete");var body=data.ToArray();
+  if(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(body)).ToLowerInvariant()!=(string)row[7])throw new InvalidOperationException("resource_upload_integrity");
+  string text=new System.Text.UTF8Encoding(false,true).GetString(body),result=(string)row[4]=="import-many"?calls.Request.Invoke(active[1],project,"import-many",text):calls.Layout.Invoke(active[1],project,"import-files",text);
+  row[8]=true;return result;
+ }
  if(operation is "draft-load" or "draft-save" or "draft-pending"){
   string Text(System.Text.Json.Nodes.JsonNode? node)=>node?.GetValue<string>()??throw new ArgumentException("resource_draft_text");void Keys(System.Text.Json.Nodes.JsonObject row,params string[] keys){if(row.Count!=keys.Length||System.Linq.Enumerable.Any(row,p=>!System.Linq.Enumerable.Contains(keys,p.Key)))throw new ArgumentException("resource_draft_fields");}
   string id=Text(input["id"]);if(!System.Text.RegularExpressions.Regex.IsMatch(id,@"\A[a-f0-9]{32}\z"))throw new ArgumentException("resource_draft_id");string scopeHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(project))).ToLowerInvariant(),relative="resource-content-drafts/"+scopeHash+"/"+id+".json",home=System.IO.Path.GetDirectoryName((string)owner[2])!,path=System.IO.Path.Combine(home,relative);
