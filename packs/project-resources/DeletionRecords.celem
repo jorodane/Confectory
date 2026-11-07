@@ -1,0 +1,4 @@
+function Confectory.ProjectResources::DeletionRecords (string manifest,string project) -> string[] {
+description "Read-only bounded, owner-bound deletion receipts. No file content or automatic history pruning.";
+provide Confectory.ProjectResources::DeletionRecords with Confectory.ProjectResources::DeletionRecordsBody;
+}

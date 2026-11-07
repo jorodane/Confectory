@@ -2,5 +2,6 @@ implementation Confectory.ProjectResources::LayoutBody for Confectory.ProjectRes
 import Confectory.ProjectResources::Request as Files (string,string,string,string) -> string;
 import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
 import Confectory.FileStream::CommitPlan as CommitPlan (string,string) -> string[];
+import Confectory.ProjectResources::DeletionRecords as Deletions (string,string) -> string[];
 body common "Layout.csbody";
 }

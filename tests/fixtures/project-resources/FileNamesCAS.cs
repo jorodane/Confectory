@@ -3,6 +3,7 @@ using System.Text;
 using System.Security.Cryptography;
 class Calls {
  public Func<string,string,string,string,string> Files=null!;
+ public Func<string,string,string[]> Deletions=(m,p)=>Program.Deletions(m,p,new Calls());
  public Func<string,int,string[]> Snapshot=Program.Snapshot;
  public Func<string,string,string[]> CommitPlan=null!;
  public Func<string,string> LeasePath=Program.Lease;
@@ -12,6 +13,7 @@ class Program {
  public static string Legacy(string manifest,string project,string operation,string payload,Calls calls){OLD_LAYOUT}
  public static string Layout(string manifest,string project,string operation,string payload,Calls calls){LAYOUT_BODY}
  public static string Resource(string manifest,string project,string operation,string payload,Calls calls){RESOURCE_BODY}
+ public static string[] Deletions(string manifest,string project,Calls calls){DELETIONS_BODY}
  public static string[] Snapshot(string path,int limit){SNAPSHOT_BODY}
  public static string[] Plan(string root,string plan,Calls calls){PLAN_BODY}
  public static void Write(string path,string text){WRITE_BODY}
@@ -30,7 +32,7 @@ class Program {
    Check(JsonNode.Parse(Legacy(manifest,project,"load","{}",calls))!["items"]!.AsArray().Any(row=>row!["id"]!.ToString()==id&&row["name"]!.ToString()=="already stored.txt"),"previous exact v1 reader cannot read original topology");Check(File.ReadAllText(folderNames)==folderBefore,"legacy read rewrote folder names");Check(File.ReadAllText(layout)==layoutBefore,"legacy read rewrote original topology");
    calls.CommitPlan=(r,p)=>{
     commits++;var plan=JsonNode.Parse(p)!;Check(plan["writes"]!.AsArray().Count==1&&plan["writes"]![0]!["path"]!.ToString()==".confectory/resource-file-names.v1.json","source became an asset write");
-    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{"project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-layout.v1.json",".confectory/resource-folder-names.v1.json"}),"final owner/manifest check was omitted");
+    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{".confectory/resource-deletions.v1.json","project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-layout.v1.json",".confectory/resource-folder-names.v1.json"}),"final owner/manifest check was omitted");
     if(mode=="manifest-race")File.WriteAllText(manifest,"peer manifest");if(mode=="identity-race"){identity["projectId"]=Guid.NewGuid().ToString("N");File.WriteAllText(identityPath,identity.ToJsonString());}if(mode=="store-race")File.WriteAllText(store,storeBefore+" ");if(mode=="layout-race")File.WriteAllText(layout,layoutBefore+" ");if(mode=="names-race")File.WriteAllText(names,peer);if(mode=="folder-names-race")File.WriteAllText(folderNames,folderBefore+" ");
     return Plan(r,p,calls);
    };

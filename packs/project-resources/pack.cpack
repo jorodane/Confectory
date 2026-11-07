@@ -1,6 +1,8 @@
 pack Confectory.ProjectResources version "0.1.0" {
 standalone false;
 dependency Confectory.FileStream version "0.1.0";
+element DeletionRecords function "DeletionRecords.celem";
+element DeletionRecordsBody implementation "DeletionRecordsBody.celem";
 element Layout function "Layout.celem";
 element LayoutBody implementation "LayoutBody.celem";
 element Request function "Request.celem";

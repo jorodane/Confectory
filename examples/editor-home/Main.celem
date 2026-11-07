@@ -1,5 +1,6 @@
 function Confectory.EditorHome::Main () -> int {
 provide Confectory.EditorHome.Model::Resources with Confectory.EditorHome.Model::ResourcesBody;
+provide Confectory.ProjectResources::DeletionRecords with Confectory.ProjectResources::DeletionRecordsBody;
 provide Confectory.ProjectResources::Layout with Confectory.ProjectResources::LayoutBody;
 provide Confectory.ProjectResources::Request with Confectory.ProjectResources::RequestBody;
 provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;

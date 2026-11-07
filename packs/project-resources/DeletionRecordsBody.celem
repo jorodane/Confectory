@@ -1,0 +1,4 @@
+implementation Confectory.ProjectResources::DeletionRecordsBody for Confectory.ProjectResources::DeletionRecords (string manifest,string project) -> string[] {
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
+body common "DeletionRecords.csbody";
+}

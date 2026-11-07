@@ -3,6 +3,7 @@ using System.Text;
 using System.Security.Cryptography;
 class Calls {
  public Func<string,string,string,string,string> Files=null!;
+ public Func<string,string,string[]> Deletions=(m,p)=>Program.Deletions(m,p,new Calls());
  public Func<string,int,string[]> Snapshot=Program.Snapshot;
  public Func<string,string,string[]> CommitPlan=null!;
  public Func<string,string> LeasePath=Program.Lease;
@@ -11,6 +12,7 @@ class Calls {
 class Program {
  public static string Layout(string manifest,string project,string operation,string payload,Calls calls){LAYOUT_BODY}
  public static string Resource(string manifest,string project,string operation,string payload,Calls calls){RESOURCE_BODY}
+ public static string[] Deletions(string manifest,string project,Calls calls){DELETIONS_BODY}
  public static string[] Snapshot(string path,int limit){SNAPSHOT_BODY}
  public static string[] Plan(string root,string plan,Calls calls){PLAN_BODY}
  public static void Write(string path,string text){WRITE_BODY}
@@ -28,7 +30,7 @@ class Program {
    Layout(manifest,project,"create-folder",Input("existing").ToJsonString(),calls);string before=File.ReadAllText(layout),storeBefore=File.ReadAllText(store),peer=before+" ";var input=Input("pending");string submitted=input.ToJsonString();int commits=0,writes=0;
    calls.CommitPlan=(r,p)=>{
     commits++;var plan=JsonNode.Parse(p)!;Check(plan["writes"]!.AsArray().Count==1&&plan["writes"]![0]!["path"]!.ToString()==".confectory/resource-layout.v1.json","source became an asset write");
-    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{"project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-folder-names.v1.json",".confectory/resource-file-names.v1.json"}),"final owner/manifest check was omitted");
+    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{".confectory/resource-deletions.v1.json","project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-folder-names.v1.json",".confectory/resource-file-names.v1.json"}),"final owner/manifest check was omitted");
     if(mode=="manifest-race")File.WriteAllText(manifest,"peer manifest");if(mode=="identity-race"){identity["projectId"]=Guid.NewGuid().ToString("N");File.WriteAllText(identityPath,identity.ToJsonString());}if(mode=="store-race")File.WriteAllText(store,storeBefore+" ");if(mode=="layout-race")File.WriteAllText(layout,peer);
     return Plan(r,p,calls);
    };

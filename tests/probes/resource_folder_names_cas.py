@@ -3,7 +3,7 @@ The separate pack consumer and engine UI tests cover actual DSL/provider wiring.
 """
 import pathlib,sys,tempfile,subprocess,os,json,hashlib
 r=pathlib.Path(sys.argv[1]).resolve();case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-folder-names-final-cas-'))
-paths={'LAYOUT_BODY':'packs/project-resources/Layout.csbody','RESOURCE_BODY':'packs/project-resources/Request.csbody','SNAPSHOT_BODY':'packs/file-stream/BoundedSnapshot.csbody','PLAN_BODY':'packs/file-stream/CommitPlan.csbody','WRITE_BODY':'packs/file-stream/WriteAtomic.csbody','LEASE_BODY':'packs/file-stream/LeasePath.csbody'}
+paths={'DELETIONS_BODY':'packs/project-resources/DeletionRecords.csbody','LAYOUT_BODY':'packs/project-resources/Layout.csbody','RESOURCE_BODY':'packs/project-resources/Request.csbody','SNAPSHOT_BODY':'packs/file-stream/BoundedSnapshot.csbody','PLAN_BODY':'packs/file-stream/CommitPlan.csbody','WRITE_BODY':'packs/file-stream/WriteAtomic.csbody','LEASE_BODY':'packs/file-stream/LeasePath.csbody'}
 (case/'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>')
 source=(r/'tests/fixtures/project-resources/FolderNamesCAS.cs').read_text()
 for token,path in paths.items():source=source.replace(token,(r/path).read_text())

@@ -36,5 +36,7 @@ It never silently rebases a stale append or treats another payload as the same c
 
 This file is durable project data, not a cache/output cleanup target. Moving or
 exporting a whole project with its resources is not implemented by this provider.
-Folders, moves, rename/removal/recovery, editing and rich previews are follow-up
-original-spec work. No account, shared ACL or external filesystem grant is added.
+Layout now provides category topology, moves, display names, and explicit single-file
+copy deletion. See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
+late import replay protection, final CAS and old-writer limitations. Folder/multiple
+removal, content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.

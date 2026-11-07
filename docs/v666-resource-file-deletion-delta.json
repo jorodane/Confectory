@@ -1,0 +1,22 @@
+{
+  "baseCommit": "98de70408d597a73df0f0b9b46944c58dca4bfd7",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/Main.celem": "c6599cfb4f28299fb31ca7b427f4cc8bd2d6bba1f7e7614de2376c0c8ec6f6b9",
+    "examples/editor-home/WebBundle.csbody": "aff039324badef2fcd4f9fbfd60d5c84efa4e9b9c31d0e78ef6dc815b697297e",
+    "examples/editor-home/WebInvoke.csbody": "82bc17873ad6399a12bbfdc0b0d7b70b9c08a8c153821fbbea495c748f8c3cdc",
+    "examples/editor-home/ui/resource-browser.js": "131191efdb13bc533cba98ec740164b8f230b4aa8e92aceb6f7a2a83bd6108bc",
+    "examples/editor-home/ui/resource-layout.js": "4fdd25ff273c92c98b6718376daf8a3e2dd0a20b0444c12249a2c3eebaed56fa",
+    "examples/editor-home/ui/resource-previews.js": "814741dd75f1d125f306b6a06231ed19d7a8b0e7cee2e1ddf3432bab685b57ce",
+    "examples/editor-home/ui/v508-runtime.js": "ae4aeb68989cfdd89a12dda1e70751eef990a1b6555e7397d5268047517fe845",
+    "packs/project-resources/DeletionRecords.celem": "0c53a34c6c9581e145e1133ac2dd8400d269a1b9ea271dc203fc7a9115a04b82",
+    "packs/project-resources/DeletionRecords.csbody": "66aee7e8d23015a489cf1059a9bf784bf4be21e4c2fa424fa2a60e5c9fb81369",
+    "packs/project-resources/DeletionRecordsBody.celem": "729b56545059dccc8f393bec3dc925781451ad1b7e590acdf1d8a825f6d9beeb",
+    "packs/project-resources/Layout.csbody": "83a27b12c8c5e679e2d6e5a17817ce3f5934c698c527d373887debd68ffb2700",
+    "packs/project-resources/LayoutBody.celem": "c9e184b24c69502faea68350595475410e113300a2d3f75cc39c0707f4a89d99",
+    "packs/project-resources/Request.csbody": "68d241e225497de0892bbae02229a8406a46dc662f66ba2522909a8b1590965e",
+    "packs/project-resources/RequestBody.celem": "1df78810435e4cc36f346f585f2d6e0af002cad31ca7f477c5005ff6684f25ff",
+    "packs/project-resources/pack.cpack": "78a4411661494ff5dcffea49bf9529f84cf85ffce7a0c1f3dadfbefe9915475a",
+    "packs/project-resources/README.md": "19a9314dfe56266f834820bcfb0f8b86f743cce9160273d08bed2af5ae002321"
+  }
+}

@@ -1,5 +1,6 @@
 implementation Confectory.ProjectResources::RequestBody for Confectory.ProjectResources::Request (string manifest,string project,string operation,string payload) -> string {
 import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
 import Confectory.FileStream::CommitPlan as CommitPlan (string,string) -> string[];
+import Confectory.ProjectResources::DeletionRecords as Deletions (string,string) -> string[];
 body common "Request.csbody";
 }
