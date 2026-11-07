@@ -2,7 +2,7 @@
 import sys,json,pathlib,hashlib,base64,uuid,shutil,traceback,io
 from playwright.sync_api import sync_playwright,expect
 import v536_wide_mixed as f
-mode=sys.argv[3];store=f.project/'.confectory/resources.v1.json';b=None;assets=[]
+mode=sys.argv[3];store=f.project/'.confectory/resources.v1.json';b=None;assets=[];console=[]
 def pdf(objects):
  raw=bytearray(b'%PDF-1.7\n%\xe2\xe3\xcf\xd3\n');offsets=[0]
  for i,text in enumerate(objects,1):offsets.append(len(raw));raw.extend(str(i).encode()+b' 0 obj\n'+(text.encode()if isinstance(text,str)else text)+b'\nendobj\n')
@@ -22,8 +22,8 @@ def embedded_pdf():
 def add(name,raw):
  revision=f.invoke('projectResources',dict(project=f.state()['projectId'],action='load'))['result']['result']['revision'];id=uuid.uuid4().hex;f.invoke('projectResources',dict(project=f.state()['projectId'],action='import',revision=revision,command=uuid.uuid4().hex,item=dict(id=id,name=name,type='application/pdf',size=len(raw),hash=hashlib.sha256(raw).hexdigest(),modifiedAt=0,data=base64.urlsafe_b64encode(raw).decode())));return id
 def setup():
- f.page=f.browser.new_page(viewport=dict(width=1280,height=900));f.page.on('pageerror',lambda e:f.errors.append(str(e)));f.page.on('response',f.observe);f.page.context.route('**/*',f.route);f.page.context.on('request',lambda request:assets.append(request.url)if'/assets/vendor/pdfjs-dist' in request.url else None)
- f.page.add_init_script("""(()=>{const Base=Worker;globalThis.__pdfWorkers={created:0,terminated:0,held:0};globalThis.__holdPDF=false;globalThis.__releasePDF=[];globalThis.Worker=class extends Base{constructor(...args){super(...args);if(!String(args[0]).includes('resource-pdf-worker'))return;__pdfWorkers.created++;const add=this.addEventListener.bind(this),remove=this.removeEventListener.bind(this),records=new Map();this.addEventListener=(type,fn,...rest)=>{if(type!=='message')return add(type,fn,...rest);const rec={active:true};rec.wrapper=event=>{const run=()=>{if(rec.active){if(typeof fn==='function')fn.call(this,event);else fn.handleEvent(event);}};if(__holdPDF){__pdfWorkers.held++;__releasePDF.push(run);}else run();};records.set(fn,rec);return add(type,rec.wrapper,...rest);};this.removeEventListener=(type,fn,...rest)=>{const rec=records.get(fn);if(type==='message'&&rec){rec.active=false;records.delete(fn);return remove(type,rec.wrapper,...rest);}return remove(type,fn,...rest);};let stopped=false;const stop=this.terminate.bind(this);this.terminate=()=>{if(!stopped){stopped=true;__pdfWorkers.terminated++;for(const rec of records.values())rec.active=false;records.clear();}stop();};}};})();""")
+ f.page=f.browser.new_page(viewport=dict(width=1280,height=900));f.page.on('pageerror',lambda e:f.errors.append(str(e)));f.page.on('response',f.observe);f.page.on('console',lambda msg:console.append(dict(type=msg.type,text=msg.text))if msg.type in ['warning','error']else None);f.page.context.route('**/*',f.route);f.page.context.on('request',lambda request:assets.append(request.url)if'/assets/vendor/pdfjs-dist' in request.url else None)
+ f.page.add_init_script("""(()=>{const Base=Worker;globalThis.__pdfWorkers={created:0,terminated:0,held:0};globalThis.__holdPDF=false;globalThis.__releasePDF=[];globalThis.Worker=class extends Base{constructor(...args){super(...args);if(!String(args[0]).includes('resource-pdf-worker'))return;__pdfWorkers.created++;const add=this.addEventListener.bind(this),remove=this.removeEventListener.bind(this),records=new Map();this.addEventListener=(type,fn,...rest)=>{if(type!=='message')return add(type,fn,...rest);const rec={active:true};rec.wrapper=event=>{const run=()=>{if(rec.active){if(typeof fn==='function')fn.call(this,event);else fn.handleEvent(event);}};if(__holdPDF&&!event.data?.resourcePDFReady){__pdfWorkers.held++;__releasePDF.push(run);}else run();};records.set(fn,rec);return add(type,rec.wrapper,...rest);};this.removeEventListener=(type,fn,...rest)=>{const rec=records.get(fn);if(type==='message'&&rec){rec.active=false;records.delete(fn);return remove(type,rec.wrapper,...rest);}return remove(type,fn,...rest);};let stopped=false;const stop=this.terminate.bind(this);this.terminate=()=>{if(!stopped){stopped=true;__pdfWorkers.terminated++;for(const rec of records.values())rec.active=false;records.clear();}stop();};}};})();""")
  f.goto_editor(f.page,f.url);f.idle()
 def browser():
  global b
@@ -83,5 +83,5 @@ except Exception as error:
   except Exception:pass
  (f.case/'failure.json').write_text(json.dumps(dict(error=repr(error),traceback=traceback.format_exc()),ensure_ascii=False));raise
 finally:
- f.stop();(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False,indent=2));(f.case/'assets.json').write_text(json.dumps(assets,indent=2))
+ f.stop();(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False,indent=2));(f.case/'assets.json').write_text(json.dumps(assets,indent=2));(f.case/'console.json').write_text(json.dumps(console,ensure_ascii=False,indent=2))
 print('RESOURCE_PDF_FIXTURE',f.case,flush=True)

@@ -3,8 +3,8 @@ let library,views=0;
 export function mountResourcePDF({preview,toolbar,controls,status,bytes,item,active,onError,onDetached}){
  if(!(bytes instanceof Uint8Array)||bytes.length>1048576||new TextDecoder('ascii').decode(bytes.subarray(0,5))!=='%PDF-')throw Error('pdf_input');
  if(!active()){onDetached?.();return ()=>{};}if(views>=2)throw Error('pdf_view_budget');views++;
- let disposed=false,worker=null,bridge=null,documentTask=null,pdf=null,renderTask=null,canvas=null,observer=null,visibility=null,frame=0,timer=null,releaseTimer=null,version=0,pageNumber=1,zoom='fit',lastWidth=0,released=false;
- const owns=()=>!disposed&&active(),clearCanvas=node=>{if(node){node.width=0;node.height=0;node.remove();}},release=()=>{if(released)return;released=true;clearTimeout(releaseTimer);try{bridge?.destroy();}catch{}bridge=null;if(worker){worker.onerror=null;worker.terminate();worker=null;}views--;};
+ let disposed=false,worker=null,bridge=null,documentTask=null,pdf=null,renderTask=null,canvas=null,observer=null,visibility=null,frame=0,timer=null,releaseTimer=null,version=0,pageNumber=1,zoom='fit',lastWidth=0,released=false,abortReady=null;
+ const owns=()=>!disposed&&active(),clearCanvas=node=>{if(node){node.width=0;node.height=0;node.remove();}},release=()=>{if(released)return;released=true;clearTimeout(releaseTimer);abortReady?.();abortReady=null;try{bridge?.destroy();}catch{}bridge=null;if(worker){worker.onerror=null;worker.terminate();worker=null;}views--;};
  const dispose=()=>{
   if(disposed)return;disposed=true;version++;clearTimeout(timer);cancelAnimationFrame(frame);observer?.disconnect();visibility?.disconnect();renderTask?.cancel();renderTask=null;clearCanvas(canvas);canvas=null;controls.replaceChildren();preview.replaceChildren();pdf=null;
   const task=documentTask;documentTask=null;releaseTimer=setTimeout(release,500);if(task){try{Promise.resolve(task.destroy()).catch(()=>{}).finally(release);}catch{release();}}else release();
@@ -14,7 +14,8 @@ export function mountResourcePDF({preview,toolbar,controls,status,bytes,item,act
  const make=(tag,text=null)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;return node;};
  const load=async()=>{
   const lib=await(library??=import('./assets/vendor/pdfjs-dist-4.10.38/build/pdf.min.mjs').catch(error=>{library=null;throw error;}));if(!owns())return dispose();
-  worker=new Worker(new URL('./resource-pdf-worker.js',import.meta.url),{type:'module',name:'resource-pdf-preview'});worker.onerror=event=>{event.preventDefault();fail('worker');};bridge=new lib.PDFWorker({port:worker});
+  worker=new Worker(new URL('./resource-pdf-worker.js',import.meta.url),{type:'module',name:'resource-pdf-preview'});worker.onerror=event=>{event.preventDefault();fail('worker');};
+  const port=worker;await new Promise((resolve,reject)=>{const ready=event=>{if(event.data?.resourcePDFReady!==true)return;port.removeEventListener('message',ready);abortReady=null;resolve();};abortReady=()=>{port.removeEventListener('message',ready);reject(Error('pdf_worker_closed'));};port.addEventListener('message',ready);});if(!owns())return dispose();bridge=new lib.PDFWorker({port:worker});
   documentTask=lib.getDocument({data:bytes,worker:bridge,cMapUrl:new URL('./assets/vendor/pdfjs-dist-4.10.38/cmaps/',import.meta.url).href,cMapPacked:true,standardFontDataUrl:new URL('./assets/vendor/pdfjs-dist-4.10.38/standard_fonts/',import.meta.url).href,useWorkerFetch:true,isEvalSupported:false,enableXfa:false,disableRange:true,disableStream:true,disableAutoFetch:true,withCredentials:false,maxImageSize:16777216,canvasMaxAreaInBytes:16777216,isImageDecoderSupported:false,stopAtErrors:true});
   pdf=await documentTask.promise;if(!owns())return dispose();if(!Number.isInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>1000)throw Error('pdf_page_count');
   const previous=make('button','‹'),next=make('button','›'),pages=make('span'),select=make('select');previous.type=next.type='button';previous.setAttribute('aria-label','이전 페이지');next.setAttribute('aria-label','다음 페이지');pages.setAttribute('aria-live','polite');pages.dataset.resourcePdfPages='';select.setAttribute('aria-label','미리보기 배율');
