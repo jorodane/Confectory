@@ -6,6 +6,7 @@ lock(owner){
  string context=selected["context"]!.GetValue<string>(),project=selected["projectId"]!.GetValue<string>();var manager=(string[])owner[0];
  var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();if(input["project"]?.GetValue<string>()!=project)throw new UnauthorizedAccessException("resource_project_changed");input.Remove("project");
  var active=calls.Context.Invoke(manager,context);if(active[1]!=selected["path"]!.GetValue<string>()||active[5]!="open"||calls.Identity.Invoke(manager,context)!=project)throw new UnauthorizedAccessException("resource_project_changed");
+ if(operation=="read")return calls.Layout.Invoke(active[1],project,"read",input.ToJsonString());
  if(operation.StartsWith("layout-",StringComparison.Ordinal))return calls.Layout.Invoke(active[1],project,operation.Substring(7),input.ToJsonString());
  return calls.Request.Invoke(active[1],project,operation,input.ToJsonString());
 }

@@ -28,7 +28,7 @@ class Program {
    Layout(manifest,project,"create-folder",Input("existing").ToJsonString(),calls);string before=File.ReadAllText(layout),storeBefore=File.ReadAllText(store),peer=before+" ";var input=Input("pending");string submitted=input.ToJsonString();int commits=0,writes=0;
    calls.CommitPlan=(r,p)=>{
     commits++;var plan=JsonNode.Parse(p)!;Check(plan["writes"]!.AsArray().Count==1&&plan["writes"]![0]!["path"]!.ToString()==".confectory/resource-layout.v1.json","source became an asset write");
-    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{"project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-folder-names.v1.json"}),"final owner/manifest check was omitted");
+    Check(plan["checks"]!.AsArray().Select(row=>row!["path"]!.ToString()).ToHashSet().SetEquals(new[]{"project.cproj",".confectory/project-identity.json",".confectory/resources.v1.json",".confectory/resource-folder-names.v1.json",".confectory/resource-file-names.v1.json"}),"final owner/manifest check was omitted");
     if(mode=="manifest-race")File.WriteAllText(manifest,"peer manifest");if(mode=="identity-race"){identity["projectId"]=Guid.NewGuid().ToString("N");File.WriteAllText(identityPath,identity.ToJsonString());}if(mode=="store-race")File.WriteAllText(store,storeBefore+" ");if(mode=="layout-race")File.WriteAllText(layout,peer);
     return Plan(r,p,calls);
    };
