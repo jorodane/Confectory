@@ -21,9 +21,9 @@ Run 영상/오디오 backend나 별도 권한 팩의 구현 완료를 뜻하지 
 
 ## 현재 V8 Run 소프트웨어 출력과 개발 메뉴
 
-명시 소프트웨어 producer의 성공 발행 FPS는 [실제 출력 계측](V8_RUN_RATE.md)에 연결한다.
+명시 소프트웨어 producer의 성공 발행 FPS는 [실제 출력 계측](V8_RUN_RATE.md)에 연결했다.
 FrameControl 완료나 브라우저 조회·재그리기와 구분하며 GPU/모니터 표시 FPS는 잔여다.
-[이 단위 검증 기록](VALIDATION_V666_RUN_RATE.md)을 따르고, 초기화 간헐 빈 화면은 원인 미확정으로 유지한다.
+[최종47단계(신규42·재사용5)](VALIDATION_V666_RUN_RATE.md)를 따르고, 초기화 간헐 빈 화면은 원인 미확정으로 유지한다.
 
 원본10% 디버그 그리드는 [실제 영상 영역의 읽기 전용 표시](V8_RUN_GRID.md)에 연결했다. [최종 신규 44단계·재사용 0](VALIDATION_V666_RUN_GRID.md)를 마감했다. 요소 경계·FPS·GPU 및 진행 중 I/O/큰 출력의 잔여와 구분한다.
 
