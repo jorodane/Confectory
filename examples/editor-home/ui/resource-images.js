@@ -1,4 +1,4 @@
-// Bounded, static raster display of already SHA-verified project-copy bytes.
+// Bounded raster display of already SHA-verified project-copy bytes.
 // This is metadata screening before the browser decoder, not a new image codec.
 const FILE_BYTES=1048576,MAX_SIDE=16384,MAX_PIXELS=16777216,TOTAL_PIXELS=33554432;
 let leasedPixels=0;
@@ -56,11 +56,37 @@ export function resourceImageInfo(bytes){
   const info=size(width,Math.abs(signedHeight),'image/bmp'),length=Math.ceil(width*depth/32)*4*info.height,declared=view.getUint32(34,true);
   if(length+54!==bytes.length||declared!==0&&declared!==length)throw Error('resource_image_bmp_pixels');return info;
  }
+ if(bytes.length>=6&&['GIF87a','GIF89a'].includes(tag(0,6))){
+  if(bytes.length<13)throw Error('resource_image_gif_header');
+  const info=size(view.getUint16(6,true),view.getUint16(8,true),'image/gif'),globalColors=bytes[10]&128?2<<(bytes[10]&7):0;
+  let offset=13+globalColors*3,frames=0,control=null;if(offset>bytes.length||globalColors&&bytes[11]>=globalColors)throw Error('resource_image_gif_palette');
+  const blocks=()=>{let length=0;for(;;){if(offset>=bytes.length)throw Error('resource_image_gif_blocks');const count=bytes[offset++];if(!count)return length;if(offset+count>bytes.length)throw Error('resource_image_gif_blocks');offset+=count;length+=count;}};
+  while(offset<bytes.length){
+   const kind=bytes[offset++];
+   if(kind===59){if(offset!==bytes.length||!frames||control)throw Error('resource_image_gif_end');return {...info,pixels:info.pixels*frames,frames};}
+   if(kind===33){
+    if(offset>=bytes.length)throw Error('resource_image_gif_extension');const label=bytes[offset++];
+    if(label===249){
+     if(control||offset+6>bytes.length||bytes[offset]!==4||bytes[offset+5]!==0)throw Error('resource_image_gif_control');
+     const flags=bytes[offset+1];if(flags&224||(flags>>2&7)>3||flags&2)throw Error('resource_image_gif_control');control={transparent:flags&1?bytes[offset+4]:null};offset+=6;
+    }else if(label===254)blocks();
+    else if(label===255){if(offset+12>bytes.length||bytes[offset++]!==11)throw Error('resource_image_gif_application');offset+=11;blocks();}
+    else throw Error('resource_image_gif_extension');
+    continue;
+   }
+   if(kind!==44||offset+9>bytes.length)throw Error('resource_image_gif_frame');
+   const left=view.getUint16(offset,true),top=view.getUint16(offset+2,true),width=view.getUint16(offset+4,true),height=view.getUint16(offset+6,true),flags=bytes[offset+8],colors=flags&128?2<<(flags&7):globalColors;
+   if(!width||!height||left+width>info.width||top+height>info.height||flags&24||!colors||control?.transparent!=null&&control.transparent>=colors)throw Error('resource_image_gif_frame');
+   if(++frames>64||info.pixels*frames>MAX_PIXELS)throw Error('resource_image_gif_budget');offset+=9+(flags&128?colors*3:0);
+   if(offset>=bytes.length||bytes[offset]<2||bytes[offset]>8)throw Error('resource_image_gif_codes');offset++;if(!blocks())throw Error('resource_image_gif_codes');control=null;
+  }
+  throw Error('resource_image_gif_end');
+ }
  return null;
 }
 export function mountResourceImage({preview,toolbar,status,bytes,item,active,onError,onDetached}){
  const info=resourceImageInfo(bytes);if(!info)return null;
- if(['image/webp','image/bmp'].includes(info.type)&&typeof createImageBitmap!=='function')throw Error('resource_image_decoder_unsupported');
+ if(['image/webp','image/bmp','image/gif'].includes(info.type)&&typeof createImageBitmap!=='function')throw Error('resource_image_decoder_unsupported');
  if(leasedPixels+info.pixels>TOTAL_PIXELS)throw Error('resource_image_total_budget');
  leasedPixels+=info.pixels;let disposed=false,url=null,image=null,observer=null,decoding=false,released=false;
  const release=()=>{if(!decoding&&!released){released=true;leasedPixels-=info.pixels;}};
@@ -68,11 +94,11 @@ export function mountResourceImage({preview,toolbar,status,bytes,item,active,onE
  const failure=()=>{if(disposed)return;if(active()){dispose();onError();}else{dispose();onDetached?.();}};
  try{
   image=document.createElement('img');image.alt=item.name;image.dataset.resourceRaster='';image.decoding='async';image.referrerPolicy='no-referrer';
-  image.onload=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
+  image.onload=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(info.type!=='image/gif'&&width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
   if(typeof MutationObserver==='function'&&document.body){observer=new MutationObserver(()=>{if(!disposed&&!active()){dispose();onDetached?.();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});}
   image.onerror=failure;const blob=new Blob([bytes],{type:info.type}),display=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}url=URL.createObjectURL(blob);preview.replaceChildren(image);image.src=url;};preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');
-  if(['image/webp','image/bmp'].includes(info.type)){
-   decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
+  if(['image/webp','image/bmp','image/gif'].includes(info.type)){
+   decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(info.type!=='image/gif'&&bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
   }else display();return dispose;
  }catch(error){dispose();throw error;}
 }

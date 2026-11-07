@@ -383,3 +383,7 @@ remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위
 
 기존 전체 보관 예산 내에서 파일당1MiB인 여러 명시 File을 합계4MiB까지 한 원자 저장에 연결한다. [범위와 저장/취소/재시도 수명](V6_RESOURCE_TRANSFER.md)을 따르며 과거 선택1MiB 검증은 당시 기록이다. 단일1MiB 초과 파일과 다른 형식 미리보기는 별도 잔여다.
 최종 **61단계(신규61·재사용0)**의 [독립 checkout/패키지/복원·수명 검증](VALIDATION_V666_RESOURCE_TRANSFER.md)을 통과했다.
+
+## V7 GIF 표시 후속
+
+원본 GIF 그림의 정지·제한된 애니메이션을 기존 contain 패널에 연결한다. [프레임 가중 예산·원본 bytes·decoder 수명 경계](V7_RESOURCE_GIF.md)를 따르며 단일 큰 파일·다른 형식/전체 UI와 구분한다.

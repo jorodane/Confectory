@@ -1,6 +1,9 @@
 """Finite selected-group extension; unchanged stored v1 and public function signatures."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-transfer-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-gif-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_gif_copy.py'),str(r)],check=True);raise SystemExit(0)
+d=json.loads((r/'docs/v666-resource-transfer-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 expected={'examples/editor-home/WebBundle.csbody','examples/editor-home/WebInvoke.csbody','examples/editor-home/ui/resource-browser.js','packs/editor-home-model/CloseSession.csbody','packs/editor-home-model/Command.csbody','packs/editor-home-model/Resources.csbody','packs/project-resources/Layout.csbody','packs/project-resources/Request.csbody'}
 assert {x for x in git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines()if not x.endswith('.md')}==set(d['productFiles'])==expected
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
