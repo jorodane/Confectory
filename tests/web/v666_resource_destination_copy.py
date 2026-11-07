@@ -1,5 +1,8 @@
 """Finite destination-aware first import: native composition, original storage and authored UI."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-office-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_office_copy.py'),str(r)],check=True);raise SystemExit(0)
 r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-destination-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 assert changed=={'packs/project-resources/Request.csbody','packs/project-resources/Layout.csbody','examples/editor-home/WebInvoke.csbody','examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-browser.js','examples/editor-home/ui/resource-layout.js'}

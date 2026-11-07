@@ -1,9 +1,10 @@
+import {mountResourceOffice} from './resource-office.js';
 import {mountResourceImage} from './resource-images.js';
 import {createResourceContent} from './resource-content.js';
 import {bindResourceFileNames} from './resource-browser.js';
 
 // Authored text editing and bounded static PNG/JPEG display. Other image,
-// PDF/Office/mesh renderers still need their provider/lifetime integration.
+// PDF/mesh and remaining image renderers still need their lifetime integration.
 const textExtensions=/\.(txt|md|markdown|json|jsonl|csv|tsv|yaml|yml|xml|html?|css|js|mjs|ts|tsx|jsx|log|ini|toml|obj|gltf|svg)$/i;
 const element=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null)node.textContent=text;if(className)node.className=className;return node};
 export function createResourcePreviews(api){
@@ -11,7 +12,7 @@ export function createResourcePreviews(api){
  const prefix='resource-file:',idPattern=/^[a-f0-9]{32}$/,hashPattern=/^[a-f0-9]{64}$/;
  const scope=()=>api.current?.projectId||'';
  const alive=(w,token)=>w.resourcePreview===token&&token.generation===api.view.generation&&scope()===token.owner&&api.windows.get(w.key)===w&&w.el.isConnected&&!w.el.hidden;
- function retire(w){const token=w.resourcePreview;if(!token)return;w.resourcePreview=null;token.controller.abort();token.imageCleanup?.();token.contentCleanup?.();token.cleanup?.();w.body.replaceChildren();}
+ function retire(w){const token=w.resourcePreview;if(!token)return;w.resourcePreview=null;token.controller.abort();token.imageCleanup?.();token.officeCleanup?.();token.contentCleanup?.();token.cleanup?.();w.body.replaceChildren();}
  function title(w,item){
   w.title=item.name;w.el.setAttribute('aria-label',item.name);const caption=w.el.querySelector(':scope > .window-title .caption');
   if(caption){caption.querySelector('strong')?.remove();caption.querySelector('.resource-editor-heading')?.remove();const heading=element('span',null,'resource-editor-heading'),name=element('strong'),filename=element('span',item.name,'resource-filename');filename.dataset.resourceFullName=item.name;filename.dataset.resourceKind=item.kind;name.dataset.resourceTitle='';name.title=item.name;name.append(filename);heading.append(name,element('small',item.size+' B · 프로젝트 사본'));caption.append(heading);}
@@ -38,6 +39,10 @@ export function createResourcePreviews(api){
      try{token.imageCleanup=mountResourceImage({preview,toolbar,status,bytes,item,active:()=>alive(w,token),onError:failedImage,onDetached:()=>{token.imageDetached=true;}});if(!token.imageCleanup){message('이 그림 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 정지 PNG/JPEG 그림 미리보기를 지원합니다.';}}catch{failedImage();}return;
     }
     const mime=item.type||'',extension=mime.includes('wordprocessingml')?'docx':mime.includes('spreadsheetml')?'xlsx':mime.includes('presentationml')?'pptx':mime.includes('opendocument.text')?'odt':item.name.split('.').at(-1).toLowerCase();
+    if(['docx','xlsx','pptx','odt'].includes(extension)){
+     const failedOffice=()=>{if(!alive(w,token))return;message('문서 내용을 표시하지 못했습니다.');status.textContent='지원 범위의 Office 사본인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.officeCleanup?.();token.officeCleanup=null;void read();}};actions.replaceChildren(retry);};
+     try{token.officeCleanup=mountResourceOffice({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,extension,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedOffice,onDetached:()=>{token.officeDetached=true;}});}catch{failedOffice();}return;
+    }
     if(item.kind==='image'||['pdf','docx','xlsx','pptx','odt'].includes(extension)||mime==='application/pdf'||!(mime.startsWith('text/')||textExtensions.test(item.name))){message('이 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 텍스트·코드 파일의 읽기 전용 미리보기를 지원합니다.';return;}
     const encoding=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8',pre=element('pre',new TextDecoder(encoding).decode(bytes),'resource-document-text');preview.className='resource-preview is-text-preview';preview.replaceChildren(pre);preview.setAttribute('aria-busy','false');toolbar.textContent='텍스트 미리보기';status.textContent='읽기 전용 미리보기';
     if(extension!=='svg')token.contentCleanup=await content.mount({w,item,result,bytes,alive:()=>alive(w,token),refresh:()=>mount(w),status,preview,actions,toolbar});
@@ -54,6 +59,6 @@ export function createResourcePreviews(api){
  }
  function restore(meta){if(!scope()||!meta||!idPattern.test(meta.resourceId||'')||!hashPattern.test(meta.resourceHash||''))return null;const w=api.openWindow(prefix+meta.resourceId,'자료 미리보기',760,520,{refresh:true,meta});if(!w)return null;Object.assign(w.meta,meta);return mount(w);}
  function metadata(items){const files=new Map(items.filter(item=>item.kind!=='folder').map(item=>[item.id,item]));for(const w of api.windows.values()){if(!w.key.startsWith(prefix)||w.meta.resourceOwner!==scope())continue;const item=files.get(w.meta.resourceId);if(!item){content.forget(scope(),w.meta.resourceId);w.resourceContentBeforeClose=null;retire(w);api.close(w);continue;}const changed=w.resourcePreview?.contentGeneration!==item.contentGeneration||item.hash!==w.meta.resourceHash||w.resourcePreview?.name!==item.name||(w.resourcePreview?.contentRevision||0)!==(item.contentRevision||0);w.meta.resourceHash=item.hash;w.resourceExpectedName=item.name;if(changed&&w.resourcePreview&&!w.el.hidden&&w.el.isConnected)mount(w);}}
- function update(){for(const w of api.windows.values())if(w.key.startsWith(prefix)&&w.resourcePreview&&(w.resourcePreview.owner!==scope()||w.resourcePreview.generation!==api.view.generation||w.resourcePreview.imageDetached)){if(w.resourcePreview.imageDetached&&w.resourcePreview.owner===scope()&&w.resourcePreview.generation===api.view.generation&&(w.el.hidden||!w.el.isConnected))continue;retire(w);if(w.meta.resourceOwner===scope()&&!w.el.hidden&&w.el.isConnected)mount(w);}}
+ function update(){for(const w of api.windows.values())if(w.key.startsWith(prefix)&&w.resourcePreview&&(w.resourcePreview.owner!==scope()||w.resourcePreview.generation!==api.view.generation||w.resourcePreview.imageDetached||w.resourcePreview.officeDetached)){if((w.resourcePreview.imageDetached||w.resourcePreview.officeDetached)&&w.resourcePreview.owner===scope()&&w.resourcePreview.generation===api.view.generation&&(w.el.hidden||!w.el.isConnected||w.resourcePreview.officeDetached&&!w.body.getClientRects().length))continue;retire(w);if(w.meta.resourceOwner===scope()&&!w.el.hidden&&w.el.isConnected)mount(w);}}
  return {open,restore,update,metadata,beforeClose:w=>{if(w.key.startsWith(prefix)){if(w.resourceContentBeforeClose?.())return true;retire(w);}return false;},retireAll:()=>{for(const w of api.windows.values())if(w.key.startsWith(prefix))retire(w);}};
 }
