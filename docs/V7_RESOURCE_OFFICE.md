@@ -37,3 +37,7 @@ Worker를 종료하고 XML/DOM 참조를 버린다. 늦은 응답은 현재 소�
 후속 DOCX 문단·표 텍스트 편집은 [DOCX 지원 경계](V7_RESOURCE_DOCX.md)와
 [별도 최종 검증](VALIDATION_V666_RESOURCE_DOCX.md)을 따른다. 위 읽기 전용 검증은
 당시 미리보기 단위의 기록이며 XLSX 편집은 아직 남는다.
+
+XLSX 셀 값 편집 후속은 [지원 경계](V7_RESOURCE_XLSX.md)와
+[별도 최종 검증](VALIDATION_V666_RESOURCE_XLSX.md)을 따른다. 위 과거 읽기 전용/XLSX 잔여
+문구는 당시 미리보기 단위의 기록이며 현재 지원은 이 후속에 연결한다.

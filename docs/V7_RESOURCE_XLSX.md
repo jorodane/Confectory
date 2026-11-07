@@ -46,3 +46,6 @@ DTD/entity·불일치 구조·서명/매크로·ZIP64/암호화/경로 위장/�
 [재계산 속성](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.calculationproperties.forcefullcalculation)을 함께 따른다.
 실제 Windows/WebView2·모바일·Excel 앱/전체 UI·Space/Library 전달과 자동화/교차패키징은
 구분한다. 초기화 빈 화면은 원인 미확정 잔여이며 다른 원본 형식/mesh 범위를 임의 설계하지 않는다.
+
+원래 값으로 되돌린 변경 없는 Save는 프로젝트 내용·직전 복원본·영수증을 바꾸지 않는다.
+그 확인 중 들어온 새 입력은 별도 변화로 유지한다. [최종 검증과 보관·한계](VALIDATION_V666_RESOURCE_XLSX.md)를 따른다.

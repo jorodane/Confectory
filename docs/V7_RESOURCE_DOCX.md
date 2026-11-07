@@ -47,3 +47,7 @@ ZIP 처리는 [PKWARE ZIP 형식](https://pkware.cachefly.net/webdocs/casestudie
 원본 fflate 0.8.2 vendor를 새로 복사하거나 설치하지 않는다.
 실제 Windows/WebView2/모바일·전체 UI·Space 전달과 Word 앱의 서식 호환 실행은
 자동화/교차 패키징과 구분한다. 기존 초기화 빈 화면은 원인 미확정이다.
+
+XLSX 후속의 공통 컨트롤러에서 변경을 원래 값으로 되돌린 Save가 복원본을 교체하는
+결함도 수정했다. [XLSX 지원 경계](V7_RESOURCE_XLSX.md)와 [신규 최종 검증](VALIDATION_V666_RESOURCE_XLSX.md)의
+DOCX 회귀에 연결하며 기존 DOCX 입력/계약/저장 경계는 유지한다.
