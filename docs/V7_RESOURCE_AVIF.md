@@ -33,3 +33,5 @@ hard 상한을 뜻하지 않는다. 10/12bit·HDR나 모든 AVIF 문법을 인�
 완료 편집기/자료 전송을 보존한다. 새 vendor나 runtime encoder는 없다. 코드로 생성한 fixture만
 사용하며 개인 파일/외부 자료를 탐색/업로드하지 않는다. 큰 파일·SVG 등 실제 고정 잔여와
 구분한다. 초기 빈 화면 원인은 미확정이고 실제 Windows/WebView2/mobile·전체 UI는 미검증이다.
+
+[최종 검증과 보관·미실행 경계](VALIDATION_V666_RESOURCE_AVIF.md).
