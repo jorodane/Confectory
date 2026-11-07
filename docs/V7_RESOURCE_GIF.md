@@ -35,3 +35,5 @@ canvas pixel로, 실제 애니메이션은 compositor screenshot pixel로 각각
 Review/Confirm·최종 CAS·CSS·vendor는 바꾸지 않는다. 생성 fixture만 사용하며 개인 파일이나
 외부 자료를 탐색/업로드하지 않는다. 큰 파일과 다른 원본 형식의 미리보기는 별도 잔여다.
 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·mobile·전체 UI는 별도 미검증이다.
+
+[최종 검증과 보관·미실행 경계](VALIDATION_V666_RESOURCE_GIF.md).
