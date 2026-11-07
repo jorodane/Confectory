@@ -26,3 +26,5 @@ SHA 검증된 현재 owner/ID/hash 사본만 읽고 원래 bytes를 표시한다
 V4/V5 backend 등 고정 잔여는 별도다. mesh는 원본에 renderer 근거가 없다.
 간헐 초기화 빈 화면은 원인 미확정이며 실제 Windows/WebView2·모바일·전체 UI/Space
 전달은 별도 미검증이다.
+
+[최종 검증·보관·지원/미실행 경계](VALIDATION_V666_RESOURCE_BMP.md).
