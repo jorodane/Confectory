@@ -95,5 +95,5 @@ export function createResourceBrowser(api){
   w.resourceNameCleanup=bindResourceFileNames(root);layoutControls.restoreEditor(w,owner,token);
  }
  function retire(w){layoutControls.retire(w);w.resourceNameCleanup?.();w.resourceNameCleanup=null;w.resourceLifetime=null;w.resourceGeneration=null;}
- return {mount,render,update,groups,retire,retireAll:()=>{for(const w of api.windows.values())retire(w);const c=catalogues.get(scope());if(c){c.generation=null;c.phase='empty';}}};
+ return {acceptContent:result=>{accept(scope(),result);update();api.persist();},mount,render,update,groups,retire,retireAll:()=>{for(const w of api.windows.values())retire(w);const c=catalogues.get(scope());if(c){c.generation=null;c.phase='empty';}}};
 }

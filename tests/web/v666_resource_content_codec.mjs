@@ -1,0 +1,5 @@
+import assert from 'node:assert/strict';import {pathToFileURL}from'node:url';import path from'node:path';import fs from'node:fs';
+const source=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/resource-content.js'),'utf8'),{contentCodec}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+for(const [encoding,bom]of[['utf-8',[]],['utf-8',[239,187,191]],['utf-16le',[255,254]],['utf-16be',[254,255]]])for(const newline of['\r\n','\r','\n']){
+ const encode=text=>{let b=Buffer.from(text,encoding==='utf-8'?'utf8':'utf16le');if(encoding==='utf-16be')b=b.swap16();return Buffer.concat([Buffer.from(bom),b]);},bytes=encode('원문 🧪'+newline+'둘째'),codec=contentCodec(bytes);assert.equal(codec.text,'원문 🧪\n둘째');assert.deepEqual(Buffer.from(codec.encode('수정 🧪\n끝')),encode('수정 🧪'+newline+'끝'));
+}assert.throws(()=>contentCodec(Uint8Array.of(0xff,0xff)));console.log('PASS 12 authored BOM/newline codec cases and malformed input rejection; pure codec, no native/device execution');

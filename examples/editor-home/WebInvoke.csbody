@@ -6,8 +6,14 @@ if(endpoint=="readProjectResource"){
  if(args.Count!=3||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "hash")))throw new UnauthorizedAccessException("resource_read_fields");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"read",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
 }
+if(endpoint is "readResourceContentDraft" or "readResourceContentPending"){
+ if(args.Count!=2||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id")))throw new UnauthorizedAccessException("resource_draft_read_fields");return calls.Resources.Invoke(context,endpoint=="readResourceContentDraft"?"draft-load":"draft-pending",args.ToJsonString());
+}
+if(endpoint=="resourceContentDraft"){
+ string draftAction=args["action"]?.GetValue<string>()??"";if(draftAction is not ("load" or "save"))throw new UnauthorizedAccessException("resource_draft_action");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"draft-"+draftAction,args.ToJsonString());
+}
 if(endpoint=="projectResourceLayout"){
- string layoutAction=args["action"]?.GetValue<string>()??"";if(layoutAction is not ("load" or "create-folder" or "move" or "rename-folder" or "rename-file" or "delete-file" or "delete-folder" or "delete-selected"))throw new UnauthorizedAccessException("resource_layout_layoutAction");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+layoutAction,args.ToJsonString());
+ string layoutAction=args["action"]?.GetValue<string>()??"";if(layoutAction is not ("load" or "create-folder" or "move" or "rename-folder" or "rename-file" or "delete-file" or "delete-folder" or "delete-selected" or "save-content" or "restore-content"))throw new UnauthorizedAccessException("resource_layout_layoutAction");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+layoutAction,args.ToJsonString());
 }
 if(endpoint=="projectResources"){
  string resourceAction=args["action"]?.GetValue<string>()??"";if(resourceAction is not ("load" or "read" or "import"))throw new UnauthorizedAccessException("resource_ui_action");args.Remove("action");
