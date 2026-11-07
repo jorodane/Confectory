@@ -2,7 +2,7 @@
 
 Optional producer pack. Open(frameOwner) explicitly attaches the primary software output to the
 caller's existing cooperative frame owner; another active attachment is rejected. Present accepts
-1..512 x 1..512, at most 1 MiB, canonical base64 of top-down straight-alpha sRGB RGBA8 pixels and
+1..640 per axis, at most 262144 pixels, at most 1 MiB, canonical base64 of top-down straight-alpha sRGB RGBA8 pixels and
 returns its monotonic submitted revision. Publication copies bytes and atomically replaces the
 latest complete image. Wire encoding is unpadded base64url to avoid JSON escaping amplification.
 
@@ -18,9 +18,11 @@ Android/browser execution are outside this software-output slice.
 
 Explicit size control is optional: ConfigureSize(owner, initialWidth, initialHeight) once before
 first pixels; consume RequestedSize(owner) on the frame owner thread at a permitted frame. The
-existing readonly output is unchanged unless the project opts in. Custom requests are 240..512,
-initial sizes 1..512. A distinct publisher/size sequence/command CAS permits one pending request,
+existing readonly output is unchanged unless the project opts in. Custom requests are 240..640 per axis within 262144 pixels,
+initial sizes 1..640 with the same pixel budget. A distinct publisher/size sequence/command CAS permits one pending request,
 up to 64 per runtime. Only matching actual Present pixels acknowledge the request. This never
 resumes/steps a loop, acknowledges FrameControl commands or renews its heartbeat. Input/receipt
 failure is reconciled by observation, not automatic replay; Stop/new owner clears runtime requests.
-Auto/presets, larger surfaces, GPU capture and audio remain outside this bounded size API.
+UI auto/presets use separate adapters to this size API. Larger pixel budgets, GPU capture and audio remain outside this bounded size API.
+
+The authored 640x360 option, immutable max/maxPixels capability, legacy512 compatibility and paired-version limits are documented in [the bounded output flow](../../docs/V8_RUN_WIDE.md). Full RGBA bytes and pipe packet ceilings are unchanged.
