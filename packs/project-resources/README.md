@@ -40,5 +40,5 @@ Layout now provides category topology, moves, display names, and explicit single
 copy deletion and confirmed category subtree removal. See docs/V6_RESOURCE_FOLDER_DELETION.md
 for grouped ID/import receipts, moved-out history and stale-confirmation boundaries.
 See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
-late import replay protection, final CAS and old-writer limitations. Multiple-selection
-removal, content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.
+late import replay protection, final CAS and old-writer limitations. Explicit multi-root selection deletion is documented in
+docs/V6_RESOURCE_MULTI_DELETION.md. Content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.

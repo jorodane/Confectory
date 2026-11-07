@@ -7,7 +7,7 @@ if(endpoint=="readProjectResource"){
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"read",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
 }
 if(endpoint=="projectResourceLayout"){
- string layoutAction=args["action"]?.GetValue<string>()??"";if(layoutAction is not ("load" or "create-folder" or "move" or "rename-folder" or "rename-file" or "delete-file" or "delete-folder"))throw new UnauthorizedAccessException("resource_layout_layoutAction");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+layoutAction,args.ToJsonString());
+ string layoutAction=args["action"]?.GetValue<string>()??"";if(layoutAction is not ("load" or "create-folder" or "move" or "rename-folder" or "rename-file" or "delete-file" or "delete-folder" or "delete-selected"))throw new UnauthorizedAccessException("resource_layout_layoutAction");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+layoutAction,args.ToJsonString());
 }
 if(endpoint=="projectResources"){
  string resourceAction=args["action"]?.GetValue<string>()??"";if(resourceAction is not ("load" or "read" or "import"))throw new UnauthorizedAccessException("resource_ui_action");args.Remove("action");

@@ -1,0 +1,24 @@
+"""Closed authored explicit selected union deletion; no Core/permission/source/renderer rewrite."""
+import pathlib,sys,subprocess,hashlib,json,zipfile
+r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-multi-deletion-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
+for p,h in d['productFiles'].items():assert hashlib.sha256((r/p).read_text().encode()).hexdigest()==h,p
+assert not any(p.startswith(('src/','targets/','packs/editor-home-model/','packs/web-ui/','packs/file-stream/','packs/project-manager/','packs/edit-workspace/'))for p in changed)
+for p in ['packs/project-resources/Layout.celem','packs/project-resources/Request.celem','examples/editor-home/ui/browser-shell.js','examples/editor-home/ui/style.css']:assert(r/p).read_text()==git('show',d['baseCommit']+':'+p),p
+assert(r/'packs/project-resources/Request.csbody').read_text()==git('show',d['baseCommit']+':packs/project-resources/Request.csbody'),'import/replay contract changed'
+assert(r/'examples/editor-home/ui/workspace-host.js').read_text().replace("'resourceSelections','resourceAnchor',",'')==git('show',d['baseCommit']+':examples/editor-home/ui/workspace-host.js'),'nonprivate selection metadata changed'
+bridge=(r/'examples/editor-home/WebInvoke.csbody').read_text();assert bridge.replace(' or "delete-selected"','')==git('show',d['baseCommit']+':examples/editor-home/WebInvoke.csbody')
+
+a=(r/'examples/editor-home/WebBundle.csbody').read_text().split('"""');b=git('show',d['baseCommit']+':examples/editor-home/WebBundle.csbody').split('"""');assert a[0]==b[0]and a[2]==b[2];bundle=json.loads(a[1]);old=json.loads(b[1]);assert set(bundle)==set(old)|{'resource-selection.js'}
+for name,row in bundle.items():
+ raw=(r/'examples/editor-home/ui'/row['file']).read_bytes();raw=raw.replace(b'\r\n',b'\n')if row.get('bytePolicy')=='utf8-lf-v1'else raw;assert len(raw)==row.get('canonicalSize',row.get('size'))and hashlib.sha256(raw).hexdigest()==row.get('canonicalSha256',row.get('sha256')),name
+ if name not in ['resource-layout.js','resource-browser.js','workspace-host.js','resource-selection.js']:assert row==old[name]
+reference=r/'reference/site-ui/Confectory-Editor-Prototype-v666.zip';assert hashlib.sha256(reference.read_bytes()).hexdigest()==d['referenceSha256']
+with zipfile.ZipFile(reference)as z:
+ source=z.read('Confectory-v666/dist/app.js').decode();a=source.index('function deleteResource(');b=source.index('\nfunction ',a+10);body=source[a:b]
+ for text in ['requireProjectWrite',"modal('자료 삭제'","root.querySelector('[data-cancel]').onclick=close","root.querySelector('[data-remove]').onclick",'owner.resources=','content-backup','if(ids.has(next.parent))ids.add(next.id)']:assert text in body,text
+with zipfile.ZipFile(reference)as z:
+ source=z.read('Confectory-v666/dist/app.js').decode()
+ for term in ['event.ctrlKey||event.metaKey','event.shiftKey&&w.resourceAnchor','items.slice(Math.min(from,to),Math.max(from,to)+1)',"selected.length+'개 항목 삭제'"]:assert term in source,term
+assert 'api.close(w)'in(r/'examples/editor-home/ui/resource-previews.js').read_text()
+print('PASS authored explicit selected union deletion; original OS files/C#/override/permission/layout and read observation fields preserved; no trash/automatic cleanup')
