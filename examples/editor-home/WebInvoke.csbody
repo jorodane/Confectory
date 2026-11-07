@@ -2,6 +2,10 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="readProjectResource"){
+ if(args.Count!=3||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "hash")))throw new UnauthorizedAccessException("resource_read_fields");
+ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"read",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
+}
 if(endpoint=="projectResources"){
  string resourceAction=args["action"]?.GetValue<string>()??"";if(resourceAction is not ("load" or "read" or "import"))throw new UnauthorizedAccessException("resource_ui_action");args.Remove("action");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,resourceAction,args.ToJsonString());

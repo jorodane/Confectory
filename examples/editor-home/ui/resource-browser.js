@@ -8,7 +8,7 @@ function fitResourceFileNames(root){
   write(parts.length);if(!overflows())continue;let low=0,high=parts.length-1;while(low<high){const middle=Math.ceil((low+high)/2);write(middle);if(overflows())high=middle-1;else low=middle}write(low);
  }
 }
-function bindResourceFileNames(root){
+export function bindResourceFileNames(root){
  let frame=0,active=true;const fit=()=>{frame=0;if(active&&root.isConnected)fitResourceFileNames(root)};
  const observer=new ResizeObserver(()=>{if(!frame)frame=requestAnimationFrame(fit)});observer.observe(root);fit();return ()=>{active=false;observer.disconnect();if(frame)cancelAnimationFrame(frame)};
 }
@@ -79,7 +79,7 @@ export function createResourceBrowser(api){
   if(!items.length){const empty=document.createElement('div');empty.className='empty';empty.dataset.resourceEmpty='';empty.textContent=c.phase==='loading'?'자료를 확인하고 있습니다…':c.phase==='failed'?'파일 목록을 다시 확인해 주세요.':w.meta.query?'검색 결과가 없습니다.':'자료가 없습니다. 파일을 끌어 놓거나 자료 추가를 눌러 추가할 수 있습니다.';root.append(empty);}
   for(const row of items){const card=document.createElement('div');card.className=mode==='Compact'?'object-row':mode==='Data'?'object-data browser-data-row':'object-card concept-tile concept-file';card.dataset.resourceId=row.id;card.tabIndex=0;card.classList.toggle('selected',selected===row.id);card.setAttribute('aria-selected',String(selected===row.id));
    const icon=document.createElement('span');icon.className='obj-icon';icon.textContent=icons[row.kind];const name=document.createElement(mode==='Compact'?'strong':'span');name.className='name';name.title=row.name;const filename=document.createElement('span');filename.className='resource-filename';filename.dataset.resourceFullName=row.name;filename.dataset.resourceKind=row.kind;filename.textContent=row.name;name.append(filename);const detail=document.createElement('small');detail.textContent=labels[row.kind]+' · '+resourceSize(row.size);card.append(icon,name,detail);
-   const select=()=>{if(!alive(w,owner,token)||!rows(w).some(item=>item.id===row.id&&item.hash===row.hash))return;w.meta.resourceSelected=row.id;api.persist();render(w);};card.onclick=select;card.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();select();}};card.ondblclick=()=>{if(alive(w,owner,token))api.toast('자료 사본은 보관되어 있어요. 내용 미리보기·편집은 아직 연결되지 않았어요.');};list.append(card);
+   const select=()=>{if(!alive(w,owner,token)||!rows(w).some(item=>item.id===row.id&&item.hash===row.hash))return;w.meta.resourceSelected=row.id;api.persist();render(w);};card.onclick=select;card.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();select();if(event.key==='Enter'&&alive(w,owner,token))api.open(row,()=>alive(w,owner,token)&&rows(w).some(item=>item.id===row.id&&item.hash===row.hash));}};card.ondblclick=()=>{if(alive(w,owner,token))api.open(row,()=>alive(w,owner,token)&&rows(w).some(item=>item.id===row.id&&item.hash===row.hash));};list.append(card);
   }
   w.resourceNameCleanup=bindResourceFileNames(root);
  }

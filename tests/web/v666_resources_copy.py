@@ -1,6 +1,10 @@
 """Finite V6 delta, authored browser chrome and unchanged source/security primitives."""
 import pathlib,sys,json,hashlib,subprocess,zipfile
-r=pathlib.Path(sys.argv[1]);delta=json.loads((r/'docs/v666-resource-import-delta.json').read_text());git=lambda *args:subprocess.check_output(['git',*args],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+# The next explicit read-only UI slice audits this immutable checkpoint and its closed extension.
+if (r/'docs/v666-resource-preview-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_preview_copy.py'),str(r)],check=True);raise SystemExit(0)
+delta=json.loads((r/'docs/v666-resource-import-delta.json').read_text());git=lambda *args:subprocess.check_output(['git',*args],cwd=r,text=True)
 changed=set(git('diff','--name-only',delta['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(delta['productFiles']),changed
 for path,digest in delta['productFiles'].items():assert hashlib.sha256((r/path).read_text().encode()).hexdigest()==digest,path
 assert not any(path.startswith(('src/','targets/','packs/file-stream/','packs/web-ui/','packs/edit-workspace/','packs/pack-workspace/'))for path in changed)

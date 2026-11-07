@@ -33,7 +33,7 @@ try:
   raw='생성한 검사용 사본 🧪\r\n<script>externalMustNeverRun()</script>\n'.encode();pick('한글 자료 <안전>.txt',raw);wait_count(1);saved=api('load');first=saved['items'][0];assert first['name']=='한글 자료 <안전>.txt';read=api('read',id=first['id'],hash=first['hash']);assert base64.urlsafe_b64decode(read['data'])==raw;expect(f.page.locator('#chat-input')).to_have_value('자료 보관 중에도 보존할 입력');original();f.checked('explicit generated File input creates one exact native copy with stable ID and original CRLF/UTF8 bytes; no code, HTML or provider execution')
   search('한글');expect(rows()).to_have_count(1)
   for density in ['0','100','40']:b.locator('[data-density="'+density+'"]').click();expect(rows()).to_have_count(1)
-  rows().first.focus();rows().first.press('Enter');expect(rows().first).to_have_attribute('aria-selected','true');f.page.screenshot(path=str(f.case/'resource-browser.png'));f.checked('original search, Compact/Data/Preview density and keyboard selection use confirmed asset metadata; rich content editors are not fabricated')
+  rows().first.focus();rows().first.press('Enter');expect(rows().first).to_have_attribute('aria-selected','true');preview=f.page.locator('.window[data-key^="resource-file:"]').last;expect(preview.locator('.resource-document-text')).to_have_text(raw.decode());preview.locator('[data-close]').first.click();f.page.screenshot(path=str(f.case/'resource-browser.png'));f.checked('original search, Compact/Data/Preview density and keyboard selection use confirmed asset metadata; rich content editors are not fabricated')
   if mode=='normal':
    identity=f.project/'.confectory/project-identity.json';identity_bytes=identity.read_bytes();owner_bytes=store.read_bytes()
    try:
