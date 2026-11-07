@@ -2,10 +2,10 @@
   "baseCommit": "b7c87ea560868b41fba0a1c484aa9431ee8bd4ca",
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
-    "examples/editor-home/WebBundle.csbody": "5e7f1f4bd1f9c3607bf2c6c08f5e8f7b51bf3d33bbb92f326bebfdb3715984cf",
+    "examples/editor-home/WebBundle.csbody": "6fcc2e4cec22d283dec854f24ffa610e06cbd34043ab6b2f67a18d2cb0339488",
     "examples/editor-home/WebInvoke.csbody": "5e9b2e1d8f608b9f00947cbbffdf2539cb766ed0ce19348e0097ce8799695f28",
     "examples/editor-home/ui/resource-browser.js": "b111d2145d8ebc37e4721d7b14f7ddb6eccf65169676c60ab19f14f67c6b58a0",
-    "examples/editor-home/ui/resource-layout.js": "f0170f44e1945cbb9244c18d2f80c87249ae623e2061fccf4e072d7adcdc560e",
+    "examples/editor-home/ui/resource-layout.js": "946bedf195633686bfe92960164103ee77b287bbb318250f9e9b477ad4c3f0ad",
     "examples/editor-home/ui/resource-selection.js": "593821ba4f2513f00632150dfdc1ff9b99a655e219e30d2b511a797d4645048f",
     "examples/editor-home/ui/workspace-host.js": "7c1f12ddf33c7df2168c851b0f76b7a0eb78f44d104a460f8a5669a7d18fcf5a",
     "packs/project-resources/DeletionRecords.csbody": "4841910d6e09d535e80249c87eb852fa7a68424b7c6beb928699bf5649241689",

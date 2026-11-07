@@ -397,6 +397,7 @@ def main():
                 if label=='lf':work.run('lf-source-conflict-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'conflict','--out-root'],cwd=checkout,env=env)
             elif args.suite=='resource-multi-deletion':
                 work.run(label+'-resource-multi-deletion-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_multi_deletion_copy.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-resource-selection-adapter',['node',str(checkout/'tests/web/v666_resource_selection.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-multi-deletion-provider',[sys.executable,str(checkout/'tests/probes/resource_multi_deletion_test.py'),str(checkout),str(checkout/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll')],cwd=checkout,env=env)
                 work.run(label+'-resource-multi-deletion-final-cas',[sys.executable,str(checkout/'tests/probes/resource_multi_deletion_cas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-multi-deletion-ui',[sys.executable,str(checkout/'tests/web/v666_resource_multi_deletion_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
