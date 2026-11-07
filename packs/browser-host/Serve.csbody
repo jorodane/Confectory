@@ -5,28 +5,82 @@ if(port<1024||port>65535)throw new ArgumentException("Unprivileged loopback port
 string origin="http://127.0.0.1:"+port,session=Guid.NewGuid().ToString("N"),loop=Guid.NewGuid().ToString("N");
 var listener=new System.Net.HttpListener();listener.Prefixes.Add(origin+"/");listener.Start();
 bool stopping=false,closed=false;System.Threading.Tasks.Task<System.Net.HttpListenerContext>? pending=null;
-void Cleanup(){stopping=true;listener.Close();closed=calls.Close.Invoke(owner);}
+// Socket progress must not own the single host/owner execution thread. In
+// particular a page retired during reload may stop reading a large resource.
+// Owner Request/Resource calls still run serially on Step, never on I/O tasks.
+var transfers=new Dictionary<System.Net.HttpListenerContext,(System.Threading.Tasks.Task<string> Read,System.Threading.Tasks.Task? Write,System.Threading.CancellationTokenSource Deadline,System.Threading.CancellationTokenRegistration Abort)>();
+async System.Threading.Tasks.Task<string> Read(System.Net.HttpListenerContext context,System.Threading.CancellationToken cancel){
+ using var reader=new System.IO.StreamReader(context.Request.InputStream,System.Text.Encoding.UTF8);
+ return await reader.ReadToEndAsync(cancel).ConfigureAwait(false);
+}
+async System.Threading.Tasks.Task Write(System.Net.HttpListenerContext context,byte[] bytes,System.Threading.CancellationToken cancel){
+ try{context.Response.ContentLength64=bytes.Length;await context.Response.OutputStream.WriteAsync(bytes.AsMemory(),cancel).ConfigureAwait(false);}
+ catch(Exception){/* A disconnected client cannot terminate the host or replay its request. */}
+ finally{try{context.Response.Close();}catch(Exception){}}
+}
+void Retire(System.Net.HttpListenerContext context){
+ var transfer=transfers[context];transfers.Remove(context);transfer.Deadline.Cancel();
+ // Observe every task even if cancellation precedes its completion.
+ _=transfer.Read.ContinueWith(task=>{_ = task.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+ if(transfer.Write is not null)_=transfer.Write.ContinueWith(task=>{_ = task.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);
+ transfer.Abort.Dispose();transfer.Deadline.Dispose();
+}
+void Cleanup(){stopping=true;foreach(var context in transfers.Keys.ToArray())Retire(context);listener.Close();closed=calls.Close.Invoke(owner);}
 bool Step(){
  if(stopping){Cleanup();return !closed;}
- pending??=listener.GetContextAsync();if(!pending.IsCompleted)return true;var context=pending.GetAwaiter().GetResult();pending=null;
- var request=context.Request;var response=context.Response;
- try{
-  response.Headers["Cache-Control"]="no-store";response.Headers["X-Content-Type-Options"]="nosniff";
-  response.Headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";response.Headers["Referrer-Policy"]="no-referrer";
-  if(request.Url!.Authority!=new Uri(origin).Authority)throw new UnauthorizedAccessException();
-  byte[] bytes;
-  if(request.Url.AbsolutePath=="/api/request"){
-   if(request.Headers["X-Confectory-Session"]!=session||request.Headers["Origin"] is string sender&&sender!=origin)throw new UnauthorizedAccessException();
-   if(request.HttpMethod!="POST"||request.ContentLength64<0||request.ContentLength64>2097152)throw new ArgumentException();
-   using var reader=new System.IO.StreamReader(request.InputStream,System.Text.Encoding.UTF8);string envelope=reader.ReadToEnd();
-   bytes=System.Text.Encoding.UTF8.GetBytes(calls.Request.Invoke(owner,envelope));response.ContentType="application/json";
-  }else{
-   if(request.HttpMethod!="GET")throw new ArgumentException();var asset=calls.Resource.Invoke(owner,request.Url.AbsolutePath);
-   bytes=Convert.FromBase64String(asset[1]);response.ContentType=asset[0];response.Headers["ETag"]="\""+asset[2]+"\"";
+ pending??=listener.GetContextAsync();
+ if(pending.IsCompleted){
+  var context=pending.GetAwaiter().GetResult();pending=null;
+  // Bound untrusted peers and their retained request/resource buffers. No
+  // authentication or owner work is performed for an over-budget connection.
+  if(transfers.Count>=32){try{context.Response.StatusCode=503;context.Response.Abort();}catch(Exception){}}
+  else{
+   var deadline=new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(30));
+   var abort=deadline.Token.Register(()=>{try{context.Response.Abort();}catch(Exception){}});
+   transfers.Add(context,(System.Threading.Tasks.Task.FromResult(""),null,deadline,abort));
+   var request=context.Request;var response=context.Response;
+   try{
+    response.Headers["Cache-Control"]="no-store";response.Headers["X-Content-Type-Options"]="nosniff";
+    response.Headers["Content-Security-Policy"]="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'";response.Headers["Referrer-Policy"]="no-referrer";
+    if(request.Url!.Authority!=new Uri(origin).Authority)throw new UnauthorizedAccessException();
+    if(request.Url.AbsolutePath=="/api/request"){
+     if(request.Headers["X-Confectory-Session"]!=session||request.Headers["Origin"] is string sender&&sender!=origin)throw new UnauthorizedAccessException();
+     if(request.HttpMethod!="POST"||request.ContentLength64<0||request.ContentLength64>2097152)throw new ArgumentException();
+     transfers[context]=(Read(context,deadline.Token),null,deadline,abort);
+     }else if(request.HttpMethod!="GET")throw new ArgumentException();
+   }catch(Exception error){
+    try{
+     response.StatusCode=error is UnauthorizedAccessException?403:400;response.ContentType="application/json";
+     byte[] bytes=System.Text.Encoding.UTF8.GetBytes("{\"ok\":false,\"error\":{\"code\":\"transport_rejected\"}}");
+     transfers[context]=(System.Threading.Tasks.Task.FromResult(""),Write(context,bytes,deadline.Token),deadline,abort);
+    }catch(Exception){Retire(context);}
+   }
   }
-  response.ContentLength64=bytes.Length;response.OutputStream.Write(bytes);
- }catch(Exception e){response.StatusCode=e is UnauthorizedAccessException?403:400;response.ContentType="application/json";byte[] bytes=System.Text.Encoding.UTF8.GetBytes("{\"ok\":false,\"error\":{\"code\":\"transport_rejected\"}}");response.OutputStream.Write(bytes);}
- finally{response.Close();}return true;
+ }
+ foreach(var pair in transfers.ToArray()){
+  var context=pair.Key;var transfer=pair.Value;
+  if(transfer.Deadline.IsCancellationRequested||transfer.Write?.IsCompleted==true){Retire(context);continue;}
+  if(transfer.Write is not null||!transfer.Read.IsCompleted)continue;
+  var response=context.Response;byte[] bytes;
+  try{
+   string envelope=transfer.Read.GetAwaiter().GetResult();
+   if(context.Request.Url!.AbsolutePath=="/api/request"){
+    bytes=System.Text.Encoding.UTF8.GetBytes(calls.Request.Invoke(owner,envelope));response.ContentType="application/json";
+   }else{
+    var asset=calls.Resource.Invoke(owner,context.Request.Url.AbsolutePath);
+    bytes=Convert.FromBase64String(asset[1]);response.ContentType=asset[0];response.Headers["ETag"]="\""+asset[2]+"\"";
+   }
+  }catch(Exception error){
+   if(transfer.Deadline.IsCancellationRequested){Retire(context);continue;}
+   try{
+    response.StatusCode=error is UnauthorizedAccessException?403:400;response.ContentType="application/json";
+    bytes=System.Text.Encoding.UTF8.GetBytes("{\"ok\":false,\"error\":{\"code\":\"transport_rejected\"}}");
+   }catch(Exception){Retire(context);continue;}
+  }
+  transfers[context]=(transfer.Read,Write(context,bytes,transfer.Deadline.Token),transfer.Deadline,transfer.Abort);
+  break; // Preserve serial owner execution and give the host loop its next turn.
+ }
+ return true;
 }
 AppContext.SetData("Confectory.HostLoop."+loop,new object[]{(Func<bool>)Step,(Action)Cleanup,(Action)(()=>stopping=true),(Func<bool>)(()=>closed)});
 Console.WriteLine("CONFECTORY_WEB_UI "+origin+"/#"+session);Console.Out.Flush();

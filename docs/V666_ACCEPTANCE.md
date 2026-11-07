@@ -49,6 +49,11 @@ Run 영상/오디오 backend나 별도 권한 팩의 구현 완료를 뜻하지 
 
 ## 현재 저장 복구 점검
 
+초기화 중 읽지 않는 HTTP 클라이언트가 전체 host loop를 막고 단절 시 호스트를 종료시키는
+결함은 [전송 수명 격리](V2_STARTUP_TRANSPORT.md)로 수정한다. 과거 간헐적 빈 `#app` 실패의
+직접 원인은 미확정이며, controlled socket 정체의 재현과 구별한다. 최종 검증은
+[이번 기록](VALIDATION_V666_STARTUP_TRANSPORT.md)을 따른다. 레이아웃/공개 API·원문·권한은 보존한다.
+
 고급 선언 폼의 `현재 초안 다시 읽기`가 미적용 이름/계약 입력을 확인 없이 지우는 경로를
 재현해 [명시 입력 버리기 확인과 재조회 보호](V2_DECLARATION_RELOAD.md)에 연결했고
 [최종 39단계(신규 39·재사용 0)](VALIDATION_V666_DECLARATION_RELOAD.md)를 통과했다.
