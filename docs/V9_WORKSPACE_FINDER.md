@@ -1,5 +1,9 @@
 # V9 작업 공간 찾기
 
+3D 표시의 구역·직접 소유 요소·현재 허용된 Helper/Worker 검색과 카메라 이동은
+[3D 작업실 찾기](V9_OFFICE_FINDER.md)로 연결한다. 아래 패널의 기존 배치/원문 검색과
+원본·입력 보호는 유지하며, 다른 신원·연락처·대화 권한을 추가하지 않는다.
+
 기준은 저장소의 `reference/site-ui/Confectory-Editor-Prototype-v666.zip`이다.
 `Confectory-v666/dist/app.js`의 `openWorkspaceFinder`, `workspaceNodeSearchInfo`,
 `placedNodeText`, `workspaceSearchText`와 검색 버블·동봉 CSS를 현재 실제 프로젝트에 연결한다.
