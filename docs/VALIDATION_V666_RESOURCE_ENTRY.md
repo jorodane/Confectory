@@ -29,7 +29,7 @@ Escape 메뉴 닫힘은 이번 검사 범위가 아니다. 최종 실제 Browser
 보존 DOM의 창을 닫을 때 token을 폐기해 재열기 뒤 이전 callback도 다시 허용되지 않는다.
 원래 오른쪽 드래그/제스처 코드는 그대로이고 workspace host의 자료 전용 callback만 연결했다.
 자료는 기존 명시 File/카테고리 원자 거래를 사용한다. 일반 C#의 Review→Confirm과 CAS는
-변경하지 않고 관련 회귀로 확인했다. 새 공개/native API·schema·권한·override 계약·C# bytes·
+변경하지 않고 관련 회귀로 확인했다. 새 공개/native API·schema·권한·override 계약·사용자 C# 원문·
 CSS·이미지 디코더·완료한 편집기의 코드 변경은 없다. 기존 File/선택1MiB·전체4MiB/64개 유지.
 
 native controlled-race/private/provider 세부 검사는 변경이 없어 이번에 반복하지 않았다.
