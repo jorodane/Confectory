@@ -53,7 +53,7 @@ FrameControl 완료나 브라우저 조회·재그리기와 구분하며 GPU/모
 카테고리의 인라인 이름 변경·미확정/실패 입력 복원은 [별도 이름 metadata](V6_RESOURCE_FOLDER_NAMES.md)에 연결하고 [최종45단계(신규43·재사용2)](VALIDATION_V666_RESOURCE_FOLDER_NAMES.md)로 확인했다. 기존 topology/bytes·이전 v1 reader는 보존한다.
 파일의 인라인 이름 변경과 열린 readonly 미리보기의 현재 이름은 [원본 사본을 보존하는 별도 metadata](V6_RESOURCE_FILE_NAMES.md)에 연결하고 [최종51단계(신규39·재사용12)](VALIDATION_V666_RESOURCE_FILE_NAMES.md)로 확인했다.
 자료 텍스트·코드 내용 편집과 직전 저장 복원은 [원본 사본 보존·개인 입력 복구](V6_RESOURCE_CONTENT.md) 단위로 연결한다. [최종58단계(신규29·재사용29)](VALIDATION_V666_RESOURCE_CONTENT.md)로 LF/CRLF·실패/충돌/응답 유실·재시작·새 패키지/전체 복원과 수명 보관을 확인했다. 다중/큰 자료·현재 폴더와 첫 import의 원자 결합·설명·Office 내용 편집·rich preview는 별도 잔여다.
-기존 텍스트/코드 읽기 전용 미리보기는 [완료한 V7 경계](V7_RESOURCE_TEXT_PREVIEW.md)를 따르며 다시 미구현으로 넣지 않는다.
+기존 텍스트/코드 읽기 전용 미리보기는 [완료한 V7 경계](V7_RESOURCE_TEXT_PREVIEW.md)를 따르며 다시 미구현으로 넣지 않는다. 다음 단위로 [정지 PNG/JPEG 미리보기](V7_RESOURCE_IMAGES.md)를 연결하고 최종 검증 결과를 별도 기록한다.
 
 ## 현재 V9 3D 작업실 찾기
 

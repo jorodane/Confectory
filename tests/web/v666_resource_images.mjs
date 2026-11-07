@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';import fs from'node:fs';import path from'node:path';
+const code=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/resource-images.js'),'utf8'),{resourceImageInfo:info,mountResourceImage:mount}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const chunk=(name,data)=>{const b=Buffer.alloc(data.length+12);b.writeUInt32BE(data.length);b.write(name,4);data.copy(b,8);return b;};
+const png=(w=8,h=4,extras=[])=>{const head=Buffer.alloc(13);head.writeUInt32BE(w);head.writeUInt32BE(h,4);head[8]=8;head[9]=2;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',head),...extras,chunk('IDAT',Buffer.of(0)),chunk('IEND',Buffer.alloc(0))]);};
+const jpeg=(marker=192,w=8,h=4)=>Buffer.from([255,216,255,marker,0,11,8,h>>8,h&255,w>>8,w&255,1,1,17,0,255,218,0,2,255,217]);
+assert.deepEqual(info(png()),{width:8,height:4,pixels:32,type:'image/png'});for(const m of[192,194])assert.equal(info(jpeg(m)).type,'image/jpeg');
+for(const bytes of[png(0,2),png(16385,1),png(4097,4096),png(8,4,[chunk('acTL',Buffer.alloc(8))]),png(8,4,[chunk('IHDR',Buffer.alloc(13))]),png().subarray(0,25),Buffer.concat([png(),Buffer.of(0)]),jpeg(193),jpeg(192).subarray(0,17),jpeg(192,0,2),new Uint8Array(1048577)])assert.throws(()=>info(bytes));
+for(const text of['<svg onload="alert(1)"/>','<html><img src="https://never.invalid"></html>','GIF89a','RIFFxxxxWEBP'])assert.equal(info(Buffer.from(text)),null);
+let observerCallback=null;globalThis.MutationObserver=class{constructor(fn){observerCallback=fn;}observe(){}disconnect(){}};
+let created=0,revoked=0,errors=0,live=new Set(),images=[];globalThis.URL={createObjectURL:()=>{const value='blob:owned-'+(++created);live.add(value);return value;},revokeObjectURL:value=>{assert(live.delete(value));revoked++;}};globalThis.document={body:{},createElement:tag=>{assert.equal(tag,'img');const img={dataset:{},removeAttribute:()=>{},remove:()=>{}};images.push(img);return img;}};
+const ui=()=>({preview:{replaceChildren:()=>{},setAttribute:()=>{}},toolbar:{},status:{},item:{name:'generated.png'},active:()=>true,onError:()=>errors++});
+const a=mount({...ui(),bytes:png(4096,4096)}),b=mount({...ui(),bytes:png(4096,4096)});assert.throws(()=>mount({...ui(),bytes:png(1,1)}));a();a();const c=mount({...ui(),bytes:png(1,1)});b();c();assert.equal(live.size,0);
+let active=true;const stale=mount({...ui(),bytes:png(),active:()=>active});active=false;images.at(-1).onload();stale();assert.equal(live.size,0);assert.equal(errors,0);
+let attached=true,detached=0;const hidden=mount({...ui(),bytes:png(),active:()=>attached,onDetached:()=>detached++});attached=false;observerCallback();hidden();assert.equal(detached,1);assert.equal(live.size,0);
+const failed=mount({...ui(),bytes:png()});images.at(-1).onerror();failed();assert.equal(errors,1);assert.equal(live.size,0);
+const mismatched=mount({...ui(),bytes:png()});Object.assign(images.at(-1),{naturalWidth:900,naturalHeight:900});images.at(-1).onload();mismatched();assert.equal(errors,2);assert.equal(live.size,0);
+const rotated=mount({...ui(),bytes:jpeg()});Object.assign(images.at(-1),{naturalWidth:4,naturalHeight:8});images.at(-1).onload();rotated();assert.equal(live.size,0);assert.equal(created,revoked);
+console.log('PASS bounded static PNG/JPEG header screening, unsupported/animated/corrupt rejection, shared pixel lease and repeat/late/error/rotated lifecycle; metadata/lifetime unit, not a browser codec or device test');
