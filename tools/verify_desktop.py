@@ -397,6 +397,7 @@ def main():
                 if label=='lf':work.run('lf-source-conflict-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'conflict','--out-root'],cwd=checkout,env=env)
             elif args.suite=='resource-description':
                 work.run(label+'-resource-description-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_description_copy.py'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-resource-description-startup',['node',str(checkout/'tests/web/v666_resource_description.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-description-cas',[sys.executable,str(checkout/'tests/probes/resource_descriptions_cas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-content-provider',[sys.executable,str(checkout/'tests/probes/resource_content_test.py'),str(checkout),str(checkout/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll')],cwd=checkout,env=env)
                 work.run(label+'-web-resource-contract',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)

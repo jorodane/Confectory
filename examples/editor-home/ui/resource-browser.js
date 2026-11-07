@@ -23,7 +23,7 @@ function resourceSize(bytes){if(bytes<1024)return bytes+' B';if(bytes<1048576)re
 export function createResourceBrowser(api){
  const groups={concept:'개념',info:'정보',feature:'기능',module:'모듈',resource:'자료'},labels={folder:'카테고리',image:'그림',document:'문서',mesh:'메시',file:'파일'},icons={folder:'▰',image:'▧',document:'▤',mesh:'⬡',file:'▱'};
  const catalogues=new Map(),inputs=new Map();
- const descriptions=createResourceDescriptions({...api,get current(){return api.current},get view(){return api.view},accept:reply=>{accept(scope(),reply);update();api.persist();}});
+ const descriptions=createResourceDescriptions({get current(){return api.current},get view(){return api.view},work:(...args)=>api.work(...args),persist:()=>api.persist(),flush:()=>api.flush(),modal:(...args)=>api.modal(...args),close:w=>api.close(w),accept:reply=>{accept(scope(),reply);update();api.persist();}});
  const scope=()=>api.current?.projectId||'';
  const state=w=>{const key=scope()+'|'+w.key;if(!inputs.has(key))inputs.set(key,{job:null,layoutJob:null,message:'',reading:false});return inputs.get(key);};
  const catalogue=owner=>{if(!catalogues.has(owner))catalogues.set(owner,{phase:'empty',value:null});return catalogues.get(owner);};
@@ -96,6 +96,7 @@ export function createResourceBrowser(api){
    if(mode==='Data'){const label=document.createElement('label');label.className='browser-data-field';const title=document.createElement('span');title.className='browser-property-label';title.textContent='설명';const input=document.createElement('input');input.dataset.resourceDescription=row.id;input.setAttribute('aria-label',row.name+' 설명');label.append(title,input);card.append(label);w.resourceDescriptionCleanups.push(descriptions.bind({w,field:input,item:row,revision:c.value.revision,active:()=>alive(w,owner,token)}));}
 
   }
+  const recover=descriptions.recover(w,root,c.value?.items||[],c.value?.revision,()=>alive(w,owner,token));if(recover)w.resourceDescriptionCleanups.push(recover);
   w.resourceNameCleanup=bindResourceFileNames(root);layoutControls.restoreEditor(w,owner,token);
  }
  function retire(w){w.resourceDescriptionCleanups?.forEach(clean=>clean());w.resourceDescriptionCleanups=[];layoutControls.retire(w);w.resourceNameCleanup?.();w.resourceNameCleanup=null;w.resourceLifetime=null;w.resourceGeneration=null;}
