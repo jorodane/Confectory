@@ -25,10 +25,14 @@
 
 중간 실패도 보존했다. 초기 standalone private draft 계획의 `checks` 누락과 cold 성공 재확인의 UI refresh 누락을 수정했다. 소비자 fixture LINQ 참조 누락 및 UI probe의 잘못된 read 경로는 검사 결함으로 구분해 수정했다. source 갱신으로 중단한 실행은 성공 실행으로 합산하지 않는다. 모든 최종 행은0 종료이고 앞선 실패/중단 기록은 아래 근거에 유지한다. 정상/편집 모드 PNG를 실제로 확인했으며 authored panel/textarea/settings 배치를 유지했다.
 
-기록: `/workspace/artifacts/v536-verification-managed/runs/a6aa1e94e7804c359b5abfd17811382f.json`  
-증거 ZIP: `/workspace/artifacts/v536-verification-managed/runs/a6aa1e94e7804c359b5abfd17811382f.zip`  
-SHA256: `a2f754cfe1263aeec99a0477d0fbe891721f607857a7b92c6fd820cc7fd8f1a9`  
-원본/재사용/앞선 실패와 공간 집계: `/workspace/scratch/v666-resource-content/FINAL-METRICS.json`  
+기록: `/workspace/artifacts/v536-verification-managed/runs/a6aa1e94e7804c359b5abfd17811382f.json`
+
+증거 ZIP: `/workspace/artifacts/v536-verification-managed/runs/a6aa1e94e7804c359b5abfd17811382f.zip`
+
+SHA256: `a2f754cfe1263aeec99a0477d0fbe891721f607857a7b92c6fd820cc7fd8f1a9`
+
+원본/재사용/앞선 실패와 공간 집계: `/workspace/scratch/v666-resource-content/FINAL-METRICS.json`
+
 주입용 초기 자체 fixture11개도 전체 SHA/CRC/모드와 로그를 보관한 뒤 생성 소유권/종료를 확인해 정리했다. 기존 원본·과거 캐시·로그·프로필·사용자 자료는 삭제하지 않았다.
 
 | 지속 보관 | 출처 commit | ZIP bytes | 파일/디렉터리 | archive SHA256 | 전체 manifest SHA256 |
