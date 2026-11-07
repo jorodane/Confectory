@@ -1,6 +1,8 @@
 pack Confectory.EditorHome.Model version "0.1.0" {
 dependency Confectory.WorkerTasks version "0.1.0";
 standalone false;
+dependency Confectory.ProjectResources version "0.1.0";
+element Resources function "Resources.celem";element ResourcesBody implementation "ResourcesBody.celem";
 element RunPresets function "RunPresets.celem";element RunPresetsBody implementation "RunPresetsBody.celem";
 dependency Confectory.DevelopmentTools version "0.1.0";
 element McpBridge function "McpBridge.celem";element McpBridgeBody implementation "McpBridgeBody.celem";

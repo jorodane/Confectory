@@ -1,0 +1,10 @@
+if(payload.Length>1501000)throw new ArgumentException("resource_input_budget");
+var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session)as object[]??throw new ObjectDisposedException("EditorHome");
+lock(owner){
+ if((bool)owner[6])throw new ObjectDisposedException("EditorHome");
+ var model=(System.Text.Json.Nodes.JsonObject)owner[3];var selected=model["selected"]??throw new UnauthorizedAccessException("resource_project_required");
+ string context=selected["context"]!.GetValue<string>(),project=selected["projectId"]!.GetValue<string>();var manager=(string[])owner[0];
+ var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();if(input["project"]?.GetValue<string>()!=project)throw new UnauthorizedAccessException("resource_project_changed");input.Remove("project");
+ var active=calls.Context.Invoke(manager,context);if(active[1]!=selected["path"]!.GetValue<string>()||active[5]!="open"||calls.Identity.Invoke(manager,context)!=project)throw new UnauthorizedAccessException("resource_project_changed");
+ return calls.Request.Invoke(active[1],project,operation,input.ToJsonString());
+}

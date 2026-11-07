@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::Resources (string session,string operation,string payload) -> string {
+description "Adapter over an explicitly active local ProjectContext. Client project identity must exactly match; no supplied path, account or permission grant is accepted.";
+provide Confectory.EditorHome.Model::Resources with Confectory.EditorHome.Model::ResourcesBody;
+}

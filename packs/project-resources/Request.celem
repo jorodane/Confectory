@@ -1,0 +1,7 @@
+function Confectory.ProjectResources::Request (string manifest,string project,string operation,string payload) -> string {
+description "Project-owned resource copies. The caller supplies an authorized active manifest and its existing durable identity; payloads contain bytes, never source paths. Read/list do not create a store. Append uses exact CAS and replay receipts; no source contracts, execution or access grants.";
+provide Confectory.ProjectResources::Request with Confectory.ProjectResources::RequestBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+}

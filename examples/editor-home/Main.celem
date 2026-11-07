@@ -1,4 +1,6 @@
 function Confectory.EditorHome::Main () -> int {
+provide Confectory.EditorHome.Model::Resources with Confectory.EditorHome.Model::ResourcesBody;
+provide Confectory.ProjectResources::Request with Confectory.ProjectResources::RequestBody;
 provide Confectory.EditorHome.Model::NativeTree with Confectory.EditorHome.Model::NativeTreeBody;
 provide Confectory.EditorHome.Model::NativeFieldView with Confectory.EditorHome.Model::NativeFieldViewBody;
 provide Confectory.EditWorkspace::Subscribe with Confectory.EditWorkspace::SubscribeBody;

@@ -1,0 +1,43 @@
+string root=Environment.GetEnvironmentVariable("CONFECTORY_RESOURCE_CASE")??throw new InvalidOperationException("owned fixture root required");System.IO.Directory.CreateDirectory(System.IO.Path.Combine(root,".confectory"));
+string manifest=System.IO.Path.Combine(root,"project.cproj"),identityPath=System.IO.Path.Combine(root,".confectory/project-identity.json"),store=System.IO.Path.Combine(root,".confectory/resources.v1.json"),project=Guid.NewGuid().ToString("N");
+System.IO.File.WriteAllText(manifest,"project Probe.Assets version \"1\" {standalone true;}");
+var identity=new System.Text.Json.Nodes.JsonObject{["version"]=1,["manifest"]=manifest,["namespace"]="Probe.Assets",["projectId"]=project};System.IO.File.WriteAllText(identityPath,identity.ToJsonString());
+byte[] source=System.IO.File.ReadAllBytes(manifest),originalIdentity=System.IO.File.ReadAllBytes(identityPath);
+var checks=new System.Text.Json.Nodes.JsonArray();void Check(bool valid,string label){if(!valid)throw new InvalidOperationException(label);checks.Add(label);}
+string Hash(byte[] bytes)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+System.Text.Json.Nodes.JsonObject Call(string operation,System.Text.Json.Nodes.JsonObject? input=null,string? owner=null)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(manifest,owner??project,operation,(input??new()).ToJsonString()))!.AsObject();
+System.Text.Json.Nodes.JsonObject Item(string name,byte[] bytes,string type="text/plain")=>new(){["id"]=Guid.NewGuid().ToString("N"),["name"]=name,["type"]=type,["size"]=bytes.Length,["hash"]=Hash(bytes),["modifiedAt"]=0,["data"]=Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_')};
+void Reject(string operation,System.Text.Json.Nodes.JsonObject input,string label,string? owner=null){byte[]? before=System.IO.File.Exists(store)?System.IO.File.ReadAllBytes(store):null;bool rejected=false;try{Call(operation,input,owner);}catch{rejected=true;}Check(rejected,label);Check(before is null?!System.IO.File.Exists(store):System.Linq.Enumerable.SequenceEqual(before,System.IO.File.ReadAllBytes(store)),label+" preserves exact prior store");}
+var empty=Call("load");Check(empty["revision"]!.ToString()=="missing"&&!System.IO.File.Exists(store),"empty read never creates asset storage");
+Check(empty["items"]!.AsArray().Count==0&&empty["limits"]!["fileBytes"]!.GetValue<int>()==1048576,"real empty list and provider capability");
+var text=Item("한글 자료 <안전>.txt",System.Text.Encoding.UTF8.GetBytes("실제 보관 사본\r\n원본은 유지합니다.\n"));
+var input=new System.Text.Json.Nodes.JsonObject{["revision"]=empty["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=text.DeepClone()};var added=Call("import",input);
+Check(added["items"]!.AsArray().Count==1&&added["selected"]!.ToString()==text["id"]!.ToString(),"first append preserves stable authored identity and Unicode name");
+Check(added["items"]![0]!["data"]is null,"listing never publishes content");
+var replay=Call("import",input);Check(replay["replayed"]!.GetValue<bool>()&&replay["items"]!.AsArray().Count==1,"lost response retries exactly once without duplicate resource");
+var read=Call("read",new(){["id"]=text["id"]!.DeepClone(),["hash"]=text["hash"]!.DeepClone()});Check(read["data"]!.ToString()==text["data"]!.ToString()&&read["encoding"]!.ToString()=="base64url","read returns verified exact bytes including original newlines");
+var replacement=input.DeepClone().AsObject();replacement["item"]!["name"]="別の名前.txt";Reject("import",replacement,"reused command cannot change content/metadata");
+Reject("read",new(){["id"]=Guid.NewGuid().ToString("N"),["hash"]=text["hash"]!.DeepClone()},"unknown identity cannot select another file");
+Reject("read",new(){["id"]=text["id"]!.DeepClone(),["hash"]=new string('0',64)},"stale content selection is rejected");
+Reject("load",new(){["path"]="/etc/passwd"},"arbitrary source path is not an operation");
+Reject("load",new(),"foreign project identity rejected",Guid.NewGuid().ToString("N"));
+var bad=input.DeepClone().AsObject();bad["command"]=Guid.NewGuid().ToString("N");bad["revision"]=added["revision"]!.DeepClone();bad["item"]!["id"]=Guid.NewGuid().ToString("N");bad["item"]!["hash"]=new string('0',64);Reject("import",bad,"payload content hash is validated before write");
+var second=Item("same name.txt",new byte[]{0,255,254,0,1},"application/octet-stream");
+var stale=new System.Text.Json.Nodes.JsonObject{["revision"]="missing",["command"]=Guid.NewGuid().ToString("N"),["item"]=second.DeepClone()};Reject("import",stale,"stale append basis never silently rebases");
+stale["revision"]=added["revision"]!.DeepClone();var appended=Call("import",stale);Check(appended["items"]!.AsArray().Count==2,"binary copy appended atomically alongside existing asset");
+Check(Call("import",input)["replayed"]!.GetValue<bool>()&&Call("load")["items"]!.AsArray().Count==2,"an interleaved later append cannot expire an earlier asset's exact replay receipt");
+Check(Call("read",new(){["id"]=second["id"]!.DeepClone(),["hash"]=second["hash"]!.DeepClone()})["data"]!.ToString()==second["data"]!.ToString(),"arbitrary binary bytes restore exactly without UTF8 conversion");
+var largeBytes=new byte[1048576];Array.Fill<byte>(largeBytes,251);var large=Item("maximum.bin",largeBytes,"application/octet-stream");var maximum=Call("import",new(){["revision"]=appended["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=large.DeepClone()});
+string largeResult=calls.Request.Invoke(manifest,project,"read",new System.Text.Json.Nodes.JsonObject{["id"]=large["id"]!.DeepClone(),["hash"]=large["hash"]!.DeepClone()}.ToJsonString());Check(largeResult.Length<2097152&&System.Text.Json.Nodes.JsonNode.Parse(largeResult)!["data"]!.ToString()==large["data"]!.ToString(),"maximum high-base64-symbol file stays within the real transport result budget");
+appended=maximum;
+byte[] saved=System.IO.File.ReadAllBytes(store);System.IO.File.SetAttributes(store,System.IO.File.GetAttributes(store)|System.IO.FileAttributes.ReadOnly);
+try{var more=new System.Text.Json.Nodes.JsonObject{["revision"]=appended["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=Item("retry.txt",new byte[]{3})};Reject("import",more,"read-only destination fails without input/source loss");}finally{System.IO.File.SetAttributes(store,System.IO.File.GetAttributes(store)&~System.IO.FileAttributes.ReadOnly);}
+Check(System.Linq.Enumerable.SequenceEqual(saved,System.IO.File.ReadAllBytes(store)),"atomic failure retains both previous resources");
+var tampered=System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(store))!.AsObject();tampered["items"]![0]!["data"]="AAAA";System.IO.File.WriteAllText(store,tampered.ToJsonString());Reject("load",new(),"corrupt bytes are rejected rather than shown as empty or repaired");System.IO.File.WriteAllBytes(store,saved);
+if(!OperatingSystem.IsWindows()){
+ string outside=System.IO.Path.Combine(root,"outside.json");System.IO.File.WriteAllBytes(outside,saved);System.IO.File.Move(store,store+".owned-backup");System.IO.File.CreateSymbolicLink(store,outside);
+ try{Reject("load",new(),"linked asset store is not adopted");Check(System.Linq.Enumerable.SequenceEqual(saved,System.IO.File.ReadAllBytes(outside)),"symlink target remains unchanged");}finally{System.IO.File.Delete(store);System.IO.File.Move(store+".owned-backup",store);}
+}
+Check(System.Linq.Enumerable.SequenceEqual(source,System.IO.File.ReadAllBytes(manifest))&&System.Linq.Enumerable.SequenceEqual(originalIdentity,System.IO.File.ReadAllBytes(identityPath)),"resource operations preserve source manifest and original project identity bytes");
+Check(Call("load")["items"]!.AsArray().Count==3,"fresh invocation restores exact stored resource identities without import replay");
+System.IO.File.WriteAllText(System.IO.Path.Combine(root,"checks.json"),checks.ToJsonString());Console.WriteLine(checks.ToJsonString());return 0;
