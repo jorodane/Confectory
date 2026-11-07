@@ -3,10 +3,6 @@ import sys,json,pathlib,uuid,shutil,traceback
 from playwright.sync_api import sync_playwright,expect
 import v536_wide_mixed as f
 mode=sys.argv[3];b=None;description=f.project/'.confectory/resource-descriptions.v1.json'
-checked=f.checked
-def checkpoint(text):
- checked(text);print('PASS',text,flush=True)
-f.checked=checkpoint
 def api(action,**args):return f.invoke('projectResourceLayout',dict(action=action,project=f.state()['projectId'],**args))['result']['result']
 def catalogue():return api('load')
 def item(id):return next(row for row in catalogue()['items']if row['id']==id)
@@ -18,7 +14,9 @@ def data(id):return row(id).locator('[data-resource-description]')
 def viewer(id):return f.page.locator('.window[data-key="resource-file:'+id+'"]')
 def settings(id):return viewer(id).locator('[data-resource-setting-description]')
 def opened(id):
- row(id).press('Enter');w=viewer(id);expect(w.locator('[data-resource-setting-description]')).to_be_visible();expect(w.locator('.resource-document-text')).to_have_text(raw.decode());return w
+ row(id).press('Enter');w=viewer(id)
+ if 'folded'in(w.get_attribute('class')or'').split():w.locator('[data-fold]').first.click()
+ expect(w.locator('[data-resource-setting-description]')).to_be_visible();expect(w.locator('.resource-document-text')).to_have_text(raw.decode());return w
 def unchanged():
  assert(f.project/'.confectory/resources.v1.json').read_bytes()==original_store
  for path,content in f.original.items():assert(f.project/path).read_bytes()==content,path
@@ -26,8 +24,8 @@ def unchanged():
 def saved(id,value):
  expect(settings(id)).to_have_value(value)if viewer(id).count()else None
  f.page.wait_for_function('()=>!document.querySelector("[data-resource-description-cancel]:not([hidden])")');assert item(id).get('description','')==value;unchanged()
-def hold():
- f.page.evaluate("""()=>{const base=fetch;let wanted=null,armed=true;globalThis.__descriptionHeld=false;fetch=async(...args)=>{let request;try{request=JSON.parse(args[1]?.body||'null')}catch{}if(armed&&request?.op==='invoke'&&request.endpoint==='projectResourceLayout'&&request.input?.action==='describe')wanted=request.requestId;const response=await base(...args);if(!wanted||!armed||request?.op!=='update')return response;const body=await response.clone().json(),row=body.results?.find(r=>r.requestId===wanted);if(!row?.ok)return response;armed=false;__descriptionHeld=true;return new Promise(resolve=>{globalThis.__releaseDescription=()=>{fetch=base;delete row.result;row.ok=false;row.error={code:'owned_lost_description_reply'};resolve(new Response(JSON.stringify(body),{status:200,headers:{'Content-Type':'application/json'}}));};});};}""")
+def hold(action='describe',failure=True):
+ f.page.evaluate("""({action,failure})=>{const base=fetch;let wanted=null,armed=true;globalThis.__descriptionHeld=false;fetch=async(...args)=>{let request;try{request=JSON.parse(args[1]?.body||'null')}catch{}if(armed&&request?.op==='invoke'&&request.endpoint==='projectResourceLayout'&&request.input?.action===action)wanted=request.requestId;const response=await base(...args);if(!wanted||!armed||request?.op!=='update')return response;const body=await response.clone().json(),row=body.results?.find(r=>r.requestId===wanted);if(!row?.ok)return response;armed=false;__descriptionHeld=true;return new Promise(resolve=>{globalThis.__releaseDescription=()=>{fetch=base;if(failure){delete row.result;row.ok=false;row.error={code:'owned_lost_description_reply'};}resolve(new Response(JSON.stringify(body),{status:200,headers:{'Content-Type':'application/json'}}));};});};}""",dict(action=action,failure=failure))
 def retry(w):return w.locator('[data-resource-description-retry]:not([hidden])')
 def cancel(w):return w.locator('[data-resource-description-cancel]:not([hidden])')
 def restart(index,project=None):
@@ -49,6 +47,7 @@ try:
   # Fold the preview so its geometry cannot obscure the browser search.
   w.locator('[data-fold]').first.click();b.locator('[data-browser-control=object-query]').fill('folder search tag');b.locator('[data-browser-control=object-query]').press('Enter');expect(b.locator('[data-resource-id]')).to_have_count(1);expect(row(folder)).to_be_visible();b.locator('[data-browser-control=object-query]').fill('');b.locator('[data-browser-control=object-query]').press('Enter');f.idle();unchanged();f.checked('same original current-folder search matches stored description, not only name; clearing search preserves identities and selection')
   row(file).press('Enter');w=viewer(file)
+  if 'folded'in(w.get_attribute('class')or'').split():w.locator('[data-fold]').first.click()
   f.page.locator('#chat-input').fill('독립 입력 보존')
   if mode=='normal':
    prior=description.read_bytes();permission=description.stat().st_mode
@@ -56,8 +55,10 @@ try:
     description.chmod(0o444);settings(file).fill('write failure');settings(file).press('Tab');expect(retry(w)).to_be_enabled();assert description.read_bytes()==prior;expect(settings(file)).to_have_value('write failure')
    finally:description.chmod(permission)
    retry(w).click();saved(file,'write failure');f.checked('real native metadata write refusal retains exact private command/value; retry recovers after permission restoration without altering originals')
-   hold();settings(file).fill('lost success');settings(file).press('Tab');f.page.wait_for_function('()=>__descriptionHeld');assert item(file)['description']=='lost success';assert 'lost success'in json.dumps(f.state()['presentation'],ensure_ascii=False);settings(file).fill('late description');f.page.evaluate('()=>__releaseDescription()');expect(retry(w)).to_be_enabled();retry(w).click();expect(settings(file)).to_have_value('late description');expect(cancel(w)).to_be_enabled();assert item(file)['description']=='lost success';settings(file).focus();settings(file).press('Tab');saved(file,'late description');f.checked('durable intent exists before native delivery; lost reply replays exact command, preserving newer typing until a separate explicit blur save')
+   hold();settings(file).fill('lost success');settings(file).press('Tab');f.page.wait_for_function('()=>__descriptionHeld');assert item(file)['description']=='lost success';assert 'lost success'in json.dumps(f.state()['presentation'],ensure_ascii=False);settings(file).fill('late description');f.page.evaluate('()=>__releaseDescription()');expect(retry(w)).to_be_enabled();retry(w).click();expect(settings(file)).to_have_value('late description');expect(cancel(w)).to_be_enabled();assert item(file)['description']=='lost success';w.get_by_role('button',name='설명 저장',exact=True).click();saved(file,'late description');f.checked('durable intent exists before native delivery; lost reply replays exact command, preserving newer typing until a separate explicit blur save')
    settings(file).fill('stale local');c=catalogue();api('describe',revision=c['revision'],command=uuid.uuid4().hex,id=file,generation=item(file)['descriptionGeneration'],value='peer value');settings(file).press('Tab');expect(retry(w)).to_be_enabled();prior=description.read_bytes();retry(w).click();expect(retry(w)).to_be_enabled();assert description.read_bytes()==prior;expect(settings(file)).to_have_value('stale local');cancel(w).click();saved(file,'peer value');f.checked('peer edit after capture causes CAS rejection without implicit rebase; retry keeps local input, explicit cancel displays current peer value')
+   settings(file).fill('discard captured');hold('load',False);cancel(w).click();f.page.wait_for_function('()=>__descriptionHeld');settings(file).fill('typed during cancellation');f.page.evaluate('()=>__releaseDescription()');expect(settings(file)).to_have_value('typed during cancellation');expect(cancel(w)).to_be_enabled();assert item(file)['description']=='peer value';settings(file).press('Escape');saved(file,'peer value');f.checked('explicit cancel overrides blur auto-save; a late successful cancellation response preserves newer input without rebasing or writing over current metadata')
+
    permission=description.stat().st_mode
    try:
     description.chmod(0o444);settings(file).fill('keep until cancel');settings(file).press('Tab');expect(retry(w)).to_be_enabled()
