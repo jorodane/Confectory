@@ -641,7 +641,7 @@ public sealed class WebUITests : TestCase
          for(int n=0;n<8;n++){string id="raw"+n+".js";System.IO.File.WriteAllBytes(System.IO.Path.Combine(assetRoot,id),rawLines);declared["resources"]![id]=new System.Text.Json.Nodes.JsonObject{["file"]=id,["mime"]="text/javascript",["bytePolicy"]="utf8-lf-v1",["canonicalSize"]=canonicalLines.Length,["canonicalSha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(canonicalLines))};}Rejected("raw aggregate exhaustion","Resource 'raw7.js': raw aggregate byte budget exceeded");for(int n=0;n<8;n++)declared["resources"]!.AsObject().Remove("raw"+n+".js");
 
          declared["resources"]!.AsObject().Remove("portrait.png");declared["resources"]!["../escape.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="../escape.png",["mime"]="image/png",["size"]=0,["sha256"]=""};Rejected("manifest traversal");
-         declared["resources"]!.AsObject().Remove("../escape.png");for(int n=0;n<256;n++)declared["resources"]!["r"+n+".png"]=new System.Text.Json.Nodes.JsonObject{["mime"]="image/png",["base64"]=""};Rejected("resource count exhaustion");
+         declared["resources"]!.AsObject().Remove("../escape.png");for(int n=0;n<384;n++)declared["resources"]!["r"+n+".png"]=new System.Text.Json.Nodes.JsonObject{["mime"]="image/png",["base64"]=""};Rejected("resource count exhaustion");
         }finally{System.IO.Directory.Delete(assetRoot,true);}
         string owner=calls.Open.Invoke(context,descriptor);
         System.Text.Json.Nodes.JsonNode Send(object req)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Request.Invoke(owner,System.Text.Json.JsonSerializer.Serialize(req)))!;
