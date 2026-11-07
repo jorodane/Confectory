@@ -12,4 +12,4 @@ Blob URL은 해당 project/ID/hash/view generation 수명 안에서만 유지한
 
 개인 레이아웃은 기존 owner/ID/hash만 저장하고 Blob URL·byte·decode 요청은 저장하지 않는다. 재시작과 프로젝트 복귀는 현재 권한으로 다시 읽는다. preview/실패/재시도는 저장·import·ReviewConfirm·실행·권한 부여가 아니다. 원래 데이터/입력·소스·공개 override 계약·최종CAS와 완성된 텍스트 편집/복구를 유지한다.
 
-큰/다중 가져오기와 현재 폴더 첫 import, 다른 원본 그림·PDF·Office/mesh preview와 Office 내용 편집·자료 설명은 고정 잔여다. 초기화 빈 화면 원인은 미확정이다. 실제 Windows/WebView2·모바일·전체 UI와 Library/Space 전달은 별도 미검증으로 구분한다. 최종 검증 결과는 별도 기록한다.
+큰/다중 가져오기와 현재 폴더 첫 import, 다른 원본 그림·PDF·Office/mesh preview와 Office 내용 편집·자료 설명은 고정 잔여다. 초기화 빈 화면 원인은 미확정이다. 실제 Windows/WebView2·모바일·전체 UI와 Library/Space 전달은 별도 미검증으로 구분한다. [최종43단계(신규41·동등 근거 재사용2)](VALIDATION_V666_RESOURCE_IMAGES.md)는 실제 픽셀·읽기 거절/재시도·창/프로젝트/재시작 수명과 새 패키지/전체 복원을 구분한다.
