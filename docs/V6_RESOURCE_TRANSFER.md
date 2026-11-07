@@ -13,3 +13,5 @@ EditorHome 세션 하나당 최대 6,000,000 bytes의 휘발 MemoryStream 하나
 검증은 `tools/verify_desktop.py --suite resource-transfer`의 독립 LF/CRLF, 실제 native protocol/UI, 기존 배치·목적지·편집·BMP 회귀, 새 교차패키지와 전체 압축복원을 따른다. 실제 Windows/WebView2/mobile 실행·OS native 파일 드롭·전체 UI 완료와 구분한다. 초기 빈 화면의 원인은 미확정으로 유지한다.
 
 숨겨진 자료 창은 공유 목록의 로딩 상태를 선점하지 않으며, 읽기 중 창 수명이 끝나면 다른 현재 창이 다시 로딩할 수 있도록 상태를 갱신한다. 창별 File 입력은 다른 새 창에 빌려주지 않는다. 닫힌 창의 미완성 native 버퍼는 다른 begin으로 덮어쓰지 않으며 명시 취소 또는 Home/프로젝트 전환·세션 종료 때 해제된다.
+
+[최종 검증과 보관 기록](VALIDATION_V666_RESOURCE_TRANSFER.md).
