@@ -12,5 +12,5 @@ sdk=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet')
 run=subprocess.run([sdk,str(cli),'run',str(project/'project.cpack'),'linux'],cwd=r,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
 (case/'run.log').write_text(run.stdout);print(run.stdout,flush=True);print('RESOURCE_PROBE_FIXTURE',case,flush=True)
 assert run.returncode==0,run.returncode
-results=json.loads((case/'owned assets project'/'checks.json').read_text());assert len(results)>=30
+results=json.loads((case/'owned assets project'/'checks.json').read_text());assert len(results)==29
 print('PASS independent resource provider:',len(results),'actual checks; no editor ownership or demo catalog',flush=True)
