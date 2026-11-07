@@ -12,7 +12,7 @@ assert new.index('}ActiveIO(id,"draft-stage")')>new.index('expectedHash')and new
 assert 'finally{System.Threading.Volatile.Write(ref state[9],null!);}'in new
 assert (r/'packs/development-tools/Snapshot.csbody').read_text()==base('packs/development-tools/Snapshot.csbody')
 assert (r/'packs/development-tools/Schema.csbody').read_text()==base('packs/development-tools/Schema.csbody')
-s=(r/'packs/development-tools/Observe.csbody').read_text();assert 'Monitor.TryEnter' in s and 'Monitor.Enter('not in s and 'calls.Snapshot.Invoke'in s and 'if(busy)'in s
+s=(r/'packs/development-tools/Observe.csbody').read_text();assert 'Monitor.TryEnter' in s and 'Monitor.Enter('not in s and s.count('calls.Snapshot.Invoke')==1 and 'if(busy)'in s and 'else if(n==0)'in s
 p='packs/editor-home-model/Command.csbody';old=base(p);new=(r/p).read_text();start='if(operation=="worker-badges-inspect")';end='if(operation=='
 a=old.index(start);b=new.index(start);assert old[:a]==new[:b];a=old.index(end,a+len(start));b=new.index(end,b+len(start));assert old[a:]==new[b:]
 m=json.loads((r/'packs/workspace-3d/ui/manifest.json').read_text())

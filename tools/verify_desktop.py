@@ -369,7 +369,7 @@ def main():
                 work.run(label+'-office-completed-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_development_tools_owned_scope_shared_draft_no_confirm_and_locality','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-office-active-ui',[sys.executable,str(checkout/'tests/web/v666_office_workers_ui.py'),str(checkout),str(report),'phase-ui'if label=='lf'else'phase-cold'],cwd=checkout,env=env)
                 work.run(label+'-office-completed-ui',[sys.executable,str(checkout/'tests/web/v666_office_workers_ui.py'),str(checkout),str(report),'io'if label=='lf'else'io-cold'],cwd=checkout,env=env)
-                work.run(label+'-office-arrangement-ui',[sys.executable,str(checkout/'tests/web/v666_office_arrangement_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-office-arrangement-ui',[sys.executable,str(checkout/'tests/web/v666_office_arrangement_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late'],cwd=checkout,env=env)
                 work.run(label+'-run-grid-ui',[sys.executable,str(checkout/'tests/web/v666_run_grid_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
 
             elif args.suite=='office-io':

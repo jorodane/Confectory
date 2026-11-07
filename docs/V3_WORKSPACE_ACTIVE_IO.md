@@ -7,7 +7,9 @@
 
 기존 도구 admission/chat-use 철회·직렬 mutation 잠금·원자 CAS/중복 호출/저장·원문/override
 입출력 계약은 그대로다. 기존 Snapshot API도 변경하지 않는다. 새 read-only Observe는
-같은 capability들을 즉시 TryEnter로 관측한다. 모두 비어 있을 때만 원래 Snapshot을 읽고,
+같은 capability들을 즉시 TryEnter로 관측한다. 모두 비어 있을 때만 첫 primary의 원래
+Snapshot을 한 번 읽는다. 나머지는 같은 잠금으로 보호한 live origin/staged/log/lastToolIO만
+전달하여 같은 프로젝트 provenance/dirty를 Worker 수만큼 스캔·보관하지 않는다.
 하나라도 바쁘면 잠금을 기다리거나 부분 초안/provenance를 합치지 않는다. 이때 마지막 초안
 관측에는 pending을 명시하고 새 완료 사실로 사용하지 않는다. 별도 immutable 메모리 문자열의
 진행 신호만 읽는다. 필수 Review→Confirm·최종 원본 검증은 계속 기존 동기 Snapshot을 쓴다.
