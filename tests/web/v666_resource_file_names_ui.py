@@ -38,7 +38,7 @@ def begin_rename(id,value,surface='card'):
  node=tree(id)if surface=='tree'else row(id);node.click(button='right');f.page.get_by_role('button',name='이름 변경',exact=True).click();input=b.locator('[data-resource-rename]');expect(input).to_be_visible();input.fill(value);return input
 def renamed(id,value,surface='card',blur=False):
  input=begin_rename(id,value,surface)
- if blur:b.locator('[data-browser-control=object-query]').click()
+ if blur:input.press('Tab')
  else:input.press('Enter')
  expect(tree(id)).to_have_attribute('title',value);f.idle()
 def exact_sources():
