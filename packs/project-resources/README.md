@@ -37,6 +37,8 @@ It never silently rebases a stale append or treats another payload as the same c
 This file is durable project data, not a cache/output cleanup target. Moving or
 exporting a whole project with its resources is not implemented by this provider.
 Layout now provides category topology, moves, display names, and explicit single-file
-copy deletion. See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
-late import replay protection, final CAS and old-writer limitations. Folder/multiple
+copy deletion and confirmed category subtree removal. See docs/V6_RESOURCE_FOLDER_DELETION.md
+for grouped ID/import receipts, moved-out history and stale-confirmation boundaries.
+See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
+late import replay protection, final CAS and old-writer limitations. Multiple-selection
 removal, content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.

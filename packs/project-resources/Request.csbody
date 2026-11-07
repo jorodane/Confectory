@@ -50,7 +50,7 @@ if(operation=="read"){
 }
 if(operation!="import")throw new ArgumentException("resource_operation");Keys(input,"revision","command","item");string basis=Text(input["revision"]),command=Text(input["command"]);if(basis!="missing"&&!IsHash(basis)||!IsId(command))throw new ArgumentException("resource_command");
 var item=Item(input["item"],false);string itemId=Text(item["id"]);var intent=new System.Text.Json.Nodes.JsonObject{["revision"]=basis,["command"]=command,["item"]=item.DeepClone()};string digest=TextHash(intent.ToJsonString());
-var deletions=calls.Deletions.Invoke(manifest,project);if(System.Linq.Enumerable.Any(System.Text.Json.Nodes.JsonNode.Parse(deletions[1])!["items"]!.AsArray(),row=>Text(row!["import"])==command))throw new InvalidOperationException("resource_import_deleted");
+var deletions=calls.Deletions.Invoke(manifest,project);if(System.Linq.Enumerable.Any(System.Text.Json.Nodes.JsonNode.Parse(deletions[3])!["imports"]!.AsArray(),row=>Text(row)==command))throw new InvalidOperationException("resource_import_deleted");
 var prior=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),p=>p!["import"]!["command"]!.ToString()==command);
 if(prior is not null){if(prior["import"]!["digest"]?.ToString()!=digest||prior["id"]?.ToString()!=itemId||!System.Text.Json.Nodes.JsonNode.DeepEquals(Item(prior,true),item))throw new InvalidOperationException("resource_command_reused");return Reply(saved,snapshot[2],command,itemId,true);}
 if(snapshot[2]!=basis)throw new InvalidOperationException("resource_storage_changed");

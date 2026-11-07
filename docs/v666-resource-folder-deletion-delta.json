@@ -1,0 +1,14 @@
+{
+  "baseCommit": "d515f1d9b4e4d1e10be9f79bbb4821f12b38dbd2",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "0b685c23532c21a2d8e311dceb575b2d5bbb2f2c150367d883fcfee2c743c250",
+    "examples/editor-home/WebInvoke.csbody": "05a94d792d110e9a5a743f8de58dad4807be495e7c870ae5f6473d9b0c76f656",
+    "examples/editor-home/ui/resource-browser.js": "3882d2dbd900c9cc05fe098c56174807f435907b70b9e0097a446ad025363be0",
+    "examples/editor-home/ui/resource-layout.js": "f0df4d3080bf6ce2cc33c3562c3ce7f87a7993f44fa0f3e58c165bceffbf3b74",
+    "packs/project-resources/DeletionRecords.csbody": "12a809f602f502dfee9723744bcb4a31cb0dc3f786752299e76ac0a4c4527797",
+    "packs/project-resources/Layout.csbody": "f953b3098297bd975f3cf7894e4631b252ddd3ff1e5f836d514080d793b198f1",
+    "packs/project-resources/README.md": "cd01d237a32768a156c1d4ed307a20f3539eb79898286b5c76f053e868df50dc",
+    "packs/project-resources/Request.csbody": "c5b0fba7f8af842122f68a035d263ef940eaa7ab52a65da878cf305d0f1508cb"
+  }
+}
