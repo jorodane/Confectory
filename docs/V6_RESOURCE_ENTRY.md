@@ -26,3 +26,5 @@ OS 폴더 탐색, 파일 자동 선택은 추가하지 않는다.
 
 실제 Windows 파일 선택기·모바일·전체 UI/Space 전달은 완료로 표시하지 않는다.
 현재 Linux engine/Chromium의 실제 파일 선택 이벤트와 생성한 File 입력을 검증한다.
+
+[최종 검증·보관·신규/이전 근거와 한계](VALIDATION_V666_RESOURCE_ENTRY.md).
