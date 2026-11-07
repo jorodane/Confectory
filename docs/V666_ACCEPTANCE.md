@@ -21,6 +21,8 @@ Run 영상/오디오 backend나 별도 권한 팩의 구현 완료를 뜻하지 
 
 ## 현재 V8 Run 소프트웨어 출력과 개발 메뉴
 
+현재 원본 PC640×360 선택과 축640/총262144픽셀의 실제 출력은 [픽셀 예산 보존 경계](V8_RUN_WIDE.md)로 연결했다. [최종 신규 55단계·보조 guard 2개 재사용](VALIDATION_V666_RUN_WIDE.md)를 마감했다. 이전512 provider의 관측/제한을 유지하며 HD 이상·진행 중 I/O 등 고정 잔여와 구별한다.
+
 원본 개발 메뉴·디버그 선택은 [실제 Run 관측](V8_RUN_DEVELOPER.md)에 연결했다.
 별도 선택 팩이 기존 소유 FrameControl 루프에 명시적으로 연결한 실제 RGBA 영상은
 [소프트웨어 출력](V8_RUN_SOFTWARE_OUTPUT.md) 경계로 표시한다. 영상은 scope/소유자·

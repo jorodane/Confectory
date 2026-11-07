@@ -22,7 +22,7 @@ capability 지원은 보장하지 않으며, 구버전은 새 자료를 거절�
 clamp/화면 배율을 실제 렌더 크기로 주장하지 않는다.
 
 기존 개인 등록 파일의 구조/ID/receipt/CAS는 보존한다. 새640 등록은 과거512 전용
-binary가 읽지 못할 수 있으며, 그 경우 기존 unavailable/입력 보존 보호를 따른다.
+binary가 목록 전체를 읽지 못할 수 있으며, 그 경우 기존 unavailable/입력 보존 보호를 따른다.
 자동 다운스케일·삭제·이름/값 변환이나 선택적 migration은 추가하지 않는다.
 
 이 변경은 원본 C#·공개 Invoke/override 계약·scope/권한·frame heartbeat/ACK·3D 실행

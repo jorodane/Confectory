@@ -25,3 +25,5 @@ CSS 영역의 정수 크기를 그대로 요청한다. DPR·배율을 곱하거�
 CAS/Undo와 분리한다. GPU/FPS·진행 중 IO 관측·물리 장치 지원으로 표현하지 않는다.
 
 [현재 provider 계약](V8_RUN_RESOLUTION.md)과 [검증 기록](VALIDATION_V666_RUN_AUTO.md)을 따른다.
+
+후속: 원본640×360 선택과 축640/총262144픽셀 capability는 [출력 범위 후속](V8_RUN_WIDE.md)에 연결했다. 기존 검증 기록/소유자·실제 ACK 보호와512 provider 지원은 보존한다.

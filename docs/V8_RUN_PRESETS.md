@@ -58,3 +58,5 @@ DPI/IME·전체 UI·Space/Library 전달은 교차 패키지와 구별한다.
 [검증·보관·공간 기록](VALIDATION_V666_RUN_PRESETS.md)을 따른다.
 
 후속: 현재240–512px 창 영역의 명시적 자동 맞춤은 [실제 창 크기/출력 ACK](V8_RUN_AUTO.md)에 연결했다. 당시 검증과 원래 provider 한도는 보존한다.
+
+후속: 원본640×360 선택과 축640/총262144픽셀 capability는 [출력 범위 후속](V8_RUN_WIDE.md)에 연결했다. 기존 검증 기록/소유자·실제 ACK 보호와512 provider 지원은 보존한다.
