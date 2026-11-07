@@ -50,7 +50,7 @@ if(operation=="read"){
 }
 // A batch is a set of explicit single-import intents sharing one observed basis.
 // Stored per-item receipts retain the v1 grammar and exact single-import replay.
-bool batch=operation=="import-many";
+bool prepare=operation=="prepare-import-many",batch=operation=="import-many"||prepare;
 if(operation!="import"&&!batch)throw new ArgumentException("resource_operation");
 Keys(input,batch?new[]{"revision","imports"}:new[]{"revision","command","item"});string basis=Text(input["revision"]);if(basis!="missing"&&!IsHash(basis))throw new ArgumentException("resource_command");
 var entries=batch?input["imports"]?.AsArray()??throw new ArgumentException("resource_batch"):new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["command"]=input["command"]!.DeepClone(),["item"]=input["item"]!.DeepClone()});
@@ -64,7 +64,7 @@ foreach(var intent in intents){
  var prior=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),p=>p!["import"]!["command"]!.ToString()==intent.command);
  if(prior is not null){if(prior["import"]!["digest"]?.ToString()!=intent.digest||prior["id"]?.ToString()!=intent.id||!System.Text.Json.Nodes.JsonNode.DeepEquals(Item(prior,true),intent.item))throw new InvalidOperationException("resource_command_reused");present++;}
 }
-if(present>0){if(present!=intents.Count)throw new InvalidOperationException("resource_batch_partial");return ImportReply(saved,snapshot[2],true);}
+if(present>0){if(present!=intents.Count)throw new InvalidOperationException("resource_batch_partial");return prepare?new System.Text.Json.Nodes.JsonObject{["result"]=System.Text.Json.Nodes.JsonNode.Parse(ImportReply(saved,snapshot[2],true)),["plan"]=null}.ToJsonString():ImportReply(saved,snapshot[2],true);}
 if(snapshot[2]!=basis)throw new InvalidOperationException("resource_storage_changed");
 var candidate=saved.DeepClone().AsObject();foreach(var intent in intents){
  if(System.Linq.Enumerable.Any(candidate["items"]!.AsArray(),row=>row!["id"]!.ToString()==intent.id))throw new InvalidOperationException("resource_id_in_use");
@@ -73,4 +73,6 @@ var candidate=saved.DeepClone().AsObject();foreach(var intent in intents){
 }
 string serialized=candidate.ToJsonString();Validate(serialized);
 var plan=new System.Text.Json.Nodes.JsonObject{["writes"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=relative,["hash"]=basis,["text"]=serialized}),["checks"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=".confectory/resource-deletions.v1.json",["hash"]=deletions[2]},new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.GetFileName(manifest),["hash"]=manifestSnapshot[2]},new System.Text.Json.Nodes.JsonObject{["path"]=".confectory/project-identity.json",["hash"]=identitySnapshot[2]})};
+// Native composition only: the editor exposes no generic plan endpoint. Preparation never writes.
+if(prepare)return new System.Text.Json.Nodes.JsonObject{["result"]=System.Text.Json.Nodes.JsonNode.Parse(ImportReply(candidate,TextHash(serialized))),["plan"]=plan}.ToJsonString();
 if(calls.CommitPlan.Invoke(root,plan.ToJsonString())[0]!="applied")throw new InvalidOperationException("resource_storage_changed");return ImportReply(candidate,TextHash(serialized));
