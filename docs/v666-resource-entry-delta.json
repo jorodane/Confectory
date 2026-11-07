@@ -2,8 +2,8 @@
   "baseCommit": "7881cda86fc51543f0d9c367e78b31a889c57605",
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
-    "examples/editor-home/WebBundle.csbody": "445addbe89e4a8ccc545cbc542b9c99b7bb7bb477a1a5f99b89bd081da667930",
-    "examples/editor-home/ui/resource-browser.js": "b342a5a9b903be849b737b6e06acabaca41784c0f17fb811476c4b19d7542d95",
+    "examples/editor-home/WebBundle.csbody": "8c10cd211a2f63460b7350a895339830b215a71c962af5f678e1768d2fd51090",
+    "examples/editor-home/ui/resource-browser.js": "fb5484fda712d4257e72115c7f90b1de8528dd850443f7f91b9ebc20fa64f53c",
     "examples/editor-home/ui/resource-layout.js": "80298d8131d48b156e49522c81c1cc5bc7a41030f9bae4c20ce55285e48ff0b8",
     "examples/editor-home/ui/workspace-host.js": "4405356f5941e77bf647dd95c1b07a66c8e39984ef88bec1c1ad56547cefaaac",
     "examples/editor-home/ui/v508-runtime.js": "4e5de87021937244080c3e33c42580b10cb013abf7a9ba67ce3453e5fcbf6b59"

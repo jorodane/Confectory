@@ -10,6 +10,7 @@ parts=(r/'examples/editor-home/WebBundle.csbody').read_text().split('"""');prior
 for name,row in bundle.items():
  raw=(r/'examples/editor-home/ui'/row['file']).read_bytes();raw=raw.replace(b'\r\n',b'\n')if row.get('bytePolicy')=='utf8-lf-v1'else raw;assert len(raw)==row.get('canonicalSize',row.get('size'))and hashlib.sha256(raw).hexdigest()==row.get('canonicalSha256',row.get('sha256')),name
  if name not in ['resource-browser.js','resource-layout.js','workspace-host.js','v508-runtime.js']:assert row==before[name],name
+host=(r/'examples/editor-home/ui/workspace-host.js').read_text();priorHost=git('show',d['baseCommit']+':examples/editor-home/ui/workspace-host.js');assert host.replace("browserTreeCreateMenu:(w,parent,event)=>w.meta.group==='resource'?api.resourceCreateMenu(w,event,parent):api.unsupported(","browserTreeCreateMenu:()=>api.unsupported(").replace("browserCreateMenu:(w,event)=>w.meta.group==='resource'?api.resourceCreateMenu(w,event):api.unsupported(","browserCreateMenu:()=>api.unsupported(")==priorHost
 reference=r/'reference/site-ui/Confectory-Editor-Prototype-v666.zip';assert hashlib.sha256(reference.read_bytes()).hexdigest()==d['referenceSha256']
 with zipfile.ZipFile(reference)as z:
  app=z.read('Confectory-v666/dist/app.js').decode()

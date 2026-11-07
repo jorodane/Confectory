@@ -101,5 +101,5 @@ export function createResourceBrowser(api){
   w.resourceNameCleanup=bindResourceFileNames(root);layoutControls.restoreEditor(w,owner,token);
  }
  function retire(w){w.resourceDescriptionCleanups?.forEach(clean=>clean());w.resourceDescriptionCleanups=[];layoutControls.retire(w);w.resourceNameCleanup?.();w.resourceNameCleanup=null;w.resourceLifetime=null;w.resourceGeneration=null;}
- return {createMenu:(w,event,parent)=>layoutControls.createMenu(w,scope(),w.resourceLifetime,event,w.body.querySelector('[data-resource-files]'),parent),beforeClose:w=>descriptions.beforeClose(w),acceptContent:result=>{accept(scope(),result);update();api.persist();},mount,render,update,groups,retire,retireAll:()=>{for(const w of api.windows.values())retire(w);const c=catalogues.get(scope());if(c){c.generation=null;c.phase='empty';}}};
+ return {createMenu:(w,event,parent)=>layoutControls.createMenu(w,scope(),w.resourceLifetime,event,w.body.querySelector('[data-resource-files]'),parent),beforeClose:w=>{if(descriptions.beforeClose(w))return true;if(w.meta.group==='resource')retire(w);return false;},acceptContent:result=>{accept(scope(),result);update();api.persist();},mount,render,update,groups,retire,retireAll:()=>{for(const w of api.windows.values())retire(w);const c=catalogues.get(scope());if(c){c.generation=null;c.phase='empty';}}};
 }
