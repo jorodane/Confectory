@@ -1,0 +1,9 @@
+{
+  "baseCommit": "4dbfd7014f282a95612f6ba5b077e356448ee81c",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "582f892cebf18d6984f07fa8cb8de3f85f2ea9f674c5a8347b82bd5b0093dab9",
+    "examples/editor-home/ui/resource-images.js": "95c8365172fea67c6360b80a059e8a5e23066cdc851bc46255b649db4b70a7fb",
+    "examples/editor-home/ui/resource-previews.js": "02a01b40ac822b6e2e50820cdf70fff13ecb3c17296fab78d358a635f432c8ee"
+  }
+}

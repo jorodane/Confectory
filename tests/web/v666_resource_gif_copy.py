@@ -1,6 +1,9 @@
 """Finite authored GIF renderer extension; native/public contracts and layout unchanged."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-gif-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-avif-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_avif_copy.py'),str(r)],check=True);raise SystemExit(0)
+d=json.loads((r/'docs/v666-resource-gif-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 expected={'examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/resource-previews.js'};assert set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines())==set(d['productFiles'])==expected
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 for name in ['src','targets','packs','examples/editor-home/WebInvoke.csbody','examples/editor-home/Main.celem','examples/editor-home/ui/style.css','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/v508-runtime.js','examples/editor-home/ui/resource-browser.js','examples/editor-home/ui/resource-layout.js','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-docx.js','examples/editor-home/ui/resource-xlsx.js','examples/editor-home/ui/resource-pdf.js']:assert not git('diff','--name-only',d['baseCommit'],'--',name),name

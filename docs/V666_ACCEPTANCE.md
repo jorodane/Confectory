@@ -388,3 +388,7 @@ remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위
 
 원본 GIF 그림의 정지·제한된 애니메이션을 기존 contain 패널에 연결한다. [프레임 가중 예산·원본 bytes·decoder 수명 경계](V7_RESOURCE_GIF.md)를 따르며 단일 큰 파일·다른 형식/전체 UI와 구분한다.
 최종 **57단계(신규57·재사용0)**를 마감했다. [검증·지속 보관 기록](VALIDATION_V666_RESOURCE_GIF.md).
+
+## V7 정지 AVIF 후속
+
+원본 AVIF 그림의 기본 SDR8 색상/alpha를 기존 contain 화면에 연결한다. [항목/실제 sequence 크기·공유 표면 예산·native decoder 경계](V7_RESOURCE_AVIF.md)를 따르며 큰 파일·SVG·전체 UI와 구분한다.
