@@ -1,0 +1,6 @@
+implementation Confectory.ProjectResources::LayoutBody for Confectory.ProjectResources::Layout (string manifest,string project,string operation,string payload) -> string {
+import Confectory.ProjectResources::Request as Files (string,string,string,string) -> string;
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
+import Confectory.FileStream::CommitPlan as CommitPlan (string,string) -> string[];
+body common "Layout.csbody";
+}

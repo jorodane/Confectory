@@ -1,6 +1,9 @@
 """Closed V7 text-view slice, exact authored renderer/CSS and read-only bridge."""
 import pathlib,sys,json,hashlib,subprocess,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-preview-delta.json').read_text());git=lambda *args:subprocess.check_output(['git',*args],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-resource-layout-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_layout_copy.py'),str(r)],check=True);raise SystemExit(0)
+d=json.loads((r/'docs/v666-resource-preview-delta.json').read_text());git=lambda *args:subprocess.check_output(['git',*args],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 for path,digest in d['productFiles'].items():assert hashlib.sha256((r/path).read_text().encode()).hexdigest()==digest,path
 assert not any(path.startswith(('src/','targets/','packs/'))for path in changed)

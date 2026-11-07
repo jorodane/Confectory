@@ -6,6 +6,9 @@ if(endpoint=="readProjectResource"){
  if(args.Count!=3||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "hash")))throw new UnauthorizedAccessException("resource_read_fields");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"read",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
 }
+if(endpoint=="projectResourceLayout"){
+ string action=args["action"]?.GetValue<string>()??"";if(action is not ("load" or "create-folder" or "move"))throw new UnauthorizedAccessException("resource_layout_action");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+action,args.ToJsonString());
+}
 if(endpoint=="projectResources"){
  string resourceAction=args["action"]?.GetValue<string>()??"";if(resourceAction is not ("load" or "read" or "import"))throw new UnauthorizedAccessException("resource_ui_action");args.Remove("action");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,resourceAction,args.ToJsonString());

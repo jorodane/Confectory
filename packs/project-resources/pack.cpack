@@ -1,6 +1,8 @@
 pack Confectory.ProjectResources version "0.1.0" {
 standalone false;
 dependency Confectory.FileStream version "0.1.0";
+element Layout function "Layout.celem";
+element LayoutBody implementation "LayoutBody.celem";
 element Request function "Request.celem";
 element RequestBody implementation "RequestBody.celem";
 }

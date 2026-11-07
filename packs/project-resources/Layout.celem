@@ -1,0 +1,4 @@
+function Confectory.ProjectResources::Layout (string manifest,string project,string operation,string payload) -> string {
+description "Owned resource category/parent metadata. File bytes and original import receipts are never rewritten. Exact resource/layout observations, explicit IDs and atomic final CAS are required for changes.";
+provide Confectory.ProjectResources::Layout with Confectory.ProjectResources::LayoutBody;
+}

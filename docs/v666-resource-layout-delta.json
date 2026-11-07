@@ -1,0 +1,19 @@
+{
+  "baseCommit": "86d3e919d9737dbf26b511786ed36dbf7edd4f9c",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/Main.celem": "63e6f5d1223d0020c633b939981518a911d55a5ed05b88ee72fc105c5d81334d",
+    "examples/editor-home/WebBundle.csbody": "c7578e85b93c7f2d91152e1a831a2cecda290e1084d31e5106c4b3dd3c51a9d1",
+    "examples/editor-home/WebInvoke.csbody": "478ed46c3c797c2d4917408c854959f4172d0e428db8bf23de355baa07a6aef2",
+    "examples/editor-home/ui/resource-browser.js": "c0089395237d11f3042b98fe35dda4d2ebdaa69540a0f45399a85021e52b5501",
+    "examples/editor-home/ui/resource-layout.js": "2f6259ab40fbf54eef5e8d41edd3000985348a25e74e18a7cd463105e59920fe",
+    "examples/editor-home/ui/v508-runtime.js": "3b4ce7102168f53665f10248961ad3abf15f4417130f8af82e11ce062d5b5d93",
+    "examples/editor-home/ui/workspace-host.js": "06385fa80c998da0501d024679fe95357c05d5147665ae5642ceaaea45e2bb2f",
+    "packs/editor-home-model/Resources.csbody": "423cab32399bf21cd9478ac846a5d40150946da4e935ba284471191712f4eaea",
+    "packs/editor-home-model/ResourcesBody.celem": "0ee44bdff37109be7bfacf780c803458992d25ff3a7e43a987b4a34bc2f27747",
+    "packs/project-resources/Layout.celem": "2f51451929990535518b41ba2710a9500fbd95d8caaf7fbe500a1c56ddc67c8b",
+    "packs/project-resources/Layout.csbody": "f52a5da4c1c9bd0e09bb8c7fa9240c4afe964adcb3b808144b170edaf04ca1d4",
+    "packs/project-resources/LayoutBody.celem": "893fd7c85e63bc25b86a35ad8070dd28b3eec63c965d9498fcbdf5e60a0a154b",
+    "packs/project-resources/pack.cpack": "2bee6e6ae94dec7d8ced2a829233d493c37ca3749cf2562620eec3f450474b82"
+  }
+}
