@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 8659,
-    "sha256": "4c6bec08b6fab288688196184c60688e069838334807c95eed8618131c0ffe0a",
+    "size": 8911,
+    "sha256": "7528aaa6e9c6b6fcd9a30abf0fe6d9da94c492577986875fe3bf9e3ac3423e71",
     "mime": "text/javascript"
   },
   "arrangement.js": {
@@ -47,6 +47,11 @@
   "workers.js": {
     "size": 4269,
     "sha256": "ec8eb18707208e996fb5c5d485acf9d0380bd5560819a65b05aca36c1721f873",
+    "mime": "text/javascript"
+  },
+  "finder.js": {
+    "size": 2892,
+    "sha256": "295fb263714e7004d305d14cd47029c4599b42bc4b8b6e819550830399169838",
     "mime": "text/javascript"
   }
 }

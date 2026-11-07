@@ -1,11 +1,12 @@
 import {projectOfficeWorkers} from './workers.js';
+import {createOfficeFinder} from './finder.js';
 // Display-only pack: no source, permission, execution or Worker dispatch API.
 export function createOfficeView(api){
- let canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,workerStatus=null,zoom=null,editorZoom=null,arrange=null;
+ let finder=null,canvas=null,controls=null,engine=null,owner=null,key='',epoch=0,loading=false,observed=false,workerStatus=null,zoom=null,editorZoom=null,arrange=null;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href=new URL('./office.css',import.meta.url);document.head.append(stylesheet);
  const visible=()=>!!owner&&owner.workspacePresentation==='office'&&api.visible();
  const alive=(token,host,record)=>epoch===token&&canvas===host&&owner===record&&host?.isConnected&&api.owner()===record;
- const clean=()=>{epoch++;loading=false;observed=false;workerStatus=null;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;arrange?.remove();arrange=null;canvas=null;owner=null;key='';}};
+ const clean=()=>{finder=null;epoch++;loading=false;observed=false;workerStatus=null;try{engine?.dispose();}finally{engine=null;if(zoom){zoom.onclick=editorZoom;canvas?.append(zoom);}zoom=null;editorZoom=null;canvas?.classList.remove('is-voxel-office');controls?.remove();controls=null;arrange?.remove();arrange=null;canvas=null;owner=null;key='';}};
  function update(){
   const host=api.canvas(),record=api.owner(),identity=api.identity();
   if(!host||!record){if(canvas)clean();return;}
@@ -15,7 +16,7 @@ export function createOfficeView(api){
    const map=document.createElement('button');map.type='button';map.className='workspace-map-button';map.dataset.officeMap='';map.setAttribute('aria-label','미니맵 · 전체 작업실 지도 열기');map.setAttribute('aria-expanded','false');map.innerHTML='<svg aria-hidden="true" class="office-map-preview"></svg><span class="workspace-map-open-label">▣ 전체 지도 열기</span>';
    const collapse=document.createElement('button');collapse.type='button';collapse.className='workspace-map-toggle';collapse.innerHTML='<span aria-hidden="true"></span>';
    const syncMap=()=>{const hidden=!!record.miniMapCollapsed;controls.classList.toggle('is-map-collapsed',hidden);collapse.setAttribute('aria-label',hidden?'미니맵 펼치기':'미니맵 접기');collapse.setAttribute('aria-expanded',String(!hidden));};syncMap();
-   controls.append(zoom,map,collapse);host.append(controls);delete host.dataset.officeRenderer;const token=epoch;
+   controls.append(zoom,map,collapse);host.append(controls);delete host.dataset.officeRenderer;const token=epoch;finder=createOfficeFinder({engine:()=>engine,current:()=>alive(token,host,record)&&visible(),status:()=>api.workerState()?.status||'unavailable'});
    const dock=host.querySelector('.bubble-dock');if(dock){const search=dock.querySelector('#worker-finder-bubble');(search||dock).insertAdjacentHTML(search?'afterend':'beforeend','<button class="bubble" id="office-arrange-bubble" aria-label="작업실 배치" title="방과 가구 배치" aria-pressed="false" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M17.5 13v8m-4-4h8"/></svg><span class="dock-label">배치</span></button>');arrange=dock.querySelector('#office-arrange-bubble');arrange.onpointerdown=e=>e.stopPropagation();arrange.addEventListener('click',e=>e.stopPropagation());}
    collapse.onclick=e=>{e.stopPropagation();if(!alive(token,host,record))return;record.miniMapCollapsed=!record.miniMapCollapsed;syncMap();api.persist();};
    map.onclick=e=>{e.stopPropagation();if(alive(token,host,record)&&visible())engine?.openMap();};controls.onpointerdown=e=>e.stopPropagation();controls.onclick=e=>{const view=e.target.closest('[data-workspace-view]')?.dataset.workspaceView;if(!view||!alive(token,host,record))return;record.workspacePresentation=view;api.persist();update();};
@@ -48,5 +49,5 @@ export function createOfficeView(api){
   host.querySelectorAll('.voxel-office,.office-workspace-map-shield').forEach(el=>el.remove());host.dataset.officeRenderer='unavailable';
   record.workspacePresentation='editor';api.persist();update();api.toast('이 환경에서 3D 작업실을 열지 못했습니다. 편집 Workspace로 전환했습니다.');
  }
- return {update,dispose:clean,captureSnapshot:value=>{const target=owner&&api.snapshotOwner(value,owner);if(target&&engine)target.officeLayout=engine.checkpointLayout();}};
+ return {update,dispose:clean,finder:()=>visible()?finder:null,captureSnapshot:value=>{const target=owner&&api.snapshotOwner(value,owner);if(target&&engine)target.officeLayout=engine.checkpointLayout();}};
 }

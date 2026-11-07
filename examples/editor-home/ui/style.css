@@ -2987,3 +2987,26 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .run-output-bounds{position:absolute;z-index:3;pointer-events:none;overflow:hidden}
 .run-output-bounds[hidden]{display:none}
 .run-output-bounds>span{position:absolute;box-sizing:border-box;outline:var(--run-debug-line,1px) dashed var(--accent);outline-offset:calc(-1 * var(--run-debug-line,1px))}
+
+/* Authored v666 office finder sections. */
+.workspace-find-zones{flex:none;display:flex;flex-direction:column;gap:6px;padding-bottom:8px;border-bottom:1px solid #59534a}
+.workspace-find-zones>strong{font-size:11px;color:#f1c98c}
+.workspace-find-zones>div{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.workspace-find-zones button{min-width:0;padding:6px 2px;overflow:hidden;white-space:nowrap;background:#303030;border:1px solid #59534a;border-radius:5px;color:#f4dcc0;font-size:10px}
+.workspace-find-zones button:hover,.workspace-find-zones button:focus-visible{border-color:#e2b674;background:#4b4033}
+.workspace-find-matches:not([hidden]){flex:none;display:flex;align-items:center;flex-wrap:wrap;gap:4px;max-height:86px;overflow:hidden;padding:6px;border:1px solid #645b50;border-radius:5px;background:#303030}
+.workspace-find-matches>strong{width:100%;font-size:10px;color:#f1c98c}
+.workspace-find-matches button{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:4px 6px;font-size:10px;border:1px solid #74604a;border-radius:4px;background:#44392f}
+.workspace-find-helper{flex:none;border:1px solid #555;border-radius:6px;background:#303030}
+.workspace-find-helper+ .workspace-find-helper{margin-top:5px}
+.workspace-find-helper summary{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:7px;padding:7px 9px;cursor:pointer;list-style:none}
+.workspace-find-helper summary::-webkit-details-marker{display:none}
+.workspace-find-helper summary:before{content:'▸';color:#ffdbA3}
+.workspace-find-helper[open] summary:before{content:'▾'}
+.workspace-find-helper-name{min-width:0;font-size:12px;color:#f1e4ca}
+.workspace-find-helper-name strong{display:block;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.workspace-find-helper summary small{display:block;white-space:normal;overflow-wrap:anywhere;line-height:1.35;color:#c0b9ae;font-size:9px}
+.workspace-find-helper-jump{width:24px;height:24px;padding:0;border:1px solid #74604a;border-radius:4px;background:#44392f;color:#ffdbA3;font-size:15px}
+.workspace-find-helper .workspace-find-result{width:calc(100% - 12px);margin:3px 6px 4px}
+.workspace-find-worker{padding-left:20px}
+.workspace-find-worker strong,.workspace-find-worker small{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:anywhere}

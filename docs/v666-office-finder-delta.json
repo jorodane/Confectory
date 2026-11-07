@@ -1,0 +1,14 @@
+{
+  "baseCommit": "36c718eb2fd185d549d705801411b25d15da4d15",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "ae58dc589e858f3102bb413b1283892f3fe204cf41cf8ca752154214713d473e",
+    "examples/editor-home/ui/style.css": "a3246e2b127607dd29eea661fdd8a3fd8bc231f0c0ad0caf3eebf702933d081a",
+    "examples/editor-home/ui/v508-runtime.js": "8356f5cb58a77f32c4ff5f94ed377e8ce034d1cf88b4e14eaeb39edc45beda56",
+    "examples/editor-home/ui/workspace-finder.js": "ddf34f0aa09f95b51ce2c366d61597534eee7d1c6b43ea630875726850cf468e",
+    "examples/editor-home/ui/workspace-host.js": "7c8dde8d9d4ebaa61a69d1b917047b9214a573a84123dc38c93ec6f09d1e9030",
+    "packs/workspace-3d/ui/adapter.js": "7528aaa6e9c6b6fcd9a30abf0fe6d9da94c492577986875fe3bf9e3ac3423e71",
+    "packs/workspace-3d/ui/finder.js": "295fb263714e7004d305d14cd47029c4599b42bc4b8b6e819550830399169838",
+    "packs/workspace-3d/ui/manifest.json": "b1aa054c909b45275dd7373799fd6648bade67dd886d6fbd686e5232b4445835"
+  }
+}

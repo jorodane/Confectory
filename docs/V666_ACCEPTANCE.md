@@ -45,6 +45,8 @@ FrameControl 완료나 브라우저 조회·재그리기와 구분하며 GPU/모
 
 ## 현재 V9 모듈 직접 기능 이름 검색
 
+현재 공개된 3D 요소·Helper/Worker의 검색과 카메라 이동은 [표시 팩의 검색 연결](V9_OFFICE_FINDER.md)로 이어서 구현하며 [최종 검증](VALIDATION_V666_OFFICE_FINDER.md)을 진행한다. 새 신원·권한/연락처 조회는 포함하지 않는다.
+
 원본의 직접 `methods[].name` 검색과 기존 native 모듈 인터페이스에서 표시하는 직접
 `require` 이름의 누락을 게시 패키지로 재현했고 [소유 모듈 찾기](V9_FINDER_MODULES.md)에 연결했다.
 [최종 33단계(신규 33·재사용 0)](VALIDATION_V666_FINDER_MODULES.md)를 통과했다.

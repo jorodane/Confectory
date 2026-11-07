@@ -123,6 +123,7 @@ const finderContent=createFinderContent({
  objects:()=>browserProjection.workspaceRows(),ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!browserProjection.needsRead(),read:readFinderContent,changed:()=>workspaceFinder.update()
 });
 const workspaceFinder=createWorkspaceFinder({
+ office:()=>actualWorkspace.officeFinder(),
  context:()=>{const host=$('#workspace'),anchor=$('#worker-finder-bubble');return page==='work'&&current.projectId&&host&&anchor&&!actualWorkspace.loading?{host,anchor,key:current.projectId+'|'+view.generation+'|'+workspaceRuntime.state.activeWorkspaceId}:null;},
  ready:()=>!busy&&!actualWorkspace.loading&&!inventoryLoadScheduled&&!inventoryRequest&&!$('.modal[aria-modal="true"]'),beforeOpen:()=>placedFind.close(),
  loadState:()=>inventoryLoadScheduled?'loading':browserProjection.error?'failed':null,load:()=>{if(browserProjection.error)browserProjection.retry();ensureBrowserInventory();},
