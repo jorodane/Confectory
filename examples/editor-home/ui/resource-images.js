@@ -49,11 +49,18 @@ export function resourceImageInfo(bytes){
   }
   if(!info||offset!==bytes.length||canvas&&(info.width!==canvas.width||info.height!==canvas.height)||alpha&&frame!=='VP8 ')throw Error('resource_image_webp_incomplete');return info;
  }
+ if(bytes.length>=2&&tag(0,2)==='BM'){
+  if(bytes.length<54||view.getUint32(2,true)!==bytes.length||view.getUint32(6,true)!==0||view.getUint32(10,true)!==54||view.getUint32(14,true)!==40)throw Error('resource_image_bmp_header');
+  const width=view.getInt32(18,true),signedHeight=view.getInt32(22,true),depth=view.getUint16(28,true);
+  if(width<=0||signedHeight===0||view.getUint16(26,true)!==1||![24,32].includes(depth)||view.getUint32(30,true)!==0||view.getUint32(46,true)!==0||view.getUint32(50,true)!==0)throw Error('resource_image_bmp_format');
+  const info=size(width,Math.abs(signedHeight),'image/bmp'),length=Math.ceil(width*depth/32)*4*info.height,declared=view.getUint32(34,true);
+  if(length+54!==bytes.length||declared!==0&&declared!==length)throw Error('resource_image_bmp_pixels');return info;
+ }
  return null;
 }
 export function mountResourceImage({preview,toolbar,status,bytes,item,active,onError,onDetached}){
  const info=resourceImageInfo(bytes);if(!info)return null;
- if(info.type==='image/webp'&&typeof createImageBitmap!=='function')throw Error('resource_image_decoder_unsupported');
+ if(['image/webp','image/bmp'].includes(info.type)&&typeof createImageBitmap!=='function')throw Error('resource_image_decoder_unsupported');
  if(leasedPixels+info.pixels>TOTAL_PIXELS)throw Error('resource_image_total_budget');
  leasedPixels+=info.pixels;let disposed=false,url=null,image=null,observer=null,decoding=false,released=false;
  const release=()=>{if(!decoding&&!released){released=true;leasedPixels-=info.pixels;}};
@@ -64,7 +71,7 @@ export function mountResourceImage({preview,toolbar,status,bytes,item,active,onE
   image.onload=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
   if(typeof MutationObserver==='function'&&document.body){observer=new MutationObserver(()=>{if(!disposed&&!active()){dispose();onDetached?.();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});}
   image.onerror=failure;const blob=new Blob([bytes],{type:info.type}),display=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}url=URL.createObjectURL(blob);preview.replaceChildren(image);image.src=url;};preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');
-  if(info.type==='image/webp'){
+  if(['image/webp','image/bmp'].includes(info.type)){
    decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
   }else display();return dispose;
  }catch(error){dispose();throw error;}

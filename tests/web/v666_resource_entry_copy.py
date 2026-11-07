@@ -1,6 +1,9 @@
 """Exact authored resource-entry inventory; unchanged storage, editor and permission contracts."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-entry-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-bmp-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_bmp_copy.py'),str(r)],check=True);raise SystemExit(0)
+d=json.loads((r/'docs/v666-resource-entry-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles'])=={'examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-browser.js','examples/editor-home/ui/resource-layout.js','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/v508-runtime.js'}
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
 for name in ['src','targets','packs','examples/editor-home/WebInvoke.csbody','examples/editor-home/ui/style.css','examples/editor-home/ui/app.js','examples/editor-home/ui/workspace.js','examples/editor-home/ui/resource-previews.js','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/resource-description.js','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-selection.js','examples/editor-home/ui/resource-docx.js','examples/editor-home/ui/resource-xlsx.js','examples/editor-home/ui/resource-pdf.js']:
