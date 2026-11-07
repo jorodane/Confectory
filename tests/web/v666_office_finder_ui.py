@@ -11,7 +11,8 @@ def open_find():
 def close():
  if panel().count():panel().get_by_role('searchbox').press('Escape');expect(panel()).to_have_count(0)
 def safe(start):
- f.original();assert not f.errors and not f.external,(f.errors,f.external)
+ for relative,content in f.original.items():assert(f.project/relative).read_bytes()==content,relative
+ assert not f.errors and not f.external,(f.errors,f.external)
  requests=[x['invoke']for x in f.traffic[start:]if x.get('invoke')];assert not forbidden.intersection(x.get('endpoint')for x in requests),requests
 
 def empty():
