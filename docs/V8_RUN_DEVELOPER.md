@@ -40,3 +40,5 @@ V9 참여자/대화다. 기존 검증 한계나 가능한 조합을 별도 필�
 
 [검증·보관·공간 기록](VALIDATION_V666_RUN_DEVELOPER.md)과
 [정확한 제품 변경](v666-run-developer-delta.json)을 따른다.
+
+후속: 원본10% 그리드는 [실제 영상의 contain 영역](V8_RUN_GRID.md)에 읽기 전용으로 표시한다. 요소 경계·FPS·GPU나 실제 기기 지원과 구분하며 당시 검증 기록은 보존한다.
