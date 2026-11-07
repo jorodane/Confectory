@@ -367,8 +367,8 @@ def main():
                 work.run(label+'-startup-transport-ui',[sys.executable,str(checkout/'tests/web/v666_startup_transport_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'cold'],cwd=checkout,env=env)
                 work.run(label+'-startup-restore-ui',[sys.executable,str(checkout/'tests/web/web_ui.py'),str(checkout),str(report),'startup-restore'],cwd=checkout,env=env)
                 work.run(label+'-office-arrangement-ui',[sys.executable,str(checkout/'tests/web/v666_office_arrangement_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late'],cwd=checkout,env=env)
-                work.run(label+'-source-recovery-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late'],cwd=checkout,env=env)
-                if label=='lf':work.run('lf-source-conflict-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'conflict'],cwd=checkout,env=env)
+                work.run(label+'-source-recovery-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late','--out-root'],cwd=checkout,env=env)
+                if label=='lf':work.run('lf-source-conflict-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'conflict','--out-root'],cwd=checkout,env=env)
             elif args.suite=='office-active-io':
                 work.run(label+'-office-active-boundary',[sys.executable,str(checkout/'tests/web/v666_office_active_io_copy.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-office-active-projection',['node',str(checkout/'tests/web/v666_office_workers_projection.mjs'),str(checkout)],cwd=checkout,env=env)
