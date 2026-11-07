@@ -1,10 +1,11 @@
 """A real delayed metadata request must not race persisted source View restoration."""
 from playwright.sync_api import expect
+from editor_navigation import open_project_tools
 
 def verify_startup_restore(page,project,restart):
  target='Example.ButtonGame::Main';originals={p:p.read_bytes() for p in project.glob('*') if p.is_file()}
- page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='기능',exact=True).click();expect(page.locator('#nav')).to_be_enabled()
- if page.locator('.nav-menu').count():page.locator('#nav').click()
+ open_project_tools(page);page.locator('.nav-menu').get_by_role('button',name='기능',exact=True).click();expect(page.locator('#title')).to_be_enabled()
+ if page.locator('.nav-menu').count():open_project_tools(page)
  page.locator('.window[data-key="browser"] [data-id="'+target+'"]').click();expect(page.locator('[data-declaration-id]')).to_have_text(target);expect(page.locator('#nav')).to_be_enabled();page.evaluate('()=>globalThis.confectoryFlushPresentation()')
  # Delay, but do not synthesize, a response or model operation. Other real
  # requests can proceed while this fetch waits in the browser.
