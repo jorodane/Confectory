@@ -15,3 +15,5 @@
 검증 기록은 `VALIDATION_V666_RESOURCE_LAYOUT.md`에 최종 코드 기준으로 기록한다. 실제 Windows/WebView2·모바일·전체 UI·Space 전달 검증으로 표현하지 않는다. 초기화 빈 화면의 원인은 미확정 잔여다.
 
 카테고리 인라인 이름 변경은 [별도 이름 metadata 확장](V6_RESOURCE_FOLDER_NAMES.md)에 연결했다. 기존 Layout/파일 저장 형식은 그대로이며 현재의 이름 변경·충돌/입력 복원 범위는 그 기록을 따른다.
+
+후속 [카테고리 첫 가져오기](V6_RESOURCE_DESTINATION.md)는 파일과 배치의 원자 저장·기존 v1 호환을 연결한다. 위 ProjectPack 후 이동 표기는 초기 배치 단위의 경계이며 현재는 [후속 검증](VALIDATION_V666_RESOURCE_DESTINATION.md)을 함께 따른다.
