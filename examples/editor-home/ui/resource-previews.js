@@ -40,7 +40,7 @@ export function createResourcePreviews(api){
  }
  function open(item,owns=()=>true){
   if(!scope()||!owns()||!idPattern.test(item.id||'')||!hashPattern.test(item.hash||''))return null;
-  const w=api.openWindow(prefix+item.id,item.name,760,520,{refresh:true,meta:{resourceOwner:scope(),resourceId:item.id,resourceHash:item.hash}});if(!w)return null;
+  const w=api.openWindow(prefix+item.id,item.name,760,520,{meta:{resourceOwner:scope(),resourceId:item.id,resourceHash:item.hash}});if(!w)return null;
   const same=w.resourcePreview?.owner===scope()&&w.resourcePreview.id===item.id&&w.resourcePreview.hash===item.hash;
   Object.assign(w.meta,{resourceOwner:scope(),resourceId:item.id,resourceHash:item.hash});if(!same||!w.resourcePreview||w.resourcePreview.generation!==api.view.generation)mount(w);api.persist();return w;
  }
