@@ -2,7 +2,7 @@
   "baseCommit": "6debb90e01b43e5f2cd56158e5311e7896c63c40",
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
-    "examples/editor-home/Main.celem": "5baf078e6577dc83c48c95d8a03ae7d87055ef619c5ed5d5071ada6b54fd02b7",
+    "examples/editor-home/Main.celem": "54242999a1b0b51fcd148135f452728ec86f234f0edace0e8149ed87dabf0b38",
     "examples/editor-home/WebBundle.csbody": "d648992454cb9ce0381c5f6a410bff2c9baebb17f7e37131e78112ec8741dc8d",
     "examples/editor-home/WebInvoke.csbody": "00506b024853e7070a4f5cc4658c63559c3d974db703081aa99a24b31bdebc6f",
     "examples/editor-home/WebInvokeBody.celem": "53fff60c199861dfc88d25b8fe47c872ba6fed3f43c1859506fcee743fa7bd04",
@@ -13,11 +13,15 @@
     "examples/editor-home/ui/workspace-host.js": "5315ee5675ffda2de100c1018c4064ad3ab3caf94e60a0433389cdf1d500eed2",
     "packs/editor-home-model/Resources.celem": "7fcf720dc7da6a45b3365b6abbb6dfbbb267e21fe292f53aca302802e8b8aa1b",
     "packs/editor-home-model/Resources.csbody": "901ddfe19c034ba5b560be09084008235939a2111426f8e842100359bb681130",
-    "packs/editor-home-model/ResourcesBody.celem": "92fb1d9a3bf9e525e90206c3066c51660b93066a676dd61ec254f149d7583964",
+    "packs/editor-home-model/ResourcesBody.celem": "0e6bf82d7bf619f96d848ea0d244240faac2f6b48b568e9cffb797073d1f5d85",
     "packs/editor-home-model/pack.cpack": "63a187782a0ac447519e657bd20bde7b545e1f68eabbe638fadc646185d2f97e",
-    "packs/project-resources/README.md": "47a7f505665690bb90469a8324aa4b1446b4ac94cc269748487befeda18e1851",
+    "packs/project-manager/ReadIdentity.celem": "95534a1d61924171c86462f6b3a40740cb01cc800c4787f22f10debb7ba572b5",
+    "packs/project-manager/ReadIdentity.csbody": "bac59e7eaba1a6ea01c88043f57a7edabea6e12c6a6358a38266b3ed006d7f93",
+    "packs/project-manager/ReadIdentityBody.celem": "54b53b8d5561743300f18dc087f8e8e024eae8a88c2277b3447fc8e7741b734c",
+    "packs/project-manager/pack.cpack": "36133ba1261ea3818e23908245c69de1e7e1716c3d2df81d0a59a7653f8132bb",
+    "packs/project-resources/README.md": "ff4ae43f18d2eb1c134675dc006ab849016fce78135e374305ef587cccbfece7",
     "packs/project-resources/Request.celem": "a1ce9eb16eb1838750af969e243c63fe46fae93fd7f61ebadfb923d7eb8ef676",
-    "packs/project-resources/Request.csbody": "792158f73e7d706834d70b3e7e8196a8df2fb871363164874bdee5dccc80b3f2",
+    "packs/project-resources/Request.csbody": "d70ce36b29faf11fb6283e5473404055d6796136fbcfb82529d62b8bd2aaa24e",
     "packs/project-resources/RequestBody.celem": "ab70d15f5136efb23203240216805df290367e52f1fae7335762b9c6b280b9a0",
     "packs/project-resources/pack.cpack": "6c241a5ad6aefdae8c081384f90281b07f94ce488b94432f7d1d0985daabcdb5"
   }

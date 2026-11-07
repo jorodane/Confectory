@@ -1,6 +1,6 @@
 implementation Confectory.EditorHome.Model::ResourcesBody for Confectory.EditorHome.Model::Resources (string session,string operation,string payload) -> string {
 import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
-import Confectory.ProjectManager::Identity as Identity (string[],string) -> string;
+import Confectory.ProjectManager::ReadIdentity as Identity (string[],string) -> string;
 import Confectory.ProjectResources::Request as Request (string,string,string,string) -> string;
 body common "Resources.csbody";
 }

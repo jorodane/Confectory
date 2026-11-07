@@ -1,0 +1,4 @@
+function Confectory.ProjectManager::ReadIdentity (string[] manager,string context) -> string {
+description "Validate an existing durable identity of an explicitly open context without creating or rebinding it. Same manifest/namespace/UUID meaning as Identity; missing storage is an error.";
+provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
+}

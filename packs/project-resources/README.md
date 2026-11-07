@@ -5,6 +5,8 @@ copy provider. The consumer supplies a previously authorized open manifest and
 its existing ProjectManager durable project ID. It must select the ordinary
 FileStream BoundedSnapshot/WriteAtomic/LeasePath providers. The editor adapter derives
 both arguments from the active ProjectContext and accepts no client path.
+It uses ProjectManager ReadIdentity, which validates the original identity
+meaning without lazy creation/rebinding. Existing Identity creation is unchanged.
 
 `load {}` returns confirmed metadata, an exact storage revision and limits.
 It does not create asset storage. `read {id,hash}` returns verified original
@@ -32,5 +34,7 @@ A digest on each immutable imported resource permits exact lost-response replay
 even after another append. It is validated and excluded from public metadata.
 It never silently rebases a stale append or treats another payload as the same command.
 
+This file is durable project data, not a cache/output cleanup target. Moving or
+exporting a whole project with its resources is not implemented by this provider.
 Folders, moves, rename/removal/recovery, editing and rich previews are follow-up
 original-spec work. No account, shared ACL or external filesystem grant is added.

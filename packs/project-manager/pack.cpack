@@ -1,5 +1,6 @@
 pack Confectory.ProjectManager version "0.1.0" {
 standalone false;
+element ReadIdentity function "ReadIdentity.celem";element ReadIdentityBody implementation "ReadIdentityBody.celem";
 dependency Confectory.FileStream version "0.1.0";
  dependency Confectory.ProjectExecution version "0.1.0";
 element CreateManager function "CreateManager.celem";

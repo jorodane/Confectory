@@ -1,0 +1,5 @@
+implementation Confectory.ProjectManager::ReadIdentityBody for Confectory.ProjectManager::ReadIdentity (string[] manager,string context) -> string {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[];
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[];
+body common "ReadIdentity.csbody";
+}

@@ -4,6 +4,8 @@
 `resourceItems`, `renderResourceItems`, `renderResourceBrowser`다. 원본은 프로젝트
 소유 ID로 실제 선택한 File의 사본을 저장하고 원본 파일을 이동/삭제하지 않는다.
 브라우저 IndexedDB를 native 권한으로 채택하지 않고 별도 ProjectResources 팩에 연결한다.
+기존 ID 생성 API와 분리한 읽기 전용 ID 관측으로 누락/변경된 ID를 새로 만들거나
+자동 재배정하지 않는다. 기존 프로젝트 ID의 경로·namespace 의미는 유지한다.
 
 첫 단위는 활성 로컬 ProjectContext의 자료 탭·명시적 파일 선택/드롭·목록·이름 검색·
 Compact/Data/Preview 표시 크기·선택과 성공 보관본의 재시작 복원이다. 파일명은 표시
@@ -25,6 +27,8 @@ stale CAS를 자동으로 새 기준에 맞추지 않는다. 선택 입력 취�
 이동/삭제·복구와 V7의 내용 미리보기/편집은 별도 잔여다. 풍부한 파일 형식을 glyph만으로
 지원했다고 표시하지 않는다. V4/V5 권한 backend·Run 고급 출력·초기화 빈 화면 원인 미확정과
 실제 Windows/모바일·전체 UI·Library/Space 전달은 이 단위와 구분한다.
+자료 저장 파일은 영속 데이터이며 cache/outputs 정리 대상이 아니다. 다른 경로로 프로젝트
+전체를 이동/내보내는 자료 동반 처리를 완료했다고 표시하지 않는다.
 
 현재 최종 코드 검증 전이다. 독립 native 팩31개 예비 검사와 실제 엔진 UI/최종 LF·CRLF/
 새 패키지·전체 복원 검증은 완료 후 별도 기록으로 확정한다.

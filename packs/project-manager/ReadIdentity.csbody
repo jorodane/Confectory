@@ -1,0 +1,8 @@
+if(string.IsNullOrWhiteSpace(context))throw new ArgumentException("Explicit context required; no implicit selected project identity");
+var info=calls.Context.Invoke(manager,context);if(info[5]!="open")throw new InvalidOperationException("Durable identity requires an open project");
+string manifest=System.IO.Path.GetFullPath(info[1]),root=System.IO.Path.GetDirectoryName(manifest)!,path=System.IO.Path.Combine(root,".confectory/project-identity.json");
+if(!OperatingSystem.IsBrowser())for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new ArgumentException("Identity storage must remain owned without symbolic links");if(node.FullName==root)break;}
+var saved=calls.Snapshot.Invoke(path,4096);if(saved[0]!="exists")throw new InvalidOperationException("Existing durable project identity required; read cannot create or rebind it");
+var identity=System.Text.Json.Nodes.JsonNode.Parse(saved[1])!.AsObject();
+if(identity["version"]?.GetValue<int>()!=1||identity["manifest"]?.ToString()!=manifest||identity["namespace"]?.ToString()!=info[2])throw new InvalidOperationException("Project identity belongs to another manifest/namespace; explicit rebind required, memories were not reassigned");
+string id=identity["projectId"]?.ToString()??"";if(!Guid.TryParseExact(id,"N",out _))throw new InvalidOperationException("Invalid durable project identity");return id;
