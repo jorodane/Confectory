@@ -36,7 +36,14 @@ def exact():
  for name,raw in f.original.items():assert(f.project/name).read_bytes()==raw,name
  assert not f.errors and not f.external,(f.errors,f.external)
 def native_text(id):
- item=next(row for row in api('load')['items']if row['id']==id);return base64.urlsafe_b64decode(api('read',id=id,hash=item['hash'])['data'])
+ item=next(row for row in api('load')['items']if row['id']==id);view=f.mount()
+ try:
+  for _ in range(100):
+   result=f.raw(dict(op='observe',view=view['view'],scope=view['scope'],endpoint='readProjectResource',input=dict(project=f.state()['projectId'],id=id,hash=item['hash'])))
+   if result.get('error',{}).get('code')=='busy':time.sleep(.02);continue
+   assert result.get('ok'),result;return base64.urlsafe_b64decode(result['result']['data'])
+  raise AssertionError('native current-content read stayed busy')
+ finally:f.raw(dict(op='dispose',view=view['view']))
 def restart(i,project=None):
  global b
  f.pending();f.page.close();f.stop()
