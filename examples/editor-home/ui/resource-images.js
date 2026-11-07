@@ -1,4 +1,5 @@
-// Bounded raster display of already SHA-verified project-copy bytes.
+import {resourceSvgInfo} from './resource-svg.js';
+// Bounded image display of already SHA-verified project-copy bytes.
 // This is metadata screening before the browser decoder, not a new image codec.
 const FILE_BYTES=1048576,MAX_SIDE=16384,MAX_PIXELS=16777216,TOTAL_PIXELS=33554432;
 let leasedPixels=0;
@@ -121,7 +122,7 @@ export function resourceImageInfo(bytes){
   const refs=children.filter(row=>row.type==='iref');if(count===1){if(refs.length)fail();}else{if(refs.length!==1)fail();const children=boxes(full(refs[0]),refs[0].end);if(children.length!==1||children[0].type!=='auxl'||children[0].end-children[0].body!==6)fail();const at=children[0].body,alpha=[...ids].find(id=>id!==primary);if(view.getUint16(at)!==alpha||view.getUint16(at+2)!==1||view.getUint16(at+4)!==primary)fail();}
   return {...primaryInfo,pixels};
  }
- return null;
+ return resourceSvgInfo(bytes);
 }
 export function mountResourceImage({preview,toolbar,status,bytes,item,active,onError,onDetached}){
  const info=resourceImageInfo(bytes);if(!info)return null;
@@ -133,11 +134,17 @@ export function mountResourceImage({preview,toolbar,status,bytes,item,active,onE
  const failure=()=>{if(disposed)return;if(active()){dispose();onError();}else{dispose();onDetached?.();}};
  try{
   image=document.createElement('img');image.alt=item.name;image.dataset.resourceRaster='';image.decoding='async';image.referrerPolicy='no-referrer';
-  image.onload=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(!['image/gif','image/avif'].includes(info.type)&&width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
+  image.onload=()=>{if(disposed||info.type==='image/svg+xml'&&decoding)return;if(!active()){dispose();onDetached?.();return;}const width=image.naturalWidth,height=image.naturalHeight;if(!((width===info.width&&height===info.height)||(!['image/gif','image/avif','image/svg+xml'].includes(info.type)&&width===info.height&&height===info.width))){failure();return;}preview.setAttribute('aria-busy','false');toolbar.textContent='그림 미리보기';status.textContent='읽기 전용 미리보기';};
   if(typeof MutationObserver==='function'&&document.body){observer=new MutationObserver(()=>{if(!disposed&&!active()){dispose();onDetached?.();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});}
-  image.onerror=failure;const blob=new Blob([bytes],{type:info.type}),display=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}url=URL.createObjectURL(blob);preview.replaceChildren(image);image.src=url;};preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');
-  if(['image/webp','image/bmp','image/gif','image/avif'].includes(info.type)){
-   decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(!['image/gif','image/avif'].includes(info.type)&&bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
+  image.onerror=failure;const blob=new Blob([info.displayBytes||bytes],{type:info.type}),display=()=>{if(disposed)return;if(!active()){dispose();onDetached?.();return;}url=URL.createObjectURL(blob);preview.replaceChildren(image);image.src=url;};preview.className='resource-preview is-image-preview';preview.setAttribute('aria-busy','true');
+  if(info.type==='image/svg+xml'){
+   // Chromium's bitmap decoder does not accept SVG blobs. Decode an isolated image instead;
+   // the lease survives close until its actual decode promise settles, and the URL is revoked.
+   if(typeof image.decode!=='function')throw Error('resource_svg_decoder_unsupported');
+   url=URL.createObjectURL(blob);decoding=true;
+   void(async()=>{let failed=false;try{image.src=url;await image.decode();if(image.naturalWidth!==info.width||image.naturalHeight!==info.height)failed=true;}catch{failed=true;}finally{decoding=false;}if(disposed){release();return;}if(failed){failure();return;}if(!active()){dispose();onDetached?.();return;}try{preview.replaceChildren(image);image.onload();}catch{failure();}})();
+  }else if(['image/webp','image/bmp','image/gif','image/avif'].includes(info.type)){
+   decoding=true;void(async()=>{let bitmap=null,failed=false;try{bitmap=await createImageBitmap(blob);if(!((bitmap.width===info.width&&bitmap.height===info.height)||(!['image/gif','image/avif','image/svg+xml'].includes(info.type)&&bitmap.width===info.height&&bitmap.height===info.width)))failed=true;}catch{failed=true;}finally{bitmap?.close();decoding=false;}if(disposed){release();return;}if(failed){failure();return;}try{display();}catch{failure();}})();
   }else display();return dispose;
  }catch(error){dispose();throw error;}
 }

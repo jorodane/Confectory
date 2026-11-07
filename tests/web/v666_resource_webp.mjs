@@ -1,5 +1,6 @@
+import {loadResourceImages} from './resource_image_module.mjs';
 import assert from 'node:assert/strict';import fs from'node:fs';import path from'node:path';
-const code=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/resource-images.js'),'utf8'),{resourceImageInfo:info,mountResourceImage:mount}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {resourceImageInfo:info,mountResourceImage:mount}=await loadResourceImages(process.argv[2]);
 const chunk=(name,data,pad=0)=>{const b=Buffer.alloc(8+data.length+(data.length&1));b.write(name);b.writeUInt32LE(data.length,4);data.copy(b,8);if(data.length&1)b[b.length-1]=pad;return b;};
 const riff=parts=>{const body=Buffer.concat([Buffer.from('WEBP'),...parts]),head=Buffer.alloc(8);head.write('RIFF');head.writeUInt32LE(body.length,4);return Buffer.concat([head,body]);};
 const vp8=(w=8,h=4)=>{const b=Buffer.from([0x30,0,0,0x9d,1,0x2a,0,0,0,0,0]);b.writeUInt16LE(w,6);b.writeUInt16LE(h,8);return b;};

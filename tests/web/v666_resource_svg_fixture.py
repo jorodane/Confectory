@@ -1,0 +1,30 @@
+"""Generated, self-contained SVG assets; no personal/external input."""
+def svg(body,attrs='width="65" height="33" viewBox="0 0 65 33"'):
+ return ('<svg xmlns="http://www.w3.org/2000/svg" '+attrs+'>'+body+'</svg>').encode()
+bands='<rect width="65" height="33" fill="#f00a14"/><rect y="24" width="65" height="9" fill="#0ab41e"/>'
+color=svg(bands)
+viewbox=svg(bands,'viewBox="0 0 65 33"')
+alpha=svg('<g opacity="0"><rect width="15" height="33" fill="#f00a14"/></g><g opacity="0.5"><rect x="15" width="15" height="24" fill="#f00a14"/></g><rect x="30" width="35" height="24" fill="#f00a14"/><rect x="30" y="24" width="35" height="9" fill="#0ab41e"/>')
+gradient=svg('<defs><linearGradient id="c"><stop offset="0%" stop-color="#f00a14"/><stop offset="100%" stop-color="#0ab41e"/></linearGradient><clipPath id="clip"><rect x="8" y="8" width="48" height="16"/></clipPath></defs><g clip-path="url(#clip)"><path fill="url(#c)" d="M0 0 H65 V33 H0 Z"/></g>')
+geometry=svg('<g transform="translate(1 1) scale(1)"><title>Generated geometry</title><desc>No external dependencies</desc><circle cx="8" cy="8" r="6" fill="red"/><ellipse cx="23" cy="8" rx="6" ry="4" fill="rgb(0, 0, 255)"/><line x1="2" y1="20" x2="20" y2="20" stroke="green" stroke-width="2"/><polygon points="32,2 45,2 40,14" fill="orange"/><polyline points="32,24 45,24 40,18" fill="none" stroke="black"/><text x="48" y="20" font-size="10" font-family="sans-serif"><tspan>Hi</tspan></text><path d="M 1,30 q 10,-8 20,0 t 20,0 a 2,2 0 0 1 4,0" fill="none" stroke="#222"/></g>')
+corrupt=svg('<path d="M 0 0 L 1"/>')
+oversized=svg('<rect width="65" height="33"/>','width="16384" height="16384"')
+truncated=color[:-8]
+animated=svg('<animate attributeName="x" values="0;5" dur="1s"/>')
+external=svg('<image href="https://must-not-load.invalid/a"/>')
+script=svg('<script>globalThis.rasterExecuted=true</script>')
+event=color.replace(b'<svg ',b'<svg onload="globalThis.rasterExecuted=true" ')
+style=svg('<style>@import url(https://must-not-load.invalid/a);</style>')
+foreign=svg('<foreignObject><div xmlns="http://www.w3.org/1999/xhtml">text</div></foreignObject>')
+dtd=b'<!DOCTYPE svg [<!ENTITY x SYSTEM "https://must-not-load.invalid/a">]>'+color
+entity=b'<!DOCTYPE svg [<!ENTITY a "1234567890"><!ENTITY b "&a;&a;&a;&a;">]>'+svg('<text>&b;</text>')
+filter=svg('<filter id="f"><feGaussianBlur stdDeviation="99999"/></filter>')
+recursive=svg('<clipPath id="c"><g clip-path="url(#c)"><rect width="20" height="20"/></g></clipPath><g clip-path="url(#c)"><rect width="20" height="20"/></g>')
+invalid_ref=svg('<rect width="20" height="20" fill="url(https://must-not-load.invalid/a)"/>')
+missing_ref=svg('<rect width="20" height="20" fill="url(#missing)"/>')
+duplicate=svg('<rect id="c"/><circle id="c"/>')
+deep=svg('<g>'*25+'<rect width="1" height="1"/>'+'</g>'*25)
+complex=svg('<path d="M0 0 '+'L1 1 '*4097+'"/>')
+large=svg('<!--'+'x'*262144+'-->')
+malformed=svg('<path d="M0 0 A3 3 0 2 0 4 4"/>')
+unsupported=svg('<rect width="3" height="3" style="fill:red"/>')

@@ -1,5 +1,6 @@
+import {loadResourceImages} from './resource_image_module.mjs';
 import assert from 'node:assert/strict';import fs from'node:fs';import path from'node:path';
-const code=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/resource-images.js'),'utf8'),{resourceImageInfo:info,mountResourceImage:mount}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {resourceImageInfo:info,mountResourceImage:mount}=await loadResourceImages(process.argv[2]);
 const chunk=(name,data)=>{const b=Buffer.alloc(data.length+12);b.writeUInt32BE(data.length);b.write(name,4);data.copy(b,8);return b;};
 const png=(w=8,h=4,extras=[])=>{const head=Buffer.alloc(13);head.writeUInt32BE(w);head.writeUInt32BE(h,4);head[8]=8;head[9]=2;return Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]),chunk('IHDR',head),...extras,chunk('IDAT',Buffer.of(0)),chunk('IEND',Buffer.alloc(0))]);};
 const jpeg=(marker=192,w=8,h=4)=>Buffer.from([255,216,255,marker,0,11,8,h>>8,h&255,w>>8,w&255,1,1,17,0,255,218,0,2,255,217]);

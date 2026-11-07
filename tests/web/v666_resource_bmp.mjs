@@ -1,5 +1,6 @@
+import {loadResourceImages} from './resource_image_module.mjs';
 import assert from'node:assert/strict';import fs from'node:fs';import path from'node:path';
-const code=fs.readFileSync(path.join(process.argv[2],'examples/editor-home/ui/resource-images.js'),'utf8'),{resourceImageInfo:info,mountResourceImage:mount}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {resourceImageInfo:info,mountResourceImage:mount}=await loadResourceImages(process.argv[2]);
 const bmp=(depth=24,h=4,zero=false)=>{const w=7,body=Math.ceil(w*depth/32)*4*Math.abs(h),b=Buffer.alloc(54+body);b.write('BM');b.writeUInt32LE(b.length,2);b.writeUInt32LE(54,10);b.writeUInt32LE(40,14);b.writeInt32LE(w,18);b.writeInt32LE(h,22);b.writeUInt16LE(1,26);b.writeUInt16LE(depth,28);b.writeUInt32LE(zero?0:body,34);return b;};
 for(const depth of[24,32])for(const height of[-4,4])for(const zero of[true,false])assert.deepEqual(info(bmp(depth,height,zero)),{width:7,height:4,pixels:28,type:'image/bmp'});
 const bad=(offset,value,kind='writeUInt32LE')=>{const b=bmp();b[kind](value,offset);return b;};
