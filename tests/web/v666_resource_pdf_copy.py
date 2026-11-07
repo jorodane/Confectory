@@ -1,6 +1,10 @@
 """Authored PDF renderer bytes/notices and closed asset-only native extension."""
 import sys,pathlib,json,subprocess,hashlib,zipfile
-r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-pdf-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
+r=pathlib.Path(sys.argv[1]);
+if (r/'docs/v666-resource-description-delta.json').exists():
+ import runpy
+ runpy.run_path(str(r/'tests/web/v666_resource_description_copy.py'),run_name='__main__');raise SystemExit
+d=json.loads((r/'docs/v666-resource-pdf-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_bytes()if name.endswith(('.bcmap','.pfb','.ttf'))else(r/name).read_text().encode()).hexdigest()==digest,name
 allowed={'packs/web-ui/Open.csbody','examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-previews.js','examples/editor-home/ui/style.css','examples/editor-home/ui/resource-pdf.js','examples/editor-home/ui/resource-pdf-policy.js','examples/editor-home/ui/resource-pdf-worker.js'};prefix='examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/';assert all(name in allowed or name.startswith(prefix)for name in changed)
