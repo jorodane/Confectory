@@ -614,6 +614,10 @@ public sealed class WebUITests : TestCase
         State();string descriptor="""{"id":"unit","version":"1","entry":"index.html","endpoints":["wait","done"],"resources":{"index.html":{"mime":"text/html","base64":"PGgxPnVuaXQ8L2gxPg=="}}}""";
         string assetRoot=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-manifest-"+Guid.NewGuid().ToString("N"));System.IO.Directory.CreateDirectory(assetRoot);
         try{
+         var counted=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();
+         for(int i=1;i<384;i++)counted["resources"]!["opaque"+i+".bin"]=new System.Text.Json.Nodes.JsonObject{["mime"]="application/octet-stream",["base64"]="AA0K/w=="};
+         string countedOwner=calls.Open.Invoke(context,counted.ToJsonString());Check(System.Linq.Enumerable.SequenceEqual(Convert.FromBase64String(calls.Resource.Invoke(countedOwner,"opaque383.bin")[1]),new byte[]{0,13,10,255}),"opaque bytes and 384-asset boundary");Check(calls.Close.Invoke(countedOwner),"counted assets owner close");
+         counted["resources"]!["overflow.bin"]=new System.Text.Json.Nodes.JsonObject{["mime"]="application/octet-stream",["base64"]="AA=="};bool countRejected=false;try{string bad=calls.Open.Invoke(context,counted.ToJsonString());calls.Close.Invoke(bad);}catch(ArgumentException error){countRejected=error.Message.Contains("Resource count budget exceeded",StringComparison.Ordinal);}Check(countRejected,"385 assets refused before allocation");
          byte[] image=new byte[2097152];System.IO.File.WriteAllBytes(System.IO.Path.Combine(assetRoot,"portrait.png"),image);
          var declared=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();declared["resourceDirectory"]=assetRoot;
          declared["resources"]!["portrait.png"]=new System.Text.Json.Nodes.JsonObject{["file"]="portrait.png",["mime"]="image/png",["size"]=image.Length,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(image))};

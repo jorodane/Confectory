@@ -4,13 +4,13 @@ var bundle=System.Text.Json.Nodes.JsonNode.Parse(descriptor)!.AsObject();
 long resourceBytes=0,rawResourceBytes=0;
 string? resourceRoot=bundle["resourceDirectory"]?.GetValue<string>();
 if(resourceRoot is not null){resourceRoot=System.IO.Path.GetFullPath(resourceRoot);if(!System.IO.Directory.Exists(resourceRoot)||(System.IO.File.GetAttributes(resourceRoot)&System.IO.FileAttributes.ReparsePoint)!=0)throw new ArgumentException("Trusted resource directory required");}
-if(bundle["resources"]!.AsObject().Count>256)throw new ArgumentException("Resource count budget exceeded");
+if(bundle["resources"]!.AsObject().Count>384)throw new ArgumentException("Resource count budget exceeded");
 if(descriptor.Length>4194304||bundle["id"] is null||bundle["version"] is null)throw new ArgumentException("Bounded, identified bundle required");
 var assets=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
 foreach(var item in bundle["resources"]!.AsObject()){
  string path=item.Key,mime=item.Value!["mime"]!.ToString();
  if(!System.Text.RegularExpressions.Regex.IsMatch(path,@"^[A-Za-z0-9_-]+(?:[./][A-Za-z0-9_-]+)*$")||path.Contains("..",StringComparison.Ordinal))throw new ArgumentException("Bundle-relative resource ID required");
- if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp" or "application/json"))throw new ArgumentException("Unsupported resource MIME");
+ if(mime is not ("text/html" or "text/css" or "text/javascript" or "image/png" or "image/jpeg" or "image/svg+xml" or "image/webp" or "application/json" or "application/octet-stream"))throw new ArgumentException("Unsupported resource MIME");
  string policy=item.Value["bytePolicy"]?.GetValue<string>()??"exact";bool canonical=policy=="utf8-lf-v1";
  if(policy is not ("exact" or "utf8-lf-v1"))throw new ArgumentException($"Resource '{path}': unknown byte policy");
  if(canonical&&(item.Value["file"] is null||mime is not ("text/html" or "text/css" or "text/javascript" or "application/json" or "image/svg+xml")))throw new ArgumentException($"Resource '{path}': UTF-8 LF policy requires a declared text file");

@@ -3061,3 +3061,6 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .resource-document table{border-collapse:collapse;width:100%;margin:12px 0;font-size:11px}.resource-document td{border:1px solid #bfc2be;padding:7px;vertical-align:top}.resource-document td p:last-child{margin:0}
 .resource-document-slide+.resource-document-slide{border-top:1px solid #c3c6c0;margin-top:18px;padding-top:18px}.resource-document-slide small{display:block;margin-bottom:8px;color:#777}
 .resource-spreadsheet table{border-collapse:collapse;background:#f5f3ee;color:#303238;font-size:11px;min-width:100%}.resource-spreadsheet :is(td,th){border:1px solid #c8ccc6;min-width:60px;max-width:260px;padding:6px 8px;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;vertical-align:top}.resource-spreadsheet th{background:#e0e5dd;text-align:center;font-weight:500}.resource-spreadsheet tr>th:first-child{min-width:30px}
+
+/* Authored v666 PDF page/canvas rules. */
+.resource-pdf-page{width:max-content;margin:0 auto;background:white;box-shadow:0 2px 10px #0005}.resource-pdf-canvas{display:block;max-width:none}

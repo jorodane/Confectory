@@ -5,3 +5,10 @@ examples/editor-home/ui/**/*.js text eol=lf
 examples/editor-home/ui/**/*.json text eol=lf
 examples/editor-home/ui/**/*.svg text eol=lf
 examples/editor-home/ui/**/*.png binary
+
+# Pinned PDF renderer and opaque font/CMap bytes from the authored v666 reference.
+examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/**/*.mjs text eol=lf
+examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/**/*.bcmap binary
+examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/**/*.pfb binary
+examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/**/*.ttf binary
+examples/editor-home/ui/assets/vendor/pdfjs-dist-4.10.38/**/LICENSE* text eol=lf -whitespace

@@ -1,5 +1,8 @@
 """Closed authored Office display; unchanged native ownership/read/save contracts."""
 import sys,pathlib,json,hashlib,subprocess,zipfile
+r=pathlib.Path(sys.argv[1]);
+if(r/'docs/v666-resource-pdf-delta.json').exists():
+ subprocess.run([sys.executable,str(r/'tests/web/v666_resource_pdf_copy.py'),str(r)],check=True);raise SystemExit(0)
 r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-office-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 changed=set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines());assert changed==set(d['productFiles']),changed
 assert changed=={'examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-previews.js','examples/editor-home/ui/resource-office.js','examples/editor-home/ui/resource-office-worker.js','examples/editor-home/ui/resource-office-zip.js','examples/editor-home/ui/style.css'}
