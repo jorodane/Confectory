@@ -1,5 +1,9 @@
 # V3 진행 중 도구 I/O 관측
 
+관측된 pending 중 상세 poll의 재대기는 [후속 수정](V3_WORKSPACE_IO_POLL.md)과
+[신규44단계 검증](VALIDATION_V666_OFFICE_IO_POLL.md)으로 연결했다. 아래 한계는 최초 기반의
+검증 경계이며 일반 디스크 지연/모든 I/O 시점/전체 UI 완료로 확대하지 않는다.
+
 원본 v666 `office-actors.js::workerActivity/createWorkerJob`의 실제 access 신호를 기존
 명시 배정·현재 보이는 소유 대상에 연결한다. 별도 표시 팩과 이동/도착의 실행 독립성을
 유지한다. 명시 배정 Worker의 실제 DevelopmentTools 읽기/inspect 및 초안 stage 호출 중 신호를 제공한다.
