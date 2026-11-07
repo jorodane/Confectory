@@ -2,7 +2,7 @@
 
 원본 v666 `office-actors.js::workerActivity/createWorkerJob`의 실제 access 신호를 기존
 명시 배정·현재 보이는 소유 대상에 연결한다. 별도 표시 팩과 이동/도착의 실행 독립성을
-유지한다. 실제 DevelopmentTools의 승인된 읽기/inspect 및 초안 stage 호출 중만 표시한다.
+유지한다. 명시 배정 Worker의 실제 DevelopmentTools 읽기/inspect 및 초안 stage 호출 중 신호를 제공한다.
 `읽는 중`/`초안 처리 중`은 요청 처리 중인 관측이며 성공·최종 원본 쓰기·작업 완료가 아니다.
 
 기존 도구 admission/chat-use 철회·직렬 mutation 잠금·원자 CAS/중복 호출/저장·원문/override
@@ -27,3 +27,11 @@ capability/call ID·원문·경로·origin hash·자격증명·시작/종료 시
 FileStream/사용자 C#·최종 채택/파일 쓰기를 진행 신호로 추정하지 않는다. UI 오류/늦은 입력과
 기존 소유·권한·Review/Confirm/CAS는 보존한다. Run HD 이상 전송·GPU/FPS/요소 경계,
 신원/권한·자산·참여자/대화, 실기기/전체 UI/Space 전달은 기존 고정 잔여다.
+
+이 단위의 검증은 실제 native 호출을 owned scheduling gate에서 보류한 동시성 검사와,
+실제 승인된 Worker의 UI에만 receipt를 주입한 표시 검사로 분리한다. 실제 OS I/O가
+EditWorkspace/편집기 전체 잠금을 잡은 동안의 end-to-end UI 갱신은 미검증이며 이 기반만으로
+진행 중 I/O 전체를 마감하지 않는다. 다른 편집기 잠금과 독립된 표시 관측의 후속 근거가
+필요하다. 빠른 호출은 관측 사이에 끝나 완료 사실만 보일 수 있으며 표시 시간을 늘리는
+timer나 가상 진행률을 추가하지 않는다. 새 Observe는 Agent의 도구 schema/rights에 추가하지
+않으며 기존 읽기 capability를 가진 runtime의 관측 API다.

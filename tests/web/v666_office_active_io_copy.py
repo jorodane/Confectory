@@ -11,6 +11,7 @@ for token in ['calls.Stage.Invoke(','calls.Commit.Invoke(','SaveJournal(','calls
 assert new.index('}ActiveIO(id,"draft-stage")')>new.index('expectedHash')and new.index('ActiveIO(id,"read")')>new.index('string id=Id()')
 assert 'finally{System.Threading.Volatile.Write(ref state[9],null!);}'in new
 assert (r/'packs/development-tools/Snapshot.csbody').read_text()==base('packs/development-tools/Snapshot.csbody')
+assert (r/'packs/development-tools/Schema.csbody').read_text()==base('packs/development-tools/Schema.csbody')
 s=(r/'packs/development-tools/Observe.csbody').read_text();assert 'Monitor.TryEnter' in s and 'Monitor.Enter('not in s and 'calls.Snapshot.Invoke'in s and 'if(busy)'in s
 p='packs/editor-home-model/Command.csbody';old=base(p);new=(r/p).read_text();start='if(operation=="worker-badges-inspect")';end='if(operation=='
 a=old.index(start);b=new.index(start);assert old[:a]==new[:b];a=old.index(end,a+len(start));b=new.index(end,b+len(start));assert old[a:]==new[b:]

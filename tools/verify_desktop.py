@@ -364,6 +364,7 @@ def main():
             elif args.suite=='office-active-io':
                 work.run(label+'-office-active-boundary',[sys.executable,str(checkout/'tests/web/v666_office_active_io_copy.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-office-active-projection',['node',str(checkout/'tests/web/v666_office_workers_projection.mjs'),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-worker-badges-projection',['node',str(checkout/'tests/web/v666_worker_badges_projection.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-office-active-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'ActiveToolIOTests','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-office-completed-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_development_tools_owned_scope_shared_draft_no_confirm_and_locality','--require-runtime'],cwd=checkout,env=env)
                 work.run(label+'-office-active-ui',[sys.executable,str(checkout/'tests/web/v666_office_workers_ui.py'),str(checkout),str(report),'phase-ui'if label=='lf'else'phase-cold'],cwd=checkout,env=env)

@@ -94,11 +94,14 @@ try:
      # actual approved Worker exists, but its owned provider is still held.
      f.page.locator('#chat-input').fill('진행 표시 중 새 입력 보존')
      f.page.evaluate("""args=>{globalThis.__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'read',phase:'in-progress'};const base=fetch;fetch=async(...a)=>{const response=await base(...a);let p;try{p=await response.clone().json()}catch{return response}let found=false;for(const row of p.state?.assignmentWorkers||[])if(row.id===args.id){row.activeToolIO=__phaseFixture;found=true}return found?new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}}):response;};}""",dict(project=f.state()['projectId'],id=id,node=node))
-     expect(status(id,'running')).to_contain_text('읽는 중');assert not owned.requests;physical()
-     f.page.evaluate("()=>__phaseFixture={...__phaseFixture,kind:'draft-stage'}");expect(status(id,'running')).to_contain_text('초안 처리 중');physical()
+     def publish_selection_revision():
+      invoke('select',id=f.id);invoke('select',id=graph)
+     publish_selection_revision()
+     expect(status(id,'running')).to_contain_text('읽는 중');f.page.screenshot(path=str(f.case/'active-read-ui.png'));assert not owned.requests;physical()
+     f.page.evaluate("()=>__phaseFixture={...__phaseFixture,kind:'draft-stage'}");publish_selection_revision();expect(status(id,'running')).to_contain_text('초안 처리 중');f.page.screenshot(path=str(f.case/'active-stage-ui.png'));physical()
      for bad in [dict(targetId='External::Hidden'),dict(projectId='foreign'),dict(receipt='bad')]:
-      f.page.evaluate('bad=>__phaseFixture={...__phaseFixture,...bad}',bad);expect(status(id,'running')).not_to_contain_text('초안 처리 중');f.page.evaluate("args=>__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'draft-stage',phase:'in-progress'}",dict(project=f.state()['projectId'],node=node));expect(status(id,'running')).to_contain_text('초안 처리 중')
-     f.page.evaluate('()=>__phaseFixture=null');expect(status(id,'running')).not_to_contain_text('초안 처리 중');expect(status(id,'running')).not_to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('진행 표시 중 새 입력 보존');assert not owned.requests
+      f.page.evaluate('bad=>__phaseFixture={...__phaseFixture,...bad}',bad);publish_selection_revision();expect(status(id,'running')).not_to_contain_text('초안 처리 중');f.page.evaluate("args=>__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'draft-stage',phase:'in-progress'}",dict(project=f.state()['projectId'],node=node));publish_selection_revision();expect(status(id,'running')).to_contain_text('초안 처리 중')
+     f.page.evaluate('()=>__phaseFixture=null');publish_selection_revision();expect(status(id,'running')).not_to_contain_text('초안 처리 중');expect(status(id,'running')).not_to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('진행 표시 중 새 입력 보존');assert not owned.requests
      f.checked('UI-only receipt injection on a real approved held Worker verifies read/draft labels, foreign/hidden/malformed rejection, removal and late input; it is not evidence of native I/O timing or completion')
     switch('editor');gate.set()
     if checkIO:
