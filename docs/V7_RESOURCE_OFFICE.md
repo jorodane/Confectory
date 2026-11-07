@@ -33,3 +33,7 @@ Worker를 종료하고 XML/DOM 참조를 버린다. 늦은 응답은 현재 소�
 큰 파일/부분 읽기·Office 편집·PDF/mesh/다른 이미지 형식과 원래 기타 자료 기능은
 별도 잔여다. 레거시 DOC/XLS/PPT나 암호 문서는 이 reader의 필수 지원 조합으로
 확대하지 않는다. 실제 Windows/WebView2·모바일·전체 UI·Space 전달은 자동화 검사와 구분한다.
+
+후속 DOCX 문단·표 텍스트 편집은 [DOCX 지원 경계](V7_RESOURCE_DOCX.md)와
+[별도 최종 검증](VALIDATION_V666_RESOURCE_DOCX.md)을 따른다. 위 읽기 전용 검증은
+당시 미리보기 단위의 기록이며 XLSX 편집은 아직 남는다.

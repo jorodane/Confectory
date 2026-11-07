@@ -22,7 +22,7 @@ DOCX 문서 XML만 다시 압축한다. 미수정 항목은 원래 local header/
 
 일반 ZIP stored/DEFLATE와 descriptor를 지원하며 ZIP64/분할/암호화/중복/경로 위장/
 심볼릭 링크/겹침/불일치 CRC·길이/불투명한 추가 record는 편집을 거부한다. 편집은
-모든 항목을 CRC 검증하고 항목8MiB·합계16MiB 전개 한도를 둔다. 문서 XML2MiB,
+모든 항목을 CRC 검증하고 항목8MiB·합계16MiB 전개 한도를 둔다. UTF-8 문서 XML2MiB,
 50,000 node·깊이64·문자524,288, 표시 DOM20,000, 원본의 문단/표 표시 한도를 유지한다.
 최대2개 편집 창, Worker당5초 응답 제한이며 hard CPU 상한으로 표현하지 않는다.
 닫기/접기/프로젝트·관측 세대 전환에서 Worker를 종료하고 늦은 콜백을 무시한다.
