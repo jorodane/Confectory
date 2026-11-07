@@ -46,3 +46,5 @@ V3의 진행 중 IO 신호는 실제 runtime 제공 경계가 없는 상태로 �
 영상/오디오나 실제 기기 완료로 표현하지 않는다.
 
 [검증·보관·공간 기록](VALIDATION_V666_OFFICE_IO.md)을 따른다.
+
+후속: 완료 사실은 그대로 유지하고 [진행 중 도구 호출의 별도 관측 기반](V3_WORKSPACE_ACTIVE_IO.md)을 추가했다. native scheduling-gate 검사와 UI DTO 주입을 구분하며 실제 OS I/O/전체 편집기 동시성의 미검증을 마감하지 않는다.
