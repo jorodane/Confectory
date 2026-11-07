@@ -6,6 +6,8 @@ v536 기록은 과거 검증 증거이며 기존 기능을 미구현으로 되�
 
 ## 현재 V3 소유 프로젝트의 3D 보기
 
+진행 중 도구 I/O 뒤 상세 poll이 같은 잠금을 기다리는 경로는 [passive 갱신 후속](V3_WORKSPACE_IO_POLL.md)으로 수정하며 [최종 검증](VALIDATION_V666_OFFICE_IO_POLL.md)을 진행한다.
+
 [별도 표시 팩](V3_WORKSPACE_VIEW.md)에 원본 방/지도·실제 소유 선언·개인 카메라·기존
 Browser 진입을 연결했다. 프로젝트 왕복/cold·늦은 응답/입력·WebGL 불가/변조 격리와
 [최종 신규 35단계·재사용 0](VALIDATION_V666_OFFICE_VIEW.md)를 마감했다.

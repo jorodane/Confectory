@@ -3,7 +3,11 @@ import hashlib,json,pathlib,shutil,time,uuid,sys,traceback,threading,io
 from playwright.sync_api import sync_playwright,expect
 from owned_responses import OwnedResponses
 import v536_wide_mixed as f
-mode=sys.argv[3];live=mode in ['live','io','phase-ui'];checkIO=mode in ['io','io-cold'];ioGates=[threading.Event(),threading.Event()];ioEntered=[threading.Event(),threading.Event()];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
+mode=sys.argv[3];live=mode in ['live','io','phase-ui','phase-live','phase-fail'];checkIO=mode in ['io','io-cold'];ioGates=[threading.Event(),threading.Event()];ioEntered=[threading.Event(),threading.Event()];node=f.n+'SlotBody/body:common/node:body';graph=f.n+'SlotBody/body:common';allowed={};owned=None;gate=threading.Event();entered=threading.Event()
+realIO=mode in ['phase-live','phase-fail'];releasePhysical=None
+if realIO:
+ from v666_office_io_fixture import configure
+ armPhysical,enteredPhysical,releasePhysical=configure(f)
 def invoke(endpoint,**body):
  for _ in range(4):
   v=f.mount();rid=uuid.uuid4().hex
@@ -103,6 +107,24 @@ try:
       f.page.evaluate('bad=>__phaseFixture={...__phaseFixture,...bad}',bad);publish_selection_revision();expect(status(id,'running')).not_to_contain_text('초안 처리 중');f.page.evaluate("args=>__phaseFixture={projectId:args.project,receipt:'c'.repeat(64),ordinal:1,targetId:args.node,kind:'draft-stage',phase:'in-progress'}",dict(project=f.state()['projectId'],node=node));publish_selection_revision();expect(status(id,'running')).to_contain_text('초안 처리 중')
      f.page.evaluate('()=>__phaseFixture=null');publish_selection_revision();expect(status(id,'running')).not_to_contain_text('초안 처리 중');expect(status(id,'running')).not_to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('진행 표시 중 새 입력 보존');assert not owned.requests
      f.checked('UI-only receipt injection on a real approved held Worker verifies read/draft labels, foreign/hidden/malformed rejection, removal and late input; it is not evidence of native I/O timing or completion')
+    if realIO:
+     invoke('openEditorView',view='1',id=f.n+'Slot',viewMode='declaration');f.idle();assert f.state()['editorViews'];f.page.locator('#chat-input').fill('실제 파일 I/O 중 새 입력 보존');armPhysical();gate.set()
+     deadline=time.monotonic()+15
+     while not enteredPhysical()and time.monotonic()<deadline:f.page.wait_for_timeout(25)
+     assert enteredPhysical(),'real authorized tool did not enter owned OS read';expect(status(id,'running')).to_contain_text('읽는 중',timeout=5000)
+     row=next(r for r in f.state()['assignmentWorkers']if r['id']==id);assert set(row['activeToolIO'])=={'projectId','receipt','ordinal','targetId','kind','phase'};assert row['activeToolIO']['targetId']==node;assert row['activeToolIO']['phase']=='in-progress';assert not row['lastToolIO'];assert len(owned.requests)==1
+     physical();f.page.screenshot(path=str(f.case/'actual-os-read.png'));switch('editor');f.page.locator('#chat-input').fill('표시를 꺼도 읽기 계속');switch('office');ready();expect(status(id,'running')).to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('표시를 꺼도 읽기 계속');physical()
+     f.checked('genuine approved Tool read holds EditWorkspace during a real owned FIFO read; passive editor/details polling and actual 3D phase stay live without receipt injection or source/permission changes')
+     releasePhysical(mode!='phase-fail')
+     if mode=='phase-fail':
+      deadline=time.monotonic()+15
+      while time.monotonic()<deadline:
+       rows=f.state()['assignmentWorkers'];row=next(r for r in rows if r['id']==id)
+       if row['status']!='running':break
+       f.page.wait_for_timeout(25)
+      assert row['status'] in ['error','interrupted','cancelled'],row;assert row['activeToolIO']is None;expect(status(id,row['status'])).not_to_contain_text('읽는 중');expect(f.page.locator('#chat-input')).to_have_value('표시를 꺼도 읽기 계속');assert len(owned.requests)==1;physical();f.checked('real IO exception clears active receipt and resumes passive refresh, preserving newer input and sources without replay or fabricated completion')
+      f.page.screenshot(path=str(f.case/'io-failure.png'));f.browser.close();raise SystemExit(0)
+     f.checked('explicit test read release resumes real original bytes and normal Worker processing; movement/display never releases the real operation')
     switch('editor');gate.set()
     if checkIO:
      for index,label in enumerate(['읽기 완료','초안 변경 확인']):
@@ -157,7 +179,9 @@ try:
    except Exception:pass
    (f.case/'failure.json').write_text(json.dumps(dict(error=repr(e),traceback=traceback.format_exc()),ensure_ascii=False));raise
 finally:
+ if releasePhysical:releasePhysical()
  [event.set()for event in ioGates];gate.set();f.stop()
+ if releasePhysical:releasePhysical.cleanup()
  if owned:owned.close()
  (f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False,indent=2));(f.case/'office-workers.json').write_text(json.dumps(dict(mode=mode,checks=f.checks,ownedHttpRequests=owned.requests if owned else[],ownedHttpErrors=owned.errors if owned else[],actualManagedEngine=True,actualWindows=False,actualMobile=False,liveAI=False),ensure_ascii=False,indent=2))
 print('OFFICE_WORKERS_FIXTURE',f.case,flush=True)
