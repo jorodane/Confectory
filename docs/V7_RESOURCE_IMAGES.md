@@ -2,7 +2,7 @@
 
 원본 v666 `resource-preview.js::mountResourcePreview`의 image 분기처럼, 기존 자료 창의 미리보기 패널에 `img`를 `object-fit:contain`으로 표시한다. 도구줄/설정/창 배치·파일 이름 의미는 유지하고 새 zoom/도구/내용 편집 기능을 만들지 않는다. 이미 보관한 실제 프로젝트 사본만 전용 read 관측으로 읽는다. 사용자 개인 파일을 탐색하거나 외부 URL을 불러오지 않는다.
 
-현재 지원은1MiB 이하 정지 PNG와 8bit baseline/progressive JPEG다. 원래 PNG/JPEG byte signature와 헤더를 읽어 width/height를 확인한 다음 표준 브라우저 decoder에 전달한다. 파일 확장자나 MIME만 믿지 않으며 Blob MIME은 확인한 raster 형식으로 고정한다. Native read의 project/ID/hash/size/canonical base64/SHA 검증은 그대로다. 헤더 reader는 독립 codec/완전한 문서 검증기가 아니며 최종 손상은 브라우저 디코딩 실패로 거절한다.
+현재 지원은1MiB 이하 정지 PNG와 8bit baseline/progressive JPEG다. 원래 PNG/JPEG byte signature와 헤더를 읽어 width/height를 확인한 다음 표준 브라우저 decoder에 전달한다. 파일 확장자나 MIME만 믿지 않으며 Blob MIME은 확인한 raster 형식으로 고정한다. Native read의 project/ID/hash/size/canonical base64/SHA 검증은 그대로다. 헤더 reader는 독립 codec/완전한 문서 검증기가 아니며 브라우저가 디코딩을 거부하면 표시를 실패 처리한다. 브라우저가 일부 손상을 복구해 표시할 수 있으므로 파일 형식 전체의 완전성을 인증한다고 주장하지 않는다.
 
 참고하는 일차 자료는 [PNG IHDR/chunk 규격](https://www.w3.org/TR/png-3/#11IHDR)과 [Chromium JPEG marker/segment 정의](https://chromium.googlesource.com/chromium/src/media/+/338620d1f9402c7a8c5791f8136cbd927a792a6f/parsers/jpeg_parser.h)다. PNG width/height는 IHDR의 unsigned32bit이고 JPEG 프레임의 dimension은16bit다. 길이/프레임/끝 경계를 확인하고 중복 PNG header·APNG 확장·지원 밖 JPEG process는 디코딩 전에 거절한다. SVG/HTML·GIF/WebP/BMP/AVIF/애니메이션은 이번 지원으로 표시하지 않는다.
 
