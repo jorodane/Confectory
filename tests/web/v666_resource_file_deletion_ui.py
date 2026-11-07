@@ -78,7 +78,7 @@ try:
   def add(name):
    root();b.locator('[data-resource-files]').set_input_files(dict(name=name,mimeType='text/plain',buffer=raw));f.idle();expect(b.locator('[data-new]')).to_be_enabled();return named(name)['id']
   peer=add('보존할 사본.txt');peer_record=next(x for x in json.loads(store.read_text())['items']if x['id']==peer);file=add('삭제할 사본.txt');identity_bytes=(f.project/'.confectory/project-identity.json').read_bytes();f.page.locator('#chat-input').fill('삭제와 별개인 입력')
-  renamed(file,'삭제 <안전> 🧪.md');row(file).drag_to(row(folder_id));moved(file,folder_id);open_folder(folder_id);file_before=store.read_bytes();layout_before=layout.read_bytes();name_before=names.read_bytes();delete_dialog(file,cancel=True);assert store.read_bytes()==file_before and layout.read_bytes()==layout_before and names.read_bytes()==name_before;f.checked('authored delete confirmation Cancel leaves exact copied bytes/name/placement unchanged')
+  renamed(file,'삭제 <안전> 🧪.md');row(file).drag_to(row(folder_id));expect(row(file)).to_have_count(0);f.idle();moved(file,folder_id);open_folder(folder_id);file_before=store.read_bytes();layout_before=layout.read_bytes();name_before=names.read_bytes();delete_dialog(file,cancel=True);assert store.read_bytes()==file_before and layout.read_bytes()==layout_before and names.read_bytes()==name_before;f.checked('authored delete confirmation Cancel leaves exact copied bytes/name/placement unchanged')
   if mode=='normal':
    w=opened_file(file);permission=names.stat().st_mode
    try:
