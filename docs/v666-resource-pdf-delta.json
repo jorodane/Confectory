@@ -3,8 +3,8 @@
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
     "packs/web-ui/Open.csbody": "82165df8d3484e7ea340eb8570f72855e21c28f27fa019fece3f0df0eebaca7c",
-    "examples/editor-home/WebBundle.csbody": "43275e4c135184662ee90e8fa0e4d1f629334137e2384e71973934ecc4e7e0f8",
-    "examples/editor-home/ui/resource-previews.js": "e5584df1620ed4eebb8b0cafc6bf14893476fecfd9bb4c9ec89e4ee58460de0a",
+    "examples/editor-home/WebBundle.csbody": "e5d2cac2195f8963dff7b2bce8d683033f6cc6242e1b17f3b31349425c86f77f",
+    "examples/editor-home/ui/resource-previews.js": "981dfdc54e7ec0272581a374e6e777487434dba4307f1762c87f2ffffbdd5345",
     "examples/editor-home/ui/style.css": "a12df7d52b6769dfb2c675b305a4e04fff49c5eab4b7c235d3b8191dc2595b8f",
     "examples/editor-home/ui/resource-pdf.js": "13d0594feb0dd7a8131a476f995bd0d88bcf8e341f788f6a3e5c40ff46c1345b",
     "examples/editor-home/ui/resource-pdf-policy.js": "14721e2ebca45fa1a746a1c940c1f4498b5aa23cd07e02787ba146d1f47d4fad",

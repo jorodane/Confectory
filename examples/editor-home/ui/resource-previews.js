@@ -13,7 +13,12 @@ export function createResourcePreviews(api){
  const prefix='resource-file:',idPattern=/^[a-f0-9]{32}$/,hashPattern=/^[a-f0-9]{64}$/;
  const scope=()=>api.current?.projectId||'';
  const alive=(w,token)=>w.resourcePreview===token&&token.generation===api.view.generation&&scope()===token.owner&&api.windows.get(w.key)===w&&w.el.isConnected&&!w.el.hidden;
- function retire(w){const token=w.resourcePreview;if(!token)return;w.resourcePreview=null;token.controller.abort();token.imageCleanup?.();token.officeCleanup?.();token.pdfCleanup?.();token.contentCleanup?.();token.cleanup?.();w.body.replaceChildren();}
+ function retire(w){const token=w.resourcePreview;if(!token)return;w.resourcePreview=null;token.visibilityObserver?.disconnect();token.controller.abort();token.imageCleanup?.();token.officeCleanup?.();token.pdfCleanup?.();token.contentCleanup?.();token.cleanup?.();w.body.replaceChildren();}
+ function detached(w,token,format){
+  token[format+'Detached']=true;token.visibilityObserver?.disconnect();if(!alive(w,token))return;
+  const resume=()=>{if(!alive(w,token)){token.visibilityObserver?.disconnect();return;}if(!w.body.getClientRects().length)return;token.visibilityObserver?.disconnect();mount(w);};
+  token.visibilityObserver=new MutationObserver(resume);token.visibilityObserver.observe(w.el,{attributes:true,attributeFilter:['class','hidden']});queueMicrotask(resume);
+ }
  function title(w,item){
   w.title=item.name;w.el.setAttribute('aria-label',item.name);const caption=w.el.querySelector(':scope > .window-title .caption');
   if(caption){caption.querySelector('strong')?.remove();caption.querySelector('.resource-editor-heading')?.remove();const heading=element('span',null,'resource-editor-heading'),name=element('strong'),filename=element('span',item.name,'resource-filename');filename.dataset.resourceFullName=item.name;filename.dataset.resourceKind=item.kind;name.dataset.resourceTitle='';name.title=item.name;name.append(filename);heading.append(name,element('small',item.size+' B · 프로젝트 사본'));caption.append(heading);}
@@ -42,11 +47,11 @@ export function createResourcePreviews(api){
     const mime=item.type||'',extension=mime.includes('wordprocessingml')?'docx':mime.includes('spreadsheetml')?'xlsx':mime.includes('presentationml')?'pptx':mime.includes('opendocument.text')?'odt':item.name.split('.').at(-1).toLowerCase();
     if(extension==='pdf'||mime==='application/pdf'){
      const failedPDF=reason=>{if(!alive(w,token))return;message(reason==='password'?'암호가 필요한 PDF입니다.':'PDF를 표시하지 못했습니다.');status.textContent=reason==='pdf_view_budget'?'PDF 미리보기는 최대 2개입니다. 다른 PDF 창을 닫고 다시 확인해 주세요.':'보관된 사본은 그대로예요. 지원 범위와 문서 크기를 확인하고 다시 시도할 수 있어요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.pdfCleanup?.();token.pdfCleanup=null;void read();}};actions.replaceChildren(retry);};
-     try{token.pdfCleanup=mountResourcePDF({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,item,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedPDF,onDetached:()=>{token.pdfDetached=true;}});}catch(error){failedPDF(error.message);}return;
+     try{token.pdfCleanup=mountResourcePDF({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,item,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedPDF,onDetached:()=>detached(w,token,'pdf')});}catch(error){failedPDF(error.message);}return;
     }
     if(['docx','xlsx','pptx','odt'].includes(extension)){
      const failedOffice=()=>{if(!alive(w,token))return;message('문서 내용을 표시하지 못했습니다.');status.textContent='지원 범위의 Office 사본인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.officeCleanup?.();token.officeCleanup=null;void read();}};actions.replaceChildren(retry);};
-     try{token.officeCleanup=mountResourceOffice({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,extension,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedOffice,onDetached:()=>{token.officeDetached=true;}});}catch{failedOffice();}return;
+     try{token.officeCleanup=mountResourceOffice({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,extension,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedOffice,onDetached:()=>detached(w,token,'office')});}catch{failedOffice();}return;
     }
     if(item.kind==='image'||['pdf','docx','xlsx','pptx','odt'].includes(extension)||mime==='application/pdf'||!(mime.startsWith('text/')||textExtensions.test(item.name))){message('이 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 텍스트·코드 파일의 읽기 전용 미리보기를 지원합니다.';return;}
     const encoding=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8',pre=element('pre',new TextDecoder(encoding).decode(bytes),'resource-document-text');preview.className='resource-preview is-text-preview';preview.replaceChildren(pre);preview.setAttribute('aria-busy','false');toolbar.textContent='텍스트 미리보기';status.textContent='읽기 전용 미리보기';

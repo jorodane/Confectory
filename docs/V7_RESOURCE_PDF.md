@@ -31,7 +31,9 @@ PDF 창은 최대2개, 최대1,000페이지다. 페이지 원래 viewport는 한
 document/bridge를 파기한다. 고정4.10.38의 해당 transport에 속한 FontLoader/FilterFactory를
 정리해 종료 RPC 응답이 없어도 전역 FontFace/필터 DOM이 남지 않게 한다. vendor 자체나
 다른 문서/시스템 글꼴은 수정하지 않는다. 파기 응답이 없더라도 500ms 뒤 직접 생성한 Worker를
-종료하고 lease를 반환한다. 성공/실패 뒤 개인 레이아웃에는 기존 owner/ID/hash만 남는다.
+종료하고 lease를 반환한다. 성공/실패 뒤 개인 레이아웃에는 기존 owner/ID/hash만 남는다. 접기에서 해제된
+Office/PDF는 다시 보이는 소유 창의 DOM 이벤트로 복원하며 native 상태/개인 배치
+저장 응답을 기다리지 않는다. 창 폐기/프로젝트 전환에서는 그 관측기도 해제한다.
 
 Mozilla [공개 보안 공지 목록](https://github.com/mozilla/pdf.js/security/advisories)을 확인했다.
 [2024 공지](https://github.com/mozilla/pdf.js/security/advisories/GHSA-wgrm-67xf-hhpq)의
