@@ -2982,3 +2982,8 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .run-debug-grid{display:none;position:absolute;inset:0;z-index:3;pointer-events:none;background-image:linear-gradient(to right,#91e5d22e var(--run-debug-line,1px),transparent var(--run-debug-line,1px)),linear-gradient(to bottom,#91e5d22e var(--run-debug-line,1px),transparent var(--run-debug-line,1px));background-size:10% 10%}
 .run-show-grid .run-debug-grid{display:block}
 .run-debug-grid[data-run-grid][hidden]{display:none}
+
+/* Original dashed accent bounds, applied only to producer-reported visible pixels. */
+.run-output-bounds{position:absolute;z-index:3;pointer-events:none;overflow:hidden}
+.run-output-bounds[hidden]{display:none}
+.run-output-bounds>span{position:absolute;box-sizing:border-box;outline:var(--run-debug-line,1px) dashed var(--accent);outline-offset:calc(-1 * var(--run-debug-line,1px))}

@@ -1,0 +1,1 @@
+var state=AppDomain.CurrentDomain.GetData(owner)as object[]??throw new ObjectDisposedException("Software surface");if(state.Length<5)throw new InvalidOperationException("Annotated output provider unavailable");ArgumentNullException.ThrowIfNull(rectangles);return((Func<int,int,string,int[],long>)state[4])(width,height,rgba,rectangles);

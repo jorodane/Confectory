@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::PresentBoundsBody for Confectory.RunSurface::PresentBounds (string owner,int width,int height,string rgba,int[] rectangles) -> long { body common "PresentBounds.csbody"; }

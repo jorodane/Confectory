@@ -28,9 +28,18 @@ lock(state[0]){
    rate=new(){["basis"]="software-present-v1",["observation"]=observation,["ready"]=ready,["frames"]=count,["windowMs"]=window};
    if(previousRate is not null&&(ordinal<long.Parse(previousRate["observation"]!.GetValue<string>(),System.Globalization.CultureInfo.InvariantCulture)||previousRate["ready"]!.GetValue<bool>()&&!ready||observation==previousRate["observation"]!.GetValue<string>()&&rate.ToJsonString()!=previousRate.ToJsonString()))throw new System.IO.InvalidDataException("Stale software rate observation");
   }else if(previousRate is not null)throw new System.IO.InvalidDataException("Software rate capability disappeared");
+  System.Text.Json.Nodes.JsonObject? bounds=null;
+  if(frame["bounds"]is not null){
+   if(state.Length<=13)throw new System.IO.InvalidDataException("Bounds observation storage unavailable");
+   var value=frame["bounds"]!.AsObject();if(value["space"]?.GetValue<string>()!="rgba8-pixels-v1")throw new System.IO.InvalidDataException("Pixel bounds space required");var rectangles=value["rectangles"]?.AsArray()??throw new System.IO.InvalidDataException("Pixel rectangles required");if(rectangles.Count>64||rectangles.Count%4!=0)throw new System.IO.InvalidDataException("Bounds count budget");var safe=new System.Text.Json.Nodes.JsonArray();
+   for(int i=0;i<rectangles.Count;i+=4){int x=rectangles[i]?.GetValue<int>()??-1,y=rectangles[i+1]?.GetValue<int>()??-1,w=rectangles[i+2]?.GetValue<int>()??0,h=rectangles[i+3]?.GetValue<int>()??0;if(x<0||y<0||w<1||h<1||(long)x+w>width||(long)y+h>height)throw new System.IO.InvalidDataException("Bounds exceed actual pixels");safe.Add(x);safe.Add(y);safe.Add(w);safe.Add(h);}
+   bounds=new(){["space"]="rgba8-pixels-v1",["rectangles"]=safe};
+  }
+  if(runtime==prior&&number==(long)state[4]&&bounds?.ToJsonString()!=(state.Length>13?state[13]as System.Text.Json.Nodes.JsonObject:null)?.ToJsonString())throw new System.IO.InvalidDataException("Bounds changed without a new frame");
   lock(records){if(((string[])record[0])[1]!="running")return Unavailable("execution-not-running");}
   if(prior.Length>0&&prior!=runtime){if(retired.Count>=16)throw new System.IO.InvalidDataException("Surface owner replacement budget");retired.Add(prior);}state[3]=runtime;state[4]=number;state[5]=sha;state[6]=width;state[7]=height;state[10]=resize?.DeepClone()!;
   if(state.Length>12)state[12]=rate?.DeepClone()!;
-  var result=new System.Text.Json.Nodes.JsonObject();if(rate is not null)result["renderRate"]=rate.DeepClone();if(resize is not null)result["resize"]=resize.DeepClone();foreach(string field in new[]{"available","runtime","revision","cursor","format","encoding","width","height","sha256","unchanged","pixels"})if(frame[field]is not null)result[field]=frame[field]!.DeepClone();return result.ToJsonString();
+  if(state.Length>13)state[13]=bounds?.DeepClone()!;
+  var result=new System.Text.Json.Nodes.JsonObject();if(bounds is not null)result["bounds"]=bounds.DeepClone();if(rate is not null)result["renderRate"]=rate.DeepClone();if(resize is not null)result["resize"]=resize.DeepClone();foreach(string field in new[]{"available","runtime","revision","cursor","format","encoding","width","height","sha256","unchanged","pixels"})if(frame[field]is not null)result[field]=frame[field]!.DeepClone();return result.ToJsonString();
  }catch(Exception error)when(error is System.IO.InvalidDataException or System.IO.IOException or System.OperationCanceledException or System.Text.Json.JsonException or System.FormatException or System.OverflowException or System.InvalidOperationException or System.ArgumentException or System.Text.DecoderFallbackException){return Unavailable("surface-unavailable");}
 }

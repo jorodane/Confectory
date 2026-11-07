@@ -1,0 +1,1 @@
+function Confectory.RunSurface::PresentBounds (string owner,int width,int height,string rgba,int[] rectangles) -> long { description "Publish RGBA8 and up to16 visible pixel-space rectangles atomically. Flat xywh coordinates describe producer-reported visible element bounds."; provide Confectory.RunSurface::PresentBounds with Confectory.RunSurface::PresentBoundsBody; }

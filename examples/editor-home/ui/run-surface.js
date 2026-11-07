@@ -6,6 +6,8 @@ export async function decodeRunSurface(packet,prior,handle){
  const resize=decodeRunSize(packet.resize,prior?.handle===handle&&prior.runtime===runtime?prior.resize:null,width,height);
  const same=prior?.handle===handle&&prior.runtime===runtime;
  const renderRate=decodeRunRate(packet.renderRate,same?prior.renderRate:null,revision);
+ const bounds=decodeRunBounds(packet.bounds,width,height);
+ if(same&&revision===prior.revision&&JSON.stringify(bounds)!==JSON.stringify(prior.bounds))throw Error('bounds_changed');
  if(same&&BigInt(prior.revision)>BigInt(revision))throw Error('surface_stale');
  if(unchanged){if(!same||prior.cursor!==cursor||prior.width!==width||prior.height!==height||prior.sha256!==sha256||packet.pixels!==undefined)throw Error('surface_unobserved');return JSON.stringify(resize)===JSON.stringify(prior.resize)&&JSON.stringify(renderRate)===JSON.stringify(prior.renderRate)?prior:Object.freeze({...prior,resize,renderRate});}
  if(typeof packet.pixels!=='string'||packet.pixels.length>1398102||! /^[A-Za-z0-9_-]+$/.test(packet.pixels))throw Error('surface_invalid');
@@ -13,7 +15,15 @@ export async function decodeRunSurface(packet,prior,handle){
  if(pixels.length!==width*height*4||btoa(raw).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'')!==packet.pixels)throw Error('surface_invalid');
  const actual=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',pixels)),b=>b.toString(16).padStart(2,'0')).join('');
  if(actual!==sha256||same&&revision===prior.revision&&(sha256!==prior.sha256||width!==prior.width||height!==prior.height))throw Error('surface_hash');
- return Object.freeze({handle,runtime,revision,cursor,width,height,sha256,pixels,resize,renderRate});
+ return Object.freeze({handle,runtime,revision,cursor,width,height,sha256,pixels,resize,renderRate,bounds});
+}
+
+export function decodeRunBounds(value,width,height){
+ if(value===undefined)return null;
+ if(!value||typeof value!=='object'||Array.isArray(value)||value.space!=='rgba8-pixels-v1'||!Array.isArray(value.rectangles)||value.rectangles.length>64||value.rectangles.length%4!==0)throw Error('bounds_invalid');
+ const rectangles=[...value.rectangles];
+ for(let i=0;i<rectangles.length;i+=4){const[x,y,w,h]=rectangles.slice(i,i+4);if(![x,y,w,h].every(Number.isSafeInteger)||x<0||y<0||w<1||h<1||x+w>width||y+h>height)throw Error('bounds_invalid');}
+ return Object.freeze({space:value.space,rectangles:Object.freeze(rectangles)});
 }
 
 // Successful producer publications over the actual 900..999 ms bucket window.

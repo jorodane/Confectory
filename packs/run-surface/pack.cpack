@@ -2,6 +2,7 @@ pack Confectory.RunSurface version "0.1.0" { standalone false;
 dependency Confectory.FrameControl version "0.1.0";
 element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
 element Present function "Present.celem"; element PresentBody implementation "PresentBody.celem";
+element PresentBounds function "PresentBounds.celem";element PresentBoundsBody implementation "PresentBoundsBody.celem";
 element Close function "Close.celem"; element CloseBody implementation "CloseBody.celem";
 element ConfigureSize function "ConfigureSize.celem";element ConfigureSizeBody implementation "ConfigureSizeBody.celem";
 element RequestedSize function "RequestedSize.celem";element RequestedSizeBody implementation "RequestedSizeBody.celem";

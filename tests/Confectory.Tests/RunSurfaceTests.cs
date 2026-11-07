@@ -2,6 +2,26 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RunSurfaceTests : TestCase
 {
+ public void test_annotated_surface_bounds_atomic_copy_legacy_and_packet_budget()
+ {
+  foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
+  f.Main("");f.Add("App","implementation","MainBody","""
+  implementation App::MainBody for App::Main () -> int {
+  import Confectory.RunSurface::Open as Open (string) -> string;import Confectory.RunSurface::Present as Present (string,int,int,string) -> long;import Confectory.RunSurface::PresentBounds as PresentBounds (string,int,int,string,int[]) -> long;import Confectory.RunSurface::ConfigureSize as ConfigureSize (string,int,int) -> void;import Confectory.RunSurface::Close as Close (string) -> void;import Confectory.FrameControl::Open as OpenFrame () -> string;import Confectory.FrameControl::Close as CloseFrame (string) -> void;body common "main.csbody";}
+  """);f.Body("App","main.csbody","""
+  void Check(bool value,string label){if(!value)throw new Exception(label);}bool Denied(Action action){try{action();return false;}catch(ArgumentException){return true;}}
+  string pipe="confectory-bounds-"+Guid.NewGuid().ToString("N"),secret=new string('a',64),handle=new string('b',32);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_PIPE",pipe);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_SECRET",secret);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_HANDLE",handle);
+  string frame=calls.OpenFrame.Invoke(),owner=calls.Open.Invoke(frame);
+  System.Text.Json.Nodes.JsonObject Read(string operation,string runtime="",string cursor=""){
+   using var deadline=new System.Threading.CancellationTokenSource(3000);using var stream=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);stream.ConnectAsync(deadline.Token).GetAwaiter().GetResult();var query=new System.Text.Json.Nodes.JsonObject{["version"]=1,["handle"]=handle,["secret"]=secret,["request"]=Guid.NewGuid().ToString("N"),["operation"]=operation,["runtime"]=runtime,["cursor"]=cursor,["sequence"]=0};byte[] bytes=System.Text.Encoding.UTF8.GetBytes(query.ToJsonString()),header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header,bytes.Length);stream.WriteAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();stream.WriteAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();stream.ReadExactlyAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();int length=System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header);Check(length<=1400000,"existing packet budget unchanged");bytes=new byte[length];stream.ReadExactlyAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();return System.Text.Json.Nodes.JsonNode.Parse(bytes)!.AsObject();
+  }
+  try{
+   string runtime=Read("observe")["runtime"]!.ToString(),image=Convert.ToBase64String(new byte[512*512*4]);calls.ConfigureSize.Invoke(owner,512,512);var rectangles=new int[64];for(int i=0;i<64;i+=4){rectangles[i]=511;rectangles[i+1]=511;rectangles[i+2]=1;rectangles[i+3]=1;}Check(calls.PresentBounds.Invoke(owner,512,512,image,rectangles)==1,"one atomic publication");Array.Fill(rectangles,0);var first=Read("surface",runtime);Check(first["bounds"]!["rectangles"]![0]!.GetValue<int>()==511&&first["bounds"]!["rectangles"]!.AsArray().Count==64,"bounds copied and maximum pixels/bounds/rate/resize fit original packet");string cursor=first["cursor"]!.ToString();
+   foreach(var bad in new[]{new int[]{-1,0,1,1},new int[]{0,0,513,1},new int[]{0,0,1},new int[68],new int[]{int.MaxValue,0,int.MaxValue,1}})Check(Denied(()=>calls.PresentBounds.Invoke(owner,512,512,image,bad)),"invalid bounds refused before publish");Check(Denied(()=>calls.PresentBounds.Invoke(owner,512,512,"AAAA",new[]{0,0,1,1})),"invalid pixels refused before publish");var same=Read("surface",runtime,cursor);Check(same["unchanged"]!.GetValue<bool>()&&same["revision"]!.ToString()=="1"&&same["bounds"]!["rectangles"]![0]!.GetValue<int>()==511,"failed writes preserve revision/pixels/bounds");
+   Check(calls.Present.Invoke(owner,512,512,image)==2,"legacy ABI retained");Check(Read("surface",runtime)["bounds"]is null,"new legacy frame opts out explicitly");Check(calls.PresentBounds.Invoke(owner,512,512,image,Array.Empty<int>())==3&&Read("surface",runtime)["bounds"]!["rectangles"]!.AsArray().Count==0,"empty visible scene is valid");
+  }finally{calls.Close.Invoke(owner);calls.CloseFrame.Invoke(frame);}Console.WriteLine("Annotated bounds atomic copy/legacy/shape/maximum authenticated packet PASS");return 0;
+  """);f.Sync();Output(Build(),"Annotated bounds atomic copy/legacy/shape/maximum authenticated packet PASS");
+ }
  public void test_software_rate_counts_publications_not_reads_or_control_frames()
  {
   foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
