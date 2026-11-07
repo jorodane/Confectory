@@ -35,7 +35,8 @@ def restart(index,project=None):
  else:expect(b.locator('[data-resource-status]')).to_be_visible();f.idle()
 def payloads(names,raw=None):return[dict(name=name,mimeType='text/plain',buffer=raw if raw is not None else ('generated '+name+'\r\n').encode())for name in names]
 def menu():
- b.locator('[data-new]').click()
+ # Complete setup input blur/private state before requesting a native chooser.
+ f.page.evaluate('()=>document.activeElement?.blur()');f.pending();f.idle();expect(b.locator('[data-new]')).to_be_enabled();b.locator('[data-new]').click()
  with f.page.expect_file_chooser()as chooser:f.page.locator('.context-menu').get_by_role('button',name='자료 추가',exact=True).click()
  return chooser.value
 def choose(names,raw=None):menu().set_files(payloads(names,raw))
