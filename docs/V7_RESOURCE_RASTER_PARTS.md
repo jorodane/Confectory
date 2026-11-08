@@ -61,3 +61,5 @@ cold 읽기 실패가 같은 원인이라고 추정하지 않는다. 최종 통�
 [최종 신규 검증·지속 보관·실기기 한계](VALIDATION_V666_RESOURCE_RASTER_PARTS.md)를 따른다.
 
 후속 큰 BMP는 [동일 조각/기존 BMP 형식 보존](V7_RESOURCE_BMP_PARTS.md)으로 연결한다. 위 PNG/JPEG 당시 범위와 검증은 역사적 근거이며 큰 다른 형식의 완료로 확대하지 않는다.
+
+큰 정지 WebP도 [같은 조각/기존 WebP 검증의 후속](V7_RESOURCE_WEBP_PARTS.md)으로 연결한다. 위 역사적 PNG/JPEG 당시 검증과 큰 다른 형식의 잔여는 구분한다.

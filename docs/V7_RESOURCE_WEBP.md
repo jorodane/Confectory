@@ -38,3 +38,5 @@ SVG/AVIF/BMP 등 다른 형식은 이 단위의 지원 완료로 표시하지 �
 구분한다. 기존 간헐적 초기화 빈 화면은 원인 미확정 잔여다.
 
 [최종 검증·이전 근거/미실행·보관·한계](VALIDATION_V666_RESOURCE_WEBP.md)를 따른다.
+
+1MiB 초과–4MiB 정지 사본의 후속은 [기존 parser/bitmap 수명을 유지하는 큰 WebP 관찰](V7_RESOURCE_WEBP_PARTS.md)을 따른다.
