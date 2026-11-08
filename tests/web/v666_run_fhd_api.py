@@ -8,6 +8,11 @@ if mode=='faults':
  (p.parent/'Main.csbody').write_text('''string loop=calls.Open.Invoke(),runtime=new string('a',32);int generation=0;var bytes=new byte[1920*1080*4];uint noise=0x1730489Du;for(int i=0;i<bytes.Length;i++){noise^=noise<<13;noise^=noise>>17;noise^=noise<<5;bytes[i]=(byte)noise;}string sha=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant(),encoded=Convert.ToBase64String(bytes).TrimEnd('=').Replace('+','-').Replace('/','_');
  calls.Attach.Invoke(loop,(Func<string,string>)(cursor=>{bool unchanged=cursor==runtime+":1";int part=cursor.StartsWith("part:")?int.Parse(cursor[(cursor.LastIndexOf(':')+1)..]):0;if(part==0&&!unchanged)generation++;int n=unchanged?1:generation;var size=new System.Text.Json.Nodes.JsonObject{["sequence"]=0,["ack"]=0,["command"]="",["width"]=1920,["height"]=1080,["min"]=240,["max"]=1920,["maxPixels"]=2073600};var q=new System.Text.Json.Nodes.JsonObject{["available"]=true,["runtime"]=runtime,["revision"]=n.ToString(),["cursor"]=runtime+":"+n,["format"]="rgba8",["encoding"]=unchanged?"base64url":"base64url-parts-v1",["width"]=1920,["height"]=1080,["sha256"]=sha,["unchanged"]=unchanged,["resize"]=size};if(!unchanged){q["part"]=part;q["parts"]=11;q["pixels"]=encoded.Substring(part*1048576,Math.Min(1048576,encoded.Length-part*1048576));switch(n){case 2:if(part==1)q["runtime"]=new string('b',32);break;case 3:if(part==1){string text=q["pixels"]!.GetValue<string>();q["pixels"]=(text[0]=='A'?"B":"A")+text[1..];}break;case 4:q["parts"]=12;break;case 5:size["maxPixels"]=2073601;break;case 6:q["height"]=1081;break;case 7:q["part"]=1;break;}}return q.ToJsonString();}));try{while(true){System.Threading.Thread.Sleep(5);if(calls.Begin.Invoke(loop)==0)continue;calls.Complete.Invoke(loop);}}finally{calls.Close.Invoke(loop);}''')
 f.before={str(p):p.read_bytes()for m in f.projects for p in m.parent.rglob('*')if p.is_file()};view=None
+mutations=[];native_raw=f.raw
+def traced_raw(body):
+ if body.get('op')=='invoke':mutations.append(dict(endpoint=body.get('endpoint'),operation=body.get('input',{}).get('operation')))
+ return native_raw(body)
+f.raw=traced_raw
 try:
  f.start(0);row=f.run('open',view='d'*32);f.start_run(row);row=f.connected(row);
  if mode=='faults':row=f.control(row,'pause');row=f.wait(row,lambda q:q['control'].get('mode')=='paused'and q['control'].get('pending')==0)
@@ -25,7 +30,17 @@ try:
    assert q['available']and all(q[k]==first[k]for k in['runtime','revision','cursor','sha256','width','height','resize','parts'])and q['part']==i
    raw+=base64.urlsafe_b64decode(q['pixels']+'='*((-len(q['pixels']))%4))
   assert len(raw)==1920*1080*4 and hashlib.sha256(raw).hexdigest()==first['sha256'];return raw
- first=image();raw=complete(first);
+ if mode=='normal':
+  initial=[];commands=len(mutations)
+  for attempt in range(20):
+   first=image()
+   if first.get('available'):break
+   assert first=={'available':False,'reason':'surface-unavailable'}or first=={'available':False,'reason':'no-frame'},first
+   initial.append(dict(attempt=attempt+1,result=first));time.sleep(.05)
+  (f.root/'initial-frame-observations.json').write_text(json.dumps(dict(observations=initial,invokeCountBefore=commands,invokeCountAfter=len(mutations)),indent=2));assert first.get('available'),dict(initial=initial,state=f.run('read',row));assert len(mutations)==commands
+  if initial:f.checked('bounded initial unavailable observation recovery uses reads only, with unchanged command count: '+json.dumps(initial))
+ else:first=image()
+ raw=complete(first);
  if mode=='normal':row=f.run('read',row);row=f.control(row,'pause');row=f.wait(row,lambda q:q['control'].get('mode')=='paused'and q['control'].get('pending')==0);first=image();complete(first)
  saved=first['cursor'];same=image(saved);assert same['available']and same['unchanged']and 'pixels'not in same;f.checked('actual complete1920x1080 output crosses bounded authenticated child parts and unretained native/browser parts with exact overall SHA; same completed cursor remains unchanged')
  if mode=='normal':
