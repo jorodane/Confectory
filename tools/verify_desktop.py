@@ -114,6 +114,7 @@ def main():
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
     parser.add_argument('--reuse-coupled-backend',type=Path,help='Sealed completed backend checks after a UI-only recovery correction; all UI/build/package checks remain fresh')
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
+    parser.add_argument('--reuse-svg',type=Path,help='Sealed identical SVG checks after the package-suite routing correction; builds/packages run fresh')
     parser.add_argument('--reuse-audio',type=Path,help='Sealed identical LF/CRLF audio checks after exact package raw-string parser correction')
     parser.add_argument('--suite',choices=['resource-svg','resource-avif','resource-gif','resource-transfer','resource-bmp','resource-entry','resource-webp','resource-xlsx','resource-docx','resource-description','resource-pdf','resource-office','resource-destination','resource-batch','resource-images','resource-content','resource-multi-deletion','resource-folder-deletion','resource-file-deletion','resource-file-names','resource-folder-names','resource-layout','resource-preview','resource-import','office-finder','office-io-poll','run-bounds','run-rate','startup-transport','office-active-io','run-grid','run-wide','run-auto','run-presets','run-audio','run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
     args = parser.parse_args()
@@ -130,12 +131,18 @@ def main():
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
     harness = work.evidence/'harness'; harness.mkdir()
-    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py','verification_review_reuse.py','verification_audio_reuse.py']:
+    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py','verification_review_reuse.py','verification_audio_reuse.py','verification_svg_reuse.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_svg:
+            if args.suite!='resource-svg':raise ValueError('SVG reuse requires its own suite')
+            from verification_svg_reuse import bind
+            bind(repo,args.reuse_svg,commit,inputs,work)
+        if args.suite=='resource-svg':
+            work.run('resource-svg-suite-routing',[sys.executable,str(repo/'tests/probes/verification_svg_suite.py'),str(repo)],cwd=repo)
         if args.reuse_audio:
             if args.suite!='run-audio':raise ValueError('Audio reuse requires its own suite')
             from verification_audio_reuse import bind
@@ -403,26 +410,6 @@ def main():
                     work.run(label+'-resource-'+name+'-dom',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_dom.py')),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-web-resource-contract',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
                 for name in ['svg','avif','gif','transfer']:
-                    work.run(label+'-resource-'+name+'-ui',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
-
-            elif args.suite=='resource-svg':
-                work.run(label+'-resource-avif-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_avif_copy.py'),str(checkout)],cwd=checkout,env=env)
-                for name in ['avif','gif','images','webp','bmp']:
-                    work.run(label+'-resource-'+name+'-metadata',['node',str(checkout/('tests/web/v666_resource_'+name+'.mjs')),str(checkout)],cwd=checkout,env=env)
-                for name in ['avif','gif','webp','bmp']:
-                    work.run(label+'-resource-'+name+'-dom',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_dom.py')),str(checkout)],cwd=checkout,env=env)
-                work.run(label+'-web-resource-contract',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
-                for name in ['avif','gif','bmp','transfer']:
-                    work.run(label+'-resource-'+name+'-ui',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
-
-            elif args.suite=='resource-svg':
-                work.run(label+'-resource-avif-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_avif_copy.py'),str(checkout)],cwd=checkout,env=env)
-                for name in ['avif','gif','images','webp','bmp']:
-                    work.run(label+'-resource-'+name+'-metadata',['node',str(checkout/('tests/web/v666_resource_'+name+'.mjs')),str(checkout)],cwd=checkout,env=env)
-                for name in ['avif','gif','webp','bmp']:
-                    work.run(label+'-resource-'+name+'-dom',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_dom.py')),str(checkout)],cwd=checkout,env=env)
-                work.run(label+'-web-resource-contract',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
-                for name in ['avif','gif','bmp','transfer']:
                     work.run(label+'-resource-'+name+'-ui',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
 
             elif args.suite=='resource-avif':
@@ -1767,6 +1754,10 @@ def main():
 
         elif args.suite=='startup-transport':
             work.run('packaged-startup-transport',[sys.executable,str(checkout/'tests/web/v666_startup_transport_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+        elif args.suite=='resource-svg':
+            for name in ['svg','avif','transfer']:
+                work.run('packaged-resource-'+name,[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+
         elif args.suite=='resource-avif':
             for name in ['avif','gif','transfer']:
                 work.run('packaged-resource-'+name,[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
@@ -2177,6 +2168,10 @@ def main():
         elif args.suite=='startup-transport':
             work.run('restored-startup-transport',[sys.executable,str(checkout/'tests/web/v666_startup_transport_ui.py'),str(restored/'content'),str(packaged_report),'cold'],cwd=checkout,env=env)
             work.run('restored-office-arrangement',[sys.executable,str(checkout/'tests/web/v666_office_arrangement_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
+        elif args.suite=='resource-svg':
+            for name in ['svg','avif','transfer']:
+                work.run('restored-resource-'+name,[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
+
         elif args.suite=='resource-avif':
             for name in ['avif','gif','transfer']:
                 work.run('restored-resource-'+name,[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
