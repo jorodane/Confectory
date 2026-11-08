@@ -41,3 +41,5 @@ close/reopen·삭제·Home/project/cold·늦은 설명 입력과 별도 작은 B
 다시 열지 않는다. 실제 신원/권한 backend·큰 편집/백업·QHD/4K/FHD+·GPU/물리 장치는
 기존 잔여다. 실제 Windows/WebView2·모바일·DPI/IME·전체 UI·Space/Library 전달은
 자동화/교차 패키징과 구분하며 실제 기기 실행을 주장하지 않는다.
+
+[최종 신규57단계·지속 보관/미실행 기록](VALIDATION_V666_RESOURCE_BMP_PARTS.md)을 따른다.
