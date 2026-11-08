@@ -53,7 +53,7 @@ try:
  f.start(0)
  with sync_playwright()as p:
   expect.set_options(timeout=60000);f.browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);setup();browser()
-  pattern='생성 텍스트 🧪\r\n<script>globalThis.prefixWasExecuted=true</script><img src="https://must-not-load.invalid/prefix">\n'.encode();raw=b'\xef\xbb\xbf'+(pattern*20000)[:2097144];wide=b'\xff\xfe'+('UTF16 한글 🧪\r\n'*90000).encode('utf-16le')[:1048576]
+  pattern='생성 텍스트 🧪\r\n<script>globalThis.prefixWasExecuted=true</script><img src="https://must-not-load.invalid/prefix">\n'.encode();raw=b'\xef\xbb\xbf'+(pattern*20000)[:2097144];boundary=1048575;valid=raw[:boundary].decode('utf-8',errors='ignore').encode();raw=valid+b'x'*(boundary-len(valid))+'한'.encode()+raw[boundary+3:];assert raw[:1048576].decode('utf-8-sig',errors='replace').endswith('\ufffd');wide=b'\xff\xfe'+('UTF16 한글 🧪\r\n'*90000).encode('utf-16le')[:1048576]
   b.locator('[data-new]').click()
   with f.page.expect_file_chooser()as event:f.page.locator('.context-menu').get_by_role('button',name='자료 추가',exact=True).click()
   event.value.set_files([dict(name='큰 원문 🧪.html',mimeType='text/html',buffer=raw),dict(name='큰 UTF16.txt',mimeType='text/plain',buffer=wide),dict(name='큰 binary.bin',mimeType='application/octet-stream',buffer=b'X'*1048577)])
