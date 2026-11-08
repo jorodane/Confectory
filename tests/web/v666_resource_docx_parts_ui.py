@@ -107,10 +107,13 @@ def restart(index,project=None):
  f.start(index);setup();b=f.page.locator('.window[data-key^="browser:project:"]').last
  if not b.count():browser()
  else:f.idle()
+def accumulated_catalog():
+ if '--accumulated-catalog'not in sys.argv:return
+ filler=bytes([151])*4194304;b.locator('[data-resource-files]').set_input_files(dict(name='other preserved4MiB.bin',mimeType='application/octet-stream',buffer=filler));f.idle();expect(b.locator('[data-new]')).to_be_enabled();saved=json.loads(store.read_text());assert saved['version']==2 and sum(x['size']for x in saved['items'])>4194304;row=next(x for x in saved['items']if x['name']=='other preserved4MiB.bin');assert row['hash']==hashlib.sha256(filler).hexdigest();f.checked('actual Office edit/backup/private recovery uses promoted accumulated catalog with exact separate4MiB original; all immutable catalog bytes remain part of every subsequent untouched assertion')
 try:
  f.start(0)
  with sync_playwright()as p:
-  expect.set_options(timeout=60000);f.browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);setup();browser();b.locator('[data-resource-files]').set_input_files(dict(name='generated.docx',mimeType=mime,buffer=raw));f.idle();expect(b.locator('[data-new]')).to_be_enabled();file=api('load')['items'][0]['id'];baseline=store.read_bytes();w=opened();expect(w.locator('.resource-preview')).to_contain_text('original 🙂 document')
+  expect.set_options(timeout=60000);f.browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);setup();browser();b.locator('[data-resource-files]').set_input_files(dict(name='generated.docx',mimeType=mime,buffer=raw));f.idle();expect(b.locator('[data-new]')).to_be_enabled();accumulated_catalog();file=api('load')['items'][0]['id'];baseline=store.read_bytes();w=opened();expect(w.locator('.resource-preview')).to_contain_text('original 🙂 document')
   if mode=='baseline':
    expect(w.locator('[data-resource-content-edit]')).to_have_count(0);assert read()==raw;untouched();f.checked('baseline published3cf6a825 actual2MiB DOCX has only readonly preview and no content editor; original/project copy preserved');raise SystemExit(0)
   edit(w);field(w).fill('cancel <literal>');private_text('cancel <literal>');w.locator('[data-close]').first.click();dialog=f.page.locator('.modal[aria-label="저장하지 않은 변경"]');expect(dialog).to_be_visible();dialog.locator('[data-keep]').click();expect(field(w)).to_have_value('cancel <literal>');discard(w);assert read()==raw;untouched();f.checked('original paragraph/table editor and protected-field refusal; private text plus close Keep/cancel preserve exact imported ZIP and C# originals')

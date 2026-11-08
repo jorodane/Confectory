@@ -92,3 +92,5 @@ maximum4MiB, full-copy/part SHA, import/display basis and final dependencies.
 It does not grant an arbitrary path or write permission. ZIP/XML preview budgets
 remain unchanged; archive editing and content/current/backup stay1MiB.
 See docs/V7_RESOURCE_OFFICE_PARTS.md for exact paired-reader and lifecycle limits.
+
+Explicit accumulated imports now retain up to8MiB of original copies (64 files), while each file and selected import remain4MiB. Only an explicit import crossing4MiB promotes the same owned catalog to version2; v1 reads/writes stay unchanged, and v2 is never silently downgraded after deletion. The catalog snapshot is bounded12MiB within the unchanged16MiB atomic CommitPlan. Older readers reject v2 without rewriting it. Existing immutable import IDs/receipts, layout/content/deletion CAS and source ownership remain required.
