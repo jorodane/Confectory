@@ -63,7 +63,7 @@ lock(owner){
   if(value?["pending"]?["action"]?.ToString()=="save-content")value["pending"]!["input"]!.AsObject().Remove("data");
   var draftReply=new System.Text.Json.Nodes.JsonObject{["project"]=project,["id"]=id,["revision"]=observed[2]};if(operation=="draft-load"){draftReply["value"]=value;if(value?["encoding"]?.ToString()is ("docx-parts-v1" or "xlsx-parts-v1")){byte[] bytes=Convert.FromBase64String(Text(value["data"]).Replace('-','+').Replace('_','/'));draftReply["transfer"]=new System.Text.Json.Nodes.JsonObject{["encoding"]=Text(value["encoding"])=="xlsx-parts-v1"?"base64url-xlsx-draft-parts-v1":"base64url-docx-draft-parts-v1",["partBytes"]=1048576,["total"]=bytes.Length,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()};value.AsObject().Remove("data");}}return FinishDraft(draftReply.ToJsonString());
  }
- if(operation is "read-file" or "read-file-part" or "read" or "preview-text" or "preview-image-part" or "preview-pdf-part" or "preview-office-part")return calls.Layout.Invoke(active[1],project,operation,input.ToJsonString());
+ if(operation is "locate" or "read-file" or "read-file-part" or "read" or "preview-text" or "preview-image-part" or "preview-pdf-part" or "preview-office-part")return calls.Layout.Invoke(active[1],project,operation,input.ToJsonString());
  if(operation.StartsWith("layout-",StringComparison.Ordinal))return calls.Layout.Invoke(active[1],project,operation.Substring(7),input.ToJsonString());
  return calls.Request.Invoke(active[1],project,operation,input.ToJsonString());
 }

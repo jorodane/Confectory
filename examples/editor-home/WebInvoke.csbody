@@ -2,6 +2,10 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="readProjectResourceLocation"){
+ if(args.Count!=4||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "hash" or "revision")))throw new UnauthorizedAccessException("resource_location_fields");
+ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"locate",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
+}
 if(endpoint is "readProjectResourceFile" or "readProjectResourceFilePart"){
  bool part=endpoint=="readProjectResourceFilePart";if(args.Count!=(part?6:3)||System.Linq.Enumerable.Any(args,p=>!System.Linq.Enumerable.Contains(part?new[]{"project","id","hash","generation","revision","part"}:new[]{"project","id","hash"},p.Key)))throw new UnauthorizedAccessException("resource_file_read_fields");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,part?"read-file-part":"read-file",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
