@@ -15,19 +15,40 @@ def traced_read(response):
  except Exception:pass
 f.observe=traced_read
 busy_events=[]
+busy_pages=0
+busy_recoveries=[]
 if '--busy-reads'in sys.argv:
  def busy_setup():
+  global busy_pages
+  busy_pages+=1;limit=3 if mode=='lifecycle'and busy_pages==4 else 1
   page=f.browser.new_page(viewport={'width':1280,'height':900});page.on('pageerror',lambda e:f.errors.append(str(e)));page.on('response',f.observe);page.route('**/*',f.route)
-  page.add_init_script("""(()=>{const base=fetch,blocked=new Set();globalThis.__contentReadAttempts=[];globalThis.__contentReadBusy=[];fetch=async(...args)=>{let q;try{q=JSON.parse(args[1]?.body||'null')}catch{}if(q?.op==='observe'&&['readResourceContentDraft','readResourceContentPending'].includes(q.endpoint)){const row={endpoint:q.endpoint,input:q.input};__contentReadAttempts.push(row);if(!blocked.has(q.endpoint)){blocked.add(q.endpoint);__contentReadBusy.push(row);return new Response(JSON.stringify({ok:false,error:{code:'busy'}}),{status:200,headers:{'Content-Type':'application/json'}});}}return base(...args);};})();""")
+  page.add_init_script("""(()=>{const base=fetch,counts=new Map();globalThis.__contentReadAttempts=[];globalThis.__contentReadBusy=[];globalThis.__contentReadOutcomes=[];fetch=async(...args)=>{let q;try{q=JSON.parse(args[1]?.body||'null')}catch{}const tracked=q?.op==='observe'&&['readResourceContentDraft','readResourceContentPending'].includes(q.endpoint),row={endpoint:q?.endpoint,input:q?.input};let response;if(tracked){__contentReadAttempts.push(row);const count=counts.get(q.endpoint)||0;counts.set(q.endpoint,count+1);if(count<(q.endpoint==='readResourceContentDraft'?LIMIT:1)){__contentReadBusy.push(row);response=new Response(JSON.stringify({ok:false,error:{code:'busy'}}),{status:200,headers:{'Content-Type':'application/json'}});}}response=response||await base(...args);if(tracked){const reply=await response.clone().json();__contentReadOutcomes.push({...row,ok:reply.ok,code:reply.error?.code||null});}return response;};})();""".replace('LIMIT',str(limit)))
   f.goto_editor(page,f.url);return page
  f.setup=busy_setup
 
 def capture_busy():
  if '--busy-reads'not in sys.argv:return
- data=f.page.evaluate('()=>({attempts:__contentReadAttempts,busy:__contentReadBusy})')
+ data=f.page.evaluate('()=>({attempts:__contentReadAttempts,busy:__contentReadBusy,outcomes:__contentReadOutcomes})')
  for row in data['busy']:
   matches=[q for q in data['attempts']if q==row];assert len(matches)>=2,(row,data)
  busy_events.append(data);(f.case/'busy-read-events.json').write_text(json.dumps(busy_events,indent=2))
+def recover_busy_read():
+ if '--busy-reads'not in sys.argv:return
+ w=viewer(id)
+ if not w.count():return
+ f.page.wait_for_function("id=>{const w=document.querySelector('.window[data-key=\"resource-file:'+id+'\"]');return w?.querySelector('[data-resource-content-edit],[data-resource-content-save],[data-resource-preview-retry]')}",arg=id)
+ retry=w.locator('[data-resource-preview-retry]')
+ if not retry.count():return
+ outcomes=f.page.evaluate('()=>__contentReadOutcomes');last=outcomes[-3:]
+ assert len(last)==3 and all(row['code']=='busy'and row['endpoint']==last[0]['endpoint']and row['input']==last[0]['input']for row in last),outcomes
+ assert last[0]['input']==dict(project=f.state()['projectId'],id=id),last
+ snapshots={str(p.relative_to(f.project)):p.read_bytes()for folder in ['resource-content','resources.v1.json']for p in ([(f.project/'.confectory'/folder)]if (f.project/'.confectory'/folder).is_file()else(f.project/'.confectory'/folder).rglob('*'))if p.is_file()}
+ private={str(p.relative_to(f.storage)):p.read_bytes()for p in (f.storage/'resource-content-drafts').rglob('*.json')}
+ retry.click();expect(w.locator('[data-resource-content-edit],[data-resource-content-save]')).to_be_enabled()
+ for name,raw in snapshots.items():assert(f.project/name).read_bytes()==raw,name
+ for name,raw in private.items():assert(f.storage/name).read_bytes()==raw,name
+ busy_recoveries.append(dict(outcomes=last,explicitRetry=True,resourceAndPrivateBytesUnchanged=True));(f.case/'busy-exhaustion-recovery.json').write_text(json.dumps(busy_recoveries,indent=2));f.checked('three same-target busy reads stop at the bound; explicit existing Retry restores input without content write, private intent rewrite or mutation replay')
+
 mode=sys.argv[3];store=f.project/'.confectory/resources.v1.json';b=None
 
 def api(action,**args):return f.invoke('projectResourceLayout',dict(action=action,project=f.state()['projectId'],**args))['result']['result']
@@ -74,6 +95,7 @@ def restart(i,project=None):
  if project:f.env['CONFECTORY_WEB_PROJECT']=str(project/'project.cproj')
  f.start(i);f.page=f.setup();f.idle();b=f.page.locator('.window[data-key^="browser:project:"]').last
  if not b.count():browser()
+ recover_busy_read()
 
 def hold():
  f.page.evaluate("""()=>{const base=fetch;globalThis.__contentHeld=false;let wanted=null,armed=true;fetch=async(...args)=>{let request;try{request=JSON.parse(args[1]?.body||'null')}catch{}if(armed&&request?.op==='invoke'&&request.endpoint==='projectResourceLayout'&&['save-content','restore-content'].includes(request.input?.action))wanted=request.requestId;const response=await base(...args);if(!wanted||!armed||request?.op!=='update')return response;let body;try{body=await response.clone().json()}catch{return response}const row=body.results?.find(r=>r.requestId===wanted);if(!row?.ok)return response;armed=false;globalThis.__contentHeld=true;return new Promise(resolve=>{globalThis.__releaseContent=()=>{fetch=base;delete row.result;row.ok=false;row.error={code:'owned_lost_content_reply'};resolve(new Response(JSON.stringify(body),{status:200,headers:{'Content-Type':'application/json'}}));};});};}""")
@@ -100,9 +122,13 @@ try:
    edit(w,'프로젝트 왕복 입력');persisted(id,'프로젝트 왕복 입력');other=f.case/'same namespace other project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory','.build'));restart(5,other);expect(viewer(id)).to_have_count(0);assert api('load')['items']==[];restart(6,f.project);w=viewer(id);expect(w.locator('[aria-label="파일 내용"]')).to_have_value('프로젝트 왕복 입력');assert native_text(id)==peer;exact();f.checked('another real project with the same namespace never adopts private text input; returning restores the original project draft and unchanged current copy')
   else:raise AssertionError(mode)
   if '--busy-reads'in sys.argv:
+   assert mode!='lifecycle'or busy_recoveries,'forced three-busy refusal and explicit Retry must execute'
    capture_busy();assert any(row['endpoint']=='readResourceContentDraft'for page in busy_events for row in page['busy']);assert mode!='lifecycle'or any(row['endpoint']=='readResourceContentPending'for page in busy_events for row in page['busy']);f.checked('controlled first busy private-draft/pending observations retry the exact same target and restore input/uncertain command; no mutation replay or automatic rebase')
   f.page.screenshot(path=str(f.case/('resource-content-'+mode+'.png')));f.pending();exact();f.browser.close()
 except Exception as error:
+ if '--busy-reads'in sys.argv:
+  try:(f.case/'failed-read-outcomes.json').write_text(json.dumps(f.page.evaluate('()=>__contentReadOutcomes'),indent=2))
+  except Exception:pass
  (f.case/'failure.json').write_text(json.dumps(dict(error=repr(error),traceback=traceback.format_exc()),ensure_ascii=False));raise
 finally:
  f.stop();(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False,indent=2))

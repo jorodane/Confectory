@@ -406,6 +406,7 @@ def main():
                 work.run(label+'-source-recovery-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'late','--out-root'],cwd=checkout,env=env)
                 if label=='lf':work.run('lf-source-conflict-ui',[sys.executable,str(checkout/'tests/web/v666_source_recovery_ui.py'),str(checkout),str(report),'conflict','--out-root'],cwd=checkout,env=env)
             elif args.suite=='resource-raster':
+                work.run(label+'-resource-content-regression',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(checkout),str(report),'lifecycle'if label=='lf'else'normal','--busy-reads'],cwd=checkout,env=env)
                 work.run(label+'-resource-raster-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_raster_parts_copy.py'),str(checkout)],cwd=checkout,env=env)
                 for name in ['image_parts','raster_budget','images','webp','bmp','gif','avif','text_prefix']:
                     work.run(label+'-resource-'+name+'-unit',['node',str(checkout/('tests/web/v666_resource_'+name+'.mjs')),str(checkout)],cwd=checkout,env=env)
@@ -419,7 +420,6 @@ def main():
                         work.run('lf-resource-'+name+'-regression',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'],cwd=checkout,env=env)
                 else:
                     work.run('crlf-resource-description-regression',[sys.executable,str(checkout/'tests/web/v666_resource_description_ui.py'),str(checkout),str(report),'lifecycle'],cwd=checkout,env=env)
-                work.run(label+'-resource-content-regression',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle','--busy-reads'],cwd=checkout,env=env)
 
             elif args.suite=='resource-prefix':
                 work.run(label+'-resource-prefix-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_text_prefix_copy.py'),str(checkout)],cwd=checkout,env=env)
