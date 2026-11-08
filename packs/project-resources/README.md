@@ -63,3 +63,14 @@ The editor uses a separate observation endpoint and validates those exact prefix
 bytes before literal, read-only text rendering. Old metadata-only headers remain
 supported. Full large content editing/backups and rich formats remain bounded as
 before. See docs/V7_RESOURCE_TEXT_PREFIX.md.
+
+Large stored PNG/JPEG copies additionally advertise an optional `imagePreview`
+capability. It is separate from the text `preview` descriptor, so prior clients
+keep their metadata-only fallback. `preview-image-part` accepts only the pinned
+ID/full hash/import generation/display revision plus integer part index. Each
+read verifies the whole original and final dependencies, returning at most1MiB
+with exact offset/part/length/SHA. The editor verifies every part and whole SHA
+before the existing decoder/Blob URL. Stored v1 bytes/receipts, file/total4MiB,
+other encoded format budgets, dimensions/pixels/lease and all writer contracts
+are unchanged. No source or arbitrary path is read or rewritten by the request.
+See docs/V7_RESOURCE_RASTER_PARTS.md for compatibility and verification limits.

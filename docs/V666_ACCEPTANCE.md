@@ -52,7 +52,7 @@ FrameControl 완료나 브라우저 조회·재그리기와 구분하며 GPU/모
 현재 파일당4MiB·전체4MiB/64개와 카테고리64개 경계다. 1MiB 초과 사본의 보관·제한된 metadata 읽기와 기존 내용 편집 경계는 [단일 큰 자료](V6_RESOURCE_LARGE.md)와 [최종 검증](VALIDATION_V666_RESOURCE_LARGE.md)을 따른다. [한 번에 여러 File 보관](V6_RESOURCE_BATCH.md)은 초기 선택 전체1MiB/64개를 한 원자 저장에 연결했고 현재 [선택 합계4MiB](V6_RESOURCE_TRANSFER.md)로 확장했으며 [최종51단계(전부 신규)](VALIDATION_V666_RESOURCE_BATCH.md)로 검증했다. [카테고리 첫 가져오기와 명시 폴더 File 드롭](V6_RESOURCE_DESTINATION.md)도 한 파일/배치 거래로 연결했고 [최종63단계(신규60·재사용3)](VALIDATION_V666_RESOURCE_DESTINATION.md)로 확인했다.
 카테고리의 인라인 이름 변경·미확정/실패 입력 복원은 [별도 이름 metadata](V6_RESOURCE_FOLDER_NAMES.md)에 연결하고 [최종45단계(신규43·재사용2)](VALIDATION_V666_RESOURCE_FOLDER_NAMES.md)로 확인했다. 기존 topology/bytes·이전 v1 reader는 보존한다.
 파일의 인라인 이름 변경과 열린 readonly 미리보기의 현재 이름은 [원본 사본을 보존하는 별도 metadata](V6_RESOURCE_FILE_NAMES.md)에 연결하고 [최종51단계(신규39·재사용12)](VALIDATION_V666_RESOURCE_FILE_NAMES.md)로 확인했다.
-자료 텍스트·코드 내용 편집과 직전 저장 복원은 [원본 사본 보존·개인 입력 복구](V6_RESOURCE_CONTENT.md) 단위로 연결한다. [최종58단계(신규29·재사용29)](VALIDATION_V666_RESOURCE_CONTENT.md)로 LF/CRLF·실패/충돌/응답 유실·재시작·새 패키지/전체 복원과 수명 보관을 확인했다. 자료의 파일·카테고리 설명 및 이름+설명 검색은 [원본 metadata 흐름](V7_RESOURCE_DESCRIPTIONS.md)과 [신규57단계 검증](VALIDATION_V666_RESOURCE_DESCRIPTIONS.md)에 연결했다. 1MiB 이하 DOCX 문단·표 텍스트 편집/저장과 직전 내용 복원은 [원본 문단 편집 경계](V7_RESOURCE_DOCX.md) 및 [최종 검증](VALIDATION_V666_RESOURCE_DOCX.md)에 연결했다. 1MiB 이하 XLSX 셀 값 편집·워크시트 선택·저장/정확 복원은 [원본 셀 편집 경계](V7_RESOURCE_XLSX.md)와 [최종77단계(전부 신규)](VALIDATION_V666_RESOURCE_XLSX.md)에 연결했다. 선택 합계 4MiB는 [제한된 분할 전송](V6_RESOURCE_TRANSFER.md)으로 연결한다. 1MiB 초과 사본의 보관은 위 큰 자료 경계를 따르며 큰 내용 읽기·다른 rich preview는 별도 잔여다.
+자료 텍스트·코드 내용 편집과 직전 저장 복원은 [원본 사본 보존·개인 입력 복구](V6_RESOURCE_CONTENT.md) 단위로 연결한다. [최종58단계(신규29·재사용29)](VALIDATION_V666_RESOURCE_CONTENT.md)로 LF/CRLF·실패/충돌/응답 유실·재시작·새 패키지/전체 복원과 수명 보관을 확인했다. 자료의 파일·카테고리 설명 및 이름+설명 검색은 [원본 metadata 흐름](V7_RESOURCE_DESCRIPTIONS.md)과 [신규57단계 검증](VALIDATION_V666_RESOURCE_DESCRIPTIONS.md)에 연결했다. 1MiB 이하 DOCX 문단·표 텍스트 편집/저장과 직전 내용 복원은 [원본 문단 편집 경계](V7_RESOURCE_DOCX.md) 및 [최종 검증](VALIDATION_V666_RESOURCE_DOCX.md)에 연결했다. 1MiB 이하 XLSX 셀 값 편집·워크시트 선택·저장/정확 복원은 [원본 셀 편집 경계](V7_RESOURCE_XLSX.md)와 [최종77단계(전부 신규)](VALIDATION_V666_RESOURCE_XLSX.md)에 연결했다. 선택 합계 4MiB는 [제한된 분할 전송](V6_RESOURCE_TRANSFER.md)으로 연결한다. 1MiB 초과 사본의 보관은 위 큰 자료 경계를 따르며 큰 텍스트는 [첫1MiB 관찰](V7_RESOURCE_TEXT_PREFIX.md), 큰 PNG/JPEG는 [전체 raster 관찰](V7_RESOURCE_RASTER_PARTS.md)을 따르며 다른 큰 형식은 별도 잔여다.
 기존 텍스트/코드 읽기 전용 미리보기는 [완료한 V7 경계](V7_RESOURCE_TEXT_PREVIEW.md)를 따르며 다시 미구현으로 넣지 않는다. [정지 PNG/JPEG 미리보기](V7_RESOURCE_IMAGES.md)도 원본 contain 패널에 연결하고 [최종43단계(신규41·재사용2)](VALIDATION_V666_RESOURCE_IMAGES.md)로 실제 픽셀·읽기 실패/재시도·닫기/재시작·프로젝트 격리·새 패키지/전체 복원을 확인했다. DOCX·XLSX·PPTX·ODT의 제한된 내용/값 표시는 [Office 미리보기](V7_RESOURCE_OFFICE.md)와 [최종 검증](VALIDATION_V666_RESOURCE_OFFICE.md)에 연결했다. 1MiB 이하 PDF의 페이지·배율·실제 canvas/Worker 표시는 [PDF 단위](V7_RESOURCE_PDF.md)와 [신규52단계](VALIDATION_V666_RESOURCE_PDF.md)에 연결했다. Office 빠른 접기/펼치기 복원도 native 응답 없이 확인했다. DOCX 문단 편집의 현재 지원 경계는 위 후속을 따른다. XLSX 셀 값 편집은 [현재 지원](V7_RESOURCE_XLSX.md)과 [최종 검증](VALIDATION_V666_RESOURCE_XLSX.md)을 따른다. 1MiB 이하 정지 WebP의 손실/무손실·alpha 표시와 디코드/bitmap 수명은 [WebP 지원 경계](V7_RESOURCE_WEBP.md)와 [신규65단계](VALIDATION_V666_RESOURCE_WEBP.md)에 연결했다. 1MiB 이하 24/32비트 비압축 BMP의 실제 방향/행 padding·pixel과 사전 디코드 수명은 [BMP 경계](V7_RESOURCE_BMP.md)와 [최종 신규49단계](VALIDATION_V666_RESOURCE_BMP.md)로 연결했다. 1MiB 이하 GIF의 정지/제한 애니메이션·투명도·실제 compositor pixel·프레임 가중 lease는 [GIF 경계](V7_RESOURCE_GIF.md)와 [최종 신규57단계](VALIDATION_V666_RESOURCE_GIF.md)로 연결했다. 1MiB 이하 정지 AVIF의 기본 SDR8 색상/alpha·실제 sequence 크기·공유 표면 예산은 [AVIF 경계](V7_RESOURCE_AVIF.md)와 [최종 신규57단계](VALIDATION_V666_RESOURCE_AVIF.md)로 연결했다. 큰 파일과 다른 형식의 rich preview는 기존 잔여다.
 
 ## 현재 V9 3D 작업실 찾기
@@ -420,3 +420,13 @@ M11/M12/M4는 회귀 근거 없이 다시 열지 않는다. 초기 빈 화면 �
 현재 파일시스템에서 찾지 못했으며, 별도 체크아웃에서 재생성한 증거/보관본과 구분한다.
 
 위 prefix 단위는 동결 `9588568e`의 [최종 신규45단계](VALIDATION_V666_RESOURCE_TEXT_PREFIX.md)로 마감했다. 선행 게시본 cold 읽기 실패1회는 재실행 통과와 구분해 원인 미확정으로 남긴다.
+
+### 큰 PNG/JPEG의 원래 그림 패널 연결
+
+원본 image 분기의1MiB 초과 사본 누락을 [PNG/JPEG 조각 관찰](V7_RESOURCE_RASTER_PARTS.md)에
+연결한다. 기존 파일/합계4MiB·저장 v1·공개/override 계약과 pixel/lease 예산은 유지하며
+whole hash 확인 뒤 기존 contain renderer를 사용한다. 별도 `imagePreview` capability로 이전
+텍스트 `preview`와 metadata-only 호환성을 보존한다. 생성한 큰 PNG/JPEG·정확4MiB의 실제 픽셀,
+변조/stale/중단·설명 입력·삭제/Home/cold/다른 프로젝트와 관련 작은 형식/텍스트 회귀를 검증한다.
+큰 WebP/BMP/GIF/AVIF/SVG·문서 및4MiB 초과/보관량 확대, 신원/권한 backend·공유·기기/전체UI는
+이 단위의 완료로 표현하지 않는다. 초기 빈 #app와 앞선 cold 읽기1회 원인은 미확정이다.

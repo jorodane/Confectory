@@ -1,3 +1,4 @@
+import {readResourceImageParts,validateResourceImagePartsHeader} from './resource-image-parts.js';
 import {decodeResourceTextPrefix,validateResourceTextPrefixHeader} from './resource-text-prefix.js';
 import {createResourceXlsx,editableXlsx} from './resource-xlsx.js';
 import {createResourceDocx,editableDocx} from './resource-docx.js';
@@ -36,6 +37,10 @@ export function createResourcePreviews(api){
   token.descriptionCleanup=descriptions.recover(w,w.body.querySelector('.resource-settings'),[],w.meta.resourceDescriptionDraft?.revision,()=>alive(w,token));
   const target={project:w.meta.resourceOwner,id:w.meta.resourceId,hash:w.meta.resourceHash};
   const valid=()=>idPattern.test(target.id||'')&&hashPattern.test(target.hash||'')&&target.project===token.owner&&w.key===prefix+target.id;
+  const image=(bytes,item)=>{
+     const failedImage=()=>{if(!alive(w,token))return;message('그림을 표시하지 못했습니다.');status.textContent='지원 범위의 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.imageCleanup?.();token.imageCleanup=null;void read();}};actions.replaceChildren(retry);};
+     try{token.imageCleanup=mountResourceImage({preview,toolbar,status,bytes,item,active:()=>alive(w,token),onError:failedImage,onDetached:()=>{token.imageDetached=true;}});if(!token.imageCleanup){message('이 그림 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG 그림 미리보기를 지원합니다.';}}catch{failedImage();}
+  };
   const read=async()=>{
    if(!alive(w,token)||token.loading)return;actions.replaceChildren();token.loading=true;preview.setAttribute('aria-busy','true');message('내용을 불러오고 있습니다…');preview.setAttribute('aria-busy','true');status.textContent='';
    try{
@@ -46,7 +51,10 @@ export function createResourcePreviews(api){
     token.contentGeneration=item.contentGeneration;token.contentRevision=item.contentRevision||0;token.name=item.name;w.resourceExpectedName=item.name;title(w,item);w.body.querySelector('[data-resource-setting-name]').value=item.name;token.cleanup?.();token.cleanup=bindResourceFileNames(w.el);
     token.descriptionCleanup?.();const retainedDescription=descriptions.recover(w,w.body.querySelector('.resource-settings'),[item],result.displayRevision,()=>alive(w,token)),descriptionBinding=descriptions.bind({w,field:w.body.querySelector('[data-resource-setting-description]'),item,revision:result.displayRevision,active:()=>alive(w,token)});token.descriptionCleanup=()=>{retainedDescription?.();descriptionBinding();};
     };
-    if(item.size>1048576){if(result.encoding!=='unavailable'||result.reason!=='resource_preview_file_budget'||result.data!==undefined)throw Error('resource_read_integrity');if(result.preview!==undefined)validateResourceTextPrefixHeader(result);metadata();
+    if(item.size>1048576){if(result.encoding!=='unavailable'||result.reason!=='resource_preview_file_budget'||result.data!==undefined)throw Error('resource_read_integrity');if(result.imagePreview!==undefined)validateResourceImagePartsHeader(result);else if(result.preview!==undefined)validateResourceTextPrefixHeader(result);metadata();
+     if(result.imagePreview!==undefined){
+      const bytes=await readResourceImageParts(result,input=>api.view.observe('readProjectResourceImagePart',input,token.controller.signal),()=>alive(w,token));if(!alive(w,token))return;image(bytes,item);return;
+     }
      if(result.preview!==undefined){
       const header=result;let prefix;for(let attempt=0;attempt<3;attempt++){try{prefix=await api.view.observe('previewProjectResourceText',{...target,generation:item.contentGeneration,revision:header.displayRevision},token.controller.signal);break;}catch(error){if(error.message!=='busy'||attempt===2)throw error;await new Promise(resolve=>setTimeout(resolve,50));if(!alive(w,token))return;}}if(!alive(w,token))return;
       const bytes=await decodeResourceTextPrefix(header,prefix);if(!alive(w,token))return;
@@ -57,10 +65,7 @@ export function createResourcePreviews(api){
     const binary=atob(result.data.replaceAll('-','+').replaceAll('_','/')),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0)),digest=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(v=>v.toString(16).padStart(2,'0')).join('');if(!alive(w,token))return;
     if(bytes.length!==item.size||digest!==target.hash||btoa(binary).replaceAll('+','-').replaceAll('/','_')!==result.data)throw Error('resource_read_integrity');
     metadata();
-    if(item.kind==='image'){
-     const failedImage=()=>{if(!alive(w,token))return;message('그림을 표시하지 못했습니다.');status.textContent='지원 범위의 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.imageCleanup?.();token.imageCleanup=null;void read();}};actions.replaceChildren(retry);};
-     try{token.imageCleanup=mountResourceImage({preview,toolbar,status,bytes,item,active:()=>alive(w,token),onError:failedImage,onDetached:()=>{token.imageDetached=true;}});if(!token.imageCleanup){message('이 그림 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG 그림 미리보기를 지원합니다.';}}catch{failedImage();}return;
-    }
+    if(item.kind==='image'){image(bytes,item);return;}
     const mime=item.type||'',extension=mime.includes('wordprocessingml')?'docx':mime.includes('spreadsheetml')?'xlsx':mime.includes('presentationml')?'pptx':mime.includes('opendocument.text')?'odt':item.name.split('.').at(-1).toLowerCase();
     if(extension==='pdf'||mime==='application/pdf'){
      const failedPDF=reason=>{if(!alive(w,token))return;message(reason==='password'?'암호가 필요한 PDF입니다.':'PDF를 표시하지 못했습니다.');status.textContent=reason==='pdf_view_budget'?'PDF 미리보기는 최대 2개입니다. 다른 PDF 창을 닫고 다시 확인해 주세요.':'보관된 사본은 그대로예요. 지원 범위와 문서 크기를 확인하고 다시 시도할 수 있어요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.pdfCleanup?.();token.pdfCleanup=null;void read();}};actions.replaceChildren(retry);};
