@@ -64,7 +64,7 @@ bytes before literal, read-only text rendering. Old metadata-only headers remain
 supported. Full large content editing/backups and rich formats remain bounded as
 before. See docs/V7_RESOURCE_TEXT_PREFIX.md.
 
-Large stored PNG/JPEG/BMP/static WebP copies additionally advertise an optional `imagePreview`
+Large stored PNG/JPEG/BMP, static WebP and bounded GIF copies additionally advertise an optional `imagePreview`
 capability. It is separate from the text `preview` descriptor. Metadata-only clients
 keep their fallback; earlier image-part clients may reject newly supported formats at their
 original decoder bound, without modifying the stored copy. `preview-image-part` accepts only the pinned
@@ -74,7 +74,7 @@ with exact offset/part/length/SHA. The editor verifies every part and whole SHA
 before the existing decoder/Blob URL. Stored v1 bytes/receipts, file/total4MiB,
 other encoded format budgets, dimensions/pixels/lease and all writer contracts
 are unchanged. No source or arbitrary path is read or rewritten by the request.
-See docs/V7_RESOURCE_RASTER_PARTS.md and docs/V7_RESOURCE_BMP_PARTS.md and docs/V7_RESOURCE_WEBP_PARTS.md for compatibility and verification limits.
+See docs/V7_RESOURCE_RASTER_PARTS.md and docs/V7_RESOURCE_BMP_PARTS.md and docs/V7_RESOURCE_WEBP_PARTS.md and docs/V7_RESOURCE_GIF_PARTS.md for compatibility and verification limits.
 
 Large stored PDF copies with a `%PDF-` signature now expose a separate optional
 `pdfPreview` descriptor on the same metadata-only `read`. `preview-pdf-part` is

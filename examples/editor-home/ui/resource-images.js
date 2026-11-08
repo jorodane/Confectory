@@ -4,7 +4,7 @@ import {resourceSvgInfo} from './resource-svg.js';
 const FILE_BYTES=1048576,RASTER_BYTES=4194304,MAX_SIDE=16384,MAX_PIXELS=16777216,TOTAL_PIXELS=33554432;
 let leasedPixels=0;
 export function resourceImageInfo(bytes){
- if(!(bytes instanceof Uint8Array)||bytes.length>RASTER_BYTES||bytes.length>FILE_BYTES&&!([137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)||bytes[0]===255&&bytes[1]===216&&bytes[2]===255||bytes[0]===66&&bytes[1]===77||bytes[0]===82&&bytes[1]===73&&bytes[2]===70&&bytes[3]===70&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80))throw Error('resource_image_bytes');
+ if(!(bytes instanceof Uint8Array)||bytes.length>RASTER_BYTES||bytes.length>FILE_BYTES&&!([137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)||bytes[0]===255&&bytes[1]===216&&bytes[2]===255||bytes[0]===66&&bytes[1]===77||bytes[0]===82&&bytes[1]===73&&bytes[2]===70&&bytes[3]===70&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80||bytes[0]===71&&bytes[1]===73&&bytes[2]===70&&bytes[3]===56&&(bytes[4]===55||bytes[4]===57)&&bytes[5]===97))throw Error('resource_image_bytes');
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),tag=(at,n)=>String.fromCharCode(...bytes.subarray(at,at+n));
  const size=(width,height,type)=>{if(!width||!height||width>MAX_SIDE||height>MAX_SIDE||width*height>MAX_PIXELS)throw Error('resource_image_dimensions');return {width,height,type,pixels:width*height};};
  if(bytes.length>=8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)){

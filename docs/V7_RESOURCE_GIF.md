@@ -37,3 +37,5 @@ Review/Confirm·최종 CAS·CSS·vendor는 바꾸지 않는다. 생성 fixture�
 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·mobile·전체 UI는 별도 미검증이다.
 
 [최종 검증과 보관·미실행 경계](VALIDATION_V666_RESOURCE_GIF.md).
+
+1MiB 초과–4MiB 사본의 후속은 [기존 frame 가중/bitmap 수명을 보존한 큰 GIF 관찰](V7_RESOURCE_GIF_PARTS.md)을 따른다.
