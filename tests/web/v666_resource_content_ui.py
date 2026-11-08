@@ -4,6 +4,16 @@ Generated fixtures only; Linux engine+Chromium, never Windows/WebView2/device ex
 import sys,json,pathlib,hashlib,base64,uuid,shutil,traceback,time
 from playwright.sync_api import sync_playwright,expect
 import v536_wide_mixed as f
+read_events=[]
+base_observe=f.observe
+def traced_read(response):
+ base_observe(response)
+ try:
+  request=response.request.post_data_json
+  if isinstance(request,dict)and request.get('op')=='observe':
+   body=response.json();read_events.append(dict(endpoint=request.get('endpoint'),ok=body.get('ok'),error=body.get('error')));(f.case/'read-events.json').write_text(json.dumps(read_events,indent=2))
+ except Exception:pass
+f.observe=traced_read
 mode=sys.argv[3];store=f.project/'.confectory/resources.v1.json';b=None
 
 def api(action,**args):return f.invoke('projectResourceLayout',dict(action=action,project=f.state()['projectId'],**args))['result']['result']
