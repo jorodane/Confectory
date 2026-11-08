@@ -1,0 +1,1 @@
+function Confectory.RunSurface::Open4K (string frameOwner) -> string {description "Explicit software 4K output: at most4096 per axis and8847360 RGBA8 pixels; no execution or screen-access grant.";provide Confectory.RunSurface::Open4K with Confectory.RunSurface::Open4KBody;}

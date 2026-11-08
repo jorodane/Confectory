@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::Open4KBody for Confectory.RunSurface::Open4K (string frameOwner) -> string {import Confectory.RunSurface::OpenProfile as OpenProfile (string,int) -> string;body common "Open4K.csbody";}

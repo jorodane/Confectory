@@ -1,0 +1,24 @@
+{
+  "baseCommit": "58ccc7e21d9e010dedfe08dce52c3b8c8b658549",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/4k-output/Main.celem": "83b58ace539953db26c8631cea22699eacda1480ed5e05a9c7cc5f6f159e3d78",
+    "examples/4k-output/Main.csbody": "73d75179467fd8a0484045fa09e735f24784e56ecfdb03825244650253b2b507",
+    "examples/4k-output/MainBody.celem": "699043d44917c056cbc0d16ef8b08b23c5efb6e74a0547349da4cdaee6eda9bc",
+    "examples/4k-output/README.md": "45592db3444668d2532302840087fd52ad2c473ed4ded956405a392395657a09",
+    "examples/4k-output/project.cpack": "f52e5c75b92177872fc3dc42dae9ac23b9c5c14c8c2c602c9eaa01dc2b7c1461",
+    "examples/editor-home/WebBundle.csbody": "024446fb279fcaf38cb26f8a57ab277438da5d2ceaeba9a89bad06e59fbd64f8",
+    "examples/editor-home/ui/run-auto-fit.js": "7313376e45be264ee127c4f8dbb92eb0e633d679583c7968b8935c3cae10b8ea",
+    "examples/editor-home/ui/run-presets.js": "9d507a0bc8f7ecec4cef76e141e5165a1c88711335e0c61d577ef7e108d06ea2",
+    "examples/editor-home/ui/run-surface.js": "f6bac765b2bef481c2dd21d6f39f591e72fe3c5e9f9054359c459e35f8e9fd7c",
+    "packs/editor-home-model/RunPresets.csbody": "bf9b501b90d634c6c67003ab598a861d386f373c6d83d88598598ad59349054d",
+    "packs/project-execution/ResizeSurface.csbody": "a7b176a33691ec9b4dd1e87967fd37cd1eb099423ca7fb494b97c7482bf9bab8",
+    "packs/project-execution/Surface.csbody": "58fcadd624624b2f94813fc03b58abf76205a29396e5ac7bf09131a752cf7de5",
+    "packs/run-surface/Open4K.celem": "c25bb82d8f9b6a224e60a313df56d53a15eed9407080555fdb9f70217e41091e",
+    "packs/run-surface/Open4K.csbody": "0913a3359fdf2d936f2735f61c5822ab61e451a3f2af6fcc9b7ca78c3d4db003",
+    "packs/run-surface/Open4KBody.celem": "3c6f9615d8a5ab3a0a00b32a5f761bffc5a68afd3e4c5547468106725be4540d",
+    "packs/run-surface/OpenProfile.csbody": "a494153edcfc55d5f27858dd197c71fe743bc9d0983d9be5d4ef0cb492055f82",
+    "packs/run-surface/README.md": "62fa27f5100f3c23c010c956e1224c0c4995ed45065c4fe02c7b5612f70f8cfa",
+    "packs/run-surface/pack.cpack": "528a8f3a242f41822612aa834dfdb2beb294443af51073ba100848b83d3236bd"
+  }
+}

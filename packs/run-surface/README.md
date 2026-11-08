@@ -38,3 +38,5 @@ multipart frames remain bounded per packet, up to11 parts; paired new readers ar
 See `docs/V8_RUN_FHD.md` and `examples/fhd-output`. Existing user C# is never rewritten.
 
 Explicit QHD: `OpenQHD(frameOwner)` selects profile3, at most2560 per axis/3686400 RGBA8 pixels. ConfigureSize/RequestedSize/actual ACK and all existing default/HD/FHD profiles remain unchanged. At most19 verified parts use the same packet/pipe/authentication limits. See `docs/V8_RUN_QHD.md` and `examples/qhd-output`.
+
+Explicit4K: `Open4K(frameOwner)` selects profile4 with axis4096/8847360 RGBA8 pixels. ConfigureSize/RequestedSize and actual frame ACK remain required. Default/HD/FHD/QHD remain unchanged. At most45 verified parts use the existing packet/pipe/authentication limits. See `docs/V8_RUN_4K.md` and `examples/4k-output`.
