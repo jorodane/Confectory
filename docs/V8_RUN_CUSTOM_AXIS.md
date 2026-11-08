@@ -47,3 +47,5 @@ I/O의 OperationCanceledException과 읽기만으로 정상 복구를 확인했�
 통과11개만 source-bound 증명/변경 SDK·제품 거절 guard로 재사용할 수 있다. 실패 API·
 모든 build/checkout/boundary·CRLF·패키지/전체 복원은 새로 실행하며 기본 전체 신규 경로도
 유지한다. 초기 빈 화면의 원인 해결이나 무중단 출력 보장으로 소급하지 않는다.
+
+[최종 유효102단계·신규91/재사용11·호환/보관 기록](VALIDATION_V666_RUN_CUSTOM_AXIS.md)을 따른다.
