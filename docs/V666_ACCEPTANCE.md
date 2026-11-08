@@ -490,3 +490,5 @@ FHD는 동결 `47262dc1`의 [총69단계(신규69·재사용0)](VALIDATION_V666_
 ## V8 명시적 QHD 후속
 
 원본의 `QHD / 2K · 2560 × 1440`을 [명시 QHD 출력](V8_RUN_QHD.md)에 연결한다. 기본/HD/FHD·원래 소유/권한·실제 크기 ACK·packet/RPC/파이프 I/O 예산과 레이아웃을 유지한다. 같은 private preset의 구 reader 한도와 새 OpenQHD/큰 전송의 paired-version 요구를 구분한다. 원본 텍스트 editor의1MiB 제한은 유지하며, 큰 DOCX/XLSX 편집·백업/개인 초안 전송과 다른 상위 출력·실기기/권한 backend는 별도 잔여다.
+
+QHD는 동결 86a52b25의 [신규73단계·재사용0](VALIDATION_V666_RUN_QHD.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 상위 출력/큰 Office 편집·신원/권한 backend·실기기/전체 UI·초기 거절/빈 화면의 원인 미확정은 구분한다.
