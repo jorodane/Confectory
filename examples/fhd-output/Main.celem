@@ -1,0 +1,1 @@
+function Example.FHDOutput::Main () -> int {provide Example.FHDOutput::Main with Example.FHDOutput::MainBody;}

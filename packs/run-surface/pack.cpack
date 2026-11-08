@@ -1,6 +1,8 @@
 pack Confectory.RunSurface version "0.1.0" { standalone false;
 dependency Confectory.FrameControl version "0.1.0";
 element Open function "Open.celem"; element OpenBody implementation "OpenBody.celem";
+element OpenFHD function "OpenFHD.celem";element OpenFHDBody implementation "OpenFHDBody.celem";
+element OpenProfile function "OpenProfile.celem";element OpenProfileBody implementation "OpenProfileBody.celem";
 element OpenHD function "OpenHD.celem";element OpenHDBody implementation "OpenHDBody.celem";
 element OpenConfigured function "OpenConfigured.celem";element OpenConfiguredBody implementation "OpenConfiguredBody.celem";
 element Present function "Present.celem"; element PresentBody implementation "PresentBody.celem";

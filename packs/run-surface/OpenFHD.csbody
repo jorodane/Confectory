@@ -1,0 +1,1 @@
+return calls.OpenProfile.Invoke(frameOwner,2);

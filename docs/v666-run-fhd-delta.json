@@ -1,0 +1,29 @@
+{
+  "baseCommit": "6e0cc768669445a0a5aa6853daeb760ef8971adc",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "747b599b8b7081b2c85b584b8b9cc818a87146327a21e0beb40ef8df7fa840b1",
+    "examples/editor-home/ui/run-auto-fit.js": "ba8d1d878ac04c0131790c70c1c463f31bb197ae39d301b1fa2659fa25476f81",
+    "examples/editor-home/ui/run-presets.js": "13840bc72346aa7abecbbfb2f51b275ccf85af75bd6ec6513cb0902623c052ea",
+    "examples/editor-home/ui/run-surface.js": "2ed0db668724f6dedd7f90bc52586421a5e4d90df7d0976cf3635d0f4f4ead17",
+    "examples/editor-home/ui/run-windows.js": "a1ce1159111dc5075531b8f7a6a3aac941fb404fda2863a39da84226fb16cd9e",
+    "examples/fhd-output/Main.celem": "3ef851c07cc865d433d7b942cff5e6626afa1923302cddc0030c5d56cb932fc9",
+    "examples/fhd-output/Main.csbody": "73d75179467fd8a0484045fa09e735f24784e56ecfdb03825244650253b2b507",
+    "examples/fhd-output/MainBody.celem": "436a7f034c96dc0acedeff63aa212f62dc411c8e17572093dc3b73b2ea8d0fc6",
+    "examples/fhd-output/README.md": "4b06c466732e39699e8814e34b882032967a7127a5835fc484427e4538c3879d",
+    "examples/fhd-output/project.cpack": "1468e833de5d6e1074aebda53a217063af25511b0e9ef5dfc35c7200984bc3dc",
+    "packs/editor-home-model/RunPresets.csbody": "de4045ec0f2dfdf5467563b11c63a7c913a1828f48ed5272c93d6bb5c2e0972c",
+    "packs/project-execution/ResizeSurface.csbody": "68408c0aba71d7ce6bf9a0ef813ad6391a680a99f145f59b285ea8549c31b815",
+    "packs/project-execution/Surface.csbody": "c6a06372e6b2b236fdfdc269827ce153bdd83de653163d289d46e6b71d938034",
+    "packs/run-surface/OpenConfigured.csbody": "d47d3f497b26099a2235e9dc89d23f74c4ec6d9cfa545254bd0e1b8805452486",
+    "packs/run-surface/OpenConfiguredBody.celem": "08d44fde430a5c6bc2e00ba703085b8c8c2237469ae8b36cfe133b688c4e0442",
+    "packs/run-surface/OpenFHD.celem": "d5ee1c26dc15d835496ed3e3c28c54bbe885f9bbf29b8452cbb3228f22d9e064",
+    "packs/run-surface/OpenFHD.csbody": "aa2d0cb142ecc4649681230b9b2df4614b7197c51497604a72538cc1529dc6f9",
+    "packs/run-surface/OpenFHDBody.celem": "a54ae6b5387e55d74e19c139dfd087aa6ba8d639218cc5289339878402d573c0",
+    "packs/run-surface/OpenProfile.celem": "5582e1cb02c7bf910d448667ae14281d9837efa878616346825fba51a8cb45a8",
+    "packs/run-surface/OpenProfile.csbody": "d5ce123ecb6d4e113404ecbc6791ce6c397609895d533512e838d9823cea1772",
+    "packs/run-surface/OpenProfileBody.celem": "90242561f15a16a5e33cbd25736a65035dc146a080d7e00d315aeba73dd2c53b",
+    "packs/run-surface/README.md": "11b688eb94451f3767c5ab020f41db56d10cb5a1b7737f32cc4877402f6473c4",
+    "packs/run-surface/pack.cpack": "83b460f8f29c133847e86a0b763cbef9da2d3ae46b99aac9ec4b6ec300a986c7"
+  }
+}

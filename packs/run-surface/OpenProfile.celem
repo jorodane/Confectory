@@ -1,0 +1,1 @@
+function Confectory.RunSurface::OpenProfile (string frameOwner,int profile) -> string {provide Confectory.RunSurface::OpenProfile with Confectory.RunSurface::OpenProfileBody;}

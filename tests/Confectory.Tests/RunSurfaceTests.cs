@@ -2,6 +2,21 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RunSurfaceTests : TestCase
 {
+ public void test_fhd_explicit_configuration_preserves_legacy_owner_and_pixel_budgets()
+ {
+  foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
+  f.Main("");f.Add("App","implementation","MainBody","""
+  implementation App::MainBody for App::Main () -> int {
+  import Confectory.RunSurface::Open as Open (string) -> string;import Confectory.RunSurface::OpenFHD as OpenFHD (string) -> string;import Confectory.RunSurface::Present as Present (string,int,int,string) -> long;import Confectory.RunSurface::ConfigureSize as ConfigureSize (string,int,int) -> void;import Confectory.RunSurface::RequestedSize as RequestedSize (string) -> int[];import Confectory.RunSurface::Close as Close (string) -> void;import Confectory.FrameControl::Open as OpenFrame () -> string;import Confectory.FrameControl::Close as CloseFrame (string) -> void;body common "main.csbody";}
+  """);f.Body("App","main.csbody","""
+  foreach(string name in new[]{"PIPE","SECRET","HANDLE"})Environment.SetEnvironmentVariable("CONFECTORY_FRAME_"+name,null);
+  void Check(bool value,string message){if(!value)throw new Exception(message);}bool Denied(Action action){try{action();return false;}catch(ArgumentException){return true;}catch(InvalidOperationException){return true;}}
+  string loop=calls.OpenFrame.Invoke(),owner=calls.OpenFHD.Invoke(loop);try{
+   Check(Denied(()=>calls.Present.Invoke(owner,1,1,"AAAAAA==")),"FHD configuration is explicit before first publication");Check(Denied(()=>calls.Open.Invoke(loop)),"one primary output per actual owner");Check(Denied(()=>calls.ConfigureSize.Invoke(owner,1920,1081)),"FHD fixed area ceiling");calls.ConfigureSize.Invoke(owner,1920,1080);int[] requested=calls.RequestedSize.Invoke(owner);requested[0]=1;Check(calls.RequestedSize.Invoke(owner)[0]==1920,"copied owned FHD request");Check(Denied(()=>calls.ConfigureSize.Invoke(owner,640,360)),"no implicit reconfiguration");
+   string pixels=Convert.ToBase64String(new byte[1920*1080*4]);Check(calls.Present.Invoke(owner,1920,1080,pixels)==1,"complete1920x1080 FHD-profile software pixels");Check(Denied(()=>calls.Present.Invoke(owner,1920,1081,pixels))&&Denied(()=>calls.Present.Invoke(owner,1921,240,pixels))&&Denied(()=>calls.Present.Invoke(owner,1,1,pixels)),"FHD dimension/area/byte mismatch rejected before revision");Check(calls.Present.Invoke(owner,1,1,"AAAAAA==")==2,"failed FHD publication retains revision");
+  }finally{calls.Close.Invoke(owner);}string legacy=calls.Open.Invoke(loop);try{Check(Denied(()=>calls.ConfigureSize.Invoke(legacy,1920,1080))&&Denied(()=>calls.Present.Invoke(legacy,1920,1080,Convert.ToBase64String(new byte[1920*1080*4]))),"old Open does not silently opt into FHD");Check(calls.Present.Invoke(legacy,640,360,Convert.ToBase64String(new byte[640*360*4]))==1,"legacy output and revision remain intact");}finally{calls.Close.Invoke(legacy);calls.CloseFrame.Invoke(loop);}Console.WriteLine("FHD explicit configuration/owner/copy/revision and legacy budgets PASS");return 0;
+  """);f.Sync();Output(Build(),"FHD explicit configuration/owner/copy/revision and legacy budgets PASS");
+ }
  public void test_hd_explicit_configuration_preserves_legacy_owner_and_pixel_budgets()
  {
   foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}

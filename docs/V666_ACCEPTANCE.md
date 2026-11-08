@@ -432,3 +432,13 @@ whole hash 확인 뒤 기존 contain renderer를 사용한다. 별도 `imagePrev
 이 단위의 완료로 표현하지 않는다. 초기 빈 #app와 앞선 cold 읽기1회 원인은 미확정이다.
 
 큰 PNG/JPEG는 동결 `a91bd900`의 [신규61단계](VALIDATION_V666_RESOURCE_RASTER_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 다른 형식·기기/권한 backend 잔여와 선행 미확정 원인을 구분한다.
+
+
+## V8 명시적 FHD 후속
+
+원본1920×1080·1080×1920을 [명시 FHD 출력](V8_RUN_FHD.md)에 연결한다. 기존
+Open/OpenHD의 공개 시그니처·실제 한도/소유권과 레이아웃·실행/권한·ReviewConfirm/CAS는
+유지한다. FHD provider의 실제 pixels/size ACK·인증된 최대11개 조각·전체 SHA를 확인하며
+Step/표시/3D 이동은 분리한다. 개인 FHD preset은 같은 JSON/receipt/CAS지만 구 reader의
+한도 거절을 숨기지 않는다. QHD/4K/FHD+·GPU/물리 출력·기기/전체UI 및 초기 빈 화면의
+미확정 원인은 별도 잔여다. M11/M12/M4는 구체적 회귀 없이 다시 열지 않는다.
