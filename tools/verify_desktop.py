@@ -110,6 +110,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--reuse-custom-axis',type=Path,help='Exact sealed passing custom-axis source checks; failed checks/builds/packages remain fresh')
     parser.add_argument('--reuse-review',type=Path,help='Three sealed passing UI checks after exact late-input Save-count correction; failed checks/builds/packages fresh')
     parser.add_argument('--reuse-source',type=Path,help='Ten sealed identical source checks after the property guard report argument correction')
     parser.add_argument('--reuse-description',type=Path,action='append',help='Sealed passing LF checks after exact bounded Review/paused-response fixture corrections')
@@ -138,12 +139,16 @@ def main():
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
     harness = work.evidence/'harness'; harness.mkdir()
-    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py','verification_review_reuse.py','verification_audio_reuse.py','verification_svg_reuse.py','verification_fhd_reuse.py','verification_4k_reuse.py','verification_4k_memory_reuse.py']:
+    for name in ['verification_workspace.py','verify_desktop.py','verification_coupled_reuse.py','verification_description_reuse.py','verification_source_reuse.py','verification_review_reuse.py','verification_audio_reuse.py','verification_svg_reuse.py','verification_fhd_reuse.py','verification_4k_reuse.py','verification_4k_memory_reuse.py','verification_custom_axis_reuse.py']:
         shutil.copy2(Path(__file__).parent/name, harness/name)
     atomic_json(work.evidence/'source.json', {'commit': commit, 'tree': git(repo,'rev-parse',commit+'^{tree}'),
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_custom_axis:
+            if args.suite!='run-custom-axis':raise ValueError('Custom axis reuse requires its own suite')
+            from verification_custom_axis_reuse import bind
+            bind(repo,args.reuse_custom_axis,commit,inputs,work)
         if args.reuse_xlsx_parts:
             if args.suite!='resource-xlsx-parts':raise ValueError('XLSX reuse requires its own suite')
             from verification_xlsx_parts_reuse import bind
