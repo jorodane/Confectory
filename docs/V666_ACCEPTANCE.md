@@ -456,3 +456,7 @@ FHD는 동결 `47262dc1`의 [총69단계(신규69·재사용0)](VALIDATION_V666_
 이미 보관한1–4MiB DOCX/XLSX/PPTX/ODT의 내용/워크시트 미리보기를 [기존 ZIP/XML 예산을 보존한 전용 관찰](V7_RESOURCE_OFFICE_PARTS.md)에 연결한다. 큰 문서는 읽기 전용이며 작은 DOCX/XLSX 편집·내용/백업·권한·ReviewConfirm/CAS와 원본 레이아웃은 유지한다. 최종 LF/CRLF·관련 회귀·새 패키지/전체 복원 및 보관 결과는 해당 검증 기록으로 마감한다. 큰 편집/다른 그림·4MiB 초과와 실제 신원·실기기/전체 UI·초기 빈 화면 원인 미확정은 구분한다.
 
 큰 Office는 동결 61a72f55의 [신규61단계·재사용0](VALIDATION_V666_RESOURCE_OFFICE_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 편집/다른 그림·신원/권한·실기기/전체 UI·초기 빈 화면 원인 미확정은 구분한다.
+
+## V7 큰 BMP 후속
+
+이미 보관한1MiB 초과–4MiB BMP를 [원래 형식/픽셀·디코더 수명의 그림 패널](V7_RESOURCE_BMP_PARTS.md)에 연결한다. 기존 조각/전체SHA·최종 관측과 저장·권한·원본UI/CAS는 유지한다. 큰 WebP/GIF/AVIF/SVG·내용 편집/백업·4MiB 초과와 실제 신원/권한 backend·실기기/전체 UI·초기 빈 화면 원인 미확정은 별도 잔여다.

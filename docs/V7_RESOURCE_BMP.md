@@ -28,3 +28,5 @@ V4/V5 backend 등 고정 잔여는 별도다. mesh는 원본에 renderer 근거�
 전달은 별도 미검증이다.
 
 [최종 검증·보관·지원/미실행 경계](VALIDATION_V666_RESOURCE_BMP.md).
+
+1MiB 초과–4MiB 사본의 후속은 [기존 형식·수명 보존의 큰 BMP 관찰](V7_RESOURCE_BMP_PARTS.md)을 따른다.

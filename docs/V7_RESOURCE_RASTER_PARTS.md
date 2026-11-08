@@ -59,3 +59,5 @@ cold 읽기 실패가 같은 원인이라고 추정하지 않는다. 최종 통�
 3회 busy를 통제 주입해 상한 거절과 명시 재확인 전후 사본·개인 요청 bytes 불변도 확인한다.
 
 [최종 신규 검증·지속 보관·실기기 한계](VALIDATION_V666_RESOURCE_RASTER_PARTS.md)를 따른다.
+
+후속 큰 BMP는 [동일 조각/기존 BMP 형식 보존](V7_RESOURCE_BMP_PARTS.md)으로 연결한다. 위 PNG/JPEG 당시 범위와 검증은 역사적 근거이며 큰 다른 형식의 완료로 확대하지 않는다.
