@@ -397,3 +397,4 @@ remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위
 ## V7 자체 포함 정지 SVG 후속
 
 원본 이미지 분류의 SVG와 기존 그림 창을 [제한된 정지 SVG 표시](V7_RESOURCE_SVG.md)로 연결한다. 기존 보관 사본/ID/hash/읽기 권한과 native 저장·CAS는 바꾸지 않는다. 일반 raster와 공유한 픽셀 예산, XML 파싱 전 DTD 거절, 자체 포함 도형·경로·그라데이션·클리핑·텍스트와 실제 격리 이미지 디코딩을 사용한다. 외부 참조·script/style/animation/filter 및 지원 예산 밖의 SVG는 안전한 표시 거절이며 원본 사본은 남긴다. SVG 표준 전체나 편집 지원으로 확대하지 않는다. [최종 검사/한계](VALIDATION_V666_RESOURCE_SVG.md)는 동결 코드의 결과로 마감한다. 큰 파일·권한 backend·HD/물리 출력 및 초기 빈 화면 원인 미확정은 기존 잔여로 유지한다.
+최종 **60단계(신규24·재사용36)**를 마감했다. [검증·지속 보관과 미실행 경계](VALIDATION_V666_RESOURCE_SVG.md).
