@@ -1,0 +1,16 @@
+{
+  "baseCommit": "89d7734450716d6d7a726bc1aa44ae1aebabfcb3",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "c67e83f458dbede56f32b59b534dbe8d9bca14d8d0cd0ee1101b9430797176e4",
+    "examples/editor-home/WebInvoke.csbody": "23105e2847037f64bb68bb67bbe946248452ca56c327e45a06f9468de09bbd1e",
+    "examples/editor-home/ui/resource-office-parts.js": "09254ea1a79d3146ed251b85044f82666339d3a9dc69de216b8dea61018997aa",
+    "examples/editor-home/ui/resource-office-worker.js": "ecd04b632e819efc599babbfa4cbe33d3debaa8569aa570b742680054b1a900d",
+    "examples/editor-home/ui/resource-office-zip.js": "e95c6eae30a87a4dcd3c2040d9136c8a33daca2acf94c9cd8cebdfc0da4f9548",
+    "examples/editor-home/ui/resource-office.js": "f9f8e226a19fb7c5c7d9908c185e224bef8bd07ca48dd6eb758f4bff8d593713",
+    "examples/editor-home/ui/resource-previews.js": "40e593a3fa5c0f443c2046f51f6815824c2501bb34c023af124ce765613aaff6",
+    "packs/editor-home-model/Resources.csbody": "aa9966e19e8684a9286a0c21463dec69ae22c5428919e076f60d05b058a94f4d",
+    "packs/project-resources/Layout.csbody": "5ddcf41b77ef0ee47573c541b66ba01bc867c7d981f8a282a5363c966bfc37c6",
+    "packs/project-resources/README.md": "d0fa1c90746edd1d293826b6d833c74a14df32696dcb0b6099ba46cbf51aa048"
+  }
+}

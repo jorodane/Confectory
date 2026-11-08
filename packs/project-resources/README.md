@@ -83,3 +83,11 @@ It is not the image-part lane or a file/path permission. Small reads, storage v1
 existing image/text parts and all writes/content backup budgets remain unchanged.
 Consumers without this capability retain the metadata-only fallback; a full-file
 SHA must pass before creating a PDF document/Worker. See docs/V7_RESOURCE_PDF_PARTS.md.
+
+Large DOCX/XLSX/PPTX/ODT copies with a standard ZIP local-header signature expose
+an optional officePreview descriptor with the resolved existing format.
+preview-office-part is a separate read-only lane with the same1MiB parts,
+maximum4MiB, full-copy/part SHA, import/display basis and final dependencies.
+It does not grant an arbitrary path or write permission. ZIP/XML preview budgets
+remain unchanged; archive editing and content/current/backup stay1MiB.
+See docs/V7_RESOURCE_OFFICE_PARTS.md for exact paired-reader and lifecycle limits.

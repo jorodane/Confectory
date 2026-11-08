@@ -109,8 +109,8 @@ if(operation=="import-files"){
  if(ContentCommit(importPlan)[0]!="applied")throw new InvalidOperationException("resource_layout_changed");resourceRevision=Text(importedResult["revision"]);return ImportPlacedReply(candidateLayout,Hash(serializedLayout));
 }
 if(operation=="load"){Keys(request);return Reply(saved,snapshot[2]);}
-if(operation is "read" or "preview-text" or "preview-image-part" or "preview-pdf-part"){
- bool prefix=operation=="preview-text",imagePart=operation=="preview-image-part",pdfPart=operation=="preview-pdf-part";Keys(request,imagePart||pdfPart?new[]{"id","hash","generation","revision","part"}:prefix?new[]{"id","hash","generation","revision"}:new[]{"id","hash"});string id=Text(request["id"]);var selectedFile=System.Linq.Enumerable.SingleOrDefault(files,row=>Text(row!["id"])==id);if(selectedFile is null||Text(selectedFile["hash"])!=Text(request["hash"]))throw new InvalidOperationException("resource_read_changed");
+if(operation is "read" or "preview-text" or "preview-image-part" or "preview-pdf-part" or "preview-office-part"){
+ bool prefix=operation=="preview-text",imagePart=operation=="preview-image-part",pdfPart=operation=="preview-pdf-part",officePart=operation=="preview-office-part";Keys(request,imagePart||pdfPart||officePart?new[]{"id","hash","generation","revision","part"}:prefix?new[]{"id","hash","generation","revision"}:new[]{"id","hash"});string id=Text(request["id"]);var selectedFile=System.Linq.Enumerable.SingleOrDefault(files,row=>Text(row!["id"])==id);if(selectedFile is null||Text(selectedFile["hash"])!=Text(request["hash"]))throw new InvalidOperationException("resource_read_changed");
  string selectedName=fileDisplayNames.TryGetValue(id,out var currentName)?currentName:Text(selectedFile["name"]),mime=Text(selectedFile["type"]),extension=mime.Contains("wordprocessingml",StringComparison.Ordinal)?"docx":mime.Contains("spreadsheetml",StringComparison.Ordinal)?"xlsx":mime.Contains("presentationml",StringComparison.Ordinal)?"pptx":mime.Contains("opendocument.text",StringComparison.Ordinal)?"odt":selectedName[(selectedName.LastIndexOf('.')+1)..].ToLowerInvariant();
  int selectedSize=selectedFile["size"]!.GetValue<int>();bool textPrefix=selectedSize>1048576&&selectedSize<=4194304&&Text(selectedFile["kind"])!="image"&&mime!="application/pdf"&&extension is not ("pdf" or "docx" or "xlsx" or "pptx" or "odt")&&(mime.StartsWith("text/",StringComparison.Ordinal)||System.Text.RegularExpressions.Regex.IsMatch(selectedName,@"\.(txt|md|markdown|json|jsonl|csv|tsv|yaml|yml|xml|html?|css|js|mjs|ts|tsx|jsx|log|ini|toml|obj|gltf|svg)$",System.Text.RegularExpressions.RegexOptions.IgnoreCase));
  // The full original was already validated by Files.load. Only bounded PNG/JPEG
@@ -125,13 +125,18 @@ if(operation is "read" or "preview-text" or "preview-image-part" or "preview-pdf
   var pdfOriginal=System.Linq.Enumerable.Single(originals,row=>Text(row!["id"])==id)!;var raw=Convert.FromBase64String(Text(pdfOriginal["data"]).Replace('-','+').Replace('_','/'));
   if(raw.Length>=5&&System.Text.Encoding.ASCII.GetString(raw,0,5)=="%PDF-")pdfBytes=raw;
  }
+ byte[]? officeBytes=null;
+ if(selectedSize>1048576&&selectedSize<=4194304&&Text(selectedFile["kind"])=="document"&&extension is ("docx" or "xlsx" or "pptx" or "odt")){
+  var officeOriginal=System.Linq.Enumerable.Single(originals,row=>Text(row!["id"])==id)!;var raw=Convert.FromBase64String(Text(officeOriginal["data"]).Replace('-','+').Replace('_','/'));
+  if(raw.Length>=4&&raw[0]==80&&raw[1]==75&&raw[2]==3&&raw[3]==4)officeBytes=raw;
+ }
  System.Text.Json.Nodes.JsonObject result;
- if(imagePart||pdfPart){
-  var previewBytes=pdfPart?pdfBytes:rasterBytes;if(previewBytes is null)throw new InvalidOperationException(pdfPart?"resource_pdf_preview_budget":"resource_image_preview_budget");
+ if(imagePart||pdfPart||officePart){
+  var previewBytes=officePart?officeBytes:pdfPart?pdfBytes:rasterBytes;if(previewBytes is null)throw new InvalidOperationException(officePart?"resource_office_preview_budget":pdfPart?"resource_pdf_preview_budget":"resource_image_preview_budget");
   if(Text(request["revision"])!=revision||Text(request["generation"])!=Text(selectedFile["contentGeneration"]))throw new InvalidOperationException("resource_read_changed");
-  int part=request["part"]!.GetValue<int>();if(part<0||part>=(selectedSize+1048575)/1048576)throw new ArgumentException(pdfPart?"resource_pdf_part":"resource_image_part");
+  int part=request["part"]!.GetValue<int>();if(part<0||part>=(selectedSize+1048575)/1048576)throw new ArgumentException(officePart?"resource_office_part":pdfPart?"resource_pdf_part":"resource_image_part");
   if(previewBytes.Length!=selectedSize||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(previewBytes)).ToLowerInvariant()!=Text(selectedFile["hash"]))throw new InvalidOperationException("resource_content_integrity");
-  int offset=part*1048576,length=Math.Min(1048576,selectedSize-offset);byte[] bytes=previewBytes.AsSpan(offset,length).ToArray();result=new(){["status"]="ready",["project"]=project,["item"]=selectedFile.DeepClone(),["encoding"]=pdfPart?"base64url-pdf-part-v1":"base64url-image-part-v1",["data"]=Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_'),["preview"]=new System.Text.Json.Nodes.JsonObject{["part"]=part,["offset"]=offset,["bytes"]=length,["total"]=selectedSize,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()}};
+  int offset=part*1048576,length=Math.Min(1048576,selectedSize-offset);byte[] bytes=previewBytes.AsSpan(offset,length).ToArray();result=new(){["status"]="ready",["project"]=project,["item"]=selectedFile.DeepClone(),["encoding"]=officePart?"base64url-office-part-v1":pdfPart?"base64url-pdf-part-v1":"base64url-image-part-v1",["data"]=Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_'),["preview"]=new System.Text.Json.Nodes.JsonObject{["part"]=part,["offset"]=offset,["bytes"]=length,["total"]=selectedSize,["sha256"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant()}};
  }else if(prefix){
   if(!textPrefix)throw new InvalidOperationException("resource_text_preview_budget");
   if(Text(request["revision"])!=revision||Text(request["generation"])!=Text(selectedFile["contentGeneration"]))throw new InvalidOperationException("resource_read_changed");
@@ -143,6 +148,7 @@ if(operation is "read" or "preview-text" or "preview-image-part" or "preview-pdf
   if(textPrefix)result["preview"]=new System.Text.Json.Nodes.JsonObject{["encoding"]="base64url-prefix-v1",["bytes"]=1048576,["total"]=selectedSize};
   if(rasterBytes is not null)result["imagePreview"]=new System.Text.Json.Nodes.JsonObject{["encoding"]="base64url-image-parts-v1",["partBytes"]=1048576,["total"]=selectedSize};
   if(pdfBytes is not null)result["pdfPreview"]=new System.Text.Json.Nodes.JsonObject{["encoding"]="base64url-pdf-parts-v1",["partBytes"]=1048576,["total"]=selectedSize};
+  if(officeBytes is not null)result["officePreview"]=new System.Text.Json.Nodes.JsonObject{["encoding"]="base64url-office-parts-v1",["partBytes"]=1048576,["total"]=selectedSize,["extension"]=extension};
  }
  if(calls.Snapshot.Invoke(manifest,2097152)[2]!=manifestSnapshot[2]||calls.Snapshot.Invoke(identityPath,4096)[2]!=identitySnapshot[2]||calls.Snapshot.Invoke(filesPath,6291456)[2]!=resourceRevision||calls.Snapshot.Invoke(path,limit)[2]!=snapshot[2]||calls.Snapshot.Invoke(namesPath,limit)[2]!=namesSnapshot[2]||calls.Snapshot.Invoke(fileNamesPath,limit)[2]!=fileNamesSnapshot[2]||calls.Snapshot.Invoke(descriptionsPath,descriptionLimit)[2]!=descriptionsSnapshot[2]||calls.Deletions.Invoke(manifest,project)[2]!=deletionsSnapshot[2]||System.Linq.Enumerable.Any(contentSnapshots,pair=>calls.Snapshot.Invoke(System.IO.Path.Combine(root,ContentPath(pair.Key)),3000000)[2]!=pair.Value[2]))throw new InvalidOperationException("resource_read_changed");
  if(fileDisplayNames.TryGetValue(id,out var renamedFile))result["item"]!["name"]=renamedFile;result["item"]!["contentGeneration"]=selectedFile["contentGeneration"]!.DeepClone();result["item"]!["descriptionGeneration"]=selectedFile["contentGeneration"]!.DeepClone();if(descriptions.TryGetValue(id,out var description))result["item"]!["description"]=description;result["displayRevision"]=revision;return result.ToJsonString();

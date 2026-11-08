@@ -10,7 +10,8 @@ DOCX의 문단·간단한 텍스트 서식/표, XLSX의 워크시트 선택·저
 저장 계약·CAS·Review→Confirm·부모/외부 보호에는 변경이 없다. 새 업로드·외부 링크
 조회·Office 앱 실행·매크로/스크립트 실행은 하지 않는다.
 
-원래 1MiB 사본 읽기 제한을 유지한다. 전용 동일 출처 module Worker에서 표준 ZIP의
+당시 기본1MiB 사본 읽기 경계는 유지한다. 이미 보관된 큰1–4MiB 사본의 읽기 전용 후속은
+[큰 Office 관찰](V7_RESOURCE_OFFICE_PARTS.md)을 따른다. 전용 동일 출처 module Worker에서 표준 ZIP의
 stored/DEFLATE만 처리한다. 최대 1,024개 directory entry, 선택 XML 64개·각 2MiB·합계
 4MiB, 5초 deadline이며 ZIP64/분할/암호화/심볼릭 링크/경로 위장/중복/겹친 entry/
 CRC·길이 불일치는 거절한다. 필요한 XML만 메모리에서 해제하며 디스크에 전개하지 않는다.

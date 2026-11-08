@@ -6,8 +6,8 @@ const wanted=(name,extension)=>extension==='docx'?name==='word/document.xml':ext
 const fail=code=>{throw Error('office_zip_'+code);};
 const crcTable=Uint32Array.from({length:256},(_,i)=>{let c=i;for(let n=0;n<8;n++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
 export function officeCRC(bytes){let crc=0xffffffff;for(const byte of bytes)crc=crcTable[(crc^byte)&255]^(crc>>>8);return (crc^0xffffffff)>>>0;}
-export function officeDirectory(bytes,extension,archive=false){
- if(!(bytes instanceof Uint8Array)||bytes.length<22||bytes.length>SOURCE||!officeExtensions.has(extension))fail('input');
+export function officeDirectory(bytes,extension,archive=false,maximumBytes=SOURCE){
+ if(![SOURCE,4194304].includes(maximumBytes)||archive&&maximumBytes!==SOURCE||!(bytes instanceof Uint8Array)||bytes.length<22||bytes.length>maximumBytes||!officeExtensions.has(extension))fail('input');
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),range=(at,size,end=bytes.length)=>{if(!Number.isSafeInteger(at)||at<0||size<0||at+size>end)fail('bounds');},u16=at=>{range(at,2);return view.getUint16(at,true);},u32=at=>{range(at,4);return view.getUint32(at,true);};
  let end=-1;for(let at=bytes.length-22;at>=Math.max(0,bytes.length-65557);at--)if(u32(at)===0x06054b50&&at+22+u16(at+20)===bytes.length){end=at;break;}
  if(end<0||u16(end+4)||u16(end+6)||u16(end+8)!==u16(end+10))fail('directory');
@@ -29,8 +29,8 @@ export function officeDirectory(bytes,extension,archive=false){
  }
  if(at!==end||!parts.length)fail('parts');intervals.sort((a,b)=>a[0]-b[0]);for(let i=1;i<intervals.length;i++)if(intervals[i][0]<intervals[i-1][1])fail('overlap');return parts;
 }
-export async function extractOfficeFiles(bytes,extension,archive=false){
- const parts=officeDirectory(bytes,extension,archive),files=[],budget=archive?16777216:TOTAL;let total=0;
+export async function extractOfficeFiles(bytes,extension,archive=false,maximumBytes=SOURCE){
+ const parts=officeDirectory(bytes,extension,archive,maximumBytes),files=[],budget=archive?16777216:TOTAL;let total=0;
  for(const part of parts){
   let result;if(part.method===0)result=bytes.slice(part.data,part.data+part.packed);
   else{
