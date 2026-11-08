@@ -44,3 +44,5 @@ Space 전달은 별도 미실행/미완료다. 초기 빈 화면 및 역사적4K
 4/5개 write rollback·원본/peer 보존 조건을 유지한다. 수정 전 프로그램/진단을 보존한다.
 큰 DOCX/XLSX 회귀는 별도4MiB 원본을 추가한 실제 v2 누적 catalog에서 편집/백업/private
 복구를 수행하고, 전체 불변 원본 catalog를 매 단계 대조한다. 기존 작은 catalog 검사도 유지한다.
+
+[최종 신규82단계·재사용0·실패/호환/보관 기록](VALIDATION_V666_RESOURCE_TOTAL.md)을 따른다.
