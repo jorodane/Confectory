@@ -57,3 +57,5 @@ HTML 위장·DTD/entity·PI/encoding·미완성/과다 주석·과다 markup·UT
 초기 빈 #app와 과거 cold 읽기 원인은 미확정이고 M11/M12/M4는 실제 회귀 없이 다시 열지 않는다.
 실제 Windows/WebView2·모바일·DPI/IME·물리 오디오·전체 UI·Space/Library 전달은 자동화/
 교차 패키징과 구분한다. 승인된 소유 임시 수명/최신·롤백 두 세대만 관리하고 main은 보존한다.
+
+[최종 신규65단계·지속 보관/미실행 기록](VALIDATION_V666_RESOURCE_SVG_PARTS.md)을 따른다.

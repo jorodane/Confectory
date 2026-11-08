@@ -484,3 +484,5 @@ FHD는 동결 `47262dc1`의 [총69단계(신규69·재사용0)](VALIDATION_V666_
 ## V7 큰 정지 SVG 후속
 
 이미 보관한256KiB 초과–4MiB 정지 SVG를 [기존 geometry·권한·격리 수명의 그림 패널](V7_RESOURCE_SVG_PARTS.md)에 연결한다.1MiB 초과는 기존 조각/전체SHA 관측을 사용하고, 큰 XML 주석·markup를 파싱 전에 제한한다. 원본UI·소유 데이터·권한·저장/CAS는 유지한다. 큰 편집/백업·4MiB 초과와 실제 신원/권한 backend·실기기/전체 UI·초기 빈 화면의 미확정 원인은 별도다.
+
+큰 정지 SVG는 동결 d94ee5e9의 [신규65단계·재사용0](VALIDATION_V666_RESOURCE_SVG_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 편집/백업·보관량/권한 backend·실기기/전체 UI·초기 빈 화면 원인 미확정은 구분한다.
