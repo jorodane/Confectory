@@ -37,7 +37,14 @@ try:
    try:q=image(cursor)
    except AssertionError:continue
    assert not q['available'],q
-  accepted=image();assert accepted['available'];f.run('stop',row);assert not image('slice:'+accepted['cursor']+':1')['available'];f.checked('single coherent RGBA frame despite source activity; foreign lease/view/handle, retired/out-of-range/completed transfer and stopped execution cannot publish cached pixels')
+  unavailable=[]
+  for attempt in range(20):
+   accepted=image()
+   if accepted['available']:break
+   unavailable.append(accepted);time.sleep(.05)
+  assert accepted['available'],dict(observations=unavailable,state=f.run('read',row))
+  if unavailable:f.checked('bounded read-only snapshot recovery before Stop: '+json.dumps(unavailable))
+  f.run('stop',row);assert not image('slice:'+accepted['cursor']+':1')['available'];f.checked('single coherent RGBA frame despite source activity; foreign lease/view/handle, retired/out-of-range/completed transfer and stopped execution cannot publish cached pixels')
  elif mode=='faults':
   for n in range(2,8):
    q=image();assert not q['available'],(n,q);prior=image(saved);assert prior['available']and prior['unchanged'],(n,prior)
