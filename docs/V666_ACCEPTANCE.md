@@ -478,3 +478,5 @@ FHD는 동결 `47262dc1`의 [총69단계(신규69·재사용0)](VALIDATION_V666_
 ## V7 큰 정지 AVIF 후속
 
 이미 보관한1MiB 초과–4MiB 정지 AVIF를 [기존 profile·alpha/픽셀·수명의 그림 패널](V7_RESOURCE_AVIF_PARTS.md)에 연결한다. 조각/전체SHA·최종 관측과 원본UI·권한·저장/CAS는 유지한다. 큰 SVG·편집/백업·4MiB 초과와 실제 신원/권한 backend·실기기/전체 UI·초기 빈 화면의 미확정 원인은 별도다.
+
+큰 정지 AVIF는 동결 82444451의 [신규63단계·재사용0](VALIDATION_V666_RESOURCE_AVIF_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 SVG·편집/권한 backend·실기기/전체 UI·초기 빈 화면 원인 미확정은 구분한다.
