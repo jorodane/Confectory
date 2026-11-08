@@ -54,3 +54,5 @@ QHD/4K/FHD+·GPU/물리 장치는 별도 잔여다. mesh/임의 조합과 새 �
 실제 Windows/WebView2·모바일·DPI/IME·Office 앱 서식 호환·물리 오디오·전체 UI·Space/Library
 전달은 자동화/교차 패키지 검증과 구분한다. 기존 원본·증거·로그/프로필·SDK/Git·사용자 자료와
 main은 보존하고, 승인된 소유 임시 수명과 최신/롤백 두 세대 보관만 유지한다.
+
+[최종 신규61단계·지속 보관·미실행 기록](VALIDATION_V666_RESOURCE_OFFICE_PARTS.md)을 따른다.
