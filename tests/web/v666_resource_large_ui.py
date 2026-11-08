@@ -44,7 +44,7 @@ def restart(index,project=None,flush=True):
  else:expect(b.locator('[data-resource-status]')).to_be_visible();f.idle()
 def hashes(prefix,size=600000,count=2):
  rows=[x for x in files()if x['name'].startswith(prefix)];assert len(rows)==count
- saved=json.loads(store.read_text())['items']
+ saved=json.loads((pathlib.Path(f.env['CONFECTORY_WEB_PROJECT']).parent/'.confectory/resources.v1.json').read_text())['items']
  for n in range(count):
   row=next(x for x in rows if x['name']==prefix+' '+str(n)+' 🧪.bin');raw=bytes([151+n])*size;assert row['hash']==hashlib.sha256(raw).hexdigest();actual=next(x for x in saved if x['id']==row['id']);assert base64.urlsafe_b64decode(actual['data'])==raw
 def bounded(id):
