@@ -83,3 +83,8 @@ ACK·pipe I/O 예산은 바꾸지 않는다. 같은 runtime/frame0/ACK0와 기�
 자동 Step/명령 재실행/새 owner 없이 다음 읽기가 회복되는 검사가 수정 후3회 통과했다.
 계측을 제거한 제품의 독립 API·UI 반복과 최종 새 source 검증도 별도로 수행한다.
 이 확인된 pipe 수명 결함과 초기 빈 #app의 미확정 원인은 구분한다.
+
+최종 c62ef89a 실행은 새 회귀의 긴 pipe 이름과 독립 LF TMPDIR 경로의 합이 Linux domain
+socket108자 한도를 넘어 검사 본문 전 실패했다. 검사 이름의 고정 prefix만 짧게 하고 무작위
+ID·중단/재접속·owner/ACK 검증과 제품 코드는 그대로 유지한다. 이 fixture 실패도 보존하며
+수정한 최종 검사 source에서 LF/CRLF·패키지/복원을 다시 검증한다.
