@@ -1,0 +1,10 @@
+{
+  "baseCommit": "4e5980cf173ea8c92d809ed9997dc5ffd5193ff1",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "cd7644e54539d404964e04519c0d7175c84c62f5d4011f27ebba50866f49d7c0",
+    "examples/editor-home/ui/resource-images.js": "d128a7a995af706263122c1751c8687028744d24495d8ff053b06e2c52b916b8",
+    "packs/project-resources/Layout.csbody": "4b5780ac6a92f69239996191f8eb0b99d722e22c1e9213c03b6cb4235bb03a1f",
+    "packs/project-resources/README.md": "c40aca6846f928fee3d852873f3374ef43ca0d5cd93e52b210f7ebf8b32c3444"
+  }
+}

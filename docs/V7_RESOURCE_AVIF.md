@@ -35,3 +35,6 @@ hard 상한을 뜻하지 않는다. 10/12bit·HDR나 모든 AVIF 문법을 인�
 구분한다. 초기 빈 화면 원인은 미확정이고 실제 Windows/WebView2/mobile·전체 UI는 미검증이다.
 
 [최종 검증과 보관·미실행 경계](VALIDATION_V666_RESOURCE_AVIF.md).
+
+1MiB 초과–4MiB 정지 사본은 [큰 AVIF 후속](V7_RESOURCE_AVIF_PARTS.md)에서 같은
+profile/논리 예산·bitmap 수명을 유지해 연결한다. 위 작은 사본 검증 기록은 별도다.

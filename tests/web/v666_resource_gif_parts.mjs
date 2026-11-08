@@ -9,5 +9,5 @@ for(const name of['unsupported','interactive','oversized'])assert.throws(()=>inf
 for(const sample of[values.static87,values.animated]){const big=pad(sample,4194304);assert.throws(()=>info(big.subarray(0,-1)));assert.throws(()=>info(Buffer.concat([big,Buffer.of(0)])));}
 const weighted=pad(values.animated,1048600);weighted.writeUInt16LE(4096,6);weighted.writeUInt16LE(4096,8);assert.throws(()=>info(weighted),/resource_image_gif_budget/);assert.throws(()=>mount({bytes:weighted}),/resource_image_gif_budget/);
 const noPalette=pad(values.static87,1048600);noPalette[10]&=127;assert.throws(()=>info(noPalette));
-for(const sig of['xxxxftypavif','<svg xmlns="http://www.w3.org/2000/svg">']){const bytes=Buffer.alloc(1048577);bytes.write(sig);assert.throws(()=>info(bytes),/resource_image_bytes/);}
+for(const sig of['xxxxftypheic','<svg xmlns="http://www.w3.org/2000/svg">']){const bytes=Buffer.alloc(1048577);bytes.write(sig);assert.throws(()=>info(bytes),/resource_image_bytes/);}
 console.log('PASS large GIF87a/89a/default/animation metadata at >1MiB and exact4MiB; overflow/truncated/trailing/palette/control/dimensions and whole-canvas frame-weighted budget reject before DOM; unchanged64frame/lease/codec checks run separately, actual motion checked by compositor');

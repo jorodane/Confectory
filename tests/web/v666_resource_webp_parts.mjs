@@ -14,6 +14,6 @@ const extended=Buffer.alloc(10);extended[0]=2;extended.writeUIntLE(63,4,3);exten
 for(const b of[pad(riff([chunk('VP8X',extended),frame()]),1048600),pad(riff([chunk('ANIM',Buffer.alloc(6)),frame()]),1048600),pad(riff([ll(),chunk('ANMF',Buffer.alloc(16))]),1048600)]){
  assert.throws(()=>info(b),/resource_image_animation_unsupported/);assert.throws(()=>mount({bytes:b}),/resource_image_animation_unsupported/);
 }
-for(const sig of['xxxxftypavif','<svg xmlns="http://www.w3.org/2000/svg">']){const b=Buffer.alloc(1048577);b.write(sig);assert.throws(()=>info(b),/resource_image_bytes/);}
+for(const sig of['xxxxftypheic','<svg xmlns="http://www.w3.org/2000/svg">']){const b=Buffer.alloc(1048577);b.write(sig);assert.throws(()=>info(b),/resource_image_bytes/);}
 const invalidGIF=Buffer.alloc(1048577);invalidGIF.write('GIF89a');assert.throws(()=>info(invalidGIF),/resource_image_dimensions/);
 console.log('PASS static VP8/VP8L with bounded inert RIFF metadata at >1MiB/exact4MiB; overflow/RIFF size/padding/truncation and large animation rejection before DOM; remaining large formats bounded; actual entropy/pixels tested by Chromium separately');

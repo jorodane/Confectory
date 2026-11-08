@@ -2,9 +2,16 @@ import {resourceSvgInfo} from './resource-svg.js';
 // Bounded image display of already SHA-verified project-copy bytes.
 // This is metadata screening before the browser decoder, not a new image codec.
 const FILE_BYTES=1048576,RASTER_BYTES=4194304,MAX_SIDE=16384,MAX_PIXELS=16777216,TOTAL_PIXELS=33554432;
+function resourceAvifSignature(bytes){
+ if(bytes.length<16||bytes[4]!==102||bytes[5]!==116||bytes[6]!==121||bytes[7]!==112)return false;
+ const length=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(0);
+ if(length<16||length>76||length>bytes.length||(length-16)%4)return false;
+ for(let at=8;at<length;at+=at===8?8:4)if(bytes[at]===97&&bytes[at+1]===118&&bytes[at+2]===105&&bytes[at+3]===102)return true;
+ return false;
+}
 let leasedPixels=0;
 export function resourceImageInfo(bytes){
- if(!(bytes instanceof Uint8Array)||bytes.length>RASTER_BYTES||bytes.length>FILE_BYTES&&!([137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)||bytes[0]===255&&bytes[1]===216&&bytes[2]===255||bytes[0]===66&&bytes[1]===77||bytes[0]===82&&bytes[1]===73&&bytes[2]===70&&bytes[3]===70&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80||bytes[0]===71&&bytes[1]===73&&bytes[2]===70&&bytes[3]===56&&(bytes[4]===55||bytes[4]===57)&&bytes[5]===97))throw Error('resource_image_bytes');
+ if(!(bytes instanceof Uint8Array)||bytes.length>RASTER_BYTES||bytes.length>FILE_BYTES&&!([137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)||bytes[0]===255&&bytes[1]===216&&bytes[2]===255||bytes[0]===66&&bytes[1]===77||bytes[0]===82&&bytes[1]===73&&bytes[2]===70&&bytes[3]===70&&bytes[8]===87&&bytes[9]===69&&bytes[10]===66&&bytes[11]===80||bytes[0]===71&&bytes[1]===73&&bytes[2]===70&&bytes[3]===56&&(bytes[4]===55||bytes[4]===57)&&bytes[5]===97||resourceAvifSignature(bytes)))throw Error('resource_image_bytes');
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),tag=(at,n)=>String.fromCharCode(...bytes.subarray(at,at+n));
  const size=(width,height,type)=>{if(!width||!height||width>MAX_SIDE||height>MAX_SIDE||width*height>MAX_PIXELS)throw Error('resource_image_dimensions');return {width,height,type,pixels:width*height};};
  if(bytes.length>=8&&[137,80,78,71,13,10,26,10].every((v,i)=>bytes[i]===v)){
@@ -111,7 +118,7 @@ export function resourceImageInfo(bytes){
   for(const[id,rows]of associations){const alpha=id!==primary,required=alpha?['ispe','pixi','av1C','auxC']:['ispe','pixi','av1C','colr'];if(rows.size!==4||required.some(type=>!rows.has(type))||rows.get('pixi').channels!==(alpha?1:3))fail();const info=rows.get('ispe').info;if(info.width!==primaryInfo.width||info.height!==primaryInfo.height||(pixels+=info.pixels)>MAX_PIXELS)fail();
    const location=locations.get(id),end=location.offset+location.length;let pos=location.offset,sequence=null,frame=false,delimiter=false;
    // A reduced still sequence and one frame keep all coded dimensions bounded before native decode.
-   while(pos<end){const header=bytes[pos++],type=header>>3&15;if(header&0x85||!(header&2))fail();let length=0,multiplier=1,done=false;for(let n=0;n<8&&pos<end;n++){const value=bytes[pos++];length+=(value&127)*multiplier;if(!Number.isSafeInteger(length)||length>FILE_BYTES)fail();if(!(value&128)){done=true;break;}multiplier*=128;}if(!done||pos+length>end)fail();const finish=pos+length;
+   while(pos<end){const header=bytes[pos++],type=header>>3&15;if(header&0x85||!(header&2))fail();let length=0,multiplier=1,done=false;for(let n=0;n<8&&pos<end;n++){const value=bytes[pos++];length+=(value&127)*multiplier;if(!Number.isSafeInteger(length)||length>(type===6?RASTER_BYTES:FILE_BYTES))fail();if(!(value&128)){done=true;break;}multiplier*=128;}if(!done||pos+length>end)fail();const finish=pos+length;
     if(type===2){if(delimiter||sequence||frame||length)fail();delimiter=true;}
     else if(type===1){if(sequence||frame||!length)fail();let bit=pos*8;const read=amount=>{if(bit+amount>finish*8)fail();let value=0;while(amount--)value=value*2+(bytes[bit>>3]>>(7-(bit++&7))&1);return value;};const profile=read(3);if(profile>1||read(1)!==1||read(1)!==1)fail();const level=read(5),widthBits=read(4)+1,heightBits=read(4)+1,width=read(widthBits)+1,height=read(heightBits)+1;if(width!==info.width||height!==info.height)fail();read(6);if(read(1)!==0)fail();const mono=profile===1?0:read(1),described=read(1),primaries=described?read(8):2,transfer=described?read(8):2,matrix=described?read(8):2;let range,x,y,chroma=0;
      if(mono){range=read(1);x=y=1;}else{if(primaries===1&&transfer===13&&matrix===0){range=1;x=y=0;}else{range=read(1);x=y=profile===0?1:0;if(x&&y)chroma=read(2);}read(1);}read(1);if(read(1)!==1)fail();while(bit<finish*8)if(read(1)!==0)fail();sequence={profile,level,flags:mono<<4|x<<3|y<<2|chroma};if(mono!==(alpha?1:0))fail();const color=rows.get('colr');if(color&&(range!==color.range||described&&(primaries!==color.primaries||transfer!==color.transfer||matrix!==color.matrix)))fail();

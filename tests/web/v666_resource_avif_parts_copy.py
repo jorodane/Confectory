@@ -1,0 +1,25 @@
+"""Finite original AVIF path, byte preservation of decoder/layout/storage/permission contracts."""
+import pathlib,json,subprocess,hashlib,zipfile,ast,sys
+r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-resource-avif-parts-delta.json').read_text());git=lambda*a:subprocess.check_output(['git',*a],cwd=r,text=True)
+expected={'examples/editor-home/WebBundle.csbody','examples/editor-home/ui/resource-images.js','packs/project-resources/Layout.csbody','packs/project-resources/README.md'}
+assert set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines())==set(d['productFiles'])==expected
+for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
+helper='function resourceAvifSignature(bytes){\n if(bytes.length<16||bytes[4]!==102||bytes[5]!==116||bytes[6]!==121||bytes[7]!==112)return false;\n const length=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength).getUint32(0);\n if(length<16||length>76||length>bytes.length||(length-16)%4)return false;\n for(let at=8;at<length;at+=at===8?8:4)if(bytes[at]===97&&bytes[at+1]===118&&bytes[at+2]===105&&bytes[at+3]===102)return true;\n return false;\n}\n'
+native='  bool avifSignature=false;\n  if(raw.Length>=16&&raw[4]==102&&raw[5]==116&&raw[6]==121&&raw[7]==112){uint length=System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(raw.AsSpan(0,4));if(length>=16&&length<=76&&length<=raw.Length&&(length-16)%4==0)for(int at=8;at<length;at+=at==8?8:4)if(raw[at]==97&&raw[at+1]==118&&raw[at+2]==105&&raw[at+3]==102){avifSignature=true;break;}}\n'
+old=git('show',d['baseCommit']+':examples/editor-home/ui/resource-images.js');new=(r/'examples/editor-home/ui/resource-images.js').read_text();assert new==old.replace('let leasedPixels=0;',helper+'let leasedPixels=0;').replace('bytes[5]===97))','bytes[5]===97||resourceAvifSignature(bytes)))').replace('!Number.isSafeInteger(length)||length>FILE_BYTES','!Number.isSafeInteger(length)||length>(type===6?RASTER_BYTES:FILE_BYTES)')
+old=git('show',d['baseCommit']+':packs/project-resources/Layout.csbody');new=(r/'packs/project-resources/Layout.csbody').read_text();at=old.index('  if(System.Linq.Enumerable.SequenceEqual(raw.AsSpan');expectedLayout=old[:at]+native+old[at:];assert new==expectedLayout.replace('Only bounded PNG/JPEG/BMP/WebP/GIF\n','Only bounded PNG/JPEG/BMP/WebP/GIF/AVIF\n').replace('raw[5]==97)rasterBytes=raw;','raw[5]==97||avifSignature)rasterBytes=raw;')
+old=git('show',d['baseCommit']+':packs/project-resources/README.md');new=(r/'packs/project-resources/README.md').read_text();assert new==old.replace('Large stored PNG/JPEG/BMP, static WebP and bounded GIF copies','Large stored PNG/JPEG/BMP, static WebP/AVIF and bounded GIF copies').replace('docs/V7_RESOURCE_GIF_PARTS.md for compatibility','docs/V7_RESOURCE_GIF_PARTS.md and docs/V7_RESOURCE_AVIF_PARTS.md for compatibility')
+assert not git('diff','--name-only',d['baseCommit'],'--','*.celem','*.cpack')
+p=(r/'examples/editor-home/WebBundle.csbody').read_text().split('"""');before=git('show',d['baseCommit']+':examples/editor-home/WebBundle.csbody').split('"""');assert p[0]==before[0]and p[2]==before[2];bundle=json.loads(p[1]);prior=json.loads(before[1]);assert set(bundle)==set(prior)
+for name,row in bundle.items():
+ raw=(r/'examples/editor-home/ui'/row['file']).read_bytes();raw=raw.replace(b'\r\n',b'\n')if row.get('bytePolicy')=='utf8-lf-v1'else raw;assert len(raw)==row.get('canonicalSize',row.get('size'))and hashlib.sha256(raw).hexdigest()==row.get('canonicalSha256',row.get('sha256')),name
+ if name!='resource-images.js':assert row==prior[name],name
+ref=r/'reference/site-ui/Confectory-Editor-Prototype-v666.zip';assert hashlib.sha256(ref.read_bytes()).hexdigest()==d['referenceSha256']
+with zipfile.ZipFile(ref)as z:
+ s=z.read('Confectory-v666/dist/resource-preview.js').decode();assert 'blob.size>64*1024*1024'in s and "if(item.kind==='image'){url=URL.createObjectURL(blob)"in s
+ app=z.read('Confectory-v666/dist/app.js').decode();at=app.index('function resourceKind');assert 'avif'in app[at:at+1600]
+branches=[n for n in ast.walk(ast.parse((r/'tools/verify_desktop.py').read_text()))if isinstance(n,ast.If)and ast.unparse(n.test)=="args.suite == 'resource-avif-parts'"];assert len(branches)==3
+calls=[ast.unparse(n)for b in branches for statement in b.body for n in ast.walk(statement)if isinstance(n,ast.Call)]
+for token in ["work.run(label + '-resource-avif-parts-boundary'","work.run('packaged-resource-avif-parts'","work.run('restored-resource-avif-parts'"]:assert sum(token in c for c in calls)==1
+subprocess.run(['node','--check',str(r/'examples/editor-home/ui/resource-images.js')],check=True)
+print('PASS exact3runtime+README additive bounded AVIF brand/FRAME encoded transport; original AVIF profile and weighted surfaces/bitmap lifetime/pixel lease/DOM, bundle keys and native permissions/fullSHA/final-read/storage/CAS/public/override source contracts unchanged; canonical assets and three final suite routes')

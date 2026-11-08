@@ -65,3 +65,6 @@ cold 읽기 실패가 같은 원인이라고 추정하지 않는다. 최종 통�
 큰 정지 WebP도 [같은 조각/기존 WebP 검증의 후속](V7_RESOURCE_WEBP_PARTS.md)으로 연결한다. 위 역사적 PNG/JPEG 당시 검증과 큰 다른 형식의 잔여는 구분한다.
 
 큰 GIF도 [기존 정지/제한 애니메이션·조각 관찰](V7_RESOURCE_GIF_PARTS.md)에 연결한다. 위 역사적 당시 범위와 이후 큰 AVIF/SVG 잔여를 구분한다.
+
+큰 정지 AVIF는 [전용 후속](V7_RESOURCE_AVIF_PARTS.md)에서 기존 image-parts 관찰과
+동일 AVIF profile을 연결한다. 이 문서의 최초 PNG/JPEG 검증 수에 합산하지 않는다.
