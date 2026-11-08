@@ -43,3 +43,16 @@ canvas·ACK, 반복/미결/응답 유실/늦은 입력·닫기/cold, 기존 QHD/
 새 필수 확장으로 늘리지 않고 M11/M12/M4도 구체적 회귀 없이 다시 열지 않는다.
 기존 환경·원본·SDK/Git·로그/프로필·증거와 main을 보존하며 승인된 소유 임시 수명과 최신/
 롤백2세대 보관만 사용한다. 새 자격증명/실제 계정·접근권한·유료 호출·과거자료 정리는 없다.
+
+최초 최종 실행의 기존 heartbeat 회귀는 픽셀 관측을2.7초 반복하며 매 응답을available로
+가정한 곳에서1회 실패했다. 당시 거절 payload를 기록하지 않아 원인은 미확정이다. 관측은
+기존 surface-unavailable 반환 계약이 있어 무중단 성공 보장과 heartbeat 갱신 금지를 구분한다.
+검사는 같은2.7초 동안 성공 픽셀을 실제로 반복 확인하고2초 이후 성공도 요구한다. 오직
+surface-unavailable만 기록해 허용하며 다른 거절은 실패한다. 중간 invoke 수 불변과 종료 후
+실제 paused 제어 상태·foreign lease/view/handle·닫힌 소유 거절을 그대로 검사한다.
+
+이 검사 보완 전 동결9aa90c19의 봉인된60개 통과 중, 제품/다른 검사·SDK/의존성/독립 checkout과
+명령이 동일한39개만 별도 source-bound 증명으로 재사용할 수 있다. 실패·변경 heartbeat,
+checkout/build/engine·boundary·예제 build·패키지/전체 복원은 새로 실행한다. 정확 probe/
+harness SHA·전체 증거 manifest/CRC/SHA와 변경 SDK/제품 거절 guard를 검증하고 신규/재사용을
+구분한다. 이 보완을 기존 빈 화면/첫 관측 원인 해결이나 native timer 완화로 간주하지 않는다.
