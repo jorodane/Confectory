@@ -55,3 +55,7 @@ DOCX·작은 XLSX·Office/text 회귀와 최신/롤백·증거·소유 임시 �
 DPI/IME·Office 앱·GPU/물리 오디오·전체UI·Space/Library는 미실행/미완료로 구분한다.
 4MiB 초과/보관량·실제 신원/권한 backend·종류 C#표현/사용중삭제 대응·현재 예산 밖 custom
 출력은 별도 고정 잔여다. M11/M12/M4나 선택적 조합을 새 잔여로 다시 늘리지 않는다.
+
+[최종 유효70단계·신규28/동일 입력 재사용42·실패/호환/보관 증거](VALIDATION_V666_RESOURCE_XLSX_PARTS.md)를 따른다.
+
+여기서 정상 생성 자료는 현재 파서의 ZIP/XML 범위를 뜻하며 실제 Office 앱 적합성 판정은 아니다.

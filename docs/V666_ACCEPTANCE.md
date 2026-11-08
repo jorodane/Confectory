@@ -531,3 +531,5 @@ UI·프로필/공개 계약·저장 형식/구 reader 정책·SHA/소유·원자
 ## V7 큰 XLSX 편집 후속
 
 기존4MiB 보관 사본의 [셀 편집·직전 내용 복원·조각 private 입력](V7_RESOURCE_XLSX_PARTS.md)을 연결한다. 원본 시트/수식/보호/병합·문체/레이아웃과 기본1MiB·RPC2MiB·import/권한·최종CAS, 완료된 DOCX를 보존한다. 새 XLSX content format/private codec의 구 reader 거절과 원본 보존을 검증하며 자동 이행하지 않는다. 최종 독립 LF/CRLF·새 패키지/전체 복원·실패/보관 증거에서 마감한다. 보관 확대/권한 backend·실기기/전체UI 및 초기 빈 화면 원인 미확정은 별도다.
+
+큰 XLSX 편집/복원/private 초안은 동결 141f0b17의 [유효70단계·신규28/동일 입력 재사용42](VALIDATION_V666_RESOURCE_XLSX_PARTS.md), 새 패키지·전체 복원으로 검증했다. 작은 XLSX/기존 DOCX·원본/권한/CAS와 구 reader 명시 거절을 보존한다. 초기 빈 화면 원인은 미확정이고 실제 기기/Office 앱/전체UI 완료가 아니다.
