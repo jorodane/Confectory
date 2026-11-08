@@ -56,3 +56,10 @@ surface-unavailable만 기록해 허용하며 다른 거절은 실패한다. 중
 checkout/build/engine·boundary·예제 build·패키지/전체 복원은 새로 실행한다. 정확 probe/
 harness SHA·전체 증거 manifest/CRC/SHA와 변경 SDK/제품 거절 guard를 검증하고 신규/재사용을
 구분한다. 이 보완을 기존 빈 화면/첫 관측 원인 해결이나 native timer 완화로 간주하지 않는다.
+
+후속 실행은 위 heartbeat LF/CRLF를 통과했지만 기존 QHD 호환 API의 일시정지 직후 단일
+관측이surface-unavailable이었다. 기존 제품·QHD/legacy 타이머는 같고 거절 원인은 미확정이다.
+QHD 검사도 기존과 같은20회/50ms·read-only·invoke 불변의 정상 관측 복구로 보완한다.
+잘못된 데이터 세대나 명령을 재시도하지 않는다. 두 봉인 기록의 직접 통과 결과에서 제품/
+검사/SDK/checkout/명령이 동일한38+9개만 재사용하고, 변경된 QHD/실패·빌드·경계·패키지/
+복원은 새로 실행한다. 이전 재사용 항목을 다시 복제한 결과로 세지 않는다.

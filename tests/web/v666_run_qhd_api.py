@@ -41,7 +41,15 @@ try:
   if initial:f.checked('bounded initial unavailable observation recovery uses reads only, with unchanged command count: '+json.dumps(initial))
  else:raise AssertionError(mode)
  raw=complete(first);
- if mode=='normal':row=f.run('read',row);row=f.control(row,'pause');row=f.wait(row,lambda q:q['control'].get('mode')=='paused'and q['control'].get('pending')==0);first=image();complete(first)
+ if mode=='normal':
+  row=f.run('read',row);row=f.control(row,'pause');row=f.wait(row,lambda q:q['control'].get('mode')=='paused'and q['control'].get('pending')==0);postPause=[];beforeRead=len(mutations)
+  for attempt in range(20):
+   first=image()
+   if first.get('available'):break
+   assert first=={'available':False,'reason':'surface-unavailable'}or first=={'available':False,'reason':'no-frame'},first
+   postPause.append(dict(attempt=attempt+1,result=first));time.sleep(.05)
+  (f.root/'post-pause-observations.json').write_text(json.dumps(dict(observations=postPause,invokeCountBefore=beforeRead,invokeCountAfter=len(mutations)),indent=2));assert first.get('available')and len(mutations)==beforeRead,postPause;complete(first)
+  if postPause:f.checked('bounded post-pause read-only recovery without new command: '+json.dumps(postPause))
  saved=first['cursor'];same=image(saved);assert same['available']and same['unchanged']and 'pixels'not in same;f.checked('actual complete2560x1440 output crosses bounded authenticated child parts and unretained native/browser parts with exact overall SHA; same completed cursor remains unchanged')
  if mode=='normal':
   assert len(set(raw[0::4]))==1 and set(raw[3::4])=={255}
