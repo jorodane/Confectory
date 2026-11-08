@@ -525,3 +525,5 @@ UI·프로필/공개 계약·저장 형식/구 reader 정책·SHA/소유·원자
 보존한다. 새 content/private 형식의 구 reader 거절과 원본 보존을 검증하며 자동 이행하지 않는다.
 최종 LF/CRLF·생성/전체 복원·보관/실패 증거는 후속 검증 기록에서 마감한다. 큰 XLSX 편집·
 전체 보관 확대·권한 backend·실기기/전체 UI 및 원인 미확정 초기 빈 화면은 별도다.
+
+큰 DOCX 편집/복원/private 초안은 동결 48242375의 [신규62단계·재사용0](VALIDATION_V666_RESOURCE_DOCX_PARTS.md), 새 교차 패키지와 전체 복원으로 검증했다. 기본1MiB/다른 Office 제한·원본/권한/CAS·구 reader 명시 거절과 별도 고정 잔여를 유지한다. 초기 빈 화면과 공개 cold 실패 원인은 미확정이며 실제 기기/Office 앱/전체UI 완료가 아니다.

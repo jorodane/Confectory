@@ -75,3 +75,5 @@ ZIP module은 정확4MiB 실제 ZIP, native CAS/전송 경계는4MiB 불투명 �
 실제 Windows/WebView2·모바일·DPI/IME·Word/Office 앱·전체 UI·Space/Library는 미완료다.
 큰 XLSX 편집·4MiB 초과/보관량·신원/권한 backend·종류 C#표현/사용중삭제 대응과 현재 예산 밖
 custom 출력은 별도 고정 잔여이며, 정상 거절/선택적 조합을 새 필수 요구로 늘리지 않는다.
+
+[최종 신규62단계·재사용0·실패/호환/보관 증거](VALIDATION_V666_RESOURCE_DOCX_PARTS.md)를 따른다.
