@@ -9,7 +9,7 @@ System.Text.Json.Nodes.JsonObject Call(string operation,System.Text.Json.Nodes.J
 System.Text.Json.Nodes.JsonObject Item(string name,byte[] bytes,string type="text/plain")=>new(){["id"]=Guid.NewGuid().ToString("N"),["name"]=name,["type"]=type,["size"]=bytes.Length,["hash"]=Hash(bytes),["modifiedAt"]=0,["data"]=Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_')};
 void Reject(string operation,System.Text.Json.Nodes.JsonObject input,string label,string? owner=null){byte[]? before=System.IO.File.Exists(store)?System.IO.File.ReadAllBytes(store):null;bool rejected=false;try{Call(operation,input,owner);}catch{rejected=true;}Check(rejected,label);Check(before is null?!System.IO.File.Exists(store):System.Linq.Enumerable.SequenceEqual(before,System.IO.File.ReadAllBytes(store)),label+" preserves exact prior store");}
 var empty=Call("load");Check(empty["revision"]!.ToString()=="missing"&&!System.IO.File.Exists(store),"empty read never creates asset storage");
-Check(empty["items"]!.AsArray().Count==0&&empty["limits"]!["fileBytes"]!.GetValue<int>()==1048576,"real empty list and provider capability");
+Check(empty["items"]!.AsArray().Count==0&&empty["limits"]!["fileBytes"]!.GetValue<int>()==4194304,"real empty list and provider capability");
 var text=Item("한글 자료 <안전>.txt",System.Text.Encoding.UTF8.GetBytes("실제 보관 사본\r\n원본은 유지합니다.\n"));
 var input=new System.Text.Json.Nodes.JsonObject{["revision"]=empty["revision"]!.DeepClone(),["command"]=Guid.NewGuid().ToString("N"),["item"]=text.DeepClone()};var added=Call("import",input);
 Check(added["items"]!.AsArray().Count==1&&added["selected"]!.ToString()==text["id"]!.ToString(),"first append preserves stable authored identity and Unicode name");

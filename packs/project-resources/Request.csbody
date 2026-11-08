@@ -1,6 +1,6 @@
 // A bounded first storage provider: names are metadata, never filesystem paths.
-const int fileLimit=1048576,totalLimit=4194304,countLimit=64,storeLimit=6291456;
-if(payload.Length>(operation is "import-many" or "prepare-import-many"?6000000:1500000))throw new ArgumentException("resource_input_budget");
+const int fileLimit=4194304,totalLimit=4194304,countLimit=64,storeLimit=6291456;
+if(payload.Length>(operation is "import" or "import-many" or "prepare-import-many"?6000000:1500000))throw new ArgumentException("resource_input_budget");
 if(!Guid.TryParseExact(project,"N",out _))throw new UnauthorizedAccessException("resource_project_identity");
 manifest=System.IO.Path.GetFullPath(manifest);string root=System.IO.Path.GetDirectoryName(manifest)!,relative=".confectory/resources.v1.json",path=System.IO.Path.Combine(root,relative),identityPath=System.IO.Path.Combine(root,".confectory/project-identity.json");
 void Unlinked(string value){for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(value);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent)if(node.LinkTarget is not null)throw new UnauthorizedAccessException("resource_storage_link");}
@@ -16,7 +16,7 @@ System.Text.Json.Nodes.JsonObject Item(System.Text.Json.Nodes.JsonNode? value,bo
  if(stored)Keys(row,"id","name","type","size","hash","modifiedAt","data","kind","createdAt","import");else Keys(row,"id","name","type","size","hash","modifiedAt","data");
  string id=Text(row["id"]),name=Text(row["name"]),type=Text(row["type"]),hash=Text(row["hash"]),data=Text(row["data"]);
  int size=row["size"]!.GetValue<int>();long modified=row["modifiedAt"]!.GetValue<long>();
- if(!IsId(id)||name.Length is <1 or >180||name!=name.Trim()||string.IsNullOrWhiteSpace(name)||name.IndexOfAny(new[]{'/','\\'})>=0||System.Linq.Enumerable.Any(name,char.IsControl)||type.Length>128||System.Linq.Enumerable.Any(type,char.IsControl)||size is <0 or >fileLimit||modified is <0 or >9007199254740991||!IsHash(hash)||data.Length>1398104)throw new ArgumentException("resource_item_budget");
+ if(!IsId(id)||name.Length is <1 or >180||name!=name.Trim()||string.IsNullOrWhiteSpace(name)||name.IndexOfAny(new[]{'/','\\'})>=0||System.Linq.Enumerable.Any(name,char.IsControl)||type.Length>128||System.Linq.Enumerable.Any(type,char.IsControl)||size is <0 or >fileLimit||modified is <0 or >9007199254740991||!IsHash(hash)||data.Length>5592408)throw new ArgumentException("resource_item_budget");
  byte[] bytes;try{bytes=Convert.FromBase64String(data.Replace('-','+').Replace('_','/'));}catch(FormatException){throw new ArgumentException("resource_bytes");}
  if(bytes.Length!=size||Convert.ToBase64String(bytes).Replace('+','-').Replace('/','_')!=data||Hash(bytes)!=hash)throw new ArgumentException("resource_content_integrity");
  string kind=Kind(name,type);
@@ -40,12 +40,13 @@ if(identity["version"]?.GetValue<int>()!=1||identity["manifest"]?.ToString()!=ma
 if(System.IO.Directory.Exists(path)||System.IO.File.Exists(path)&&new System.IO.FileInfo(path).Length>storeLimit)throw new InvalidOperationException("resource_storage_budget");
 var snapshot=calls.Snapshot.Invoke(path,storeLimit);var saved=snapshot[0]=="exists"?Validate(snapshot[1]):new System.Text.Json.Nodes.JsonObject{["version"]=1,["project"]=project,["manifest"]=manifest,["items"]=new System.Text.Json.Nodes.JsonArray(),["receipt"]=null};
 System.Text.Json.Nodes.JsonObject Metadata(System.Text.Json.Nodes.JsonNode row){var result=row.DeepClone().AsObject();result.Remove("data");result.Remove("import");return result;}
-string Reply(System.Text.Json.Nodes.JsonObject value,string revision,string command="",string? selected=null,bool replayed=false){var rows=new System.Text.Json.Nodes.JsonArray();foreach(var row in value["items"]!.AsArray())rows.Add(Metadata(row!));return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["revision"]=revision,["items"]=rows,["command"]=command,["selected"]=selected,["replayed"]=replayed,["limits"]=new System.Text.Json.Nodes.JsonObject{["fileBytes"]=fileLimit,["totalBytes"]=totalLimit,["items"]=countLimit,["importBatch"]=countLimit,["importBytes"]=totalLimit}}.ToJsonString();}
+string Reply(System.Text.Json.Nodes.JsonObject value,string revision,string command="",string? selected=null,bool replayed=false){var rows=new System.Text.Json.Nodes.JsonArray();foreach(var row in value["items"]!.AsArray())rows.Add(Metadata(row!));return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["revision"]=revision,["items"]=rows,["command"]=command,["selected"]=selected,["replayed"]=replayed,["limits"]=new System.Text.Json.Nodes.JsonObject{["fileBytes"]=fileLimit,["readFileBytes"]=1048576,["totalBytes"]=totalLimit,["items"]=countLimit,["importBatch"]=countLimit,["importBytes"]=totalLimit}}.ToJsonString();}
 var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
 if(operation=="load"){Keys(input);return Reply(saved,snapshot[2]);}
 if(operation=="read"){
  Keys(input,"id","hash");string id=Text(input["id"]),expected=Text(input["hash"]);if(!IsId(id)||!IsHash(expected))throw new ArgumentException("resource_selection");
  var found=System.Linq.Enumerable.SingleOrDefault(saved["items"]!.AsArray(),row=>row!["id"]!.ToString()==id)??throw new InvalidOperationException("resource_missing");if(found["hash"]!.ToString()!=expected)throw new InvalidOperationException("resource_content_changed");
+ if(found["size"]!.GetValue<int>()>1048576)return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["item"]=Metadata(found),["encoding"]="unavailable",["reason"]="resource_preview_file_budget"}.ToJsonString();
  return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["project"]=project,["item"]=Metadata(found),["encoding"]="base64url",["data"]=found["data"]!.DeepClone()}.ToJsonString();
 }
 // A batch is a set of explicit single-import intents sharing one observed basis.

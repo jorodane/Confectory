@@ -2,7 +2,7 @@
 import pathlib,sys,tempfile,os,json,subprocess
 r=pathlib.Path(sys.argv[1]).resolve();cli=pathlib.Path(sys.argv[2]).resolve()
 case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-project-resources-'));project=case/'consumer';project.mkdir()
-(project/'Main.csbody').write_text((r/('tests/fixtures/project-resources/Batch.csbody'if'--batch'in sys.argv else'tests/fixtures/project-resources/Main.csbody')).read_text())
+(project/'Main.csbody').write_text((r/('tests/fixtures/project-resources/Large.csbody'if'--large'in sys.argv else'tests/fixtures/project-resources/Batch.csbody'if'--batch'in sys.argv else'tests/fixtures/project-resources/Main.csbody')).read_text())
 (project/'Main.celem').write_text('function Probe.Resources::Main () -> int {provide Probe.Resources::Main with Probe.Resources::MainBody;provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;}')
 (project/'MainBody.celem').write_text('implementation Probe.Resources::MainBody for Probe.Resources::Main () -> int {import Confectory.ProjectResources::Request as Request (string,string,string,string) -> string;body common "Main.csbody";}')
 def quote(value):return json.dumps(str(value))

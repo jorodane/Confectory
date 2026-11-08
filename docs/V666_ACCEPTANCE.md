@@ -403,3 +403,7 @@ remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위
 
 원본 Run 메뉴의1280×720·720×1280·1024×768을 [명시적 HD software profile](V8_RUN_HD.md)에 연결한다. 기존 Open의640/262144픽셀 기본값·공개 signature·실행 권한은 유지한다. OpenHD와 ConfigureSize/RequestedSize를 직접 선택한 프로젝트만 새921600픽셀 한도를 사용한다. 전역 RPC/pipe 한도를 늘리지 않고 소유 프레임의 불변 조각·전체 SHA 확인 뒤에 표시하며, size ACK/Step/작업 진행과 표시 완료를 분리한다. 큰 preset의 paired reader 제한을 보존하고 source/override/ReviewConfirm/CAS와 늦은 입력·닫기·cold를 보호한다. [최종 검증과 보관](VALIDATION_V666_RUN_HD.md)에서 신규/재사용과 실제 기기 미실행을 구분한다. FHD/4K·GPU/물리 출력·장치, 큰 파일/신원·권한 backend 및 초기 빈 화면 원인 미확정은 기존 잔여다.
 최종 **65단계(신규35·동일성 확인 재사용30)**를 마감했다. [HD 검증·보관/미실행 기록](VALIDATION_V666_RUN_HD.md).
+
+## V6 단일 큰 자료 보관 후속
+
+원본의 명시 File 사본 보관을 [파일당4MiB·기존 전체4MiB의 경계](V6_RESOURCE_LARGE.md)로 연결한다. root/폴더의 기존 청크·원자 저장과 ID/영수증·최종CAS를 재사용하며 1MiB 초과 내용은 metadata-only 미지원 안내로 구분한다. 큰 원본의 내용 편집/백업은 쓰기 전에 거절한다. 큰 사본을 가진 저장소의 구버전 reader/writer 비호환을 숨기지 않으며 작은 기존 자료는 이행하지 않는다. 검증·보관 결과는 [해당 기록](VALIDATION_V666_RESOURCE_LARGE.md)에서 확정한다. 4MiB 초과/총 보관량 확대·큰 내용 읽기와 실제 권한 backend·기기 검증은 기존 잔여다.

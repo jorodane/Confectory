@@ -19,7 +19,7 @@ Names and supplied MIME are display metadata, never paths or execution hints.
 Different resources can have the same name. The store assigns kind and UTC
 creation time using the authored resource classification.
 
-The first provider supports 1MiB per file, 4MiB decoded total and 64 identities.
+The provider supports 4MiB per file, 4MiB decoded total and 64 identities.
 Capabilities are explicit; this is not full-size or all-format editor support.
 One bounded `.confectory/resources.v1.json` inside the active project owns the
 metadata and encoded bytes. No original user file is moved, referenced or deleted.
@@ -43,7 +43,12 @@ See docs/V6_RESOURCE_FILE_DELETION.md for bounded receipt history,
 late import replay protection, final CAS and old-writer limitations. Explicit multi-root selection deletion is documented in
 docs/V6_RESOURCE_MULTI_DELETION.md. Content editing/backup recovery and rich previews remain follow-up work. No account, shared ACL or external filesystem grant is added.
 
-Selected groups now support 4MiB total while each file remains at most 1MiB.
+Selected groups and individual files support 4MiB within the same total store limit.
 EditorHome sends larger groups through bounded session chunks and invokes the same
 atomic provider only after complete SHA/UTF-8 verification. Stored v1 grammar and
-rollback readers remain unchanged. See docs/V6_RESOURCE_TRANSFER.md.
+small-file rollback readers retain their grammar. A store containing a file above
+1MiB requires the new reader; old readers/writers reject it without resetting data.
+`limits.readFileBytes` remains 1MiB. Larger `read` responses have verified metadata,
+`encoding:"unavailable"`, `reason:"resource_preview_file_budget"` and no `data`.
+Content edits/backups stay within 1MiB, including the original being replaced.
+See docs/V6_RESOURCE_LARGE.md and the earlier group-transfer record.
