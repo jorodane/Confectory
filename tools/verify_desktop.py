@@ -117,6 +117,7 @@ def main():
     parser.add_argument('--reuse-coupled-ui',type=Path,help='Sealed passed UI checks with identical product and only the bounded response-wait fixture correction')
     parser.add_argument('--reuse-svg',type=Path,help='Sealed identical SVG checks after the package-suite routing correction; builds/packages run fresh')
     parser.add_argument('--reuse-fhd',type=Path,help='Eleven sealed identical LF checks after exact initial read-only FHD observation correction; failed/API/build/package checks fresh')
+    parser.add_argument('--reuse-xlsx-parts',type=Path,help='Exact sealed passing facts before the XLSX project-return readonly Retry observation correction')
     parser.add_argument('--reuse-4k-memory',type=Path,help='Exact sealed passing facts before HD cold lease probe correction; failed/changed tests, builds/packages fresh')
     parser.add_argument('--reuse-4k',type=Path,action='append',help='Sealed identical passing4K facts after exact heartbeat observation fixture correction; changed/failed checks and builds/packages fresh')
     parser.add_argument('--reuse-audio',type=Path,help='Sealed identical LF/CRLF audio checks after exact package raw-string parser correction')
@@ -143,6 +144,10 @@ def main():
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_xlsx_parts:
+            if args.suite!='resource-xlsx-parts':raise ValueError('XLSX reuse requires its own suite')
+            from verification_xlsx_parts_reuse import bind
+            bind(repo,args.reuse_xlsx_parts,commit,inputs,work)
         if args.reuse_4k_memory:
             if args.suite!='run-4k-memory':raise ValueError('4K memory reuse requires its own suite')
             from verification_4k_memory_reuse import bind
