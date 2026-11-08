@@ -48,7 +48,7 @@ FHD 개인 preset도 기존 버전1 JSON/ID·영수증·프로젝트별 CAS 안�
 물리 오디오·전체 UI·Space/Library 전달은 이번 소프트웨어 자동화/교차 생성과 구분한다.
 
 
-첫 최종 실행06d1d5a1은 LF18단계를 통과한 뒤 첫 정상 관측이 `surface-unavailable`을
+첫 최종 실행06d1d5a1은 선행18단계를 통과한 뒤 첫 정상 관측이 `surface-unavailable`을
 반환해 중단됐다. 원인은 미확정이며 픽셀 손상/초기 빈 #app와 같은 문제로 단정하지 않는다.
 실패 신호 뒤의 읽기 재관측은 기존 계약이다. API 검사 정상 모드의 첫 프레임만20회/50ms
 안에서 재관측하고 invoke 수 불변을 확인한다. native300ms/패킷·UI 정책은 바꾸지 않으며
@@ -88,3 +88,5 @@ ACK·pipe I/O 예산은 바꾸지 않는다. 같은 runtime/frame0/ACK0와 기�
 socket108자 한도를 넘어 검사 본문 전 실패했다. 검사 이름의 고정 prefix만 짧게 하고 무작위
 ID·중단/재접속·owner/ACK 검증과 제품 코드는 그대로 유지한다. 이 fixture 실패도 보존하며
 수정한 최종 검사 source에서 LF/CRLF·패키지/복원을 다시 검증한다.
+
+[최종 신규69단계·보관·미실행 기록](VALIDATION_V666_RUN_FHD.md)을 따른다.
