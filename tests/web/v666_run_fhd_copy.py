@@ -3,8 +3,11 @@ import sys,pathlib,json,subprocess,hashlib,zipfile,ast
 r=pathlib.Path(sys.argv[1]);d=json.loads((r/'docs/v666-run-fhd-delta.json').read_text());git=lambda *a:subprocess.check_output(['git',*a],cwd=r,text=True)
 assert set(git('diff','--name-only',d['baseCommit'],'--','src','targets','packs','examples').splitlines())|set(git('ls-files','--others','--exclude-standard','--','src','targets','packs','examples').splitlines())==set(d['productFiles'])
 for name,digest in d['productFiles'].items():assert hashlib.sha256((r/name).read_text().encode()).hexdigest()==digest,name
-for name in ['src','targets','packs/frame-control','packs/run-audio','packs/editor-home-model/RunWindows.csbody','examples/editor-home/WebInvoke.csbody','examples/editor-home/ui/style.css','examples/editor-home/ui/v508-runtime.js','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/resource-svg.js','examples/resizable-output','examples/software-output','examples/audio-output','examples/bounds-output','examples/hd-output','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-previews.js']:
+for name in ['src','targets','packs/run-audio','packs/editor-home-model/RunWindows.csbody','examples/editor-home/WebInvoke.csbody','examples/editor-home/ui/style.css','examples/editor-home/ui/v508-runtime.js','examples/editor-home/ui/workspace-host.js','examples/editor-home/ui/resource-images.js','examples/editor-home/ui/resource-svg.js','examples/resizable-output','examples/software-output','examples/audio-output','examples/bounds-output','examples/hd-output','examples/editor-home/ui/resource-content.js','examples/editor-home/ui/resource-previews.js']:
  assert not git('diff','--name-only',d['baseCommit'],'--',name),name
+assert git('diff','--name-only',d['baseCommit'],'--','packs/frame-control').splitlines()==['packs/frame-control/Open.csbody']
+beforePipe=git('show',d['baseCommit']+':packs/frame-control/Open.csbody');afterPipe=(r/'packs/frame-control/Open.csbody').read_text()
+assert afterPipe.replace('server.Disconnect();','if(server.IsConnected)server.Disconnect();').replace('catch(System.IO.IOException){}catch(System.InvalidOperationException){}}','catch(System.IO.IOException){}}')==beforePipe,'Only broken-pipe reset cleanup changes; owner/auth/ACK/command/timeout contracts remain identical'
 for name in ['Open.celem','OpenBody.celem','Open.csbody','OpenHD.celem','OpenHDBody.celem','OpenHD.csbody','OpenConfigured.celem','Present.celem','PresentBounds.celem','ConfigureSize.celem','RequestedSize.celem','Close.celem']:
  file='packs/run-surface/'+name;assert not git('diff','--name-only',d['baseCommit'],'--',file),name
 p=(r/'examples/editor-home/WebBundle.csbody').read_text().split('"""');old=git('show',d['baseCommit']+':examples/editor-home/WebBundle.csbody').split('"""');assert p[0]==old[0]and p[2]==old[2];current=json.loads(p[1]);before=json.loads(old[1]);assert set(current)==set(before)
@@ -20,7 +23,12 @@ before=git('show',d['baseCommit']+':packs/run-surface/OpenConfigured.csbody');af
 assert after.startswith('if(profile is <0 or >2)throw new ArgumentException("Known explicit software output profile required");\n')
 shared='int maxAxis=hd?1280:640,maxPixels=hd?921600:262144;\n'+after.split('\n',2)[2]
 shared=shared.replace('extended','hd').replace('(((maxPixels*4+2)/3)*4)','(hd?4915200:1398104)').replace('Extended output must be explicitly opened','HD output must be explicitly opened').replace('explicit hd output','explicit HD output')
-assert shared==before,'Original producer owner/rate/bounds/size/publish/close logic preserved'
+assert shared.split('// Hold one immutable',1)[0]==before.split('System.Text.Json.Nodes.JsonObject? held=null;',1)[0],'Original owner/rate/configure/command prefix unchanged'
+assert shared.split('calls.Attach.Invoke(frameOwner,read);',1)[1].replace('heldPixels="";','')==before.split('calls.Attach.Invoke(frameOwner,read);',1)[1],'Original publication and retirement behavior retained'
+assert 'result=Metadata(latest);'in after and 'heldPixels=encoded;'in after and 'latest.DeepClone()'not in after
+surface=(r/'packs/project-execution/Surface.csbody').read_text();assert 'var expected=Metadata(frame);'in surface and 'var shape=Metadata(piece);'in surface and 'var metadata=Metadata(result);'in surface
+assert 'Convert.ToBase64String(pixels).TrimEnd' in surface and '!=encoded' in surface and 'SHA256.HashData(pixels)'in surface
+assert 'FHD_DIAGNOSTIC'not in surface and 'diagnosticPhase'not in surface
 assert (r/'packs/run-surface/OpenConfigured.csbody').read_text()=='return calls.OpenProfile.Invoke(frameOwner,hd?1:0);\n'
 assert (r/'packs/run-surface/OpenFHD.csbody').read_text()=='return calls.OpenProfile.Invoke(frameOwner,2);\n'
 before=git('show',d['baseCommit']+':packs/editor-home-model/RunPresets.csbody');after=(r/'packs/editor-home-model/RunPresets.csbody').read_text();assert after.replace('<=1920','<=1280').replace('>2073600','>921600')==before

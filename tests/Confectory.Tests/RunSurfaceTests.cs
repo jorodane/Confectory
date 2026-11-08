@@ -2,6 +2,30 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RunSurfaceTests : TestCase
 {
+ public void test_frame_pipe_recovers_after_abandoned_surface_reply_without_step_or_new_owner()
+ {
+  f.ExtraRegistry["Confectory.FrameControl"]=Path.Combine(Fixture.Repo,"packs/frame-control/pack.cpack");f.Packs["App"].Dependencies["Confectory.FrameControl"]="0.1.0";
+  f.Main("");f.Add("App","implementation","MainBody","""
+  implementation App::MainBody for App::Main () -> int {import Confectory.FrameControl::Open as Open () -> string;import Confectory.FrameControl::AttachOutput as Attach (string,object) -> void;import Confectory.FrameControl::Close as Close (string) -> void;body common "main.csbody";}
+  """);f.Body("App","main.csbody","""
+  void Check(bool ok,string message){if(!ok)throw new Exception(message);}
+  string pipe="confectory-abandoned-surface-"+Guid.NewGuid().ToString("N"),secret=new string('a',64),handle=new string('b',32);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_PIPE",pipe);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_SECRET",secret);Environment.SetEnvironmentVariable("CONFECTORY_FRAME_HANDLE",handle);
+  using var entered=new System.Threading.ManualResetEventSlim();using var release=new System.Threading.ManualResetEventSlim();int reads=0;string owner=calls.Open.Invoke();int phase=0;
+  byte[] Query(string op,string runtime="",string cursor="")=>System.Text.Encoding.UTF8.GetBytes(new System.Text.Json.Nodes.JsonObject{["version"]=1,["handle"]=handle,["secret"]=secret,["request"]=Guid.NewGuid().ToString("N"),["operation"]=op,["runtime"]=runtime,["cursor"]=cursor,["sequence"]=0}.ToJsonString());
+  void Send(System.IO.Stream stream,byte[] bytes){byte[] header=new byte[4];System.Buffers.Binary.BinaryPrimitives.WriteInt32LittleEndian(header,bytes.Length);stream.Write(header);stream.Write(bytes);stream.Flush();}
+  System.Text.Json.Nodes.JsonObject Read(string op,string runtime="",string cursor=""){
+   using var deadline=new System.Threading.CancellationTokenSource(3000);using var stream=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);stream.ConnectAsync(deadline.Token).GetAwaiter().GetResult();Send(stream,Query(op,runtime,cursor));byte[] header=new byte[4];stream.ReadExactlyAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();int length=System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header);Check(length is >0 and <=1400000,"same bounded reply");byte[] bytes=new byte[length];stream.ReadExactlyAsync(bytes,deadline.Token).AsTask().GetAwaiter().GetResult();return System.Text.Json.Nodes.JsonNode.Parse(bytes)!.AsObject();
+  }
+  try{
+   phase=1;string runtime=Read("observe")["runtime"]!.ToString();phase=2;calls.Attach.Invoke(owner,(Func<string,string>)(cursor=>{System.Threading.Interlocked.Increment(ref reads);if(cursor=="abandon"){entered.Set();Check(release.Wait(2000),"controlled release");}return cursor=="partial"?new System.Text.Json.Nodes.JsonObject{["available"]=true,["generated"]=new string('a',1048576)}.ToJsonString():"{\"available\":false}";}));
+   phase=3;using(var deadline=new System.Threading.CancellationTokenSource(3000)){using var stream=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);stream.ConnectAsync(deadline.Token).GetAwaiter().GetResult();Send(stream,Query("surface",runtime,"abandon"));Check(entered.Wait(2000),"actual output callback admitted");}
+   phase=4;release.Set();System.Threading.Thread.Sleep(50);phase=5;var restored=Read("observe");Check(restored["runtime"]!.ToString()==runtime&&restored["frame"]!.ToString()=="0"&&restored["ack"]!.GetValue<int>()==0,"same owner, no Step or ACK on abandoned read");var output=Read("surface",runtime);Check(output["available"]!.GetValue<bool>()==false&&reads==2,"original reader remains attached and responds once after reconnect");
+   using(var deadline=new System.Threading.CancellationTokenSource(3000)){using var stream=new System.IO.Pipes.NamedPipeClientStream(".",pipe,System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous|System.IO.Pipes.PipeOptions.CurrentUserOnly);stream.ConnectAsync(deadline.Token).GetAwaiter().GetResult();Send(stream,Query("surface",runtime,"partial"));byte[] header=new byte[4];stream.ReadExactlyAsync(header,deadline.Token).AsTask().GetAwaiter().GetResult();Check(System.Buffers.Binary.BinaryPrimitives.ReadInt32LittleEndian(header)>1000000,"large real reply admitted");byte[] prefix=new byte[8192];stream.ReadExactlyAsync(prefix,deadline.Token).AsTask().GetAwaiter().GetResult();}
+   System.Threading.Thread.Sleep(50);restored=Read("observe");Check(restored["runtime"]!.ToString()==runtime&&restored["frame"]!.ToString()=="0"&&restored["ack"]!.GetValue<int>()==0,"partial body abort preserves owner/frame/ack");output=Read("surface",runtime);Check(output["available"]!.GetValue<bool>()==false&&reads==4,"reader recovers after large partial body and reads exactly once");
+
+  }catch(Exception error){throw new Exception("Controlled abandoned reply phase "+phase,error);}finally{release.Set();calls.Close.Invoke(owner);}Console.WriteLine("Abandoned surface reply recovers existing pipe without Step/ACK/new owner PASS");return 0;
+  """);f.Sync();Output(Build(),"Abandoned surface reply recovers existing pipe without Step/ACK/new owner PASS");
+ }
  public void test_fhd_explicit_configuration_preserves_legacy_owner_and_pixel_budgets()
  {
   foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
