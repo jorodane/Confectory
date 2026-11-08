@@ -1,7 +1,7 @@
 import {pdfCanvasPlan} from './resource-pdf-policy.js';
 let library,views=0;
-export function mountResourcePDF({preview,toolbar,controls,status,bytes,item,active,onError,onDetached}){
- if(!(bytes instanceof Uint8Array)||bytes.length>1048576||new TextDecoder('ascii').decode(bytes.subarray(0,5))!=='%PDF-')throw Error('pdf_input');
+export function mountResourcePDF({preview,toolbar,controls,status,bytes,item,active,onError,onDetached,maximumBytes=1048576}){
+ if(![1048576,4194304].includes(maximumBytes)||!(bytes instanceof Uint8Array)||bytes.length>maximumBytes||new TextDecoder('ascii').decode(bytes.subarray(0,5))!=='%PDF-')throw Error('pdf_input');
  if(!active()){onDetached?.();return ()=>{};}if(views>=2)throw Error('pdf_view_budget');views++;
  let disposed=false,worker=null,bridge=null,documentTask=null,pdf=null,renderTask=null,canvas=null,observer=null,visibility=null,frame=0,timer=null,releaseTimer=null,version=0,pageNumber=1,zoom='fit',lastWidth=0,released=false,abortReady=null,ownedTransport=null;
  const owns=()=>!disposed&&active(),clearCanvas=node=>{if(node){node.width=0;node.height=0;node.remove();}},release=()=>{if(released)return;released=true;clearTimeout(releaseTimer);abortReady?.();abortReady=null;

@@ -74,3 +74,12 @@ before the existing decoder/Blob URL. Stored v1 bytes/receipts, file/total4MiB,
 other encoded format budgets, dimensions/pixels/lease and all writer contracts
 are unchanged. No source or arbitrary path is read or rewritten by the request.
 See docs/V7_RESOURCE_RASTER_PARTS.md for compatibility and verification limits.
+
+Large stored PDF copies with a `%PDF-` signature now expose a separate optional
+`pdfPreview` descriptor on the same metadata-only `read`. `preview-pdf-part` is
+read-only, uses the same ID/hash/import/display basis and1MiB/maximum4-part bounds,
+and checks the complete current copy and all final observation dependencies.
+It is not the image-part lane or a file/path permission. Small reads, storage v1,
+existing image/text parts and all writes/content backup budgets remain unchanged.
+Consumers without this capability retain the metadata-only fallback; a full-file
+SHA must pass before creating a PDF document/Worker. See docs/V7_RESOURCE_PDF_PARTS.md.

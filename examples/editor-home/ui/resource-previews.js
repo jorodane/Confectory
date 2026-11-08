@@ -1,3 +1,4 @@
+import {readResourcePDFParts,validateResourcePDFPartsHeader} from './resource-pdf-parts.js';
 import {readResourceImageParts,validateResourceImagePartsHeader} from './resource-image-parts.js';
 import {decodeResourceTextPrefix,validateResourceTextPrefixHeader} from './resource-text-prefix.js';
 import {createResourceXlsx,editableXlsx} from './resource-xlsx.js';
@@ -41,6 +42,10 @@ export function createResourcePreviews(api){
      const failedImage=()=>{if(!alive(w,token))return;message('그림을 표시하지 못했습니다.');status.textContent='지원 범위의 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.imageCleanup?.();token.imageCleanup=null;void read();}};actions.replaceChildren(retry);};
      try{token.imageCleanup=mountResourceImage({preview,toolbar,status,bytes,item,active:()=>alive(w,token),onError:failedImage,onDetached:()=>{token.imageDetached=true;}});if(!token.imageCleanup){message('이 그림 형식의 미리보기는 아직 연결되지 않았어요. 보관된 사본은 그대로예요.');status.textContent='현재 PNG/JPEG/WebP/BMP/GIF/AVIF/SVG 그림 미리보기를 지원합니다.';}}catch{failedImage();}
   };
+  const pdf=(bytes,item,maximumBytes=1048576)=>{
+     const failedPDF=reason=>{if(!alive(w,token))return;message(reason==='password'?'암호가 필요한 PDF입니다.':'PDF를 표시하지 못했습니다.');status.textContent=reason==='pdf_view_budget'?'PDF 미리보기는 최대 2개입니다. 다른 PDF 창을 닫고 다시 확인해 주세요.':'보관된 사본은 그대로예요. 지원 범위와 문서 크기를 확인하고 다시 시도할 수 있어요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.pdfCleanup?.();token.pdfCleanup=null;void read();}};actions.replaceChildren(retry);};
+     try{token.pdfCleanup=mountResourcePDF({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,item,maximumBytes,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedPDF,onDetached:()=>detached(w,token,'pdf')});}catch(error){failedPDF(error.message);}
+  };
   const read=async()=>{
    if(!alive(w,token)||token.loading)return;actions.replaceChildren();token.loading=true;preview.setAttribute('aria-busy','true');message('내용을 불러오고 있습니다…');preview.setAttribute('aria-busy','true');status.textContent='';
    try{
@@ -51,7 +56,10 @@ export function createResourcePreviews(api){
     token.contentGeneration=item.contentGeneration;token.contentRevision=item.contentRevision||0;token.name=item.name;w.resourceExpectedName=item.name;title(w,item);w.body.querySelector('[data-resource-setting-name]').value=item.name;token.cleanup?.();token.cleanup=bindResourceFileNames(w.el);
     token.descriptionCleanup?.();const retainedDescription=descriptions.recover(w,w.body.querySelector('.resource-settings'),[item],result.displayRevision,()=>alive(w,token)),descriptionBinding=descriptions.bind({w,field:w.body.querySelector('[data-resource-setting-description]'),item,revision:result.displayRevision,active:()=>alive(w,token)});token.descriptionCleanup=()=>{retainedDescription?.();descriptionBinding();};
     };
-    if(item.size>1048576){if(result.encoding!=='unavailable'||result.reason!=='resource_preview_file_budget'||result.data!==undefined)throw Error('resource_read_integrity');if(result.imagePreview!==undefined)validateResourceImagePartsHeader(result);else if(result.preview!==undefined)validateResourceTextPrefixHeader(result);metadata();
+    if(item.size>1048576){if(result.encoding!=='unavailable'||result.reason!=='resource_preview_file_budget'||result.data!==undefined)throw Error('resource_read_integrity');if(result.pdfPreview!==undefined)validateResourcePDFPartsHeader(result);else if(result.imagePreview!==undefined)validateResourceImagePartsHeader(result);else if(result.preview!==undefined)validateResourceTextPrefixHeader(result);metadata();
+     if(result.pdfPreview!==undefined){
+      const bytes=await readResourcePDFParts(result,input=>api.view.observe('readProjectResourcePDFPart',input,token.controller.signal),()=>alive(w,token));if(!alive(w,token))return;pdf(bytes,item,4194304);return;
+     }
      if(result.imagePreview!==undefined){
       const bytes=await readResourceImageParts(result,input=>api.view.observe('readProjectResourceImagePart',input,token.controller.signal),()=>alive(w,token));if(!alive(w,token))return;image(bytes,item);return;
      }
@@ -67,10 +75,7 @@ export function createResourcePreviews(api){
     metadata();
     if(item.kind==='image'){image(bytes,item);return;}
     const mime=item.type||'',extension=mime.includes('wordprocessingml')?'docx':mime.includes('spreadsheetml')?'xlsx':mime.includes('presentationml')?'pptx':mime.includes('opendocument.text')?'odt':item.name.split('.').at(-1).toLowerCase();
-    if(extension==='pdf'||mime==='application/pdf'){
-     const failedPDF=reason=>{if(!alive(w,token))return;message(reason==='password'?'암호가 필요한 PDF입니다.':'PDF를 표시하지 못했습니다.');status.textContent=reason==='pdf_view_budget'?'PDF 미리보기는 최대 2개입니다. 다른 PDF 창을 닫고 다시 확인해 주세요.':'보관된 사본은 그대로예요. 지원 범위와 문서 크기를 확인하고 다시 시도할 수 있어요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.pdfCleanup?.();token.pdfCleanup=null;void read();}};actions.replaceChildren(retry);};
-     try{token.pdfCleanup=mountResourcePDF({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,item,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:failedPDF,onDetached:()=>detached(w,token,'pdf')});}catch(error){failedPDF(error.message);}return;
-    }
+    if(extension==='pdf'||mime==='application/pdf'){pdf(bytes,item);return;}
     if(['docx','xlsx','pptx','odt'].includes(extension)){
      const failedOffice=()=>{if(!alive(w,token))return;message('문서 내용을 표시하지 못했습니다.');status.textContent='지원 범위의 Office 사본인지 확인해 주세요. 보관된 사본은 그대로예요.';const retry=element('button','다시 확인','secondary');retry.type='button';retry.dataset.resourcePreviewRetry='';retry.onclick=()=>{if(alive(w,token)){token.officeCleanup?.();token.officeCleanup=null;void read();}};actions.replaceChildren(retry);};
      try{const editor=extension==='docx'&&editableDocx(item)?docx:extension==='xlsx'&&editableXlsx(item)?xlsx:null,editable=!!editor,source=editable?bytes.slice():null;let officeReady;const ready=new Promise(resolve=>officeReady=resolve);token.officeCleanup=mountResourceOffice({preview,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),status,bytes,extension,active:()=>alive(w,token)&&preview.getClientRects().length>0,onError:()=>{officeReady(false);failedOffice();},onReady:()=>officeReady(true),onDetached:()=>{officeReady(false);detached(w,token,'office');}});if(editable)token.contentCleanup=await editor.mount({w,item,result,bytes:source,ready,preview,actions,status,toolbar,controls:w.body.querySelector('[data-resource-preview-controls]'),alive:()=>alive(w,token)&&w.body.getClientRects().length>0,refresh:()=>mount(w),onEdit:()=>{token.officeCleanup?.();token.officeCleanup=null;},onDetached:()=>detached(w,token,'docx')});}catch{failedOffice();}return;
