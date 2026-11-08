@@ -408,3 +408,13 @@ remap 경계를 void에도 연결하며 원래 반환 void와 출력 없음·위
 
 원본의 명시 File 사본 보관을 [파일당4MiB·기존 전체4MiB의 경계](V6_RESOURCE_LARGE.md)로 연결한다. root/폴더의 기존 청크·원자 저장과 ID/영수증·최종CAS를 재사용하며 1MiB 초과 내용은 metadata-only 미지원 안내로 구분한다. 큰 원본의 내용 편집/백업은 쓰기 전에 거절한다. 큰 사본을 가진 저장소의 구버전 reader/writer 비호환을 숨기지 않으며 작은 기존 자료는 이행하지 않는다. 검증·보관 결과는 [해당 기록](VALIDATION_V666_RESOURCE_LARGE.md)에서 확정한다. 4MiB 초과/총 보관량 확대·큰 내용 읽기와 실제 권한 backend·기기 검증은 기존 잔여다.
 최종 **58단계(신규27·재사용31)**를 마감했다. [큰 자료 검증·호환/보관·미실행 기록](VALIDATION_V666_RESOURCE_LARGE.md).
+
+### 큰 텍스트 prefix 관찰 연결
+
+4MiB까지 보관된 텍스트/코드의 첫1MiB를 [원본 prefix 흐름](V7_RESOURCE_TEXT_PREFIX.md)에
+연결한다. 전체 큰 파일 전송/편집으로 확대하지 않는다. native 전체SHA·최종 의존성 검사와
+브라우저 prefixSHA·생성세대/표시revision 검증을 구분하고 기존 metadata-only fallback을
+유지한다. 큰 rich preview·내용편집/백업과4MiB 초과/총 보관량 확대는 기존 미지원 경계다.
+M11/M12/M4는 회귀 근거 없이 다시 열지 않는다. 초기 빈 화면 원인은 미확정이고 실제 기기·
+전체UI·신원/멤버/권한 backend는 미완료다. 이번 환경 복구 후 역사적 검증 ZIP/패키지는
+현재 파일시스템에서 찾지 못했으며, 별도 체크아웃에서 재생성한 증거/보관본과 구분한다.

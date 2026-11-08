@@ -52,7 +52,7 @@ lock(owner){
   if(value?["pending"]?["action"]?.ToString()=="save-content")value["pending"]!["input"]!.AsObject().Remove("data");
   var draftReply=new System.Text.Json.Nodes.JsonObject{["project"]=project,["id"]=id,["revision"]=observed[2]};if(operation=="draft-load")draftReply["value"]=value;return draftReply.ToJsonString();
  }
- if(operation=="read")return calls.Layout.Invoke(active[1],project,"read",input.ToJsonString());
+ if(operation is "read" or "preview-text")return calls.Layout.Invoke(active[1],project,operation,input.ToJsonString());
  if(operation.StartsWith("layout-",StringComparison.Ordinal))return calls.Layout.Invoke(active[1],project,operation.Substring(7),input.ToJsonString());
  return calls.Request.Invoke(active[1],project,operation,input.ToJsonString());
 }

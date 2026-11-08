@@ -52,3 +52,14 @@ small-file rollback readers retain their grammar. A store containing a file abov
 `encoding:"unavailable"`, `reason:"resource_preview_file_budget"` and no `data`.
 Content edits/backups stay within 1MiB, including the original being replaced.
 See docs/V6_RESOURCE_LARGE.md and the earlier group-transfer record.
+
+Layout `read` can additionally advertise a `base64url-prefix-v1` capability for
+owned text/code copies above 1MiB and up to the existing 4MiB file limit. Layout
+`preview-text` requires the exact ID, full hash, import generation and compound
+display revision. It verifies the whole stored copy and every final dependency,
+then returns only its first 1MiB, prefix SHA256 and original total/hash. No path,
+write, new external grant, storage grammar or public/override signature is added.
+The editor uses a separate observation endpoint and validates those exact prefix
+bytes before literal, read-only text rendering. Old metadata-only headers remain
+supported. Full large content editing/backups and rich formats remain bounded as
+before. See docs/V7_RESOURCE_TEXT_PREFIX.md.
