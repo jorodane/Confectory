@@ -50,3 +50,5 @@ GPU/물리 장치, 실제 신원/권한 backend는 별도 잔여다. mesh render
 M11/M12/M4는 구체적 회귀 없이 다시 열지 않는다. 초기 빈 #app 원인은 미확정이다.
 실제 Windows/WebView2·모바일·DPI/IME·물리 오디오·전체 UI·Space/Library 전달은 이번
 Linux native/Chromium 자동화 및 교차 패키지 생성·복원과 구분한다.
+
+[최종 신규51단계·지속 보관·미실행 기록](VALIDATION_V666_RESOURCE_PDF_PARTS.md)을 따른다.

@@ -448,3 +448,5 @@ FHD는 동결 `47262dc1`의 [총69단계(신규69·재사용0)](VALIDATION_V666_
 ## V7 큰 PDF 후속
 
 기존 보관1–4MiB PDF의 전체 조각/SHA 관찰을 [원본 PDF 페이지·배율 흐름](V7_RESOURCE_PDF_PARTS.md)에 연결한다. 기본 작은 PDF와 PNG/JPEG·텍스트, 원본 UI·쓰기/권한·ReviewConfirm/CAS는 유지한다. 실제 renderer/worker·수명 및 최종 LF/CRLF·새 패키지/전체 복원 결과는 해당 검증 기록에서 마감한다. 큰 다른 형식/내용 편집·4MiB 초과와 신원/권한·실기기/전체 UI·초기 빈 화면 원인 미확정은 구분한다.
+
+큰 PDF는 동결 `d8279712`의 [신규51단계·재사용0](VALIDATION_V666_RESOURCE_PDF_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 다른 형식·신원/권한·실기기/전체 UI와 초기 빈 화면 원인 미확정은 별도다.
