@@ -577,3 +577,5 @@ backend·종류 정책·실기기/전체UI 및 원인 미확정 초기 빈 화�
 원본 정렬 앞의 [자료 종류 다섯 선택지](V6_RESOURCE_KIND_FILTER.md)를 현재 폴더·검색·정렬에
 연결한다. 카테고리 유지·숨겨진 선택 해제·창별 private 복원과 기존 입력/권한/CAS를 보존한다.
 메시 필터가 새 mesh renderer를 뜻하지 않는다. 최종 독립/패키지/전체 복원·보관 기록에서 마감한다.
+
+자료 종류 필터와 같은 세대의 Data 설명 cold 재결합은 동결 5e3ec519의 [신규57단계·재사용0](VALIDATION_V666_RESOURCE_KIND_FILTER.md), 새 교차 패키지와 전체 복원으로 검증했다. 원래 입력/revision·pending receipt/새 세대·프로젝트 격리와 native 권한/CAS를 보존한다. 더 큰 보관/신원 권한·종류 정책·미확정 초기 빈 화면·실기기/전체UI는 별도다.

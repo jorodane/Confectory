@@ -30,3 +30,5 @@ native metadata가 ready이고 현재 표시 목록에 같은 ID/세대가 있�
 차단된 종류 버튼의 실제 pointerdown이 필드를 blur해 먼저 설명/이름 저장을 유발하지 않도록
 기본 포커스 이동도 차단한다. 실제 포인터로 변경 전 현상을 재현했고, 수정 후 입력/포커스와
 native metadata bytes가 유지되는지 검사한다. 정상 명시 저장·기존 다른 제어의 의미는 바꾸지 않는다.
+
+[최종 신규57단계·재사용0·실패/호환/보관 기록](VALIDATION_V666_RESOURCE_KIND_FILTER.md)을 따른다.
