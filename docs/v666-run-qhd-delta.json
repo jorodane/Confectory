@@ -1,0 +1,25 @@
+{
+  "baseCommit": "24e55efb8b9fb82e8c1a6183d652e2c6718b945b",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "e708574fdb581ab515362c6fcb41e0e3353d6adf8ecb4de65aaef6d784963d4b",
+    "examples/editor-home/ui/run-auto-fit.js": "1490734c5f49cfb163ab932c5ce2694a637b753622e1fb967ec73f19cf4b4315",
+    "examples/editor-home/ui/run-presets.js": "57193164dc6380c3721128a7239e7b27c848685cba3241c162abb47894938ff1",
+    "examples/editor-home/ui/run-surface.js": "d61c84a2562a808d3f839322678dca2abaf820e35bd75936abbc0c2f9ece3e4b",
+    "examples/editor-home/ui/run-windows.js": "61c9388a7c57d665a7071f7aa9d0aa6f830b5760040a998b2432f73f6230dfc1",
+    "examples/qhd-output/Main.celem": "b09bf8793cd2b15a378a729d629afdbd4c7d26eb068eee3da6cd4451d8f99b9a",
+    "examples/qhd-output/Main.csbody": "73d75179467fd8a0484045fa09e735f24784e56ecfdb03825244650253b2b507",
+    "examples/qhd-output/MainBody.celem": "aff68252e99ffc38aa560d50a874b162a935ea25b7e045760717af838637bb45",
+    "examples/qhd-output/README.md": "a62b4f9ebdab803dc20e92a5ff4661ac31b4954a41e4a52f732e5eccbc2734f7",
+    "examples/qhd-output/project.cpack": "60d1db6687a4b527deb6e5020e9a7d6681e4ea62b751a7423aa7ecd53bdca92e",
+    "packs/editor-home-model/RunPresets.csbody": "63d893ad4d19c02d6e3d6a2db818f462edf864baff8630d95379c4bfd91bd13e",
+    "packs/project-execution/ResizeSurface.csbody": "fb8d367ff3f00ff1dfe88e8484acd1f107e26653c73fcf7cc8c59bbe923fa861",
+    "packs/project-execution/Surface.csbody": "01a96e600ac949b47f3938bc02c232a288aeea395ae4b45e18d6c2f2bc16e2f2",
+    "packs/run-surface/OpenProfile.csbody": "a359f6e45656b26041172e9a2e752de6024ba55210703c0cf768bbc476ef564c",
+    "packs/run-surface/OpenQHD.celem": "4eec4816302380a04c3092514d632d9695bc7fbef9dea265d8ac67198c3d2a27",
+    "packs/run-surface/OpenQHD.csbody": "ff2e91280777b4f2d82928f79cdaab38595a46fb787e4651ff561f6d7292ba13",
+    "packs/run-surface/OpenQHDBody.celem": "6f22fe6dd6c7ba689f70b496c3a63c21882e7ababbb2d43c38bdda33e199d43e",
+    "packs/run-surface/README.md": "a2ce1a7b4a6b11b85d81fa40b4573dffbdfb3a9e61f3f1f877907c2f3a467b74",
+    "packs/run-surface/pack.cpack": "f8b16b178d953a8df68d6b45a1fc5fe76f44d549e38d314e723b70f2197b242d"
+  }
+}

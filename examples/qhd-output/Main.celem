@@ -1,0 +1,1 @@
+function Example.QHDOutput::Main () -> int {provide Example.QHDOutput::Main with Example.QHDOutput::MainBody;}

@@ -90,3 +90,6 @@ ID·중단/재접속·owner/ACK 검증과 제품 코드는 그대로 유지한�
 수정한 최종 검사 source에서 LF/CRLF·패키지/복원을 다시 검증한다.
 
 [최종 신규69단계·보관·미실행 기록](VALIDATION_V666_RUN_FHD.md)을 따른다.
+
+[QHD 후속](V8_RUN_QHD.md)은 별도 OpenQHD/profile3으로 연결하며 이 문서의 기본/HD/FHD
+실제 한도·원문·검증 근거를 바꾸지 않는다. 같은 preset의 더 큰 항목은 구 reader에서 거절할 수 있다.

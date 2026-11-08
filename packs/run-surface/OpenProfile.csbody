@@ -1,5 +1,5 @@
-if(profile is <0 or >2)throw new ArgumentException("Known explicit software output profile required");
-bool extended=profile!=0;int maxAxis=profile==2?1920:profile==1?1280:640,maxPixels=profile==2?2073600:profile==1?921600:262144;
+if(profile is <0 or >3)throw new ArgumentException("Known explicit software output profile required");
+bool extended=profile!=0;int maxAxis=profile==3?2560:profile==2?1920:profile==1?1280:640,maxPixels=profile==3?3686400:profile==2?2073600:profile==1?921600:262144;
 // An explicit local reader on the caller-owned cooperative frame loop; no new socket or process grant.
 string key="Confectory.RunSurface."+Guid.NewGuid().ToString("N"),runtime=Guid.NewGuid().ToString("N");object gate=new();bool closed=false;long revision=0;int thread=Environment.CurrentManagedThreadId;System.Text.Json.Nodes.JsonObject? latest=null;
 // Count successful software publications, never reads, cooperative ACKs or GPU

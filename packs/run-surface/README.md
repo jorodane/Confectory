@@ -33,6 +33,8 @@ Explicit HD opt-in is a separate OpenHD API followed by ConfigureSize before fir
 Explicit FHD: `OpenFHD(frameOwner)` selects at most1920 per axis/2073600 RGBA8 pixels,
 with ConfigureSize before Present and the existing RequestedSize/actual-size ACK contract.
 Open/OpenHD stay at their existing640/1280 profiles. The shared implementation accepts only
-known profiles0(default),1(HD),2(FHD); it adds no execution or capture authority. Authenticated
+known profiles0(default),1(HD),2(FHD),3(QHD); it adds no execution or capture authority. Authenticated
 multipart frames remain bounded per packet, up to11 parts; paired new readers are required.
 See `docs/V8_RUN_FHD.md` and `examples/fhd-output`. Existing user C# is never rewritten.
+
+Explicit QHD: `OpenQHD(frameOwner)` selects profile3, at most2560 per axis/3686400 RGBA8 pixels. ConfigureSize/RequestedSize/actual ACK and all existing default/HD/FHD profiles remain unchanged. At most19 verified parts use the same packet/pipe/authentication limits. See `docs/V8_RUN_QHD.md` and `examples/qhd-output`.

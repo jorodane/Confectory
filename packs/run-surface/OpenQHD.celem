@@ -1,0 +1,1 @@
+function Confectory.RunSurface::OpenQHD (string frameOwner) -> string {description "Explicit software QHD output: at most2560 per axis and3686400 RGBA8 pixels; no execution or screen-access grant.";provide Confectory.RunSurface::OpenQHD with Confectory.RunSurface::OpenQHDBody;}
