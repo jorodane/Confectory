@@ -18,7 +18,21 @@ export function createResourceContent(api){
  async function mount({w,item,result,bytes,alive,refresh,status,preview,actions,toolbar}){
   const project=owner(),state=context(project,item.id,item.contentGeneration);let disposed=false,editor=null;const active=()=>!disposed&&alive();
   let codec;try{codec=contentCodec(bytes);}catch{status.textContent='이 문자 인코딩의 내용 수정은 아직 지원하지 않습니다.';return null;}
-  if(!state.loaded){const saved=await api.view.observe('readResourceContentDraft',{project,id:item.id});if(!active())return null;if(saved?.project!==project||saved.id!==item.id)throw Error('resource_draft_owner');state.storeRevision=saved.revision;state.value=saved.value?.generation===item.contentGeneration?saved.value:null;if(state.value?.pending?.action==='save-content'){const staged=await api.view.observe('readResourceContentPending',{project,id:item.id});if(!active())return null;if(staged.project!==project||staged.id!==item.id||staged.pending?.input?.command!==state.value.pending.input.command)throw Error('resource_pending_changed');state.value.pending=staged.pending;}state.loaded=true;}
+  async function observe(endpoint){
+   for(let attempt=0;attempt<3;attempt++){
+    if(!active()||owner()!==project)throw Error('scope_changed');
+    try{
+     const reply=await api.view.observe(endpoint,{project,id:item.id});
+     if(!active()||owner()!==project)throw Error('scope_changed');
+     return reply;
+    }catch(error){
+     if(!active()||owner()!==project)throw Error('scope_changed');
+     if(error.message!=='busy'||attempt===2)throw error;
+     await new Promise(resolve=>setTimeout(resolve,50));
+    }
+   }
+  }
+  if(!state.loaded){const saved=await observe('readResourceContentDraft');if(!active())return null;if(saved?.project!==project||saved.id!==item.id)throw Error('resource_draft_owner');state.storeRevision=saved.revision;state.value=saved.value?.generation===item.contentGeneration?saved.value:null;if(state.value?.pending?.action==='save-content'){const staged=await observe('readResourceContentPending');if(!active())return null;if(staged.project!==project||staged.id!==item.id||staged.pending?.input?.command!==state.value.pending.input.command)throw Error('resource_pending_changed');state.value.pending=staged.pending;}state.loaded=true;}
   const restoreOnly=()=>state.value?.pending?.action==='restore-content';
   const draftText=()=>contentCodec(decode(state.value.data)).text;
   const showError=text=>{if(active())status.textContent=text;};

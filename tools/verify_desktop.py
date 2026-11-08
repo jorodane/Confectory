@@ -409,15 +409,17 @@ def main():
                 work.run(label+'-resource-raster-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_raster_parts_copy.py'),str(checkout)],cwd=checkout,env=env)
                 for name in ['image_parts','raster_budget','images','webp','bmp','gif','avif','text_prefix']:
                     work.run(label+'-resource-'+name+'-unit',['node',str(checkout/('tests/web/v666_resource_'+name+'.mjs')),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-resource-content-read-retry',['node',str(checkout/'tests/web/v666_resource_content_read_retry.mjs'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-resource-image-final-read',[sys.executable,str(checkout/'tests/probes/resource_image_parts_cas.py'),str(checkout)],cwd=checkout,env=env)
                 work.run(label+'-web-resource-contract',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
                 for name in ['raster_parts','images','text_prefix']:
                     work.run(label+'-resource-'+name+'-ui',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
                 if label=='lf':
-                    for name in ['svg','gif','large','content']:
+                    for name in ['svg','gif','large']:
                         work.run('lf-resource-'+name+'-regression',[sys.executable,str(checkout/('tests/web/v666_resource_'+name+'_ui.py')),str(checkout),str(report),'normal'],cwd=checkout,env=env)
                 else:
                     work.run('crlf-resource-description-regression',[sys.executable,str(checkout/'tests/web/v666_resource_description_ui.py'),str(checkout),str(report),'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-resource-content-regression',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle','--busy-reads'],cwd=checkout,env=env)
 
             elif args.suite=='resource-prefix':
                 work.run(label+'-resource-prefix-boundary',[sys.executable,str(checkout/'tests/web/v666_resource_text_prefix_copy.py'),str(checkout)],cwd=checkout,env=env)
@@ -2254,7 +2256,7 @@ def main():
             work.run('restored-office-arrangement',[sys.executable,str(checkout/'tests/web/v666_office_arrangement_ui.py'),str(restored/'content'),str(packaged_report),'late'],cwd=checkout,env=env)
         elif args.suite=='resource-raster':
             work.run('restored-resource-raster',[sys.executable,str(checkout/'tests/web/v666_resource_raster_parts_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
-            work.run('restored-resource-content',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
+            work.run('restored-resource-content',[sys.executable,str(checkout/'tests/web/v666_resource_content_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle','--busy-reads'],cwd=checkout,env=env)
 
         elif args.suite=='resource-prefix':
             work.run('restored-resource-prefix',[sys.executable,str(checkout/'tests/web/v666_resource_text_prefix_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)

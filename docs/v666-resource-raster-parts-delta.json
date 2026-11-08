@@ -2,13 +2,14 @@
   "baseCommit": "73f5f63e6277d3a8b0d21c7dcd67b5c0ec005746",
   "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
   "productFiles": {
-    "examples/editor-home/WebBundle.csbody": "5c1e4389de2fb123ee07b7cbaf0ce560665e1a90af650d14c2b6287594b80352",
+    "examples/editor-home/WebBundle.csbody": "1079d227a5abdd279711105d21d66f4658db08582bb61ccdb7fa06aa01e239b1",
     "examples/editor-home/WebInvoke.csbody": "b633c789d2b45389cfc1753da874501dd62ed0be06a507954b8de9752548075d",
     "examples/editor-home/ui/resource-previews.js": "821e476e62b57d44db2ffd86490eb8e0e1c8d37cf0b1f4f19e4c49f338872fb6",
     "examples/editor-home/ui/resource-images.js": "4bed59b89cf5ec9d50591fb4df20972e8f1a17adadd74cd00ee2f06ec83f6c09",
     "examples/editor-home/ui/resource-image-parts.js": "ba6d36e4f26521c760fe418130e64bef9bed3723b45d4e5edaf1d9a9059c2130",
     "packs/editor-home-model/Resources.csbody": "2781bd209d695c988477969aa29725d0b1ac47eac8ea98c98d47bd17e43b026c",
     "packs/project-resources/Layout.csbody": "ff6de1f89f29ae257ddeb2621caede11d3fe7c6880a376f8859e88b8674d30a5",
-    "packs/project-resources/README.md": "9b1bedbdddb445827cd17bb8a469b13c900c38bcaa6729d5880b023b4b51bc32"
+    "packs/project-resources/README.md": "9b1bedbdddb445827cd17bb8a469b13c900c38bcaa6729d5880b023b4b51bc32",
+    "examples/editor-home/ui/resource-content.js": "46ac79d1ea44884cfbf6360f1a1bf1081c8b194053114599a7636f30e85171a3"
   }
 }

@@ -14,6 +14,20 @@ def traced_read(response):
    body=response.json();read_events.append(dict(endpoint=request.get('endpoint'),ok=body.get('ok'),error=body.get('error')));(f.case/'read-events.json').write_text(json.dumps(read_events,indent=2))
  except Exception:pass
 f.observe=traced_read
+busy_events=[]
+if '--busy-reads'in sys.argv:
+ def busy_setup():
+  page=f.browser.new_page(viewport={'width':1280,'height':900});page.on('pageerror',lambda e:f.errors.append(str(e)));page.on('response',f.observe);page.route('**/*',f.route)
+  page.add_init_script("""(()=>{const base=fetch,blocked=new Set();globalThis.__contentReadAttempts=[];globalThis.__contentReadBusy=[];fetch=async(...args)=>{let q;try{q=JSON.parse(args[1]?.body||'null')}catch{}if(q?.op==='observe'&&['readResourceContentDraft','readResourceContentPending'].includes(q.endpoint)){const row={endpoint:q.endpoint,input:q.input};__contentReadAttempts.push(row);if(!blocked.has(q.endpoint)){blocked.add(q.endpoint);__contentReadBusy.push(row);return new Response(JSON.stringify({ok:false,error:{code:'busy'}}),{status:200,headers:{'Content-Type':'application/json'}});}}return base(...args);};})();""")
+  f.goto_editor(page,f.url);return page
+ f.setup=busy_setup
+
+def capture_busy():
+ if '--busy-reads'not in sys.argv:return
+ data=f.page.evaluate('()=>({attempts:__contentReadAttempts,busy:__contentReadBusy})')
+ for row in data['busy']:
+  matches=[q for q in data['attempts']if q==row];assert len(matches)>=2,(row,data)
+ busy_events.append(data);(f.case/'busy-read-events.json').write_text(json.dumps(busy_events,indent=2))
 mode=sys.argv[3];store=f.project/'.confectory/resources.v1.json';b=None
 
 def api(action,**args):return f.invoke('projectResourceLayout',dict(action=action,project=f.state()['projectId'],**args))['result']['result']
@@ -56,7 +70,7 @@ def native_text(id):
  finally:f.raw(dict(op='dispose',view=view['view']))
 def restart(i,project=None):
  global b
- f.pending();f.page.close();f.stop()
+ f.pending();capture_busy();f.page.close();f.stop()
  if project:f.env['CONFECTORY_WEB_PROJECT']=str(project/'project.cproj')
  f.start(i);f.page=f.setup();f.idle();b=f.page.locator('.window[data-key^="browser:project:"]').last
  if not b.count():browser()
@@ -85,6 +99,8 @@ try:
    edit(w,'충돌할 입력');persisted(id,'충돌할 입력');basis=api('load');api('save-content',revision=basis['revision'],command=uuid.uuid4().hex,id=id,hash=next(row for row in basis['items']if row['id']==id)['hash'],type='text/plain',size=4,data='cGVlcg==');peer=native_text(id);w.locator('[data-resource-content-save]').click();expect(w.locator('.resource-preview-status')).to_contain_text('저장 결과를 확인하지 못');expect(w.locator('[aria-label="파일 내용"]')).to_have_value('충돌할 입력');assert native_text(id)==peer;restart(4);w=viewer(id);expect(w.locator('[aria-label="파일 내용"]')).to_have_value('충돌할 입력');w.locator('[data-resource-content-save]').click();expect(w.locator('.resource-preview-status')).to_contain_text('저장 결과를 확인하지 못');assert native_text(id)==peer;w.locator('[data-resource-content-cancel]').click();f.page.get_by_role('dialog',name='저장하지 않은 변경',exact=True).locator('[data-discard]').click();expect(w.locator('[data-resource-content-edit]')).to_be_enabled();exact();f.checked('peer update refuses stale content after restart and retry; explicit cancel keeps peer bytes and clears only local intent')
    edit(w,'프로젝트 왕복 입력');persisted(id,'프로젝트 왕복 입력');other=f.case/'same namespace other project';shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory','.build'));restart(5,other);expect(viewer(id)).to_have_count(0);assert api('load')['items']==[];restart(6,f.project);w=viewer(id);expect(w.locator('[aria-label="파일 내용"]')).to_have_value('프로젝트 왕복 입력');assert native_text(id)==peer;exact();f.checked('another real project with the same namespace never adopts private text input; returning restores the original project draft and unchanged current copy')
   else:raise AssertionError(mode)
+  if '--busy-reads'in sys.argv:
+   capture_busy();assert any(row['endpoint']=='readResourceContentDraft'for page in busy_events for row in page['busy']);assert mode!='lifecycle'or any(row['endpoint']=='readResourceContentPending'for page in busy_events for row in page['busy']);f.checked('controlled first busy private-draft/pending observations retry the exact same target and restore input/uncertain command; no mutation replay or automatic rebase')
   f.page.screenshot(path=str(f.case/('resource-content-'+mode+'.png')));f.pending();exact();f.browser.close()
 except Exception as error:
  (f.case/'failure.json').write_text(json.dumps(dict(error=repr(error),traceback=traceback.format_exc()),ensure_ascii=False));raise
