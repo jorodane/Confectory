@@ -37,3 +37,5 @@ M11/M12/M4는 구체적 회귀 없이 다시 열지 않는다. 원본 text edito
 실제 Windows/WebView2·모바일·DPI/IME·GPU/모니터/물리 오디오·Office 앱·전체 UI·Space/Library
 전달은 이번 Linux 소프트웨어 자동화/교차 패키징과 구분한다. main과 원본/백업/증거를 보존하며
 승인된 소유 임시 수명관리·검증된 최신/롤백2세대 보관만 사용한다.
+
+[최종 신규79단계·보관·미실행 기록](VALIDATION_V666_RUN_RESOLUTIONS.md)을 따른다.
