@@ -37,3 +37,5 @@ native는 manifest/identity/catalog/layout/이름/설명/deletion/content 최종
 현재 읽기·취소/늦은 입력/경합·기존 자료 탐색/원본 파일 열기 회귀 및 최종 독립 LF/CRLF·
 새 교차 패키지/전체 복원·증거/최신롤백 보관이다. 실제 신원/그룹 권한 backend·더 큰
 자료/보관·기존 종류 정책·실기기/전체 UI와 초기 빈 화면 원인은 각각 별도다.
+
+[최종 신규49단계·재사용0·실패/호환/보관 기록](VALIDATION_V666_RESOURCE_PARENT.md)을 따른다.
