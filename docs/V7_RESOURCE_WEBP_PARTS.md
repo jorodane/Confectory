@@ -45,3 +45,5 @@ receipt를 이행하거나 재인코딩하지 않으며 작은 read·내용편�
 원본·최신/롤백/증거와 승인된 소유 임시 수명/두 세대 보관을 유지하며 main은 보존한다.
 실제 Windows/WebView2·모바일·DPI/IME·전체 UI·물리 오디오·Space/Library 전달은
 자동화/교차 패키징과 구분한다.
+
+[최종 신규61단계·지속 보관/미실행 기록](VALIDATION_V666_RESOURCE_WEBP_PARTS.md)을 따른다.
