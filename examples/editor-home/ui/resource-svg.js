@@ -5,14 +5,23 @@ const shape=new Set(['rect','circle','ellipse','line','polyline','polygon','path
 const common='id fill stroke color opacity fill-opacity stroke-opacity stroke-width stroke-linecap stroke-linejoin stroke-miterlimit stroke-dasharray stroke-dashoffset fill-rule clip-rule clip-path transform display visibility vector-effect'.split(' ');
 const specific={svg:'width height viewBox preserveAspectRatio version',g:'',defs:'',title:'',desc:'',rect:'x y width height rx ry',circle:'cx cy r',ellipse:'cx cy rx ry',line:'x1 y1 x2 y2',polyline:'points',polygon:'points',path:'d',linearGradient:'x1 y1 x2 y2 gradientUnits gradientTransform spreadMethod',radialGradient:'cx cy r fx fy fr gradientUnits gradientTransform spreadMethod',stop:'offset stop-color stop-opacity',clipPath:'clipPathUnits',text:'x y dx dy text-anchor font-family font-size font-weight font-style letter-spacing word-spacing',tspan:'x y dx dy text-anchor font-family font-size font-weight font-style letter-spacing word-spacing'};
 const idPattern=/^[A-Za-z_][A-Za-z0-9_.:-]{0,63}$/;
+export function resourceSvgSignature(bytes){
+ let start=bytes[0]===239&&bytes[1]===187&&bytes[2]===191?3:0;while([9,10,13,32].includes(bytes[start]))start++;
+ return bytes[start]===60;
+}
 export function resourceSvgInfo(bytes){
- if(!(bytes instanceof Uint8Array)||bytes.length>1048576)throw Error('resource_image_bytes');
- let start=bytes[0]===239&&bytes[1]===187&&bytes[2]===191?3:0;while([9,10,13,32].includes(bytes[start]))start++;if(bytes[start]!==60)return null;
- if(bytes.length>262144)throw Error('resource_svg_bytes');
+ if(!(bytes instanceof Uint8Array)||bytes.length>4194304)throw Error('resource_image_bytes');
+ if(!resourceSvgSignature(bytes))return null;
  const fail=()=>{throw Error('resource_svg_static_profile');};
  let text;try{text=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{fail();}
  // Check before XML parsing, so DTD/entity expansion is never attempted.
- const source=text.replace(/^\s*<\?xml\s+[^?]*\?>/,'').replace(/<!--[\s\S]*?-->/g,'');
+ const declaration=text.replace(/^\s*<\?xml\s+[^?]*\?>/,'');let source;
+ if(bytes.length>262144){
+  // Scan large comments once; an unterminated sequence must not trigger repeated regex searches.
+  const parts=[];let at=0,comments=0;
+  while(true){const start=declaration.indexOf('<!--',at);if(start<0){parts.push(declaration.slice(at));break;}const end=declaration.indexOf('-->',start+4);if(end<0||++comments>1024)fail();parts.push(declaration.slice(at,start));at=end+3;}
+  source=parts.join('');let markup=0;for(let at=source.indexOf('<');at>=0;at=source.indexOf('<',at+1))if(++markup>4096)fail();
+ }else source=declaration.replace(/<!--[\s\S]*?-->/g,'');
  if(source.includes('<!')||source.includes('<?')||(source.match(/</g)||[]).length>4096||/encoding\s*=\s*["'](?!utf-8["'])/i.test(text.slice(0,text.indexOf('?>')+2)))fail();
  if(!/^\s*<svg\s/.test(source)||!/^\s*<svg\s[^>]*\bxmlns\s*=\s*["']http:\/\/www\.w3\.org\/2000\/svg["']/.test(source))return null;
  if(typeof DOMParser!=='function'||typeof XMLSerializer!=='function')throw Error('resource_svg_decoder_unsupported');

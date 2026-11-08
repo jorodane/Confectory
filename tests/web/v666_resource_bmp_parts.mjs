@@ -8,7 +8,7 @@ assert.throws(()=>info(bmp(1023,1366)),/resource_image_bytes/);
 for(const total of[4194304,4194305]){const b=Buffer.alloc(total);near.copy(b);b.writeUInt32LE(total,2);assert.throws(()=>info(b),total===4194304?/resource_image_bmp_pixels/:/resource_image_bytes/);}
 for(const [offset,value,kind]of[[6,1,'writeUInt32LE'],[10,55,'writeUInt32LE'],[14,108,'writeUInt32LE'],[18,16385,'writeInt32LE'],[22,-2147483648,'writeInt32LE'],[26,2,'writeUInt16LE'],[28,8,'writeUInt16LE'],[30,3,'writeUInt32LE'],[34,1,'writeUInt32LE'],[46,1,'writeUInt32LE']]){const b=Buffer.from(near);b[kind](value,offset);assert.throws(()=>info(b));}
 assert.throws(()=>info(near.subarray(0,-1)));assert.throws(()=>info(Buffer.concat([near,Buffer.of(0)])));
-for(const sig of['xxxxftypheic','<svg xmlns="http://www.w3.org/2000/svg">']){const b=Buffer.alloc(1048577);b.write(sig);assert.throws(()=>info(b),/resource_image_bytes/);}
+for(const sig of['xxxxftypheic']){const b=Buffer.alloc(1048577);b.write(sig);assert.throws(()=>info(b),/resource_image_bytes/);}
 const invalidRIFF=Buffer.alloc(1048577);invalidRIFF.write('RIFFxxxxWEBP');assert.throws(()=>info(invalidRIFF),/resource_image_webp_size/);
 const invalidGIF=Buffer.alloc(1048577);invalidGIF.write('GIF89a');assert.throws(()=>info(invalidGIF),/resource_image_dimensions/);
 console.log('PASS >1MiB BMP24/32 signed orientation/row padding/zero imageSize and near4MiB; exact4MiB malformed pixel plane, encoded overflow, original format/dimension restrictions, and other large formats remain rejected; metadata only, browser pixels separate');

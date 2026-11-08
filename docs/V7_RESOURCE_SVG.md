@@ -40,3 +40,7 @@ native 자산 보관/이름·설명·삭제/권한/Review→Confirm/최종 CAS/U
 
 최종 동결 코드·새 검사·재사용 근거·패키지/전체 복원·수명/공간은
 [검증 기록](VALIDATION_V666_RESOURCE_SVG.md)에 명시한다.
+
+최초256KiB 표시 범위의 후속은 [큰 SVG 연결](V7_RESOURCE_SVG_PARTS.md)에서 다룬다.
+256KiB 초과–4MiB에도 원래 geometry/참조/문자/pixel 예산과 격리 decode를 유지하고,
+큰 입력의 주석/markup를 파싱 전에 제한한다. 위 최초 검증 기록은 별도다.
