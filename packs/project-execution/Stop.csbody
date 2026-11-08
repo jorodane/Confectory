@@ -3,6 +3,7 @@ lock(records)
 {
  if(!records.TryGetValue(handle,out var record))throw new ArgumentException("Unknown execution handle for this session.");
  if(record.Length>5&&record[5] is Action stop){stop();return;}
+ if(record.Length>6&&record[6]is object[] surface&&surface.Length>14)System.Threading.Interlocked.Exchange(ref surface[14],null!);
  var status=(string[])record[0];if(status[1] is not ("stopped" or "exited" or "failed" or "built")){
  if(record[1] is System.Diagnostics.Process process)
  {

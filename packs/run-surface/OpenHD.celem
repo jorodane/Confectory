@@ -1,0 +1,1 @@
+function Confectory.RunSurface::OpenHD (string frameOwner) -> string { description "Explicit software HD output: at most1280 per axis and921600 RGBA8 pixels; does not grant execution or screen access.";provide Confectory.RunSurface::OpenHD with Confectory.RunSurface::OpenHDBody;}

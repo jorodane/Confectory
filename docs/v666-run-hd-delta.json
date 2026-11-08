@@ -1,0 +1,31 @@
+{
+  "baseCommit": "0d2459b463798d11031c20f46a6c8d1a4ecc35dd",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "9e3b9763635c352d54a47f4c1c4841830b01df0ae6b90cc43a2f5b9845013796",
+    "examples/editor-home/ui/run-auto-fit.js": "0669b3ed624f04bd6c4424832eff2838da9932b784976e0a152d53e2d43dab9b",
+    "examples/editor-home/ui/run-presets.js": "a4dbbfd332d33a4664092a444e60957938e077c2ecdc9e2ced09eb34cad4e220",
+    "examples/editor-home/ui/run-surface.js": "bfecd99a20e2f1a19a70471e41b1c1a25c4f0172b86ba2edbba1673a6e2213d5",
+    "examples/editor-home/ui/run-windows.js": "c1652e9af9aa9ec93329d1322c55500f4df2406d4c2d437eff5f8a33ca9ec250",
+    "examples/hd-output/Main.celem": "1f9682274c9c73a887ad292d88b15b40106336dda1cbdc70ae780b57dc3c5c75",
+    "examples/hd-output/Main.csbody": "73d75179467fd8a0484045fa09e735f24784e56ecfdb03825244650253b2b507",
+    "examples/hd-output/MainBody.celem": "c2f9a0997a3fcf75b9f300e4bdc07898334ee5a1bec52cd1d0e40e198100c452",
+    "examples/hd-output/README.md": "e93dc34232b5958f64eb6ae64c4772d39a6b635dc714c6fe9363e510c2a8e402",
+    "examples/hd-output/project.cpack": "20e5773c46c639ccc88f45fa29de85d9c4dc09abf5e9be094fae8b98cf52b2de",
+    "packs/editor-home-model/RunPresets.csbody": "4794d53f626a311429f7203167eb3169f8268c230b116b5024417368ced2c044",
+    "packs/project-execution/LaunchConfigured.csbody": "447b0d3b0abf687fd535d9c5ffbf3df1e832f9946632c2b27f43d9e1b50ea0aa",
+    "packs/project-execution/ResizeSurface.csbody": "b431dd9f7ec8dfc86c236102f438b1866a8f40892e2146b51ab3b38dde9c3b73",
+    "packs/project-execution/Stop.csbody": "8995561861338ffbe16cbbed6f66da589a3597eeffb6a44c563171a6ca2386d3",
+    "packs/project-execution/Surface.csbody": "281cbad18046cf234d828c9579d84aeb696fe33dbc25326b713294385fb9dcad",
+    "packs/run-surface/Open.csbody": "6ecd0f7c0f79eb531a335496361a650d3487ea01743eec70f7e58a0c906af050",
+    "packs/run-surface/OpenBody.celem": "2b37c164d7de961909122eaae0101205bd841a6383b322e4d7fbe34c6e9fbb28",
+    "packs/run-surface/OpenConfigured.celem": "88bf6d842db90adc0eaec4eaa3f9265a5778b67f1b494d1d2755f6a1f0990d93",
+    "packs/run-surface/OpenConfigured.csbody": "97aad17cc0faa3b1482dcaa6a96c0a7df31bd53019f8da07bcdc688b5901ae1c",
+    "packs/run-surface/OpenConfiguredBody.celem": "1a1a7d63994ce9c79bb3fc60a9dafaedcd3854f5985894440649e3624bef2542",
+    "packs/run-surface/OpenHD.celem": "ee0e24d7dd40df667bb66b8e6edc45dd76fde87d17b287696ae58ccb5f2a657a",
+    "packs/run-surface/OpenHD.csbody": "e825f78143b8150cf876bdc57c3123d37f0a2fd66fb4d3b7540513c97c5f16ee",
+    "packs/run-surface/OpenHDBody.celem": "115825fcbd05603c0763ab22eef699343e0c2ef4305e11e49dbf2dc7928924f0",
+    "packs/run-surface/README.md": "b7341b398c9fd91425a61dcfe364fe64bc340af7caa6c1ba38721a64e9262334",
+    "packs/run-surface/pack.cpack": "fd8c92119d521c965793807ca5a67456ba9d4fd4b0bdf360dcf204e1749867e0"
+  }
+}

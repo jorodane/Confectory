@@ -1,0 +1,1 @@
+return calls.OpenConfigured.Invoke(frameOwner,true);

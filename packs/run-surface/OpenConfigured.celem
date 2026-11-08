@@ -1,0 +1,1 @@
+function Confectory.RunSurface::OpenConfigured (string frameOwner,bool hd) -> string {provide Confectory.RunSurface::OpenConfigured with Confectory.RunSurface::OpenConfiguredBody;}

@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::OpenHDBody for Confectory.RunSurface::OpenHD (string frameOwner) -> string {import Confectory.RunSurface::OpenConfigured as OpenConfigured (string,bool) -> string;body common "OpenHD.csbody";}

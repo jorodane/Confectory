@@ -26,3 +26,5 @@ failure is reconciled by observation, not automatic replay; Stop/new owner clear
 UI auto/presets use separate adapters to this size API. Larger pixel budgets, GPU capture and audio remain outside this bounded size API.
 
 The authored 640x360 option, immutable max/maxPixels capability, legacy512 compatibility and paired-version limits are documented in [the bounded output flow](../../docs/V8_RUN_WIDE.md). Full RGBA bytes and pipe packet ceilings are unchanged.
+
+Explicit HD opt-in is a separate OpenHD API followed by ConfigureSize before first Present. It permits at most1280 per axis/921600 pixels (1280x720,720x1280,1024x768) with bounded verified parts; existing Open retains640 axes/262144 pixels. See [HD flow and compatibility](../../docs/V8_RUN_HD.md).

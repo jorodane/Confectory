@@ -2,6 +2,21 @@ using Confectory.Core;
 namespace Confectory.Tests;
 public sealed class RunSurfaceTests : TestCase
 {
+ public void test_hd_explicit_configuration_preserves_legacy_owner_and_pixel_budgets()
+ {
+  foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
+  f.Main("");f.Add("App","implementation","MainBody","""
+  implementation App::MainBody for App::Main () -> int {
+  import Confectory.RunSurface::Open as Open (string) -> string;import Confectory.RunSurface::OpenHD as OpenHD (string) -> string;import Confectory.RunSurface::Present as Present (string,int,int,string) -> long;import Confectory.RunSurface::ConfigureSize as ConfigureSize (string,int,int) -> void;import Confectory.RunSurface::RequestedSize as RequestedSize (string) -> int[];import Confectory.RunSurface::Close as Close (string) -> void;import Confectory.FrameControl::Open as OpenFrame () -> string;import Confectory.FrameControl::Close as CloseFrame (string) -> void;body common "main.csbody";}
+  """);f.Body("App","main.csbody","""
+  foreach(string name in new[]{"PIPE","SECRET","HANDLE"})Environment.SetEnvironmentVariable("CONFECTORY_FRAME_"+name,null);
+  void Check(bool value,string message){if(!value)throw new Exception(message);}bool Denied(Action action){try{action();return false;}catch(ArgumentException){return true;}catch(InvalidOperationException){return true;}}
+  string loop=calls.OpenFrame.Invoke(),owner=calls.OpenHD.Invoke(loop);try{
+   Check(Denied(()=>calls.Present.Invoke(owner,1,1,"AAAAAA==")),"HD configuration is explicit before first publication");Check(Denied(()=>calls.Open.Invoke(loop)),"one primary output per actual owner");Check(Denied(()=>calls.ConfigureSize.Invoke(owner,1280,721)),"HD fixed area ceiling");calls.ConfigureSize.Invoke(owner,1280,720);int[] requested=calls.RequestedSize.Invoke(owner);requested[0]=1;Check(calls.RequestedSize.Invoke(owner)[0]==1280,"copied owned HD request");Check(Denied(()=>calls.ConfigureSize.Invoke(owner,640,360)),"no implicit reconfiguration");
+   string pixels=Convert.ToBase64String(new byte[1280*720*4]);Check(calls.Present.Invoke(owner,1280,720,pixels)==1,"complete1280x720 HD-profile software pixels");Check(Denied(()=>calls.Present.Invoke(owner,1280,721,pixels))&&Denied(()=>calls.Present.Invoke(owner,1281,240,pixels))&&Denied(()=>calls.Present.Invoke(owner,1,1,pixels)),"HD dimension/area/byte mismatch rejected before revision");Check(calls.Present.Invoke(owner,1,1,"AAAAAA==")==2,"failed HD publication retains revision");
+  }finally{calls.Close.Invoke(owner);}string legacy=calls.Open.Invoke(loop);try{Check(Denied(()=>calls.ConfigureSize.Invoke(legacy,1280,720))&&Denied(()=>calls.Present.Invoke(legacy,1280,720,Convert.ToBase64String(new byte[1280*720*4]))),"old Open does not silently opt into HD");Check(calls.Present.Invoke(legacy,640,360,Convert.ToBase64String(new byte[640*360*4]))==1,"legacy output and revision remain intact");}finally{calls.Close.Invoke(legacy);calls.CloseFrame.Invoke(loop);}Console.WriteLine("HD explicit configuration/owner/copy/revision and legacy budgets PASS");return 0;
+  """);f.Sync();Output(Build(),"HD explicit configuration/owner/copy/revision and legacy budgets PASS");
+ }
  public void test_annotated_surface_bounds_atomic_copy_legacy_and_packet_budget()
  {
   foreach(var (ns,path)in new[]{("Confectory.RunSurface","run-surface"),("Confectory.FrameControl","frame-control")}){f.ExtraRegistry[ns]=Path.Combine(Fixture.Repo,"packs",path,"pack.cpack");f.Packs["App"].Dependencies[ns]="0.1.0";}
