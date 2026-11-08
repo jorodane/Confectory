@@ -28,7 +28,7 @@ preview token의 수명을 따른다. durable presentation에는 원문/prefix/�
 덮지 않는다. 오류는 사본을 변경하지 않고 명시적인 같은 항목 읽기 재시도를 제공한다.
 capability가 없는 기존 backend의 metadata-only 결과도 계속 표시한다.
 
-현재 새로 연결한 경계의 검증·패키지/복원과 환경 복구 사실은 후속 검증 기록에서 구분한다.
+[최종 신규 검증·패키지/전체 복원·복구 기록](VALIDATION_V666_RESOURCE_TEXT_PREFIX.md)에서 새 검사와 선행 실패를 구분한다.
 4MiB 초과/총 보관량 확대, 큰 내용 편집·백업과 다른 rich 형식, 실제 신원·멤버/권한 backend,
 실제Windows/WebView2·모바일·DPI/IME/전체UI 및 Space/Library 전달은 이번 완료에 포함하지 않는다.
 초기 빈 화면의 원인은 미확정이다.
