@@ -69,7 +69,7 @@ def dependency_identity(sdk, seed, commit):
     return result
 
 
-def preflight(repo, persistent, commit, input_identity=None, evidence_budget=20*MIB):
+def preflight(repo, persistent, commit, input_identity=None, evidence_budget=20*MIB, memory_budget=7*1024*MIB):
     # Three hard-limited 56 MiB package archives cover latest + rollback + candidate;
     # evidence/code allowance and the established 64 MiB safety stay separate.
     before = shutil.disk_usage(persistent if persistent.exists() else persistent.parent).free
@@ -85,7 +85,7 @@ def preflight(repo, persistent, commit, input_identity=None, evidence_budget=20*
             'bootstrapPeakDiskBudget': (3*56+4+64)*MIB+evidence_budget,
             'ramAvailable': shutil.disk_usage('/tmp').free, 'ramFilesystemBudget': 3*1024*MIB,
             'memoryCurrent': memory, 'memoryLimit': limit,
-            'additionalMemoryBudget': 7*1024*MIB, 'memorySafety': 1024*MIB,
+            'additionalMemoryBudget': memory_budget, 'memorySafety': 1024*MIB,
             'existingFilesDeleted': False}
     # Once bootstrapped, existing managed archives already occupy disk. Only
     # one additional candidate plus evidence/code needs new free space.
@@ -119,7 +119,7 @@ def main():
     parser.add_argument('--reuse-fhd',type=Path,help='Eleven sealed identical LF checks after exact initial read-only FHD observation correction; failed/API/build/package checks fresh')
     parser.add_argument('--reuse-4k',type=Path,action='append',help='Sealed identical passing4K facts after exact heartbeat observation fixture correction; changed/failed checks and builds/packages fresh')
     parser.add_argument('--reuse-audio',type=Path,help='Sealed identical LF/CRLF audio checks after exact package raw-string parser correction')
-    parser.add_argument('--suite',choices=['run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix','resource-large','run-hd','resource-svg','resource-avif','resource-gif','resource-transfer','resource-bmp','resource-entry','resource-webp','resource-xlsx','resource-docx','resource-description','resource-pdf','resource-office','resource-destination','resource-batch','resource-images','resource-content','resource-multi-deletion','resource-folder-deletion','resource-file-deletion','resource-file-names','resource-folder-names','resource-layout','resource-preview','resource-import','office-finder','office-io-poll','run-bounds','run-rate','startup-transport','office-active-io','run-grid','run-wide','run-auto','run-presets','run-audio','run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
+    parser.add_argument('--suite',choices=['run-4k-memory','run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix','resource-large','run-hd','resource-svg','resource-avif','resource-gif','resource-transfer','resource-bmp','resource-entry','resource-webp','resource-xlsx','resource-docx','resource-description','resource-pdf','resource-office','resource-destination','resource-batch','resource-images','resource-content','resource-multi-deletion','resource-folder-deletion','resource-file-deletion','resource-file-names','resource-folder-names','resource-layout','resource-preview','resource-import','office-finder','office-io-poll','run-bounds','run-rate','startup-transport','office-active-io','run-grid','run-wide','run-auto','run-presets','run-audio','run-resolution','run-surface','run-developer','office-io','office-arrangement','office-workers','office-view','headers','card-images','canvas','owned-information','owned-conversion','action-icons','declaration-icons','pin-icons','enum-definitions','enum-values','enum-retirement','worker-badges','node-internal','node-internal-nested','node-internal-storage','node-internal-context','node-internal-branches','node-branch-exits','node-internal-copy','node-internal-copy-nested','node-internal-copy-storage','node-internal-copy-branches','node-internal-copy-context','node-internal-copy-creating','node-internal-copy-frames','node-internal-override','node-internal-external-override','root-execution','root-execution-out','root-execution-closure','root-execution-copy','root-execution-copy-creating','root-execution-override','root-execution-registered','root-execution-registered-copy','root-execution-registered-creating','root-execution-data-void','root-execution-compound-owned','root-execution-provider-import','root-execution-nonvoid','public-return-data','root-execution-providers','root-execution-nested','root-execution-native','root-execution-caller','root-execution-forwarding','root-execution-observers','root-execution-wrappers','root-execution-owned-updates','root-execution-import-observations','async-runtime','async-transition','async-completion','async-function','async-property','async-adapter','async-context','async-creating','async-new-function','async-private','async-private-returns','async-coupled','async-root-io','async-branch-creation','guidance-code-editor','guidance-values','description-recovery','source-recovery','name-recovery','route-recovery','entry-recovery','export-value-recovery','export-binding-recovery','root-return-recovery','export-removal-recovery','export-creation-recovery','root-output-order-recovery','root-input-name-recovery','root-followup-recovery','direct-creation-recovery','text-pair-recovery','root-value-rename-recovery','node-text-recovery','root-return-position-recovery','node-names-recovery','root-void-name-recovery','route-group-recovery','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload','guidance-review','finder-modules','zoom-lifetime','native-zoom-lifetime','native-read-close','native-intent-late','async-information'],default='headers')
     args = parser.parse_args()
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
@@ -127,7 +127,7 @@ def main():
     inputs = dependency_identity(args.sdk,args.nuget_seed,commit)
     # High-entropy prefix CAS inputs are retained, not discarded to meet the
     # old small-fixture estimate. Keep the same 64MiB safety separately.
-    plan = preflight(repo, persistent, commit,inputs['identity'],192*MIB if args.suite in ['run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts'] else 128*MIB if args.suite in ['run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix'] else 20*MIB)
+    plan = preflight(repo, persistent, commit,inputs['identity'],192*MIB if args.suite in ['run-4k-memory','run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts'] else 128*MIB if args.suite in ['run-4k-memory','run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix'] else 20*MIB, memory_budget=(9 if args.suite in ['run-4k-memory','run-4k'] else 7)*1024*MIB)
     if git(repo, 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Tracked source has uncommitted changes')
     work = Workspace(persistent/'runs', source=commit)
@@ -168,7 +168,7 @@ def main():
             if args.suite!='source-recovery': raise ValueError('Source reuse requires its own suite')
             from verification_source_reuse import bind
             bind(repo,args.reuse_source,commit,inputs,work)
-        if args.suite in ['run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix','resource-large','run-hd','resource-svg','resource-avif','resource-gif','resource-transfer','resource-bmp','resource-entry','resource-webp','resource-xlsx','resource-docx','resource-description','resource-pdf','resource-office','resource-destination','resource-batch','resource-images','resource-content','resource-multi-deletion','resource-folder-deletion','resource-file-deletion','resource-file-names','resource-folder-names','resource-layout','resource-preview','resource-import','office-finder','office-io-poll','run-bounds','run-rate','startup-transport','office-active-io','run-grid','run-wide','run-auto','run-presets','run-audio','run-resolution','run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
+        if args.suite in ['run-4k-memory','run-4k','run-resolutions','run-qhd','resource-svg-parts','resource-avif-parts','resource-gif-parts','resource-webp-parts','resource-bmp-parts','resource-office-parts','resource-pdf-parts','run-fhd','resource-raster','resource-prefix','resource-large','run-hd','resource-svg','resource-avif','resource-gif','resource-transfer','resource-bmp','resource-entry','resource-webp','resource-xlsx','resource-docx','resource-description','resource-pdf','resource-office','resource-destination','resource-batch','resource-images','resource-content','resource-multi-deletion','resource-folder-deletion','resource-file-deletion','resource-file-names','resource-folder-names','resource-layout','resource-preview','resource-import','office-finder','office-io-poll','run-bounds','run-rate','startup-transport','office-active-io','run-grid','run-wide','run-auto','run-presets','run-audio','run-resolution','run-surface','run-developer','run-fullscreen','workspace-finder','finder-content','finder-definitions','finder-bodies','finder-defaults','declaration-reload']:
             work.run(args.suite+'-owned-ipc-lifetime',
                 [sys.executable,str(repo/'tests/probes/verification_workspace_test.py')],cwd=repo,
                 env=dict(os.environ,PYTHONDONTWRITEBYTECODE='1'))
@@ -1013,6 +1013,37 @@ def main():
 
                 for mode in (['qhd','fhd']if label=='lf'else['hd','lifecycle']):
                     work.run(label+'-run-resolutions-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_resolutions_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+
+            elif args.suite=='run-4k-memory':
+                work.run(label+'-run-4k-boundary',[sys.executable,str(checkout/'tests/web/v666_run_4k_memory_copy.py'),str(checkout)],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run(label+'-run-4k-example-build',[dotnet,str(checkout/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(checkout/'examples/4k-output/project.cpack'),'linux'],cwd=checkout,env=env)
+                for name in ['4k','qhd','fhd','hd','wide','surface','resolution','presets']:
+                    work.run(label+'-run-'+name+'-projection',['node',str(checkout/('tests/web/v666_run_'+name+'_projection.mjs')),str(checkout)],cwd=checkout,env=env)
+                work.run(label+'-run-fhd-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'RunSurfaceTests','RunAudioTests','test_web_ui_read_observations','test_web_ui_scope_revision_cancellation_disposal_and_pack_locality','--require-runtime'],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run(label+'-run-control-native',[dotnet,str(checkout/'tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll'),'test_run_history_unavailable_profiles_do_not_read_or_write_storage','test_run_history_actual_owned_facts_cold_corruption_conflict_and_no_authority','test_frame_ack_foreign_stale_future_replies_cannot_overwrite_owner','test_frame_control_actual_boundary_order_repeat_thread_and_close','test_actual_owned_cooperative_frames_pause_step_reconnect_and_stop','test_execution_handles_and_provider_locality','--require-runtime'],cwd=checkout,env=env)
+                for mode in ['normal','faults']:
+                    work.run(label+'-run-4k-api-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_4k_api.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+                for mode in (['normal','parts']if label=='lf'else['lifecycle']):
+                    work.run(label+'-run-4k-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_4k_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
+                work.run(label+'-run-wide-ui',[sys.executable,str(checkout/'tests/web/v666_run_wide_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+                work.run(label+'-run-legacy-capabilities',[sys.executable,str(checkout/'tests/web/v666_run_wide_api.py'),str(checkout),str(report),'capabilities'],cwd=checkout,env=env)
+                work.run(label+'-run-legacy-heartbeat',[sys.executable,str(checkout/'tests/web/v666_run_surface_api.py'),str(checkout),str(report),'heartbeat'],cwd=checkout,env=env)
+                for name in ['presets','auto','audio','bounds','rate']:
+                    script='v666_run_'+name+('_api.py'if name=='presets'else'_ui.py');command=[sys.executable,str(checkout/('tests/web/'+script)),str(checkout),str(report)]
+                    if name!='presets':command+=['normal'if label=='lf'else'lifecycle']
+                    work.run(label+'-run-'+name+'-regression',command,cwd=checkout,env=env)
+
+                work.run(label+'-run-hd-compatibility-ui',[sys.executable,str(checkout/'tests/web/v666_run_hd_ui.py'),str(checkout),str(report),'normal'if label=='lf'else'parts'],cwd=checkout,env=env)
+
+                work.run(label+'-run-fhd-compatibility-api',[sys.executable,str(checkout/'tests/web/v666_run_fhd_api.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
+
+                work.run(label+'-run-qhd-compatibility-api',[sys.executable,str(checkout/'tests/web/v666_run_qhd_api.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
+                work.run(label+'-run-fixed-menu-regression',[sys.executable,str(checkout/'tests/web/v666_run_resolutions_ui.py'),str(checkout),str(report),'qhd'if label=='lf'else'lifecycle'],cwd=checkout,env=env)
+
+                for height in [514,515]:
+                    work.run(label+'-run-4k-tail-'+str(height),[sys.executable,str(checkout/'tests/web/v666_run_4k_tail_api.py'),str(checkout),str(report),str(height)],cwd=checkout,env=env)
 
             elif args.suite=='run-4k':
                 work.run(label+'-run-4k-boundary',[sys.executable,str(checkout/'tests/web/v666_run_4k_copy.py'),str(checkout)],cwd=checkout,env=env)
@@ -2195,6 +2226,13 @@ def main():
 
             work.run('packaged-run-resolutions',[sys.executable,str(checkout/'tests/web/v666_run_resolutions_ui.py'),str(package/'content'),str(packaged_report),'qhd'],cwd=checkout,env=env)
 
+        elif args.suite=='run-4k-memory':
+            for mode in ['normal','parts']:
+                work.run('packaged-run-4k-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_4k_ui.py'),str(package/'content'),str(packaged_report),mode],cwd=checkout,env=env)
+            work.run('packaged-run-wide',[sys.executable,str(checkout/'tests/web/v666_run_wide_ui.py'),str(package/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+
+            work.run('packaged-run-4k-tail',[sys.executable,str(checkout/'tests/web/v666_run_4k_tail_api.py'),str(package/'content'),str(packaged_report),'514'],cwd=checkout,env=env)
+
         elif args.suite=='run-4k':
             for mode in ['normal','parts']:
                 work.run('packaged-run-4k-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_4k_ui.py'),str(package/'content'),str(packaged_report),mode],cwd=checkout,env=env)
@@ -2694,6 +2732,13 @@ def main():
             work.run('restored-run-wide',[sys.executable,str(checkout/'tests/web/v666_run_wide_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
 
             work.run('restored-run-resolutions',[sys.executable,str(checkout/'tests/web/v666_run_resolutions_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
+
+        elif args.suite=='run-4k-memory':
+            for mode in ['lifecycle','parts']:
+                work.run('restored-run-4k-'+mode,[sys.executable,str(checkout/'tests/web/v666_run_4k_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
+            work.run('restored-run-wide',[sys.executable,str(checkout/'tests/web/v666_run_wide_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
+
+            work.run('restored-run-4k-tail',[sys.executable,str(checkout/'tests/web/v666_run_4k_tail_api.py'),str(restored/'content'),str(packaged_report),'515'],cwd=checkout,env=env)
 
         elif args.suite=='run-4k':
             for mode in ['lifecycle','parts']:
