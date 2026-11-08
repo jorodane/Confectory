@@ -31,3 +31,5 @@ binary가 목록 전체를 읽지 못할 수 있으며, 그 경우 기존 unavai
 진행 중 I/O·GPU/FPS·큰 출력/물리 장치 및 전체 UI 검증은 별도 고정 잔여다.
 
 [최종 검증 기록](VALIDATION_V666_RUN_WIDE.md)을 따른다.
+
+후속: 기존 Open 한도는 그대로이며, 별도 명시 OpenHD의1280/921600픽셀 profile과 분할 관측은 [HD 흐름](V8_RUN_HD.md)에 연결했다. 당시 검증 기록은 보존한다.
