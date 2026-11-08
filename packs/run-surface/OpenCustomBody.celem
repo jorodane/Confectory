@@ -1,0 +1,1 @@
+implementation Confectory.RunSurface::OpenCustomBody for Confectory.RunSurface::OpenCustom (string frameOwner) -> string {import Confectory.RunSurface::OpenProfile as OpenProfile (string,int) -> string;body common "OpenCustom.csbody";}

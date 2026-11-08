@@ -1,5 +1,5 @@
 if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0])is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session disposed");
-if(!System.Text.RegularExpressions.Regex.IsMatch(publisher,@"\A[a-f0-9]{32}\z")||!System.Text.RegularExpressions.Regex.IsMatch(command,@"\A[a-f0-9]{32}\z")||sequence is <0 or >=64||width is <240 or >4096||height is <240 or >4096||(long)width*height>8847360)throw new ArgumentException("Explicit bounded output size and identity required");
+if(!System.Text.RegularExpressions.Regex.IsMatch(publisher,@"\A[a-f0-9]{32}\z")||!System.Text.RegularExpressions.Regex.IsMatch(command,@"\A[a-f0-9]{32}\z")||sequence is <0 or >=64||width is <240 or >8192||height is <240 or >8192||(long)width*height>8847360)throw new ArgumentException("Explicit bounded output size and identity required");
 object[] record;lock(records){if(!records.TryGetValue(handle,out record!))throw new ArgumentException("Unknown session-owned execution");}
 if(record.Length<7||record[6]is not object[] state||state.Length<11)throw new PlatformNotSupportedException("Output size control unavailable");
 lock(state[0]){

@@ -1,0 +1,24 @@
+{
+  "baseCommit": "03e81fea2e3579c976b74c0b4f3ab3165e2d04be",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/custom-axis-output/Main.celem": "f72c9002e7d1ba69c786c7c5d2d386cd1e4f4204a105816091cba0d8958708d3",
+    "examples/custom-axis-output/Main.csbody": "73d75179467fd8a0484045fa09e735f24784e56ecfdb03825244650253b2b507",
+    "examples/custom-axis-output/MainBody.celem": "18fa236ea82aeecd13fbd49a9a8eec8183960b99677f046846730651bd842207",
+    "examples/custom-axis-output/README.md": "48f4a4102ae4be55592845a60a8851a064cb7c992af5709d604e600952fde72e",
+    "examples/custom-axis-output/project.cpack": "38dfbd5c9ffcbce4cb01671b0a454f45c2a47f6aab3150c34e80f0ebea029fa9",
+    "examples/editor-home/WebBundle.csbody": "5c06f6016a84e6703368136cf1a684adcf72b4c9dcaf59e06cbcdc12f0aa5e84",
+    "examples/editor-home/ui/run-auto-fit.js": "3021f24ec0daa714ec608a36b43cde1a3712abfcdcd651e821079cd6fbfd5230",
+    "examples/editor-home/ui/run-presets.js": "589a89f9ce5341f3c71afcc318beee878c5bdb0b71d71277818237c41df4b83d",
+    "examples/editor-home/ui/run-surface.js": "5a6f922b1dddff3c7172f5eec11c2d4815607d523f2173203794f2d833ff8982",
+    "packs/editor-home-model/RunPresets.csbody": "4d02c8a7214de75763e3379e07f244c21e5e225dbe902915b69f6daf1dda2d17",
+    "packs/project-execution/ResizeSurface.csbody": "eefbc03225bd218a6594cd1a70a64ecd492b07fa28caf13d480b4bd0e931b960",
+    "packs/project-execution/Surface.csbody": "f7cab0003a9d85e864c03034143711d69d0954440f38ae4bc554895e1a993adf",
+    "packs/run-surface/OpenCustom.celem": "b347821e023f4a45701e854c27dcd6a56b662a6bd3b440e5360819986cb3d583",
+    "packs/run-surface/OpenCustom.csbody": "e7a4644c5cf69e09901b07165d4d0db8debced6e174f79430d7a2504d21ae2a4",
+    "packs/run-surface/OpenCustomBody.celem": "44183acd91d4b581e5fa6ae505b58be8ba9cc3ca4c81f316d5e96efe3e0c9702",
+    "packs/run-surface/OpenProfile.csbody": "496c4562ae40a55944c6e2ec46e196157e901b1dfb22f539ca448db00ed1e485",
+    "packs/run-surface/README.md": "4725da1c8512883f8a4dc00e92b10c3942b02db7b123b97ea39821f0236f6d3b",
+    "packs/run-surface/pack.cpack": "b355d89e96c8ad72d88670be8a68d5585d6b7a238b57cbc8097f81f41157ff9d"
+  }
+}

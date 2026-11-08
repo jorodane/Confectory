@@ -1,0 +1,1 @@
+function Example.CustomOutput::Main () -> int {provide Example.CustomOutput::Main with Example.CustomOutput::MainBody;}
