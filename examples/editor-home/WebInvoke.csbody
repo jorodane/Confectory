@@ -22,11 +22,17 @@ if(endpoint=="readProjectResource"){
  if(args.Count!=3||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "hash")))throw new UnauthorizedAccessException("resource_read_fields");
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"read",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
 }
+if(endpoint=="readResourceDocxReceipt"){
+ if(args.Count!=4||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "upload" or "hash")))throw new UnauthorizedAccessException("resource_draft_receipt_fields");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"draft-receipt",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
+}
+if(endpoint=="readResourceContentDraftPart"){
+ if(args.Count!=5||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id" or "revision" or "hash" or "part")))throw new UnauthorizedAccessException("resource_draft_part_fields");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();string result=calls.Resources.Invoke(context,"draft-part",args.ToJsonString());if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return result;
+}
 if(endpoint is "readResourceContentDraft" or "readResourceContentPending"){
  if(args.Count!=2||System.Linq.Enumerable.Any(args,p=>p.Key is not ("project" or "id")))throw new UnauthorizedAccessException("resource_draft_read_fields");return calls.Resources.Invoke(context,endpoint=="readResourceContentDraft"?"draft-load":"draft-pending",args.ToJsonString());
 }
 if(endpoint=="resourceContentDraft"){
- string draftAction=args["action"]?.GetValue<string>()??"";if(draftAction is not ("load" or "save"))throw new UnauthorizedAccessException("resource_draft_action");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"draft-"+draftAction,args.ToJsonString());
+ string draftAction=args["action"]?.GetValue<string>()??"";if(draftAction is not ("load" or "save" or "apply"))throw new UnauthorizedAccessException("resource_draft_action");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"draft-"+draftAction,args.ToJsonString());
 }
 if(endpoint=="projectResourceLayout"){
  string layoutAction=args["action"]?.GetValue<string>()??"";if(layoutAction is not ("import-files" or "load" or "create-folder" or "move" or "rename-folder" or "rename-file" or "describe" or "delete-file" or "delete-folder" or "delete-selected" or "save-content" or "restore-content"))throw new UnauthorizedAccessException("resource_layout_layoutAction");args.Remove("action");if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();return calls.Resources.Invoke(context,"layout-"+layoutAction,args.ToJsonString());

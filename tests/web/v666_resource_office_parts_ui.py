@@ -82,7 +82,8 @@ def workers():return f.page.evaluate('()=>structuredClone(__officeWorkers)')
 def drained():f.page.wait_for_function('()=>__officeWorkers.created===__officeWorkers.terminated')
 def ready(w,extension='docx',large=True):
  expect(w.locator('.resource-preview')).to_have_attribute('aria-busy','false');expect(w.locator('.resource-preview')).to_contain_text({'docx':'생성 문서 <script>','xlsx':'문자 <img>','pptx':'첫 슬라이드','odt':'ODT 본문'}[extension]);expect(w.locator('[data-resource-content-save]')).to_have_count(0)
- if large:expect(w.locator('[data-resource-content-edit],[data-resource-content-restore]')).to_have_count(0);expect(w.locator('.resource-preview-status')).to_contain_text('읽기 전용')
+ if large and extension=='docx':expect(w.locator('[data-resource-content-edit]')).to_be_enabled()
+ elif large:expect(w.locator('[data-resource-content-edit],[data-resource-content-restore]')).to_have_count(0);expect(w.locator('.resource-preview-status')).to_contain_text('읽기 전용')
  if extension=='docx':expect(w.locator('.resource-document h2 span')).to_have_css('font-weight','700');expect(w.locator('.resource-document td')).to_have_text('표 값');expect(w.locator('.resource-preview script')).to_have_count(0)
  elif extension=='xlsx':
   expect(w.locator('td').nth(1)).to_have_text('2');expect(w.locator('td').nth(2)).to_have_text('TRUE');select=w.locator('[data-resource-office-sheet]')

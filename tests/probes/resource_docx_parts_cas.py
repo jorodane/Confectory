@@ -1,0 +1,11 @@
+"""Production native bodies with controlled CAS races; UI separately covers actual packs/ZIP."""
+import pathlib,sys,tempfile,subprocess,os,json,hashlib
+r=pathlib.Path(sys.argv[1]).resolve();case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-docx-parts-cas-'));source=(r/'tests/fixtures/project-resources/DocxPartsCAS.cs').read_text();paths={'DRAFT_BODY':'packs/editor-home-model/Resources.csbody','LAYOUT_BODY':'packs/project-resources/Layout.csbody','RESOURCE_BODY':'packs/project-resources/Request.csbody','DELETIONS_BODY':'packs/project-resources/DeletionRecords.csbody','SNAPSHOT_BODY':'packs/file-stream/BoundedSnapshot.csbody','PLAN_BODY':'packs/file-stream/CommitPlan.csbody','WRITE_BODY':'packs/file-stream/WriteAtomic.csbody','LEASE_BODY':'packs/file-stream/LeasePath.csbody'}
+# Replace longer legacy tokens first, not the embedded DRAFT_BODY suffix.
+commit='3cf6a825efe39c6bdfcc34c8e70c4a8b54b36a92';legacy={}
+for token,path in [('OLD_DRAFT_BODY',paths['DRAFT_BODY']),('OLD_LAYOUT_BODY',paths['LAYOUT_BODY'])]:
+ data=subprocess.check_output(['git','show',commit+':'+path],cwd=r,text=True);legacy[path]=hashlib.sha256(data.encode()).hexdigest();source=source.replace(token,data)
+for token,path in paths.items():source=source.replace(token,(r/path).read_text())
+(case/'probe.csproj').write_text('<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>');(case/'Program.cs').write_text(source)
+result=subprocess.run([os.environ.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'),'run','--project',str(case/'probe.csproj'),'-c','Release','-p:UseSharedCompilation=false','--',str(case/'owned assets')],cwd=r)
+(case/'evidence.json').write_text(json.dumps(dict(legacyCommit=commit,legacySha256=legacy,actualBodies={n:hashlib.sha256((r/n).read_text().encode()).hexdigest()for n in paths.values()},controlledFinalCAS=True,actualPackWiring=False,actualOfficeZIP=False,actualWindows=False,passed=result.returncode==0),indent=2)+'\n');print('RESOURCE_DOCX_PARTS_CAS_FIXTURE',case,flush=True);raise SystemExit(result.returncode)

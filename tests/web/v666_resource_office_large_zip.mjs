@@ -13,10 +13,10 @@ for(const[extension,name]of[['docx','word/document.xml'],['xlsx','xl/worksheets/
  const raw=zip([[name,'<root>exact selected XML 🧪</root>'],['media/generated.bin',noise,0]]);assert(raw.length>1048576&&raw.length<=4194304);
  assert.throws(()=>officeDirectory(raw,extension),/input/);await assert.rejects(extractOfficeFiles(raw,extension),/input/);await assert.rejects(readEditableOfficeArchive(raw,extension),/input/);
  const selected=await extractOfficeFiles(raw,extension,false,4194304);assert.equal(selected.length,1);assert.equal(new TextDecoder().decode(selected[0][1]),'<root>exact selected XML 🧪</root>');
- assert.throws(()=>officeDirectory(raw,extension,true,4194304),/input/);await assert.rejects(extractOfficeFiles(raw,extension,true,4194304),/input/);
+ if(extension==='docx'){assert.equal(officeDirectory(raw,extension,true,4194304).length,2);assert.equal((await readEditableOfficeArchive(raw,extension,4194304)).files.length,2);}else{assert.throws(()=>officeDirectory(raw,extension,true,4194304),/input/);await assert.rejects(extractOfficeFiles(raw,extension,true,4194304),/input/);}
  for(const limit of[0,1048577,4194305,Infinity,'4194304'])assert.throws(()=>officeDirectory(raw,extension,false,limit),/input/);
 }
 const exactBase=zip([['word/document.xml','<root/>'],['media/generated.bin',new Uint8Array(0),0]]),exact=zip([['word/document.xml','<root/>'],['media/generated.bin',new Uint8Array(4194304-exactBase.length),0]]);assert.equal(exact.length,4194304);assert.equal((await extractOfficeFiles(exact,'docx',false,4194304)).length,1);assert.throws(()=>officeDirectory(new Uint8Array(4194305),'docx',false,4194304),/input/);
 await assert.rejects(extractOfficeFiles(zip([['word/document.xml',new Uint8Array(2097153)],['media/generated.bin',noise.subarray(0,1048576),0]]),'docx',false,4194304),/decoded_budget/);
 await assert.rejects(extractOfficeFiles(zip([['xl/worksheets/sheet1.xml',new Uint8Array(2097152)],['xl/worksheets/sheet2.xml',new Uint8Array(2097152)],['xl/workbook.xml',new Uint8Array(1)],['media/generated.bin',noise.subarray(0,1048576),0]]),'xlsx',false,4194304),/decoded_budget/);
-console.log('PASS actual Office read-only4MiB opt-in across four formats; default/edit1MiB unchanged; same selected XML bounds; exact max/over-limit and unknown-limit refusal');
+console.log('PASS actual Office read-only4MiB opt-in across four formats; default1MiB unchanged, explicitDOCX edit4MiB only; same selected XML bounds; exact max/over-limit and unknown-limit refusal');

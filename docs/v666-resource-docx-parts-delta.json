@@ -1,0 +1,16 @@
+{
+  "baseCommit": "3cf6a825efe39c6bdfcc34c8e70c4a8b54b36a92",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "a5f4b55106cbc489ec57dbe2fa821ad93f7237ea86acb460bfb9c39a1dbbdafb",
+    "examples/editor-home/WebInvoke.csbody": "aaffc169603f73e80443157d918f711ccd361a4df2b3d1c276ef5aabd5b30f93",
+    "examples/editor-home/ui/resource-docx-draft.js": "c3a489e0a848d078b3c9e6e897770d89b51d00a4f8282f1cff0fa975bd201ccf",
+    "examples/editor-home/ui/resource-docx-worker.js": "243bf8f49f3954b2aca5407ba0c1fba88fb1102f4249ddb39d9392221a14f3cf",
+    "examples/editor-home/ui/resource-docx-zip.js": "8e546f4ef41e9ae1cb36ae9e7e21f55b8e97233bd2fbf19dbfaf7b39216e148b",
+    "examples/editor-home/ui/resource-docx.js": "0c36bb0062fdbdd28a5d7a279e998cfd08fef57d69816596a372bbd5e38b9f55",
+    "examples/editor-home/ui/resource-office-zip.js": "794936c8cb666bba4cd3a537bfdb4d1f0eb0b4b962ab7a7f6d6a7c8a3bbff9b8",
+    "examples/editor-home/ui/resource-previews.js": "76751c126fdf194ae6a79d58005e52cee7bed37b634d5bf1c141a56ae9a85d15",
+    "packs/editor-home-model/Resources.csbody": "6ff38e85c5612007d2f0dfd17a5e414b768798a919af43f6b7f1824a5dc9e743",
+    "packs/project-resources/Layout.csbody": "26d7caec6a74cfd51bc1c8e05bd7ac48c4a323339bd64c08a3fdf129373ee6be"
+  }
+}
