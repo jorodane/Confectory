@@ -69,7 +69,7 @@ def dependency_identity(sdk, seed, commit):
     return result
 
 
-def preflight(repo, persistent, commit, input_identity=None):
+def preflight(repo, persistent, commit, input_identity=None, evidence_budget=20*MIB):
     # Three hard-limited 56 MiB package archives cover latest + rollback + candidate;
     # evidence/code allowance and the established 64 MiB safety stay separate.
     before = shutil.disk_usage(persistent if persistent.exists() else persistent.parent).free
@@ -81,7 +81,8 @@ def preflight(repo, persistent, commit, input_identity=None):
     memory = int(Path('/sys/fs/cgroup/memory.current').read_text())
     limit = int(Path('/sys/fs/cgroup/memory.max').read_text())
     plan = {'diskAvailable': before, 'diskSafety': 64*MIB,
-            'bootstrapPeakDiskBudget': (3*56+20+4+64)*MIB,
+            'evidenceBudget':evidence_budget,
+            'bootstrapPeakDiskBudget': (3*56+4+64)*MIB+evidence_budget,
             'ramAvailable': shutil.disk_usage('/tmp').free, 'ramFilesystemBudget': 3*1024*MIB,
             'memoryCurrent': memory, 'memoryLimit': limit,
             'additionalMemoryBudget': 7*1024*MIB, 'memorySafety': 1024*MIB,
@@ -89,10 +90,10 @@ def preflight(repo, persistent, commit, input_identity=None):
     # Once bootstrapped, existing managed archives already occupy disk. Only
     # one additional candidate plus evidence/code needs new free space.
     managed = persistent/'packages'/'index.json'
-    required = (56+20+4+64)*MIB if managed.exists() else plan['bootstrapPeakDiskBudget']
+    required = (56+4+64)*MIB+evidence_budget if managed.exists() else plan['bootstrapPeakDiskBudget']
     latest = json.loads(managed.read_text())['latest'] if managed.exists() else None
     if latest and latest['sourceCommit'] == commit and latest.get('inputIdentity') == input_identity:
-        required = (20+4+64)*MIB  # full fresh verification; no new durable package generation
+        required = (4+64)*MIB+evidence_budget  # full fresh verification; no new durable package generation
     plan['requiredAdditionalDisk'] = required
     if before < required: raise OSError('Disk preflight failed: '+json.dumps(plan))
     if plan['ramAvailable'] < plan['ramFilesystemBudget']+512*MIB:
@@ -122,7 +123,9 @@ def main():
     persistent.parent.mkdir(parents=True, exist_ok=True)
     commit = git(repo, 'rev-parse', args.commit+'^{commit}')
     inputs = dependency_identity(args.sdk,args.nuget_seed,commit)
-    plan = preflight(repo, persistent, commit,inputs['identity'])
+    # High-entropy prefix CAS inputs are retained, not discarded to meet the
+    # old small-fixture estimate. Keep the same 64MiB safety separately.
+    plan = preflight(repo, persistent, commit,inputs['identity'],128*MIB if args.suite=='resource-prefix' else 20*MIB)
     if git(repo, 'status', '--porcelain', '--untracked-files=no'):
         raise RuntimeError('Tracked source has uncommitted changes')
     work = Workspace(persistent/'runs', source=commit)
