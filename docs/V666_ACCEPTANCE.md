@@ -430,3 +430,5 @@ whole hash 확인 뒤 기존 contain renderer를 사용한다. 별도 `imagePrev
 변조/stale/중단·설명 입력·삭제/Home/cold/다른 프로젝트와 관련 작은 형식/텍스트 회귀를 검증한다.
 큰 WebP/BMP/GIF/AVIF/SVG·문서 및4MiB 초과/보관량 확대, 신원/권한 backend·공유·기기/전체UI는
 이 단위의 완료로 표현하지 않는다. 초기 빈 #app와 앞선 cold 읽기1회 원인은 미확정이다.
+
+큰 PNG/JPEG는 동결 `a91bd900`의 [신규61단계](VALIDATION_V666_RESOURCE_RASTER_PARTS.md)와 새 교차 패키지/전체 복원·최신/롤백 보관으로 마감했다. 큰 다른 형식·기기/권한 backend 잔여와 선행 미확정 원인을 구분한다.
