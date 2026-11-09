@@ -42,4 +42,4 @@ backend 및 종류 CLR/사용 중 삭제 정책은 기존 잔여다. M11/M12/M4�
 초기 빈 화면 원인은 미확정이다. Linux 엔진/Chromium과 교차 Windows 패키지는 실제
 Windows/WebView2·모바일·물리 IME·전체 UI·사용자 프로젝트·Space/Library 검증과 구분한다.
 
-확정 검증·보관 결과는 최종 validation 기록에서 마감한다.
+최종 runtime `464cb0c2c07b5b5cffeabe25d2112cc8451779b2`의 신규43단계·재사용0을 통과했다. 개발30통과/6실패와 실제 제품 결함·fixture 수정을 구분해 [확정 검증·보관 기록](VALIDATION_V666_HEADER_BODIES.md)에서 마감했다.
