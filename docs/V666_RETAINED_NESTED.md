@@ -32,5 +32,5 @@ source/receipt 경계에 남긴다. 이 거절을 새 독립 계약 복제나 �
 고급 핀 C# 공통 값/참조 타입과 정보별 생성 타입 선택은 사용자 답변 대기다.
 
 검증 과정의 fixture 오류·실제 후보 결과·독립 LF/CRLF·새 패키지/전체 복원과
-보관 결과는 이 단위 마감 기록에서 구분한다. 초기 빈 화면 원인은 미확정이며,
+보관 결과는 [신규42단계·재사용0의 마감 기록](VALIDATION_V666_RETAINED_NESTED.md)을 따른다. 초기 빈 화면 원인은 미확정이며,
 Linux native/Chromium 격리 fixture와 실제 Windows/WebView2·모바일·전체 UI를 구분한다.
