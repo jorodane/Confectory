@@ -58,13 +58,28 @@ def resume(record):
                       'sourceCommit':entry['sourceCommit'],'diskAvailable':shutil.disk_usage(work.record.parent).free},indent=2))
 
 
-def dependency_identity(sdk, seed, commit):
+def dependency_identity(sdk, seed, commit, input_cache_advice=None):
     result = {'sourceCommit':commit,'configuration':'Release','rid':'win-x64'}
     for label,root in [('sdk',sdk),('nuget',seed)]:
         paths = files(root); digest = hashlib.sha256(); size = 0
         for name,path in sorted(paths.items()):
-            digest.update(name.encode()+b'\0'+bytes.fromhex(sha(path)));size += path.stat().st_size
+            if input_cache_advice is None:
+                content_hash = sha(path)
+            else:
+                # Advise only the immutable public input file just hashed by
+                # this verifier. No writes, process/global cache operations or
+                # smaller preflight/worker budgets are involved.
+                with path.open('rb') as stream:
+                    before = os.fstat(stream.fileno())
+                    content_hash = hashlib.file_digest(stream,'sha256').hexdigest()
+                    os.posix_fadvise(stream.fileno(),0,0,os.POSIX_FADV_DONTNEED)
+                    after = os.fstat(stream.fileno())
+                    if (before.st_dev,before.st_ino,before.st_size,before.st_mode,before.st_mtime_ns) != (after.st_dev,after.st_ino,after.st_size,after.st_mode,after.st_mtime_ns):
+                        raise RuntimeError('Public verification input changed during read-only hashing: '+str(path))
+            digest.update(name.encode()+b'\0'+bytes.fromhex(content_hash));size += path.stat().st_size
         result[label]={'sha256':digest.hexdigest(),'files':len(paths),'bytes':size}
+        if input_cache_advice is not None:
+            input_cache_advice.append(dict(root=str(root),**result[label],readOnlyFd=True,metadataUnchanged=True,globalCacheTouched=False,budgetUnchanged=True))
     result['identity']=hashlib.sha256(json.dumps(result,sort_keys=True).encode()).hexdigest()
     return result
 
@@ -130,7 +145,8 @@ def main():
     repo = args.repo.resolve(); persistent = args.persistent.absolute()
     persistent.parent.mkdir(parents=True, exist_ok=True)
     commit = git(repo, 'rev-parse', args.commit+'^{commit}')
-    inputs = dependency_identity(args.sdk,args.nuget_seed,commit)
+    input_cache_advice = [] if args.suite=='information-structs' else None
+    inputs = dependency_identity(args.sdk,args.nuget_seed,commit,input_cache_advice)
     bootstrap_memory = None
     if args.suite in ['information-structs','retained-copies','retained-wrappers','retained-nested','multitarget-bodies']:
         # Return only this launcher's unused identity/index parsing buffers.
@@ -152,6 +168,7 @@ def main():
     work = Workspace(persistent/'runs', source=commit)
     store = PackageStore(persistent/'packages')
     atomic_json(work.evidence/'preflight.json', plan)
+    if input_cache_advice is not None: atomic_json(work.evidence/'input-read-cache.json',input_cache_advice)
     if bootstrap_memory is not None: atomic_json(work.evidence/'bootstrap-memory.json',bootstrap_memory)
     # The harness may be bootstrapping the previous published source. Preserve
     # the exact harness bytes as well as the product commit/tree.
