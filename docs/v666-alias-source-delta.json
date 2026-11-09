@@ -1,0 +1,9 @@
+{
+  "baseCommit": "bc8e743a1633bec93219b219cabadd86ef243b27",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "6c9eebb6aceed595905c67fdf7954370cd2a53eb29399d647cf962ee9044bfa1",
+    "examples/editor-home/ui/feature-authoring.js": "4df9bfed05f6abdfbb9628603ee4b2db751dacecd06a09728ed0670ef4135f11",
+    "packs/pack-workspace/Blueprint.csbody": "187223a6f6031c8cf1d896be194bdc81f99fffbaaf9369c5d39a86aaf603b693"
+  }
+}
