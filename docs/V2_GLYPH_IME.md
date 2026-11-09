@@ -27,3 +27,5 @@ owner 검증과 레이아웃·콜백은 유지한다. native backend·공개/ove
 Windows/WebView2/모바일/전체 UI 검증과 구분한다. 초기 빈 화면과 과거 Agent 준비 지연
 원인은 미확정이다. 핀 표시명/native 식별자·고급 ABI·기존 혼합 계약·신원/권한 backend·
 종류 표현/사용중 삭제 정책의 별도 잔여를 유지하고 M11/M12/M4를 재개하지 않는다.
+
+[최종 신규29단계·재사용0과 보관/검증 한계](VALIDATION_V666_GLYPH_IME.md)를 따른다.
