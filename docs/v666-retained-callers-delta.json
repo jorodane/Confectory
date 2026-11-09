@@ -7,6 +7,7 @@
     "targets/element-authoring/InformationFunctionContracts.cs": "b9cb4f78b8532180bf3c7940965f2d8255bd5283b82d739ba3c4fa7faa478d1d",
     "packs/edit-workspace/ValidateReviewSelection.csbody": "f0eee4c26b305708e1dabd02af68e476d0dd4cf01ba5321f4f8a9fbb81e19ce4",
     "examples/editor-home/ui/mixed-declaration.js": "a191cce461c8a727ef2f6d4e8c946f1d3eb79a9956518b7959cf50f407cb2325",
-    "examples/editor-home/WebBundle.csbody": "f3b5e83857cf512615bbf31363e3618dfc12b6b89a7b237bd8a7c90ac716f3c8"
+    "examples/editor-home/WebBundle.csbody": "ddff5a2d98dc4a3c3547cde4ab5ec438a1444e907803fb02a3a479f2b62a38c4",
+    "examples/editor-home/ui/elements.js": "6772a182d236f0b88e1c0dce1747fca104d3410d3f520781f77e7cfab72202fb"
   }
 }
