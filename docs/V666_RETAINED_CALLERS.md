@@ -39,7 +39,7 @@ closure·고급 타입 실행 통합을 완료로 세지 않는다. M11/M12/M4�
 외부/부모 원본 편집·새 권한·자동 copy/migration 요구를 추가하지 않는다.
 초기 빈 화면 원인은 미확정이며 실제 기기와 전체 UI는 별도 검증이다.
 
-확정 검증과 보관 결과는 최종 validation 기록에서 마감한다.
+최종 runtime `7938a4f01e6331cd980e4397fbba66fc3ffc0ea8`의 신규34단계·동등 재사용7, 유효41단계를 [확정 검증·보관 기록](VALIDATION_V666_RETAINED_CALLERS.md)으로 마감했다.
 
 첫 동결본의 최종 검사에서31개를 통과한 뒤 충돌 UI의 경고 관측이 시간 초과됐다.
 기존 코드에서 Save pointerdown과 release 사이에 peer 갱신을 넣으면 버튼이 제거·
