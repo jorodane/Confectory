@@ -674,4 +674,4 @@ native 본문 공동 저장에서 기존 ordinary code branch/switch를 읽기 �
 원래 target/핀/호출 연결·C# 원문·권한과64-member Review/최종 CAS를 보존한다.
 모든 영향 target의 명시 검토와 source 전체 관측을 요구하며 자동 복제·미검토 승인은
 하지 않는다. 고급 타입 선택·다른 실제 ABI/source closure는 기존 잔여다.
-확정 검증·보관은 이 단위 마감 기록에서 구분한다.
+[신규42단계·재사용0의 확정 검증·보관](VALIDATION_V666_MULTITARGET_BODIES.md)을 마쳤다.

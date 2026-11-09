@@ -40,4 +40,4 @@ hash가 모두 그대로임을 확인했다. 신규 권한이나 더 넓은 sour
 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·기기·전체 UI 검증은 Linux
 native/Chromium·격리 fixture·교차 패키지 검사와 구별한다.
 
-확정 검증과 보관 결과는 이 단위 마감 기록에서 구분한다.
+최종 runtime `b44470af6a44b5a9f660c573492774ddee51f990`의 [신규42단계·재사용0 검증/보관](VALIDATION_V666_MULTITARGET_BODIES.md)을 마쳤다.
