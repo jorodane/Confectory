@@ -20,7 +20,7 @@ import alias·native/public 매개변수 이름·타입·역할·반환은 자�
 지원 범위는 직접 소유한 단일 native C# target 함수 2~8개를 같은 계약으로 편집하고,
 그 함수를 import하는 직접 소유 native C# 호출자 원문을 그대로 유지하는 경로다.
 기존 ordinary Blueprint 호출자와 공존할 수 있다. C# 호출자는 모든 원래 target
-source가 관측돼 있어야 하며 typed import가 정확해야 한다. 부모/외부 쓰기, 임의
+source가 관측돼 있어야 하며 import는 같은 프로젝트 소유 함수의 정확한 typed 계약이어야 한다. 부모/외부 쓰기, 임의
 호출자 편집 계획·누락 source·stale 계약은 기존 검증과 한 후보/CAS에서 거절한다.
 새 C# 해석/자동 코드 변환이나 override 입출력 변경·새 권한 정책은 없다.
 
@@ -47,3 +47,5 @@ copy/상속/등록·private/whole/wrapper·계약 변경의 실제 다중 closur
 미결 정책을 임의로 정하지 않는다. M11/M12/M4를 근거 없이 다시 열지 않는다.
 초기 빈 화면 원인은 미확정이다. 실제 Windows/WebView2·모바일·물리 IME·전체 UI·
 사용자 프로젝트·Space/Library 전달은 Linux/Chromium·교차 패키지와 별도 미검증이다.
+
+최종 runtime `6a9b48d2af44eb4fa0227d80b164c24f17bcd164`의 신규41단계·재사용0을 통과했다. 개발24통과/2실패와 클릭 요청 미발행 원인 미확정은 최종 기록에서 구분한다.
