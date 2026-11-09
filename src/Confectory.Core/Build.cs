@@ -121,7 +121,7 @@ public sealed class Artifacts(string root)
     }
 }
 
-public sealed class Builder
+public sealed partial class Builder
 {
     public string Project { get; }
     public string Target { get; }
@@ -151,7 +151,8 @@ public sealed class Builder
         // Check may be followed by Build on the same Builder (candidate validation).
         // Re-select logical aliases so a larger checked DLL cannot leak into a pruned link.
         Contracts.Clear(); contractGroups.Clear();
-        foreach (var group in ids.Distinct(StringComparer.Ordinal).GroupBy(PackPaths.Namespace))
+        var selected = ids.Distinct(StringComparer.Ordinal).ToArray(); PrepareInformation(selected);
+        foreach (var group in selected.GroupBy(PackPaths.Namespace))
             contractGroups[group.Key] = group.Order(StringComparer.Ordinal).ToArray();
     }
     public JsonObject Contract(string id)
@@ -159,22 +160,30 @@ public sealed class Builder
         if (Contracts.TryGetValue(id, out var cached)) return cached;
         string ns = PackPaths.Namespace(id);
         if (!contractGroups.TryGetValue(ns, out var ids))
+        {
+            var types = InformationStructs.SignatureTypes(Registry.Get(id, "function").Signature!).ToArray();
+            if (Contracts.Count > 0 && types.Any(type => !informationTypes.ContainsKey(type)))
+                throw new BuildError("CONTRACT_SELECTION", "Select the complete information contract scope through Check or Build before expanding a compiled contract set");
             contractGroups[ns] = ids = [id];
+            if (Contracts.Count == 0) PrepareInformation(contractGroups.Values.SelectMany(group => group));
+        }
         if (!ids.Contains(id, StringComparer.Ordinal))
             throw new BuildError("CONTRACT_SELECTION", $"Contract {id} was not in the prepared pack selection");
         var sources = ids.Select(fn => (Id: fn, Code: Generation.ContractSource(Registry.Get(fn, "function")))).ToArray();
+        var information = InformationReferences(ids);
         string name = "Contracts_" + Generation.Symbol(ns);
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "contracts", ns, sources.Select(x => new[] { x.Id, x.Code }).ToArray() });
+        if (information.Count > 0) key = JsonData.Digest(new object[] { key, InformationStructs.Profile, information.Select(p => new[] { p.Key, p.Value!["key"]!.GetValue<string>() }).ToArray() });
         var artifact = cache.Get(key);
         if (artifact is not null) { Statistics.ReusedContracts.AddRange(ids); Statistics.ReusedContractPacks.Add(ns); }
         else
         {
             artifact = cache.Produce(key, work => Tool.Invoke("compile-contract", new { output = work, name,
-                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(), references = Array.Empty<string>() })["artifacts"]!.AsObject());
+                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(), references = information.Select(p => p.Value!["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject());
             Statistics.CompiledContracts.AddRange(ids); Statistics.CompiledContractPacks.Add(ns);
         }
         if (!artifact.ContainsKey("assembly") || !artifact.ContainsKey("reference")) throw new BuildError("TOOL_PROTOCOL", "Contract compilation must return assembly and reference");
-        foreach (string fn in ids) { var item = JsonData.Object(artifact); item["key"] = key; item["pack"] = ns; Contracts[fn] = item; }
+        foreach (string fn in ids) { var item = JsonData.Object(artifact); item["key"] = key; item["pack"] = ns; if (information.Count > 0) item["informationContracts"] = information.DeepClone(); Contracts[fn] = item; }
         return Contracts[id];
     }
     public JsonObject CompilePack(string ns, IEnumerable<Element> implementations)
@@ -207,7 +216,7 @@ public sealed class Builder
             artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
                 sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
                 blueprintNodes = blueprint?.Nodes,
-                references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
+                references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Concat(InformationFiles(refs.Values, "reference")).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
             })["artifacts"]!.AsObject());
             Statistics.CompiledPacks.Add(ns); Statistics.CompiledImplementations.AddRange(selected.Select(x => x.Id));
         }
@@ -246,7 +255,7 @@ public sealed class Builder
         {
             output = work, name = "Node_" + Generation.Symbol(implementationId + "/" + bodyTarget + "/" + nodeId),
             sources = new[] { WriteSource(Path.Combine(work, "node-probe.cs"), source) }, blueprintNodes = context.Nodes,
-            references = Contracts.Values.Select(p => p["reference"]!.ToString()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
+            references = Contracts.Values.Select(p => p["reference"]!.ToString()).Concat(InformationFiles(Contracts.Values, "reference")).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
         })["artifacts"]!.AsObject());
         if (artifact["assembly"] is null || artifact["reference"] is null) throw new BuildError("TOOL_PROTOCOL", "Independent node compiler artifacts required");
         context.EnsureUnchanged(verifyCompiler: true);
@@ -283,6 +292,7 @@ public sealed class Builder
         foreach (var node in plan.Bindings.Values) Contract(node.Function);
         string code = Generation.FinalSource(plan);
         var catalogData = Generation.PublicCatalog(plan, packs, Contracts, Target);
+        if (informationTypes.Count > 0) catalogData["informationTypes"] = InformationCatalog();
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, JsonData.Digest(catalogData), packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
         string outputRoot = Path.Combine(State, "outputs", Target), work = Path.Combine(outputRoot, $"{key}.{Guid.NewGuid():N}.pending"); Directory.CreateDirectory(work);
         try
@@ -290,7 +300,7 @@ public sealed class Builder
             string source = WriteSource(Path.Combine(work, "Bindings.cs"), code), catalog = Path.Combine(work, "sources", "public-linkage.json");
             JsonData.AtomicWrite(catalog, catalogData);
             var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
-                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(InformationFiles(Contracts.Values, "assembly")).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
                 resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
             if (result["artifacts"] is not JsonObject artifacts || !artifacts.ContainsKey("application")) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an application artifact");

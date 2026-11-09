@@ -9,24 +9,33 @@ internal static class InformationFunctionBodyGuards
  {
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
   bool PresentationOnly(JsonNode? declaration)=>declaration?["raw"] is null&&declaration?["changes"] is JsonArray changes&&changes.Count is >=1 and <=2&&changes.All(InformationFunctionBodyBatch.Presentation);
+  bool TypedFunction(string id)
+  {
+   if(units[id]?["kind"]?.ToString()!="function")return false;string? text=units[id]?["original"]?.ToString();if(string.IsNullOrEmpty(text))text=units[id]?["draft"]?.ToString();if(text is null)return false;var function=new Parser(text,"<information-value-source-scope>").ParseElement();return function.Kind=="function"&&function.Signature is not null&&InformationStructs.SignatureTypes(function.Signature).Any();
+  }
+  JsonNode?[]? NativeEdits(JsonArray changes)
+  {
+   if(InformationFunctionBodyBatch.Edits(changes) is {} group)return group;
+   var edits=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();return changes.Count<=3&&edits.Length==1&&InformationFunctionBodyBatch.BodyEdit(edits[0])&&TypedFunction(edits[0]!["id"]!.ToString())?edits:null;
+  }
   bool NativeGroup(string owner)
   {
    if(units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count>64)return false;
    var ids=group.Select(value=>value!.ToString()).ToArray();if(!ids.Contains(owner)||!ids.Contains(ns+"::ProjectManifest"))return false;
    var functions=ids.Where(id=>units[id]?["kind"]?.ToString()=="function").ToArray();int bodies=ids.Count(id=>units[id]?["kind"]?.ToString()=="body");
-   return functions.Length is >=2 and <=8&&functions.All(id=>id.StartsWith(owner+"_Function_",StringComparison.Ordinal))&&bodies>=functions.Length&&ids.Length==2+functions.Length+bodies;
+   return functions.Length is >=1 and <=8&&(functions.Length>1||TypedFunction(functions[0]))&&functions.All(id=>id.StartsWith(owner+"_Function_",StringComparison.Ordinal))&&bodies>=functions.Length&&ids.Length==2+functions.Length+bodies;
   }
   (HashSet<string> Functions,string[] Bodies)? RetainedSources(string owner,JsonObject receipt)
   {
-   bool native=NativeGroup(owner)&&(PresentationOnly(receipt["declaration"])||receipt["declaration"]?["changes"] is JsonArray saved&&InformationFunctionBodyBatch.Edits(saved) is not null);
+   bool native=NativeGroup(owner)&&(PresentationOnly(receipt["declaration"])||receipt["declaration"]?["changes"] is JsonArray saved&&NativeEdits(saved) is not null);
    if(units[owner]?["kind"]?.ToString()!="schema"||receipt["declaration"]?["raw"] is not null||receipt["sources"] is not JsonObject proof||proof[owner]?["kind"]?.ToString()!="schema"||proof[ns+"::ProjectManifest"]?["kind"]?.ToString()!="project"){
     if(native)throw new InvalidOperationException("Retain the complete saved native body group proof; all input retained");return null;
    }
    var functions=proof.Where(p=>p.Value?["kind"]?.ToString()=="function").Select(p=>p.Key).ToHashSet(StringComparer.Ordinal);var bodies=proof.Where(p=>p.Value?["kind"]?.ToString()=="body").Select(p=>p.Key).ToArray();
-   if(functions.Count is <2 or >8||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
+   if(functions.Count is <1 or >8||functions.Count==1&&!TypedFunction(functions.Single())||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
     if(native)throw new InvalidOperationException("Retain every saved native target proof and group member; all input retained");return null;
    }
-   if(!(receipt["declaration"]?["changes"] is JsonArray edits&&InformationFunctionBodyBatch.Edits(edits) is not null)&&!PresentationOnly(receipt["declaration"]))return null;
+   if(!(receipt["declaration"]?["changes"] is JsonArray edits&&NativeEdits(edits) is not null)&&!PresentationOnly(receipt["declaration"]))return null;
    foreach(var source in proof)if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||units[source.Key]?["kind"]?.ToString()!=source.Value?["kind"]?.ToString()||units[source.Key]?["path"]?.ToString()!=source.Value?["path"]?.ToString())throw new InvalidOperationException("Retain the exact owned native group sources before editing its presentation");
    return(functions,bodies);
   }
@@ -37,7 +46,7 @@ internal static class InformationFunctionBodyGuards
   }
   bool ObservedScope(HashSet<string> functions,IEnumerable<(string Function,string Body)> targets)
   {
-   bool observed=false;var seen=new HashSet<string>(StringComparer.Ordinal);var expected=new HashSet<string>(StringComparer.Ordinal);var selected=new HashSet<string>(StringComparer.Ordinal);
+   bool observed=functions.Any(TypedFunction);var seen=new HashSet<string>(StringComparer.Ordinal);var expected=new HashSet<string>(StringComparer.Ordinal);var selected=new HashSet<string>(StringComparer.Ordinal);
    // Candidate preparation already requires every known owned header. Cold
    // Review reads those same headers before checking the unchanged receipt.
    foreach(var pair in units.Where(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&p.Value?["kind"]?.ToString()=="implementation")){
@@ -65,7 +74,7 @@ internal static class InformationFunctionBodyGuards
   }
   bool ObservedGroup(JsonNode? declaration)
   {
-   if(declaration?["raw"] is not null||declaration?["changes"] is not JsonArray changes||InformationFunctionBodyBatch.Edits(changes) is not {} edits)return false;
+   if(declaration?["raw"] is not null||declaration?["changes"] is not JsonArray changes||NativeEdits(changes) is not {} edits)return false;
    var functions=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);return ObservedScope(functions,edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(body=>(row["id"]!.ToString(),body.Key))));
   }
   bool ObservedReceipt(string owner,JsonObject receipt)
@@ -73,7 +82,7 @@ internal static class InformationFunctionBodyGuards
    if(ObservedGroup(receipt["declaration"]))return true;
    // A peer may remove the retained caller state after Save. The already bound
    // read scope still applies; never infer a new empty legacy receipt from it.
-   if(receipt["declaration"]?["changes"] is JsonArray saved&&InformationFunctionBodyBatch.Edits(saved) is not null&&receipt["readGuards"] is JsonObject savedGuards&&savedGuards.Count>0)return true;
+   if(receipt["declaration"]?["changes"] is JsonArray saved&&NativeEdits(saved) is not null&&receipt["readGuards"] is JsonObject savedGuards&&savedGuards.Count>0)return true;
    if(!PresentationOnly(receipt["declaration"])||RetainedSources(owner,receipt) is not {} retained)return false;
    // A subsequent header Save keeps only an already saved, same-contract native
    // body group. No body edit or dependency baseline is reconstructed or rebased.
@@ -82,13 +91,13 @@ internal static class InformationFunctionBodyGuards
   }
   if(request["action"]?.ToString()=="headers"){
    var headerSelection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(headerSelection.Count>64)throw new ArgumentException("Native body header budget");bool native=false;var functions=new HashSet<string>(StringComparer.Ordinal);
-   foreach(var id in headerSelection){string owner=id!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&InformationFunctionBodyBatch.Edits(changes) is not null)native=true;if(RetainedSources(owner,receipt) is {} retained){native=true;functions.UnionWith(retained.Functions);}}
+   foreach(var id in headerSelection){string owner=id!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&NativeEdits(changes) is not null)native=true;if(RetainedSources(owner,receipt) is {} retained){native=true;functions.UnionWith(retained.Functions);}}
    bool copies=headerSelection.Any(id=>units[id!.ToString()]?["slotSaveReceipt"] is JsonObject receipt&&CopyProofs(receipt["declaration"],receipt).Count>0);
    if(native&&units.Count>2048)throw new ArgumentException("Native body header budget");return new JsonObject{["ids"]=new JsonArray((native?units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&(copies&&pair.Value?["kind"]?.ToString() is "function" or "object" or "schema" or "module" or "category" or "concept" or "enum"||pair.Value?["kind"]?.ToString()=="implementation"||functions.Contains(pair.Key))).Select(pair=>(JsonNode)JsonValue.Create(pair.Key)!):Enumerable.Empty<JsonNode>()).ToArray())};
   }
   if(request["action"]?.ToString()=="graphs"){
    var selection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(selection.Count>64)throw new ArgumentException("Native body review budget");var functions=new HashSet<string>(StringComparer.Ordinal);
-   foreach(var selectedOwner in selection){string owner=selectedOwner!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&InformationFunctionBodyBatch.Edits(changes) is {} edits)functions.UnionWith(edits.Select(row=>row!["id"]!.ToString()));if(RetainedSources(owner,receipt) is {} retained)functions.UnionWith(retained.Functions);}
+   foreach(var selectedOwner in selection){string owner=selectedOwner!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&NativeEdits(changes) is {} edits)functions.UnionWith(edits.Select(row=>row!["id"]!.ToString()));if(RetainedSources(owner,receipt) is {} retained)functions.UnionWith(retained.Functions);}
    var ids=new HashSet<string>(StringComparer.Ordinal);if(functions.Count>0)foreach(var pair in units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&pair.Value?["kind"]?.ToString()=="implementation")){
     var implementation=OriginalImplementation(pair.Key);if(!implementation.Imports.Values.Any(import=>functions.Contains(import.Id)))continue;
     foreach(var body in implementation.Bodies.Where(body=>body.Value.SourceKind=="blueprint")){string id=implementation.Id+"/body:"+body.Key;if(units[id]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Known owned caller graph required");ids.Add(id);}

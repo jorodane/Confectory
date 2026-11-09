@@ -1,0 +1,18 @@
+{
+  "baseCommit": "532b1a0c3de4a0a6da86dbe878e9075bd0ed2f2e",
+  "profile": "information-struct-v1",
+  "productFiles": {
+    "src/Confectory.Core/Build.cs": "8b76cc3dd2c7ef01debd13f41ee5b29763e4f3da7b5511124cf21892824bb8f8",
+    "src/Confectory.Core/Declarations.cs": "fa204394dc30e9ba29671c4e5501f094a91aa3721308b542cb975378437bb034",
+    "src/Confectory.Core/Resolution.cs": "23230c9d8b975b5a5cf3ea0c22a226387c90cd8bf067c9b0ff0b6b90e58dd440",
+    "src/Confectory.Core/Build.Information.cs": "5c53e033767daf8c04d1c4e090db1f40753afaa8f875fb2bedfc56bc6e2e1594",
+    "src/Confectory.Core/InformationStructs.cs": "7e08358716de38d8ed2113198070b724c2f677030345e28110191520b9b3a48f",
+    "targets/element-authoring/InformationFunctionBodies.cs": "77ae5d1ad14cb8be77b4ee1490a309161be5e29df26bf7f153c056a1be7fc561",
+    "targets/element-authoring/InformationFunctionBodyGuards.cs": "c265bab7b1bbe8a22895d444342bc2fc176c72c2a60dcc4579d29715244214b0",
+    "targets/element-authoring/InformationStructMetadata.cs": "1bc08f9365597d9f05a534c9e42a3838b84da27f5bbdf960c8cb9e6358abb7c9",
+    "targets/element-authoring/Program.cs": "bc9c8fca1cd06bfa1365884bcb0c7478069ae6c1d083adba51b3fa1fbc03e07a"
+  },
+  "authoredLayoutChanged": false,
+  "originalCSharpRewritten": false,
+  "newPermissions": false
+}

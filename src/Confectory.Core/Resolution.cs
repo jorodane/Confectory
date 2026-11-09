@@ -213,6 +213,11 @@ public sealed class Planner(Registry registry, string target)
         var e = Registry.Get(id, expected, source, loc);
         if (!visited.Add((id, active, e.Kind is "implementation" or "module" ? consumer : null))) return;
         Reached.Add(id); Structural(id); var effective = Registry.Effective(id);
+        if (effective.Signature is not null) foreach (string type in InformationStructs.SignatureTypes(effective.Signature))
+        {
+            var information = InformationStructs.Resolve(Registry, type, id);
+            Visit(information.Id, "schema", id, effective.Loc, false);
+        }
         foreach (var reference in SchemaContracts.Validate(Registry, id))
             Visit(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc, false);
         string? scope = e.Kind is "implementation" or "module" or "buildtarget" ? consumer : id;

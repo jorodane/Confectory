@@ -157,7 +157,7 @@ public sealed class Parser
     private string Type(bool parameter = false, bool allowObject = true)
     {
         var token = Pop();
-        if (token.Quoted || !Types.Contains(token.Value) || (!allowObject && token.Value == "object") || (parameter && token.Value == "void"))
+        if (token.Quoted || !(Types.Contains(token.Value) || allowObject && InformationStructs.IsType(token.Value)) || (!allowObject && token.Value == "object") || (parameter && token.Value == "void"))
             throw new BuildError("TYPE", $"Unsupported contract type '{token.Value}'", token.Loc);
         string value = token.Value;
         if (Eat("["))
