@@ -1,0 +1,11 @@
+"""Cold Review must not rebase a saved native caller header onto peer content."""
+import copy,json
+import v666_native_callers_fixture as x
+f=x.f
+def rpc(action,**body):return f.invoke('blueprint',dict(action=action,**body))['result']['result']
+def receipt():return next(r for r in json.loads(checkpoint.read_text())['changes']if r['id']==x.owner)['slotSaveReceipt']
+try:
+ assert x.mode=='leaf';f.start(0);f.invoke('select',dict(id=x.owner));f.invoke('saveDraft',{});f.invoke('schema',dict(id=x.owner));s=f.state()['schema'];basis=rpc('readOwnerEdits',id=x.owner,hash=s['textHash']);reply=rpc('applySlots',id=x.owner,rows=[],basis=basis['basis'],declaration=dict(id=x.owner,hash=s['textHash'],changes=x.request()['changes']));assert reply['atomic']and reply['checkpointSaved'];checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));ids=x.verify(checkpoint);saved=copy.deepcopy(receipt());p=f.project/x.retained_header;raw=p.read_bytes();peer=raw+b'\n// changed after Save before cold Review\n';p.write_bytes(peer);f.stop();f.start(1);f.invoke('select',dict(id=x.owner));(f.case/'before-review.json').write_bytes(checkpoint.read_bytes());f.invoke('reviewGroup',dict(ids=ids,target='portable'),False);(f.case/'after-rejected-review.json').write_bytes(checkpoint.read_bytes());assert receipt()==saved and p.read_bytes()==peer and all((f.project/path).read_bytes()==value for path,value in x.snapshot.items()if path!=x.retained_header);rows={r['id']:r for r in json.loads(checkpoint.read_text())['changes']}
+ for fn in x.functions:assert rows[fn+'Body/body:common']['draft']==x.selected[fn]
+ f.checked('post-Save native caller header change rejects cold Review without rebasing original receipt or losing either explicit body; peer source retained');p.write_bytes(raw);f.stop();f.start(2);f.invoke('select',dict(id=x.owner));assert x.verify(checkpoint)==ids and receipt()==saved;f.invoke('reviewGroup',dict(ids=ids,target='portable'));assert f.state()['review']['status']=='ready';f.checked('exact header restoration allows a new explicit Review with the original saved receipt')
+finally:(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));f.stop()

@@ -25,6 +25,10 @@ internal static class InformationFunctionBodyBatch
    foreach(var import in d.Imports.Values){var dependency=Declaration(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException(callee?"Keep the exact owned native imports; no external contract is edited":"Keep the exact owned caller imports; no external contract is edited");}
    if(callee)continue;
    foreach(var body in d.Bodies){
+    if(body.Value.SourceKind=="csharp"){
+     if(units[d.Id+"/body:"+body.Key]?["kind"]?.ToString()!="body"||units[d.Id+"/body:"+body.Key]?["draft"] is null)throw new InvalidOperationException("Read every retained native caller body; no C# source is inferred");
+     continue;
+    }
     if(body.Value.SourceKind!="blueprint")throw new InvalidOperationException("Retain the ordinary caller while editing native leaf bodies");
     var graph=JsonNode.Parse(units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original caller required"))!.AsObject();
     if(graph["copySource"] is not null||graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n is not JsonObject||n["kind"]?.ToString() is not ("call" or "export")||n["control"]?.ToString()!="next"||n["graph"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null||n["postCall"] is not null))throw new InvalidOperationException("Body-only groups retain copy, private, storage and wrapper caller boundaries");
