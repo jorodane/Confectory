@@ -9,11 +9,23 @@ internal static class InformationFunctionBodyGuards
  {
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
   bool PresentationOnly(JsonNode? declaration)=>declaration?["raw"] is null&&declaration?["changes"] is JsonArray changes&&changes.Count is >=1 and <=2&&changes.All(InformationFunctionBodyBatch.Presentation);
+  bool NativeGroup(string owner)
+  {
+   if(units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count>64)return false;
+   var ids=group.Select(value=>value!.ToString()).ToArray();if(!ids.Contains(owner)||!ids.Contains(ns+"::ProjectManifest"))return false;
+   var functions=ids.Where(id=>units[id]?["kind"]?.ToString()=="function").ToArray();int bodies=ids.Count(id=>units[id]?["kind"]?.ToString()=="body");
+   return functions.Length is >=2 and <=8&&functions.All(id=>id.StartsWith(owner+"_Function_",StringComparison.Ordinal))&&bodies>=functions.Length&&ids.Length==2+functions.Length+bodies;
+  }
   (HashSet<string> Functions,string[] Bodies)? RetainedSources(string owner,JsonObject receipt)
   {
-   if(units[owner]?["kind"]?.ToString()!="schema"||receipt["declaration"]?["raw"] is not null||receipt["sources"] is not JsonObject proof||proof[owner]?["kind"]?.ToString()!="schema"||proof[ns+"::ProjectManifest"]?["kind"]?.ToString()!="project")return null;
+   bool native=NativeGroup(owner)&&(PresentationOnly(receipt["declaration"])||receipt["declaration"]?["changes"] is JsonArray saved&&InformationFunctionBodyBatch.Edits(saved) is not null);
+   if(units[owner]?["kind"]?.ToString()!="schema"||receipt["declaration"]?["raw"] is not null||receipt["sources"] is not JsonObject proof||proof[owner]?["kind"]?.ToString()!="schema"||proof[ns+"::ProjectManifest"]?["kind"]?.ToString()!="project"){
+    if(native)throw new InvalidOperationException("Retain the complete saved native body group proof; all input retained");return null;
+   }
    var functions=proof.Where(p=>p.Value?["kind"]?.ToString()=="function").Select(p=>p.Key).ToHashSet(StringComparer.Ordinal);var bodies=proof.Where(p=>p.Value?["kind"]?.ToString()=="body").Select(p=>p.Key).ToArray();
-   if(functions.Count is <2 or >8||bodies.Length!=functions.Count||proof.Count!=2+2*functions.Count||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString())))return null;
+   if(functions.Count is <2 or >8||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
+    if(native)throw new InvalidOperationException("Retain every saved native target proof and group member; all input retained");return null;
+   }
    if(!(receipt["declaration"]?["changes"] is JsonArray edits&&InformationFunctionBodyBatch.Edits(edits) is not null)&&!PresentationOnly(receipt["declaration"]))return null;
    foreach(var source in proof)if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||units[source.Key]?["kind"]?.ToString()!=source.Value?["kind"]?.ToString()||units[source.Key]?["path"]?.ToString()!=source.Value?["path"]?.ToString())throw new InvalidOperationException("Retain the exact owned native group sources before editing its presentation");
    return(functions,bodies);
@@ -25,13 +37,21 @@ internal static class InformationFunctionBodyGuards
   }
   bool ObservedScope(HashSet<string> functions,IEnumerable<(string Function,string Body)> targets)
   {
-   bool imported=false;var seen=new HashSet<string>(StringComparer.Ordinal);
+   bool observed=false;var seen=new HashSet<string>(StringComparer.Ordinal);var expected=new HashSet<string>(StringComparer.Ordinal);var selected=new HashSet<string>(StringComparer.Ordinal);
+   // Candidate preparation already requires every known owned header. Cold
+   // Review reads those same headers before checking the unchanged receipt.
+   foreach(var pair in units.Where(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&p.Value?["kind"]?.ToString()=="implementation")){
+    var implementation=OriginalImplementation(pair.Key);if(!functions.Contains(implementation.Function!))continue;
+    if(implementation.Id!=pair.Key||!InformationFunctionBodyBatch.NativeTargets(implementation))throw new InvalidOperationException("Retain every original directly owned native target header");
+    foreach(string target in implementation.Bodies.Keys)expected.Add(implementation.Id+"/body:"+target);
+    observed|=implementation.Imports.Count>0||implementation.Bodies.Count>1;
+   }
    foreach(var target in targets){
     if(units[target.Body]?["kind"]?.ToString()!="body")throw new ArgumentException("Exact native body source required");int at=target.Body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Exact native body owner required");string id=target.Body[..at];var implementation=OriginalImplementation(id);
-    if(implementation.Id!=id||implementation.Function!=target.Function||!functions.Contains(target.Function)||implementation.Parent is not null||implementation.Bodies.Count!=1||implementation.Bodies.Single().Value.SourceKind!="csharp"||target.Body!=id+"/body:"+implementation.Bodies.Single().Key)throw new InvalidOperationException("Retain the original native body and contract scope");
-    seen.Add(target.Function);imported|=implementation.Imports.Count>0;
+    string name=target.Body[(at+6)..];if(!selected.Add(target.Body)||implementation.Id!=id||implementation.Function!=target.Function||!functions.Contains(target.Function)||!InformationFunctionBodyBatch.NativeTargets(implementation)||!implementation.Bodies.ContainsKey(name))throw new InvalidOperationException("Retain the original native body and contract scope");
+    seen.Add(target.Function);
    }
-   if(!seen.SetEquals(functions))throw new InvalidOperationException("Retain every original native target in the saved group");if(imported)return true;
+   if(!seen.SetEquals(functions)||!selected.SetEquals(expected))throw new InvalidOperationException("Retain every original native target in the saved group");if(observed)return true;
    foreach(var pair in units.Where(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&p.Value?["kind"]?.ToString()=="implementation")){
     var implementation=OriginalImplementation(pair.Key);if(!implementation.Imports.Values.Any(import=>functions.Contains(import.Id)))continue;
     if(implementation.Bodies.Values.Any(body=>body.SourceKind=="csharp"))return true;
