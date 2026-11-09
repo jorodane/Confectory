@@ -1,0 +1,8 @@
+{
+  "base": "c28851e912d8a84ed882cbe00fe4fc68536492c9",
+  "productFiles": {
+    "targets/element-authoring/InformationFunctionBodyBatch.cs": "095af1958040d8753c23766e830907a44d5fcfb0471d32537edd5fc53e788d07",
+    "targets/element-authoring/InformationFunctionBodyGuards.cs": "b1935b50c8931892ef55a1d2f923d6799be3cb477336acbfa0f0666baceec43d",
+    "targets/element-authoring/InformationFunctionContracts.cs": "3cdb871262bc3ac3595049a6385b08769194bf5895a25aaebe0a52b1dfcd90ad"
+  }
+}

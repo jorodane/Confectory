@@ -8,10 +8,20 @@ internal static class InformationFunctionBodyBatch
  public static bool NativeTargets(Element implementation)=>implementation.Kind=="implementation"&&implementation.Parent is null&&implementation.Bodies.Count is >=1 and <=8&&implementation.Bodies.Values.All(body=>body.SourceKind=="csharp");
  // Retain already authored ordinary callers and their owned private frames.
  // Qualified code, contracts and routes still pass the full source checks.
- static bool RetainedCallerNode(JsonNode? node)=>node is JsonObject&&
-  node["implementationContext"] is null&&node["forwardCallerStorage"] is null&&node["postCall"] is null&&
-  (node["kind"]?.ToString()=="graph"?node["control"]?.ToString()=="next"&&node["graph"] is JsonObject child&&child["copySource"] is null:
-   node["graph"] is null&&(node["kind"]?.ToString()=="code"?node["control"]?.ToString() is "next" or "branch" or "switch":(node["kind"]?.ToString() is "call" or "export")&&node["control"]?.ToString()=="next"));
+ static bool RetainedCallerNode(JsonNode? node)
+ {
+  if(node is not JsonObject||node["implementationContext"] is not null||node["forwardCallerStorage"] is not null)return false;
+  string? kind=node["kind"]?.ToString(),control=node["control"]?.ToString();
+  if(kind=="graph")return node["postCall"] is null&&control=="next"&&node["graph"] is JsonObject child&&child["copySource"] is null;
+  if(node["graph"] is not null)return false;
+  if(kind=="code")return node["postCall"] is null&&control is "next" or "branch" or "switch";
+  if(kind=="export")return node["postCall"] is null&&control=="next";
+  if(kind!="call")return false;
+  if(node["postCall"] is null)return control=="next";
+  // Existing After/enum source and receipts still pass complete typed graph,
+  // original publication and assembled C# checks. No wrapper text is inferred.
+  return node["postCall"] is JsonObject post&&(post["mode"] is null?control=="next":post["mode"]?.ToString()=="execution-enum"&&control=="switch");
+ }
  // Presentation stays under InformationDefinitions' existing exact-key,
  // duplicate, text and image validation. It cannot add another source closure.
  public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
@@ -49,7 +59,7 @@ internal static class InformationFunctionBodyBatch
     }
     if(body.Value.SourceKind!="blueprint")throw new InvalidOperationException("Retain the ordinary caller while editing native leaf bodies");
     var graph=JsonNode.Parse(units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original caller required"))!.AsObject();
-    if(graph["copySource"] is not null||graph["nodes"] is not JsonArray||BlueprintTree.Nodes(graph).Any(entry=>!RetainedCallerNode(entry.Node)))throw new InvalidOperationException("Body-only groups retain copy, forwarding, native context and wrapper caller boundaries");
+    if(graph["copySource"] is not null||graph["nodes"] is not JsonArray||BlueprintTree.Nodes(graph).Any(entry=>!RetainedCallerNode(entry.Node)))throw new InvalidOperationException("Body-only groups retain copy, forwarding and native context caller boundaries");
    }
   }
   foreach(var row in edits){var original=Declaration(row!["id"]!.ToString());InformationFunctionContracts.Prepare(request,original,Declaration(original.Id),row["mapping"]!.AsObject(),format);}
