@@ -9,9 +9,10 @@ internal sealed class InformationFunctionBatch
  readonly JsonObject originalUnits;
  readonly HashSet<string> functions;
  readonly bool composeCallers;
+ readonly bool retainedBodies;
  readonly Dictionary<string,JsonObject> outputPlans;
  readonly HashSet<string> completed=new(StringComparer.Ordinal);
- InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans){Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;}
+ InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false){Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
  public static InformationFunctionBatch? Begin(JsonObject request,JsonArray changes,Func<Element,string> format)
  {
   bool ContractEdit(JsonNode? row){
@@ -26,7 +27,7 @@ internal sealed class InformationFunctionBatch
   bool presentation=changes.Count!=edits.Length;
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
-  if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new());
+  if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new(),true);
   if(presentation)throw new InvalidOperationException("Keep original native body contracts when saving owner presentation together; all input is retained");
   bool referencePins=edits.Any(row=>new[]{row?["mapping"]?["before"],row?["signature"]}.Any(s=>s?["args"] is JsonArray args&&args.Any(a=>a?["mode"]?.ToString()=="ref")));
   bool wholeValue=edits.Any(row=>row?["mapping"]?["bodies"] is JsonObject&&row["mapping"]?["before"]?["args"] is JsonArray before&&row["signature"]?["args"] is JsonArray after&&before.Count==after.Count&&before.Where((a,i)=>(a?["mode"]?.ToString()=="out"&&after[i]?["mode"] is null||a?["mode"] is null&&after[i]?["mode"]?.ToString()=="out")).Any());
@@ -185,7 +186,7 @@ internal sealed class InformationFunctionBatch
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
  {
-  if(!composeCallers)return mapping;
+  if(!composeCallers)return retainedBodies?InformationFunctionBodyBatch.ProjectCopies(Request,originalUnits,functions,function,mapping):mapping;
   var prepared=mapping.DeepClone().AsObject();
   foreach(var entry in prepared["callers"] as JsonObject??new JsonObject()){
    var plan=entry.Value!.AsObject();string id=plan["graph"]!.ToString();string initial=originalUnits[id]!["draft"]!.ToString(),current=Request["units"]![id]!["draft"]!.ToString();

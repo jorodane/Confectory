@@ -134,3 +134,11 @@ native 본문 공동 저장에서 기존 ordinary code branch/switch를 읽기 �
 wrapper만 있는 호출자도 원래 source 전체의 읽기 CAS와 조립 C# 컴파일에 포함한다.
 다른 실제 ABI/source closure와9행의 표시명·고급 타입 결정은 기존 잔여다.
 [신규43단계·재사용0의 확정 검증·보관](VALIDATION_V666_RETAINED_WRAPPERS.md)을 마쳤다.
+
+
+[기존 소유 복사본 호출자 보존](V666_RETAINED_COPIES.md)은 고정8행의 같은 계약 native
+본문 공동 저장에서 이미 단독 배정된 local copy의 원래 receipt와 source를 유지한다.
+내부 후보에 저장된 명시 함수 설명의 해시만 검증된 overlay로 연결하며 실파일 기준을
+재설정하지 않는다. 정보별 C# 구조체 생성은 사용자 결정으로 확정됐고 세부 참조/스키마
+호환 정책은 별도다. 다른 실제 source/ABI closure·9행·전체 UI를 완료로 세지 않는다.
+확정 검증·보관은 이 단위 마감 기록에서 구분한다.

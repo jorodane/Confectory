@@ -22,7 +22,7 @@ lock(state){
  // The known headers select only their already registered ordinary caller graphs.
  // Read their current bytes without changing the saved dependency hashes.
  foreach(var graph in System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="graphs",["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["ids"]!.AsArray())calls.Read.Invoke(handle,graph!.ToString());
- calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="validate",["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());
+ calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="validate",["project"]=state["project"]!.DeepClone(),["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());
  // A copy caller can remain unchanged in Review, while its assignment must
  // still match the sources verified at Save. Restoring a checkpoint preserves
  // these checks; it does not silently rebase them onto newer physical files.

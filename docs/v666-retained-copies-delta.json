@@ -1,0 +1,9 @@
+{
+  "productFiles": {
+    "targets/element-authoring/InformationFunctionBodyBatch.cs": "b8db22508c55cb21601066eedcc6d43c533d7d18f0f7c4fdbf69b55f5727a5e5",
+    "targets/element-authoring/InformationFunctionBodyGuards.cs": "3b525f7ab284933b97a01b886f61f73d983c0b32144203bf0467ce84ee57beaa",
+    "targets/element-authoring/InformationFunctionBatch.cs": "83a8709420e736da280809188868a9d5c275a09f2e30a78f779bfc2373d0279a",
+    "packs/save/ApplySlots.csbody": "03b67aae848b232d34d1d76cd820682aad0ac3b573ccd07ea919cfc024e19974",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "f94c89460ecb889a8c68e70fde488fc3972dd4673cf8d2f64886d523e5a31318"
+  }
+}

@@ -58,7 +58,7 @@ internal static class InformationFunctionBodyGuards
     foreach(var body in implementation.Bodies.Where(body=>body.Value.SourceKind=="blueprint")){
      string graphId=implementation.Id+"/body:"+body.Key;var unit=units[graphId];if(unit?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Read the known ordinary caller graph before reviewing native bodies");
      string text=unit["original"]?.ToString()??unit["draft"]?.ToString()??throw new InvalidOperationException("Read the original ordinary caller graph before reviewing native bodies");var graph=JsonNode.Parse(text)!.AsObject();
-     if(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is JsonArray nodes&&nodes.Any(node=>node?["kind"]?.ToString() is "code" or "graph"||node?["postCall"] is not null))return true;
+     if(graph["copySource"] is not null||graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is JsonArray nodes&&nodes.Any(node=>node?["kind"]?.ToString() is "code" or "graph"||node?["postCall"] is not null))return true;
     }
    }
    return false;
@@ -83,7 +83,8 @@ internal static class InformationFunctionBodyGuards
   if(request["action"]?.ToString()=="headers"){
    var headerSelection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(headerSelection.Count>64)throw new ArgumentException("Native body header budget");bool native=false;var functions=new HashSet<string>(StringComparer.Ordinal);
    foreach(var id in headerSelection){string owner=id!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&InformationFunctionBodyBatch.Edits(changes) is not null)native=true;if(RetainedSources(owner,receipt) is {} retained){native=true;functions.UnionWith(retained.Functions);}}
-   if(native&&units.Count>2048)throw new ArgumentException("Native body header budget");return new JsonObject{["ids"]=new JsonArray((native?units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&(pair.Value?["kind"]?.ToString()=="implementation"||functions.Contains(pair.Key))).Select(pair=>(JsonNode)JsonValue.Create(pair.Key)!):Enumerable.Empty<JsonNode>()).ToArray())};
+   bool copies=headerSelection.Any(id=>units[id!.ToString()]?["slotSaveReceipt"] is JsonObject receipt&&CopyProofs(receipt["declaration"],receipt).Count>0);
+   if(native&&units.Count>2048)throw new ArgumentException("Native body header budget");return new JsonObject{["ids"]=new JsonArray((native?units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&(copies&&pair.Value?["kind"]?.ToString() is "function" or "object" or "schema" or "module" or "category" or "concept" or "enum"||pair.Value?["kind"]?.ToString()=="implementation"||functions.Contains(pair.Key))).Select(pair=>(JsonNode)JsonValue.Create(pair.Key)!):Enumerable.Empty<JsonNode>()).ToArray())};
   }
   if(request["action"]?.ToString()=="graphs"){
    var selection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(selection.Count>64)throw new ArgumentException("Native body review budget");var functions=new HashSet<string>(StringComparer.Ordinal);
@@ -102,13 +103,32 @@ internal static class InformationFunctionBodyGuards
    }
    if(result.Count is <1 or >240)throw new ArgumentException("Complete bounded native source checks required");return result;
   }
+  JsonObject CopyProofs(JsonNode? declaration,JsonObject? receipt=null)
+  {
+   var declared=new JsonObject();foreach(var change in declaration?["changes"] as JsonArray??new())if(change?["mapping"]?["copies"] is JsonObject copies&&copies.Count>0)declared.Add(change["id"]!.ToString(),copies.DeepClone());
+   if(receipt?["nativeBodyCopies"] is JsonObject retained){if(declared.Count>0&&!JsonNode.DeepEquals(declared,retained))throw new InvalidOperationException("Retain the original native copy proofs across presentation saves");declared=retained.DeepClone().AsObject();}
+   if(declared.Count>8||declared.Any(row=>row.Value is not JsonObject copies||copies.Count is <1 or >32))throw new ArgumentException("Bounded native copy proof group required");return declared;
+  }
   JsonArray Checks(string owner,JsonObject receipt)
   {
-   if(receipt["owner"]?.ToString()!=owner||receipt["version"]?.GetValue<int>()!=3||receipt["readGuards"] is not JsonObject guards)throw new InvalidOperationException("Save the native body group explicitly to bind its original dependencies; input retained");var expected=Sources(false);if(guards.Count!=expected.Count||expected.Keys.Any(path=>guards[path] is not JsonObject row||row.Count!=2||row["path"]?.ToString()!=path||row["hash"] is null||!Token(row["hash"]!.ToString())))throw new InvalidOperationException("Complete original native body source checks are missing or changed; retain the saved group");return new JsonArray(guards.Select(p=>p.Value!.DeepClone()).ToArray());
+   if(receipt["owner"]?.ToString()!=owner||receipt["version"]?.GetValue<int>()!=3||receipt["readGuards"] is not JsonObject guards)throw new InvalidOperationException("Save the native body group explicitly to bind its original dependencies; input retained");var expected=Sources(false);var copies=CopyProofs(receipt["declaration"],receipt);
+   var nativeFunctions=(receipt["sources"] as JsonObject??new()).Where(source=>source.Value?["kind"]?.ToString()=="function").Select(source=>source.Key).ToHashSet(StringComparer.Ordinal);
+   string GraphSource(JsonNode? unit)=>string.IsNullOrEmpty(unit?["original"]?.ToString())?unit?["draft"]?.ToString()??"{}":unit["original"]!.ToString();
+   bool copyCaller=units.Any(source=>source.Value?["kind"]?.ToString()=="blueprint"&&JsonNode.Parse(GraphSource(source.Value))?["copySource"] is not null&&source.Key.Contains("/body:",StringComparison.Ordinal)&&OriginalImplementation(source.Key[..source.Key.LastIndexOf("/body:",StringComparison.Ordinal)]).Imports.Values.Any(import=>nativeFunctions.Contains(import.Id)));
+   if(copies.Count>0||copyCaller){
+    string project=request["project"]?.ToString()??throw new InvalidOperationException("Original native copy project context required"),root=Path.GetDirectoryName(Path.GetFullPath(project))!;var originals=units.DeepClone().AsObject();foreach(var source in originals)if(source.Value?["original"] is JsonValue text&&text.TryGetValue<string>(out string? original)&&original.Length>0)source.Value!["draft"]=original;
+    var manifest=originals[ns+"::ProjectManifest"]??throw new InvalidOperationException("Original native copy registration required");var originalRequest=new JsonObject{["project"]=project,["manifest"]=manifest["draft"]!.DeepClone(),["units"]=originals};var reader=new InformationFunctionCopies(originalRequest);
+    var verified=new JsonObject();foreach(string function in nativeFunctions){var proof=reader.Read(function);if(proof.Count>0)verified[function]=proof;}
+    if(!JsonNode.DeepEquals(verified,copies))throw new InvalidOperationException("Original native copy observation proofs changed or are incomplete; retain the complete group");
+    foreach(var copy in verified)foreach(var proof in copy.Value!.AsObject())foreach(var dependency in proof.Value!["context"]!.AsArray()){
+     string path=Path.GetFullPath(dependency!["path"]!.ToString());if(!path.StartsWith(root+Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))continue;string relative=Path.GetRelativePath(root,path);expected.TryAdd(relative,new JsonObject{["path"]=relative});
+    }
+   }
+   if(guards.Count!=expected.Count||expected.Keys.Any(path=>guards[path] is not JsonObject row||row.Count!=2||row["path"]?.ToString()!=path||row["hash"] is null||!Token(row["hash"]!.ToString())))throw new InvalidOperationException("Complete original native body source checks are missing or changed; retain the saved group");return new JsonArray(guards.Select(p=>p.Value!.DeepClone()).ToArray());
   }
   if(request["action"]?.ToString()=="prepare"){
-   if(ObservedGroup(request["declaration"]))return new JsonObject{["required"]=true,["checks"]=new JsonArray(Sources(true).Values.Select(v=>(JsonNode)v).ToArray())};
-   string? owner=request["declaration"]?["id"]?.ToString();if(owner is not null&&PresentationOnly(request["declaration"])&&units[owner]?["slotSaveReceipt"] is JsonObject prior&&RetainedSources(owner,prior) is not null&&prior["readGuards"] is JsonObject priorGuards&&priorGuards.Count>0)return new JsonObject{["required"]=true,["checks"]=Checks(owner,prior)};
+   if(ObservedGroup(request["declaration"]))return new JsonObject{["required"]=true,["copies"]=CopyProofs(request["declaration"]),["checks"]=new JsonArray(Sources(true).Values.Select(v=>(JsonNode)v).ToArray())};
+   string? owner=request["declaration"]?["id"]?.ToString();if(owner is not null&&PresentationOnly(request["declaration"])&&units[owner]?["slotSaveReceipt"] is JsonObject prior&&RetainedSources(owner,prior) is not null&&prior["readGuards"] is JsonObject priorGuards&&priorGuards.Count>0)return new JsonObject{["required"]=true,["checks"]=Checks(owner,prior),["copies"]=CopyProofs(prior["declaration"],prior)};
    return new JsonObject{["required"]=false,["checks"]=new JsonArray()};
   }
   if(request["action"]?.ToString()!="validate")throw new ArgumentException("Native body guard action");var selected=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(selected.Count>64)throw new ArgumentException("Native body review budget");
