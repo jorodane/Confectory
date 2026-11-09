@@ -1,0 +1,12 @@
+{
+  "baseCommit": "eb1492e8d81b51f225b0b6f3922eaf24e72a04db",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "targets/element-authoring/FunctionReturnName.cs": "ec6b65f5d96940be55a20f6db7a2182bb453c017383a35acaf4bb4e11bf57546",
+    "targets/element-authoring/InformationDefinitions.cs": "92daedd7094f84e16a52482eb041cb280aebbe91762881bb60971751f150cc1b",
+    "targets/element-authoring/EffectiveMetadata.cs": "31af88869a02f72c756119e45f89113e378cb22da63d46c8eea711d1aebcaf1f",
+    "examples/editor-home/ui/element-functions.js": "a962fa6540ddb422c82644cc6035d1bf43c9c2076392e892370e5008c8b55c4c",
+    "examples/editor-home/ui/mixed-declaration.js": "d7a00df9beb7db657faee56d2df2145ca54eb0fd953b00c0384e34eeac79033b",
+    "examples/editor-home/WebBundle.csbody": "8c3ce9390ed43d84bd5b9b2fe85869441779385e8acc66a23f5ca87ae11d7751"
+  }
+}
