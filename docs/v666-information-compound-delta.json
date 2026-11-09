@@ -1,0 +1,11 @@
+{
+  "baseCommit": "116ccecd1fc124c6e3196cb95d4b092154fac1be",
+  "profile": "information-struct-compound-v1",
+  "productFiles": {
+    "src/Confectory.Core/InformationStructs.cs": "055c4163db81d96b52ec2fa696a04f8cfba1423e0d2112b53abda1b8a34f87f8",
+    "src/Confectory.Core/Build.Information.cs": "9af7297c4d55cf725db14f5300931cb60aeba2d1834868a76ecb404c0f156841"
+  },
+  "authoredLayoutChanged": false,
+  "originalCSharpRewritten": false,
+  "newPermissions": false
+}
