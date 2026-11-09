@@ -5,9 +5,19 @@ using System.Text.Json.Nodes;
 // Prove each original closure; publish their disjoint bodies through one CAS.
 internal static class InformationFunctionBodyBatch
 {
+ // Presentation stays under InformationDefinitions' existing exact-key,
+ // duplicate, text and image validation. It cannot add another source closure.
+ public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
+ public static bool BodyEdit(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&JsonNode.DeepEquals(map["before"],row["signature"])&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
+ public static JsonNode?[]? Edits(JsonArray changes)
+ {
+  if(changes.Count is <2 or >10)return null;
+  var edits=changes.Where(row=>!Presentation(row)).ToArray();
+  return edits.Length is >=2 and <=8&&edits.All(BodyEdit)?edits:null;
+ }
  public static HashSet<string>? Prepare(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format)
  {
-  if(!edits.All(row=>row?["mapping"] is JsonObject map&&map["before"] is JsonObject&&JsonNode.DeepEquals(map["before"],row["signature"])&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"))))return null;
+  if(!edits.All(BodyEdit))return null;
   var functions=new HashSet<string>(StringComparer.Ordinal);string ns=PackPaths.Namespace(request["id"]!.ToString());
   Element Declaration(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original body declaration required"),"<body-group>").ParseElement();
   foreach(var row in edits){

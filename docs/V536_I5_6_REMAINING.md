@@ -1,5 +1,10 @@
 # I5-6: 지원 경로와 남은 계약 편집
 
+8행의 한 정보 창에서 소유 헤더 설명·아이콘과 같은 계약 native 본문을 함께 저장하는
+실제 거절 경로는 [표시/본문 결합](V666_HEADER_BODIES.md) 단위로 연결한다. 고정8행의
+함수와 다른 속성 혼합 중 이 표시 경계만 다루며 구조·계약 변경/다른 closure를
+완료로 세지 않는다. 새 조합별 필수 항목은 추가하지 않는다.
+
 7행의 최신 유한한 잔여와 정상 보호 구분은 [원래 조작 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 과거 한정 단위의 미검증 표현을 ref/out/값 변환의 모든 조합별 새 필수 작업으로 늘리지 않는다.
 
 기준은 `196c605`의 저장소 v536 레퍼런스, `openOwnFunctionPopover`, `renderFunctionSignatureEditor`, `renderFeatureDefinition`과 기존 native 함수 계약이다. 원본 상세창은 입력/출력의 이름·타입·추가/삭제를 제공한다. 순서 조작은 `propertyStyle`인 Blueprint 정의에서 제공하며 정보 상세창에 새 드래그 제어를 만들지 않는다. 값/ref/out은 기존 native 계약과 구현 편집 경계를 유지한다. 기능 목록의 순서(I5-5)는 매개변수 순서와 별개다.

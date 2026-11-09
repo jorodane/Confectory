@@ -1,0 +1,11 @@
+{
+  "baseCommit": "d78b5817b6af83d179d807ce5441f311d00c4999",
+  "referenceSha256": "7b6b4ba585fc46843f09d8bcd15072b704cc2dc994988400b0a25061e0400d23",
+  "productFiles": {
+    "targets/element-authoring/InformationFunctionBatch.cs": "d74a8225f28001b260cc352aeb24c959e2c3dd03bd980b4923d22146a74776d6",
+    "targets/element-authoring/InformationFunctionBodyBatch.cs": "f622afd7a5ce67e7b0166c5b079b2f3f43e30d3a2fb36ba15b23995f8d3fd408",
+    "targets/element-authoring/InformationFunctionBodyGuards.cs": "6a00857ffc0e16859b1dd61bd65673542f3caae89a837e1d22be06751aa7dbfa",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "865880f1496cc7f9077672d2f52c8f6045b4992fa0cb0c7d28c5708758a8af05",
+    "packs/save/ApplySlots.csbody": "a577e6de3dccab95f2e2cb42ed5972950937f41a2f6b75208eeaa4636e50c537"
+  }
+}
