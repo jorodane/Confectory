@@ -31,3 +31,5 @@ copy/slot/private frame·whole-body/전달 문맥·속성 관측/Set 결합·비
 LF/CRLF·새 교차 패키지/전체 복원과 보관 결과를 최종 기록에서 마감한다. 실제 Windows/
 WebView2·모바일·전체 UI/기기 검증과 구분하며, 초기 빈 화면과 과거 Agent 준비 지연의 원인은
 미확정으로 유지한다. 실제 로그인/추론·외부 권한/계정 변경은 수행하지 않는다.
+
+[최종 신규39단계·재사용0 및 보관 기록](VALIDATION_V666_ALIAS_SOURCE.md)을 따른다.
