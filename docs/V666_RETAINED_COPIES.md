@@ -21,7 +21,8 @@ proof를 먼저 검사하고, 내부에서 이미 검증·저장한 동일 계�
 후보에 투영한다. owner·배정·graph·provenance·경로·계약과 나머지 context는 모두 같아야
 한다. 이 내부 후보 연결은 실파일 변경의 새 기준이나 외부 접근 권한이 아니다.
 
-호출만 있는 copy도 기존 version3 readGuards에 원래 source 전체를 결부한다. 기존 version3 receipt에 원래 `nativeBodyCopies` 증거도 보관해 후속 설명 Save에서
+호출만 있는 copy도 기존 version3 receipt의 readGuards에 원래 source 전체를 결부한다.
+같은 receipt에 원래 `nativeBodyCopies` 증거도 보관해 후속 설명 Save에서
 copy context를 잃지 않는다. cold에서는 이미 알려진 선언을 읽고 원래 snapshot으로
 copy proof를 다시 검증한다. 실제 관측된 등록 의존성만 전체 guard의 정확한 집합에
 포함하며 guard 개수 검증을 완화하지 않는다. Save 전
@@ -40,7 +41,7 @@ copy proof를 다시 검증한다. 실제 관측된 등록 의존성만 전체 g
 구현하지 않으며, 참조 정체성/수명·스키마 변경·구 reader 호환성의 미확정 세부 정책을
 임의로 결정하지 않는다. 이후 타입 생성은 기존 설계/계약과 대조해 필요한 경계를 다룬다.
 
-최종 검증·보관은 마감 기록에서 구분한다. 초기 빈 화면의 모든 간헐 원인은 미확정이다.
+[신규43단계·재사용0의 마감 기록](VALIDATION_V666_RETAINED_COPIES.md)을 따른다. 초기 빈 화면의 모든 간헐 원인은 미확정이다.
 Linux native/Chromium 격리 fixture·교차 패키지와 실제 Windows/WebView2·모바일·물리
 기기·사용자 프로젝트·전체 UI 검증은 구분한다. 구 reader는 확장된 copy 읽기 범위를
 거절할 수 있다. 조용한 마이그레이션이나 모든 구 reader 교환 호환을 주장하지 않는다.
