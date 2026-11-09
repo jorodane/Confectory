@@ -58,6 +58,7 @@ try
         case "informationFunctionOutputs":reply=InformationFunctionOutputs.Read(request);break;
         case "informationFunctionOutputGraphs":reply=InformationFunctionOutputs.Graphs(request);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
+        case "informationBodyGroupGuards":reply=InformationFunctionBodyGuards.Execute(request);break;
         case "ownedDefinitionOwnership":reply=OwnedInformationDefinitions.Ownership(request);break;
         case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
         case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;

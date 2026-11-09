@@ -16,12 +16,16 @@ lock(state){
   string root=System.IO.Path.GetFullPath(state["root"]!.ToString()),path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,guard!["path"]!.ToString()));for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(entry.LinkTarget is not null)throw new UnauthorizedAccessException("Property source cannot traverse links");if(entry.FullName==root)break;}
   if(calls.Snapshot.Invoke(path)[2]!=guard["hash"]!.ToString())throw new InvalidOperationException("Property source changed after Save; retain the complete candidate");
  }
+ // Native group header IDs are known owned units, including after cold load.
+ // Materialize those originals before checking the complete saved read scope.
+ foreach(string id in selected)if(state["units"]?[id]?["slotSaveReceipt"]?["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray nativeChanges&&nativeChanges.Count is >=2 and <=8&&System.Linq.Enumerable.All(nativeChanges,change=>change?["type"]?.ToString()=="function-edit"&&System.Text.Json.Nodes.JsonNode.DeepEquals(change?["mapping"]?["before"],change?["signature"])))foreach(var change in nativeChanges)foreach(var body in change?["mapping"]?["bodies"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())if(state["units"]?[body.Key]?["kind"]?.ToString()=="body"){int at=body.Key.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0||state["units"]?[body.Key[..at]]?["kind"]?.ToString()!="implementation")throw new InvalidOperationException("Known native implementation scope required");calls.Read.Invoke(handle,body.Key[..at]);}
+ calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="validate",["namespace"]=state["namespace"]!.DeepClone(),["units"]=state["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString());
  // A copy caller can remain unchanged in Review, while its assignment must
  // still match the sources verified at Save. Restoring a checkpoint preserves
  // these checks; it does not silently rebase them onto newer physical files.
  foreach(string id in selected)if(state["units"]?[id]?["atomicEditGroup"] is not null&&state["units"]?[id]?["slotSaveReceipt"] is System.Text.Json.Nodes.JsonObject receipt){
   bool copies=System.Linq.Enumerable.Any(receipt["declaration"]?["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),change=>change?["mapping"]?["copies"] is System.Text.Json.Nodes.JsonObject map&&map.Count>0);
-  if(!copies)continue;
+  if(!copies&&(receipt["readGuards"] as System.Text.Json.Nodes.JsonObject)?.Count is not >0)continue;
   var guards=receipt["readGuards"]?.AsObject()??throw new InvalidOperationException("Save the copy candidate explicitly again to bind its original sources; all draft input retained");
   if(guards.Count is <1 or >240)throw new InvalidOperationException("Complete bounded copy source checks required");
   string root=System.IO.Path.GetFullPath(state["root"]!.ToString());var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
