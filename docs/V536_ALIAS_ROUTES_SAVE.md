@@ -25,10 +25,12 @@ checkpoint CAS 한 번으로 저장한다. 실행선과 이름을 별도 endpoin
 정상 비소유 거절을 미구현으로 바꾸거나 M11/M12/M4를 다시 열지 않는다. 같은 루트의 한 일반
 실행선 묶음과 값 이름의 수용이며 모든 graph 편집의 범용 결합 완료가 아니다.
 
-새 graph/profile/receipt 버전은 없다. 이전 runtime은 확정된 기존 graph를 읽지만 새 결합
-미확정 author-attempt의 복구는 지원하지 않는다. 입력을 자동 분해·폐기·이행하지 않고 현재판에서
+새 graph/profile/receipt 버전은 없으며 확정 graph는 기존 문법을 유지한다. 이전 runtime의 새 결합
+미확정 author-attempt 복구는 미지원이고 구판 실행 전수 검사는 미실행이다. 입력을 자동 분해·폐기·이행하지 않고 현재판에서
 저장 결과를 먼저 확인한다. 현재 실행/권한 경계·원래 팝오버/키보드 연결·레이아웃은 보존한다.
 
 최종 LF/CRLF 독립 checkout·새 교차 패키지/전체 복원과 최신/롤백·증거 보관에서 마감한다.
 실제 Windows/WebView2·모바일/기기 IME·GPU/물리 오디오·전체 UI·Space/Library 전달은 별도다.
 초기 빈 화면과 과거 Agent 준비 지연의 근본 원인은 미확정으로 유지한다.
+
+[최종 신규40단계·재사용0 및 보관 기록](VALIDATION_V666_ALIAS_ROUTES.md)을 따른다.
