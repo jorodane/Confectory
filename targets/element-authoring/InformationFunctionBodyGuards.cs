@@ -33,7 +33,13 @@ internal static class InformationFunctionBodyGuards
    }
    if(!seen.SetEquals(functions))throw new InvalidOperationException("Retain every original native target in the saved group");if(imported)return true;
    foreach(var pair in units.Where(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&p.Value?["kind"]?.ToString()=="implementation")){
-    var implementation=OriginalImplementation(pair.Key);if(implementation.Imports.Values.Any(import=>functions.Contains(import.Id))&&implementation.Bodies.Values.Any(body=>body.SourceKind=="csharp"))return true;
+    var implementation=OriginalImplementation(pair.Key);if(!implementation.Imports.Values.Any(import=>functions.Contains(import.Id)))continue;
+    if(implementation.Bodies.Values.Any(body=>body.SourceKind=="csharp"))return true;
+    foreach(var body in implementation.Bodies.Where(body=>body.Value.SourceKind=="blueprint")){
+     string graphId=implementation.Id+"/body:"+body.Key;var unit=units[graphId];if(unit?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Read the known ordinary caller graph before reviewing native bodies");
+     string text=unit["original"]?.ToString()??unit["draft"]?.ToString()??throw new InvalidOperationException("Read the original ordinary caller graph before reviewing native bodies");var graph=JsonNode.Parse(text)!.AsObject();
+     if(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is JsonArray nodes&&nodes.Any(node=>node?["kind"]?.ToString()=="code"))return true;
+    }
    }
    return false;
   }
@@ -44,16 +50,29 @@ internal static class InformationFunctionBodyGuards
   }
   bool ObservedReceipt(string owner,JsonObject receipt)
   {
-   if(ObservedGroup(receipt["declaration"]))return true;if(!PresentationOnly(receipt["declaration"])||RetainedSources(owner,receipt) is not {} retained)return false;
+   if(ObservedGroup(receipt["declaration"]))return true;
+   // A peer may remove the retained caller state after Save. The already bound
+   // read scope still applies; never infer a new empty legacy receipt from it.
+   if(receipt["declaration"]?["changes"] is JsonArray saved&&InformationFunctionBodyBatch.Edits(saved) is not null&&receipt["readGuards"] is JsonObject savedGuards&&savedGuards.Count>0)return true;
+   if(!PresentationOnly(receipt["declaration"])||RetainedSources(owner,receipt) is not {} retained)return false;
    // A subsequent header Save keeps only an already saved, same-contract native
    // body group. No body edit or dependency baseline is reconstructed or rebased.
    foreach(string function in retained.Functions){var unit=units[function]!;string draft=unit["draft"]?.ToString()??throw new InvalidOperationException("Read the retained native function contract");string original=unit["original"]?.ToString()??draft;var before=new Parser(original,"<retained-function>").ParseElement();var after=new Parser(draft,"<retained-function>").ParseElement();if(before.Id!=function||after.Id!=function||before.Kind!="function"||before.Parent is not null||after.Parent is not null||before.Signature is null||after.Signature is null||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature)))return false;}
-   return ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));
+   bool observed=ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));return observed||receipt["readGuards"] is JsonObject retainedGuards&&retainedGuards.Count>0;
   }
   if(request["action"]?.ToString()=="headers"){
    var headerSelection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(headerSelection.Count>64)throw new ArgumentException("Native body header budget");bool native=false;var functions=new HashSet<string>(StringComparer.Ordinal);
    foreach(var id in headerSelection){string owner=id!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&InformationFunctionBodyBatch.Edits(changes) is not null)native=true;if(RetainedSources(owner,receipt) is {} retained){native=true;functions.UnionWith(retained.Functions);}}
    if(native&&units.Count>2048)throw new ArgumentException("Native body header budget");return new JsonObject{["ids"]=new JsonArray((native?units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&(pair.Value?["kind"]?.ToString()=="implementation"||functions.Contains(pair.Key))).Select(pair=>(JsonNode)JsonValue.Create(pair.Key)!):Enumerable.Empty<JsonNode>()).ToArray())};
+  }
+  if(request["action"]?.ToString()=="graphs"){
+   var selection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(selection.Count>64)throw new ArgumentException("Native body review budget");var functions=new HashSet<string>(StringComparer.Ordinal);
+   foreach(var selectedOwner in selection){string owner=selectedOwner!.ToString();if(units[owner]?["slotSaveReceipt"] is not JsonObject receipt)continue;if(receipt["declaration"]?["changes"] is JsonArray changes&&InformationFunctionBodyBatch.Edits(changes) is {} edits)functions.UnionWith(edits.Select(row=>row!["id"]!.ToString()));if(RetainedSources(owner,receipt) is {} retained)functions.UnionWith(retained.Functions);}
+   var ids=new HashSet<string>(StringComparer.Ordinal);if(functions.Count>0)foreach(var pair in units.Where(pair=>pair.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&pair.Value?["kind"]?.ToString()=="implementation")){
+    var implementation=OriginalImplementation(pair.Key);if(!implementation.Imports.Values.Any(import=>functions.Contains(import.Id)))continue;
+    foreach(var body in implementation.Bodies.Where(body=>body.Value.SourceKind=="blueprint")){string id=implementation.Id+"/body:"+body.Key;if(units[id]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Known owned caller graph required");ids.Add(id);}
+   }
+   if(ids.Count>240)throw new ArgumentException("Native body caller read budget");return new JsonObject{["ids"]=new JsonArray(ids.Select(id=>(JsonNode)JsonValue.Create(id)!).ToArray())};
   }
   bool Token(string value)=>value=="missing"||System.Text.RegularExpressions.Regex.IsMatch(value,"^[a-f0-9]{64}$");
   Dictionary<string,JsonObject> Sources(bool preparing)

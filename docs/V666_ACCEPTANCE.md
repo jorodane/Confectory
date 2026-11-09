@@ -654,3 +654,9 @@ Compact/Preview/Data 파일명 활성화는 동결 11b38f1a의 [신규50단계·
 선택 metadata를 연결한다. `return` ID·C# ABI/원문·호출 연결을 유지하며, 일반 인자/out
 이름의 계약 의미는 바꾸지 않는다. 9행 전체/고급 정보·참조 실행 표현과 다른 실제
 closure를 완료로 세지 않으며 신규36단계·재사용0의 [확정 검증·보관](VALIDATION_V666_RETURN_LABEL.md)을 마쳤다.
+
+
+[기존 일반 호출자 보존](V666_RETAINED_CALLERS.md)은 고정8행의 같은 계약 native
+본문 공동 저장을 기존 code/local caller에 연결한다. 변경 없는 코드 기록은 원래
+바이트를 유지하고 caller source는 기존 읽기 CAS로 보호한다. 전체8행/다른 closure나
+고급 타입 표현을 완료로 세지 않으며 확정 검증·보관은 이 단위 마감 기록에서 구분한다.

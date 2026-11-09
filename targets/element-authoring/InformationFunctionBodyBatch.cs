@@ -41,7 +41,7 @@ internal static class InformationFunctionBodyBatch
     }
     if(body.Value.SourceKind!="blueprint")throw new InvalidOperationException("Retain the ordinary caller while editing native leaf bodies");
     var graph=JsonNode.Parse(units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original caller required"))!.AsObject();
-    if(graph["copySource"] is not null||graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n is not JsonObject||n["kind"]?.ToString() is not ("call" or "export")||n["control"]?.ToString()!="next"||n["graph"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null||n["postCall"] is not null))throw new InvalidOperationException("Body-only groups retain copy, private, storage and wrapper caller boundaries");
+    if(graph["copySource"] is not null||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n is not JsonObject||n["kind"]?.ToString() is not ("code" or "call" or "export")||n["control"]?.ToString()!="next"||n["graph"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null||n["postCall"] is not null))throw new InvalidOperationException("Body-only groups retain copy, private, forwarding and wrapper caller boundaries");
    }
   }
   foreach(var row in edits){var original=Declaration(row!["id"]!.ToString());InformationFunctionContracts.Prepare(request,original,Declaration(original.Id),row["mapping"]!.AsObject(),format);}
