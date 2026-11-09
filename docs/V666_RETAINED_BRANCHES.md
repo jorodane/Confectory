@@ -37,4 +37,4 @@ copy/private/implementationContext/forwardCallerStorage/postCall은 이 단위�
 별도 기존 잔여이며 이 단위로 완료 처리하지 않는다. 초기 빈 화면 원인은 미확정이다.
 Linux 엔진/Chromium과 실제 Windows/WebView2·기기·전체 UI 검증을 구분한다.
 
-확정 검증과 보관 결과는 이 단위 마감 기록에서 구분한다.
+최종 runtime `8820e99c46cb5d28f2d1248c278c0bf29f1c72fd`의 [신규41단계·재사용0 검증/보관](VALIDATION_V666_RETAINED_BRANCHES.md)을 마쳤다.

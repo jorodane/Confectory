@@ -666,4 +666,4 @@ closure를 완료로 세지 않으며 신규36단계·재사용0의 [확정 검�
 native 본문 공동 저장에서 기존 ordinary code branch/switch를 읽기 의존성으로
 유지한다. 실행 분기 ID·값·연결·종료점·C# 원문과 public/override 계약·권한·UI를
 바꾸지 않는다. copy/forward/wrapper 및 다른 실제 ABI closure·고급 타입 선택은
-기존 잔여이며 경우의 수별 새 필수로 늘리지 않는다. 확정 검증·보관은 이 단위 마감 기록에서 구분한다.
+기존 잔여이며 경우의 수별 새 필수로 늘리지 않는다. [신규41단계·재사용0의 확정 검증·보관](VALIDATION_V666_RETAINED_BRANCHES.md)을 마쳤다.
