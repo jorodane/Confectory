@@ -133,4 +133,4 @@ native 본문 공동 저장에서 기존 ordinary code branch/switch를 읽기 �
 본문 공동 저장에서 기존 serial After·enum wrapper C#/helpers·출력/실행 계약을 유지한다.
 wrapper만 있는 호출자도 원래 source 전체의 읽기 CAS와 조립 C# 컴파일에 포함한다.
 다른 실제 ABI/source closure와9행의 표시명·고급 타입 결정은 기존 잔여다.
-확정 검증·보관은 이 단위 마감 기록에서 구분한다.
+[신규43단계·재사용0의 확정 검증·보관](VALIDATION_V666_RETAINED_WRAPPERS.md)을 마쳤다.

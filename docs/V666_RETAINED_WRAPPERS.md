@@ -35,7 +35,8 @@ closure나 copy/whole/forwarding 원문은 기존7/8행의 같은 잔여로 관�
 않는다. 일반 입력/out 표시명 및 고급 정보·참조 핀 CLR 표현은9행의 별도 잔여다.
 고급 핀의 공통 값/참조 타입 대 정보별 생성 타입은 사용자 답변 대기다.
 
-독립 LF/CRLF·기존 중첩/여러 target·새 패키지/전체 복원과 보관 결과는 이 단위 마감
-기록에서 구분한다. 기존 단일 target/빈 guard 기록의 회귀와 모든 구 reader 교환을
+독립 LF/CRLF·기존 중첩/여러 target·새 패키지/전체 복원과 보관 결과는
+[신규43단계·재사용0의 마감 기록](VALIDATION_V666_RETAINED_WRAPPERS.md)을 따른다.
+기존 단일 target/빈 guard 기록의 회귀와 모든 구 reader 교환을
 혼동하지 않는다. 초기 빈 화면 원인은 미확정이고 Linux native/Chromium 격리 fixture와
 실제 Windows/WebView2·모바일·물리 기기/전체 UI 검증은 구분한다.
