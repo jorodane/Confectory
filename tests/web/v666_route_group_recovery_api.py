@@ -1,11 +1,12 @@
 """Pure distinct ordinary next routes share final CAS and never grant source/contract/ownership edits."""
-import copy,json,uuid
+import copy,json,uuid,sys
 import v666_route_group_recovery_fixture as t
-x=t.x;f=t.f
+x=t.x;f=t.f;focused=len(sys.argv)>3 and sys.argv[3]=='smoke'
 try:
  f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});original=t.read();before=x.checkpoint()
  def request():return dict(action='authorBatch',id=t.graph,attempt=uuid.uuid4().hex,checkpointHash=original['checkpointHash'],sourceProof=x.proof(original),edits=t.edits(t.selected))
  def rejected(name,mutate):
+  if focused and name not in {'group cannot infer owner/slot permission','group cannot route branch/completion ports','group refuses cyclic final graph'}:return
   q=request();mutate(q);reply=f.invoke('blueprint',q,False);assert not reply['result']['ok'],reply;now=t.read();assert x.checkpoint()==before and t.current()==t.original and now['sources']==original['sources'];x.original();f.checked(name)
  rejected('group rejects stale checkpoint',lambda q:q.update(checkpointHash='0'*64))
  def tamper(q):

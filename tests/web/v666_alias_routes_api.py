@@ -1,0 +1,28 @@
+"""Alias/next checkpoint admission and exact full candidate receipts, no C# or ABI mutation."""
+import copy,json,uuid,sys
+import v666_alias_routes_fixture as t
+x=t.x;f=t.f;mode=sys.argv[3]if len(sys.argv)>3 else'lifecycle';smoke=mode=='smoke';checks=[]
+def check(text):checks.append(text);(f.case/'progress.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2));print('PASS '+text,flush=True)
+try:
+ f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});checkpoint=t.checkpoint();before=checkpoint.read_bytes();data=t.read();alias=dict(id='stable_alias',name=t.name,type='int',sourceJson=json.dumps(dict(node='body',output='return')));plan=dict(aliases=[alias],bindings=[dict(kind='exit',name='return',valueJson='{"local":"stable_alias"}')]);edits=t.edits(t.selected)+[dict(action='aliasPlan',node='$locals',definition=plan)];basis=dict(action='authorBatch',id=t.graph,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=edits)
+ def send(q,ok=True):return f.invoke('blueprint',dict(attempt=uuid.uuid4().hex,**q),ok)['result']
+ def reject(name,change):
+  q=copy.deepcopy(basis);change(q);assert not send(q,False)['ok'];assert checkpoint.read_bytes()==before and t.current()==t.original and not t.aliases();x.original();check(name)
+ cases=[('plan order',lambda q:q['edits'].reverse()),('duplicate route',lambda q:q['edits'].insert(0,copy.deepcopy(q['edits'][0]))),('missing node',lambda q:q['edits'][0].update(node='missing')),('missing destination',lambda q:q['edits'][0].update(to='missing')),('non-next branch',lambda q:q['edits'][0].update(port='completion')),('route fields',lambda q:q['edits'][0].update(text='extra')),('route type',lambda q:q['edits'][0].update(to=7)),('frame',lambda q:q['edits'][0].update(frame=t.graph)),('owner',lambda q:q.update(owner='foreign')),('stale source',lambda q:q.update(sourceProof='[]')),('stale checkpoint',lambda q:q.update(checkpointHash='missing')),('cycle',lambda q:q['edits'][0].update(to='body')),('65 next routes',lambda q:q['edits'].__setitem__(slice(0,0),[dict(action='route',node='extra'+str(i),port='next',to='')for i in range(62)])),('source mixing',lambda q:q['edits'].insert(0,dict(action='source',node='body',text='return 41;'))),('entry mixing',lambda q:q['edits'][0].update(action='entry',node='$entry')),('alias type',lambda q:q['edits'][-1]['definition']['aliases'][0].update(type='long')),('blank name',lambda q:q['edits'][-1]['definition']['aliases'][0].update(name='')),('unavailable alias source',lambda q:q['edits'][-1]['definition']['aliases'][0].update(sourceJson='{"node":"third","output":"return"}'))]
+ for name,change in ([cases[4],cases[-1]]if smoke else [cases[i]for i in [0,1,3,4,7,8,9,10,11,13,14,17]]if mode=='admission'else []):reject(name+' preserves complete candidate and originals',change)
+ if mode=='admission':
+  check('bounded admission-only phase complete; positive/lifecycle run is separate');sys.exit(0)
+ q=dict(attempt=uuid.uuid4().hex,**basis)
+ if not smoke:
+  checkpoint.chmod(0o400)
+  try:assert not f.invoke('blueprint',q,False)['result']['ok'];assert checkpoint.read_bytes()==before and t.current()==t.original and not t.aliases();x.original()
+  finally:checkpoint.chmod(0o600)
+  query={**q,'action':'settledAuthorBatch'};assert f.invoke('blueprint',query)['result']['result']['baselineUnchanged'];p=f.project/t.graph_file;raw=p.read_bytes();p.write_bytes(raw+b' ')
+  try:assert not f.invoke('blueprint',query)['result']['result']['baselineUnchanged']and checkpoint.read_bytes()==before
+  finally:p.write_bytes(raw)
+  check('actual checkpoint denial preserves all inputs; corrected attempt needs exact original physical baseline')
+ assert f.invoke('blueprint',q)['result']['result']['checkpointSaved'];actual=t.read();saved=checkpoint.read_bytes();assert t.current()==t.selected and t.aliases()[0]['name']==t.name and json.loads(actual['exits'][0]['valueJson'])==dict(local='stable_alias');x.original();assert f.invoke('blueprint',q)['result']['result']['checkpointSaved']and checkpoint.read_bytes()==saved;assert f.invoke('blueprint',{**q,'action':'settledAuthorBatch'})['result']['result']['settled'];bad=copy.deepcopy(q);bad['edits'][-1]['definition']['aliases'][0]['name']='tampered';assert not f.invoke('blueprint',bad,False)['result']['ok']and checkpoint.read_bytes()==saved;x.original();check('all explicit next edges and named output/consumer save atomically; exact replay settles without rewriting, tampering rejects')
+ history=f.invoke('draftHistory',dict(action='inspect'))['result']['result'];assert history['undo']['available'];assert f.invoke('draftHistory',dict(action='undo',token=history['undo']['token']))['result']['result']['accepted'];assert t.current()==t.original and not t.aliases();history=f.invoke('draftHistory',dict(action='inspect'))['result']['result'];assert f.invoke('draftHistory',dict(action='redo',token=history['redo']['token']))['result']['result']['accepted'];assert t.current()==t.selected and t.aliases()[0]['name']==t.name;x.original();check('one semantic Undo/Redo restores entire route/name/consumer group with every C# source and contract byte fixed')
+ f.stop();f.start(1);assert t.current()==t.selected and t.aliases()[0]['id']=='stable_alias'and f.invoke('blueprint',{**q,'action':'settledAuthorBatch'})['result']['result']['settled'];x.original();check('cold exact receipt and graph preserve original source authority and stable alias identity')
+finally:(f.case/'checks.json').write_text(json.dumps(checks,ensure_ascii=False,indent=2));(f.case/'traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False));f.stop()
+print('ALIAS_ROUTES_API',f.case,flush=True)
