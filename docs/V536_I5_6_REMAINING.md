@@ -120,3 +120,10 @@ native 본문 공동 저장에서 기존 ordinary code branch/switch를 읽기 �
 모든 영향 target의 명시 검토와 source 전체 관측을 요구하며 자동 복제·미검토 승인은
 하지 않는다. 고급 타입 선택·다른 실제 ABI/source closure는 기존 잔여다.
 [신규42단계·재사용0의 확정 검증·보관](VALIDATION_V666_MULTITARGET_BODIES.md)을 마쳤다.
+
+
+[기존 중첩 호출자 보존](V666_RETAINED_NESTED.md)은 고정8행의 같은 계약 native
+본문 공동 저장에서 기존 private graph와 qualified C#·형제/지역값을 읽기 의존성으로
+유지한다. 원래 계약·원문 바이트·실행 연결·권한·레이아웃과 최종 CAS를 보존한다.
+다른 실제 ABI/source closure와9행의 표시명·고급 타입 선택은 기존 잔여다.
+확정 검증·보관은 이 단위 마감 기록에서 구분한다.

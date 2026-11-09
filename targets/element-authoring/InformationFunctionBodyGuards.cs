@@ -58,7 +58,7 @@ internal static class InformationFunctionBodyGuards
     foreach(var body in implementation.Bodies.Where(body=>body.Value.SourceKind=="blueprint")){
      string graphId=implementation.Id+"/body:"+body.Key;var unit=units[graphId];if(unit?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Read the known ordinary caller graph before reviewing native bodies");
      string text=unit["original"]?.ToString()??unit["draft"]?.ToString()??throw new InvalidOperationException("Read the original ordinary caller graph before reviewing native bodies");var graph=JsonNode.Parse(text)!.AsObject();
-     if(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is JsonArray nodes&&nodes.Any(node=>node?["kind"]?.ToString()=="code"))return true;
+     if(graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is JsonArray nodes&&nodes.Any(node=>node?["kind"]?.ToString() is "code" or "graph"))return true;
     }
    }
    return false;
