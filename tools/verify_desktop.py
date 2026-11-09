@@ -110,6 +110,7 @@ def main():
     parser.add_argument('--commit', required=True)
     parser.add_argument('--sdk', type=Path, required=True)
     parser.add_argument('--nuget-seed', type=Path, required=True)
+    parser.add_argument('--reuse-resource-data',type=Path,help='Exact sealed passing resource Data source facts; failed probe/builds/packages remain fresh')
     parser.add_argument('--reuse-custom-axis',type=Path,help='Exact sealed passing custom-axis source checks; failed checks/builds/packages remain fresh')
     parser.add_argument('--reuse-review',type=Path,help='Three sealed passing UI checks after exact late-input Save-count correction; failed checks/builds/packages fresh')
     parser.add_argument('--reuse-source',type=Path,help='Ten sealed identical source checks after the property guard report argument correction')
@@ -145,6 +146,10 @@ def main():
                 'sdk': str(args.sdk),'dependencyInputs':inputs, 'harnessSha256': {p.name:sha(p) for p in harness.iterdir()}})
     environments = {}; checkouts = {}; reports = {}
     try:
+        if args.reuse_resource_data:
+            if args.suite!='resource-data':raise ValueError('Data reuse requires its own suite')
+            from verification_resource_data_reuse import bind
+            bind(repo,args.reuse_resource_data,commit,inputs,work)
         if args.reuse_custom_axis:
             if args.suite!='run-custom-axis':raise ValueError('Custom axis reuse requires its own suite')
             from verification_custom_axis_reuse import bind

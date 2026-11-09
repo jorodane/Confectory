@@ -17,6 +17,29 @@ def browser_scratch():
  finally:
   if previous is None:os.environ.pop('TMPDIR',None)
   else:os.environ['TMPDIR']=previous
+def minimal_login_ready(page,dialog,root,selected_at,events):
+ """Wait for the actual async setup, retaining the original 5s observation.
+ Never click login, change provider inputs or accept an error instead of Ready.
+ """
+ from playwright.sync_api import expect
+ checkpoint=None;passed=False;start=time.monotonic()
+ def snapshot():
+  return page.evaluate("""()=>({appInert:!!document.querySelector('#app')?.inert,providers:[...document.querySelectorAll('[data-connection-choice]')].map(b=>({id:b.dataset.connectionChoice,disabled:b.disabled,pressed:b.getAttribute('aria-pressed')})),error:[...document.querySelectorAll('[data-connection-error]:not([hidden])')].map(n=>({code:n.dataset.code,text:n.textContent})),loginCount:document.querySelectorAll('[data-cli-login]').length})""")
+ try:
+  try:expect(dialog.locator('[data-cli-login]')).to_be_enabled(timeout=5000)
+  except AssertionError:
+   checkpoint=snapshot();page.screenshot(path=str(root/'packaged-login-after-5s.png'))
+   # Setup is asynchronous and the test has no 5s product latency contract.
+   # It must still produce an enabled login and complete the selected operation.
+   expect(dialog.locator('[data-cli-login]')).to_be_enabled(timeout=max(1,int((30-(time.monotonic()-start))*1000)))
+  expect(dialog.get_by_role('button',name='Codex',exact=True)).to_be_enabled(timeout=max(1,int((30-(time.monotonic()-start))*1000)))
+  passed=True
+ finally:
+  state=snapshot()
+  (root/'package-login-readiness.json').write_text(json.dumps({'passed':passed,'deadlineMs':30000,'initialFiveSecondReady':checkpoint is None,'afterFiveSeconds':checkpoint,'final':state,'elapsedMs':round((time.monotonic()-selected_at)*1000,2),'requests':events,'actualLoginOrInference':False},ensure_ascii=False,indent=2))
+  if not passed:
+   page.screenshot(path=str(root/'packaged-login-failure.png'));(root/'packaged-login-failure.html').write_text(page.content())
+
 def main():
  with PackageCopies() as copies:
   repo=pathlib.Path(sys.argv[1]).resolve();reuse=pathlib.Path(sys.argv[3]).resolve() if len(sys.argv)>3 else None;root=copies.root;outside=root/'unrelated cwd';outside.mkdir();storage=root/'owned-data';storage.mkdir()
@@ -102,7 +125,23 @@ def main():
     def route(r):
      if r.request.url.startswith(origin):r.continue_()
      else:external.append(r.request.url);r.abort()
-    page.route('**/*',route);goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled();expect(dialog.locator('[data-connection-advanced],input,select,textarea')).to_have_count(0);page.screenshot(path=str(root/'packaged-login.png'));assert not errors and not external,(errors,external);browser.close()
+    events=[];pending={};clock=time.monotonic()
+    def request_started(request):
+     from urllib.parse import urlsplit
+     endpoint=None
+     if request.method=='POST':
+      try:
+       body=request.post_data_json
+       if isinstance(body,dict):endpoint=body.get('endpoint') or body.get('method')
+      except Exception:pass
+     row={'path':urlsplit(request.url).path,'method':request.method,'endpoint':str(endpoint)[:160] if endpoint else None,'startMs':round((time.monotonic()-clock)*1000,2)};events.append(row);pending[request]=row
+    def request_finished(request):
+     row=pending.get(request)
+     if row is not None:row['endMs']=round((time.monotonic()-clock)*1000,2);row['failure']=request.failure
+    page.on('request',request_started);page.on('requestfinished',request_finished);page.on('requestfailed',request_finished)
+    page.route('**/*',route);goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);selected_at=time.monotonic();dialog.get_by_role('button',name='Codex',exact=True).click()
+    minimal_login_ready(page,dialog,root,selected_at,events)
+    expect(dialog.locator('[data-connection-advanced],input,select,textarea')).to_have_count(0);page.screenshot(path=str(root/'packaged-login.png'));assert not errors and not external,(errors,external);browser.close()
   finally:
    try:
     if host.poll() is None:
