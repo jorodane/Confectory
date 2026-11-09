@@ -9,3 +9,5 @@
 수용 경계는 세 목록의 선택/수정키/재클릭/취소/이름 저장, 폴더 더블클릭, Compact/Preview 키보드, Preview 초안 cold 복원, Compact 실제 쓰기거절/cold retry, Preview 실제 동료 변경/CAS/cold 취소, 닫힌 창의 오래된 핸들러다. 기존 Data·정렬·키보드·배치 회귀를 포함한다. 독립 LF/CRLF·새 교차 패키지/전체 복원과 보관 기록에서 마감한다.
 
 큰 자료 보관/backend·정보 종류 미결정 정책·초기 빈 화면 및 Agent 일시 대기 원인 미확정·실기기/전체 UI 검증은 이번 범위와 별도다.
+
+[신규50단계·재사용0 및 최종 복원·보관 기록](VALIDATION_V666_RESOURCE_NAME.md)을 따른다.
