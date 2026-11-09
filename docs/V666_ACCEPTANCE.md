@@ -638,3 +638,6 @@ Compact/Preview/Data 파일명 활성화는 동결 11b38f1a의 [신규50단계·
 기존 로컬 helper를 호출하는 여러 직접 소유 C# 본문을 한 Save에 결합하는 경계는
 [V666_NATIVE_BODY_IMPORTS.md](V666_NATIVE_BODY_IMPORTS.md)를 따른다. 원래 ABI/import/caller를 유지하고,
 이미 관측한 소유 원문을 기존 version3 readGuards와 최종 lease에 연결한다.
+
+기존 로컬 import의 여러 C# 본문 저장은 최종 **신규13·동등재사용25, 유효38단계**로 검증했다.
+[실패·보관·유한 잔여](VALIDATION_V666_BODY_IMPORTS.md)를 따르며 전체8행 완료로 세지 않는다.

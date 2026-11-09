@@ -42,3 +42,5 @@ M11/M12/M4의 닫힌 범위를 다시 열지 않는다. 초기 빈 화면의 원
 검증 상세와 보관 해시는 [최종 기록](VALIDATION_V666_BODY_IMPORTS.md)에 마감한다.
 이 단위의 실제 UI는 Linux Chromium과 native engine의 격리 생성 fixture이며 실제
 Windows/WebView2·모바일·물리 IME·전체 UI·사용자 프로젝트/계정 검증은 아니다.
+
+최종 runtime `2897f3709cd44cf10c954ed9dd6a578dd421ec3d`의 신규13·동등재사용25, 유효38단계를 통과했다. 개발23통과/4실패·첫 최종33통과/패키지 경로1실패와 증거 재사용 근거는 최종 기록에서 구분한다.
