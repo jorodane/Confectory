@@ -34,4 +34,4 @@ Review/Confirm과 최종 source lease를 재사용한다. receipt는 제출한 �
 backend와 종류 CLR/사용 중 삭제 정책, 실제 기기/전체 UI 검증을 구분한다.
 M11/M12/M4는 회귀 근거 없이 다시 열지 않는다. 초기 빈 화면 원인은 미확정이다.
 
-확정 검증과 보관 결과는 최종 validation 기록에서 마감한다.
+최종 runtime `dcf4cf7b82a3d6f84515a4b921dfb17dcce62c94`의 신규36단계·재사용0을 [확정 검증·보관 기록](VALIDATION_V666_RETURN_LABEL.md)으로 마감했다.

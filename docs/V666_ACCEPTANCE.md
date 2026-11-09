@@ -653,4 +653,4 @@ Compact/Preview/Data 파일명 활성화는 동결 11b38f1a의 [신규50단계·
 [정보 함수 고정 반환 슬롯 표시명](V666_RETURN_LABEL.md)은 원래 상세창 이름칸과
 선택 metadata를 연결한다. `return` ID·C# ABI/원문·호출 연결을 유지하며, 일반 인자/out
 이름의 계약 의미는 바꾸지 않는다. 9행 전체/고급 정보·참조 실행 표현과 다른 실제
-closure를 완료로 세지 않으며 확정 검증·보관은 이 단위 마감 기록에서 구분한다.
+closure를 완료로 세지 않으며 신규36단계·재사용0의 [확정 검증·보관](VALIDATION_V666_RETURN_LABEL.md)을 마쳤다.
