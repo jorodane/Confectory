@@ -33,6 +33,11 @@ try:
  f.start(0);f.invoke('select',dict(id=owner));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:
   expect.set_options(timeout=60000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size(dict(width=1900,height=1400));open_card();expect(panel().locator('[data-enum-clr-notice]')).to_contain_text('구버전');panel().locator('[data-enum-native]').click();held=copy.deepcopy(pending());assert len(held)==1 and held[0][1]['kind']=='enum-native';original();panel().locator('.object-title-name').click();panel().press('Control+z');assert not pending();panel().press('Control+y');assert pending()==held;restart(1);assert pending()==held and checkpoint.read_bytes()==before;original();f.checked('explicit native enum preparation preserves the exact ID/name/icon list through Undo/Redo and unsaved cold restoration without touching current ID-valued consumers')
+  if detached:
+   current=next(row for row in f.state()['editorViews']if row['view']=='1');binding=current['authorBinding'];hash=current['declaration']['textHash'];prepared=f.invoke('blueprint',dict(action='readOwnerEdits',id=owner,hash=hash,view='1',viewBinding=binding,owner=owner))['result']['result'];base=dict(basis=prepared['basis'],action='applySlots',id=owner,view='1',viewBinding=binding,owner=owner,rows=[],declaration=dict(id=owner,hash=hash,changes=[dict(type='enum-native',text='nominal-members-native-v2')]))
+   for label,patch in [('stale view',dict(viewBinding='0'*32)),('another owner',dict(id=f.n+'Unit',owner=f.n+'Unit')),('unbound rows',dict(rows=[{}])),('raw source',dict(declaration=dict(base['declaration'],raw='enum '+owner+' {}'))),('non-header edit',dict(declaration=dict(base['declaration'],changes=[dict(type='data',text='{}')])) )]:
+    f.invoke('blueprint',copy.deepcopy(base)|patch,False);assert checkpoint.read_bytes()==before and pending()==held;original()
+   f.checked('bound detached enum preparation rejects stale binding, another owner, nonempty slot rows, raw source and unrelated edits without changing checkpoint, source or pending input')
   if mode=='cancel':
    panel().locator('[data-declaration-header-action=discard]').click();f.idle();assert not pending()and checkpoint.read_bytes()==before;restart(2);assert not pending();original();f.checked('explicit discard and cold restoration leave the legacy enum and all consumers unchanged');f.browser.close();raise SystemExit(0)
   if mode=='storage':
@@ -44,7 +49,7 @@ try:
   while pending()and time.monotonic()<deadline:f.page.wait_for_timeout(20)
   assert not pending();ids=verify();original();restart(3);assert verify()==ids and not pending();f.checked('the same header Save stores a versioned permanent number table atomically and restores it without rewriting item IDs or source consumers')
   f.invoke('reviewGroup',dict(ids=ids,target='portable'));review=f.state()['review'];assert review['status']=='ready',review;f.invoke('confirmGroup',dict(ids=ids,token=review['token']));original({'Mood.celem'});doc=f.metadata('informationClr',project=str(f.manifest),id=owner);assert doc['kind']=='enum'and{row['id']:row['value']for row in doc['members']}=={'stable-ready':1,'stable-done':2};f.checked('explicit compiler Review/Confirm publishes only the enum numeric contract; existing stored selection stable-done and other source bytes survive')
-  assert not f.errors and not f.external,(f.errors,f.external);panel().locator('[data-enum-definition]').screenshot(path=str(f.case/'enum-numeric-preparation.png'));f.browser.close()
+  assert not f.errors and not f.external,(f.errors,f.external);f.idle();f.page.screenshot(path=str(f.case/'enum-numeric-preparation.png'));f.browser.close()
 except Exception:
  try:(f.case/'enum-clr-failure.json').write_text(json.dumps(dict(state=f.state(),traffic=f.traffic[-60:],errors=f.errors),ensure_ascii=False,indent=2))
  except Exception:pass

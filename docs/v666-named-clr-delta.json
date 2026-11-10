@@ -19,11 +19,14 @@
     "examples/editor-home/ui/declaration-icons.js": "d37bf85aa742531f4bd8dc3aa12d99ecc5160f91a365971bc8ca5c42da84bf41",
     "examples/editor-home/ui/enum-definition.js": "a8286a95984e632f7dce84ac9949e3401104d4b7810de3d85bbb84d3b0a0f611",
     "examples/editor-home/ui/mixed-declaration.js": "9d5155826062607036bc74fff1a1b632da02ff4d8366606ac061c88010bba3cb",
-    "examples/editor-home/WebBundle.csbody": "e8e7aca1432c08ca559b87cb28f893c32b55f3f0ccbb332634672bda75c0d995"
+    "examples/editor-home/WebBundle.csbody": "e8e7aca1432c08ca559b87cb28f893c32b55f3f0ccbb332634672bda75c0d995",
+    "packs/editor-home-model/Blueprint.csbody": "0fddf028d3bd4bb53ae188cd909280d17d984ff8e719f243cfb5f55647f4c7f0"
   },
   "authoredLayoutChanged": false,
   "originalCSharpRewritten": false,
   "newPermissions": false,
   "storedChoiceIdsPreserved": true,
-  "numericContractExplicit": true
+  "numericContractExplicit": true,
+  "firstCandidate": "f182442fd9b53065cfb81e2f84563a88ab4f65c6",
+  "boundDetachedPreparation": "enum-native only; original binding, ownership, raw/slot rejection retained"
 }
