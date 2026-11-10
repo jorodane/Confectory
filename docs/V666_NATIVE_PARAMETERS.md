@@ -47,3 +47,5 @@ provider 호출·async 모듈 또는 살아 있는 참조 접근 완료로 표�
 모듈은 interface라는 사용자 결정을 유지한다. 동기 호출자는 명시 async 전환 전 오류다.
 이번 범위에 새 사용자 정책 결정은 없다. 실제 Windows/모바일·전체 UI는 미검증이며
 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거와 기존 정리 한도를 유지한다.
+
+이 한정 범위의 [최종46단계(신규41·동등 재사용5) 검증과 보관](VALIDATION_V666_NATIVE_PARAMETERS.md)을 마쳤다.

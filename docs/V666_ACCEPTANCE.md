@@ -804,3 +804,5 @@ live reference·module async/실행 결과는 기존 유한 잔여다.
 copy/receiver 계약은 기존 보호를 유지한다. 저장 실패 시 순차 적용으로 입력이 사라지던
 결함을 수정하고 기존 source/receipt/CAS·원래 배치와 원본 계약을 보존한다. 다른 기존 ABI
 문맥·live reference·module async/실행 결과는 같은 유한 잔여다.
+
+이 한정 범위의 [최종46단계(신규41·동등 재사용5) 검증과 보관](VALIDATION_V666_NATIVE_PARAMETERS.md)을 마쳤다.
