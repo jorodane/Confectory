@@ -216,3 +216,8 @@ Blueprint/상속·비소유 전환, 살아 있는 참조와 module async/공개 
 Blueprint 구현 entry/출력·live reference·module async/공개 실행 요구는 기존 유한 잔여다.
 
 이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_BLUEPRINT_NATIVE_INPUTS.md)을 마쳤다.
+
+후속 [직접 Blueprint 구현의 고급 entry·반환 전환](V666_BLUEPRINT_NATIVE_ENTRY.md)은
+같은9행에서 기존 call/export 그래프의 정확한 입력·writer/exit 선택과 명시 C# 호출자를
+한 후보/Review/최종 CAS에 연결한다. 원래 ID·좌표·경로·계약·권한과 명시 계획 밖의 C# bytes를 보존한다.
+code/whole-body/private 대응·live reference·module async/공개 실행 결과는 기존 유한 잔여다.

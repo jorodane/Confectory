@@ -1,0 +1,23 @@
+{
+  "base": "4951c6279f8a50f260a2a993bb25af0ca077b5ab",
+  "scope": "direct owned synchronous serial call/export Blueprint implementation entry and explicit writer/exit nominal contract adaptation; explicit C# caller body plans",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-blueprint-entry-v1",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "5b4877c84642fda4e03b67319f9512be4b66609fda2a5c78952a110c9fa7aaa2",
+    "examples/editor-home/ui/element-functions.js": "b27e5898040ce985b6a9be3c7cbdd5d71e8cdafe2141f729da1a82e0078e657c",
+    "targets/element-authoring/FunctionNativeEdits.cs": "413e5f756fe353679e511000fab5be93a0c30a3d3aab2bf0ce144da7267fd623",
+    "targets/element-authoring/InformationFunctionContracts.cs": "c0e6fdb14a7e3aee3bb7125c550bb76b462e078dd2287aa5fa95897e5bc12b97"
+  },
+  "remaining": [
+    "explicit advanced ABI adaptation of ordinary/opaque C# nodes and private Blueprint bodies",
+    "live reference instance/accessor binding",
+    "module async and public execution result contract closure",
+    "existing row9 multiple/function-field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}

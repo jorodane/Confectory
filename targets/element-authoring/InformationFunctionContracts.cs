@@ -37,7 +37,7 @@ internal static class InformationFunctionContracts
   var implementationPlans=mapping["implementations"]?.AsObject()??new JsonObject();var selectedUses=new HashSet<string>(StringComparer.Ordinal);if(implementationPlans.Count>64)throw new ArgumentException("Callee binding selection budget");
   var outputPlans=mapping["outputs"]?.AsObject()??new JsonObject();var selectedOutputs=new HashSet<string>(StringComparer.Ordinal);if(outputPlans.Count>512)throw new ArgumentException("Output selection budget");
   var bodyPlans=mapping["bodies"]?.AsObject()??new JsonObject();var selectedBodies=new HashSet<string>(StringComparer.Ordinal);if(bodyPlans.Count>32)throw new ArgumentException("C# body plan budget");
-  bool wholeContract=bodyPlans.Any(p=>p.Value?["whole"] is JsonObject||p.Value?["wrapper"] is JsonObject);
+  bool wholeContract=nativeTypes is not null&&(InformationStructs.SignatureTypes(old).Any()||InformationStructs.SignatureTypes(next).Any())||bodyPlans.Any(p=>p.Value?["whole"] is JsonObject||p.Value?["wrapper"] is JsonObject);
   var graphPlans=mapping["outputGraphs"]?.AsObject()??new JsonObject();var selectedGraphs=new HashSet<string>(StringComparer.Ordinal);if(graphPlans.Count>64)throw new ArgumentException("Output graph selection budget");
   if(remap.Count!=old.Args.Count||old.Args.Any(a=>!remap.ContainsKey(a.Name)))throw new ArgumentException("Map every original function pin explicitly");
   var mapped=new HashSet<string>(StringComparer.Ordinal);
