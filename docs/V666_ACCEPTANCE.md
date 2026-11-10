@@ -779,3 +779,5 @@ code/whole-body/private 대응·live reference·module async/공개 실행 결�
 계획을 한 후보/Review/최종 CAS에 연결한다. 원래 코드 record는 다시 쓰지 않고 읽기 증거로
 보호한다. 노드 자체 ABI·private/whole-body·live reference·module async/공개 실행 결과는
 기존 유한 잔여다. 원래 ID·연결·권한·레이아웃과 구 reader 제한을 유지한다.
+
+이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_RETAINED_NATIVE_CODE.md)을 마쳤다.

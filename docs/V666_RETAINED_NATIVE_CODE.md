@@ -39,3 +39,5 @@ whole-body의 명시 native 대응은 같은9행의 후속이며 가능한 타�
 구 parser/enum reader의 비호환과 이전 authoring scope의 명시 거절은 유지한다. 이전 전체
 workspace reader 실행/자동 migration이나 실제 Windows/모바일·전체 UI 완료를 뜻하지 않는다.
 초기 빈 화면 원인은 미확정이며 원본·latest/rollback·증거의 기존 보관/정리 규칙을 유지한다.
+
+이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_RETAINED_NATIVE_CODE.md)을 마쳤다.
