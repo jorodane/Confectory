@@ -1,0 +1,23 @@
+{
+  "base": "4bc139932b6f663ffa4aeb1f4fa204277f0582b4",
+  "scope": "one directly owned synchronous retained root context nominal ABI/text/caller and explicit writer replacement, preserving independent code/helpers/locals/routes and blocking unmapped consumers",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-retained-whole-v1",
+  "productFiles": {
+    "targets/element-authoring/FunctionNativeEdits.cs": "2aa14b4d309a55dbba897f8afaa16b40865427f85d296f3407bc56bcdf417374",
+    "targets/element-authoring/InformationFunctionBodies.cs": "9b1db395c282f5d435882d5f1d4a056314722cd30fe75a89d892d26b88ea3365",
+    "examples/editor-home/ui/element-functions.js": "a3448a14c7edb2894cf7e405b3086f2ca5c96f95b58eea0343c4b5971d9eaa97",
+    "examples/editor-home/WebBundle.csbody": "4c22ac2199b381e5527b6684d16a8eab9c375bee299f641f412b07ffc808ddf5"
+  },
+  "remaining": [
+    "independent code/private frame ABI and other existing retained contexts",
+    "live reference instance/accessor binding and lifetime",
+    "module async/public execution result closure and DLL cycles",
+    "existing row9 multiple/function-field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}

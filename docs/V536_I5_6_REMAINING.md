@@ -239,3 +239,9 @@ code/whole-body/private 대응·live reference·module async/공개 실행 결�
 문맥·live reference·module async/실행 결과는 기존 유한 잔여다.
 
 이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_NATIVE_WHOLE.md)을 마쳤다.
+
+후속 [기존 독립 노드·지역값을 보존하는 whole-body 고급 ABI](V666_NATIVE_RETAINED.md)는
+같은9행에서 한 소유 문맥의 native 서명·본문·호출자와 명시 root 출력 교체를 연결한다.
+독립 C# code/helpers bytes·mtime, 정확한 local·실행선·원본·권한을 유지한다. 다른 소비자가
+남는 이전 출력의 해제는 기존 backend와 UI에서 계속 거절한다. 독립 code/private ABI,
+live reference·module async/실행 결과는 기존 유한 잔여다.
