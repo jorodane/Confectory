@@ -49,6 +49,6 @@ pack DLL 순환은 기존 `INFORMATION_CLR_PACK_CYCLE` 경계를 유지하며 as
 타입 선택 UI·참조의 실제 접근/수명·multiple/함수 필드·고급 Blueprint 대응과 모듈의
 기존 고급 실행 계약은 같은 고정9행 잔여다. M11/M12/M4를 새 회귀 없이 재개하지 않는다.
 
-최종 검증·보관은 마감 기록에서 구분한다. Linux native/Chromium·Windows 교차 패키지와
+[신규22·동등 재사용23 검증·보관](VALIDATION_V666_MODULE_NOMINAL.md)을 마쳤다. Linux native/Chromium·Windows 교차 패키지와
 실제 Windows/WebView2·모바일·물리 GPU/audio/IME·전체 UI를 구별한다. 초기 빈 화면 원인은
 미확정이며 이번 모듈 연결로 원인이 해결됐다고 표현하지 않는다.
