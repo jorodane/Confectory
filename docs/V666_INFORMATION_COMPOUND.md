@@ -38,8 +38,9 @@ pack을 합치거나 assembly/타입 정체성을 바꾸지 않는다. 이 경�
 function·종류 필드와 타입 선택 UI/고급 Blueprint 대응은 동일한 고정9행 후속이다.
 
 종류는 현재 `EnumDefinition`의 opaque member ID이며 `SchemaContracts`도 ID 문자열을
-검증한다. 이름/순서/int 위치로 선택을 치환하지 않는다. 종류별 ID 값 struct와 영구 숫자
-매핑을 둔 C# enum 중 사용자 선택을 요청한 상태이며, 답변 없이 숫자 정책을 확정하지 않는다.
+검증한다. 이름/순서/int 위치로 선택을 치환하지 않는다. 사용자는 종류는 C# enum, 모듈은 C# interface라고 확정했다. 표현 선택은 답변 대기가 아니다.
+항목 ID에 대응하는 숫자는 이름/행 순서 변경에도 유지해야 하며 후속에서 기존 저장 계약과
+연결한다. 이 compound checkpoint는 enum/interface를 구현한 것으로 세지 않는다.
 참조는 기존 객체 ID/$ref의 살아 있는 객체를 뜻하므로 값 snapshot이나 C# 메모리 ref로
 자동 치환하지 않는다. 필요한 접근/수명 정책은 기존 runtime 문맥과 별도로 대조한다.
 
@@ -50,7 +51,7 @@ Info v1 parser는 기존 generated type 이름을 읽지만 복합 struct 생성
 필드를 버려 열리게 하지 않는다. 새 소스 전체의 compiler 재검증과 새 산출물만 사용하며
 구 DLL hot replacement·저장 데이터/서명 자동 migration·모든 구 reader 교환은 지원하지 않는다.
 
-최종 검증·보관은 마감 기록에서 구분한다. 타입 선택 UI는 이 단위에서 수정하지 않는다.
+[신규44단계·재사용0의 마감 기록](VALIDATION_V666_INFORMATION_COMPOUND.md)을 따른다. 타입 선택 UI는 이 단위에서 수정하지 않는다.
 M11/M12/M4는 새 회귀 없이 재개하지 않는다. 초기 빈 화면의 원인은 미확정이며 Linux
 native/Chromium·교차 패키지와 실제 Windows/WebView2·모바일·물리 GPU/audio/IME·전체
 UI/사용자 프로젝트 검증을 구분한다.

@@ -712,5 +712,6 @@ native 함수 입력·반환·실제 링크와 동일 계약 본문 저장의 �
 struct 전체 closure·전이 shape·pack compiler/link 참조와 같은 본문 저장/CAS에 연결한다.
 primitive v1의 생성 source/hash와 정보 ID별 CLR 이름은 유지한다. 구 v1 compiler의 명시
 거절/원문 보존과 구 parser 경계를 구별하며 자동 migration은 만들지 않는다. 타입 선택 UI,
-reference/종류 등은 같은 잔여이고 숫자 enum 정책은 사용자 답변 대기다.
-이 복합 정보 단위의 확정 검증·보관은 마감 기록에서 구분한다.
+reference/종류 등은 같은 잔여다. 사용자는 종류는 C# enum, 모듈은 C# interface로 확정했다.
+종류의 기존 항목 ID 안정성을 숫자 연결에서도 유지하며 표현 선택을 다시 묻지 않는다.
+이 복합 정보 단위의 [신규44단계·재사용0 검증·보관](VALIDATION_V666_INFORMATION_COMPOUND.md)을 마쳤다.
