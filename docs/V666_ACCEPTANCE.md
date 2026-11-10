@@ -815,3 +815,9 @@ single/multiple 값 계약을 C# 배열 생성에 연결한다. primitive·중�
 여전히 별도 잔여다. 생성/reader 호환성과 최종 검증은 해당 문서의 한정 경계를 따른다.
 
 이 한정 범위의 [최종 신규46단계·재사용0 검증과 보관](VALIDATION_V666_INFORMATION_ARRAYS.md)을 마쳤다.
+
+후속 [실제 객체의 종류 값 Read/Set](V666_LIVE_ENUM.md)은 고정9행에서 호출자가 명시적으로
+제공한 enum 값·배열을 기존 checked property 경로에 연결한다. 선언 ID 조회·기본값 생성·
+provider 선택이나 mutable enum ref를 추가하지 않는다. 기존 primitive/reference와
+숫자 매핑 없는 종류의 거절, 원문·권한·원자 저장·Review/CAS를 유지한다. 나머지 정보 참조,
+function/compound 필드와 module async·공개 실행 결과는 별도 잔여다.

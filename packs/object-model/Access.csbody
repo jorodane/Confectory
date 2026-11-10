@@ -3,10 +3,21 @@ if(owner.Length>0&&!System.Linq.Enumerable.Any(metadata["lineage"]!.AsArray(),id
 var declared=System.Linq.Enumerable.SingleOrDefault(metadata["fields"]!.AsArray(),item=>item!["id"]!.ToString()==field)??throw new InvalidOperationException("Property field is not declared by the actual instance");
 if(contractHash.Length>0&&declared["hash"]!.ToString()!=contractHash)throw new InvalidOperationException("Property field contract changed; preserve the actual instance and bind a compatible contract");
 string kind=declared["kind"]!.ToString(),type=declared["type"]!.ToString();bool multiple=declared["cardinality"]!.ToString()=="multiple";
-if(kind is not ("general" or "reference"))throw new NotSupportedException("This object field kind has no live value contract yet");
+if(kind is not ("general" or "reference" or "enum")||kind=="enum"&&declared["nativeEnum"] is null)throw new NotSupportedException("This object field kind has no live value contract yet");
+// Enum values are supplied by the caller, never converted from declaration IDs
+// or integers. Preserve checked Set for constrained values; no mutable ref cell.
+bool EnumType(Type actual,out System.Collections.Generic.HashSet<int> values){
+ values=new System.Collections.Generic.HashSet<int>{0};
+ if(declared["nativeEnum"] is not System.Text.Json.Nodes.JsonObject contract||contract["profile"]?.ToString()!="information-enum-int32-v1"||contract["members"] is not System.Text.Json.Nodes.JsonArray members||members.Count>256||!actual.IsEnum||Enum.GetUnderlyingType(actual)!=typeof(int)||actual.FullName!=contract["clrType"]?.ToString()||actual.Assembly.GetName().Name!=contract["assembly"]?.ToString())return false;
+ var names=new System.Collections.Generic.Dictionary<string,int>(StringComparer.Ordinal){["Unselected"]=0};
+ foreach(var member in members){string name=member!["clrMember"]!.ToString();int number=member["value"]!.GetValue<int>();if(number<=0||!values.Add(number)||!names.TryAdd(name,number))return false;}
+ return Enum.GetNames(actual).Length==names.Count&&System.Linq.Enumerable.All(names,p=>Enum.IsDefined(actual,p.Key)&&Convert.ToInt32(Enum.Parse(actual,p.Key))==p.Value);
+}
+bool EnumValue(object? item)=>item is Enum enumValue&&EnumType(enumValue.GetType(),out var values)&&values.Contains(Convert.ToInt32(enumValue));
+bool EnumValues(object? item){if(!multiple)return EnumValue(item);return item is Array array&&array.GetType().IsSZArray&&EnumType(array.GetType().GetElementType()!,out var values)&&System.Linq.Enumerable.All(System.Linq.Enumerable.Cast<object>(array),entry=>values.Contains(Convert.ToInt32(entry)));}
 bool Reference(object? item)=>item is object[] reference&&reference.Length==3&&reference[0] is string version&&version is "Confectory.ObjectModel.Instance/v1" or "Confectory.ObjectModel.Instance/v2"&&reference[1] is System.Text.Json.Nodes.JsonObject contract&&reference[2] is System.Collections.Generic.Dictionary<string,object>&&System.Linq.Enumerable.Any(contract["schemas"]!.AsArray(),schema=>schema!.ToString()==type);
 bool Atom(object? item)=>kind=="reference"?Reference(item):type switch{"bool"=>item is bool,"int"=>item is int,"long"=>item is long,"float"=>item is float f&&float.IsFinite(f),"double"=>item is double d&&double.IsFinite(d),"string"=>item is string,_=>false};
-bool Valid(object? item){if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
+bool Valid(object? item){if(kind=="enum")return EnumValues(item);if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
 bool typedCell=format=="Confectory.ObjectModel.Instance/v2"&&kind=="general"&&!multiple&&type is "bool" or "int" or "long";
 if(write){
  if(!Valid(value))throw new ArgumentException("Object field value does not match its exact type/cardinality");

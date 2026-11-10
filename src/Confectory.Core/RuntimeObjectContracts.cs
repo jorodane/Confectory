@@ -50,11 +50,23 @@ public static class RuntimeObjectContracts
         {
             string type = field.Kind == "general" ? field.Type : "object";
             bool supported = field.Kind is "general" or "reference";
+            InformationStructs.Definition? nativeEnum = null;
+            if (field.Kind == "enum") {
+                try { nativeEnum = InformationStructs.Describe(registry, field.Type, field.Origin); type = nativeEnum.ClrType; supported = true; }
+                catch (BuildError error) when (error.Diagnostic.Code == "ENUM_CLR_MAPPING") { /* Unconverted IDs remain unsupported, never assign numbers here. */ }
+            }
             var row = new JsonObject
             {
                 ["id"] = field.Origin + "/field:" + name, ["name"] = name, ["origin"] = field.Origin,
                 ["kind"] = field.Kind, ["cardinality"] = field.Cardinality, ["type"] = field.Type,
-                ["clrType"] = field.Kind == "enum" ? null : type + (field.Cardinality == "multiple" ? "[]" : ""), ["supported"] = supported
+                ["clrType"] = field.Kind == "enum" && nativeEnum is null ? null : type + (field.Cardinality == "multiple" ? "[]" : ""), ["supported"] = supported
+            };
+            if (nativeEnum is not null) row["nativeEnum"] = new JsonObject {
+                ["profile"] = InformationEnums.Profile, ["clrType"] = nativeEnum.ClrType,
+                ["assembly"] = "Information_" + Generation.Symbol(PackPaths.Namespace(field.Type)), ["shapeHash"] = nativeEnum.ShapeHash,
+                ["members"] = new JsonArray(nativeEnum.Members!.OrderBy(m => m!["id"]!.ToString(), StringComparer.Ordinal).Select(m => (JsonNode)new JsonObject {
+                    ["id"] = m!["id"]!.DeepClone(), ["value"] = m["value"]!.DeepClone(), ["clrMember"] = m["clrMember"]!.DeepClone()
+                }).ToArray())
             };
             row["hash"] = JsonData.Digest(row);
             rows.Add(row);

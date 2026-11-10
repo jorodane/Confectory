@@ -80,6 +80,9 @@ def save(c,held):
             if action=='authorBatch':requests.add(data['requestId'])
             elif requests and action=='settledAuthorBatch':queries.add(data['requestId'])
         response=route.fetch();payload=response.json()
+        if '_interrupt_observations'in c:
+            c['_interrupt_observations'].extend(copy.deepcopy(r)for r in payload.get('results',[])if r.get('requestId')in requests|queries)
+            (c['case']/'interruption-observations.json').write_text(json.dumps(dict(requests=sorted(requests),queries=sorted(queries),results=c['_interrupt_observations']),ensure_ascii=False,indent=2))
         if mode=='late'and not paused and any(r.get('ok')and r.get('requestId')in requests for r in payload.get('results',[])):
             paused.update(route=route,response=response);return
         if mode=='loss':
@@ -87,13 +90,18 @@ def save(c,held):
                 if result['requestId']in requests|queries:
                     rid=result['requestId'];lost.append(rid);result.clear();result.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
         route.fulfill(response=response,json=payload)
+    if mode=='late'and '_interrupt_observations'in c:
+        page.set_viewport_size({'width':1480,'height':1050});panel().locator('[data-bp-percent]').click();zoom=page.get_by_role('dialog',name='노드 화면 배율',exact=True);zoom.get_by_role('button',name='전체 보기',exact=True).click();page.keyboard.press('Escape')
     page.route('**/api/request',interrupt);panel().locator('[data-bp-save]').click()
-    for _ in range(1000):
+    deadline=time.monotonic()+c.get('_interrupt_timeout_seconds',30)
+    while time.monotonic()<deadline:
         if paused or requests and any(r in queries for r in lost):break
         page.wait_for_timeout(30)
     assert len(requests)==1
     if mode=='late':
-        assert paused;page.set_viewport_size({'width':1480,'height':1050});panel().locator('[data-bp-node=first] .bp-pin-plug[data-side=out] .bp-pin-value').click();name=panel().get_by_role('textbox',name='지역변수 이름',exact=True);name.fill('늦은 보관값');name.press('Enter');paused['route'].fulfill(response=paused['response'])
+        def trace(phase):
+            if '_interrupt_observations'in c:print('LATE_PHASE '+phase,flush=True)
+        assert paused;trace('success held; resize');page.set_viewport_size({'width':1480,'height':1050});trace('resized; select stored output');panel().locator('[data-bp-node=first] .bp-pin-plug[data-side=out] .bp-pin-value').click();trace('selected; enter new name');name=panel().get_by_role('textbox',name='지역변수 이름',exact=True);name.fill('늦은 보관값');name.press('Enter');trace('new input entered; release response');paused['route'].fulfill(response=paused['response']);trace('response released')
     else:assert any(r in queries for r in lost)
     page.unroute('**/api/request',interrupt);c['idle']();assert c['pending']();restart(c,3);retry=len(c['traffic']);panel().locator('[data-bp-save]').click();c['idle']()
     for _ in range(1000):

@@ -29,7 +29,7 @@ internal sealed class InformationFunctionProperties(JsonObject request,Action<st
   }
   if(original.Parent is not null)Load(original.Parent,original.Id);
   foreach(var use in original.Uses.Where(u=>u.Kind=="schema"))Load(use.Id,use.Origin??original.Id);
-  foreach(var field in original.Fields.Values.Where(f=>f.Kind is "compound" or "reference" or "function"))Load(field.Type,field.Origin);
+  foreach(var field in original.Fields.Values.Where(f=>f.Kind is "compound" or "reference" or "function" or "enum"))Load(field.Type,field.Origin);
   return original;
  }
  public (JsonObject Properties,JsonObject Functions,string? Proof) ForGraph(Element implementation,JsonObject graph)

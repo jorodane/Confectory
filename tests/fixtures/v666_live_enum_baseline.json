@@ -1,0 +1,42 @@
+{
+  "plain": {
+    "schema": 1,
+    "id": "Owned.Live::PlainNode",
+    "kind": "object",
+    "lineage": [
+      "Owned.Live::PlainNode"
+    ],
+    "schemas": [
+      "Owned.Live::Plain"
+    ],
+    "fields": [
+      {
+        "id": "Owned.Live::Plain/field:count",
+        "name": "count",
+        "origin": "Owned.Live::Plain",
+        "kind": "general",
+        "cardinality": "single",
+        "type": "long",
+        "clrType": "long",
+        "supported": true,
+        "hash": "80efc7f3c87aefa07a55bc5e69aa734e4ecf714f198859b14534f219d2ccc261"
+      }
+    ],
+    "dependencies": [
+      "Owned.Live::Plain",
+      "Owned.Live::PlainNode"
+    ],
+    "hash": "72ba9883b3b9a454da2bde9254793d6ac6a777eb3d03199386d585c08cd966bc"
+  },
+  "legacy": {
+    "id": "Owned.Live::Fields/field:legacy",
+    "name": "legacy",
+    "origin": "Owned.Live::Fields",
+    "kind": "enum",
+    "cardinality": "single",
+    "type": "Owned.Live::Legacy",
+    "clrType": null,
+    "supported": false,
+    "hash": "f4769b9f793243be00be9819915084fb57b0f982c016f929a020b52d97259c44"
+  }
+}
