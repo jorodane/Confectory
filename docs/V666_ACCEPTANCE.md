@@ -797,3 +797,10 @@ code/whole-body/private 대응·live reference·module async/공개 실행 결�
 live reference·module async/실행 결과는 기존 유한 잔여다.
 
 이 한정 범위의 [최종45단계(신규34·동등 재사용11) 검증과 보관](VALIDATION_V666_NATIVE_RETAINED.md)을 마쳤다.
+
+후속 [일반 C# 노드의 관측된 고급 매개변수 타입](V666_NATIVE_PARAMETERS.md)은 같은9행에서
+현재 frame/노드 타입 선택과 한 노드의 명시 대응·바인딩·본문을 원자 checkpoint에 연결한다.
+소유 root와 독립 소유 함수 private frame이 범위이며, 정보 슬롯 private 진입·공개/override/
+copy/receiver 계약은 기존 보호를 유지한다. 저장 실패 시 순차 적용으로 입력이 사라지던
+결함을 수정하고 기존 source/receipt/CAS·원래 배치와 원본 계약을 보존한다. 다른 기존 ABI
+문맥·live reference·module async/실행 결과는 같은 유한 잔여다.

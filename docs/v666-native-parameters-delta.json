@@ -1,0 +1,23 @@
+{
+  "base": "8fad441556f3c192ef5bb1c3a5c2b8781af5bf9f",
+  "scope": "one observed directly owned synchronous free code node parameter ABI, explicit bindings/body, atomic checkpoint and receipt recovery in root or standalone private frame",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointGrammarChanged": false,
+  "receiptVersion": 1,
+  "productFiles": {
+    "examples/editor-home/ui/blueprint-parameters.js": "4b3a8c10fb95fe734516cfc990c04d9758d6e385d9ade2ca9a42547523ae63d9",
+    "examples/editor-home/ui/feature-authoring.js": "ab48ab8f2eb897936e44ce5da76ce64cc98b1dd98de149ef9033d2b9a2820de5",
+    "packs/pack-workspace/Blueprint.csbody": "30ca6f74f204055b1037313e7edb333f18556ea73044945bd84918ed5fce54dc",
+    "examples/editor-home/WebBundle.csbody": "0766c340065471468073f847d944cba9c5c6583e3b876f1ea6340f8b1b6a1b9c"
+  },
+  "remaining": [
+    "other existing public/private/retained nominal ABI contexts",
+    "live reference instance/accessor binding and lifetime",
+    "module async/public execution result closure and DLL cycles",
+    "existing row9 multiple/function-field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}
