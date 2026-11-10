@@ -192,3 +192,10 @@ UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/�
 이 한정 범위의 [최종 신규41단계·재사용0 검증/보관](VALIDATION_V666_FUNCTION_NATIVE_TYPES.md)을 마쳤다.
 정보 소유 새 함수의 native 타입 선택과 보호 초안 v2에 해당하며, 기존 연결 고급 ABI UI·live reference·
 module async/공개 실행 계약 및 실제 기기/전체 UI 수용은 합산 완료하지 않는다.
+
+후속 [기존 정보 기능의 native 타입 전환](V666_EXISTING_NATIVE_TYPES.md)은 구현·호출·요구
+계약이 없는 직접 소유 동기 기능의 입력/out/반환·배열을 기존 상세창에 연결한다.
+사용처 부재와 원본 읽기 증거를 Save/Review/최종 CAS에 결부하며, 첫 구현은 전환
+Confirm 뒤에 작성한다. Confirm 후 같은 세션의 저장이 오래된 receipt를 상속해 거절되던
+결함도 수정한다. 연결된 nominal ABI 대응·live reference·module async/공개 실행 계약과
+실제 기기/전체 UI는 같은 고정 잔여이며 새 선택 조합을 필수 목록으로 늘리지 않는다.

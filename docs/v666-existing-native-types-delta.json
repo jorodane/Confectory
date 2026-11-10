@@ -1,0 +1,27 @@
+{
+  "base": "246fd701fffbd2ac2a5bdc14f0bc70504bbd2014",
+  "scope": "unused directly-owned synchronous information function input/out/return and array native type selection",
+  "authoredLayoutChanged": false,
+  "originalCSharpRewritten": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "c32fa2c2348634bc3447e28880934ebedf3fbcc05d0e04f0930ec655912af479",
+    "examples/editor-home/ui/element-functions.js": "16ff288b0a873ee0ef91e96c384aedc30ad3409c808398c384a7631aa4a284b8",
+    "examples/editor-home/ui/mixed-declaration.js": "60b62232efe215ffaced1c1e25eef9741880095ccb6f133054e08b17d27bcf1e",
+    "packs/pack-workspace/Blueprint.csbody": "41221e78578957806dcf74384e24aee63d257bccfe95bf37d39ffa66ccd08121",
+    "targets/element-authoring/EffectiveMetadata.cs": "5a3735f2c9bfcc930093937350555da8fa6cef796b2d371c59f743466f6c0cae",
+    "targets/element-authoring/FunctionNativeEdits.cs": "f57a46a052f4fd0ce952016e6131894e82596c8f3533884716820e26ded5fcd7",
+    "targets/element-authoring/FunctionNativeTypes.cs": "624c64b4fe75290ce9d8018b9eee0cb8023cf0d7b3312d23dd458417ab180f08",
+    "targets/element-authoring/InformationDefinitions.cs": "bc3c401a51227c918cf89b980453341555041d8db705f74ad028ea7cbbc5acd0",
+    "targets/element-authoring/Program.cs": "62b1c5fd56e8dd10bd08cfd2ad9a99bbd303bf5ce097f0aad14336161979ae85"
+  },
+  "remaining": [
+    "connected native ABI adaptations",
+    "live reference instance/accessor binding",
+    "module async and public execution requirements",
+    "existing multiple/function field native generation and advanced Blueprint adapters from fixed row 9"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}

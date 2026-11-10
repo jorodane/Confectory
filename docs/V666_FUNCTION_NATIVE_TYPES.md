@@ -30,7 +30,8 @@ Save는 선택 증거를 현재 metadata와 비교하고 원자 후보만 checkp
 읽기 전용 타입 증거는 receipt에 보존하고 Review에서 다시 확인한다.
 Confirm은 동일한 파일 lease 안에서 소유 파일의 기존 read checks와 등록 외부 파일의
 absolute read checks를 확인한다. 외부 정의를 쓰기 대상으로 추가하거나 권한을 만들지 않는다.
-후속 Save는 이전 타입 증거를 보존한다. 실패/취소/cold/응답 유실/늦은 이름 입력은
+Confirm 전 후속 Save는 살아 있는 원자 그룹의 이전 타입 증거를 보존한다.
+Confirm 후 새 변경은 수락한 원본 기준으로 시작한다. 실패/취소/cold/응답 유실/늦은 이름 입력은
 기존 입력·receipt 정산 체계를 재사용한다.
 
 `.celem` 문법은 늘리지 않는다. 타입 읽기 증거가 포함된 초안은
@@ -46,3 +47,5 @@ absolute read checks를 확인한다. 외부 정의를 쓰기 대상으로 추�
 살아 있는 reference의 객체 수명·접근 경로, module의 async/공개 실행 계약,
 기존 연결 함수의 고급 ABI 전환은 별도 잔여이며 이 단위의 완료 주장에 넣지 않는다.
 초기 빈 화면 원인은 미확정이며 실제 Windows/모바일 기기·전체 UI는 검증하지 않았다.
+
+기존 사용처 없는 직접 소유 기능의 후속 전환은 [기존 native 타입 전환](V666_EXISTING_NATIVE_TYPES.md)에서 구분한다.

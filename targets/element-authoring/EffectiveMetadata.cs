@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false,string? nativeFunction=null)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -80,6 +80,7 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    result["ownFunctions"]=ownFunctions;
    if(definitionTypes)result["definitionTypes"]=FieldTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    if(nativeTypes)result["nativeTypes"]=FunctionNativeTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File),Observe);
+   if(nativeTypes&&nativeFunction is not null)result["nativeFunctionEdit"]=FunctionNativeEdits.Project(registry,id,nativeFunction,Observe);
    if(observeSources){var observations=new System.Text.Json.Nodes.JsonArray();foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}result["observations"]=observations;}
    return result;
   }
