@@ -188,3 +188,7 @@ UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/�
 타입 읽기 보호 초안은 v2/profile로 보관해 구 v1 reader의 묵시적 보호 누락을 막는다.
 기존 v1 초안 읽기와 기본형 저장 형식은 유지한다. 현재 reader의 v1/v2 복원·거절·생성 그룹
 취소를 별도 검증하며, 구 reader 실제 실행이나 전체 기기 호환 완료를 뜻하지 않는다.
+
+이 한정 범위의 [최종 신규41단계·재사용0 검증/보관](VALIDATION_V666_FUNCTION_NATIVE_TYPES.md)을 마쳤다.
+정보 소유 새 함수의 native 타입 선택과 보호 초안 v2에 해당하며, 기존 연결 고급 ABI UI·live reference·
+module async/공개 실행 계약 및 실제 기기/전체 UI 수용은 합산 완료하지 않는다.

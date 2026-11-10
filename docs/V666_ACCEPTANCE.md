@@ -738,3 +738,7 @@ UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/�
 새 함수 첫 계약에 지원 nominal 타입/배열을 연결한다. 기존 상세창의 검색/다중 선택을
 재사용하고 정의 초안과 디스크 원본, 등록 manifest를 별도 확인하며 최종 source lease에
 읽기 증거를 유지한다. 전체 고급 타입 UI·live reference·module async/분기 완료로 합산하지 않는다.
+
+이 한정 범위의 [최종 신규41단계·재사용0 검증/보관](VALIDATION_V666_FUNCTION_NATIVE_TYPES.md)을 마쳤다.
+정보 소유 새 함수의 native 타입 선택과 보호 초안 v2에 해당하며, 기존 연결 고급 ABI UI·live reference·
+module async/공개 실행 계약 및 실제 기기/전체 UI 수용은 합산 완료하지 않는다.
