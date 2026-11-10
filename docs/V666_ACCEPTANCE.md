@@ -781,3 +781,9 @@ code/whole-body/private 대응·live reference·module async/공개 실행 결�
 기존 유한 잔여다. 원래 ID·연결·권한·레이아웃과 구 reader 제한을 유지한다.
 
 이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_RETAINED_NATIVE_CODE.md)을 마쳤다.
+
+후속 [단일 코드 whole-body의 명시 고급 ABI 전환](V666_NATIVE_WHOLE.md)은 같은9행에서
+고급 입출력과 실제 C# 매개변수·본문·일반 호출자를 한 후보/Review/CAS에 연결한다.
+원래 보관 C# 파일·문맥 identity·노드/반환 배치·권한·구 reader 경계를 보존하며,
+원본 물리 헤더의 읽기 증거와 새 후보의 compiler 검증을 분리한다. 독립 code/private/retained
+문맥·live reference·module async/실행 결과는 기존 유한 잔여다.

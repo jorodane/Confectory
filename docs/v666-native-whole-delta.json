@@ -1,0 +1,22 @@
+{
+  "base": "c9ec7852a429b7f493c9c293941b6dfc5c3d745a",
+  "scope": "direct owned synchronous exact single-code whole-body lift nominal input/return ABI, explicit native parameters/body and direct C# caller plans",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-whole-lift-v1",
+  "productFiles": {
+    "targets/element-authoring/FunctionNativeEdits.cs": "7a791adeb82f834703e7e90924fd0e3c959a1cd515a4c47fad555476e77d29ab",
+    "examples/editor-home/ui/feature-authoring.js": "afb13ff9ae467eb6e66f2a1afee5a0146699204959261eabff3e165bb90c832b",
+    "examples/editor-home/WebBundle.csbody": "35c0fa19df8e9f500eb5be69d3bf4158b2a17ab4d935d7320e729e5b1279b79b"
+  },
+  "remaining": [
+    "ordinary code node ABI and private/retained whole-body nominal transitions",
+    "live reference instance/accessor binding and lifetime",
+    "module async/public execution result closure and DLL cycles",
+    "existing row9 multiple/function-field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}
