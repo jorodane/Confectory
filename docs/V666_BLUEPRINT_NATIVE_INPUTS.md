@@ -47,3 +47,5 @@ Confirm 뒤 같은 계약의 C# 본문 편집은 새 타입/source 증거로 수
 읽기 전용 scope 거절과 새 compiler에서의 실행은 각각 구분한다. 이전 전체 reader 실행이나
 자동 migration을 뜻하지 않는다. 실제 Windows/모바일·전체 UI는 미검증이며 초기 빈 화면
 원인은 미확정이다. 최신/rollback 패키지와 원본·증거는 기존 관리 규칙에 따라 보존한다.
+
+이 한정 범위의 [최종 신규45단계·재사용0 검증과 보관](VALIDATION_V666_BLUEPRINT_NATIVE_INPUTS.md)을 마쳤다.
