@@ -20,6 +20,7 @@ public sealed partial class Builder
     JsonObject InformationContract(string ns)
     {
         if (InformationContracts.TryGetValue(ns, out var prior)) return prior;
+        if (HasModuleFlow) { CompileModuleFlowContracts(); return InformationContracts[ns]; }
         if (!informationCompiling.Add(ns)) throw new BuildError("INFORMATION_CLR_PACK_CYCLE", "The selected inline information values require cyclic pack type assemblies: " + ns);
         try {
         var selected = informationTypes.Values.Where(d => PackPaths.Namespace(d.Id) == ns).OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
@@ -53,6 +54,6 @@ public sealed partial class Builder
         foreach (string ns in functions.SelectMany(id => InformationStructs.SignatureTypes(Registry.Get(id, "function").Signature!)).Select(type => PackPaths.Namespace(informationTypes[type].Id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal)) Add(ns);
         return result;
     }
-    static IEnumerable<string> InformationFiles(IEnumerable<JsonObject> contracts, string kind) => contracts.SelectMany(contract => (contract["informationContracts"] as JsonObject ?? new()).Select(p => p.Value![kind]!.GetValue<string>())).Distinct(StringComparer.Ordinal);
+    static IEnumerable<string> InformationFiles(IEnumerable<JsonObject> contracts, string kind) => contracts.SelectMany(contract => new[] { "informationContracts", "supportingContracts" }.SelectMany(name => (contract[name] as JsonObject ?? new()).Select(p => p.Value![kind]!.GetValue<string>()))).Distinct(StringComparer.Ordinal);
     JsonArray InformationCatalog() => new(informationTypes.Values.OrderBy(d => d.Id, StringComparer.Ordinal).Select(d => { var item = InformationStructs.Document(d); item.Remove("source"); item.Remove("sourceWritten"); item.Remove("executed"); item["assembly"] = Path.GetFileName(InformationContract(PackPaths.Namespace(d.Id))["assembly"]!.GetValue<string>()); return (JsonNode)item; }).ToArray());
 }

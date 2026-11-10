@@ -21,7 +21,7 @@ public static class InformationStructs
     public static IEnumerable<string> SignatureTypes(FunctionSignature signature) => signature.Args.Select(p => p.Type).Append(signature.Return).Where(IsType).Select(BaseType).Distinct(StringComparer.Ordinal);
     public sealed record Field(string Id, string Name, string Origin, string Type, string ClrMember);
     public sealed record Dependency(string Id, string ClrType, string ShapeHash);
-    public sealed record Definition(string Id, string ClrType, string ShapeHash, IReadOnlyList<Field> Fields, string Source, IReadOnlyList<Dependency>? Dependencies = null, string Kind = "schema", string? NativeProfile = null, JsonArray? Members = null);
+    public sealed record Definition(string Id, string ClrType, string ShapeHash, IReadOnlyList<Field> Fields, string Source, IReadOnlyList<Dependency>? Dependencies = null, string Kind = "schema", string? NativeProfile = null, JsonArray? Members = null, IReadOnlyList<string>? PublicContracts = null);
 
     static Definition Generate(Element schema, Func<SchemaField, Definition> resolve)
     {
@@ -141,6 +141,7 @@ public static class InformationStructs
         if (definition.Kind == "enum") { result["kind"] = "enum"; result["underlyingType"] = "int"; result["unselectedValue"] = 0; result["members"] = definition.Members!.DeepClone(); }
         if (definition.Kind == "module") { result["kind"] = "module"; result["valueType"] = false; result["interface"] = true; result["methods"] = definition.Members!.DeepClone(); result["providerSelection"] = "not-performed"; }
         if (definition.Dependencies?.Count > 0) result["dependencies"] = System.Text.Json.JsonSerializer.SerializeToNode(definition.Dependencies, JsonData.Options);
+        if (definition.PublicContracts?.Count > 0) result["publicContracts"] = System.Text.Json.JsonSerializer.SerializeToNode(definition.PublicContracts, JsonData.Options);
         return result;
     }
 }

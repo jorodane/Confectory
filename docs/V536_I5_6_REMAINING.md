@@ -268,3 +268,10 @@ copy/receiver 계약은 기존 보호를 유지한다. 저장 실패 시 순차 
 완료로 세지 않는다. 실제 기기·전체 UI와 구 reader 자동 migration도 추가 요구로 만들지 않는다.
 
 이 한정 범위의 [최종 신규42단계·재사용0 검증과 보관](VALIDATION_V666_LIVE_COMPOUND.md)을 마쳤다.
+
+[모듈 공개 실행·async 계약](V666_MODULE_FLOW.md)은 고정9행의 require 함수를 기존
+ExecutionResult/FunctionResult에 연결하는 단위다. 기존 native 호출과 ordinary module
+source/profile, source 읽기 CAS 및 동기 caller 오류 정책을 유지한다. 실제 nominal
+상호 참조 DLL은 임시 선언으로 컴파일하고 실제 산출물만 링크한다. provider 선택,
+권한 확장이나 C# 원문 재작성은 하지 않는다. 정보 참조 bridge/수명과 reference/function
+필드는 별도 유한 잔여이며 최종 검증 기록 전에는 이 단위 완료로 세지 않는다.

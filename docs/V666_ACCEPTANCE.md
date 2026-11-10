@@ -829,3 +829,9 @@ native struct 값·배열을 정확한 타입/전이 구조와 얕은 값 복사
 관측·최종 CAS와 기존 참조/함수의 별도 계약을 보존하며 실제 기기·전체 UI 완료로 세지 않는다.
 
 이 한정 범위의 [최종 신규42단계·재사용0 검증과 보관](VALIDATION_V666_LIVE_COMPOUND.md)을 마쳤다.
+
+모듈 require의 공개 실행·async 계약은 [module flow 지원 경계](V666_MODULE_FLOW.md)에
+따라 기존 함수 결과 타입·nominal identity·동기 caller 오류 정책에 연결한다. provider
+선택·원문 재작성·권한 확대는 없다. 최종 동결 및 보관/게시 결과는
+[검증 기록](VALIDATION_V666_MODULE_FLOW.md)에 구분한다. 정보 참조 bridge/수명과
+reference/function 필드는 별도 잔여이며 실제 기기/전체 UI 완료를 합산하지 않는다.

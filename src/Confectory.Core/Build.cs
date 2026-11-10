@@ -148,10 +148,17 @@ public sealed partial class Builder
     private readonly Dictionary<string, string[]> contractGroups = new(StringComparer.Ordinal);
     private void PrepareContracts(IEnumerable<string> ids)
     {
+        var selected = ids.Distinct(StringComparer.Ordinal).ToArray();
         // Check may be followed by Build on the same Builder (candidate validation).
         // Re-select logical aliases so a larger checked DLL cannot leak into a pruned link.
         Contracts.Clear(); contractGroups.Clear();
-        var selected = ids.Distinct(StringComparer.Ordinal).ToArray(); PrepareInformation(selected);
+        while (true) {
+            PrepareInformation(selected);
+            var expanded = selected.Concat(informationTypes.Values.SelectMany(d => d.PublicContracts ?? [])).Distinct(StringComparer.Ordinal).ToArray();
+            if (expanded.Length == selected.Length) break;
+            if (expanded.Length > 4096) throw new BuildError("CONTRACT_SELECTION", "Selected module public contract budget");
+            selected = expanded;
+        }
         foreach (var group in selected.GroupBy(PackPaths.Namespace))
             contractGroups[group.Key] = group.Order(StringComparer.Ordinal).ToArray();
     }
@@ -161,14 +168,17 @@ public sealed partial class Builder
         string ns = PackPaths.Namespace(id);
         if (!contractGroups.TryGetValue(ns, out var ids))
         {
+            if (HasModuleFlow && Contracts.Count > 0)
+                throw new BuildError("CONTRACT_SELECTION", "Select the complete module public contract scope through Check or Build before expanding compiled pack assemblies");
             var types = InformationStructs.SignatureTypes(Registry.Get(id, "function").Signature!).ToArray();
             if (Contracts.Count > 0 && types.Any(type => !informationTypes.ContainsKey(type)))
                 throw new BuildError("CONTRACT_SELECTION", "Select the complete information contract scope through Check or Build before expanding a compiled contract set");
             contractGroups[ns] = ids = [id];
-            if (Contracts.Count == 0) PrepareInformation(contractGroups.Values.SelectMany(group => group));
+            if (Contracts.Count == 0) { PrepareContracts(contractGroups.Values.SelectMany(group => group).ToArray()); ids = contractGroups[ns]; }
         }
         if (!ids.Contains(id, StringComparer.Ordinal))
             throw new BuildError("CONTRACT_SELECTION", $"Contract {id} was not in the prepared pack selection");
+        if (HasModuleFlow) { CompileModuleFlowContracts(); return Contracts[id]; }
         var sources = ids.Select(fn => (Id: fn, Code: Generation.ContractSource(Registry.Get(fn, "function")))).ToArray();
         var information = InformationReferences(ids);
         string name = "Contracts_" + Generation.Symbol(ns);
