@@ -184,3 +184,7 @@ UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/�
 현재 생성 가능한 정보 struct·종류 enum·모듈 interface만 선택하며, source/registration
 증거를 Save→Review→최종 CAS 및 후속 Save에 보존한다. 기존 연결 nominal ABI 변환,
 살아 있는 reference 접근/수명, module async/공개 실행 계약은 같은 유한 잔여다.
+
+타입 읽기 보호 초안은 v2/profile로 보관해 구 v1 reader의 묵시적 보호 누락을 막는다.
+기존 v1 초안 읽기와 기본형 저장 형식은 유지한다. 현재 reader의 v1/v2 복원·거절·생성 그룹
+취소를 별도 검증하며, 구 reader 실제 실행이나 전체 기기 호환 완료를 뜻하지 않는다.

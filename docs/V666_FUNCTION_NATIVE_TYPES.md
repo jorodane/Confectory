@@ -33,7 +33,15 @@ absolute read checks를 확인한다. 외부 정의를 쓰기 대상으로 추�
 후속 Save는 이전 타입 증거를 보존한다. 실패/취소/cold/응답 유실/늦은 이름 입력은
 기존 입력·receipt 정산 체계를 재사용한다.
 
-저장 문법은 늘리지 않는다. 기존 generated nominal 타입 이름과 v2 enum을 읽지 못하는
+`.celem` 문법은 늘리지 않는다. 타입 읽기 증거가 포함된 초안은
+`version:2`, `nativeTypeProfile:"native-type-source-guards-v1"`로 보관한다.
+기존 일반 초안은 v1을 유지하며 새 reader는 두 형식을 읽는다. 보호 증거를 담은 v1 위장이나
+알 수 없는 v2 profile은 복구 전에 거절한다. Export의 private-selection 경로, 브라우저 변경 상태/취소와 생성 그룹 취소도
+같은 버전 규칙을 사용한다. 이전 reader의 `Restore.csbody`는 `version != 1`을 거절하므로
+새 보호 초안을 최신 reader로만 복구해야 한다. 이전 reader 실제 실행은 별도 미검증이며,
+이 거절 경계는 보관한 원본 코드와 현재 reader의 실제 복구/거절 검사로 구분해 확인한다.
+
+기존 generated nominal 타입 이름과 v2 enum을 읽지 못하는
 이전 parser/compiler/rollback의 제한은 그대로다. 자동 migration이나 C# 원문 재작성은 없다.
 살아 있는 reference의 객체 수명·접근 경로, module의 async/공개 실행 계약,
 기존 연결 함수의 고급 ABI 전환은 별도 잔여이며 이 단위의 완료 주장에 넣지 않는다.

@@ -11,10 +11,16 @@
     "targets/element-authoring/EffectiveMetadata.cs": "7e8b6efc823eb4a03428765cedaa76a9ca3cc786e0f55f6c1ee66a29429ec5e9",
     "targets/element-authoring/FunctionNativeTypes.cs": "6549db4014e51126ff1779e11b090e55c10d0c10f34ee2a53590d267c2a53322",
     "targets/element-authoring/InformationDefinitions.cs": "7eefdd3f9f353c563d091d236745dc618b3c9d0e7f4feaaa0724958f442880f0",
-    "targets/element-authoring/Program.cs": "feb9f3d51f8c07521b01ec89e2dcf236bf030661f5d834e3b04f167434e43671"
+    "targets/element-authoring/Program.cs": "feb9f3d51f8c07521b01ec89e2dcf236bf030661f5d834e3b04f167434e43671",
+    "packs/edit-workspace/Export.csbody": "a5c7ebd7f6e696e5b17e027f075fb24d7f5f160ffb74c7505caa68c9674ef0e4",
+    "packs/edit-workspace/Restore.csbody": "fbe34412b83900c832ee5ed0738929fda21acab48508f75a0705c6cfe2c76019",
+    "packs/edit-workspace/DiscardCreationGroup.csbody": "fd778fe199392a7bf5e261cc3aab276065d1664397da9c77ac246a68ebbed709",
+    "packs/pack-workspace/BrowserDrafts.csbody": "a9b4acdee7395f011b37dab4821caa4304bfe6951d877e8a2e63b1633ab47b03"
   },
   "scope": "New directly owned information function native signature type picker; exact source and registration read proofs through Save, Review, Confirm and follow-up Save",
   "actualWindows": false,
   "wholeUI": false,
-  "initialBlankCause": "unconfirmed"
+  "initialBlankCause": "unconfirmed",
+  "implementationCommit": "3896252e90fbaeaa93403263b760296883aa204e",
+  "checkpointProfile": "native-type-source-guards-v1"
 }

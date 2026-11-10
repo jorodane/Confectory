@@ -627,6 +627,7 @@ def main():
 
             elif args.suite=='function-types':
                 work.run(label+'-function-types-api',[sys.executable,str(checkout/'tests/web/v666_function_types_api.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
+                work.run(label+'-native-checkpoint-compatibility',[sys.executable,str(checkout/'tests/web/v666_native_checkpoint_api.py'),str(checkout),str(report),'normal'],cwd=checkout,env=env)
                 for mode in (['normal','storage']if label=='lf'else['normal','cancel']):
                     work.run(label+'-function-types-'+mode,[sys.executable,str(checkout/'tests/web/v666_function_types_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 if label=='crlf':
@@ -3188,6 +3189,7 @@ def main():
 
         elif args.suite=='function-types':
             work.run('restored-function-types-api',[sys.executable,str(checkout/'tests/web/v666_function_types_api.py'),str(restored/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
+            work.run('restored-native-checkpoint-compatibility',[sys.executable,str(checkout/'tests/web/v666_native_checkpoint_api.py'),str(restored/'content'),str(packaged_report),'normal'],cwd=checkout,env=env)
             work.run('restored-function-types-storage',[sys.executable,str(checkout/'tests/web/v666_function_types_ui.py'),str(restored/'content'),str(packaged_report),'storage'],cwd=checkout,env=env)
             work.run('restored-function-types-loss',[sys.executable,str(checkout/'tests/web/v666_function_types_ui.py'),str(restored/'content'),str(packaged_report),'loss'],cwd=checkout,env=env)
         elif args.suite=='module-nominal':
