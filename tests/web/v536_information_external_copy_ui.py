@@ -671,7 +671,10 @@ try:
         final = edited.replace('소유 복사본 😀', '재편집 · 한글 😀')
         edit(edited, final)
         held = f.pending()
-        assert any(v.get('type') == 'source' and final in v.get('text', '') for _, v in held['blueprint'])
+        source_input = next(v for _, v in held['blueprint'] if v.get('type') == 'source' and v.get('text', '').replace('\r\n', '\n') == final)
+        # The context editor preserves its original CRLF source transport.
+        # Compare intended C# exactly, then retain the actual bytes for Confirm.
+        final = source_input['text']
         f.close_author()
         restart(1)
         current = reopen()
