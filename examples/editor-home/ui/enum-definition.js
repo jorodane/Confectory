@@ -2,7 +2,7 @@ import {browserIconMarkup} from './browser-data.js';
 import {openGlyphPopover} from './glyph-popover.js';
 
 // Original information choices: order is presentation; the selected value is an
-// opaque item id. This does not edit Blueprint execution-enum ports or C# values.
+// opaque item id. The saved CLR reservation is separate from this row order.
 export function renderEnumDefinition({api,w,info,header}){
  const {esc}=api,root=document.createElement('section');root.className='object-schema';root.dataset.enumDefinition='';w.body.querySelector('[data-declaration-properties]').after(root);
  const read=()=>JSON.parse(header.value('enum-values')||'[]'),alive=()=>root.isConnected&&header.owns(),write=(items,options)=>header.edit('enum-values',JSON.stringify(items),options);
@@ -11,6 +11,9 @@ export function renderEnumDefinition({api,w,info,header}){
   if(!root.isConnected)return;
   let items;try{items=read();if(!Array.isArray(items))throw Error();}catch{root.textContent='보관한 종류 정의를 읽지 못했어요. 원본과 입력을 유지합니다.';return;}
   root.innerHTML='<div class="object-section-heading"><strong>종류 항목</strong><button type="button" class="secondary" data-enum-add '+(!info.editable?'disabled':'')+'>＋ 항목</button></div><div class="enum-values">'+items.map((item,index)=>'<div class="enum-value-row" data-enum-value="'+esc(item.id)+'"><span class="enum-value-index" title="행을 드래그해서 순서 변경">'+(index+1)+'</span><button type="button" class="property-icon-edit enum-icon-edit" data-enum-icon aria-label="'+esc(item.name)+' 종류 아이콘 편집" '+(!info.editable?'disabled':'')+'>'+browserIconMarkup({kind:'schema',icon:item.icon||'◇'},esc)+'</button><input data-enum-name maxlength="60" aria-label="종류 항목 이름" value="'+esc(item.name)+'" '+(!info.editable?'readonly':'')+'><button type="button" class="property-remove" data-enum-remove="'+esc(item.id)+'" aria-label="'+esc(item.name)+' 제거" '+(!info.editable?'disabled':'')+'>×</button></div>').join('')+'</div>';
+  const native=info.values?.editorEnumProfile==='nominal-members-native-v2',prepared=header.value('enum-native')==='nominal-members-native-v2';
+  const notice=document.createElement('p');notice.className='small';notice.dataset.enumClrNotice='';notice.textContent=native?'고정 C# enum 숫자 계약이 보관되어 있습니다. 이름·순서가 바뀌어도 숫자는 유지됩니다.':'항목을 변경하거나 숫자 계약을 준비해 저장하면 고정 C# enum 숫자를 함께 보관합니다. 구버전은 이 정의를 읽지 못합니다.';root.append(notice);
+  if(!native&&info.editable){const prepare=document.createElement('button');prepare.type='button';prepare.className='secondary';prepare.dataset.enumNative='';prepare.textContent=prepared?'숫자 계약 준비됨':'고정 enum 숫자 계약 준비';prepare.disabled=prepared;prepare.onclick=()=>{if(alive())header.edit('enum-native','nominal-members-native-v2');};root.append(prepare);}
   root.querySelector('[data-enum-add]').onclick=()=>{if(!alive())return;const next=read();if(next.length>=256)return api.toast('종류 항목 수가 저장 예산을 넘었어요. 기존 항목은 유지됩니다.');let name='새 항목',n=2;while(next.some(item=>item.name===name))name='새 항목 '+n++;next.push({id:crypto.randomUUID(),name});write(next);root.querySelector('.enum-value-row:last-child input')?.focus();};
   for(const row of root.querySelectorAll('[data-enum-value]')){
    const id=row.dataset.enumValue,input=row.querySelector('[data-enum-name]'),button=row.querySelector('[data-enum-icon]');let before=null;input.setAttribute('aria-invalid',String(!input.value.trim()||items.some(item=>item.id!==id&&item.name===input.value)));

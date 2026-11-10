@@ -160,3 +160,12 @@ primitive v1의 생성 source/hash와 정보 ID별 CLR 이름은 유지한다. �
 reference/종류 등은 같은 잔여다. 사용자는 종류는 C# enum, 모듈은 C# interface로 확정했다.
 종류의 기존 항목 ID 안정성을 숫자 연결에서도 유지하며 표현 선택을 다시 묻지 않는다.
 이 복합 정보 단위의 [신규44단계·재사용0 검증·보관](VALIDATION_V666_INFORMATION_COMPOUND.md)을 마쳤다.
+
+
+[종류 enum·모듈 interface 연결](V666_NAMED_CLR.md)은 고정9행의 native 타입 생성을
+확장한다. 종류는 항목 ID와 영구 int32 예약표를 분리하고 이름/순서 변경에 안정적이다.
+기존 v1은 명시 준비/항목 저장에서만 v2로 전환하며 구 reader 제한을 안내한다. 단일
+종류 필드와 enum/interface 함수 입출력·같은 계약 본문 저장/CAS를 연결한다. 모듈의
+첫 interface는 동기 기본형/배열 요구 계약이며 default를 자동 선택/실행하지 않는다.
+타입 선택 UI·살아 있는 reference 접근/수명·multiple/함수 필드·고급 Blueprint 대응과
+모듈의 고급 요구 계약은 같은 고정9행 잔여다. 최종 검증·보관은 마감 기록에서 구분한다.

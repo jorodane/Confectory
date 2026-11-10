@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 namespace Confectory.Core;
 
 // Information choices have opaque stable member identities, not execution ports
-// or C# integer ordinals. The existing primitive metadata format holds the list.
+// or presentation ordinals. A separate versioned map supplies stable CLR numbers.
 public static class EnumDefinition
 {
     public const string ProfileKey = "editorEnumProfile";
@@ -23,10 +23,10 @@ public static class EnumDefinition
             throw new BuildError("ENUM_BOUNDARY", "Information choices preserve their own nominal definition; no execution or inheritance contract", element.Loc);
         bool profile = element.Values.TryGetValue(ProfileKey, out var marker);
         bool members = element.Values.TryGetValue(MembersKey, out var value);
-        if (!profile && !members) return new();
-        if (!profile || !members || marker!.Value.ValueKind != JsonValueKind.String || marker.Value.GetString() != Profile || value!.Value.ValueKind != JsonValueKind.String)
+        if (!profile && !members) { if (element.Values.ContainsKey(EnumNumbers.Key)) throw new BuildError("ENUM_CLR_MAPPING", "Numeric reservations require their explicit profile", element.Loc); return new(); }
+        if (!profile || !members || marker!.Value.ValueKind != JsonValueKind.String || marker.Value.GetString() is not (Profile or EnumNumbers.Profile) || value!.Value.ValueKind != JsonValueKind.String)
             throw new BuildError("ENUM_PROFILE", "Unknown information enum profile retained; explicit migration required", element.Loc);
-        try { return Validate(value.Value.GetString()!); }
+        try { var result = Validate(value.Value.GetString()!); if (marker.Value.GetString() == EnumNumbers.Profile) EnumNumbers.Read(element, result); else if (element.Values.ContainsKey(EnumNumbers.Key)) throw new BuildError("ENUM_CLR_MAPPING", "Numeric reservations require their explicit versioned profile", element.Loc); return result; }
         catch (Exception error) when (error is JsonException or ArgumentException or InvalidOperationException)
         { throw new BuildError("ENUM_MEMBERS", error.Message, value.Loc); }
     }
@@ -60,9 +60,11 @@ public static class EnumDefinition
     public static void SetMembers(Element element, string text)
     {
         if (element.Kind != "enum") throw new ArgumentException("Information enum definition required");
-        Validate(text);
-        element.Values[ProfileKey] = new(JsonSerializer.SerializeToElement(Profile), element.Id, new());
-        element.Values[MembersKey] = new(JsonSerializer.SerializeToElement(text), element.Id, new());
-        Members(element);
+        var after = Validate(text); var before = Members(element);
+        var candidate = JsonData.Clone(element);
+        EnumNumbers.Set(candidate, before, after);
+        candidate.Values[MembersKey] = new(JsonSerializer.SerializeToElement(text), element.Id, new());
+        Members(candidate);
+        element.Values = candidate.Values;
     }
 }

@@ -1,0 +1,29 @@
+{
+  "baseCommit": "346b4e9cd86da2799e6667d8c9434843b917f9b6",
+  "profiles": [
+    "nominal-members-native-v2",
+    "information-enum-int32-v1",
+    "module-interface-basic-v1",
+    "information-struct-nominal-v1"
+  ],
+  "productFiles": {
+    "src/Confectory.Core/EnumDefinition.cs": "3161e6c3d6a655937551fb41ce71fe66556b702d361476f916ef9e4c376ce425",
+    "src/Confectory.Core/EnumNumbers.cs": "f00908746b9747c8b4ee5b68c831b9eb60f49f7a8e2288d5c3f1d4a746754868",
+    "src/Confectory.Core/InformationEnums.cs": "22face5b3c81064a25185e182e1f2bc823117ced9349a7dc750338b28393ba51",
+    "src/Confectory.Core/InformationStructs.cs": "8da4291ccc2eae7c313255f77e256224acca47526cefdfff10a478a356ede407",
+    "src/Confectory.Core/ModuleInterfaces.cs": "790ab17708909ddec8cb43e0f7f735c2cb393e02423dfd5aa08946ec67d46411",
+    "src/Confectory.Core/Resolution.cs": "4319098ac0a9235353c9eaf38994964d117ab87f9b3142390083d69132be89f1",
+    "targets/element-authoring/FunctionPresentation.cs": "bc8985d1eff5436a3d3a1ecd8a856bd0e1b7a1b52da1808c57ad0b9c4191da1d",
+    "targets/element-authoring/InformationStructMetadata.cs": "4f8728c95d5e2cb18ccc08c54632b63fc1e441ae23a85451d1568567dcc4d50b",
+    "targets/element-authoring/Program.cs": "e2e4c47e0e1343a83a97aff26cb2536412d46d817e5b0a8674e604f1f74c83ac",
+    "examples/editor-home/ui/declaration-icons.js": "d37bf85aa742531f4bd8dc3aa12d99ecc5160f91a365971bc8ca5c42da84bf41",
+    "examples/editor-home/ui/enum-definition.js": "a8286a95984e632f7dce84ac9949e3401104d4b7810de3d85bbb84d3b0a0f611",
+    "examples/editor-home/ui/mixed-declaration.js": "9d5155826062607036bc74fff1a1b632da02ff4d8366606ac061c88010bba3cb",
+    "examples/editor-home/WebBundle.csbody": "e8e7aca1432c08ca559b87cb28f893c32b55f3f0ccbb332634672bda75c0d995"
+  },
+  "authoredLayoutChanged": false,
+  "originalCSharpRewritten": false,
+  "newPermissions": false,
+  "storedChoiceIdsPreserved": true,
+  "numericContractExplicit": true
+}

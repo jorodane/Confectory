@@ -33,7 +33,7 @@ export function createDeclarationIcons(api,features){
   }
   const header=w.el.querySelector(':scope>.object-header'),icon=header.querySelector('.object-icon-control>.obj-icon'),button=header.querySelector('.object-icon-edit');
   const pending=()=>inputs.get(cacheKey)||{},has=()=>cells().length>0||author.hasOwnerAttempt(id);
-  const value=kind=>scoped.ownerInputs.get(start+kind)?.text??pending().properties?.value?.[kind]??(kind==='icon'?info.values?.editorIcon:kind==='enum-values'?info.values?.editorEnumValues||'[]':info.description);
+  const value=kind=>scoped.ownerInputs.get(start+kind)?.text??pending().properties?.value?.[kind]??(kind==='icon'?info.values?.editorIcon:kind==='enum-values'?info.values?.editorEnumValues||'[]':kind==='enum-native'?'':info.description);
   const pinButtons=[],observers=[],validators=[];const draw=()=>{for(const p of pinButtons){const saved=scoped.ownerInputs.get(start+p.suffix),image=saved?JSON.parse(saved.text).icon:modulePinValue(info,p.edit).icon;p.button.innerHTML=browserIconMarkup({kind:'schema',icon:image||'◇'},esc);}icon.innerHTML=browserIconMarkup({kind:info.kind,icon:value('icon')},esc);const raw=$('[data-decl-property=icon]',w.body);if(raw){raw.value=localIconImage(value('icon'))?'':value('icon')||'';raw.placeholder=localIconImage(value('icon'))?'로컬 이미지 선택됨':'';}for(const observe of observers)observe();notice();};
   header.querySelector('.object-title-info').innerHTML='<div class="object-parent-reference"><small>부모</small><span>'+esc(info.parent?.split('::').at(-1)||'Root')+'</span></div><div class="object-title-name-line"><h2 class="object-title-name">'+esc(info.values?.editorName||id.split('::').at(-1))+'</h2></div>';
   const record=(kind,text,suffix=kind)=>{const prior=scoped.ownerInputs.get(start+suffix);scoped.ownerInputs.set(start+suffix,{kind,text,revision:prior?.revision??info.revision,hash:prior?.hash??info.textHash});api.persist();};
@@ -56,7 +56,7 @@ export function createDeclarationIcons(api,features){
   async function save(complete=false){
    check();migrate();let recovered=false;
    if(author.hasOwnerAttempt(id))recovered=(await author.recoverOwnerEditsInWork(id,owns))?.settled===true;
-   if(!recovered&&cells().length){for(const validate of validators)validate();const submitted=cells();if(submitted.some(([,v])=>!['icon','description',...(info.kind==='module'?['module-pin-icon']:info.kind==='enum'?['enum-values']:[])].includes(v.kind)||v.hash!==info.textHash))throw Error('헤더 원본이 바뀌었습니다. 입력은 유지됩니다.');await author.saveOwnerEditsInWork(id,{request:{id,hash:info.textHash,changes:submitted.map(([,v])=>({type:v.kind,text:v.text}))},cells:submitted},owns);}
+   if(!recovered&&cells().length){for(const validate of validators)validate();const submitted=cells();if(submitted.some(([,v])=>!['icon','description',...(info.kind==='module'?['module-pin-icon']:info.kind==='enum'?['enum-values','enum-native']:[])].includes(v.kind)||v.hash!==info.textHash))throw Error('헤더 원본이 바뀌었습니다. 입력은 유지됩니다.');await author.saveOwnerEditsInWork(id,{request:{id,hash:info.textHash,changes:submitted.map(([,v])=>({type:v.kind,text:v.text}))},cells:submitted},owns);}
    await scoped.view.call('inspectDeclaration',{id});w.declarationIconUndo=[];w.declarationIconRedo=[];refresh();
    if(cells().length)throw Error('저장 중 새 입력은 보존했습니다. 다음 저장으로 확인해 주세요.');
    if(complete){const draft=scoped.current.draft;if(draft?.id!==id)throw Error('검토할 선언을 다시 확인해 주세요.');await api.reviewAuthor(draft.creationReviewIds?.length?draft.creationReviewIds:[id]);}

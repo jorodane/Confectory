@@ -6,6 +6,17 @@ namespace Confectory.Tests;
 
 public sealed class EnumDefinitionTests : TestCase
 {
+    public void test_clr_enum_numbers_follow_ids_and_reserve_deleted_members()
+    {
+        var owner=Empty();var rows=Items();EnumDefinition.SetMembers(owner,rows.ToJsonString());
+        var first=EnumNumbers.Read(owner,EnumDefinition.Members(owner));Equal(1,first["stable-ready"]);Equal(2,first["stable-done"]);
+        rows[0]!["name"]="새 표시명";var done=rows[1]!.DeepClone();rows.RemoveAt(1);rows.Insert(0,done);EnumDefinition.SetMembers(owner,rows.ToJsonString());
+        var reordered=EnumNumbers.Read(owner,EnumDefinition.Members(owner));Equal(first["stable-ready"],reordered["stable-ready"]);Equal(first["stable-done"],reordered["stable-done"]);
+        rows.RemoveAt(1);EnumDefinition.SetMembers(owner,rows.ToJsonString());rows.Add(new JsonObject{["id"]="stable-new",["name"]="추가"});EnumDefinition.SetMembers(owner,rows.ToJsonString());
+        var added=EnumNumbers.Read(owner,EnumDefinition.Members(owner));Equal(1,added["stable-ready"]);Equal(2,added["stable-done"]);Equal(3,added["stable-new"]);
+        var generated=InformationEnums.Generate(owner);True(generated.Source.Contains("public enum ",StringComparison.Ordinal));True(generated.Source.Contains("Unselected = 0",StringComparison.Ordinal));True(!generated.Source.Contains(InformationEnums.Member("stable-ready")+" =",StringComparison.Ordinal));
+        string before=owner.Values[EnumNumbers.Key].Value.GetString()!;var invalid=rows.DeepClone().AsArray();invalid[1]!["id"]="stable-done";Refused(()=>EnumDefinition.SetMembers(owner,invalid.ToJsonString()));Equal(before,owner.Values[EnumNumbers.Key].Value.GetString());
+    }
     static Element Empty() => new Parser("enum Choices::Mood {}", "<information-enum>").ParseElement();
     static JsonArray Items() => new(new JsonObject { ["id"]="stable-ready", ["name"]="준비 됨", ["icon"]="★" }, new JsonObject { ["id"]="stable-done", ["name"]="완료" });
     static void Refused(Action action) { try { action(); } catch (Exception e) when(e is BuildError or ArgumentException or InvalidOperationException) { return; } throw new Exception("Invalid information enum accepted"); }
