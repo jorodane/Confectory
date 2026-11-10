@@ -168,4 +168,4 @@ reference/종류 등은 같은 잔여다. 사용자는 종류는 C# enum, 모듈
 종류 필드와 enum/interface 함수 입출력·같은 계약 본문 저장/CAS를 연결한다. 모듈의
 첫 interface는 동기 기본형/배열 요구 계약이며 default를 자동 선택/실행하지 않는다.
 타입 선택 UI·살아 있는 reference 접근/수명·multiple/함수 필드·고급 Blueprint 대응과
-모듈의 고급 요구 계약은 같은 고정9행 잔여다. 최종 검증·보관은 마감 기록에서 구분한다.
+모듈의 고급 요구 계약은 같은 고정9행 잔여다. [신규47단계·재사용0 검증·보관](VALIDATION_V666_NAMED_CLR.md)을 마쳤다.

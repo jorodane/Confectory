@@ -31,7 +31,8 @@ readonly `informationClr` 질의는 schema/enum/module의 타입 source·멤버/
 
 모듈은 `module-interface-basic-v1`의 public C# interface로 생성한다. 상속/includes의
 require 함수 ID에서 안정적인 메서드명을 만들고 기존 입력·ref/out·반환 계약을 그대로
-투영한다. 첫 범위는 동기 기본형/배열 함수다. default가 실제 요구 함수와 같은 계약의
+투영한다. 상속/includes의 요구는 이 interface에 평탄화하며 별도 CLR interface
+상속이나 자동 upcast는 만들지 않는다. 첫 범위는 동기 기본형/배열 함수다. default가 실제 요구 함수와 같은 계약의
 implementation인지 확인하지만 provider를 선택하거나 실행하지 않는다. 실제 interface
 구현은 사용자가 작성한 객체이며, 권한·배정이나 implicit provider 객체를 만들지 않는다.
 async/공개 실행 분기/정보 nominal 요구 함수는 현재 profile에서 명시 거절하며 원래
@@ -56,3 +57,5 @@ primitive/compound struct의 생성 source/hash에는 새 nominal 타입을 강�
 C# 메모리 ref로 바꾸지 않는다. 모듈의 고급 요구 계약은 위 명시 경계다. M11/M12/M4는
 회귀 없이 재개하지 않는다. 초기 빈 화면 원인은 미확정이며 Linux native/Chromium과
 교차 패키지/복원 검증을 실제 Windows/WebView2·모바일·GPU/audio·전체 UI 검증과 구분한다.
+
+[신규47단계·재사용0 마감 검증·보관](VALIDATION_V666_NAMED_CLR.md)을 따른다.
