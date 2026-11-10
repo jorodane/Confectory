@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "Owned.FunctionFields::HolderNode",
+  "kind": "object",
+  "lineage": [
+    "Owned.FunctionFields::HolderNode"
+  ],
+  "schemas": [
+    "Owned.FunctionFields::Holder"
+  ],
+  "fields": [
+    {
+      "id": "Owned.FunctionFields::Holder/field:nested",
+      "name": "nested",
+      "origin": "Owned.FunctionFields::Holder",
+      "kind": "compound",
+      "cardinality": "single",
+      "type": "Owned.FunctionFields::Rules",
+      "clrType": "object",
+      "supported": false,
+      "hash": "0d0287081cb813ff45187e860cdea2f36096e9221703fb149eb9378e83504ea3"
+    }
+  ],
+  "dependencies": [
+    "Owned.FunctionFields::Holder",
+    "Owned.FunctionFields::HolderNode",
+    "Owned.FunctionFields::Rules"
+  ],
+  "hash": "85472ad1ec2e51345c1733abd3844fb93601f47f583f8cb29230ae3776038b91"
+}

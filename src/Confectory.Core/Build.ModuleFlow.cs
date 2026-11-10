@@ -6,7 +6,7 @@ public sealed partial class Builder
 {
     bool HasModuleFlow => informationTypes.Values.Any(d => d.PublicContracts?.Count > 0);
 
-    // Public function result DTOs and module interfaces can refer to one another.
+    // Public function contracts and information/module types can refer to one another.
     // Compile against nominal declarations first, then replace every declaration
     // assembly with the real information assembly of the same name. Bootstrap
     // artifacts are cache inputs only; no linker/catalog ever receives them.

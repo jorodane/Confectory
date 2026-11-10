@@ -25,7 +25,7 @@ internal static class FunctionNativeTypes
      foreach(string required in element.Requires.Keys)Observe(required);
      foreach(var choice in element.Defaults.Values)Observe(choice.Id);
     }
-    foreach(var item in closure)Observe(item.Id);
+    foreach(var item in closure){Observe(item.Id);foreach(string function in item.PublicContracts??[])Observe(function);}
     foreach(string pack in seen.Select(PackPaths.Namespace).Append(ns).Distinct(StringComparer.Ordinal)){
      string path=Path.GetFullPath(registry.Paths[pack]);string hash=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(path)));proofs["$manifest:"+pack]=new JsonObject{["source"]=hash,["path"]=path};
     }

@@ -59,7 +59,7 @@ public static class RuntimeObjectContracts
             }
             if (field.Kind == "compound") {
                 try {
-                    structTypes = InformationStructs.Closure(registry, field.Type, field.Origin);
+                    structTypes = InformationStructs.Closure(registry, field.Type, field.Origin, includeFunctionFields: false);
                     nativeStruct = structTypes.Single(d => d.Id == field.Type);
                     type = nativeStruct.ClrType; supported = true;
                     foreach (var definition in structTypes) {

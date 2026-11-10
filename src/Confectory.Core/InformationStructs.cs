@@ -12,6 +12,7 @@ public static class InformationStructs
     public const string CompoundProfile = "information-struct-compound-v1";
     public const string NominalProfile = "information-struct-nominal-v1";
     public const string ArrayProfile = "information-struct-arrays-v1";
+    public const string FunctionProfile = "information-struct-functions-v1";
     static readonly Regex ContractName = new(@"\AConfectory\.Information\.E[0-9a-f]{24}\.E[0-9a-f]{24}\z", RegexOptions.CultureInvariant);
     static readonly Regex MemberName = new(@"\A[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant);
     static readonly HashSet<string> Scalars = ["bool", "int", "long", "float", "double", "string"];
@@ -21,38 +22,53 @@ public static class InformationStructs
     public static IEnumerable<string> SignatureTypes(FunctionSignature signature) => signature.Args.Select(p => p.Type).Append(signature.Return).Where(IsType).Select(BaseType).Distinct(StringComparer.Ordinal);
     public sealed record Field(string Id, string Name, string Origin, string Type, string ClrMember);
     public sealed record Dependency(string Id, string ClrType, string ShapeHash);
-    public sealed record Definition(string Id, string ClrType, string ShapeHash, IReadOnlyList<Field> Fields, string Source, IReadOnlyList<Dependency>? Dependencies = null, string Kind = "schema", string? NativeProfile = null, JsonArray? Members = null, IReadOnlyList<string>? PublicContracts = null);
+    public sealed record Definition(string Id, string ClrType, string ShapeHash, IReadOnlyList<Field> Fields, string Source, IReadOnlyList<Dependency>? Dependencies = null, string Kind = "schema", string? NativeProfile = null, JsonArray? Members = null, IReadOnlyList<string>? PublicContracts = null, JsonArray? FunctionFields = null);
 
-    static Definition Generate(Element schema, Func<SchemaField, Definition> resolve)
+    static Definition Generate(Element schema, Func<SchemaField, Definition> resolve, Func<SchemaField, Element> callable, bool includeFunctionFields)
     {
         if (schema.Kind != "schema" || schema.Fields.Count > 256) throw new BuildError("INFORMATION_CLR_SCHEMA", "A bounded information definition is required", schema.Loc);
         var fields = new List<Field>(); var dependencies = new Dictionary<string, Dependency>(StringComparer.Ordinal); bool enums = false, arrays = false;
+        var functions = new SortedSet<string>(StringComparer.Ordinal); var functionFields = new JsonArray();
         foreach (var (name, field) in schema.Fields.OrderBy(p => p.Key, StringComparer.Ordinal))
         {
+            if (field.Kind == "function" && !includeFunctionFields) throw new BuildError("INFORMATION_CLR_FIELD", "Live property function handles retain their separate accessor contract", field.Loc);
             // Multiplicity uses the existing native array representation.
-            // Live references and function fields retain their separate contracts.
-            if (field.Cardinality is not ("single" or "multiple") || field.Kind is not ("compound" or "enum") && (field.Kind != "general" || !Scalars.Contains(field.Type)))
-                throw new BuildError("INFORMATION_CLR_FIELD", "This information struct profile requires primitive, compound or mapped enum value fields: " + schema.Id + "/" + name, field.Loc);
+            // Live object references retain their separate identity/lifetime ABI.
+            if (field.Cardinality is not ("single" or "multiple") || field.Kind is not ("compound" or "enum" or "function") && (field.Kind != "general" || !Scalars.Contains(field.Type)))
+                throw new BuildError("INFORMATION_CLR_FIELD", "This information struct profile requires primitive, compound, mapped enum or exact function contract fields: " + schema.Id + "/" + name, field.Loc);
             if (!MemberName.IsMatch(name) || name == Generation.Symbol(schema.Id))
                 throw new BuildError("INFORMATION_CLR_MEMBER", "The stable field ID cannot be emitted as a C# struct member: " + name, field.Loc);
             string type = field.Type;
             if (field.Kind is "compound" or "enum") { var child = resolve(field); type = child.ClrType; enums |= child.Kind == "enum"; dependencies[child.Id] = new(child.Id, child.ClrType, child.ShapeHash); }
+            if (field.Kind == "function") {
+                var function = callable(field);
+                if (function.Kind != "function" || function.Signature is null) throw new BuildError("INFORMATION_CLR_FIELD", "The original function field contract is required", field.Loc);
+                _ = BlueprintAsync.Read(function); _ = BlueprintExecutionBranches.Read(function);
+                type = Generation.ImportInterface(function); functions.Add(function.Id);
+                var row = new JsonObject { ["field"] = field.Origin + "/field:" + name, ["function"] = function.Id, ["clrType"] = type,
+                    ["publicContractHash"] = JsonData.Digest(Generation.ContractSource(function)),
+                    ["signatureTypes"] = new JsonArray(SignatureTypes(function.Signature).Select(type => JsonValue.Create(type)).ToArray()) };
+                if (BlueprintAsync.Has(function)) row["async"] = BlueprintAsync.Read(function);
+                functionFields.Add(row);
+            }
             if (field.Cardinality == "multiple") { arrays = true; type += "[]"; }
             fields.Add(new(field.Origin + "/field:" + name, name, field.Origin, type, "@" + name));
         }
-        var inputs = dependencies.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray(); string profile = arrays ? ArrayProfile : enums ? NominalProfile : inputs.Length == 0 ? Profile : CompoundProfile;
+        var inputs = dependencies.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray(); string profile = functions.Count > 0 ? FunctionProfile : arrays ? ArrayProfile : enums ? NominalProfile : inputs.Length == 0 ? Profile : CompoundProfile;
         // Keep existing primitive source/shape keys byte-for-byte unchanged.
         string hash = inputs.Length == 0 ? JsonData.Digest(new { profile = arrays ? ArrayProfile : Profile, id = schema.Id, parent = schema.Parent, fields }) : JsonData.Digest(new { profile, id = schema.Id, parent = schema.Parent, fields, dependencies = inputs });
+        if (functions.Count > 0) hash = JsonData.Digest(new { profile, id = schema.Id, parent = schema.Parent, fields, dependencies = inputs, functionFields });
         var code = new StringBuilder("// Generated information value " + schema.Id + "; " + profile + "; " + hash + "\n");
         code.AppendLine("#nullable disable");
         code.AppendLine("namespace Confectory.Information." + Generation.Symbol(PackPaths.Namespace(schema.Id)));
         code.AppendLine("{"); code.AppendLine("    public struct " + Generation.Symbol(schema.Id)); code.AppendLine("    {");
         foreach (var field in fields) code.AppendLine("        public " + field.Type + " " + field.ClrMember + ";");
         code.AppendLine("    }"); code.AppendLine("}");
-        return new(schema.Id, Type(schema.Id), hash, fields, code.ToString().Replace("\r\n", "\n", StringComparison.Ordinal), inputs, NativeProfile: profile);
+        return new(schema.Id, Type(schema.Id), hash, fields, code.ToString().Replace("\r\n", "\n", StringComparison.Ordinal), inputs, NativeProfile: profile,
+            PublicContracts: functions.ToArray(), FunctionFields: functionFields);
     }
 
-    public static IReadOnlyList<Definition> Closure(Registry registry, string id, string? source = null)
+    public static IReadOnlyList<Definition> Closure(Registry registry, string id, string? source = null, bool includeFunctionFields = true)
     {
         var element = registry.Get(id, source: source); if (element.Kind is not ("schema" or "enum" or "module")) throw new BuildError("INFORMATION_CLR_KIND", "An information, enum or module definition is required", element.Loc);
         var planner = new Planner(registry, "metadata"); planner.Structural(id);
@@ -64,9 +80,9 @@ public static class InformationStructs
             else if (declaration.Kind == "schema") planner.Structural(selected);
             return registry.Effective(selected);
         }
-        return GenerateClosure(id, Effective, field => { registry.Get(field.Type, field.Kind == "enum" ? "enum" : "schema", field.Origin, field.Loc); return field.Type; }, (type, origin) => {
+        return GenerateClosure(id, Effective, field => { registry.Get(field.Type, field.Kind is "enum" or "function" ? field.Kind : "schema", field.Origin, field.Loc); return field.Type; }, (type, origin) => {
             string selected = TypeId(registry, type, origin); registry.Get(selected, source: origin); return selected;
-        });
+        }, includeFunctionFields);
     }
     public static Definition Describe(Registry registry, string id, string? source = null) => Closure(registry, id, source).Single(d => d.Id == id);
     public static IReadOnlyList<Definition> ResolveAll(Registry registry, string type, string source)
@@ -82,7 +98,7 @@ public static class InformationStructs
     }
     public static Definition Resolve(Registry registry, string type, string source) => ResolveAll(registry, type, source).Single(d => d.ClrType == BaseType(type));
 
-    static IReadOnlyList<Definition> GenerateClosure(string id, Func<string, Element> effective, Func<SchemaField, string> target, Func<string, string, string> nominal)
+    static IReadOnlyList<Definition> GenerateClosure(string id, Func<string, Element> effective, Func<SchemaField, string> target, Func<string, string, string> nominal, bool includeFunctionFields = true)
     {
         var result = new Dictionary<string, Definition>(StringComparer.Ordinal); var visiting = new HashSet<string>(StringComparer.Ordinal);
         Definition Read(string current)
@@ -90,9 +106,24 @@ public static class InformationStructs
             if (result.TryGetValue(current, out var prior)) return prior;
             if (!visiting.Add(current)) throw new BuildError("INFORMATION_CLR_CYCLE", "Unsupported selected information/module type dependency cycle; originals retained: " + current);
             if (result.Count + visiting.Count > 256) throw new BuildError("INFORMATION_CLR_BUDGET", "At most 256 selected information value types");
-            var element = effective(current); var definition = element.Kind == "enum" ? InformationEnums.Generate(element) : element.Kind == "module" ? ModuleInterfaces.Generate(current, effective, (type, origin) => Read(nominal(type, origin))) : Generate(element, field => Read(target(field))); visiting.Remove(current); result.Add(current, definition); return definition;
+            var element = effective(current); var definition = element.Kind == "enum" ? InformationEnums.Generate(element) : element.Kind == "module" ? ModuleInterfaces.Generate(current, effective, (type, origin) => Read(nominal(type, origin))) : Generate(element, field => Read(target(field)), field => effective(target(field)), includeFunctionFields);
+            visiting.Remove(current); result.Add(current, definition); return definition;
         }
-        Read(id); return result.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
+        Read(id);
+        // Function fields hold interface references, not inline information
+        // values. Read their method types after publishing each value layout,
+        // so a callback may accept/return that same struct without an inline
+        // value cycle or an infinitely recursive shape hash.
+        var observedFunctions = new HashSet<string>(StringComparer.Ordinal);
+        while (true) {
+            var pending = result.Values.SelectMany(d => d.PublicContracts ?? []).Where(observedFunctions.Add).Order(StringComparer.Ordinal).ToArray();
+            if (pending.Length == 0) break;
+            foreach (string functionId in pending) {
+                var function = effective(functionId);
+                foreach (string type in SignatureTypes(function.Signature!)) Read(nominal(type, function.Id));
+            }
+        }
+        return result.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
     }
 
     // The owned C# candidate compiler uses the same shapes over its already
@@ -124,7 +155,7 @@ public static class InformationStructs
             return effective;
             }
             foreach (var definition in GenerateClosure(choices[0].Id, Effective, field => {
-                if (!declarations.TryGetValue(field.Type, out var dependency) || dependency.Kind != (field.Kind == "enum" ? "enum" : "schema")) throw new BuildError("INFORMATION_CLR_SOURCE", "Read the exact declared field type: " + field.Type, field.Loc);
+                if (!declarations.TryGetValue(field.Type, out var dependency) || dependency.Kind != (field.Kind is "enum" or "function" ? field.Kind : "schema")) throw new BuildError("INFORMATION_CLR_SOURCE", "Read the exact declared field type: " + field.Type, field.Loc);
                 return field.Type;
             }, (requested, origin) => {
                 var candidates = declarations.Values.Where(e => e.Kind is "schema" or "enum" or "module" && Type(e.Id) == BaseType(requested)).Take(2).ToArray();
@@ -142,6 +173,7 @@ public static class InformationStructs
         if (definition.Kind == "module") { result["kind"] = "module"; result["valueType"] = false; result["interface"] = true; result["methods"] = definition.Members!.DeepClone(); result["providerSelection"] = "not-performed"; }
         if (definition.Dependencies?.Count > 0) result["dependencies"] = System.Text.Json.JsonSerializer.SerializeToNode(definition.Dependencies, JsonData.Options);
         if (definition.PublicContracts?.Count > 0) result["publicContracts"] = System.Text.Json.JsonSerializer.SerializeToNode(definition.PublicContracts, JsonData.Options);
+        if (definition.FunctionFields?.Count > 0) { result["functionFields"] = definition.FunctionFields.DeepClone(); result["providerSelection"] = "not-performed"; }
         return result;
     }
 }

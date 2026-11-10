@@ -277,3 +277,10 @@ source/profile, source 읽기 CAS 및 동기 caller 오류 정책을 유지한�
 필드는 별도 유한 잔여이며 이 한정 단위의 최종 검증을 완료했다.
 
 이 한정 범위의 [최종 신규 38단계·재사용 0 검증과 보관](VALIDATION_V666_MODULE_FLOW.md)을 마쳤다.
+
+[정보 struct의 함수 필드](V666_FUNCTION_FIELDS.md)는 고정9행의 native 생성 단위다.
+원래 IInvoke/IAsyncInvoke와 명시적 실행 view, 호출자가 제공한 실제 handle·배열·기본 null을
+유지하고, 함수가 자기 정보 타입을 사용하는 reference 계약도 값 배치 뒤에 관찰한다.
+기존 inline 값 순환 거절·source/등록/최종 CAS를 유지한다. live 객체 reference bridge와
+reference 필드 및 실제 함수 handle의 live 속성 연결은 같은 유한 잔여다. 최종 동결
+검증·보관 결과는 전용 기록으로 구분하며 임의 copy/상속 조합을 새 필수 행으로 늘리지 않는다.
