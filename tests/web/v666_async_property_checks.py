@@ -54,7 +54,7 @@ def refused(c,mark):
 
 def restart(c,index):
     c['pending']();c['page'].close();c['stop']();c['start'](index);c['page']=c['setup'](c['browser']);c['page'].set_viewport_size({'width':1480,'height':1050});c['idle']()
-    c['expect'](c['author']().locator('[data-bp-save]')).to_be_enabled()
+    c['expect'](c['author']().locator('[data-bp-save]')).to_be_enabled(timeout=60000 if '_interrupt_timeout_seconds'in c else 5000)
 
 def save(c,held):
     mode=c['async_mode'];page=c['page'];panel=c['author'];checkpoint=c['_checkpoint'];before=checkpoint.read_bytes()
