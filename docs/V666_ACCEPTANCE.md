@@ -733,3 +733,8 @@ reference/종류 등은 같은 잔여다. 사용자는 종류는 C# enum, 모듈
 UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/공개 실행 요구·CLR interface
 상속/upcast·선택 타입 순환은 명시 지원 경계이며 조합별 migration 요구를 추가하지 않는다.
 [신규22·동등 재사용23 검증·보관](VALIDATION_V666_MODULE_NOMINAL.md)을 마쳤다.
+
+후속 [함수 상세 native 타입 선택](V666_FUNCTION_NATIVE_TYPES.md)은 직접 소유 정보의
+새 함수 첫 계약에 지원 nominal 타입/배열을 연결한다. 기존 상세창의 검색/다중 선택을
+재사용하고 정의 초안과 디스크 원본, 등록 manifest를 별도 확인하며 최종 source lease에
+읽기 증거를 유지한다. 전체 고급 타입 UI·live reference·module async/분기 완료로 합산하지 않는다.

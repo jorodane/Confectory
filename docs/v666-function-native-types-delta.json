@@ -1,0 +1,20 @@
+{
+  "baseCommit": "4d747d092035da275d407ed5dbb2e665c1a6e12f",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "7e420f846fb3db2848d8e3fa87fa261523d300ab07fb713c454ab65a52f48000",
+    "examples/editor-home/ui/element-functions.js": "87e0c74e43f1f566ceaa4f7f98358f33e938d8bcc8c72506da015a9d567e848f",
+    "examples/editor-home/ui/mixed-declaration.js": "953cb19a2effefe2a0258babd4f43e1a1f85b078a2e5fed0ac8d2bd5c9ba7fe6",
+    "packs/change-set/ConfirmReviewed.csbody": "aa4e0053f2049dcbcca08e981620680f06a73e9bdc64d3ac928df93c347b73cd",
+    "packs/edit-workspace/ValidateReviewSelection.csbody": "1473c13cb48722c030c7c60e630e73e723207cb8ebf7846a68589666c616e848",
+    "packs/pack-workspace/Blueprint.csbody": "c496f9d8d6fc5603bab6b9c816f18ff637661ba0149525a49bbe6504b8c285f3",
+    "packs/save/ApplySlots.csbody": "e1ddbfec8b2223f3842d2186af731a9a77390b37b81ac04690dc29103747786e",
+    "targets/element-authoring/EffectiveMetadata.cs": "7e8b6efc823eb4a03428765cedaa76a9ca3cc786e0f55f6c1ee66a29429ec5e9",
+    "targets/element-authoring/FunctionNativeTypes.cs": "6549db4014e51126ff1779e11b090e55c10d0c10f34ee2a53590d267c2a53322",
+    "targets/element-authoring/InformationDefinitions.cs": "7eefdd3f9f353c563d091d236745dc618b3c9d0e7f4feaaa0724958f442880f0",
+    "targets/element-authoring/Program.cs": "feb9f3d51f8c07521b01ec89e2dcf236bf030661f5d834e3b04f167434e43671"
+  },
+  "scope": "New directly owned information function native signature type picker; exact source and registration read proofs through Save, Review, Confirm and follow-up Save",
+  "actualWindows": false,
+  "wholeUI": false,
+  "initialBlankCause": "unconfirmed"
+}
