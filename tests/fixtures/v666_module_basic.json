@@ -1,0 +1,24 @@
+{
+  "id": "Owned.ModuleValues::Basic",
+  "profile": "module-interface-basic-v1",
+  "source": "// Generated module interface Owned.ModuleValues::Basic; module-interface-basic-v1; 915a9a14bdb3d0fa975e8c4275b51f4a63ca8817b0297f3d9b3fae0fd5dcfda6\n#nullable disable\nnamespace Confectory.Information.Ec0804c1d9dd687016c33397d {\npublic interface Ea598cc4894b128b6ee14ff0c {\nint Call_E571aee7ed0b9dd139a663c3d(int input);\n}\n}\n",
+  "shapeHash": "915a9a14bdb3d0fa975e8c4275b51f4a63ca8817b0297f3d9b3fae0fd5dcfda6",
+  "clrType": "Confectory.Information.Ec0804c1d9dd687016c33397d.Ea598cc4894b128b6ee14ff0c",
+  "methods": [
+    {
+      "id": "Owned.ModuleValues::Slot",
+      "clrMember": "Call_E571aee7ed0b9dd139a663c3d",
+      "signature": {
+        "args": [
+          {
+            "type": "int",
+            "name": "input"
+          }
+        ],
+        "return": "int"
+      }
+    }
+  ],
+  "sourceCommit": "bafdbb352e09beb6db13fa6559f989d1bd33803e",
+  "baselineEvidenceRecord": "/workspace/artifacts/v536-verification-managed/runs/2ac6117bb61046ab8a113b986743fa70.json"
+}

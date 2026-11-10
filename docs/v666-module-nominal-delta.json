@@ -1,0 +1,12 @@
+{
+  "baseCommit": "bafdbb352e09beb6db13fa6559f989d1bd33803e",
+  "profile": "module-interface-nominal-v1",
+  "productFiles": {
+    "src/Confectory.Core/InformationStructs.cs": "d6a9963ddff54397326430f9df4d8c80d8acd884c0f542f84ee69285ecd63405",
+    "src/Confectory.Core/ModuleInterfaces.cs": "ea2ed5e8c025cfd1851db8b85c9947d2432ea402b819a89c01a02df9aac19df6"
+  },
+  "authoredLayoutChanged": false,
+  "originalCSharpRewritten": false,
+  "newPermissions": false,
+  "primitiveModuleProfileUnchanged": true
+}

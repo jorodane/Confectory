@@ -53,29 +53,42 @@ public static class InformationStructs
     public static IReadOnlyList<Definition> Closure(Registry registry, string id, string? source = null)
     {
         var element = registry.Get(id, source: source); if (element.Kind is not ("schema" or "enum" or "module")) throw new BuildError("INFORMATION_CLR_KIND", "An information, enum or module definition is required", element.Loc);
-        new Planner(registry, "metadata").Structural(id);
-        if (element.Kind == "module") new Planner(registry, "metadata").Module(id);
-        return GenerateClosure(id, selected => registry.Effective(selected), field => { registry.Get(field.Type, field.Kind == "enum" ? "enum" : "schema", field.Origin, field.Loc); return field.Type; });
+        var planner = new Planner(registry, "metadata"); planner.Structural(id);
+        Element Effective(string selected) {
+            var declaration = registry.Get(selected);
+            // A module reached through another module's public method type
+            // retains its own require/default/dependency validation as well.
+            if (declaration.Kind == "module") planner.Module(selected);
+            else if (declaration.Kind == "schema") planner.Structural(selected);
+            return registry.Effective(selected);
+        }
+        return GenerateClosure(id, Effective, field => { registry.Get(field.Type, field.Kind == "enum" ? "enum" : "schema", field.Origin, field.Loc); return field.Type; }, (type, origin) => {
+            string selected = TypeId(registry, type, origin); registry.Get(selected, source: origin); return selected;
+        });
     }
     public static Definition Describe(Registry registry, string id, string? source = null) => Closure(registry, id, source).Single(d => d.Id == id);
     public static IReadOnlyList<Definition> ResolveAll(Registry registry, string type, string source)
     {
+        return Closure(registry, TypeId(registry, type, source), source);
+    }
+    static string TypeId(Registry registry, string type, string source)
+    {
         type = BaseType(type);
         var ids = registry.Packs.SelectMany(pack => pack.Value.Elements.Where(p => p.Value.Kind is "schema" or "enum" or "module").Select(p => pack.Key + "::" + p.Key)).Where(id => Type(id) == type).Take(2).ToArray();
         if (ids.Length != 1) throw new BuildError("INFORMATION_CLR_TYPE", "The generated information type must identify exactly one registered definition: " + type, registry.Get(source).Loc);
-        return Closure(registry, ids[0], source);
+        return ids[0];
     }
     public static Definition Resolve(Registry registry, string type, string source) => ResolveAll(registry, type, source).Single(d => d.ClrType == BaseType(type));
 
-    static IReadOnlyList<Definition> GenerateClosure(string id, Func<string, Element> effective, Func<SchemaField, string> target)
+    static IReadOnlyList<Definition> GenerateClosure(string id, Func<string, Element> effective, Func<SchemaField, string> target, Func<string, string, string> nominal)
     {
         var result = new Dictionary<string, Definition>(StringComparer.Ordinal); var visiting = new HashSet<string>(StringComparer.Ordinal);
         Definition Read(string current)
         {
             if (result.TryGetValue(current, out var prior)) return prior;
-            if (!visiting.Add(current)) throw new BuildError("INFORMATION_CLR_CYCLE", "An information struct cannot contain a cycle of inline values: " + current);
+            if (!visiting.Add(current)) throw new BuildError("INFORMATION_CLR_CYCLE", "Unsupported selected information/module type dependency cycle; originals retained: " + current);
             if (result.Count + visiting.Count > 256) throw new BuildError("INFORMATION_CLR_BUDGET", "At most 256 selected information value types");
-            var element = effective(current); var definition = element.Kind == "enum" ? InformationEnums.Generate(element) : element.Kind == "module" ? ModuleInterfaces.Generate(current, effective) : Generate(element, field => Read(target(field))); visiting.Remove(current); result.Add(current, definition); return definition;
+            var element = effective(current); var definition = element.Kind == "enum" ? InformationEnums.Generate(element) : element.Kind == "module" ? ModuleInterfaces.Generate(current, effective, (type, origin) => Read(nominal(type, origin))) : Generate(element, field => Read(target(field))); visiting.Remove(current); result.Add(current, definition); return definition;
         }
         Read(id); return result.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
     }
@@ -111,6 +124,10 @@ public static class InformationStructs
             foreach (var definition in GenerateClosure(choices[0].Id, Effective, field => {
                 if (!declarations.TryGetValue(field.Type, out var dependency) || dependency.Kind != (field.Kind == "enum" ? "enum" : "schema")) throw new BuildError("INFORMATION_CLR_SOURCE", "Read the exact declared field type: " + field.Type, field.Loc);
                 return field.Type;
+            }, (requested, origin) => {
+                var candidates = declarations.Values.Where(e => e.Kind is "schema" or "enum" or "module" && Type(e.Id) == BaseType(requested)).Take(2).ToArray();
+                if (candidates.Length != 1) throw new BuildError("INFORMATION_CLR_SOURCE", "Read the exact required method type: " + requested, Effective(origin).Loc);
+                return candidates[0].Id;
             })) { result.TryAdd(definition.ClrType, definition); if (result.Count > 256) throw new BuildError("INFORMATION_CLR_BUDGET", "At most 256 selected information value types"); }
         }
         return result.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();

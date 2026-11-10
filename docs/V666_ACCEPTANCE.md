@@ -724,3 +724,12 @@ reference/종류 등은 같은 잔여다. 사용자는 종류는 C# enum, 모듈
 첫 interface는 동기 기본형/배열 요구 계약이며 default를 자동 선택/실행하지 않는다.
 타입 선택 UI·살아 있는 reference 접근/수명·multiple/함수 필드·고급 Blueprint 대응과
 모듈의 고급 요구 계약은 같은 고정9행 잔여다. [신규47단계·재사용0 검증·보관](VALIDATION_V666_NAMED_CLR.md)을 마쳤다.
+
+
+[모듈의 nominal 요구 계약](V666_MODULE_NOMINAL.md)은 고정9행에서 정보 struct·종류 enum·
+다른 interface를 요구 메서드의 원래 입력/반환/ref/out에 투영하고 전체 타입 의존성을
+추적한다. primitive-only module source/profile/hash는 유지한다. 깊은 정보 변경과 요구
+모듈 자체의 dependency 검사를 같은 생성·본문 후보·최종 CAS에 연결한다. 함수 타입 선택
+UI 전체와 살아 있는 참조 접근을 완료로 세지 않는다. async/공개 실행 요구·CLR interface
+상속/upcast·선택 타입 순환은 명시 지원 경계이며 조합별 migration 요구를 추가하지 않는다.
+최종 검증·보관은 마감 기록에서 구분한다.
