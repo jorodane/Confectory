@@ -274,4 +274,6 @@ ExecutionResult/FunctionResult에 연결하는 단위다. 기존 native 호출�
 source/profile, source 읽기 CAS 및 동기 caller 오류 정책을 유지한다. 실제 nominal
 상호 참조 DLL은 임시 선언으로 컴파일하고 실제 산출물만 링크한다. provider 선택,
 권한 확장이나 C# 원문 재작성은 하지 않는다. 정보 참조 bridge/수명과 reference/function
-필드는 별도 유한 잔여이며 최종 검증 기록 전에는 이 단위 완료로 세지 않는다.
+필드는 별도 유한 잔여이며 이 한정 단위의 최종 검증을 완료했다.
+
+이 한정 범위의 [최종 신규 38단계·재사용 0 검증과 보관](VALIDATION_V666_MODULE_FLOW.md)을 마쳤다.

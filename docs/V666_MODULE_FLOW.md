@@ -43,3 +43,5 @@ picker/provider UI, 권한, override 계약, 참조 객체 조회나 자동 수�
 reference/function 필드 생성은 같은 고정 9행의 별도 잔여다. 이번 연결만으로 9행 전체나
 실제 기기/전체 UI 수용을 완료로 세지 않는다. 구 reader는 flow module 생성을 거절하며
 자동 downgrade/migration은 하지 않는다. 초기화 빈 화면의 원인은 여전히 미확정이다.
+
+이 한정 범위의 [최종 신규 38단계·재사용 0 검증과 보관](VALIDATION_V666_MODULE_FLOW.md)을 마쳤다.
