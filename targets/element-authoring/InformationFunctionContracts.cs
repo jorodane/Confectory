@@ -24,7 +24,7 @@ internal static class InformationFunctionContracts
   }
   return result;
  }
- public static JsonObject Prepare(JsonObject request, Element original, Element requested, JsonObject mapping, Func<Element,string> format)
+ public static JsonObject Prepare(JsonObject request, Element original, Element requested, JsonObject mapping, Func<Element,string> format,JsonObject? nativeTypes=null)
  {
   string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read the complete function usage snapshot before changing its contract");
@@ -49,7 +49,21 @@ internal static class InformationFunctionContracts
   void ObserveProperty(string path){path=PackPaths.Resolve(path);var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new ArgumentException("Bounded property dependency required");string text=File.ReadAllText(path);if(dependencyReads.Add(path)){dependencyBytes=checked(dependencyBytes+System.Text.Encoding.UTF8.GetByteCount(text));if(dependencyBytes>2097152||dependencyReads.Count>256)throw new ArgumentException("Property dependency byte budget");}string hash=Hash(text);if(observations.TryGetValue(path,out var prior)&&prior!=hash)throw new InvalidOperationException("Property dependency changed; no candidate applied");observations[path]=hash;}
   var propertyDependencies=new InformationFunctionProperties(request,ObserveProperty);
   foreach(var entry in manifest.Elements){string id=ns+"::"+entry.Key;var u=Unit(id,entry.Value.Kind,entry.Value.Path);string text=u["draft"]!.ToString();var d=new Parser(text,"<function-usage>").ParseElement();if(d.Id!=id||d.Kind!=entry.Value.Kind)throw new InvalidOperationException("Owned declaration locator changed");declarations.Add(id,d);texts.Add(id,text);}
-  var copies=new InformationFunctionCopies(request,ObserveProperty);var copyProofs=copies.Read(original.Id);if(!JsonNode.DeepEquals(mapping["copies"]??new JsonObject(),copyProofs))throw new InvalidOperationException("Original saved copy ownership or provenance changed; retain every input");var dependencyLoader=new InformationFunctionDependencies(request,ObserveProperty);var dependencyProofs=dependencyLoader.Read(original.Id,units);if(!JsonNode.DeepEquals(mapping["dependencies"]??new JsonObject(),dependencyProofs))throw new InvalidOperationException("Original registered function receipts changed or are missing; retain every input");var functions=dependencyLoader.AddTo(declarations);var registeredSources=dependencyLoader.Sources();string FunctionText(string id)=>texts.GetValueOrDefault(id)??registeredSources[id]?.GetValue<string>()??throw new InvalidOperationException("Current read-only function source missing");
+  var copies=new InformationFunctionCopies(request,ObserveProperty);var copyProofs=copies.Read(original.Id);if(!JsonNode.DeepEquals(mapping["copies"]??new JsonObject(),copyProofs))throw new InvalidOperationException("Original saved copy ownership or provenance changed; retain every input");var dependencyLoader=new InformationFunctionDependencies(request,ObserveProperty);var dependencyProofs=dependencyLoader.Read(original.Id,units);if(!JsonNode.DeepEquals(mapping["dependencies"]??new JsonObject(),dependencyProofs))throw new InvalidOperationException("Original registered function receipts changed or are missing; retain every input");var functions=dependencyLoader.AddTo(declarations);var registeredSources=dependencyLoader.Sources();
+  // Only InformationDefinitions passes this map, after exact native choice/scope
+  // validation. Read selected registered headers into the candidate compiler's
+  // read-only type dictionary; they never enter the owned write iteration.
+  foreach(var choice in nativeTypes??new JsonObject()){
+   if(choice.Key.StartsWith(FunctionNativeEdits.Prefix,StringComparison.Ordinal))continue;
+   foreach(var dependency in choice.Value!["sources"]!.AsObject()){
+    if(dependency.Key.StartsWith("$manifest:",StringComparison.Ordinal)||functions.ContainsKey(dependency.Key))continue;
+    string path=Path.GetFullPath(dependency.Value!["path"]!.ToString());ObserveProperty(path);string text=File.ReadAllText(path);
+    if(Hash(text)!=dependency.Value["source"]?.ToString())throw new InvalidOperationException("Selected native type source changed; no candidate applied");
+    var definition=new Parser(text,path).ParseElement();if(definition.Id!=dependency.Key||definition.Kind is not ("schema" or "enum" or "module" or "function" or "implementation" or "category" or "concept"))throw new InvalidOperationException("Exact selected native type header required");
+    functions.Add(definition.Id,definition);registeredSources[definition.Id]=text;
+   }
+  }
+  string FunctionText(string id)=>texts.GetValueOrDefault(id)??registeredSources[id]?.GetValue<string>()??throw new InvalidOperationException("Current read-only function source missing");
   bool definitionOnly=!declarations.Values.Any(d=>d.Kind=="implementation"&&(d.Function==original.Id||d.Imports.Values.Any(v=>v.Id==original.Id)));
   var retainedPublic=new List<string>();foreach(string name in BlueprintOutputSnapshot.Read(original)){string? mappedName=name=="return"?next.Return!="void"?"return":null:remap[name]?.ToString();if(mappedName is not null&&FeatureBlueprint.FeatureOutputs(next).Any(p=>p.Name==mappedName))retainedPublic.Add(mappedName);else if(graphPlans.Count==0&&bodyPlans.Count==0&&!definitionOnly)throw new InvalidOperationException("A published output needs an explicit retained identity");}BlueprintOutputSnapshot.Set(requested,new JsonArray(retainedPublic.Select(name=>JsonValue.Create(name)).ToArray()));
   if(texts.GetValueOrDefault(original.Id)!=request["drafts"]!.AsArray().SingleOrDefault(d=>d!["id"]?.ToString()==original.Id)?["text"]?.ToString())throw new InvalidOperationException("Original contained function snapshot changed");

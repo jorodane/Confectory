@@ -45,3 +45,5 @@ Confirm이 그룹을 수락한 뒤에는 이전 receipt를 새 변경의 기준�
 결정을 다시 묻거나 implicit blocking/caller 자동 변환을 도입하지 않는다.
 
 실제 Windows/모바일 기기 및 전체 UI는 미검증이다. 초기 빈 화면의 원인은 미확정이다.
+
+직접 C# 구현·호출자가 있는 후속 전환은 [연결된 native 타입](V666_CONNECTED_NATIVE_TYPES.md)에서 구분한다.

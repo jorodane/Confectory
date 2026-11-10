@@ -42,7 +42,7 @@ internal static class InformationDefinitions
     if(JsonSerializer.Serialize(oldSignature)!=JsonSerializer.Serialize(method.Signature)||(row["mapping"]?["bodies"] as JsonObject)?.Count>0){
      if(row["mapping"] is JsonObject mapping){
       if(linkedUpdates.Count>0&&functionBatch is null)throw new InvalidOperationException("Save one connected function contract at a time; all inputs retained");
-      var linked=InformationFunctionContracts.Prepare(functionBatch?.Request??request,new Parser(original,"<original-contract>").ParseElement(),method,functionBatch?.MappingFor(function,mapping)??mapping,format);method=new Parser(linked["function"]!.ToString(),"<linked-contract>").ParseElement();
+      var linked=InformationFunctionContracts.Prepare(functionBatch?.Request??request,new Parser(original,"<original-contract>").ParseElement(),method,functionBatch?.MappingFor(function,mapping)??mapping,format,row["nativeTypes"] as JsonObject);method=new Parser(linked["function"]!.ToString(),"<linked-contract>").ParseElement();
       foreach(var update in linked["updates"]!.AsArray()){if(functionBatch is null)linkedUpdates.Add(update!.DeepClone());else functionBatch.Merge(linkedUpdates,update!.AsObject());if(update["kind"]?.ToString() is "function" or "implementation" or "module" or "schema" or "object"){var priorDraft=finalDrafts.SingleOrDefault(d=>d!["id"]?.ToString()==update["id"]!.ToString())??throw new InvalidOperationException("Observed linked declaration missing");priorDraft["text"]=update["text"]!.DeepClone();}}
       foreach(var observation in linked["observations"]!.AsArray())linkedObservations.Add(observation!.DeepClone());
      }else{

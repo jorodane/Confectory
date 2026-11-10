@@ -1,0 +1,25 @@
+{
+  "base": "9e855d4eb66c8c03605982d2c3e7feab504efa89",
+  "scope": "direct owned synchronous information function, ordinary C# implementations and direct native callers, explicit coordinated source adaptation",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-abi-v1",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "6ccf5774f521d697f883e49024757d10499991b84f66125d80f36ead03773943",
+    "examples/editor-home/ui/element-functions.js": "397dc5fac4c59ba5a9b8e463321115189c8bb6f98565ca38d412b4862a5762d6",
+    "examples/editor-home/ui/mixed-declaration.js": "5964b4765ec1b55b03f25d0d18e59cb323ff2b9f8d844d0f9207da31266f4cde",
+    "targets/element-authoring/FunctionNativeEdits.cs": "cc59f5fb2c1c8bd56097f45e6d8f59e5d95bd258b8ce4cd922321fb140362511",
+    "targets/element-authoring/InformationDefinitions.cs": "9ea5f9c13fc2f55c79f2c0cb85156595846f57045fdcd7565a2c170b608550af",
+    "targets/element-authoring/InformationFunctionContracts.cs": "cd4724cfe518e5780b85658f954f769494d6d793f5c2a3e955eff79e986a76c1"
+  },
+  "remaining": [
+    "advanced Blueprint native ABI adaptation",
+    "live reference instance/accessor binding",
+    "module async and public execution requirements",
+    "existing multiple/function field native generation from fixed row 9"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}
