@@ -39,7 +39,7 @@ try:
   (p/'Mood.celem').write_bytes(snapshot['Mood.celem'].replace('준비'.encode(),'표시 변경'.encode()));assert describe('Rules')['shapeHash']==doc['shapeHash'];assert build('label')['contractArtifacts'][n+'Use']['key']==first['contractArtifacts'][n+'Use']['key'];unchanged({'Mood.celem'});(p/'Mood.celem').write_bytes(snapshot['Mood.celem']);check('nominal method display changes retain module shape and the consumer contract key')
   (p/'Leaf.celem').write_text('schema '+n+'Leaf {field Count single general long;field Added single general int;}');changed=describe('Rules');assert changed['shapeHash']!=doc['shapeHash'];assert build('deep-change')['contractArtifacts'][n+'Use']['key']!=first['contractArtifacts'][n+'Use']['key'];unchanged({'Leaf.celem'});check('a deep struct-only shape change invalidates module and consumer contracts with unchanged public type names and original C#')
   (p/'Leaf.celem').write_bytes(snapshot['Leaf.celem']);assert build('restored')['key']==first['key'];unchanged();check('exact source restoration recovers original nominal module artifacts and execution')
-  baseline=os.environ.get('CONFECTORY_MODULE_BASIC_BASELINE',str(r/'tests/fixtures/v666_module_basic.json'))
+  baseline=os.environ.get('CONFECTORY_MODULE_BASIC_BASELINE',str(Path(__file__).resolve().parents[1]/'fixtures/v666_module_basic.json'))
   if baseline:
    before=json.loads(Path(baseline).read_text());assert all(basic_doc[key]==before[key]for key in ['profile','source','shapeHash','clrType','methods']);check('primitive-only module source, profile and shape stay byte-for-byte identical to the published basic interface')
   ext=case/'registered methods';ext.mkdir();values=ext/'values';methods=ext/'methods';project=ext/'project'
