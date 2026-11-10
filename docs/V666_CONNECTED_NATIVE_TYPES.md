@@ -58,3 +58,5 @@ M11/M12/M4를 새 회귀 없이 다시 열거나 선택적 조합을 필수로 �
 화면 원인은 미확정이다.
 
 [최종 검증·보관 기록](VALIDATION_V666_CONNECTED_NATIVE_TYPES.md)을 확인한다.
+
+[후속 직접 Blueprint 호출자 입력 연결](V666_BLUEPRINT_NATIVE_INPUTS.md)의 한정 범위와 보호를 확인한다.

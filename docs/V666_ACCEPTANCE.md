@@ -759,3 +759,8 @@ Confirm 뒤에 작성한다. Confirm 후 같은 세션의 저장이 오래된 re
 Blueprint/상속·비소유 전환, 살아 있는 참조와 module async/공개 실행 요구는 같은9행 잔여다.
 
 이 한정 범위의 [최종 신규45단계·재사용0 검증/보관](VALIDATION_V666_CONNECTED_NATIVE_TYPES.md)을 마쳤다.
+
+후속 [직접 Blueprint 호출자의 고급 타입 입력](V666_BLUEPRINT_NATIVE_INPUTS.md)은 같은9행의
+기존 caller 입력을 명시적으로 선택해 native 계약과 본문 계획을 원자 저장한다. 원본 좌표·ID·
+실행/반환 연결·공개 계약·소유/권한·최종 CAS와 기존 C# 호출자 경로를 유지한다.
+Blueprint 구현 entry/출력·live reference·module async/공개 실행 요구는 기존 유한 잔여다.

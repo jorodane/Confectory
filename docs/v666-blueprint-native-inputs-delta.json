@@ -1,0 +1,23 @@
+{
+  "base": "f20359d05b35aed9e5036d35f2242c29f16953bf",
+  "scope": "direct owned synchronous C# information function with serial direct Blueprint callers; explicit existing nominal input binding and native body adaptation",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-blueprint-call-v1",
+  "productFiles": {
+    "examples/editor-home/WebBundle.csbody": "847b0e11a02fa1460061c337b7ede1b96f8355bc7ed2dd07e61e9066c31e8aa3",
+    "examples/editor-home/ui/element-functions.js": "9b8a40329ce3dde74d6496019169e8a310be49f6b866aaf161d1cc5f3ef6bf40",
+    "targets/element-authoring/FunctionNativeEdits.cs": "3f52e22ca6830d05b2295dbc2beaabcf52d0f86a8c2e05fdcccaecb7c9057227",
+    "targets/element-authoring/InformationFunctionContracts.cs": "0dd3bc46f64e24f4e7737573d253c6db98339268b834d62a59bc800218c3afb3"
+  },
+  "remaining": [
+    "advanced Blueprint implementation entry/output adaptation",
+    "live reference instance/accessor binding",
+    "module async and public execution requirements",
+    "existing fixed row9 multiple/function field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}

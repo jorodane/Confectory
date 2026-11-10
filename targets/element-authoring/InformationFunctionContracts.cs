@@ -6,6 +6,7 @@ internal static class InformationFunctionContracts
 {
  // Read-only targets for the existing explicit call-input picker. Save repeats
  // the complete closure validation; this snapshot never grants write access.
+ static JsonArray CallerSources(FunctionSignature signature)=>new(signature.Args.Where(a=>!a.IsOut&&InformationStructs.IsType(a.Type)).Select(a=>(JsonNode)new JsonObject{["key"]=a.Name,["label"]="호출자 입력 "+a.Name,["type"]=a.Type,["source"]=new JsonObject{["input"]=a.Name}}).ToArray());
  public static JsonObject Inputs(JsonObject request)
  {
   string owner=request["id"]!.ToString(),function=request["function"]!.ToString(),ns=PackPaths.Namespace(owner);
@@ -18,7 +19,7 @@ internal static class InformationFunctionContracts
     foreach(var scope in InformationFunctionGraphs.Scopes(g,callerSignature))foreach(var call in scope.Graph["nodes"]!.AsArray().Where(n=>n!["kind"]?.ToString()=="call"&&n["feature"]?.ToString()==function)){
      if(!JsonNode.DeepEquals(call!["signature"],FeatureBlueprint.SignatureDocument(original.Signature!)))throw new InvalidOperationException("Caller contract changed; retain input");if(privateFrames.Any(p=>p.Value!["forwardCall"]?.ToString()==InformationFunctionGraphs.Key(scope.Path,call["id"]!.ToString())||p.Value["forwardCalls"] is JsonArray privateCalls&&privateCalls.Any(c=>c!.ToString()==InformationFunctionGraphs.Key(scope.Path,call["id"]!.ToString()))))continue;
      var consumed=new HashSet<string>(StringComparer.Ordinal);void Uses(JsonNode? value){if(value is JsonObject o){if(o["node"]?.ToString()==call["id"]!.ToString()){consumed.Add(o["output"]?.ToString()??"return");return;}foreach(var p in o)if(p.Key!="constant")Uses(p.Value);}else if(value is JsonArray array)foreach(var item in array)Uses(item);}InformationFunctionGraphs.Bindings(scope.Graph,Uses);string key=InformationFunctionGraphs.Key(scope.Path,call["id"]!.ToString());
-     result.Add(id+"#"+key,new JsonObject{["graph"]=id,["node"]=key,["scope"]=scope.Path,["scopeName"]=InformationFunctionGraphs.Label(g,scope.Path),["scopeSignature"]=FeatureBlueprint.SignatureDocument(scope.Signature),["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(unit["draft"]!.ToString())),["before"]=call["signature"]!.DeepClone(),["usedOutputs"]=new JsonArray(consumed.Select(name=>JsonValue.Create(name)).ToArray()),["bindings"]=new JsonObject(call["arguments"]!.AsObject().Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,JsonValue.Create(p.Value?.ToJsonString()??"null"))))});if(result.Count>64)throw new ArgumentException("Caller input selection budget");
+     result.Add(id+"#"+key,new JsonObject{["graph"]=id,["node"]=key,["scope"]=scope.Path,["scopeName"]=InformationFunctionGraphs.Label(g,scope.Path),["scopeSignature"]=FeatureBlueprint.SignatureDocument(scope.Signature),["sources"]=CallerSources(scope.Signature),["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(unit["draft"]!.ToString())),["before"]=call["signature"]!.DeepClone(),["usedOutputs"]=new JsonArray(consumed.Select(name=>JsonValue.Create(name)).ToArray()),["bindings"]=new JsonObject(call["arguments"]!.AsObject().Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,JsonValue.Create(p.Value?.ToJsonString()??"null"))))});if(result.Count>64)throw new ArgumentException("Caller input selection budget");
     }
    }
   }
@@ -131,6 +132,10 @@ internal static class InformationFunctionContracts
       if(choice is JsonValue name&&name.TryGetValue<string>(out var previousName)){
        var previousArg=old.Args.SingleOrDefault(a=>!a.IsOut&&a.Name==previousName);
        if(previousArg is null||previousArg.Type!=arg.Type||(previousArg.Mode!=arg.Mode&&selection is null)||!args.ContainsKey(previousName)||!used.Add(previousName))throw new InvalidOperationException("Select one exact compatible existing caller binding per input");bound[arg.Name]=args[previousName]?.DeepClone();
+      }else if(choice is JsonObject explicitBinding&&explicitBinding.Count==1&&explicitBinding["binding"] is JsonObject binding&&InformationStructs.IsType(arg.Type)){
+       var sources=CallerSources(scope.Signature);
+       if(!sources.Any(source=>source!["type"]?.ToString()==arg.Type&&source["source"]?["node"]?.ToString()!=call["id"]!.ToString()&&JsonNode.DeepEquals(source["source"],binding)))throw new InvalidOperationException("Select an exact existing nominal caller value/storage; no source or instance is inferred");
+       bound[arg.Name]=binding.DeepClone();
       }else if(choice is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue raw&&raw.TryGetValue<string>(out var json)&&json.Length<=65536&&arg.Mode is null){
        using var parsed=System.Text.Json.JsonDocument.Parse(json);bound[arg.Name]=new JsonObject{["constant"]=JsonNode.Parse(parsed.RootElement.GetRawText())};
       }else throw new InvalidOperationException("Every new caller input needs an explicit value or existing storage; no value is inferred");

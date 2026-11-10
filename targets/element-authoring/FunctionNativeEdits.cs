@@ -9,11 +9,11 @@ internal static class FunctionNativeEdits
  internal const string Prefix="$function:";
  internal static JsonObject Project(Registry registry,string owner,string function,Func<string,string> read)
  {
-  var row=new JsonObject{["id"]=function,["available"]=false,["reason"]="직접 소유 동기 기능과 일반 C# 구현·호출자만 전환할 수 있어요. 상속·참조·Blueprint·요구 계약은 유지됩니다."};
+  var row=new JsonObject{["id"]=function,["available"]=false,["reason"]="직접 소유 동기 기능의 C# 구현과 직접 C#/일반 Blueprint 호출자를 전환할 수 있어요. 상속·참조·내부 복사본·요구 계약은 유지됩니다."};
   string ns=PackPaths.Namespace(owner);var pack=registry.Packs[ns];
   var definition=registry.Get(owner,"schema");if(!definition.Contains.Any(c=>c.Kind=="function"&&c.Id==function)||!function.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!pack.Elements.TryGetValue(function[(ns.Length+2)..],out var locator)||locator.Kind!="function"||locator.Path!="elements/"+function[(ns.Length+2)..]+".celem")return row;
   var method=registry.Get(function,"function",owner);if(method.Parent is not null||BlueprintAsync.Has(method)||BlueprintExecutionBranches.Has(method))return row;
-  var queue=new Queue<(string Id,string Source)>();var seen=new HashSet<string>(StringComparer.Ordinal);var proofs=new JsonObject();var headers=new List<Element>();var native=new HashSet<string>(StringComparer.Ordinal);
+  var queue=new Queue<(string Id,string Source)>();var seen=new HashSet<string>(StringComparer.Ordinal);var proofs=new JsonObject();var headers=new List<Element>();var native=new HashSet<string>(StringComparer.Ordinal);var graphs=new SortedSet<string>(StringComparer.Ordinal);
   foreach(var entry in registry.Packs.Where(p=>p.Key==ns||pack.Dependencies.ContainsKey(p.Key)))foreach(var declaration in entry.Value.Elements.Where(e=>e.Value.Kind is "category" or "concept" or "object" or "schema" or "function" or "implementation" or "module" or "enum"))queue.Enqueue((entry.Key+"::"+declaration.Key,owner));
   while(queue.TryDequeue(out var next)){
    if(!seen.Add(next.Id))continue;if(seen.Count>200){row["reason"]="사용처 읽기 범위를 넘었어요. 원본과 입력은 유지됩니다.";return row;}
@@ -21,8 +21,17 @@ internal static class FunctionNativeEdits
    headers.Add(element);
    if(element.Parent==function||element.Requires.ContainsKey(function)||element.Defaults.ContainsKey(function)||element.Provides.ContainsKey(function)&&element.Id!=function&&element.Id!=owner||element.Fields.Values.Any(f=>f.Kind=="function"&&f.Type==function)||element.Id!=owner&&element.Contains.Any(c=>c.Kind=="function"&&c.Id==function))return row;
    if(element.Function==function||element.Imports.Values.Any(i=>i.Id==function)){
-    if(element.Kind!="implementation"||PackPaths.Namespace(element.Id)!=ns||element.Parent is not null||element.Bodies.Count is <1 or >8||element.Bodies.Values.Any(b=>b.SourceKind!="csharp")||element.Function is null)return row;
+    if(element.Kind!="implementation"||PackPaths.Namespace(element.Id)!=ns||element.Parent is not null||element.Bodies.Count is <1 or >8||element.Function is null)return row;
     var feature=registry.Get(element.Function,"function",element.Id);if(feature.Parent is not null||BlueprintAsync.Has(feature)||BlueprintExecutionBranches.Has(feature))return row;
+    foreach(var body in element.Bodies){
+     if(body.Value.SourceKind=="csharp")continue;
+     // Only direct serial call graphs are observed here. Private/copy/opaque
+     // code adaptation keeps its established separate ownership boundary.
+     if(body.Value.SourceKind!="blueprint"||element.Function==function)return row;
+     string path=PackPaths.Owned(Path.GetDirectoryName(registry.Paths[PackPaths.Namespace(body.Value.Origin)])!,body.Value.Path,body.Value.Loc),text=read(path);
+     if(JsonNode.Parse(text) is not JsonObject graph||graph["feature"]?.ToString()!=element.Function||graph["copySource"] is not null||graph["profile"]?.ToString()==BlueprintAsync.Profile||graph["nodes"] is not JsonArray nodes||nodes.Any(n=>n?["kind"]?.ToString()!="call"||n["control"]?.ToString()!="next"||n["postCall"] is not null||n["implementationContext"] is not null||n["forwardCallerStorage"] is not null))return row;
+     string key=element.Id+"/body:"+body.Key;graphs.Add(key);proofs["$graph:"+key]=new JsonObject{["source"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(text)),["path"]=Path.GetFullPath(path)};
+    }
     native.Add(element.Id);
    }
    proofs[element.Id]=new JsonObject{["source"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(element.Loc.File))),["path"]=Path.GetFullPath(element.Loc.File)};
@@ -31,7 +40,7 @@ internal static class FunctionNativeEdits
   }
   if(headers.Any(e=>e.Parent is not null&&native.Contains(e.Parent)))return row;
   foreach(string packId in seen.Select(PackPaths.Namespace).Append(ns).Distinct(StringComparer.Ordinal)){string path=Path.GetFullPath(registry.Paths[packId]);proofs["$manifest:"+packId]=new JsonObject{["path"]=path,["source"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(path)))};}
-  row["adaptation"]=native.Count>0?"native-bodies":"declaration";row["shapeHash"]=native.Count==0?JsonData.Digest(new{profile="unused-information-function-v1",owner,function}):JsonData.Digest(new{profile="native-information-function-abi-v1",owner,function,implementations=native.Order(StringComparer.Ordinal).ToArray()});row["sources"]=proofs;row["proof"]=new JsonObject{["shapeHash"]=row["shapeHash"]!.DeepClone(),["sources"]=proofs.DeepClone()};row["available"]=true;return row;
+  row["adaptation"]=native.Count>0?"native-bodies":"declaration";row["shapeHash"]=native.Count==0?JsonData.Digest(new{profile="unused-information-function-v1",owner,function}):graphs.Count==0?JsonData.Digest(new{profile="native-information-function-abi-v1",owner,function,implementations=native.Order(StringComparer.Ordinal).ToArray()}):JsonData.Digest(new{profile="native-information-function-blueprint-call-v1",owner,function,implementations=native.Order(StringComparer.Ordinal).ToArray(),graphs=graphs.ToArray()});row["sources"]=proofs;row["proof"]=new JsonObject{["shapeHash"]=row["shapeHash"]!.DeepClone(),["sources"]=proofs.DeepClone()};row["available"]=true;return row;
  }
  internal static void Validate(string function,FunctionSignature signature,JsonNode proof,JsonArray choices,JsonObject scope)
  {
