@@ -39,3 +39,5 @@ multiple/함수 필드 native 생성은 같은 유한 잔여다. ID/$ref를 runt
 사용자 결정은 없다. 구 nominal/enum parser·reader 비호환과 이전 scope의 명시 거절,
 자동 migration 없음은 유지한다. 실제 Windows/모바일·전체 UI는 미검증이고 초기 빈 화면
 원인은 미확정이다. 원본·latest/rollback·증거의 기존 보관/정리 규칙을 유지한다.
+
+이 한정 범위의 [최종45단계(신규34·동등 재사용11) 검증과 보관](VALIDATION_V666_NATIVE_RETAINED.md)을 마쳤다.
