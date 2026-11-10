@@ -806,3 +806,10 @@ copy/receiver 계약은 기존 보호를 유지한다. 저장 실패 시 순차 
 문맥·live reference·module async/실행 결과는 같은 유한 잔여다.
 
 이 한정 범위의 [최종46단계(신규41·동등 재사용5) 검증과 보관](VALIDATION_V666_NATIVE_PARAMETERS.md)을 마쳤다.
+
+후속 [정보 구조체의 여러 값 필드](V666_INFORMATION_ARRAYS.md)는 같은 고정9행의 기존
+single/multiple 값 계약을 C# 배열 생성에 연결한다. primitive·중첩 정보·종류 배열과
+기존 동기 모듈의 정보 값 전달을 다루며 기존 단일 값 생성 원문/hash를 보존한다.
+본문 Save의 native 타입 관측 영수증을 Review의 읽기 범위에 재검증해 합치는 결함도
+수정한다. reference/함수 필드, 살아 있는 객체 접근과 모듈 async/공개 실행 계약은
+여전히 별도 잔여다. 생성/reader 호환성과 최종 검증은 해당 문서의 한정 경계를 따른다.

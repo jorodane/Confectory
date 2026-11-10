@@ -5,10 +5,19 @@ using System.Text.Json.Nodes;
 // The existing slot receipt and final source lease carry these checks unchanged.
 internal static class InformationFunctionBodyGuards
 {
- public static JsonObject Execute(JsonObject request)
+ public static JsonObject Execute(JsonObject request,Func<Manifest,string> format)
  {
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
-  bool PresentationOnly(JsonNode? declaration)=>declaration?["raw"] is null&&declaration?["changes"] is JsonArray changes&&changes.Count is >=1 and <=2&&changes.All(InformationFunctionBodyBatch.Presentation);
+  bool FunctionPresentation(string owner,JsonNode? row)
+  {
+   // The existing name/description editor sends a same-contract function row.
+   // Keep its saved body scope; an ABI mapping is a separate explicit edit.
+   if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >8||value.Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName")))return false;
+   string? id=value["id"]?.ToString();if(id is null||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||units[id]?["kind"]?.ToString()!="function"||units[id]?["original"] is not JsonValue original||units[id]?["draft"] is not JsonValue draft)return false;
+   var before=new Parser(original.ToString(),"<retained-native-header>").ParseElement();var after=new Parser(draft.ToString(),"<retained-native-header>").ParseElement();
+   return before.Id==id&&after.Id==id&&before.Kind=="function"&&after.Kind=="function"&&before.Parent is null&&after.Parent is null&&before.Signature is not null&&after.Signature is not null&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),value["signature"])&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(after.Signature),value["signature"]);
+  }
+  bool PresentationOnly(JsonNode? declaration)=>declaration?["raw"] is null&&declaration?["id"] is JsonValue owner&&declaration?["changes"] is JsonArray changes&&changes.Count is >=1 and <=2&&changes.All(row=>InformationFunctionBodyBatch.Presentation(row)||FunctionPresentation(owner.ToString(),row));
   bool TypedFunction(string id)
   {
    if(units[id]?["kind"]?.ToString()!="function")return false;string? text=units[id]?["original"]?.ToString();if(string.IsNullOrEmpty(text))text=units[id]?["draft"]?.ToString();if(text is null)return false;var function=new Parser(text,"<information-value-source-scope>").ParseElement();return function.Kind=="function"&&function.Signature is not null&&InformationStructs.SignatureTypes(function.Signature).Any();
@@ -131,6 +140,17 @@ internal static class InformationFunctionBodyGuards
     if(!JsonNode.DeepEquals(verified,copies))throw new InvalidOperationException("Original native copy observation proofs changed or are incomplete; retain the complete group");
     foreach(var copy in verified)foreach(var proof in copy.Value!.AsObject())foreach(var dependency in proof.Value!["context"]!.AsArray()){
      string path=Path.GetFullPath(dependency!["path"]!.ToString());if(!path.StartsWith(root+Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))continue;string relative=Path.GetRelativePath(root,path);expected.TryAdd(relative,new JsonObject{["path"]=relative});
+    }
+   }
+   // A body edit can also retain the native type/usage selection receipt.
+   // Re-resolve that existing read-only scope before adding its owned paths;
+   // never accept arbitrary extra paths supplied in a saved body receipt.
+   if(receipt["nativeTypeProofs"] is not null){
+    var native=FunctionNativeTypes.Guards(new JsonObject{["action"]="validate",["project"]=request["project"]!.DeepClone(),["namespace"]=ns,["units"]=units.DeepClone(),["selected"]=new JsonArray(owner)},format);
+    string root=Path.GetDirectoryName(Path.GetFullPath(request["project"]!.ToString()))!;
+    foreach(var read in native["reads"]!.AsArray()){
+     string path=Path.GetFullPath(read!["path"]!.ToString());
+     if(path.StartsWith(root+Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)){string relative=Path.GetRelativePath(root,path);expected.TryAdd(relative,new JsonObject{["path"]=relative});}
     }
    }
    if(guards.Count!=expected.Count||expected.Keys.Any(path=>guards[path] is not JsonObject row||row.Count!=2||row["path"]?.ToString()!=path||row["hash"] is null||!Token(row["hash"]!.ToString())))throw new InvalidOperationException("Complete original native body source checks are missing or changed; retain the saved group");return new JsonArray(guards.Select(p=>p.Value!.DeepClone()).ToArray());

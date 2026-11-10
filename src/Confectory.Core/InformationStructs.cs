@@ -11,6 +11,7 @@ public static class InformationStructs
     public const string Profile = "information-struct-v1";
     public const string CompoundProfile = "information-struct-compound-v1";
     public const string NominalProfile = "information-struct-nominal-v1";
+    public const string ArrayProfile = "information-struct-arrays-v1";
     static readonly Regex ContractName = new(@"\AConfectory\.Information\.E[0-9a-f]{24}\.E[0-9a-f]{24}\z", RegexOptions.CultureInvariant);
     static readonly Regex MemberName = new(@"\A[A-Za-z_][A-Za-z_0-9]*\z", RegexOptions.CultureInvariant);
     static readonly HashSet<string> Scalars = ["bool", "int", "long", "float", "double", "string"];
@@ -25,22 +26,23 @@ public static class InformationStructs
     static Definition Generate(Element schema, Func<SchemaField, Definition> resolve)
     {
         if (schema.Kind != "schema" || schema.Fields.Count > 256) throw new BuildError("INFORMATION_CLR_SCHEMA", "A bounded information definition is required", schema.Loc);
-        var fields = new List<Field>(); var dependencies = new Dictionary<string, Dependency>(StringComparer.Ordinal); bool enums = false;
+        var fields = new List<Field>(); var dependencies = new Dictionary<string, Dependency>(StringComparer.Ordinal); bool enums = false, arrays = false;
         foreach (var (name, field) in schema.Fields.OrderBy(p => p.Key, StringComparer.Ordinal))
         {
-            // Reference/function and list representations are not
-            // silently replaced by object, omitted fields or value snapshots.
-            if (field.Cardinality != "single" || field.Kind is not ("compound" or "enum") && (field.Kind != "general" || !Scalars.Contains(field.Type)))
-                throw new BuildError("INFORMATION_CLR_FIELD", "This information struct profile requires single primitive, compound or mapped enum fields: " + schema.Id + "/" + name, field.Loc);
+            // Multiplicity uses the existing native array representation.
+            // Live references and function fields retain their separate contracts.
+            if (field.Cardinality is not ("single" or "multiple") || field.Kind is not ("compound" or "enum") && (field.Kind != "general" || !Scalars.Contains(field.Type)))
+                throw new BuildError("INFORMATION_CLR_FIELD", "This information struct profile requires primitive, compound or mapped enum value fields: " + schema.Id + "/" + name, field.Loc);
             if (!MemberName.IsMatch(name) || name == Generation.Symbol(schema.Id))
                 throw new BuildError("INFORMATION_CLR_MEMBER", "The stable field ID cannot be emitted as a C# struct member: " + name, field.Loc);
             string type = field.Type;
             if (field.Kind is "compound" or "enum") { var child = resolve(field); type = child.ClrType; enums |= child.Kind == "enum"; dependencies[child.Id] = new(child.Id, child.ClrType, child.ShapeHash); }
+            if (field.Cardinality == "multiple") { arrays = true; type += "[]"; }
             fields.Add(new(field.Origin + "/field:" + name, name, field.Origin, type, "@" + name));
         }
-        var inputs = dependencies.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray(); string profile = enums ? NominalProfile : inputs.Length == 0 ? Profile : CompoundProfile;
+        var inputs = dependencies.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray(); string profile = arrays ? ArrayProfile : enums ? NominalProfile : inputs.Length == 0 ? Profile : CompoundProfile;
         // Keep existing primitive source/shape keys byte-for-byte unchanged.
-        string hash = inputs.Length == 0 ? JsonData.Digest(new { profile = Profile, id = schema.Id, parent = schema.Parent, fields }) : JsonData.Digest(new { profile, id = schema.Id, parent = schema.Parent, fields, dependencies = inputs });
+        string hash = inputs.Length == 0 ? JsonData.Digest(new { profile = arrays ? ArrayProfile : Profile, id = schema.Id, parent = schema.Parent, fields }) : JsonData.Digest(new { profile, id = schema.Id, parent = schema.Parent, fields, dependencies = inputs });
         var code = new StringBuilder("// Generated information value " + schema.Id + "; " + profile + "; " + hash + "\n");
         code.AppendLine("#nullable disable");
         code.AppendLine("namespace Confectory.Information." + Generation.Symbol(PackPaths.Namespace(schema.Id)));

@@ -1,0 +1,37 @@
+{
+  "Leaf": {
+    "profile": "information-struct-v1",
+    "shapeHash": "ed2e4620d37fb8130a74419760c7d269af4f1855d9c0fde2eb7792e6ab4c2b9c",
+    "source": "// Generated information value Owned.Arrays::Leaf; information-struct-v1; ed2e4620d37fb8130a74419760c7d269af4f1855d9c0fde2eb7792e6ab4c2b9c\n#nullable disable\nnamespace Confectory.Information.E64e77df5840face8e4701fed\n{\n    public struct E2db74af23f00dff2d9f64e33\n    {\n        public long @Count;\n    }\n}\n",
+    "clrType": "Confectory.Information.E64e77df5840face8e4701fed.E2db74af23f00dff2d9f64e33"
+  },
+  "Mood": {
+    "profile": "information-enum-int32-v1",
+    "shapeHash": "85477d6c6edabd15a5be19610be326262b9c8dd53f46a4562498b01ecf1f68c9",
+    "source": "// Generated information enum Owned.Arrays::Mood; information-enum-int32-v1; 85477d6c6edabd15a5be19610be326262b9c8dd53f46a4562498b01ecf1f68c9\n#nullable disable\nnamespace Confectory.Information.E64e77df5840face8e4701fed {\npublic enum E3004fff10fe4956d35208a2a : int { Unselected = 0,\nMember_Eb4115ba026a4743162f0c376 = 31,\nMember_Edbfac7d6c8dc7a2a3bfb9769 = 12,\n}\npublic static class E3004fff10fe4956d35208a2aIds {\npublic static string ToId(E3004fff10fe4956d35208a2a value) => value switch {\nE3004fff10fe4956d35208a2a.Unselected => \"\",\nE3004fff10fe4956d35208a2a.Member_Eb4115ba026a4743162f0c376 => \"done-id\",\nE3004fff10fe4956d35208a2a.Member_Edbfac7d6c8dc7a2a3bfb9769 => \"ready-id\",\n_ => throw new global::System.ArgumentOutOfRangeException(nameof(value)) };\npublic static E3004fff10fe4956d35208a2a FromId(string id) => id switch {\n\"\" => E3004fff10fe4956d35208a2a.Unselected,\n\"done-id\" => E3004fff10fe4956d35208a2a.Member_Eb4115ba026a4743162f0c376,\n\"ready-id\" => E3004fff10fe4956d35208a2a.Member_Edbfac7d6c8dc7a2a3bfb9769,\n_ => throw new global::System.ArgumentException(\"Unknown information enum member ID\", nameof(id)) };\n}\n}\n",
+    "clrType": "Confectory.Information.E64e77df5840face8e4701fed.E3004fff10fe4956d35208a2a"
+  },
+  "Single": {
+    "profile": "information-struct-nominal-v1",
+    "shapeHash": "176d97a3bf2e29c87d329ab97f5b2828931b1757f7b2973ad8325b2442c86885",
+    "source": "// Generated information value Owned.Arrays::Single; information-struct-nominal-v1; 176d97a3bf2e29c87d329ab97f5b2828931b1757f7b2973ad8325b2442c86885\n#nullable disable\nnamespace Confectory.Information.E64e77df5840face8e4701fed\n{\n    public struct E6b7b5dc5e939ab821d6ffa2d\n    {\n        public Confectory.Information.E64e77df5840face8e4701fed.E2db74af23f00dff2d9f64e33 @Child;\n        public Confectory.Information.E64e77df5840face8e4701fed.E3004fff10fe4956d35208a2a @Choice;\n        public long @HP;\n    }\n}\n",
+    "clrType": "Confectory.Information.E64e77df5840face8e4701fed.E6b7b5dc5e939ab821d6ffa2d"
+  },
+  "BasicRules": {
+    "profile": "module-interface-basic-v1",
+    "shapeHash": "cc5e672f9e1fe145f911cd3e55501bf68bc6977a6e230685799be986a558f4ee",
+    "source": "// Generated module interface Owned.Arrays::BasicRules; module-interface-basic-v1; cc5e672f9e1fe145f911cd3e55501bf68bc6977a6e230685799be986a558f4ee\n#nullable disable\nnamespace Confectory.Information.E64e77df5840face8e4701fed {\npublic interface E125f427ee2b02a8fe0cfb8de {\nlong Call_E4c6a1e83c8e5fdb12b927e5c(long input);\n}\n}\n",
+    "clrType": "Confectory.Information.E64e77df5840face8e4701fed.E125f427ee2b02a8fe0cfb8de"
+  },
+  "SingleRules": {
+    "profile": "module-interface-nominal-v1",
+    "shapeHash": "f951cf4c88bb85bd9a3bb2e299de32a4da7a0360fa4fe6b0487fd7504e4c603a",
+    "source": "// Generated module interface Owned.Arrays::SingleRules; module-interface-nominal-v1; f951cf4c88bb85bd9a3bb2e299de32a4da7a0360fa4fe6b0487fd7504e4c603a\n#nullable disable\nnamespace Confectory.Information.E64e77df5840face8e4701fed {\npublic interface Eb829e2a65f051b9b48ac2e2c {\nConfectory.Information.E64e77df5840face8e4701fed.E6b7b5dc5e939ab821d6ffa2d Call_E92c8f68c1bd75ee3c5c111db(Confectory.Information.E64e77df5840face8e4701fed.E6b7b5dc5e939ab821d6ffa2d input);\n}\n}\n",
+    "clrType": "Confectory.Information.E64e77df5840face8e4701fed.Eb829e2a65f051b9b48ac2e2c"
+  },
+  "_provenance": {
+    "sourceCommit": "acbdc08fa7139d45dc51b06b2a39b4e11b8b5ad2",
+    "metadataSource": "fresh baseline compiler before array field change",
+    "originalDescriptorSha256": "fe78072a5b9e33f643bed2455f5987597762b7e6541ecb803f7d97062347f86c"
+  }
+}
