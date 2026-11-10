@@ -853,7 +853,9 @@ try:
                 if nested_source:
                     units=f.metadata('describe',project=str(f.manifest))['units'];body_key=copied+'/body:'+target
                     for key,value in nested_changed.items():
-                        unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());assert record['source']==value and record['node']==key.split('/')[-1];original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Tap.node.json' if key=='left/tap' else 'Right.node.json')).read_text());assert record['helpers']==(enum_helpers if nested_enum and key=='left/body' else original_record['helpers'])
+                        unit=next(v for v in units if v['id']==body_key+'/node:'+key.replace('/','/node:'));record=json.loads((f.project/unit['path']).read_text());original_record=json.loads((source/('Left.node.json' if key=='left/body' else 'Tap.node.json' if key=='left/tap' else 'Right.node.json')).read_text())
+                        expected_source=value.replace('\r\n','\n');expected_source=expected_source.replace('\n','\r\n') if '\r\n' in original_record['source'] else expected_source
+                        assert record['source']==expected_source and record['node']==key.split('/')[-1];assert record['helpers']==(enum_helpers if nested_enum and key=='left/body' else original_record['helpers'])
                     if nested_enum:
                         stored=json.loads((f.project/next(v for v in units if v['id']==body_key)['path']).read_text());expected=copy.deepcopy(enum_graph_before);expected['nodes'][0]['graph']['nodes'][0]['executionEnum']=enum_expected;assert stored==expected
                     if nested_routes:
