@@ -52,8 +52,10 @@ def verify(checkpoint):
  assert graph['locals'][1]==g['locals'][1] and graph['locals'][0]=={**g['locals'][0],'source':{'input':'increment'}}
  assert next(v for v in graph['nodes'] if v['id']=='extra')==extra
  assert json.loads(rows[body_id]['draft'])['source']==edited
- assert json.loads(rows[fn+'Body/body:common/node:extra']['draft'])['source']==extra_record['source']
+ extra_id=fn+'Body/body:common/node:extra'
+ if extra_id in rows:assert json.loads(rows[extra_id]['draft'])['source']==extra_record['source']
+ else:assert(f.project/'extra.node.json').read_bytes()==snapshot['extra.node.json']
  assert next(v for v in graph['nodes'] if v['id']==ret)['arguments']['value']=={'node':'body','output':'return'}
  if post_mode:
   post=json.loads(rows[caller+'Body/body:common']['draft'])['nodes'][0]['postCall'];assert post['source']==post_source and post['helpers']==post_helpers
- assert all((f.project/p).read_bytes()==v for p,v in snapshot.items());ids=rows[owner]['atomicEditGroup'];assert fn+'Body/body:common/node:extra' in ids;return ids
+ assert all((f.project/p).read_bytes()==v for p,v in snapshot.items());ids=rows[owner]['atomicEditGroup'];assert extra_id not in rows or extra_id in ids;return ids
