@@ -1,0 +1,21 @@
+{
+  "base": "683fa242a1fe909f904c01035078b5d2a7ba64fc",
+  "scope": "direct owned synchronous Blueprint root nominal ABI edit with fixed ordinary C# node contracts and exact source/helper bytes; explicit input rebind, writer/exit and C# caller plans",
+  "authoredLayoutChanged": false,
+  "automaticCSharpRewriting": false,
+  "checkpointProfile": "native-type-source-guards-v1",
+  "scopeProfile": "native-information-function-retained-code-v1",
+  "productFiles": {
+    "targets/element-authoring/FunctionNativeEdits.cs": "b0e186722d67228e6b95c523318303ae03c7c6579017460c23974e08d2ebbc55",
+    "targets/element-authoring/InformationFunctionContracts.cs": "b2e6dda20324fbced854b7d67fe2182ff5ca35512326f1d47f588e6f33ea4405"
+  },
+  "remaining": [
+    "explicit ordinary C# node signature/import ABI changes and private/whole-body advanced ABI adaptation",
+    "live reference instance/accessor binding and lifetime",
+    "module async/public execution result contract closure",
+    "existing row9 multiple/function-field native generation"
+  ],
+  "nativeDeviceVerified": false,
+  "wholeUIVerified": false,
+  "initialBlankCause": "unconfirmed"
+}
