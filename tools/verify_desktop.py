@@ -633,6 +633,8 @@ def main():
             elif args.suite=='native-parameters':
                 work.run(label+'-native-parameters-dom',[sys.executable,str(checkout/'tests/web/v666_native_parameters_dom.py'),str(checkout),str(fixtures/'parameters-dom')],cwd=checkout,env=env)
                 work.run(label+'-native-parameters-receipts',['node',str(checkout/'tests/web/v666_native_edit_receipts.mjs'),str(checkout)],cwd=checkout,env=env)
+                if label=='lf':
+                    work.run('lf-native-parameters-copy-pins',[sys.executable,str(checkout/'tests/web/v536_information_external_copy_ui.py'),str(checkout),str(report),'normal','nested-source','nested-pins'],cwd=checkout,env=env)
                 for mode in (['normal','storage','conflict','cancel'] if label=='lf' else ['normal','loss','late']):
                     work.run(label+'-native-parameters-'+mode,[sys.executable,str(checkout/'tests/web/v666_native_parameters_ui.py'),str(checkout),str(report),mode],cwd=checkout,env=env)
                 work.run(label+'-native-parameters-private',[sys.executable,str(checkout/'tests/web/v666_native_parameters_ui.py'),str(checkout),str(report),'normal','private'],cwd=checkout,env=env)
@@ -3321,6 +3323,7 @@ def main():
             work.run('restored-resource-transfer',[sys.executable,str(checkout/'tests/web/v666_resource_transfer_ui.py'),str(restored/'content'),str(packaged_report),'lifecycle'],cwd=checkout,env=env)
 
         elif args.suite=='native-parameters':
+            work.run('restored-native-parameters-copy-pins',[sys.executable,str(checkout/'tests/web/v536_information_external_copy_ui.py'),str(restored/'content'),str(packaged_report),'normal','nested-source','nested-pins'],cwd=checkout,env=env)
             work.run('restored-native-parameters-private',[sys.executable,str(checkout/'tests/web/v666_native_parameters_ui.py'),str(restored/'content'),str(packaged_report),'normal','private'],cwd=checkout,env=env)
             for mode in ['storage','loss','late']:
                 work.run('restored-native-parameters-'+mode,[sys.executable,str(checkout/'tests/web/v666_native_parameters_ui.py'),str(restored/'content'),str(packaged_report),mode],cwd=checkout,env=env)
