@@ -3,7 +3,7 @@ if(owner.Length>0&&!System.Linq.Enumerable.Any(metadata["lineage"]!.AsArray(),id
 var declared=System.Linq.Enumerable.SingleOrDefault(metadata["fields"]!.AsArray(),item=>item!["id"]!.ToString()==field)??throw new InvalidOperationException("Property field is not declared by the actual instance");
 if(contractHash.Length>0&&declared["hash"]!.ToString()!=contractHash)throw new InvalidOperationException("Property field contract changed; preserve the actual instance and bind a compatible contract");
 string kind=declared["kind"]!.ToString(),type=declared["type"]!.ToString();bool multiple=declared["cardinality"]!.ToString()=="multiple";
-if(kind is not ("general" or "reference" or "enum")||kind=="enum"&&declared["nativeEnum"] is null)throw new NotSupportedException("This object field kind has no live value contract yet");
+if(kind is not ("general" or "reference" or "enum" or "compound")||kind=="enum"&&declared["nativeEnum"] is null||kind=="compound"&&declared["nativeStruct"] is null)throw new NotSupportedException("This object field kind has no live value contract yet");
 // Enum values are supplied by the caller, never converted from declaration IDs
 // or integers. Preserve checked Set for constrained values; no mutable ref cell.
 bool EnumType(Type actual,out System.Collections.Generic.HashSet<int> values){
@@ -15,12 +15,44 @@ bool EnumType(Type actual,out System.Collections.Generic.HashSet<int> values){
 }
 bool EnumValue(object? item)=>item is Enum enumValue&&EnumType(enumValue.GetType(),out var values)&&values.Contains(Convert.ToInt32(enumValue));
 bool EnumValues(object? item){if(!multiple)return EnumValue(item);return item is Array array&&array.GetType().IsSZArray&&EnumType(array.GetType().GetElementType()!,out var values)&&System.Linq.Enumerable.All(System.Linq.Enumerable.Cast<object>(array),entry=>values.Contains(Convert.ToInt32(entry)));}
+// Check the existing generated value layout, without reading a member/getter,
+// looking up an instance, or imposing JSON-data rules on authored CLR values.
+bool StructType(Type actual){
+ if(declared["nativeStruct"] is not System.Text.Json.Nodes.JsonObject contract||contract["profile"]?.ToString()!="information-struct-live-value-v1"||contract["types"] is not System.Text.Json.Nodes.JsonArray types||types.Count is <1 or >256)return false;
+ var definitions=new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal);
+ foreach(var item in types)if(item is not System.Text.Json.Nodes.JsonObject definition||!definitions.TryAdd(definition["clrType"]!.ToString(),definition))return false;
+ var matched=new System.Collections.Generic.Dictionary<Type,bool>();var visiting=new System.Collections.Generic.HashSet<Type>();
+ bool Match(Type candidate,string expected){
+  if(expected.EndsWith("[]",StringComparison.Ordinal))return candidate.IsSZArray&&Match(candidate.GetElementType()!,expected[..^2]);
+  Type? scalar=expected switch{"bool"=>typeof(bool),"int"=>typeof(int),"long"=>typeof(long),"float"=>typeof(float),"double"=>typeof(double),"string"=>typeof(string),_=>null};
+  if(scalar is not null)return candidate==scalar;
+  if(candidate.FullName!=expected||!definitions.TryGetValue(expected,out var definition)||candidate.Assembly.GetName().Name!=definition["assembly"]?.ToString())return false;
+  if(matched.TryGetValue(candidate,out bool prior))return prior;if(!visiting.Add(candidate))return false;
+  bool valid=Shape(candidate,definition);visiting.Remove(candidate);matched[candidate]=valid;return valid;
+ }
+ bool Shape(Type candidate,System.Text.Json.Nodes.JsonObject definition){
+  if(definition["kind"]?.ToString()=="enum"){
+   if(!candidate.IsEnum||Enum.GetUnderlyingType(candidate)!=typeof(int)||definition["members"] is not System.Text.Json.Nodes.JsonArray members||members.Count>256)return false;
+   var names=new System.Collections.Generic.Dictionary<string,int>(StringComparer.Ordinal){["Unselected"]=0};var numbers=new System.Collections.Generic.HashSet<int>{0};
+   foreach(var member in members){int number=member!["value"]!.GetValue<int>();if(number<=0||!numbers.Add(number)||!names.TryAdd(member["clrMember"]!.ToString(),number))return false;}
+   return Enum.GetNames(candidate).Length==names.Count&&System.Linq.Enumerable.All(names,entry=>Enum.IsDefined(candidate,entry.Key)&&Convert.ToInt32(Enum.Parse(candidate,entry.Key))==entry.Value);
+  }
+  if(definition["kind"]?.ToString()!="schema"||!candidate.IsValueType||candidate.IsEnum||candidate.IsGenericType||!candidate.IsLayoutSequential||definition["fields"] is not System.Text.Json.Nodes.JsonArray fields||fields.Count>256)return false;
+  const System.Reflection.BindingFlags flags=System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.DeclaredOnly;
+  if(candidate.GetFields(flags).Length!=fields.Count)return false;var namesSeen=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+  foreach(var fieldShape in fields){string name=fieldShape!["clrMember"]!.ToString();if(name.StartsWith("@",StringComparison.Ordinal))name=name[1..];var member=candidate.GetField(name,flags);if(!namesSeen.Add(name)||member is null||!member.IsPublic||member.IsInitOnly||!Match(member.FieldType,fieldShape["type"]!.ToString()))return false;}
+  return true;
+ }
+ return Match(actual,contract["clrType"]!.ToString());
+}
+bool StructValue(object? item)=>item is not null&&(multiple?item is Array array&&array.GetType().IsSZArray&&StructType(array.GetType().GetElementType()!):StructType(item.GetType()));
 bool Reference(object? item)=>item is object[] reference&&reference.Length==3&&reference[0] is string version&&version is "Confectory.ObjectModel.Instance/v1" or "Confectory.ObjectModel.Instance/v2"&&reference[1] is System.Text.Json.Nodes.JsonObject contract&&reference[2] is System.Collections.Generic.Dictionary<string,object>&&System.Linq.Enumerable.Any(contract["schemas"]!.AsArray(),schema=>schema!.ToString()==type);
 bool Atom(object? item)=>kind=="reference"?Reference(item):type switch{"bool"=>item is bool,"int"=>item is int,"long"=>item is long,"float"=>item is float f&&float.IsFinite(f),"double"=>item is double d&&double.IsFinite(d),"string"=>item is string,_=>false};
-bool Valid(object? item){if(kind=="enum")return EnumValues(item);if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
+bool Valid(object? item){if(kind=="compound")return StructValue(item);if(kind=="enum")return EnumValues(item);if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
 bool typedCell=format=="Confectory.ObjectModel.Instance/v2"&&kind=="general"&&!multiple&&type is "bool" or "int" or "long";
 if(write){
  if(!Valid(value))throw new ArgumentException("Object field value does not match its exact type/cardinality");
+ if(kind=="compound"&&!multiple){var stored=System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(value)!;data[field]=stored;return System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(stored)!;}
  if(typedCell){
   if(data.TryGetValue(field,out var cell)){
    if(type=="bool"&&cell is System.Runtime.CompilerServices.StrongBox<bool> b)b.Value=(bool)value;
@@ -34,4 +66,5 @@ if(write){
 if(!data.TryGetValue(field,out var current))throw new InvalidOperationException("Property field is unset on the actual instance; no default is invented");
 if(typedCell)current=type switch{"bool" when current is System.Runtime.CompilerServices.StrongBox<bool> b=>b.Value,"int" when current is System.Runtime.CompilerServices.StrongBox<int> i=>i.Value,"long" when current is System.Runtime.CompilerServices.StrongBox<long> l=>l.Value,_=>throw new InvalidOperationException("The actual typed field storage is incompatible")};
 if(!Valid(current))throw new InvalidOperationException("Actual property value no longer matches its declared contract");
+if(kind=="compound"&&!multiple)return System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(current)!;
 return current;

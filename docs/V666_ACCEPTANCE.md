@@ -823,3 +823,7 @@ provider 선택이나 mutable enum ref를 추가하지 않는다. 기존 primiti
 function/compound 필드와 module async·공개 실행 결과는 별도 잔여다.
 
 이 한정 범위의 [최종42단계(신규26·재사용16) 검증과 보관](VALIDATION_V666_LIVE_ENUM.md)을 마쳤다.
+
+후속 [실제 객체의 compound 값 접근](V666_LIVE_COMPOUND.md)은 같은9행에서 기존
+native struct 값·배열을 정확한 타입/전이 구조와 얕은 값 복사에 연결한다. 깊은 원본의
+관측·최종 CAS와 기존 참조/함수의 별도 계약을 보존하며 실제 기기·전체 UI 완료로 세지 않는다.

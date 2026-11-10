@@ -51,9 +51,27 @@ public static class RuntimeObjectContracts
             string type = field.Kind == "general" ? field.Type : "object";
             bool supported = field.Kind is "general" or "reference";
             InformationStructs.Definition? nativeEnum = null;
+            InformationStructs.Definition? nativeStruct = null;
+            IReadOnlyList<InformationStructs.Definition>? structTypes = null;
             if (field.Kind == "enum") {
                 try { nativeEnum = InformationStructs.Describe(registry, field.Type, field.Origin); type = nativeEnum.ClrType; supported = true; }
                 catch (BuildError error) when (error.Diagnostic.Code == "ENUM_CLR_MAPPING") { /* Unconverted IDs remain unsupported, never assign numbers here. */ }
+            }
+            if (field.Kind == "compound") {
+                try {
+                    structTypes = InformationStructs.Closure(registry, field.Type, field.Origin);
+                    nativeStruct = structTypes.Single(d => d.Id == field.Type);
+                    type = nativeStruct.ClrType; supported = true;
+                    foreach (var definition in structTypes) {
+                        if (definition.Kind == "schema") Ancestors(definition.Id, "schema", _ => { });
+                        else dependencies.Add(definition.Id);
+                    }
+                }
+                catch (BuildError error) when (error.Diagnostic.Code is "INFORMATION_CLR_FIELD" or "INFORMATION_CLR_MEMBER" or "ENUM_CLR_MAPPING") {
+                    // A live reference/function field is not a native value.
+                    // Keep the old unsupported descriptor; never drop a member.
+                    nativeStruct = null; structTypes = null;
+                }
             }
             var row = new JsonObject
             {
@@ -66,6 +84,18 @@ public static class RuntimeObjectContracts
                 ["assembly"] = "Information_" + Generation.Symbol(PackPaths.Namespace(field.Type)), ["shapeHash"] = nativeEnum.ShapeHash,
                 ["members"] = new JsonArray(nativeEnum.Members!.OrderBy(m => m!["id"]!.ToString(), StringComparer.Ordinal).Select(m => (JsonNode)new JsonObject {
                     ["id"] = m!["id"]!.DeepClone(), ["value"] = m["value"]!.DeepClone(), ["clrMember"] = m["clrMember"]!.DeepClone()
+                }).ToArray())
+            };
+            if (nativeStruct is not null) row["nativeStruct"] = new JsonObject {
+                ["profile"] = "information-struct-live-value-v1", ["clrType"] = nativeStruct.ClrType,
+                ["types"] = new JsonArray(structTypes!.Select(d => {
+                    var item = new JsonObject { ["id"] = d.Id, ["kind"] = d.Kind, ["clrType"] = d.ClrType,
+                        ["assembly"] = "Information_" + Generation.Symbol(PackPaths.Namespace(d.Id)), ["shapeHash"] = d.ShapeHash,
+                        ["fields"] = System.Text.Json.JsonSerializer.SerializeToNode(d.Fields, JsonData.Options) };
+                    if (d.Kind == "enum") item["members"] = new JsonArray(d.Members!.OrderBy(m => m!["id"]!.ToString(), StringComparer.Ordinal).Select(m => (JsonNode)new JsonObject {
+                        ["id"] = m!["id"]!.DeepClone(), ["value"] = m["value"]!.DeepClone(), ["clrMember"] = m["clrMember"]!.DeepClone()
+                    }).ToArray());
+                    return (JsonNode)item;
                 }).ToArray())
             };
             row["hash"] = JsonData.Digest(row);

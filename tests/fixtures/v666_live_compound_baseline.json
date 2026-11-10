@@ -1,0 +1,84 @@
+{
+  "plain": {
+    "schema": 1,
+    "id": "Owned.Compound::PlainNode",
+    "kind": "object",
+    "lineage": [
+      "Owned.Compound::PlainNode"
+    ],
+    "schemas": [
+      "Owned.Compound::Plain"
+    ],
+    "fields": [
+      {
+        "id": "Owned.Compound::Plain/field:count",
+        "name": "count",
+        "origin": "Owned.Compound::Plain",
+        "kind": "general",
+        "cardinality": "single",
+        "type": "long",
+        "clrType": "long",
+        "supported": true,
+        "hash": "9c5831b8687a7f6ba4009c976ca11a4c4aab9e89f409205da43c77fcfda4e094"
+      },
+      {
+        "id": "Owned.Compound::Plain/field:phase",
+        "name": "phase",
+        "origin": "Owned.Compound::Plain",
+        "kind": "enum",
+        "cardinality": "single",
+        "type": "Owned.Compound::Mood",
+        "clrType": "Confectory.Information.E5d2e4d411cc38a156eeaef84.E09c7a5bc22bfcf1031385ea8",
+        "supported": true,
+        "nativeEnum": {
+          "profile": "information-enum-int32-v1",
+          "clrType": "Confectory.Information.E5d2e4d411cc38a156eeaef84.E09c7a5bc22bfcf1031385ea8",
+          "assembly": "Information_E5d2e4d411cc38a156eeaef84",
+          "shapeHash": "c6466009eafd9a6bbce9268075db90445558be69b738045acdcbcb3648134a88",
+          "members": [
+            {
+              "id": "done",
+              "value": 31,
+              "clrMember": "Member_E58bf5b5478e5d1fb7441daef"
+            },
+            {
+              "id": "ready",
+              "value": 12,
+              "clrMember": "Member_E40ec7f71ea684c8b976e79e8"
+            }
+          ]
+        },
+        "hash": "6d526bc1f519c617f95f5dc0440a3339fb7314b0e8b5bd2c88388c3a5566e975"
+      },
+      {
+        "id": "Owned.Compound::Plain/field:reference",
+        "name": "reference",
+        "origin": "Owned.Compound::Plain",
+        "kind": "reference",
+        "cardinality": "single",
+        "type": "Owned.Compound::Leaf",
+        "clrType": "object",
+        "supported": true,
+        "hash": "c6f4b684249696fbfb3ec9dc6c9b69dcd61be7b1eb5211934025a57b3c32b8b0"
+      }
+    ],
+    "dependencies": [
+      "Owned.Compound::Leaf",
+      "Owned.Compound::Mood",
+      "Owned.Compound::Plain",
+      "Owned.Compound::PlainNode"
+    ],
+    "hash": "20d86467806700d28e9dd749b21d79debf7b6c90cf366ce369fbd2fdfde027f8"
+  },
+  "blocked": {
+    "id": "Owned.Compound::Fields/field:blocked",
+    "name": "blocked",
+    "origin": "Owned.Compound::Fields",
+    "kind": "compound",
+    "cardinality": "single",
+    "type": "Owned.Compound::LiveRef",
+    "clrType": "object",
+    "supported": false,
+    "hash": "7e83a50a0ae1056aa28e79730fb562962100149636ad1acd8238505762704fdb"
+  }
+}
