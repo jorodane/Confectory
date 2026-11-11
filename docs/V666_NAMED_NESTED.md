@@ -51,3 +51,5 @@ frame/import 계약·본문 closure, 고정8행의 다른 실제 source 결합�
 과거 간헐 빈 #app 원인은 미확정이다. 새 전송/재로드 관찰과 재현한 module 실패를
 원인 확정으로 세지 않는다. 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI
 전수 검증은 Linux native/Chromium 자동화 및 교차 패키징과 별도다.
+
+이 공개 이름·native 본문과 private 호출자 단위의 [최종 신규 38단계·재사용0 검증과 보관](VALIDATION_V666_NAMED_NESTED.md)을 마쳤다.

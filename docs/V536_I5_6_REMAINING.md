@@ -358,3 +358,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 Blueprint 계약·native 본문 혼합 저장 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_MIXED_FUNCTION_BODIES.md)을 마쳤다.
 
 [공개 입력 이름·native 본문과 private 호출자](V666_NAMED_NESTED.md)는 기존8행의 명시 계약/본문 그룹을 ordinary owned private frame에 연결한다. 원래 frame 계약·지역값·qualified C# 원문과 version3 읽기 CAS를 유지하고 다른 forwarded/opaque/import closure는 같은 유한 잔여로 둔다.
+
+이 공개 이름·native 본문과 private 호출자 단위의 [최종 신규 38단계·재사용0 검증과 보관](VALIDATION_V666_NAMED_NESTED.md)을 마쳤다.
