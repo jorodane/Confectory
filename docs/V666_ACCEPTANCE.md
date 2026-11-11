@@ -918,3 +918,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 공개 이름·native 본문과 로컬 import 단위의 [최종 신규 28·재사용 10·총 38단계 검증과 보관](VALIDATION_V666_NAMED_IMPORTS.md)을 마쳤다.
 
 [기존 forwarded/opaque 호출 원본](V666_RETAINED_FORWARDING.md)은 기존7/8행의 계약 불변 native 본문 저장을 전달/private graph와 opaque C# 읽기 문맥에 연결한다. 원래 import 위치 표기와 source/definition hash·조립 컴파일·readGuards/CAS를 유지한다. 실제 계약 변경과 다른 원래 source closure, 기기/전체 UI 잔여는 별도다.
+
+이 같은 계약 forwarded/opaque 원본 보존 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_RETAINED_FORWARDING.md)을 마쳤다.

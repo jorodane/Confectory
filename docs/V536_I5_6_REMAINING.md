@@ -366,3 +366,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 공개 이름·native 본문과 로컬 import 단위의 [최종 신규 28·재사용 10·총 38단계 검증과 보관](VALIDATION_V666_NAMED_IMPORTS.md)을 마쳤다.
 
 [기존 forwarded/opaque 호출 원본](V666_RETAINED_FORWARDING.md)은 같은 계약 native 본문 그룹에서 이미 있는 전달 graph와 opaque C# 문맥을 읽기로 보존하는 단위다. 실제 ABI 변경·새 import/alias·다른 원래 source closure는 기존 고정7/8행 잔여로 구별한다.
+
+이 같은 계약 forwarded/opaque 원본 보존 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_RETAINED_FORWARDING.md)을 마쳤다.

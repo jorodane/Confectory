@@ -43,3 +43,5 @@ opaque 문맥의 import 이름은 원래 `arg0/arg1`일 수 있다. 계약 불�
 세대 도구 사용으로 구분하며 자동 migration/downgrade는 없다. 초기 간헐 빈 #app 원인은
 미확정이다. 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI 전수 검증과
 Linux native/Chromium 자동화·교차 패키징은 별도다.
+
+이 같은 계약 forwarded/opaque 원본 보존 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_RETAINED_FORWARDING.md)을 마쳤다.
