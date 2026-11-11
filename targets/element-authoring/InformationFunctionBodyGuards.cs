@@ -49,11 +49,25 @@ internal static class InformationFunctionBodyGuards
     if(native)throw new InvalidOperationException("Retain the complete saved native body group proof; all input retained");return null;
    }
    var functions=proof.Where(p=>p.Value?["kind"]?.ToString()=="function").Select(p=>p.Key).ToHashSet(StringComparer.Ordinal);var bodies=proof.Where(p=>p.Value?["kind"]?.ToString()=="body").Select(p=>p.Key).ToArray();
-   if(functions.Count is <1 or >8||functions.Count==1&&!TypedFunction(functions.Single())||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
+   var callers=proof.Where(p=>p.Value?["kind"]?.ToString()=="blueprint").Select(p=>p.Key).ToArray();
+   if(functions.Count is <1 or >8||functions.Count==1&&!TypedFunction(functions.Single())||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length+callers.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
     if(native)throw new InvalidOperationException("Retain every saved native target proof and group member; all input retained");return null;
    }
    if(!(receipt["declaration"]?["changes"] is JsonArray edits&&NativeEdits(edits) is not null)&&!PresentationOnly(receipt["declaration"]))return null;
    foreach(var source in proof)if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||units[source.Key]?["kind"]?.ToString()!=source.Value?["kind"]?.ToString()||units[source.Key]?["path"]?.ToString()!=source.Value?["path"]?.ToString())throw new InvalidOperationException("Retain the exact owned native group sources before editing its presentation");
+   // A saved explicit value-name edit also owns the changed caller graph.
+   // Retain only ordinary owned consumers of this native group; qualified
+   // C# records remain reads and never become additional write members.
+   if(callers.Length>0){
+    if(functions.Count<2||functions.Any(id=>!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)))throw new InvalidOperationException("Retain the original named native group ownership");
+    foreach(string id in callers){int at=id.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Exact saved caller body required");
+     // Cold header discovery precedes reading the owned declarations. The
+     // graphs/prepare/validate phases below still prove their complete source.
+     if(request["action"]?.ToString()=="headers")continue;
+     var implementation=OriginalImplementation(id[..at]);string target=id[(at+6)..];string text=units[id]?["original"]?.ToString()??units[id]?["draft"]?.ToString()??throw new ArgumentException("Original saved caller graph required");
+     if(implementation.Parent is not null||!implementation.Bodies.TryGetValue(target,out var body)||body.SourceKind!="blueprint"||!implementation.Imports.Values.Any(import=>functions.Contains(import.Id))||!InformationFunctionBodyBatch.NamedCaller(JsonNode.Parse(text)!.AsObject()))throw new InvalidOperationException("Retain the original ordinary named caller scope");
+    }
+   }
    return(functions,bodies);
   }
   Element OriginalImplementation(string id)
@@ -103,7 +117,9 @@ internal static class InformationFunctionBodyGuards
    if(!PresentationOnly(receipt["declaration"])||RetainedSources(owner,receipt) is not {} retained)return false;
    // A subsequent header Save keeps only an already saved, same-contract native
    // body group. No body edit or dependency baseline is reconstructed or rebased.
-   foreach(string function in retained.Functions){var unit=units[function]!;string draft=unit["draft"]?.ToString()??throw new InvalidOperationException("Read the retained native function contract");string original=unit["original"]?.ToString()??draft;var before=new Parser(original,"<retained-function>").ParseElement();var after=new Parser(draft,"<retained-function>").ParseElement();if(before.Id!=function||after.Id!=function||before.Kind!="function"||before.Parent is not null||after.Parent is not null||before.Signature is null||after.Signature is null||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature)))return false;}
+   foreach(string function in retained.Functions){var unit=units[function]!;string draft=unit["draft"]?.ToString()??throw new InvalidOperationException("Read the retained native function contract");string original=unit["original"]?.ToString()??draft;var before=new Parser(original,"<retained-function>").ParseElement();var after=new Parser(draft,"<retained-function>").ParseElement();if(before.Id!=function||after.Id!=function||before.Kind!="function"||before.Parent is not null||after.Parent is not null||before.Signature is null||after.Signature is null)return false;
+    if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature))){var map=new JsonObject();if(before.Signature.Args.Count!=after.Signature.Args.Count)return false;for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;if(!receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="blueprint")||!InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map))return false;}
+   }
    bool observed=ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));return observed||receipt["readGuards"] is JsonObject retainedGuards&&retainedGuards.Count>0;
   }
   if(request["action"]?.ToString()=="headers"){
