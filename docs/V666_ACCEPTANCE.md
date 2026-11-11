@@ -1,5 +1,9 @@
 # v666 구현 기준과 고정 수용 목록
 
+[standalone 인자 표시명](V666_STANDALONE_LABELS.md)은 정보 카드 밖 기존 상세창의
+표시/native 분리를 연결한다. 같은 계약의 owner 저장과 원문·권한·CAS 보호를 유지하고,
+다른 표시 문맥·고정7/8행 전체·실제 기기/UI 완료로 합산하지 않는다.
+
 [초기 module 로딩 실패 안내](V666_BOOTSTRAP_RECOVERY.md)는 재현된 빈 앱의 명시
 재시도와 부분 화면 보존만 연결한다. 다른 표시·7/8행의 실제 source closure와
 구 Reference reader 호환 범위는 그대로 구분하며 과거 간헐 빈 화면 원인은 미확정이다.

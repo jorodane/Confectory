@@ -7,6 +7,17 @@ using System.Text.Json.Nodes;
 internal static class FunctionArgumentNames
 {
  internal const string Key="editorArgumentNames";
+ public static string EditSignature(string text,JsonObject signature,Func<Element,string> format)
+ {
+  var function=new Parser(text,"<standalone-function-signature>").ParseElement();
+  if(function.Kind!="function")throw new ArgumentException("Function declaration required");
+  var names=Read(function);
+  DeclarationAuthoring.Apply(function,new JsonObject{["action"]="signature",["value"]=signature.DeepClone()});
+  // The legacy signature request has no explicit label correspondence. Keep
+  // every existing label valid, or refuse before touching shared drafts.
+  Set(function,names);
+  return format(function);
+ }
  public static JsonObject Read(Element function)
  {
   if(!function.Values.TryGetValue(Key,out var value))return new();

@@ -8,7 +8,7 @@ var source=before[id]??throw new ArgumentException("Owned object required");if(!
 if(source["kind"]!.ToString()=="function"&&System.Linq.Enumerable.Any(request,p=>p.Key is not ("signature" or "description"))||source["kind"]!.ToString()=="object"&&System.Linq.Enumerable.Any(request,p=>p.Key is "signature" or "description"))throw new ArgumentException("Explicit edits for this declaration kind required");
 string text=source["draft"]!.ToString(),manifest=before[manifestId]!["draft"]!.ToString();string? schemaId=null,schemaText=null,schemaPath=null;
 string Transform(string input,object change)=>System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("editDeclaration",System.Text.Json.JsonSerializer.Serialize(new{text=input,edit=change})))!;
-if(request.ContainsKey("signature"))text=Transform(text,new{action="signature",value=request["signature"]??throw new ArgumentException("Function signature required")});
+if(request.ContainsKey("signature"))text=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("functionSignature",new System.Text.Json.Nodes.JsonObject{["text"]=text,["signature"]=request["signature"]?.DeepClone()??throw new ArgumentException("Function signature required")}.ToJsonString()))!;
 if(request.ContainsKey("description"))text=Transform(text,new{action="properties",values=new{description=request["description"]!.GetValue<string>()}});
 if(request.ContainsKey("parent")){
  string? parent=request["parent"]?.GetValue<string>();if(parent is not null&&(parent==id||!parent.StartsWith(ns+"::",StringComparison.Ordinal)||before[parent]?["kind"]?.ToString()!="object"))throw new ArgumentException("A different owned object parent or explicit Root is required");

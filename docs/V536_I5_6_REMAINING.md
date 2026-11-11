@@ -1,5 +1,9 @@
 # I5-6: 지원 경로와 남은 계약 편집
 
+[standalone 인자 표시명](V666_STANDALONE_LABELS.md)은 원래 공통 상세창의 다른 표시
+문맥 한 단위다. 기존 native 편집·원자 owner 저장·이력/CAS를 보존하며, 다른 표시와
+7/8행의 실제 명시 계약/source closure 잔여는 그대로 유지한다.
+
 [표시 문맥·7/8행 및 reader 경계 재대조](V666_BOOTSTRAP_RECOVERY.md)는 기존 source
 closure 잔여를 유지한다. 별도 재현된 초기 module 로딩의 무안내 실패를 이번 우선
 복구 단위로 연결하며, 7/8행 완료나 과거 간헐 빈 화면 원인 확정으로 합산하지 않는다.
