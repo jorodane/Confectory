@@ -35,3 +35,5 @@
 결합하며 void 보관·영수증·늦은 입력·Undo·최종 CAS를 유지한다. module/caller/graph의 다른 표시와
 고정7/8행 forwarded/opaque 및 여러 함수의 실제 계약/source closure는 기존 유한 잔여다.
 구 Reference reader 제한·초기 빈 화면 원인 미확정·실제 기기/전체 UI 미검증은 별도로 유지한다.
+
+이 반환 표시 단위의 [최종 신규 39단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_RETURN.md)을 마쳤다.

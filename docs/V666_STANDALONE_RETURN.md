@@ -7,7 +7,9 @@
 게시 `ca8123ce`의 실제 standalone 상세창에서 고정 반환 이름칸이 읽기 전용인 것을
 재현했다. 새 화면·버튼·CSS·크기를 추가하지 않는다.
 
-직접 소유 standalone 함수의 고정 반환 이름칸을 편집한다. 카드와 상세창은 같은
+기존 native 서명 입력이 없는 직접 소유 standalone 함수의 고정 반환 이름칸을 편집한다.
+이미 pending native 서명이 있으면 그 계약 입력을 먼저 저장/검토하며, 표시 입력을
+그 native 후보에 암묵 결합하지 않는다. 카드와 상세창은 같은
 선택 문자열 metadata `editorReturnName`을 표시한다. 기존 trim·1–60 UTF-16 문자·
 control 금지 규칙을 재사용하며, `결과`로 명시 초기화하면 그 metadata만 제거한다.
 `void`는 반환 핀을 숨기고 기존 이름은 다음 nonvoid 반환을 위해 보관하는 이미
@@ -43,3 +45,5 @@ Review/Confirm CAS를 그대로 사용한다. 동일 함수의 이 표시 셀에
 최종 코드의 전송 정체/실제3D reload 관찰을 구별한다. 실제 Windows/WebView2·물리 기기·
 OS IME·GPU/audio·전체 UI 전수 검증은 별도다. 신규/재사용·실패 시도·패키지/전체 복원은
 [검증 기록](VALIDATION_V666_STANDALONE_RETURN.md)에 구분해 남긴다.
+
+이 반환 표시 단위의 [최종 신규 39단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_RETURN.md)을 마쳤다.
