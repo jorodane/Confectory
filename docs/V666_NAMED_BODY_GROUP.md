@@ -47,3 +47,5 @@ private·M11/M12/M4를 다시 열지 않는다. 이름 이외의 타입/역할/�
 따른다. 같은 게시 세대 reader/authoring/runtime을 사용하며 소급 수정·자동 downgrade/migration은 없다.
 초기 간헐적 빈 `#app`의 원인은 미확정이다. 현재 전송/재로드 및 이미 재현된 bootstrap module 실패와
 구분하고 실제 Windows/WebView2·물리 기기·OS IME·GPU/audio·전체 UI 전수 검증은 완료로 세지 않는다.
+
+이 명시 이름·본문 공동 저장 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_NAMED_BODY_GROUP.md)을 마쳤다.
