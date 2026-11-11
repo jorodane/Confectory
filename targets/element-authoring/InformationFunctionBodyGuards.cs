@@ -12,7 +12,7 @@ internal static class InformationFunctionBodyGuards
   {
    // The existing name/description editor sends a same-contract function row.
    // Keep its saved body scope; an ABI mapping is a separate explicit edit.
-   if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >8||value.Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName")))return false;
+   if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >9||value.Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName" or "argumentNames")))return false;
    string? id=value["id"]?.ToString();if(id is null||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||units[id]?["kind"]?.ToString()!="function"||units[id]?["original"] is not JsonValue original||units[id]?["draft"] is not JsonValue draft)return false;
    // An unconfirmed declaration-only creation has no original native body
    // header. Its separate native type receipt still guards the selected source.

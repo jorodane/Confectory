@@ -8,6 +8,9 @@
 7행의 최신 유한한 잔여와 정상 보호 구분은 [원래 조작 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 과거 한정 단위의 미검증 표현을 ref/out/값 변환의 모든 조합별 새 필수 작업으로 늘리지 않는다.
 
 9행의 최신 native 정보 값/참조·필드·타입 선택 경계는 [typed reference 연결](V666_TYPED_REFERENCES.md)을 우선한다. 과거 단위의 참조/함수/모듈 잔여 표현을 새로운 타입·문맥 조합별 필수 작업으로 늘리지 않는다.
+입력/out 표시명과 기존 native 식별자를 구분하는 직접 소유 정보 카드의 다음 단위는
+[인자 표시명](V666_ARGUMENT_LABELS.md)이다. 기존 실제 ABI 이름 변경·본문/호출자 검토를 보존한다.
+
 
 기준은 `196c605`의 저장소 v536 레퍼런스, `openOwnFunctionPopover`, `renderFunctionSignatureEditor`, `renderFeatureDefinition`과 기존 native 함수 계약이다. 원본 상세창은 입력/출력의 이름·타입·추가/삭제를 제공한다. 순서 조작은 `propertyStyle`인 Blueprint 정의에서 제공하며 정보 상세창에 새 드래그 제어를 만들지 않는다. 값/ref/out은 기존 native 계약과 구현 편집 경계를 유지한다. 기능 목록의 순서(I5-5)는 매개변수 순서와 별개다.
 

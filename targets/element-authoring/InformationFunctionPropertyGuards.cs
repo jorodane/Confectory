@@ -13,7 +13,7 @@ internal static class InformationFunctionPropertyGuards
   string[] Scope(JsonNode? declaration)=> (declaration?["changes"] as JsonArray??new()).Where(row=>row?["type"]?.ToString()=="function-edit"&&row["mapping"]is JsonObject).Select(row=>row!["id"]!.ToString()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
   bool Presentation(JsonNode? declaration) {
    if(declaration?["raw"]is not null||declaration?["changes"]is not JsonArray changes||changes.Count is <1 or >3)return false;
-   foreach(var row in changes){if(InformationFunctionBodyBatch.Presentation(row))continue;if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >8||value.Any(p=>p.Key is not("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName")))return false;
+   foreach(var row in changes){if(InformationFunctionBodyBatch.Presentation(row))continue;if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >9||value.Any(p=>p.Key is not("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName" or "argumentNames")))return false;
     string? id=value["id"]?.ToString();if(id is null||units[id]?["kind"]?.ToString()!="function"||units[id]?["draft"]is not JsonValue text)return false;var function=new Parser(text.ToString(),"<property-presentation>").ParseElement();if(function.Signature is null||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(function.Signature),value["signature"]))return false;
    }return true;
   }
