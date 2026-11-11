@@ -898,3 +898,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 호출 핀 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_CALL_PIN_LABELS.md)을 마쳤다.
 
 [이미 관측한 함수 호출 표시](V666_OBSERVED_CALL_LABELS.md)는 saved Blueprint의 공통 읽기 경계에서 정확한 owned 함수 관측과 기존 위치 ABI를 사용한다. private·After·slot을 표시만의 금지 조건으로 삼지 않으며 snapshot/외부 읽기/계약 편집 권한은 확장하지 않는다. 고정7/8행의 실제 계약·본문 closure와 기기·전체 UI 잔여는 별도다.
+
+이 관측 호출 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_OBSERVED_CALL_LABELS.md)을 마쳤다.

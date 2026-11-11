@@ -46,3 +46,5 @@ source 및 다른 frame 계약·본문에 함께 영향을 주는 경우의 명�
 실패 안내는 각 관측 범위로 남긴다. 실제 Windows/WebView2·물리 기기·OS IME·GPU/audio·
 전체 UI 전수 검증과 구분하고 [최종 검증 기록](VALIDATION_V666_OBSERVED_CALL_LABELS.md)에
 신규/재사용·LF/CRLF·새 package/전체 복원 및 실패 근거를 기록한다.
+
+이 관측 호출 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_OBSERVED_CALL_LABELS.md)을 마쳤다.

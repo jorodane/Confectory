@@ -6,7 +6,7 @@
 Blueprint 호출 카드에도 보여주는 한정 연결이다. 게시 `2ed5ff01`의 실제 엔진/UI에서
 별칭이 있는 함수를 호출해도 호출 카드는 native 이름만 보여주는 것을 재현했다.
 
-직접 소유한 일반 동기 루트 구현의 기존 ordinary `next` 호출을 다룬다. 현재 view가
+이 최초 단위는 직접 소유한 일반 동기 루트 구현의 기존 ordinary `next` 호출을 다뤘다. 최신 saved view의 공통 관측 경계는 [후속 단위](V666_OBSERVED_CALL_LABELS.md)를 우선한다. 현재 view가
 이미 읽은 직접 소유 함수의 선언만 사용하며 새 파일·외부 등록 접근을 추가하지 않는다.
 slot/copy/private frame·상속 구현·async·공개 실행/후처리 wrapper에는 새 표시를
 암묵 적용하지 않는다. 다른 표시 문맥은 기존 명세에 비추어 연결할 잔여다.
