@@ -51,3 +51,5 @@ Save 전 및 Review 후 최종 CAS에서 다시 확인한다. 일반 property �
 명시적 인스턴스 binding은 같은 고정9행의 유한 잔여다. 임의 provider 조회·직접 부모/외부
 쓰기·자동 migration을 필수 요구로 늘리지 않는다. M11/M12/M4의 완료 범위는 유지한다.
 실제 Windows·물리 기기·전체 UI는 별도이며 초기 빈 화면의 원인은 미확정이다.
+
+이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_LIVE_FUNCTIONS.md)을 마쳤다.

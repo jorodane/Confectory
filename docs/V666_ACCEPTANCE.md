@@ -852,3 +852,5 @@ IInvoke/IAsyncInvoke handle을 기존 object/object[]·Create/Read/Set 및 prope
 새 함수 descriptor는 구 accessor의 지원 범위가 아니며 자동 migration은 하지 않는다.
 객체 참조 bridge/reference 필드·명시적 인스턴스 binding은 같은 유한 잔여로 유지하며
 검증·보관 결과는 [전용 기록](VALIDATION_V666_LIVE_FUNCTIONS.md)으로 구분한다.
+
+이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_LIVE_FUNCTIONS.md)을 마쳤다.
