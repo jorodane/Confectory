@@ -1,0 +1,41 @@
+using Confectory.Core;
+using System.Text.Json.Nodes;
+
+// Compose the existing explicit single-function native input replacement.
+// New values, removed bindings, native signatures and C# text remain choices
+// made against each complete ORIGINAL source, never inferred conversions.
+internal static class InformationFunctionNativeInputs
+{
+ static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ public static JsonNode?[]? Edits(JsonArray changes)
+ {
+  if(changes.Count is <2 or >8)return null;
+  return changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["mapping"] is JsonObject map&&map.Count==4&&map.All(p=>p.Key is "before" or "args" or "bodies" or "callers")&&map["args"] is JsonObject args&&map["callers"] is JsonObject&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args))?changes.ToArray():null;
+ }
+ public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
+ {
+  if(Edits(changes) is not {} edits)return null;
+  string ns=PackPaths.Namespace(request["id"]!.ToString());var functions=new HashSet<string>(StringComparer.Ordinal);var bodies=new HashSet<string>(StringComparer.Ordinal);
+  Element Read(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original native input source"),"<native-input-group>").ParseElement();
+  foreach(var row in edits){
+   string id=row!["id"]!.ToString();var original=Read(id);var map=row["mapping"]!.AsObject();
+   if(!functions.Add(id)||!id.StartsWith(ns+"::",StringComparison.Ordinal)||original.Id!=id||original.Kind!="function"||original.Parent is not null||BlueprintAsync.Has(original)||BlueprintExecutionBranches.Has(original)||original.Signature is null||!JsonNode.DeepEquals(map["before"],FeatureBlueprint.SignatureDocument(original.Signature)))throw new InvalidOperationException("Native input groups require exact directly owned synchronous scalar contracts");
+   foreach(var body in map["bodies"]!.AsObject()){
+    int at=body.Key.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0||!bodies.Add(body.Key)||units[body.Key]?["kind"]?.ToString()!="body")throw new InvalidOperationException("Review each exact original native input body");var implementation=Read(body.Key[..at]);
+    if(implementation.Function!=id||!InformationFunctionBodyBatch.NativeTargets(implementation)||implementation.Bodies.Count!=1||!implementation.Bodies.ContainsKey(body.Key[(at+6)..]))throw new InvalidOperationException("Native input groups retain one directly owned native target per implementation");
+   }
+  }
+  foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
+   var d=Read(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
+   if(d.Id!=unit.Key||!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||callee&&consumer||d.Bodies.Count!=1)throw new InvalidOperationException("Review native dependency composition separately; preserve direct ownership and targets");
+   foreach(var import in d.Imports.Values){var dependency=Read(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException("Retain exact owned imports; no dependency contract or permission is inferred");}
+   if(callee){if(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(d.Id+"/body:"+d.Bodies.Keys.Single()))throw new InvalidOperationException("Explicitly review every affected native input target");continue;}
+   var target=d.Bodies.Single();string id=d.Id+"/body:"+target.Key;var graph=JsonNode.Parse(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read every original native input caller"))!.AsObject();
+   if(target.Value.SourceKind!="blueprint"||graph["copySource"] is not null||graph["profile"]?.ToString().StartsWith("sync-",StringComparison.Ordinal)!=true||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray nodes||nodes.Any(node=>node?["kind"]?.ToString()!="call"||node["control"]?.ToString()!="next"||node["graph"] is not null||node["implementationContext"] is not null||node["forwardCallerStorage"] is not null||node["postCall"] is not null))throw new InvalidOperationException("Native input replacements retain ordinary direct Blueprint callers; review opaque/private source plans separately");
+  }
+  // No candidate may borrow another member's changes to validate its choices.
+  foreach(var row in edits){var original=Read(row!["id"]!.ToString());var next=Read(original.Id);DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
+  return functions;
+ }
+}

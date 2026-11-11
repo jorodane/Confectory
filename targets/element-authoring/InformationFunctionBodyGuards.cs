@@ -35,7 +35,10 @@ internal static class InformationFunctionBodyGuards
    var receipt=units[owner]?["slotSaveReceipt"];var proof=receipt?["sources"]?[id];
    if(proof?["kind"]?.ToString()!="function"||proof["path"]?.ToString()!=units[id]?["path"]?.ToString()||proof["hash"]?.ToString()!=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(draft.ToString()))||before.Signature.Args.Count!=after.Signature.Args.Count){if(NativeGroup(owner))throw new InvalidOperationException("Retain the exact captured function source before editing its presentation; all input retained");return false;}
    var map=new JsonObject();for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;
-   if(!InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map))throw new InvalidOperationException("Retain the captured value-input name contract before editing its presentation; all input retained");return true;
+   if(!InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map)){
+    for(int i=0;i<before.Signature.Args.Count;i++)if(before.Signature.Args[i].Type!=after.Signature.Args[i].Type)map[before.Signature.Args[i].Name]=null;
+    if(!NativeGroup(owner)||!InformationFunctionNativeInputs.Types(before.Signature,after.Signature,map)||!receipt!["sources"]!.AsObject().Any(p=>p.Value?["kind"]?.ToString()=="implementation"))throw new InvalidOperationException("Retain the captured explicit native input contract before editing its presentation; all input retained");
+   }return true;
   }
   bool PresentationOnly(JsonNode? declaration)=>declaration?["raw"] is null&&declaration?["id"] is JsonValue owner&&declaration?["changes"] is JsonArray changes&&changes.Count is >=1 and <=2&&changes.All(row=>InformationFunctionBodyBatch.Presentation(row)||FunctionPresentation(owner.ToString(),row));
   bool TypedFunction(string id)
@@ -44,6 +47,7 @@ internal static class InformationFunctionBodyGuards
   }
   JsonNode?[]? NativeEdits(JsonArray changes)
   {
+   if(InformationFunctionNativeInputs.Edits(changes) is {} inputGroup)return inputGroup;
    if(InformationFunctionBodyBatch.Edits(changes) is {} group)return group;
    var edits=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();return changes.Count<=3&&edits.Length==1&&InformationFunctionBodyBatch.BodyEdit(edits[0])&&TypedFunction(edits[0]!["id"]!.ToString())?edits:null;
   }
@@ -52,7 +56,8 @@ internal static class InformationFunctionBodyGuards
    if(units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count>64)return false;
    var ids=group.Select(value=>value!.ToString()).ToArray();if(!ids.Contains(owner)||!ids.Contains(ns+"::ProjectManifest"))return false;
    var functions=ids.Where(id=>units[id]?["kind"]?.ToString()=="function").ToArray();int bodies=ids.Count(id=>units[id]?["kind"]?.ToString()=="body"),callers=ids.Count(id=>units[id]?["kind"]?.ToString()=="blueprint");
-   return functions.Length is >=1 and <=8&&(functions.Length>1||TypedFunction(functions[0]))&&(callers==0||functions.Length>1)&&functions.All(id=>id.StartsWith(owner+"_Function_",StringComparison.Ordinal))&&bodies>=functions.Length&&ids.Length==2+functions.Length+bodies+callers;
+   int implementations=ids.Count(id=>units[id]?["kind"]?.ToString()=="implementation");
+   return functions.Length is >=1 and <=8&&(functions.Length>1||TypedFunction(functions[0]))&&(callers==0||functions.Length>1)&&functions.All(id=>id.StartsWith(owner+"_Function_",StringComparison.Ordinal))&&bodies>=functions.Length&&(implementations==0||functions.Length>1&&implementations<=bodies+callers)&&ids.Length==2+functions.Length+bodies+callers+implementations;
   }
   (HashSet<string> Functions,string[] Bodies)? RetainedSources(string owner,JsonObject receipt)
   {
@@ -62,11 +67,17 @@ internal static class InformationFunctionBodyGuards
    }
    var functions=proof.Where(p=>p.Value?["kind"]?.ToString()=="function").Select(p=>p.Key).ToHashSet(StringComparer.Ordinal);var bodies=proof.Where(p=>p.Value?["kind"]?.ToString()=="body").Select(p=>p.Key).ToArray();
    var callers=proof.Where(p=>p.Value?["kind"]?.ToString()=="blueprint").Select(p=>p.Key).ToArray();
-   if(functions.Count is <1 or >8||functions.Count==1&&!TypedFunction(functions.Single())||bodies.Length<functions.Count||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length+callers.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
+   var implementations=proof.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>p.Key).ToArray();
+   if(functions.Count is <1 or >8||functions.Count==1&&!TypedFunction(functions.Single())||bodies.Length<functions.Count||implementations.Length>0&&(functions.Count<2||implementations.Length>bodies.Length+callers.Length)||proof.Count>64||proof.Count!=2+functions.Count+bodies.Length+callers.Length+implementations.Length||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))){
     if(native)throw new InvalidOperationException("Retain every saved native target proof and group member; all input retained");return null;
    }
    if(!(receipt["declaration"]?["changes"] is JsonArray edits&&NativeEdits(edits) is not null)&&!PresentationOnly(receipt["declaration"]))return null;
    foreach(var source in proof)if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||units[source.Key]?["kind"]?.ToString()!=source.Value?["kind"]?.ToString()||units[source.Key]?["path"]?.ToString()!=source.Value?["path"]?.ToString())throw new InvalidOperationException("Retain the exact owned native group sources before editing its presentation");
+   foreach(string id in implementations){
+    if(request["action"]?.ToString()=="headers")continue;
+    var d=OriginalImplementation(id);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));
+    if(d.Id!=id||d.Parent is not null||callee==consumer||d.Bodies.Count!=1||callee&&(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(id+"/body:"+d.Bodies.Keys.Single()))||consumer&&(d.Bodies.Values.Single().SourceKind!="blueprint"||!callers.Contains(id+"/body:"+d.Bodies.Keys.Single())))throw new InvalidOperationException("Retain only the captured native input declarations and ordinary caller import contracts");
+   }
    // A saved explicit value-name edit also owns the changed caller graph.
    // Retain only ordinary owned consumers of this native group; qualified
    // C# records remain reads and never become additional write members.
@@ -118,7 +129,7 @@ internal static class InformationFunctionBodyGuards
   bool ObservedGroup(JsonNode? declaration)
   {
    if(declaration?["raw"] is not null||declaration?["changes"] is not JsonArray changes||NativeEdits(changes) is not {} edits)return false;
-   var functions=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);return ObservedScope(functions,edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(body=>(row["id"]!.ToString(),body.Key))));
+   var functions=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);bool observed=ObservedScope(functions,edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(body=>(row["id"]!.ToString(),body.Key))));return observed||InformationFunctionNativeInputs.Edits(changes) is not null;
   }
   bool ObservedReceipt(string owner,JsonObject receipt)
   {
@@ -130,9 +141,9 @@ internal static class InformationFunctionBodyGuards
    // A subsequent header Save keeps only an already saved, same-contract native
    // body group. No body edit or dependency baseline is reconstructed or rebased.
    foreach(string function in retained.Functions){var unit=units[function]!;string draft=unit["draft"]?.ToString()??throw new InvalidOperationException("Read the retained native function contract");string original=unit["original"]?.ToString()??draft;var before=new Parser(original,"<retained-function>").ParseElement();var after=new Parser(draft,"<retained-function>").ParseElement();if(before.Id!=function||after.Id!=function||before.Kind!="function"||before.Parent is not null||after.Parent is not null||before.Signature is null||after.Signature is null)return false;
-    if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature))){var map=new JsonObject();if(before.Signature.Args.Count!=after.Signature.Args.Count)return false;for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;if(!receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="blueprint")||!InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map))return false;}
+    if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature))){var map=new JsonObject();if(before.Signature.Args.Count!=after.Signature.Args.Count)return false;for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;bool compatible=InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map);if(!compatible){for(int i=0;i<before.Signature.Args.Count;i++)if(before.Signature.Args[i].Type!=after.Signature.Args[i].Type)map[before.Signature.Args[i].Name]=null;compatible=receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="implementation")&&InformationFunctionNativeInputs.Types(before.Signature,after.Signature,map);}if(!receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="blueprint")||!compatible)return false;}
    }
-   bool observed=ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));return observed||receipt["readGuards"] is JsonObject retainedGuards&&retainedGuards.Count>0;
+   bool observed=ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));return observed||receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="implementation")||receipt["readGuards"] is JsonObject retainedGuards&&retainedGuards.Count>0;
   }
   if(request["action"]?.ToString()=="headers"){
    var headerSelection=request["selected"]?.AsArray()??throw new ArgumentException("Selected native group required");if(headerSelection.Count>64)throw new ArgumentException("Native body header budget");bool native=false;var functions=new HashSet<string>(StringComparer.Ordinal);
