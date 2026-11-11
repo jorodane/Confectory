@@ -10,3 +10,7 @@ API 요청 없음이 확인됐다. 수정 뒤 normal/lifecycle/partial/retired �
 첫 최종 LF 시도는 화면 render를 초기화 완료로 가정해 아직 등록되지 않은 flush hook을
 호출한 fixture 실패1회를 보존했다. hook의 실제 등록을 기다리도록 준비 조건만 수정하며
 제품 app.js·bundle·원래 runtime 코드는 변경하지 않는다. 수정 후 최종 검증을 새로 실행한다.
+
+두 번째 최종 시도는 LF 전체와 CRLF normal/lifecycle/partial까지 통과한 뒤 retired
+준비 단계에서 검사 문자열 평가가 기존 CSP에 거절됐다. 두 wait predicate를 함수 형태로
+명시한다. CSP·제품 app.js·bundle·runtime은 그대로이며 두 번째 기록도 보존한다.

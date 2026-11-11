@@ -51,7 +51,7 @@ try:
   # The first state callback renders .work-body before the top-level helper
   # read settles and registers this explicit flush hook. Wait for the hook
   # this fixture uses, rather than treating a drawn frame as completed startup.
-  healthy.wait_for_function('typeof globalThis.confectoryFlushPresentation==="function"')
+  healthy.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
   healthy.locator('#chat-input').fill(saved);healthy.evaluate('()=>confectoryFlushPresentation()')
   expect(healthy.locator('#chat-input')).to_have_value(saved)
   healthy.locator('#chat-input').fill(live)
@@ -100,7 +100,7 @@ try:
    healthy.locator('#chat-input').fill(saved);healthy.evaluate('()=>confectoryFlushPresentation()');healthy.close()
    def hold(route):delayed.append(route)
    page.route(f.origin+'/v508-views.js',hold)
-   page.goto(f.url,wait_until='commit');page.wait_for_function('document.querySelector("#app")!==null')
+   page.goto(f.url,wait_until='commit');page.wait_for_function('()=>document.querySelector("#app")!==null')
    for _ in range(200):
     if delayed:break
     page.wait_for_timeout(10)
