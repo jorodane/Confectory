@@ -7,7 +7,7 @@ using System.Text.Json.Nodes;
 internal static class InformationFunctionNativeReturns
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return!=next.Return&&Scalar(before.Return)&&Scalar(next.Return)&&before.Args.SequenceEqual(next.Args)&&args.Count==before.Args.Count&&before.Args.All(a=>Scalar(a.Type)&&(a.Mode is null or "out")&&args[a.Name]?.ToString()==a.Name)&&before.Args.Any(a=>a.IsOut&&a.Type==before.Return);
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return!=next.Return&&Scalar(before.Return)&&(Scalar(next.Return)||next.Return=="void")&&before.Args.SequenceEqual(next.Args)&&args.Count==before.Args.Count&&before.Args.All(a=>Scalar(a.Type)&&(a.Mode is null or "out")&&args[a.Name]?.ToString()==a.Name)&&before.Args.Any(a=>a.IsOut&&a.Type==before.Return);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >8)return null;
