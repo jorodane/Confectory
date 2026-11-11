@@ -318,3 +318,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 검사와 실제 기기/전체 UI 한계는 [전용 기록](VALIDATION_V666_TYPED_REFERENCES.md)에 구분한다.
 
 이 한정 범위의 [최종 신규 49단계·재사용 0 검증과 보관](VALIDATION_V666_TYPED_REFERENCES.md)을 마쳤다.
+
+이 한정 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_ARGUMENT_LABELS.md)을 마쳤다.

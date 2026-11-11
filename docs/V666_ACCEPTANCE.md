@@ -870,3 +870,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 구분한다. 최종 검사는 [전용 기록](VALIDATION_V666_TYPED_REFERENCES.md)을 따른다.
 
 이 한정 범위의 [최종 신규 49단계·재사용 0 검증과 보관](VALIDATION_V666_TYPED_REFERENCES.md)을 마쳤다.
+
+이 한정 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_ARGUMENT_LABELS.md)을 마쳤다.
