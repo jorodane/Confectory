@@ -1,0 +1,21 @@
+"""Existing owned native editor binds an actual caller receiver, not a value copy."""
+import hashlib,json
+import v666_information_struct_fixture as x
+f=x.f;owner=f.n+'LiveReceiver';model='Confectory.ObjectModel';lit=lambda v:json.dumps(v,ensure_ascii=False)
+(f.project/'LiveReceiver.celem').write_text('object '+owner+' {use schema '+x.schema+';}');f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element LiveReceiver object "LiveReceiver.celem";registry '+model+' '+lit(str(f.repo/'packs/object-model/pack.cpack'))+';dependency '+model+' version "0.1.0";registry Confectory.Build.DotNet',1))
+x.signature={'args':[{'name':'data','type':x.type},{'name':'receiver','type':'object'}],'return':x.type}
+(f.project/x.function_path).write_text('function '+x.fn+' ('+x.type+' data,object receiver) -> '+x.type+' {description "정보 구조체 원문";value editorName="구조체 계산";provide '+x.fn+' with '+x.fn+'Body;}')
+imports=''.join('import '+model+'::'+name+' as '+name+' '+sig+';'for name,sig in [('Read','(object,string,string,string) -> object'),('Set','(object,string,string,string,object) -> void'),('BindReference','(object,string,out string) -> object')])
+(f.project/x.implementation_path).write_text('implementation '+x.fn+'Body for '+x.fn+' ('+x.type+' data,object receiver) -> '+x.type+' {'+imports+'body common "'+x.body_path+'";}')
+reference=f.metadata('informationReference',project=str(f.manifest),id=x.schema);contract=reference['descriptor'];descriptor=f.metadata('blueprintPropertyCatalog',project=str(f.manifest),sourceId=x.fn+'Body',owner=owner)['descriptor'];field=descriptor['fields'][0];assert contract['fields']==descriptor['fields']
+args=lit(field['id'])+','+lit(field['hash'])
+x.selected='var live=calls.BindReference.Invoke(receiver,'+lit(json.dumps(contract,ensure_ascii=False,separators=(',',':')))+',out string actualOwner);if(!Object.ReferenceEquals(live,receiver))throw new Exception("reference was copied");long value=(long)calls.Read.Invoke(live,actualOwner,'+args+');calls.Set.Invoke(live,actualOwner,'+args+',checked(value+1));data.HP=(long)calls.Read.Invoke(receiver,actualOwner,'+args+');return data; // 명시 실제 인스턴스 · 😀\r\n'
+imports=''.join('import '+model+'::'+name+' as '+name+' '+sig+';'for name,sig in [('Create','(string,string[],object[]) -> object'),('Read','(object,string,string,string) -> object'),('RefCell','(object,string,string,string) -> object')])
+(f.project/'MainBody.celem').write_text('implementation '+f.n+'MainBody for '+f.n+'Main () -> int {'+imports+'import '+x.fn+' as TypedValue ('+x.type+',object) -> '+x.type+';body common "Main.csbody";}')
+(f.project/'Main.csbody').write_text('object receiver=calls.Create.Invoke('+lit(json.dumps(descriptor,separators=(',',':')))+',new[]{'+lit(field['id'])+'},new object[]{30L});var cell=(System.Runtime.CompilerServices.StrongBox<long>)calls.RefCell.Invoke(receiver,'+lit(owner)+','+args+');var result=calls.TypedValue.Invoke(new '+x.type+'{HP=100},receiver);if(cell.Value!=31||(long)calls.Read.Invoke(receiver,'+lit(owner)+','+args+')!=31)throw new Exception("actual receiver/cell alias lost");Console.WriteLine(result.HP);return checked((int)result.HP);')
+x.snapshot={str(p.relative_to(f.project)):p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.relative_to(f.project).parts}
+def change():
+ info=f.state()['schema'];basis=f.invoke('blueprint',dict(action='readOwnerEdits',id=x.owner,hash=info['textHash'],includeFunctionInputs=x.fn,includeFunctionBodies=True))['result']['result'];body=basis['functionBodies'][x.body_id];assert basis.get('functionDependencies')
+ row=dict(type='function-edit',id=x.fn,hash=hashlib.sha256(x.snapshot[x.function_path]).hexdigest(),name='구조체 계산',description='정보 구조체 원문',signature=x.signature,mapping=dict(before=x.signature,args={'data':'data','receiver':'receiver'},dependencies=basis['functionDependencies'],bodies={x.body_id:{key:body[key]for key in ['hash','path']}|dict(beforeSignature=x.signature,signature=x.signature,contract=x.signature,text=x.selected)}))
+ return dict(action='applySlots',id=x.owner,rows=[],basis=basis['basis'],declaration=dict(id=x.owner,hash=info['textHash'],changes=[row]))
+x.change=change

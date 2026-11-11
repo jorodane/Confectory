@@ -1,0 +1,14 @@
+"""Existing Blueprint call outputs carry the same instance and checked owner."""
+import hashlib,json
+
+def prepare(p,n,r,metadata,add,sync):
+ model='Confectory.ObjectModel';fn=n+'Flow';impl=fn+'Body';called=model+'::BindReference';alias='fg_call_'+hashlib.sha256(called.encode()).hexdigest()[:24]
+ source='function '+fn+' (object target,string contract) -> object {provide '+fn+' with '+impl+';}'
+ add('Flow','function',source);add('FlowBody','implementation','implementation '+impl+' for '+fn+' (object target,string contract) -> object {import '+called+' as '+alias+' (object,string,out string) -> object;blueprint common "Flow.graph.json";}')
+ path=p/'MainBody.celem';path.write_text(path.read_text().replace('body common','import '+fn+' as Flow (object,string) -> object;body common',1));sync()
+ graph=metadata('blueprintPrepareFeature',id=fn,text=source.replace('provide '+fn+' with '+impl+';',''),implementation=impl,graphPath='Flow.graph.json',nodePath='check.node.json')['graph'];graph['profile']='sync-acyclic-property-set-v1';graph['entry']='bind'
+ graph['nodes']=[dict(id='bind',kind='call',control='next',intent='실제 인스턴스 명시 연결',feature=called,signature=dict(args=[dict(name='target',type='object'),dict(name='contract',type='string'),dict(name='owner',type='string',mode='out')],**{'return':'object'}),arguments=dict(target=dict(input='target'),contract=dict(input='contract'))),dict(id='check',kind='code',control='next',intent='대상과 owner 출력 함께 보존',signature=dict(args=[dict(name='actual',type='object'),dict(name='owner',type='string'),dict(name='original',type='object')],**{'return':'object'}),arguments=dict(actual=dict(node='bind',output='return'),owner=dict(node='bind',output='owner'),original=dict(input='target')),implementation='check.node.json')]
+ graph['edges']=[dict(**{'from':'bind'},port='next',to='check'),dict(**{'from':'check'},port='next',to='exit:done')];graph['exits']=dict(done=dict(node='check'))
+ definitions=metadata('featureBlueprintNodes',featureSource=source,graph=graph,featureContracts={called:(r/'packs/object-model/BindReference.celem').read_text()});assert definitions['state']=='node-definitions',definitions
+ (p/'Flow.graph.json').write_text(json.dumps(graph,ensure_ascii=False));(p/'check.node.json').write_text(json.dumps(dict(schema=1,node='check',definitionHash=next(row['definitionHash']for row in definitions['nodes']if row['id']=='check'),source='if(!Object.ReferenceEquals(actual,original)||string.IsNullOrEmpty(owner))throw new Exception("binding outputs lost");return actual; // original instance and owner, no snapshot 😀'),ensure_ascii=False))
+ return 'if(!Object.ReferenceEquals(calls.Flow.Invoke(bound,contract),bound)||!Object.ReferenceEquals(calls.Flow.Invoke(second,contract),second))throw new Exception("Blueprint binding recreated or retargeted an instance");'

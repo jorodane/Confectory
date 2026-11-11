@@ -854,3 +854,10 @@ IInvoke/IAsyncInvoke handle을 기존 object/object[]·Create/Read/Set 및 prope
 검증·보관 결과는 [전용 기록](VALIDATION_V666_LIVE_FUNCTIONS.md)으로 구분한다.
 
 이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_LIVE_FUNCTIONS.md)을 마쳤다.
+
+
+고정 정보9행의 [실제 인스턴스 bridge](V666_REFERENCE_BRIDGE.md)는 호출자가 제공한
+ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handle과 실제 owner를 반환한다.
+값 복사·ref 셀 교체·ID 조회·권한 확대는 없다. 정보별 native reference ABI/struct의 reference
+필드와 타입 선택 연결은 같은 유한 잔여이며 이번 runtime bridge와 구분한다. 검증·보관은
+[전용 기록](VALIDATION_V666_REFERENCE_BRIDGE.md)을 따른다.

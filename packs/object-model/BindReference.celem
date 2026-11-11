@@ -1,0 +1,1 @@
+function Confectory.ObjectModel::BindReference (object target,string contract,out string owner) -> object {provide Confectory.ObjectModel::BindReference with Confectory.ObjectModel::BindReferenceBody;}

@@ -1,0 +1,1 @@
+implementation Confectory.ObjectModel::BindReferenceBody for Confectory.ObjectModel::BindReference (object target,string contract,out string owner) -> object {body common "BindReference.csbody";}

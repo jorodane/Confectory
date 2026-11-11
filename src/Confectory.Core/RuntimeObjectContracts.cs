@@ -6,10 +6,13 @@ namespace Confectory.Core;
 // data as runtime values, creates an instance, selects an accessor or runs a getter.
 public static class RuntimeObjectContracts
 {
-    public static JsonObject Describe(Registry registry, string id, string? source = null)
+    public const string ReferenceProfile = "information-object-reference-v1";
+    public static JsonObject Describe(Registry registry, string id, string? source = null) => DescribeCore(registry, id, source, false);
+    public static JsonObject DescribeReference(Registry registry, string id, string? source = null) => DescribeCore(registry, id, source, true);
+    static JsonObject DescribeCore(Registry registry, string id, string? source, bool reference)
     {
         var declared = registry.Get(id, source: source);
-        if (declared.Kind is not ("object" or "concept")) throw new BuildError("PROPERTY_OWNER", "An object/concept declaration is required", declared.Loc);
+        if (reference ? declared.Kind != "schema" : declared.Kind is not ("object" or "concept")) throw new BuildError("PROPERTY_OWNER", reference ? "An information definition is required" : "An object/concept declaration is required", declared.Loc);
         var dependencies = new HashSet<string>(StringComparer.Ordinal);
         var lineage = new JsonArray(); var schemas = new HashSet<string>(StringComparer.Ordinal);
         void Ancestors(string current, string kind, Action<Element> visit)
@@ -28,21 +31,22 @@ public static class RuntimeObjectContracts
         Ancestors(id, declared.Kind, e => lineage.Add(e.Id));
         var effective = registry.Effective(id);
         var fields = new Dictionary<string, SchemaField>(StringComparer.Ordinal);
-        foreach (var use in effective.Uses.Where(u => u.Kind == "schema"))
+        void AddField(string name, SchemaField field, SourceLocation location)
+        {
+            if (fields.TryGetValue(name, out var prior) && prior.Origin != field.Origin) throw new BuildError("SCHEMA_AMBIGUITY", "Property field has multiple schema origins: " + name, location);
+            fields[name] = field;
+            if (field.Kind is "reference" or "compound") {
+                registry.Get(field.Type, "schema", field.Origin, field.Loc);
+                Ancestors(field.Type, "schema", _ => { });
+            }
+            else if (field.Kind is "function" or "enum") dependencies.Add(registry.Get(field.Type, field.Kind, field.Origin, field.Loc).Id);
+        }
+        if (reference) foreach (var (name, field) in effective.Fields) AddField(name, field, declared.Loc);
+        else foreach (var use in effective.Uses.Where(u => u.Kind == "schema"))
         {
             registry.Get(use.Id, "schema", use.Origin ?? id, use.Loc);
             Ancestors(use.Id, "schema", e => schemas.Add(e.Id));
-            foreach (var (name, field) in registry.Effective(use.Id).Fields)
-            {
-                if (fields.TryGetValue(name, out var prior) && prior.Origin != field.Origin) throw new BuildError("SCHEMA_AMBIGUITY", "Property field has multiple schema origins: " + name, use.Loc);
-                fields[name] = field;
-                if (field.Kind is "reference" or "compound")
-                {
-                    registry.Get(field.Type, "schema", field.Origin, field.Loc);
-                    Ancestors(field.Type, "schema", _ => { });
-                }
-                else if (field.Kind is "function" or "enum") dependencies.Add(registry.Get(field.Type, field.Kind, field.Origin, field.Loc).Id);
-            }
+            foreach (var (name, field) in registry.Effective(use.Id).Fields) AddField(name, field, use.Loc);
         }
         if (fields.Count > 256) throw new BuildError("PROPERTY_FIELD_BUDGET", "At most 256 effective property fields", declared.Loc);
         var rows = new JsonArray();
@@ -119,6 +123,9 @@ public static class RuntimeObjectContracts
             ["schemas"] = new JsonArray(schemas.Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray()),
             ["fields"] = rows, ["dependencies"] = new JsonArray(dependencies.Order(StringComparer.Ordinal).Select(x => (JsonNode)JsonValue.Create(x)!).ToArray())
         };
+        if (reference) {
+            result.Remove("schemas"); result["profile"] = ReferenceProfile;
+        }
         result["hash"] = JsonData.Digest(result);
         return result;
     }
