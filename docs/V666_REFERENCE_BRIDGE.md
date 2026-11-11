@@ -58,3 +58,5 @@ profile을 옛 reader가 이해하거나 자동 변환한다고 가정하지 않
 metadata 회귀, UI 취소/Undo/실패/cold/응답 유실/늦은 입력, LF/CRLF와 새 패키지 전체
 복원으로 마감한다. 결과는 [검증 기록](VALIDATION_V666_REFERENCE_BRIDGE.md)에 구분한다.
 실제 Windows·물리 기기·전체 UI는 별도이며 초기 빈 화면의 원인은 미확정이다.
+
+이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_REFERENCE_BRIDGE.md)을 마쳤다.
