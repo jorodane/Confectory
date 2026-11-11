@@ -43,3 +43,5 @@ LF/CRLF·취소/Undo·쓰기 실패/복구·경합·응답 유실·늦은 입력
 구 Reference reader 제약과 같은 게시 세대 도구 사용을 유지한다. 초기 빈 #app의 과거
 원인은 미확정이다. Linux native/Chromium 자동화·교차 패키징과 실제 Windows/WebView2·
 물리 기기·IME·GPU/audio·전체 UI 전수 검증은 별도다.
+
+이 명시 공개 입력 이름·native 본문과 전달 호출자 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NAMED_FORWARDING.md)을 마쳤다.

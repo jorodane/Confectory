@@ -370,3 +370,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 같은 계약 forwarded/opaque 원본 보존 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_RETAINED_FORWARDING.md)을 마쳤다.
 
 [공개 입력 이름·native 본문과 전달 호출자](V666_NAMED_FORWARDING.md)는 고정7/8행의 기존 위치별 명시 값 이름 대응을 forwarded/private graph/call에 결합한다. 부모 계약·바인딩·C# 원문을 유지하며 실제 타입/역할·출력 변경과 opaque source 계획 등 다른 원래 closure는 별도 잔여다.
+
+이 명시 공개 입력 이름·native 본문과 전달 호출자 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NAMED_FORWARDING.md)을 마쳤다.
