@@ -47,7 +47,12 @@ try:
  with sync_playwright() as pw:
   expect.set_options(timeout=20000)
   browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader'])
-  healthy=f.setup(browser);healthy.locator('#chat-input').fill(saved);healthy.evaluate('()=>confectoryFlushPresentation()')
+  healthy=f.setup(browser)
+  # The first state callback renders .work-body before the top-level helper
+  # read settles and registers this explicit flush hook. Wait for the hook
+  # this fixture uses, rather than treating a drawn frame as completed startup.
+  healthy.wait_for_function('typeof globalThis.confectoryFlushPresentation==="function"')
+  healthy.locator('#chat-input').fill(saved);healthy.evaluate('()=>confectoryFlushPresentation()')
   expect(healthy.locator('#chat-input')).to_have_value(saved)
   healthy.locator('#chat-input').fill(live)
   # Hold the ordinary debounce in this healthy window: it must keep its DOM

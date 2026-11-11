@@ -6,3 +6,7 @@
 개발 재현: 게시 `6bdd6c3`의 실제 엔진에서 의존 module 하나를 차단하면 빈 앱·안내 없음·
 API 요청 없음이 확인됐다. 수정 뒤 normal/lifecycle/partial/retired 네 UI 검사를 통과했다.
 과거 간헐적 빈 화면의 원인 확정은 아니다.
+
+첫 최종 LF 시도는 화면 render를 초기화 완료로 가정해 아직 등록되지 않은 flush hook을
+호출한 fixture 실패1회를 보존했다. hook의 실제 등록을 기다리도록 준비 조건만 수정하며
+제품 app.js·bundle·원래 runtime 코드는 변경하지 않는다. 수정 후 최종 검증을 새로 실행한다.
