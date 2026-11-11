@@ -53,3 +53,5 @@ snapshot 복사로 합치지 않는다. ObjectModel live 함수 속성 및 함�
 참조 bridge/수명·reference 필드와 선언 구현 ID→실제 함수 handle의 명시적 live 연결은
 같은 고정9행의 유한 잔여다. 임의 provider 선택/ID 조회/자동 migration을 완료 조건에 넣지
 않는다. 실제 Windows·물리 기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다.
+
+이 한정 범위의 [최종 신규 24단계·동등 재사용 14단계·총 38단계 검증과 보관](VALIDATION_V666_FUNCTION_FIELDS.md)을 마쳤다.
