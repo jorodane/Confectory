@@ -63,3 +63,5 @@ cold·부분 초기화·pagehide의 늦은 실패와 기존 전송 정체/표시
 최종 LF/CRLF·새 패키지·전체 ZIP 복원은 [검증 기록](VALIDATION_V666_BOOTSTRAP_RECOVERY.md)에
 남긴다. 실제 Windows apphost/WebView2·물리 기기·모든 UI 경로의 전수 검증과
 구 reader의 실행 지원을 뜻하지 않는다.
+
+이 초기 로딩 실패 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_BOOTSTRAP_RECOVERY.md)을 마쳤다.
