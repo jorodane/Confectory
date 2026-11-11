@@ -894,3 +894,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 standalone 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_LABELS.md)을 마쳤다.
 
 이 반환 표시 단위의 [최종 신규 39단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_RETURN.md)을 마쳤다.
+
+이 호출 핀 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_CALL_PIN_LABELS.md)을 마쳤다.

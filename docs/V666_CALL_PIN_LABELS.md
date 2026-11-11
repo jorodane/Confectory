@@ -50,3 +50,5 @@ CSS·카드 크기·새 편집 제어를 추가하지 않는다.
 안내를 그 원인 확정으로 합산하지 않는다. 실제 Windows/WebView2·물리 기기·OS IME·
 GPU/audio·전체 UI 전수 검증은 별도이며 최종 신규/재사용·패키지/전체 복원과 실패 기록은
 [전용 검증](VALIDATION_V666_CALL_PIN_LABELS.md)에 남긴다.
+
+이 호출 핀 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_CALL_PIN_LABELS.md)을 마쳤다.
