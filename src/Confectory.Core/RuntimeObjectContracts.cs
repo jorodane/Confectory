@@ -53,6 +53,17 @@ public static class RuntimeObjectContracts
             InformationStructs.Definition? nativeEnum = null;
             InformationStructs.Definition? nativeStruct = null;
             IReadOnlyList<InformationStructs.Definition>? structTypes = null;
+            JsonObject? nativeFunction = null;
+            if (field.Kind == "function") {
+                try {
+                    var selected = RuntimeFunctionContracts.Describe(registry, field); nativeFunction = selected.Contract; supported = true;
+                    dependencies.UnionWith(selected.Dependencies);
+                }
+                catch (BuildError error) when (error.Diagnostic.Code is "INFORMATION_CLR_FIELD" or "INFORMATION_CLR_MEMBER" or "INFORMATION_CLR_CYCLE" or "ENUM_CLR_MAPPING" or "MODULE_CLR_PROFILE") {
+                    // A currently unrepresentable native method type retains
+                    // the existing unsupported field; never infer a provider.
+                }
+            }
             if (field.Kind == "enum") {
                 try { nativeEnum = InformationStructs.Describe(registry, field.Type, field.Origin); type = nativeEnum.ClrType; supported = true; }
                 catch (BuildError error) when (error.Diagnostic.Code == "ENUM_CLR_MAPPING") { /* Unconverted IDs remain unsupported, never assign numbers here. */ }
@@ -86,6 +97,7 @@ public static class RuntimeObjectContracts
                     ["id"] = m!["id"]!.DeepClone(), ["value"] = m["value"]!.DeepClone(), ["clrMember"] = m["clrMember"]!.DeepClone()
                 }).ToArray())
             };
+            if (nativeFunction is not null) row["nativeFunction"] = nativeFunction;
             if (nativeStruct is not null) row["nativeStruct"] = new JsonObject {
                 ["profile"] = "information-struct-live-value-v1", ["clrType"] = nativeStruct.ClrType,
                 ["types"] = new JsonArray(structTypes!.Select(d => {

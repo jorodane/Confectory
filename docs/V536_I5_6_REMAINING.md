@@ -286,3 +286,11 @@ reference 필드 및 실제 함수 handle의 live 속성 연결은 같은 유한
 검증·보관 결과는 전용 기록으로 구분하며 임의 copy/상속 조합을 새 필수 행으로 늘리지 않는다.
 
 이 한정 범위의 [최종 신규 24단계·동등 재사용 14단계·총 38단계 검증과 보관](VALIDATION_V666_FUNCTION_FIELDS.md)을 마쳤다.
+
+
+고정 정보9행의 [live 함수 속성](V666_LIVE_FUNCTIONS.md)은 호출자가 제공한 실제
+IInvoke/IAsyncInvoke handle을 기존 object/object[]·Create/Read/Set 및 property 노드에
+연결한다. ID 조회나 provider 선택 없이 원래 계약·수명·권한·본문 및 최종 CAS를 유지한다.
+새 함수 descriptor는 구 accessor의 지원 범위가 아니며 자동 migration은 하지 않는다.
+객체 참조 bridge/reference 필드·명시적 인스턴스 binding은 같은 유한 잔여로 유지하며
+검증·보관 결과는 [전용 기록](VALIDATION_V666_LIVE_FUNCTIONS.md)으로 구분한다.

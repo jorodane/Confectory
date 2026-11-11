@@ -3,7 +3,7 @@ if(owner.Length>0&&!System.Linq.Enumerable.Any(metadata["lineage"]!.AsArray(),id
 var declared=System.Linq.Enumerable.SingleOrDefault(metadata["fields"]!.AsArray(),item=>item!["id"]!.ToString()==field)??throw new InvalidOperationException("Property field is not declared by the actual instance");
 if(contractHash.Length>0&&declared["hash"]!.ToString()!=contractHash)throw new InvalidOperationException("Property field contract changed; preserve the actual instance and bind a compatible contract");
 string kind=declared["kind"]!.ToString(),type=declared["type"]!.ToString();bool multiple=declared["cardinality"]!.ToString()=="multiple";
-if(kind is not ("general" or "reference" or "enum" or "compound")||kind=="enum"&&declared["nativeEnum"] is null||kind=="compound"&&declared["nativeStruct"] is null)throw new NotSupportedException("This object field kind has no live value contract yet");
+if(kind is not ("general" or "reference" or "enum" or "compound" or "function")||kind=="enum"&&declared["nativeEnum"] is null||kind=="compound"&&declared["nativeStruct"] is null||kind=="function"&&declared["nativeFunction"] is null)throw new NotSupportedException("This object field kind has no live value contract yet");
 // Enum values are supplied by the caller, never converted from declaration IDs
 // or integers. Preserve checked Set for constrained values; no mutable ref cell.
 bool EnumType(Type actual,out System.Collections.Generic.HashSet<int> values){
@@ -15,6 +15,38 @@ bool EnumType(Type actual,out System.Collections.Generic.HashSet<int> values){
 }
 bool EnumValue(object? item)=>item is Enum enumValue&&EnumType(enumValue.GetType(),out var values)&&values.Contains(Convert.ToInt32(enumValue));
 bool EnumValues(object? item){if(!multiple)return EnumValue(item);return item is Array array&&array.GetType().IsSZArray&&EnumType(array.GetType().GetElementType()!,out var values)&&System.Linq.Enumerable.All(System.Linq.Enumerable.Cast<object>(array),entry=>values.Contains(Convert.ToInt32(entry)));}
+// Function handles are opaque caller-owned interface instances. Inspect only
+// their public contract metadata; never execute a provider/getter or load an ID.
+bool Function(object? item){
+ if(item is null||declared["nativeFunction"] is not System.Text.Json.Nodes.JsonObject contract||contract["profile"]?.ToString()!="function-interface-live-v1"||contract["signature"] is not System.Text.Json.Nodes.JsonObject signature||signature["args"] is not System.Text.Json.Nodes.JsonArray arguments||arguments.Count>256||contract["types"] is not System.Text.Json.Nodes.JsonArray types||types.Count>256)return false;
+ var nominal=new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal);
+ foreach(var row in types)if(row is not System.Text.Json.Nodes.JsonObject typeRow||!nominal.TryAdd(typeRow["clrType"]!.ToString(),typeRow))return false;
+ bool Native(Type actual,string expected){
+  if(expected.EndsWith("[]",StringComparison.Ordinal))return actual.IsSZArray&&Native(actual.GetElementType()!,expected[..^2]);
+  Type? primitive=expected switch{"void"=>typeof(void),"object"=>typeof(object),"bool"=>typeof(bool),"int"=>typeof(int),"long"=>typeof(long),"float"=>typeof(float),"double"=>typeof(double),"string"=>typeof(string),_=>null};
+  if(primitive is not null)return actual==primitive;
+  if(actual.FullName!=expected||!nominal.TryGetValue(expected,out var row)||actual.Assembly.GetName().Name!=row["assembly"]?.ToString()||actual.IsGenericType||actual.IsByRefLike)return false;
+  return row["kind"]?.ToString()switch{"schema"=>actual.IsValueType&&!actual.IsEnum,"enum"=>actual.IsEnum&&Enum.GetUnderlyingType(actual)==typeof(int),"module"=>actual.IsInterface,_=>false};
+ }
+ bool Parameters(System.Reflection.MethodInfo method,bool inputsOnly){
+  var selected=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(arguments,p=>!inputsOnly||p!["mode"]?.ToString()!="out"));var actual=method.GetParameters();if(actual.Length!=selected.Length||method.IsStatic||method.IsGenericMethod)return false;
+  for(int index=0;index<actual.Length;index++){var row=selected[index]!;string? mode=row["mode"]?.ToString();var parameter=actual[index];bool byref=mode is "ref" or "out";if(parameter.Name!=row["name"]?.ToString()||parameter.IsIn||parameter.IsOut!=(mode=="out")||parameter.ParameterType.IsByRef!=byref||!Native(byref?parameter.ParameterType.GetElementType()!:parameter.ParameterType,row["type"]!.ToString()))return false;}
+  return true;
+ }
+ const System.Reflection.BindingFlags flags=System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.DeclaredOnly;
+ var matches=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(item.GetType().GetInterfaces(),t=>t.FullName==contract["clrType"]?.ToString()&&t.Assembly.GetName().Name==contract["assembly"]?.ToString()));if(matches.Length!=1)return false;var selectedType=matches[0];if(!selectedType.IsInterface||!selectedType.IsPublic||selectedType.IsGenericType)return false;
+ bool NativeInterface(Type actual){var methods=actual.GetMethods(flags);return actual.IsInterface&&actual.IsPublic&&methods.Length==1&&methods[0].Name=="Invoke"&&Parameters(methods[0],false)&&Native(methods[0].ReturnType,signature["return"]!.ToString());}
+ if(contract["asyncResult"] is not System.Text.Json.Nodes.JsonObject asynchronous)return selectedType.FullName==contract["nativeType"]?.ToString()&&NativeInterface(selectedType);
+ var bases=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(selectedType.GetInterfaces(),t=>t.FullName==contract["nativeType"]?.ToString()&&t.Assembly==selectedType.Assembly));if(bases.Length!=1||!NativeInterface(bases[0]))return false;
+ var asyncMethods=selectedType.GetMethods(flags);if(asyncMethods.Length!=1||asyncMethods[0].Name!="InvokeAsync"||!Parameters(asyncMethods[0],true))return false;var task=asyncMethods[0].ReturnType;if(!task.IsGenericType||task.GetGenericTypeDefinition()!=typeof(System.Threading.Tasks.Task<>))return false;var result=task.GetGenericArguments()[0];
+ if(!result.IsClass||!result.IsSealed||result.IsGenericType||result.FullName!=asynchronous["clrType"]?.ToString()||result.Assembly!=selectedType.Assembly||asynchronous["properties"] is not System.Text.Json.Nodes.JsonArray properties||properties.Count>258||result.GetProperties(flags).Length!=properties.Count)return false;
+ foreach(var row in properties){var property=result.GetProperty(row!["name"]!.ToString(),flags);if(property is null||property.GetMethod is null||!property.GetMethod.IsPublic||property.SetMethod is null||!property.SetMethod.IsPublic||property.GetIndexParameters().Length!=0)return false;string expected=row["type"]!.ToString();if(expected!=asynchronous["executionType"]?.ToString()){if(!Native(property.PropertyType,expected))return false;continue;}
+  var execution=property.PropertyType;if(!execution.IsEnum||Enum.GetUnderlyingType(execution)!=typeof(int)||execution.FullName!=expected||execution.Assembly!=selectedType.Assembly||asynchronous["members"] is not System.Text.Json.Nodes.JsonArray members||members.Count>32||Enum.GetNames(execution).Length!=members.Count)return false;
+  var names=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);var numbers=new System.Collections.Generic.HashSet<int>();foreach(var member in members){string name=member!["name"]!.ToString();int number=member["value"]!.GetValue<int>();if(!names.Add(name)||!numbers.Add(number)||!Enum.IsDefined(execution,name)||Convert.ToInt32(Enum.Parse(execution,name))!=number)return false;}
+ }
+ return true;
+}
+bool Functions(object? item)=>multiple?item is object[] values&&System.Linq.Enumerable.All(values,entry=>Function(entry)):Function(item);
 // Check the existing generated value layout, without reading a member/getter,
 // looking up an instance, or imposing JSON-data rules on authored CLR values.
 bool StructType(Type actual){
@@ -48,7 +80,7 @@ bool StructType(Type actual){
 bool StructValue(object? item)=>item is not null&&(multiple?item is Array array&&array.GetType().IsSZArray&&StructType(array.GetType().GetElementType()!):StructType(item.GetType()));
 bool Reference(object? item)=>item is object[] reference&&reference.Length==3&&reference[0] is string version&&version is "Confectory.ObjectModel.Instance/v1" or "Confectory.ObjectModel.Instance/v2"&&reference[1] is System.Text.Json.Nodes.JsonObject contract&&reference[2] is System.Collections.Generic.Dictionary<string,object>&&System.Linq.Enumerable.Any(contract["schemas"]!.AsArray(),schema=>schema!.ToString()==type);
 bool Atom(object? item)=>kind=="reference"?Reference(item):type switch{"bool"=>item is bool,"int"=>item is int,"long"=>item is long,"float"=>item is float f&&float.IsFinite(f),"double"=>item is double d&&double.IsFinite(d),"string"=>item is string,_=>false};
-bool Valid(object? item){if(kind=="compound")return StructValue(item);if(kind=="enum")return EnumValues(item);if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
+bool Valid(object? item){if(kind=="function")return Functions(item);if(kind=="compound")return StructValue(item);if(kind=="enum")return EnumValues(item);if(!multiple)return Atom(item);if(kind=="reference")return item is object[] refs&&System.Linq.Enumerable.All(refs,x=>Reference(x));return type switch{"bool"=>item is bool[],"int"=>item is int[],"long"=>item is long[],"float"=>item is float[] fs&&System.Linq.Enumerable.All(fs,x=>float.IsFinite(x)),"double"=>item is double[] ds&&System.Linq.Enumerable.All(ds,x=>double.IsFinite(x)),"string"=>item is string[] ss&&System.Linq.Enumerable.All(ss,x=>x is not null),_=>false};}
 bool typedCell=format=="Confectory.ObjectModel.Instance/v2"&&kind=="general"&&!multiple&&type is "bool" or "int" or "long";
 if(write){
  if(!Valid(value))throw new ArgumentException("Object field value does not match its exact type/cardinality");

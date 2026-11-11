@@ -30,6 +30,13 @@ internal sealed class InformationFunctionProperties(JsonObject request,Action<st
   if(original.Parent is not null)Load(original.Parent,original.Id);
   foreach(var use in original.Uses.Where(u=>u.Kind=="schema"))Load(use.Id,use.Origin??original.Id);
   foreach(var field in original.Fields.Values.Where(f=>f.Kind is "compound" or "reference" or "function" or "enum"))Load(field.Type,field.Origin);
+  foreach(var include in original.Includes)Load(include.Id,original.Id);
+  foreach(string required in original.Requires.Keys)Load(required,original.Id);
+  foreach(var choice in original.Defaults.Values)Load(choice.Id,original.Id);
+  if(original.Signature is not null)foreach(string type in InformationStructs.SignatureTypes(original.Signature)){
+   var ids=r.Packs.SelectMany(p=>p.Value.Elements.Where(e=>e.Value.Kind is "schema" or "enum" or "module").Select(e=>p.Key+"::"+e.Key)).Where(id=>InformationStructs.Type(id)==type).Take(2).ToArray();
+   if(ids.Length!=1)throw new InvalidOperationException("Observe the exact nominal function property type before saving");Load(ids[0],original.Id);
+  }
   return original;
  }
  public (JsonObject Properties,JsonObject Functions,string? Proof) ForGraph(Element implementation,JsonObject graph)
