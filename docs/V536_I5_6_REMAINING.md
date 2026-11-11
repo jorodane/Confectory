@@ -390,3 +390,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 명시 native void→반환 추가 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURN_CREATE.md)을 마쳤다.
 
 [명시 native out 타입·본문·소비자 공동 저장](V666_NATIVE_OUTPUTS.md)은 고정7/8행에서 여러 직접 소유 C# 함수의 out 타입 교체와 수동 본문, 기존 소비자의 호환 반환 대응을 한 Save/CAS에 결합하는 단위다. 입력·역할·핀 수·반환 타입과 원래 receipt/readGuards·Review/Confirm을 유지한다. 역할·out 추가삭제/입출력 정의·opaque/private 계획·다른 원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
+
+이 명시 native out 타입·본문 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUTPUTS.md)을 마쳤다.

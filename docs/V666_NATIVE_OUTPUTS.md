@@ -36,3 +36,5 @@ callee 사이 의존성·다른 원래 import/등록 외부 관측 결합은 같
 신규/재사용과 LF/CRLF·실패/경합/응답 유실·새 package/full restore·보관을 구별한다.
 Linux native/Chromium 자동화·Windows 교차 패키징과 실제 Windows/WebView2·물리 기기·
 IME·GPU/audio·전체 UI 전수 검증은 별개다.
+
+이 명시 native out 타입·본문 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUTPUTS.md)을 마쳤다.
