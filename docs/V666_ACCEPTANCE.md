@@ -934,3 +934,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 명시 native 반환·본문·출력 대응 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURNS.md)을 마쳤다.
 
 [명시 native 반환 삭제·void 본문·기존 out 대응 공동 저장](V666_NATIVE_VOID.md)은 고정7/8행에서 여러 직접 소유 C# 함수의 반환 삭제와 본문, 이전 소비의 호환 out 대응을 한 후보/CAS에 결합한다. 입력/out 계약과 원래 receipt/readGuards·Review/Confirm을 유지한다. 역할·out 정의·역방향 void→값·opaque/private 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
+
+이 명시 native 반환 삭제·void 본문·출력 대응 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_VOID.md)을 마쳤다.
