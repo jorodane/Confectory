@@ -32,3 +32,5 @@ Review/Confirm을 유지한다. 실제 반환 ABI/값은 같은 임시 Main 원�
 [검증 기록](VALIDATION_V666_NATIVE_RETURN_CREATE.md)은 개발/최종·신규/재사용, LF/CRLF·UI
 수명·경합·새 package/full restore·보관을 구별한다. 실제 Windows/WebView2·물리 기기·IME·
 GPU/audio·전체 UI 검사와 Linux native/Chromium 자동화·Windows 교차 패키징은 별개다.
+
+이 명시 native void→반환 추가 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURN_CREATE.md)을 마쳤다.
