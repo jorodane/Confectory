@@ -914,3 +914,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 공개 이름·native 본문과 private 호출자 단위의 [최종 신규 38단계·재사용0 검증과 보관](VALIDATION_V666_NAMED_NESTED.md)을 마쳤다.
 
 [공개 입력 이름·native 본문과 로컬 import](V666_NAMED_IMPORTS.md)는 기존8행의 명시 계약/본문 그룹에서 이미 관측한 로컬 helper를 읽기 전용으로 보존한다. 원래 helper 계약·별칭·C# 원문과 version3 읽기 CAS를 유지하고 다른 forwarded/opaque·원래 source closure는 같은 유한 잔여로 둔다.
+
+이 공개 이름·native 본문과 로컬 import 단위의 [최종 신규 28·재사용 10·총 38단계 검증과 보관](VALIDATION_V666_NAMED_IMPORTS.md)을 마쳤다.
