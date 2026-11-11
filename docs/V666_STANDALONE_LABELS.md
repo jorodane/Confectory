@@ -56,3 +56,5 @@ reader의 `TYPE` 거절은 별도 호환 제한이며, 거절 코드만으로 �
 별도 재현된 경로이며, 이번 최종 코드의 전송 정체 중 실제3D reload 관찰과 구별한다.
 실제 Windows/WebView2·물리 기기·OS IME·GPU/audio·전체 UI 전수 검증은 별도다.
 최종 신규/재사용·실패·패키지/전체 복원 근거는 [검증 기록](VALIDATION_V666_STANDALONE_LABELS.md)에 남긴다.
+
+이 standalone 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_LABELS.md)을 마쳤다.

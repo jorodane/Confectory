@@ -882,3 +882,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 한정 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_ARGUMENT_LABELS.md)을 마쳤다.
 
 이 초기 로딩 실패 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_BOOTSTRAP_RECOVERY.md)을 마쳤다.
+
+이 standalone 표시 단위의 [최종 신규 41단계·재사용0 검증과 보관](VALIDATION_V666_STANDALONE_LABELS.md)을 마쳤다.
