@@ -36,3 +36,5 @@ source 예산, 부모/외부 소유권, override 계약, 권한·authored layout
 LF/CRLF·취소/Undo·쓰기 실패/복구·경합·응답 유실·늦은 입력/후속 Save·재시작·실제 실행,
 새 패키지/전체 복원·보관 증거를 구별한다. Linux native/Chromium 자동화와 Windows 교차
 패키징은 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI 전수 검사와 별개다.
+
+이 명시 native 입력 타입·본문 공동 저장 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUTS.md)을 마쳤다.
