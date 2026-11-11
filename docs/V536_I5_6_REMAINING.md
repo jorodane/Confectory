@@ -394,3 +394,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 명시 native out 타입·본문 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUTPUTS.md)을 마쳤다.
 
 [명시 native out 삭제·본문·소비자 공동 저장](V666_NATIVE_OUT_REMOVAL.md)은 고정7/8행에서 여러 직접 소유 C# 함수의 out 삭제와 수동 본문, 원래 소비자의 호환 반환 대응을 한 Save/CAS에 결합하는 단위다. 남은 입력/out·반환 계약과 원래 receipt/readGuards·후속 설명 Save·Review/Confirm을 보존한다. 역할·out 추가/다른 입출력 정의·opaque/private 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
+
+이 명시 native out 삭제·본문 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_REMOVAL.md)을 마쳤다.
