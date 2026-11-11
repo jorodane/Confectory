@@ -1,5 +1,9 @@
 # I5-6: 지원 경로와 남은 계약 편집
 
+[standalone 고정 반환 표시명](V666_STANDALONE_RETURN.md)은 같은 선택 metadata의
+표시·상세창·원자 저장만 연결한다. 반환 ID와 native ABI·void 보관 정책을 유지하며
+다른 표시와 기존7/8행의 실제 source closure는 별도 잔여다.
+
 [standalone 인자 표시명](V666_STANDALONE_LABELS.md)은 원래 공통 상세창의 다른 표시
 문맥 한 단위다. 기존 native 편집·원자 owner 저장·이력/CAS를 보존하며, 다른 표시와
 7/8행의 실제 명시 계약/source closure 잔여는 그대로 유지한다.

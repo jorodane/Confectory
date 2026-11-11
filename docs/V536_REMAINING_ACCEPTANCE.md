@@ -29,3 +29,9 @@
 정보 자체 정의/custom 기본값의 후속 한정 단위는 `VALIDATION_V536_INFORMATION_DEFAULTS.md`다. 원본 정보 카드·독립 View에서 기존 기본값과 새 single primitive/linked 정보 정의를 한 후보/CAS·명시 compiler Confirm으로 연결했다. 명시 version profile만 읽으며 기존 객체 값과 unmarked 기록을 자동 변경하지 않는다. legacy inline/모든 복합 정의 전환 및 raw source 결합은 아직 남아 있다. 전체 Info/ABI/모바일 수용 완료로 합산하지 않는다.
 
 최신 raw source 결합의 한정 단위는 `VALIDATION_V536_RAW_OWNER_SAVE.md`다. 직접 소유 object/schema 한 raw 입력과 한 properties 화면의 지원 typed 변경을 원래 source identity/hash·한 후보/CAS·receipt·명시 Review/Confirm에 연결한다. 여러 raw/여러 typed 화면 자동 선택과 모든 문법의 무손실 구조 병합은 계속 차단한다. 후속 `VALIDATION_V536_RAW_COPY_SAVE.md`는 직접 소유 object 한 raw와 기본 요소 창 typed 입력·새 private copy1~8개만 한 후보/CAS로 결합한다. saved-copy ABI/기존 본문·multi-target ABI/Set/property/다른 Blueprint 계획 및 독립 properties+copy는 여전히 차단한다. 이전 단위의 raw 전체 미완료 표시는 이 지원 범위만 해제하며 ABI 교차 문맥·모바일/특수 핀·legacy 정보 및 backend 부재는 합산 완료하지 않는다.
+
+후속 [standalone 고정 반환 표시명](V666_STANDALONE_RETURN.md)은 기존 `return` ID와 C# 계약을 유지하는
+선택 metadata의 같은 상세창 편집/표시·owner 원자 저장만 연결한다. 설명·아이콘·인자 표시명과
+결합하며 void 보관·영수증·늦은 입력·Undo·최종 CAS를 유지한다. module/caller/graph의 다른 표시와
+고정7/8행 forwarded/opaque 및 여러 함수의 실제 계약/source closure는 기존 유한 잔여다.
+구 Reference reader 제한·초기 빈 화면 원인 미확정·실제 기기/전체 UI 미검증은 별도로 유지한다.

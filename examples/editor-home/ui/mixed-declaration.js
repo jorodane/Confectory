@@ -27,6 +27,7 @@ export function captureMixedCell(value,schema,valueJson){
  if(value.kind==='module-pin-icon')return {type:value.kind,text:value.text};
  if(value.kind==='description')return {type:'description',text:value.text};
  if(value.kind==='icon')return {type:'icon',text:value.text};
+ if(value.kind==='function-return-name'){if(schema.kind!=='function')throw Error('직접 소유 기능의 반환 표시명을 확인해 주세요.');return {type:value.kind,text:functionReturnName({returnName:value.text}).returnName};}
  if(value.kind==='function-argument-names'){if(schema.kind!=='function')throw Error('직접 소유 기능의 핀 표시명을 확인해 주세요.');const signature={args:(schema.signature?.args||schema.signature?.Args||[]).map(a=>({name:a.name??a.Name}))},names=functionArgumentNames({argumentNames:JSON.parse(value.text),signature}).argumentNames;return {type:value.kind,text:JSON.stringify(names)};}
  if(value.kind==='parent')return {type:'parent',value:value.value};
  if(value.kind==='modules')return {type:'modules',ids:structuredClone(value.value)};
@@ -50,6 +51,7 @@ export function mixedCellMatches(key,value,change,start){
  if(value.kind==='module-pin-icon'){try{const e=JSON.parse(value.text);return key===start+'module-pin-icon:'+JSON.stringify([e.function,e.pin])&&change.type===value.kind&&change.text===value.text;}catch{return false;}}
  if(value.kind==='description')return key===start+'description'&&change.type==='description'&&change.text===value.text;
  if(value.kind==='icon')return key===start+'icon'&&change.type==='icon'&&change.text===value.text;
+ if(value.kind==='function-return-name')return key===start+value.kind&&change.type===value.kind&&change.text===value.text;
  if(value.kind==='function-argument-names')return key===start+value.kind&&change.type===value.kind&&change.text===value.text;
  if(value.kind==='parent')return key===start+'parent'&&change.type==='parent'&&same(change.value,value.value);
  if(value.kind==='modules')return key===start+'modules'&&change.type==='modules'&&same(change.ids,value.value);
@@ -73,6 +75,7 @@ export function receiptFieldProof(value,change,schema){
  // Its owner source must still match exactly before advancing its revision.
  if(value.kind==='description'&&(change?.type==='description'||change===undefined&&value.hash===schema.textHash))return {hash:schema.textHash,kind:'description'};
  if(value.kind==='icon'&&change?.type==='icon'&&schema.values?.editorIcon===change.text)return {hash:schema.textHash,kind:'icon',accepted:change.text};
+ if(value.kind==='function-return-name'&&change?.type===value.kind&&schema.kind==='function'&&(schema.values?.editorReturnName??'결과')===change.text)return {hash:schema.textHash,kind:value.kind,accepted:change.text};
  if(value.kind==='function-argument-names'&&change?.type===value.kind&&schema.kind==='function'){try{const accepted=JSON.parse(change.text),stored=JSON.parse(schema.values?.editorArgumentNames||'{}');if(ownedSame(accepted,stored))return {hash:schema.textHash,kind:value.kind,accepted};}catch{}return null;}
  if(value.kind==='function-order'&&change?.type==='function-order'&&same((schema.ownFunctions||[]).filter(row=>row.origin===schema.id).map(row=>row.id),change.ids))return {hash:schema.textHash,kind:'function-order',ids:structuredClone(change.ids)};
  if(['function-add','function-edit','native-function-edit'].includes(value.kind)&&value.id===change?.id){const row=schema.ownFunctions?.find(row=>row.id===value.id),sig=s=>({args:(s?.args||s?.Args||[]).map(a=>({name:a.name??a.Name,type:a.type??a.Type,...((a.mode??a.Mode)?{mode:a.mode??a.Mode}:{})})),return:s?.return??s?.Return??'void'});if(row?.writable&&row.origin===schema.id&&row.name===change.name.trim()&&row.description===change.description&&(change.icon===undefined||(row.icon??'')===change.icon)&&(change.returnName===undefined||(row.returnName??'결과')===change.returnName)&&(change.argumentNames===undefined||ownedSame(row.argumentNames||{},change.argumentNames))&&same(sig(row.signature),sig(change.signature)))return {hash:schema.textHash,kind:'function-edit',id:row.id,functionHash:row.hash,...(change.icon===undefined?{}:{acceptedIcon:change.icon}),...(change.returnName===undefined?{}:{acceptedReturnName:change.returnName}),...(change.argumentNames===undefined?{}:{acceptedArgumentNames:structuredClone(change.argumentNames)}),inputPatch:{kind:'function-edit',functionHash:row.hash,...(value.kind==='native-function-edit'&&same(sig(value.signature),sig(change.signature))&&same(value.mapping,change.mapping)?{mapping:undefined}:{})}};return null;}
@@ -87,6 +90,7 @@ export function restoredMixedProof(value,schema){
  if(value.kind==='enum-values'){try{return schema.kind==='enum'&&same(JSON.parse(schema.values?.editorEnumValues||'[]'),proof.accepted);}catch{return false;}}
  if(value.kind==='module-pin-icon'){try{const current=JSON.parse(value.text),saved=proof.accepted,accepted=modulePinValue(schema,saved,true);return current.function===saved.function&&current.pin===saved.pin&&same(current.signature,saved.signature)&&accepted.valid&&accepted.icon===saved.icon;}catch{return false;}}
  if(value.kind==='icon')return schema.values?.editorIcon===proof.accepted;
+ if(value.kind==='function-return-name')return schema.kind==='function'&&(schema.values?.editorReturnName??'결과')===proof.accepted;
  if(value.kind==='function-argument-names'){try{return schema.kind==='function'&&ownedSame(JSON.parse(schema.values?.editorArgumentNames||'{}'),proof.accepted);}catch{return false;}}
  if(value.kind==='schema-icon'){const row=rowAt(schema,value.path);return ['schema','object'].includes(schema.kind)&&same(value.path,proof.path)&&row?.schemaOrigin===(proof.schema??schema.id)&&value.schema===(proof.schema??schema.id)&&row.fieldSource===schema.id&&row.schemaHash===proof.schemaHash&&value.schemaHash===proof.schemaHash&&(row.icon??'')===proof.accepted&&same(mixedFieldContract(row),proof.contract);}
  if(value.kind==='function-order')return same(value.ids,proof.ids)&&same((schema.ownFunctions||[]).filter(row=>row.origin===schema.id).map(row=>row.id),proof.ids);

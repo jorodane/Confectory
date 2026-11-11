@@ -1,5 +1,9 @@
 # v666 구현 기준과 고정 수용 목록
 
+[standalone 고정 반환 표시명](V666_STANDALONE_RETURN.md)은 같은 상세창·선택 metadata와
+기존 void 보관 정책을 직접 소유 함수에 연결한다. 반환 ID·C# 계약·권한·CAS는 유지하며
+다른 표시 문맥과 고정7/8행의 실제 source closure는 별도다.
+
 [standalone 인자 표시명](V666_STANDALONE_LABELS.md)은 정보 카드 밖 기존 상세창의
 표시/native 분리를 연결한다. 같은 계약의 owner 저장과 원문·권한·CAS 보호를 유지하고,
 다른 표시 문맥·고정7/8행 전체·실제 기기/UI 완료로 합산하지 않는다.
