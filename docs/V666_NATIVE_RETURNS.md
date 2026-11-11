@@ -40,3 +40,5 @@ migration을 새 필수 목록으로 늘리지 않고 M11/M12/M4를 구체적 �
 원인은 미확정이다. [검증 기록](VALIDATION_V666_NATIVE_RETURNS.md)은 개발/최종·신규/재사용과
 LF/CRLF·UI 수명·경합·새 package/full restore·보관을 구별한다. Linux native/Chromium 자동화와
 Windows 교차 패키징은 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI 검사와 별개다.
+
+이 명시 native 반환·본문·출력 대응 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURNS.md)을 마쳤다.

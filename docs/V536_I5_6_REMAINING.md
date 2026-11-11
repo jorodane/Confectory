@@ -378,3 +378,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 명시 native 입력 타입·본문 공동 저장 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUTS.md)을 마쳤다.
 
 [명시 native 반환·본문·기존 출력 대응 공동 저장](V666_NATIVE_RETURNS.md)은 고정7/8행에서 두 함수의 scalar 반환 변경과 직접 C# 본문, 기존 소비의 호환 out 대응을 한 후보/CAS에 연결한다. 입력과 out 계약·ID는 유지하고 기존 receipt/readGuards·Review/Confirm을 보존한다. 역할·out/void 정의·opaque/private 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
+
+이 명시 native 반환·본문·출력 대응 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURNS.md)을 마쳤다.
