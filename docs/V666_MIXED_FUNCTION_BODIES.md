@@ -47,3 +47,5 @@ native 함수의 직접 본문 편집은 각각 유효하지만 공동 후보만
 따른다. 같은 게시 세대의 reader/authoring/runtime을 사용하고 소급 수정·자동 downgrade/migration은 없다.
 초기 간헐 빈 #app 원인은 미확정이며 전송/재로드 관찰과 이미 재현한 module 실패와 구분한다.
 실제 Windows/WebView2·물리 기기·OS IME·GPU/audio·전체 UI 전수 검증은 별도다.
+
+이 Blueprint 계약·native 본문 혼합 저장 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_MIXED_FUNCTION_BODIES.md)을 마쳤다.

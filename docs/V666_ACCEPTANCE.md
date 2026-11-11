@@ -906,3 +906,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 명시 이름·본문 공동 저장 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_NAMED_BODY_GROUP.md)을 마쳤다.
 
 [Blueprint 이름 계약과 native 본문 혼합 저장](V666_MIXED_FUNCTION_BODIES.md)은 각각 유효한 두 원래 편집을 공유 caller와 한 후보/CAS에 결합한다. scalar·직접 소유·단일 import-free 구현과 일반 caller 범위이며, 기존7/8행의 다른 source closure 및 기기/전체 UI 잔여와 구별한다.
+
+이 Blueprint 계약·native 본문 혼합 저장 단위의 [최종 신규 37단계·재사용0 검증과 보관](VALIDATION_V666_MIXED_FUNCTION_BODIES.md)을 마쳤다.
