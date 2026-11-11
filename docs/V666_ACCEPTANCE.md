@@ -1,5 +1,9 @@
 # v666 구현 기준과 고정 수용 목록
 
+[일반 Blueprint 호출 카드의 핀 표시명](V666_CALL_PIN_LABELS.md)은 이미 관측한 직접 소유
+callee의 명시 별칭을 기존 위치 ABI의 caller 핀 ID에 읽기 전용으로 표시한다. native 계약·
+정의 hash·C#·권한·CAS를 유지하며 다른 표시 문맥과 고정7/8행의 실제 closure는 별도다.
+
 [standalone 고정 반환 표시명](V666_STANDALONE_RETURN.md)은 같은 상세창·선택 metadata와
 기존 void 보관 정책을 직접 소유 함수에 연결한다. 반환 ID·C# 계약·권한·CAS는 유지하며
 다른 표시 문맥과 고정7/8행의 실제 source closure는 별도다.

@@ -48,6 +48,7 @@ try
         case "blueprintCopyAbiBinding":reply=BlueprintCopyAbi.Bind(request);break;
         case "blueprintRegisteredCopyAbiBinding":reply=BlueprintRegisteredCopyAbi.Query(request);break;
         case "functionPresentation":reply=FunctionPresentation.Prepare(request,Format,FormatManifest);break;
+        case "functionPinPresentation":reply=FunctionPinPresentation.Query(request);break;
         case "functionSignature":reply=JsonValue.Create(FunctionArgumentNames.EditSignature(S("text"),request["signature"]!.AsObject(),Format));break;
         case "mixedOwnerCopyEdits":reply=MixedOwnerCopyEdits.Prepare(request,Format,FormatManifest);break;
         case "informationTypes":reply=InformationTypes.Query(request,FormatManifest);break;

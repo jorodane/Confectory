@@ -1,5 +1,9 @@
 # I5-6: 지원 경로와 남은 계약 편집
 
+[일반 Blueprint 호출 카드의 핀 표시명](V666_CALL_PIN_LABELS.md)은 이미 관측한 직접 소유
+callee의 명시 별칭을 기존 위치 ABI의 caller 핀 ID에 읽기 전용으로 표시한다. native 계약·
+정의 hash·C#·권한·CAS를 유지하며 다른 표시 문맥과 고정7/8행의 실제 closure는 별도다.
+
 [standalone 고정 반환 표시명](V666_STANDALONE_RETURN.md)은 같은 선택 metadata의
 표시·상세창·원자 저장만 연결한다. 반환 ID와 native ABI·void 보관 정책을 유지하며
 다른 표시와 기존7/8행의 실제 source closure는 별도 잔여다.
