@@ -900,3 +900,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [이미 관측한 함수 호출 표시](V666_OBSERVED_CALL_LABELS.md)는 saved Blueprint의 공통 읽기 경계에서 정확한 owned 함수 관측과 기존 위치 ABI를 사용한다. private·After·slot을 표시만의 금지 조건으로 삼지 않으며 snapshot/외부 읽기/계약 편집 권한은 확장하지 않는다. 고정7/8행의 실제 계약·본문 closure와 기기·전체 UI 잔여는 별도다.
 
 이 관측 호출 표시 단위의 [최종 신규 36단계·재사용0 검증과 보관](VALIDATION_V666_OBSERVED_CALL_LABELS.md)을 마쳤다.
+
+[명시 값 입력 이름과 native 본문 공동 저장](V666_NAMED_BODY_GROUP.md)은 원래 위치별 타입·역할·수·반환과 native 선언을 유지하고, 여러 함수의 직접 본문 편집과 공개 값 입력 C# 이름 대응을 한 후보/공유 caller에 연결한다. 고정7/8행의 다른 실제 closure와 구 reader·기기·전체 UI 잔여는 별도다.

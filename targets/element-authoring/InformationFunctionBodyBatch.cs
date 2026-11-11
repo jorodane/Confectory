@@ -1,7 +1,8 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// The existing body editor can hold several texts without changing any ABI.
+// Explicit native body groups retain the native ABI. Public value-input names
+// may change only by the existing positional map; no C# text is inferred.
 // Prove each original closure; publish their disjoint bodies through one CAS.
 internal static class InformationFunctionBodyBatch
 {
@@ -25,12 +26,15 @@ internal static class InformationFunctionBodyBatch
  // Presentation stays under InformationDefinitions' existing exact-key,
  // duplicate, text and image validation. It cannot add another source closure.
  public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
- public static bool BodyEdit(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&JsonNode.DeepEquals(map["before"],row["signature"])&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
+ public static bool BodyPlan(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
+ public static bool BodyEdit(JsonNode? row)=>BodyPlan(row)&&JsonNode.DeepEquals(row!["mapping"]!["before"],row["signature"]);
+ static bool ValueNames(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Matches(next)&&args.Count==before.Args.Count&&!before.Args.Where((a,i)=>args[a.Name]?.GetValue<string>()!=next.Args[i].Name||a.Mode is not null&&a.Name!=next.Args[i].Name).Any();
+ static bool NamedBodyEdit(JsonNode? row)=>BodyPlan(row)&&!BodyEdit(row)&&row!["mapping"]!["args"] is JsonObject args&&ValueNames(InformationFunctionBodies.Signature(row["mapping"]!["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >10)return null;
   var edits=changes.Where(row=>!Presentation(row)).ToArray();
-  return edits.Length is >=2 and <=8&&edits.All(BodyEdit)?edits:null;
+  return edits.Length is >=2 and <=8&&edits.All(row=>BodyEdit(row)||NamedBodyEdit(row))?edits:null;
  }
  // Earlier members may have staged their explicit presentation while all
  // public/native contracts stay unchanged. Project only those proved owned
@@ -57,21 +61,28 @@ internal static class InformationFunctionBodyBatch
  }
  public static HashSet<string>? Prepare(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format)
  {
-  if(!edits.All(BodyEdit))return null;
+  if(!edits.All(row=>BodyEdit(row)||NamedBodyEdit(row)))return null;
+  bool naming=edits.Any(NamedBodyEdit);
+  bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
+  // A changed contract enters this path only for actual native body units.
+  // Existing Blueprint/ref/whole plans keep their established dispatcher.
+  if(edits.Any(row=>!JsonNode.DeepEquals(row?["mapping"]?["before"],row?["signature"]))&&edits.Any(row=>row!["mapping"]!["bodies"]!.AsObject().Any(body=>units[body.Key]?["kind"]?.ToString()!="body")))return null;
   var functions=new HashSet<string>(StringComparer.Ordinal);var bodyIds=new HashSet<string>(StringComparer.Ordinal);string ns=PackPaths.Namespace(request["id"]!.ToString());
   Element Declaration(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original body declaration required"),"<body-group>").ParseElement();
   foreach(var row in edits){
-   string id=row!["id"]!.ToString();var original=Declaration(id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;
-   if(!functions.Add(id)||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["copies"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "copies"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Any(a=>args[a.Name]?.GetValue<string>()!=a.Name))throw new InvalidOperationException("Body-only groups retain exact original contracts and pin identities");
+   string id=row!["id"]!.ToString();var original=Declaration(id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var selected=InformationFunctionBodies.Signature(row["signature"]!);
+   if(!functions.Add(id)||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["copies"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "copies"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||!ValueNames(signature,selected,args))throw new InvalidOperationException("Native body groups retain positional types, roles, count, return and explicit value-input name mapping");
+   if(naming&&(BlueprintAsync.Has(original)||BlueprintExecutionBranches.Has(original)||signature.Args.Any(a=>!Scalar(a.Type))||signature.Return!="void"&&!Scalar(signature.Return)))throw new InvalidOperationException("Named native body groups retain synchronous scalar contracts without public execution branches; all input retained");
    foreach(var body in mapping["bodies"]!.AsObject()){
     int at=body.Key.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new InvalidOperationException("Direct native body target required");var implementation=Declaration(body.Key[..at]);string target=body.Key[(at+6)..];
-    if(!bodyIds.Add(body.Key)||units[body.Key]?["kind"]?.ToString()!="body"||!NativeTargets(implementation)||implementation.Function!=id||!implementation.Bodies.ContainsKey(target)||body.Key!=implementation.Id+"/body:"+target||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"])||!JsonNode.DeepEquals(body.Value?["contract"],mapping["before"]))throw new InvalidOperationException("Review the unchanged declaration of every directly owned native target");
+    if(!bodyIds.Add(body.Key)||units[body.Key]?["kind"]?.ToString()!="body"||!NativeTargets(implementation)||implementation.Function!=id||!implementation.Bodies.ContainsKey(target)||body.Key!=implementation.Id+"/body:"+target||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"])||!JsonNode.DeepEquals(body.Value?["contract"],row["signature"]))throw new InvalidOperationException("Review the unchanged declaration of every directly owned native target");
    }
   }
   if(2+functions.Count+bodyIds.Count>64)throw new InvalidOperationException("Keep the complete native body group within the existing 64-member Review budget; all input retained");
   foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=Declaration(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
    if(!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||d.Bodies.Count is <1 or >8)throw new InvalidOperationException("Body-only groups preserve direct source ownership");
+   if(naming&&(callee&&(d.Bodies.Count!=1||d.Imports.Count!=0)||consumer&&d.Bodies.Values.Any(body=>body.SourceKind!="blueprint")))throw new InvalidOperationException("Named body groups require import-free single native targets and ordinary Blueprint callers; retain other source closures");
    if(callee&&!NativeTargets(d))throw new InvalidOperationException("Body-only groups retain all native targets and their original imports");
    foreach(var import in d.Imports.Values){var dependency=Declaration(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException(callee?"Keep the exact owned native imports; no external contract is edited":"Keep the exact owned caller imports; no external contract is edited");}
    if(callee)continue;
@@ -85,10 +96,13 @@ internal static class InformationFunctionBodyBatch
     // A retained root copy still passes InformationFunctionCopies' exact
     // assignment/provenance proof in every function's complete preparation.
     // Neither its donor nor the local copy becomes an editable body target.
+    if(naming&&(graph["copySource"] is not null||graph["profile"]?.ToString().StartsWith("sync-",StringComparison.Ordinal)!=true||graph["locals"] is JsonArray locals&&locals.Count>0||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray plain||plain.Any(node=>node?["kind"]?.ToString() is not ("call" or "export")||node["control"]?.ToString()!="next"||node["postCall"] is not null||node["implementationContext"] is not null||node["forwardCallerStorage"] is not null)))throw new InvalidOperationException("Named native body groups retain direct ordinary caller source; other frame, wrapper and observed closures keep their existing boundaries");
     if(graph["copySource"] is not null&&(graph["copySource"] is not JsonObject||units[d.Id+"/body:"+body.Key]?["baseline"]?.ToString()=="missing")||graph["nodes"] is not JsonArray||BlueprintTree.Nodes(graph).Any(entry=>!RetainedCallerNode(entry.Node)))throw new InvalidOperationException("Body-only groups retain forwarding and native context caller boundaries");
    }
   }
-  foreach(var row in edits){var original=Declaration(row!["id"]!.ToString());InformationFunctionContracts.Prepare(request,original,Declaration(original.Id),row["mapping"]!.AsObject(),format);}
+  // Validate each explicit selection against the complete ORIGINAL observation
+  // before the internal overlay can compose shared callers.
+  foreach(var row in edits){var original=Declaration(row!["id"]!.ToString());var selected=Declaration(original.Id);DeclarationAuthoring.Apply(selected,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,selected,row["mapping"]!.AsObject(),format);}
   return functions;
  }
 }
