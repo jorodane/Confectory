@@ -61,3 +61,5 @@ namespace 등록/dependency·비공개 정보 제한과 256정의/선택 타입�
 원문으로 파싱하지 않는다. 정확한 missing baseline·같은 계약·본문 없는 원래 생성 그룹만
 해당하며 native type proof/read scope는 그대로 보존한다. 본문 포함 그룹·계약 변경·기준선
 변조를 그 경로로 통과시키지 않고 초안도 원문으로 승격하지 않는다.
+
+이 한정 범위의 [최종 신규 49단계·재사용 0 검증과 보관](VALIDATION_V666_TYPED_REFERENCES.md)을 마쳤다.

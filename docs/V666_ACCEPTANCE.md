@@ -868,3 +868,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 실제 handle의 참조를 별도 struct로 유지하고 명시적인 binding과 원래 source/권한/CAS를
 사용한다. 기존 descriptor나 C# 원문을 자동 승격하지 않으며 새 reader가 필요한 범위를
 구분한다. 최종 검사는 [전용 기록](VALIDATION_V666_TYPED_REFERENCES.md)을 따른다.
+
+이 한정 범위의 [최종 신규 49단계·재사용 0 검증과 보관](VALIDATION_V666_TYPED_REFERENCES.md)을 마쳤다.
