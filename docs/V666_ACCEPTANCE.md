@@ -928,3 +928,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native 입력 타입·본문 공동 저장](V666_NATIVE_INPUTS.md)은 고정7/8행의 직접 소유 동기 scalar 입력 교체를 여러 함수와 공유 직접 Blueprint caller에 연결한다. 새 값·원래 연결 해제·C# 선언/본문을 직접 선택하고 기존 receipt/readGuards·Review/Confirm·원래 CAS를 유지한다. 역할·출력 구조·opaque 계획·다른 원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
 
 이 명시 native 입력 타입·본문 공동 저장 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUTS.md)을 마쳤다.
+
+[명시 native 반환·본문·기존 출력 대응 공동 저장](V666_NATIVE_RETURNS.md)은 고정7/8행에서 두 함수의 scalar 반환 변경과 직접 C# 본문, 기존 소비의 호환 out 대응을 한 후보/CAS에 연결한다. 입력과 out 계약·ID는 유지하고 기존 receipt/readGuards·Review/Confirm을 보존한다. 역할·out/void 정의·opaque/private 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.

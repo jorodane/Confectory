@@ -28,6 +28,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
   if(InformationFunctionNativeInputs.Prepare(request,changes,units,format) is {} nativeInputs)return new(request,nativeInputs,true,new());
+  if(InformationFunctionNativeReturns.Prepare(request,changes,units,format) is {} nativeReturns)return new(request,nativeReturns,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal));
   if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new(),true);
   if(InformationFunctionMixedBodies.Prepare(request,edits,units,format) is {} mixedFunctions)return new(request,mixedFunctions,false,new());
   if(presentation)throw new InvalidOperationException("Keep original native body contracts when saving owner presentation together; all input is retained");

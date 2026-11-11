@@ -16,6 +16,10 @@ internal static class InformationFunctionNativeInputs
  public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
   if(Edits(changes) is not {} edits)return null;
+  return PrepareSources(request,edits,units,format);
+ }
+ internal static HashSet<string> PrepareSources(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format)
+ {
   string ns=PackPaths.Namespace(request["id"]!.ToString());var functions=new HashSet<string>(StringComparer.Ordinal);var bodies=new HashSet<string>(StringComparer.Ordinal);
   Element Read(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original native input source"),"<native-input-group>").ParseElement();
   foreach(var row in edits){
