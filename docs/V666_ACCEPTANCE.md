@@ -940,3 +940,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native void→반환 추가·본문 공동 저장](V666_NATIVE_RETURN_CREATE.md)은 고정7/8행에서 여러 직접 소유 C# 함수에 scalar 반환과 본문을 추가하는 후보를 한 Save/CAS에 결합한다. 기존 입력/out 계약·바인딩과 receipt/readGuards·Review/Confirm을 유지하며 새 반환을 자동 연결하지 않는다. 역할·out/입출력 정의·opaque/private 계획·다른 원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
 
 이 명시 native void→반환 추가 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_NATIVE_RETURN_CREATE.md)을 마쳤다.
+
+[명시 native out 타입·본문·소비자 공동 저장](V666_NATIVE_OUTPUTS.md)은 기존 출력 타입 선택과 모든 원래 소비자의 명시 호환 반환 대응을 여러 native 함수의 한 Save/CAS에 결합하는 단위다. 값 입력·역할·수·반환 타입·원본 소유권·권한·Review/Confirm을 유지하며, 역할/구조 변경·opaque/private 명시 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 별도다.
