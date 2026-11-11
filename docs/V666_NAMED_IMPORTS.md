@@ -31,6 +31,15 @@ Review 뒤 helper 선언·구현·본문과 편집 graph 변경을 거절해야 
 이미 구현한 cold header 조회 순서·64-member Review·240 read/write·2048 known source
 예산과 override·권한·Review/Confirm·최종 CAS를 변경하지 않는다.
 
+추가 대조에서 공개 입력 이름을 저장한 뒤 함수 설명을 편집하면 필요한 native guard를
+선택하지 않던 결함을 확인했다. 함수의 현재 draft·경로·hash가 저장한 source proof와
+정확히 같고, 이미 캡처한 값 이름 계약일 때만 후속 metadata 편집으로 인정한다. 상세창의
+동일 계약 identity map도 그대로 검사한다. 새 계약·재선택·본문 계획을 설명으로 오인하지
+않고, 변경/누락된 source proof는 거절한다. 필요한 guard 여부는 원래 소스 관측에서
+판단하므로 guard를 지우거나 비워서 후속 Save/Review를 통과할 수 없다. 기존 단순 leaf의
+추가 관측이 필요 없는 빈 guard 의미는 유지한다. 카드 설명·상세창·후속 owner 설명 Save는
+새 live 기준으로 재배정하지 않고 같은 원래 읽기 scope를 유지해야 한다.
+
 과거 `--imports-boundary`의 실제 로컬 import fixture는 이 지원의 positive 회귀로 갱신한다.
 이전 거절이 영구적인 사용자 정책은 아니었다. 기존 leaf/private 이름·본문, 같은 계약
 native import와 ref dispatcher 및 Blueprint/native 혼합 경로를 유지한다. 선택한 native
