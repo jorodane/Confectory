@@ -2,7 +2,8 @@
 import copy,hashlib,json,pathlib,runpy,sys
 import v666_named_imports_fixture as x
 check=next((a.removeprefix('--check=')for a in sys.argv if a.startswith('--check=')),'ui')
-if check=='ui':
+if check=='ui'and x.mode=='conflict':runpy.run_path(str(pathlib.Path(__file__).with_name('v666_named_imports_conflict.py')),run_name='__main__')
+elif check=='ui':
  sys.modules['v536_information_shared_bodies_fixture']=x;__import__('os').environ['CONFECTORY_SHARED_BODIES']='1';runpy.run_path(str(pathlib.Path(__file__).with_name('v536_information_shared_return_types_ui.py')),run_name='__main__')
 elif check in ['guards','api','late']:runpy.run_path(str(pathlib.Path(__file__).with_name('v666_named_imports_'+check+'.py')),run_name='__main__')
 elif check=='native':
