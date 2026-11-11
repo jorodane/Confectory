@@ -26,10 +26,12 @@ internal static class InformationFunctionBodyBatch
  }
  // Public value-input names affect the selected calls, never a private
  // frame's contract or C# source. Keep the original tree and source checks.
+ // Graph/call forwarding retains the proved positional storage map. Native
+ // code/context entries still require their own explicit source review.
  internal static bool NamedCaller(JsonObject graph)
  {
   bool Frame(JsonObject frame)=>frame["copySource"] is null&&frame["profile"]?.ToString().StartsWith("sync-",StringComparison.Ordinal)==true&&!(frame["aliases"] is JsonObject aliases&&aliases.Count>0);
-  return Frame(graph)&&graph["nodes"] is JsonArray&&BlueprintTree.Nodes(graph).All(entry=>RetainedCallerNode(entry.Node)&&entry.Node["control"]?.ToString()=="next"&&entry.Node["postCall"] is null&&(entry.Node["graph"] is not JsonObject child||Frame(child)));
+  return Frame(graph)&&graph["nodes"] is JsonArray&&BlueprintTree.Nodes(graph).All(entry=>RetainedCallerNode(entry.Node,entry.Node["kind"]?.ToString() is "call" or "graph")&&entry.Node["control"]?.ToString()=="next"&&entry.Node["postCall"] is null&&(entry.Node["graph"] is not JsonObject child||Frame(child)));
  }
  // Presentation stays under InformationDefinitions' existing exact-key,
  // duplicate, text and image validation. It cannot add another source closure.
@@ -109,7 +111,7 @@ internal static class InformationFunctionBodyBatch
     if(naming&&!NamedCaller(graph))throw new InvalidOperationException("Named native body groups retain ordinary owned caller frames; forwarding, copy and wrapper closures keep their existing boundaries");
     bool storage=!naming&&BlueprintTree.Nodes(graph).Any(entry=>entry.Node["implementationContext"] is not null||entry.Node["forwardCallerStorage"] is not null);
     if(storage&&units[d.Id+"/body:"+body.Key]?["draft"]?.ToString()!=units[d.Id+"/body:"+body.Key]?["original"]?.ToString())throw new InvalidOperationException("Retain the exact original forwarding/opaque caller graph; review source edits separately");
-    if(graph["copySource"] is not null&&(graph["copySource"] is not JsonObject||units[d.Id+"/body:"+body.Key]?["baseline"]?.ToString()=="missing")||graph["nodes"] is not JsonArray||BlueprintTree.Nodes(graph).Any(entry=>!RetainedCallerNode(entry.Node,storage)))throw new InvalidOperationException("Body-only groups retain forwarding and native context caller boundaries");
+    if(graph["copySource"] is not null&&(graph["copySource"] is not JsonObject||units[d.Id+"/body:"+body.Key]?["baseline"]?.ToString()=="missing")||graph["nodes"] is not JsonArray||BlueprintTree.Nodes(graph).Any(entry=>!RetainedCallerNode(entry.Node,storage||(naming&&(entry.Node["kind"]?.ToString() is "call" or "graph")))))throw new InvalidOperationException("Body-only groups retain forwarding and native context caller boundaries");
    }
   }
   // Validate each explicit selection against the complete ORIGINAL observation
