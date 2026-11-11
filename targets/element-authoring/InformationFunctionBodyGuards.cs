@@ -5,6 +5,16 @@ using System.Text.Json.Nodes;
 // The existing slot receipt and final source lease carry these checks unchanged.
 internal static class InformationFunctionBodyGuards
 {
+ // Authenticate only an already captured source shape. This does not create
+ // edit plans, adopt a current file as an original or infer a caller binding.
+ static JsonObject PresentationMap(FunctionSignature before,FunctionSignature after)
+ {
+  var map=new JsonObject();
+  if(before.Args.Count!=after.Args.Count){foreach(var arg in before.Args)map[arg.Name]=after.Args.Contains(arg)?arg.Name:null;return map;}
+  for(int i=0;i<before.Args.Count;i++)map[before.Args[i].Name]=after.Args[i].Name;
+  if(!InformationFunctionBodyBatch.ValueNames(before,after,map))for(int i=0;i<before.Args.Count;i++)if(before.Args[i].Type!=after.Args[i].Type)map[before.Args[i].Name]=null;
+  return map;
+ }
  public static JsonObject Execute(JsonObject request,Func<Manifest,string> format)
  {
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
@@ -33,10 +43,9 @@ internal static class InformationFunctionBodyGuards
    // different public spelling. Metadata editing retains that exact draft;
    // it cannot adopt a new contract or rebase the saved native read scope.
    var receipt=units[owner]?["slotSaveReceipt"];var proof=receipt?["sources"]?[id];
-   if(proof?["kind"]?.ToString()!="function"||proof["path"]?.ToString()!=units[id]?["path"]?.ToString()||proof["hash"]?.ToString()!=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(draft.ToString()))||before.Signature.Args.Count!=after.Signature.Args.Count){if(NativeGroup(owner))throw new InvalidOperationException("Retain the exact captured function source before editing its presentation; all input retained");return false;}
-   var map=new JsonObject();for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;
+   if(proof?["kind"]?.ToString()!="function"||proof["path"]?.ToString()!=units[id]?["path"]?.ToString()||proof["hash"]?.ToString()!=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(draft.ToString()))||before.Signature.Args.Count!=after.Signature.Args.Count&&!NativeGroup(owner)){if(NativeGroup(owner))throw new InvalidOperationException("Retain the exact captured function source before editing its presentation; all input retained");return false;}
+   var map=PresentationMap(before.Signature,after.Signature);
    if(!InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map)){
-    for(int i=0;i<before.Signature.Args.Count;i++)if(before.Signature.Args[i].Type!=after.Signature.Args[i].Type)map[before.Signature.Args[i].Name]=null;
     if(!NativeGroup(owner)||!(InformationFunctionNativeInputs.Types(before.Signature,after.Signature,map)||InformationFunctionNativeReturns.Types(before.Signature,after.Signature,map)||InformationFunctionNativeOutputs.Types(before.Signature,after.Signature,map))||!receipt!["sources"]!.AsObject().Any(p=>p.Value?["kind"]?.ToString()=="implementation"))throw new InvalidOperationException("Retain the captured explicit native contract before editing its presentation; all input retained");
    }return true;
   }
@@ -143,7 +152,7 @@ internal static class InformationFunctionBodyGuards
    // A subsequent header Save keeps only an already saved, same-contract native
    // body group. No body edit or dependency baseline is reconstructed or rebased.
    foreach(string function in retained.Functions){var unit=units[function]!;string draft=unit["draft"]?.ToString()??throw new InvalidOperationException("Read the retained native function contract");string original=unit["original"]?.ToString()??draft;var before=new Parser(original,"<retained-function>").ParseElement();var after=new Parser(draft,"<retained-function>").ParseElement();if(before.Id!=function||after.Id!=function||before.Kind!="function"||before.Parent is not null||after.Parent is not null||before.Signature is null||after.Signature is null)return false;
-    if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature))){var map=new JsonObject();if(before.Signature.Args.Count!=after.Signature.Args.Count)return false;for(int i=0;i<before.Signature.Args.Count;i++)map[before.Signature.Args[i].Name]=after.Signature.Args[i].Name;bool compatible=InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map);if(!compatible){for(int i=0;i<before.Signature.Args.Count;i++)if(before.Signature.Args[i].Type!=after.Signature.Args[i].Type)map[before.Signature.Args[i].Name]=null;compatible=receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="implementation")&&(InformationFunctionNativeInputs.Types(before.Signature,after.Signature,map)||InformationFunctionNativeReturns.Types(before.Signature,after.Signature,map)||InformationFunctionNativeOutputs.Types(before.Signature,after.Signature,map));}if(!receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="blueprint")||!compatible)return false;}
+    if(!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),FeatureBlueprint.SignatureDocument(after.Signature))){var map=PresentationMap(before.Signature,after.Signature);bool compatible=InformationFunctionBodyBatch.ValueNames(before.Signature,after.Signature,map);if(!compatible){compatible=receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="implementation")&&(InformationFunctionNativeInputs.Types(before.Signature,after.Signature,map)||InformationFunctionNativeReturns.Types(before.Signature,after.Signature,map)||InformationFunctionNativeOutputs.Types(before.Signature,after.Signature,map));}if(!receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="blueprint")||!compatible)return false;}
    }
    bool observed=ObservedScope(retained.Functions,retained.Bodies.Select(body=>{int at=body.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new ArgumentException("Retained native body owner required");return(OriginalImplementation(body[..at]).Function!,body);}));return observed||receipt["sources"]!.AsObject().Any(source=>source.Value?["kind"]?.ToString()=="implementation")||receipt["readGuards"] is JsonObject retainedGuards&&retainedGuards.Count>0;
   }

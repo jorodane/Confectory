@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Compose explicit native out type replacements, never inferred conversions.
+// Compose explicit native out replacements/removals, never inferred conversions.
 // Every old consumer chooses the retained compatible return; input contracts,
 // other out identities and original single-source body proofs stay unchanged.
 // Existing single edits accept either the retained out name or explicit null
@@ -9,7 +9,9 @@ using System.Text.Json.Nodes;
 internal static class InformationFunctionNativeOutputs
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode!=next.Args[i].Mode||a.Mode is not (null or "out")||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:!a.IsOut||a.Type!=before.Return||args[a.Name] is not null&&args[a.Name]?.ToString()!=a.Name)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Removal(before,next,args);
+ static bool Replacement(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode!=next.Args[i].Mode||a.Mode is not (null or "out")||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:!a.IsOut||a.Type!=before.Return||args[a.Name] is not null&&args[a.Name]?.ToString()!=a.Name)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ static bool Removal(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&next.Args.Count<before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>Scalar(a.Type)&&(a.Mode is null or "out")&&args.ContainsKey(a.Name)&&(next.Args.Contains(a)?args[a.Name]?.ToString()==a.Name:a.IsOut&&a.Type==before.Return&&args[a.Name] is null))&&before.Args.Where(a=>next.Args.Any(b=>b.Name==a.Name)).SequenceEqual(next.Args);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >8)return null;
@@ -22,7 +24,7 @@ internal static class InformationFunctionNativeOutputs
    var before=InformationFunctionBodies.Signature(row!["mapping"]!["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);var outputs=FeatureBlueprint.FeatureOutputs(before).ToArray();
    foreach(var selection in row["mapping"]!["callers"]!.AsObject()){
     var plan=selection.Value as JsonObject??throw new InvalidOperationException("Review every original native out consumer explicitly");
-    if(plan.Count!=6||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject remap||remap.Count!=outputs.Length||outputs.Any(a=>remap[a.Name]?.ToString()!=(a.Name!="return"&&before.Args.Any(b=>b.Name==a.Name&&b.IsOut&&b.Type!=next.Args.Single(c=>c.Name==b.Name).Type)?"return":a.Name)))throw new InvalidOperationException("Retain all input and unchanged output identities; explicitly choose the compatible retained return for every changed out consumer");
+    if(plan.Count!=6||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject remap||remap.Count!=outputs.Length||outputs.Any(a=>remap[a.Name]?.ToString()!=(a.Name!="return"&&before.Args.Any(b=>b.Name==a.Name&&b.IsOut&&!next.Args.Any(c=>c.Name==b.Name&&c.Type==b.Type))?"return":a.Name)))throw new InvalidOperationException("Retain all input and unchanged output identities; explicitly choose the compatible retained return for every changed or removed out consumer");
    }
   }
   return InformationFunctionNativeInputs.PrepareSources(request,edits,units,format);

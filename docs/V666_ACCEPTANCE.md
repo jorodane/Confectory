@@ -944,3 +944,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native out 타입·본문·소비자 공동 저장](V666_NATIVE_OUTPUTS.md)은 기존 출력 타입 선택과 모든 원래 소비자의 명시 호환 반환 대응을 여러 native 함수의 한 Save/CAS에 결합하는 단위다. 값 입력·역할·수·반환 타입·원본 소유권·권한·Review/Confirm을 유지하며, 역할/구조 변경·opaque/private 명시 계획·다른 원본 의존성 및 reader/기기/전체 UI 잔여는 별도다.
 
 이 명시 native out 타입·본문 단위의 [최종 신규 40·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUTPUTS.md)을 마쳤다.
+
+[명시 native out 삭제·본문·소비자 공동 저장](V666_NATIVE_OUT_REMOVAL.md)은 기존 출력 삭제 UI와 모든 원래 소비자의 명시 호환 반환 대응을 여러 native 함수의 한 Save/CAS에 결합하는 단위다. 남은 계약·원본 소유권·권한·후속 저장 보호·Review/Confirm을 유지하며 역할/추가·다른 구조 변경·opaque/private 계획·다른 원본 의존성은 별도 잔여다.
