@@ -89,7 +89,9 @@ internal static class InformationFunctionBodyBatch
   foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=Declaration(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
    if(!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||d.Bodies.Count is <1 or >8)throw new InvalidOperationException("Body-only groups preserve direct source ownership");
-   if(naming&&(callee&&(d.Bodies.Count!=1||d.Imports.Count!=0)||consumer&&d.Bodies.Values.Any(body=>body.SourceKind!="blueprint")))throw new InvalidOperationException("Named body groups require import-free single native targets and ordinary Blueprint callers; retain other source closures");
+   // Existing exact owned imports remain read dependencies. The original
+   // preparation and version3 read guards still bind their complete sources.
+   if(naming&&(callee&&d.Bodies.Count!=1||consumer&&d.Bodies.Values.Any(body=>body.SourceKind!="blueprint")))throw new InvalidOperationException("Named body groups require single native targets and ordinary Blueprint callers; retain other source closures");
    if(callee&&!NativeTargets(d))throw new InvalidOperationException("Body-only groups retain all native targets and their original imports");
    foreach(var import in d.Imports.Values){var dependency=Declaration(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException(callee?"Keep the exact owned native imports; no external contract is edited":"Keep the exact owned caller imports; no external contract is edited");}
    if(callee)continue;

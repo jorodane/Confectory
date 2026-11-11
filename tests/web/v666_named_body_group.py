@@ -13,7 +13,7 @@ elif check=='native':
    one=copy.deepcopy(r);one['changes']=[row];x.n.prepare(one)
   x.unchanged();x.f.checked('both individual explicit native-body/name candidates already validate without source writes')
   if'--imports-boundary'in sys.argv:
-   x.n.prepare(r,False);x.unchanged();x.f.checked('each imported native edit is valid alone; the new named group preserves its bounded read-scope refusal')
+   prepared=x.n.prepare(r);x.verify_rows({row['id']:{'draft':row['text']}for row in prepared['updates']+prepared['linkedUpdates']});x.unchanged();x.f.checked('the formerly bounded local-import case now composes explicit names and bodies while retaining the original helper sources')
   elif x.mode=='reproduce':
    x.n.prepare(r,False);x.execute(x.original_result,'named-body-group-baseline');x.unchanged();x.f.checked('published group alone rejects valid explicit public input rename plus two native bodies; original actual result40')
   else:
