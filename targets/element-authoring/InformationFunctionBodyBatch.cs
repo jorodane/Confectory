@@ -28,7 +28,7 @@ internal static class InformationFunctionBodyBatch
  public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
  public static bool BodyPlan(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
  public static bool BodyEdit(JsonNode? row)=>BodyPlan(row)&&JsonNode.DeepEquals(row!["mapping"]!["before"],row["signature"]);
- static bool ValueNames(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Matches(next)&&args.Count==before.Args.Count&&!before.Args.Where((a,i)=>args[a.Name]?.GetValue<string>()!=next.Args[i].Name||a.Mode is not null&&a.Name!=next.Args[i].Name).Any();
+ internal static bool ValueNames(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Matches(next)&&args.Count==before.Args.Count&&!before.Args.Where((a,i)=>args[a.Name]?.GetValue<string>()!=next.Args[i].Name||a.Mode is not null&&a.Name!=next.Args[i].Name).Any();
  static bool NamedBodyEdit(JsonNode? row)=>BodyPlan(row)&&!BodyEdit(row)&&row!["mapping"]!["args"] is JsonObject args&&ValueNames(InformationFunctionBodies.Signature(row["mapping"]!["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args);
  public static JsonNode?[]? Edits(JsonArray changes)
  {

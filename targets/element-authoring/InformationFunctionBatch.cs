@@ -28,6 +28,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
   if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new(),true);
+  if(InformationFunctionMixedBodies.Prepare(request,edits,units,format) is {} mixedFunctions)return new(request,mixedFunctions,false,new());
   if(presentation)throw new InvalidOperationException("Keep original native body contracts when saving owner presentation together; all input is retained");
   bool referencePins=edits.Any(row=>new[]{row?["mapping"]?["before"],row?["signature"]}.Any(s=>s?["args"] is JsonArray args&&args.Any(a=>a?["mode"]?.ToString()=="ref")));
   bool wholeValue=edits.Any(row=>row?["mapping"]?["bodies"] is JsonObject&&row["mapping"]?["before"]?["args"] is JsonArray before&&row["signature"]?["args"] is JsonArray after&&before.Count==after.Count&&before.Where((a,i)=>(a?["mode"]?.ToString()=="out"&&after[i]?["mode"] is null||a?["mode"] is null&&after[i]?["mode"]?.ToString()=="out")).Any());
