@@ -34,7 +34,7 @@ internal sealed class InformationFunctionProperties(JsonObject request,Action<st
   foreach(string required in original.Requires.Keys)Load(required,original.Id);
   foreach(var choice in original.Defaults.Values)Load(choice.Id,original.Id);
   if(original.Signature is not null)foreach(string type in InformationStructs.SignatureTypes(original.Signature)){
-   var ids=r.Packs.SelectMany(p=>p.Value.Elements.Where(e=>e.Value.Kind is "schema" or "enum" or "module").Select(e=>p.Key+"::"+e.Key)).Where(id=>InformationStructs.Type(id)==type).Take(2).ToArray();
+   var ids=r.Packs.SelectMany(p=>p.Value.Elements.Where(e=>e.Value.Kind is "schema" or "enum" or "module").Select(e=>p.Key+"::"+e.Key)).Where(id=>InformationStructs.MatchesType(id,type)).Take(2).ToArray();
    if(ids.Length!=1)throw new InvalidOperationException("Observe the exact nominal function property type before saving");Load(ids[0],original.Id);
   }
   return original;

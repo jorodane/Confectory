@@ -14,6 +14,14 @@ internal static class InformationFunctionBodyGuards
    // Keep its saved body scope; an ABI mapping is a separate explicit edit.
    if(row is not JsonObject value||value["type"]?.ToString()!="function-edit"||value.Count is <6 or >8||value.Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "icon" or "returnName")))return false;
    string? id=value["id"]?.ToString();if(id is null||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||units[id]?["kind"]?.ToString()!="function"||units[id]?["original"] is not JsonValue original||units[id]?["draft"] is not JsonValue draft)return false;
+   // An unconfirmed declaration-only creation has no original native body
+   // header. Its separate native type receipt still guards the selected source.
+   // Never adopt a draft as an original or bypass a body-bearing group here.
+   if(original.ToString().Length==0){
+    if(units[id]?["baseline"]?.ToString()!="missing"||units[owner]?["atomicEditGroup"]is not JsonArray created||!created.Any(member=>member?.ToString()==id)||created.Any(member=>units[member!.ToString()]?["kind"]?.ToString() is "implementation" or "body" or "blueprint" or "blueprint-node"))throw new InvalidOperationException("A created native body group requires its original source proof; retain the group for explicit review");
+    var pending=new Parser(draft.ToString(),"<created-function-presentation>").ParseElement();if(pending.Id!=id||pending.Kind!="function"||pending.Parent is not null||pending.Signature is null||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(pending.Signature),value["signature"]))throw new InvalidOperationException("Retain the exact created function contract before changing its presentation");
+    return false;
+   }
    var before=new Parser(original.ToString(),"<retained-native-header>").ParseElement();var after=new Parser(draft.ToString(),"<retained-native-header>").ParseElement();
    return before.Id==id&&after.Id==id&&before.Kind=="function"&&after.Kind=="function"&&before.Parent is null&&after.Parent is null&&before.Signature is not null&&after.Signature is not null&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(before.Signature),value["signature"])&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(after.Signature),value["signature"]);
   }

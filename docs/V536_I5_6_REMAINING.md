@@ -7,6 +7,8 @@
 
 7행의 최신 유한한 잔여와 정상 보호 구분은 [원래 조작 재대조](V536_ROW7_REMAINING_BOUNDARY.md)를 우선한다. 과거 한정 단위의 미검증 표현을 ref/out/값 변환의 모든 조합별 새 필수 작업으로 늘리지 않는다.
 
+9행의 최신 native 정보 값/참조·필드·타입 선택 경계는 [typed reference 연결](V666_TYPED_REFERENCES.md)을 우선한다. 과거 단위의 참조/함수/모듈 잔여 표현을 새로운 타입·문맥 조합별 필수 작업으로 늘리지 않는다.
+
 기준은 `196c605`의 저장소 v536 레퍼런스, `openOwnFunctionPopover`, `renderFunctionSignatureEditor`, `renderFeatureDefinition`과 기존 native 함수 계약이다. 원본 상세창은 입력/출력의 이름·타입·추가/삭제를 제공한다. 순서 조작은 `propertyStyle`인 Blueprint 정의에서 제공하며 정보 상세창에 새 드래그 제어를 만들지 않는다. 값/ref/out은 기존 native 계약과 구현 편집 경계를 유지한다. 기능 목록의 순서(I5-5)는 매개변수 순서와 별개다.
 
 기본 수용 범위는 직접 소유한 **함수 하나**의 명시적 기존 핀 대응이다. 아래 8행에는 여러 함수의 값 입력 이름·독립 leaf/call scalar 타입 변경·일반 out 이름/scalar 타입·출력 정의/void 반환 및 비void 반환 타입의 별도 결합 단위를 구분한다. 일반 Blueprint 루트와 실제 호출 입력 이름을 함께 바꾸고, 내부 code 노드의 매개변수·C# 내용은 유지한다. 동일 이름/타입/역할 집합의 순열은 C# 구현의 자체 매개변수 이름을 보존하고, 다중 target·소유 module require·안전한 후처리도 한 후보에 넣는다. 기본/독립 정보 창에서 입력 이름 편집과 저장/복원을 확인했다. 다중 target/순열/후처리 검사는 순수 후보와 실제 API/컴파일러 경로이며 원본 정보 상세창에 매개변수 정렬 UI를 추가했다는 뜻이 아니다.
@@ -305,3 +307,9 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [전용 기록](VALIDATION_V666_REFERENCE_BRIDGE.md)을 따른다.
 
 이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_REFERENCE_BRIDGE.md)을 마쳤다.
+
+고정9행의 [정보별 readonly 참조 struct](V666_TYPED_REFERENCES.md)는 기존 값 struct와
+별도 nominal ABI로 실제 ObjectModel handle/owner를 보유한다. 명시적 Bind·단일/배열
+reference 필드·상세 타입 선택을 기존 source proof와 compiler/CAS에 연결한다. 기존
+opaque reference 속성과 live compound의 안전한 거절을 migration 잔여로 만들지 않는다.
+검사와 실제 기기/전체 UI 한계는 [전용 기록](VALIDATION_V666_TYPED_REFERENCES.md)에 구분한다.

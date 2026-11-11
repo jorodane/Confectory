@@ -1,0 +1,21 @@
+"""Existing owned native body receives a nominal carrier and returns reference fields."""
+import hashlib,json
+import v666_information_struct_fixture as x
+f=x.f;lit=lambda v:json.dumps(v,ensure_ascii=False);model='Confectory.ObjectModel';owner=f.n+'LiveReceiver'
+(f.project/x.schema_path).write_text('schema '+x.schema+' {field HP single general long;field Parent single reference '+x.schema+';field Peers multiple reference '+x.schema+';}')
+(f.project/'LiveReceiver.celem').write_text('object '+owner+' {use schema '+x.schema+';}');f.manifest.write_text(f.manifest.read_text().replace('registry Confectory.Build.DotNet','element LiveReceiver object "LiveReceiver.celem";registry '+model+' '+lit(str(f.repo/'packs/object-model/pack.cpack'))+';dependency '+model+' version "0.1.0";registry Confectory.Build.DotNet',1))
+reference=f.metadata('informationReferenceType',project=str(f.manifest),id=x.schema);q=reference['clrType'];contract=f.metadata('informationReference',project=str(f.manifest),id=x.schema)['descriptor'];descriptor=f.metadata('blueprintPropertyCatalog',project=str(f.manifest),sourceId=x.fn+'Body',owner=owner)['descriptor'];field=next(v for v in descriptor['fields']if v['name']=='HP');args=lit(field['id'])+','+lit(field['hash'])
+x.signature={'args':[{'name':'data','type':q}],'return':x.type}
+(f.project/x.function_path).write_text('function '+x.fn+' ('+q+' data) -> '+x.type+' {description "정보 구조체 원문";value editorName="구조체 계산";provide '+x.fn+' with '+x.fn+'Body;}')
+imports=''.join('import '+model+'::'+name+' as '+name+' '+sig+';'for name,sig in [('Read','(object,string,string,string) -> object'),('Set','(object,string,string,string,object) -> void')])
+(f.project/x.implementation_path).write_text('implementation '+x.fn+'Body for '+x.fn+' ('+q+' data) -> '+x.type+' {'+imports+'body common "'+x.body_path+'";}');x.original='return default; // original reference input body\r\n';(f.project/x.body_path).write_bytes(x.original.encode())
+x.selected='long value=(long)calls.Read.Invoke(data.Target,data.Owner,'+args+');calls.Set.Invoke(data.Target,data.Owner,'+args+',checked(value+1));return new '+x.type+' {HP=value+1,Parent=data,Peers=new[]{data}}; // 정보별 참조 · 😀\r\n'
+imports=''.join('import '+model+'::'+name+' as '+name+' '+sig+';'for name,sig in [('Create','(string,string[],object[]) -> object'),('Read','(object,string,string,string) -> object'),('RefCell','(object,string,string,string) -> object')])
+(f.project/'MainBody.celem').write_text('implementation '+f.n+'MainBody for '+f.n+'Main () -> int {'+imports+'import '+x.fn+' as TypedValue ('+q+') -> '+x.type+';body common "Main.csbody";}')
+(f.project/'Main.csbody').write_text('object receiver=calls.Create.Invoke('+lit(json.dumps(descriptor,separators=(',',':')))+',new[]{'+lit(field['id'])+'},new object[]{30L});var cell=(System.Runtime.CompilerServices.StrongBox<long>)calls.RefCell.Invoke(receiver,'+lit(owner)+','+args+');var reference='+q+'.Bind(receiver,'+lit(json.dumps(contract,separators=(',',':')))+');var result=calls.TypedValue.Invoke(reference);if(cell.Value!=31||result.HP!=31||!Object.ReferenceEquals(result.Parent.Target,receiver)||!Object.ReferenceEquals(result.Peers[0].Target,receiver))throw new Exception("reference field/cell alias lost");Console.WriteLine(result.HP);return checked((int)result.HP);')
+x.snapshot={str(p.relative_to(f.project)):p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.relative_to(f.project).parts}
+def change():
+ info=f.state()['schema'];basis=f.invoke('blueprint',dict(action='readOwnerEdits',id=x.owner,hash=info['textHash'],includeFunctionInputs=x.fn,includeFunctionBodies=True))['result']['result'];body=basis['functionBodies'][x.body_id];assert basis.get('functionDependencies')
+ row=dict(type='function-edit',id=x.fn,hash=hashlib.sha256(x.snapshot[x.function_path]).hexdigest(),name='구조체 계산',description='정보 구조체 원문',signature=x.signature,mapping=dict(before=x.signature,args={'data':'data'},dependencies=basis['functionDependencies'],bodies={x.body_id:{key:body[key]for key in ['hash','path']}|dict(beforeSignature=x.signature,signature=x.signature,contract=x.signature,text=x.selected)}))
+ return dict(action='applySlots',id=x.owner,rows=[],basis=basis['basis'],declaration=dict(id=x.owner,hash=info['textHash'],changes=[row]))
+x.change=change

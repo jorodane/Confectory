@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 // Public native value types only. No object lookup, provider choice or grants.
 internal static class FunctionNativeTypes
 {
+ internal static IEnumerable<JsonNode?> Choices(JsonArray rows)=>rows.SelectMany(row=>row?["reference"]is JsonObject reference?new JsonNode?[]{row,reference}:new JsonNode?[]{row});
  internal static JsonArray Project(Registry registry,string owner,Func<string,string> source,Func<string,string> read)
  {
   string ns=PackPaths.Namespace(owner);var result=new JsonArray();
@@ -13,32 +14,37 @@ internal static class FunctionNativeTypes
   foreach(string id in declarations){
    if(result.Count>=256)throw new ArgumentException("Native function type catalogue budget");
    var declared=registry.Get(id,source:owner);if(declared.Kind=="schema"&&OwnedInformationDefinitions.PrivateSchema(declared))continue;
-   var row=new JsonObject{["id"]=id,["kind"]=declared.Kind,["clrType"]=InformationStructs.Type(id),["available"]=false};result.Add(row);
-   try{
-    var definition=registry.Effective(id);row["name"]=definition.Values.TryGetValue("editorName",out var label)&&label.Value.ValueKind==JsonValueKind.String?label.Value.GetString():id.Split("::")[1];
-    var closure=InformationStructs.Closure(registry,id,owner);var selected=closure.Single(d=>d.Id==id);var proofs=new JsonObject();var seen=new HashSet<string>(StringComparer.Ordinal);
-    void Observe(string current){
-     if(!seen.Add(current))return;if(seen.Count>256)throw new ArgumentException("Native function type proof budget");
-     var element=registry.Get(current);proofs[current]=new JsonObject{["draft"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(source(current))),["source"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(element.Loc.File))),["path"]=Path.GetFullPath(element.Loc.File)};
-     if(element.Parent is not null)Observe(element.Parent);
-     foreach(var include in element.Includes)Observe(include.Id);
-     foreach(string required in element.Requires.Keys)Observe(required);
-     foreach(var choice in element.Defaults.Values)Observe(choice.Id);
-    }
-    foreach(var item in closure){Observe(item.Id);foreach(string function in item.PublicContracts??[])Observe(function);}
-    foreach(string pack in seen.Select(PackPaths.Namespace).Append(ns).Distinct(StringComparer.Ordinal)){
-     string path=Path.GetFullPath(registry.Paths[pack]);string hash=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(path)));proofs["$manifest:"+pack]=new JsonObject{["source"]=hash,["path"]=path};
-    }
-    row["proof"]=new JsonObject{["shapeHash"]=selected.ShapeHash,["sources"]=proofs.DeepClone()};
-    row["profile"]=selected.NativeProfile;row["shapeHash"]=selected.ShapeHash;row["sources"]=proofs;row["available"]=true;
-   }catch(BuildError error){row["code"]=error.Diagnostic.Code;row["reason"]="이 정의는 현재 C# 값 타입으로 사용할 수 없어요. 원본은 유지됩니다.";}
+   JsonObject Choice(bool reference){
+    var row=new JsonObject{["id"]=id,["kind"]=reference?"reference":declared.Kind,["clrType"]=reference?InformationReferences.Type(id):InformationStructs.Type(id),["available"]=false};
+    try{
+     var definition=registry.Effective(id);string label=definition.Values.TryGetValue("editorName",out var name)&&name.Value.ValueKind==JsonValueKind.String?name.Value.GetString()!:id.Split("::")[1];row["name"]=label+(reference?" 참조":"");
+     var closure=InformationStructs.Closure(registry,id,owner,reference:reference);var selected=closure.Single(d=>d.ClrType==row["clrType"]!.ToString());var proofs=new JsonObject();var seen=new HashSet<string>(StringComparer.Ordinal);
+     void Observe(string current,bool referenceSource=false){
+      if(!seen.Add(current))return;if(seen.Count>256)throw new ArgumentException("Native function type proof budget");
+      var element=registry.Get(current);proofs[current]=new JsonObject{["draft"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(source(current))),["source"]=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(element.Loc.File))),["path"]=Path.GetFullPath(element.Loc.File)};
+      if(element.Parent is not null)Observe(element.Parent,referenceSource);
+      foreach(var include in element.Includes)Observe(include.Id,referenceSource);
+      foreach(string required in element.Requires.Keys)Observe(required,referenceSource);
+      foreach(var choice in element.Defaults.Values)Observe(choice.Id,referenceSource);
+      if(referenceSource)foreach(var field in element.Fields.Values.Where(f=>f.Kind is "compound" or "reference" or "enum" or "function"))Observe(registry.Get(field.Type,source:field.Origin).Id,true);
+     }
+     foreach(var item in closure){Observe(item.Id,item.Kind=="reference");foreach(string function in item.PublicContracts??[])Observe(function);}
+     foreach(string pack in seen.Select(PackPaths.Namespace).Append(ns).Distinct(StringComparer.Ordinal)){
+      string path=Path.GetFullPath(registry.Paths[pack]);string hash=JsonData.HashBytes(Encoding.UTF8.GetBytes(read(path)));proofs["$manifest:"+pack]=new JsonObject{["source"]=hash,["path"]=path};
+     }
+     row["proof"]=new JsonObject{["shapeHash"]=selected.ShapeHash,["sources"]=proofs.DeepClone()};
+     row["profile"]=selected.NativeProfile;row["shapeHash"]=selected.ShapeHash;row["sources"]=proofs;row["available"]=true;
+    }catch(BuildError error){row["code"]=error.Diagnostic.Code;row["reason"]=reference?"이 정의는 현재 C# 참조 타입으로 사용할 수 없어요. 원본은 유지됩니다.":"이 정의는 현재 C# 값 타입으로 사용할 수 없어요. 원본은 유지됩니다.";}
+    return row;
+   }
+   var value=Choice(false);if(declared.Kind=="schema")value["reference"]=Choice(true);result.Add(value);
   }
   return result;
  }
  internal static JsonObject Labels(Registry registry,FunctionSignature signature,string source)
  {
   var labels=new JsonObject();foreach(string type in InformationStructs.SignatureTypes(signature))try{
-   var ids=registry.Packs.SelectMany(p=>p.Value.Elements.Where(e=>e.Value.Kind is "schema" or "enum" or "module").Select(e=>p.Key+"::"+e.Key)).Where(id=>InformationStructs.Type(id)==type).Take(2).ToArray();if(ids.Length!=1)continue;var element=registry.Effective(registry.Get(ids[0],source:source).Id);labels[type]=element.Values.TryGetValue("editorName",out var name)&&name.Value.ValueKind==JsonValueKind.String?name.Value.GetString():ids[0].Split("::")[1];
+   var ids=registry.Packs.SelectMany(p=>p.Value.Elements.Where(e=>e.Value.Kind is "schema" or "enum" or "module").Select(e=>p.Key+"::"+e.Key)).Where(id=>InformationStructs.MatchesType(id,type)).Take(2).ToArray();if(ids.Length!=1)continue;var element=registry.Effective(registry.Get(ids[0],source:source).Id);labels[type]=element.Values.TryGetValue("editorName",out var name)&&name.Value.ValueKind==JsonValueKind.String?name.Value.GetString():ids[0].Split("::")[1];if(InformationReferences.IsType(type))labels[type]=labels[type]!.ToString()+" 참조";
   }catch(BuildError){/* A label never weakens the existing contract validation. */}return labels;
  }
  internal static void Validate(FunctionSignature signature,JsonNode? proof,JsonArray choices)
@@ -47,7 +53,7 @@ internal static class FunctionNativeTypes
   if(selected.Length>0&&proof is null)throw new InvalidOperationException("Read and select exact native function type proofs before creation; input retained");
   if(proof is not null&&(proof is not JsonObject map||map.Count!=selected.Length||map.Any(p=>!selected.Contains(p.Key,StringComparer.Ordinal))))throw new ArgumentException("Exact selected native type proofs required");
   foreach(string type in selected){
-   var choice=choices.SingleOrDefault(c=>c?["clrType"]?.ToString()==type);
+   var choice=Choices(choices).SingleOrDefault(c=>c?["clrType"]?.ToString()==type);
    if(choice?["available"]?.GetValue<bool>()!=true||proof is not null&&!JsonNode.DeepEquals(choice["proof"],proof[type]))throw new InvalidOperationException("Selected native function type changed or is unavailable; all input retained");
   }
  }
@@ -65,7 +71,7 @@ internal static class FunctionNativeTypes
    var scopes=types.Where(p=>p.Key.StartsWith(FunctionNativeEdits.Prefix,StringComparison.Ordinal)).Select(p=>p.Key[FunctionNativeEdits.Prefix.Length..]).ToArray();if(scopes.Length>1)throw new InvalidOperationException("Confirm the current native function type transition before selecting another; input retained");
    var current=EffectiveMetadata.Query(project,units[ns+"::ProjectManifest"]!["draft"]!.ToString(),owner,units[owner]!["draft"]!.ToString(),format,Read,overlays,observeSources:true,nativeTypes:true,nativeFunction:scopes.SingleOrDefault());
    if(current["status"]?.ToString()!="available")throw new InvalidOperationException("Native type receipt metadata unavailable; retain input");var reads=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
-   foreach(var pair in types){var choice=pair.Key.StartsWith(FunctionNativeEdits.Prefix,StringComparison.Ordinal)?current["nativeFunctionEdit"]:current["nativeTypes"]!.AsArray().SingleOrDefault(c=>c?["clrType"]?.ToString()==pair.Key);var proof=pair.Value as JsonObject;
+   foreach(var pair in types){var choice=pair.Key.StartsWith(FunctionNativeEdits.Prefix,StringComparison.Ordinal)?current["nativeFunctionEdit"]:Choices(current["nativeTypes"]!.AsArray()).SingleOrDefault(c=>c?["clrType"]?.ToString()==pair.Key);var proof=pair.Value as JsonObject;
     if(choice?["available"]?.GetValue<bool>()!=true||proof?.Count!=2||proof["shapeHash"]?.ToString()!=choice["shapeHash"]?.ToString()||proof["sources"]is not JsonObject sources||sources.Count!=choice["sources"]!.AsObject().Count)throw new InvalidOperationException("Saved native type shape or proof changed; retain the candidate");
     foreach(var source in sources){var now=choice["sources"]![source.Key];if(now is null||source.Value?["path"]?.ToString()!=now["path"]?.ToString()||source.Value?["source"]?.ToString()!=now["source"]?.ToString())throw new InvalidOperationException("Saved native type source changed; retain the candidate");string path=now["path"]!.ToString();var read=new JsonObject{["path"]=path,["hash"]=now["source"]!.DeepClone()};if(reads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,read))throw new InvalidOperationException("Native type read versions differ");reads[path]=read;}
    }

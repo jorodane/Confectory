@@ -60,3 +60,7 @@ metadata 회귀, UI 취소/Undo/실패/cold/응답 유실/늦은 입력, LF/CRLF
 실제 Windows·물리 기기·전체 UI는 별도이며 초기 빈 화면의 원인은 미확정이다.
 
 이 한정 범위의 [최종 신규 42단계·재사용 0 검증과 보관](VALIDATION_V666_REFERENCE_BRIDGE.md)을 마쳤다.
+
+후속 [typed reference ABI·필드·타입 선택](V666_TYPED_REFERENCES.md)은 이 bridge의 동일한
+실제 handle/명시 계약 의미를 정보별 readonly struct로 연결한다. 이 문서의 원래 opaque
+bridge 검증과 새 ABI 검증은 서로 다른 기록이며 기존 accessor 계약을 자동 변경하지 않는다.

@@ -4,22 +4,24 @@ namespace Confectory.Core;
 
 public sealed partial class Builder
 {
-    bool HasModuleFlow => informationTypes.Values.Any(d => d.PublicContracts?.Count > 0);
+    bool HasModuleFlow => informationTypes.Values.Any(d => d.PublicContracts?.Count > 0 || d.Kind == "reference");
 
     // Public function contracts and information/module types can refer to one another.
     // Compile against nominal declarations first, then replace every declaration
     // assembly with the real information assembly of the same name. Bootstrap
     // artifacts are cache inputs only; no linker/catalog ever receives them.
+    // Reference carriers break value-layout cycles. Their nominal pack types
+    // may use bootstrap declarations until the actual assemblies replace them.
     void CompileModuleFlowContracts()
     {
         if (Contracts.Count > 0) return;
-        var definitions = informationTypes.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
+        var definitions = informationTypes.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ThenBy(d => d.ClrType, StringComparer.Ordinal).ToArray();
         var information = definitions.GroupBy(d => PackPaths.Namespace(d.Id)).ToDictionary(g => g.Key, g => g.ToArray(), StringComparer.Ordinal);
         var order = new List<string>(); var visiting = new HashSet<string>(StringComparer.Ordinal); var done = new HashSet<string>(StringComparer.Ordinal);
         void Visit(string pack) {
             if (done.Contains(pack)) return;
             if (!visiting.Add(pack)) throw new BuildError("INFORMATION_CLR_PACK_CYCLE", "The selected inline information values require cyclic pack type assemblies: " + pack);
-            foreach (var dependency in information[pack].SelectMany(d => d.Dependencies ?? []).Select(d => PackPaths.Namespace(d.Id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
+            foreach (var dependency in information[pack].SelectMany(d => d.Dependencies ?? []).Where(d => !global::Confectory.Core.InformationReferences.IsType(d.ClrType)).Select(d => PackPaths.Namespace(d.Id)).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal))
                 if (dependency != pack) Visit(dependency);
             visiting.Remove(pack); done.Add(pack); order.Add(pack);
         }
@@ -38,7 +40,7 @@ public sealed partial class Builder
             var result = JsonData.Object(artifact); result["key"] = key; return result;
         }
         foreach (var pack in information.OrderBy(p => p.Key, StringComparer.Ordinal)) {
-            var code = pack.Value.Select(d => (d.Id, "namespace Confectory.Information." + Generation.Symbol(pack.Key) + " { public " +
+            var code = pack.Value.Select(d => (InformationStructs.SourceKey(d), "namespace Confectory." + (d.Kind == "reference" ? "Reference." : "Information.") + Generation.Symbol(pack.Key) + " { public " +
                 (d.Kind == "module" ? "interface " : d.Kind == "enum" ? "enum " : "struct ") + Generation.Symbol(d.Id) + " {} }\n")).ToArray();
             bootstrap[pack.Key] = Compile(JsonData.Digest(new[] { plan, "nominal-bootstrap", pack.Key }), "Information_" + Generation.Symbol(pack.Key), code, []);
         }
@@ -54,7 +56,7 @@ public sealed partial class Builder
             var references = realContracts.Values.Select(a => a["reference"]!.ToString()).Concat(bootstrap.Where(p => p.Key != pack)
                 .Select(p => (InformationContracts.GetValueOrDefault(p.Key) ?? p.Value)["reference"]!.ToString()));
             var artifact = Compile(JsonData.Digest(new[] { plan, "real-information", pack }), "Information_" + Generation.Symbol(pack),
-                information[pack].Select(d => (d.Id, d.Source)).ToArray(), references);
+                information[pack].Select(d => (InformationStructs.SourceKey(d), d.Source)).ToArray(), references);
             artifact["pack"] = pack; InformationContracts[pack] = artifact;
         }
         var support = new JsonObject(realContracts.Select(p => KeyValuePair.Create<string, JsonNode?>(p.Key, p.Value.DeepClone())));

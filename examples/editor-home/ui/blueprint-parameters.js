@@ -8,7 +8,7 @@ export function mountBlueprintParameters({api,w,data,node,bindInput,actions,esc}
  let value=JSON.parse(field.value),reviewed=null;const types=['bool','int','long','float','double','string',...(['sync-acyclic-property-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(data.profile)?['object']:[])],allTypes=[...types,...types.map(t=>t+'[]')],modes=['',...(['sync-acyclic-ref-nodes-v1','sync-acyclic-ref-v1','sync-acyclic-alias-locals-v1','sync-acyclic-nested-v1','sync-acyclic-property-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(data.profile)?['ref']:[]),...(['sync-acyclic-implicit-out-v1','sync-acyclic-locals-v1','sync-acyclic-ref-nodes-v1','sync-acyclic-ref-v1','sync-acyclic-alias-locals-v1','sync-acyclic-nested-v1','sync-acyclic-property-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(data.profile)?['out']:[])];
  // Reuse only types already present in this observed frame contract. Keeping
  // the node's current types also prevents a name edit from clearing its ABI.
- const labels=new Map(),nominal=/^Confectory\.Information\.E[0-9a-f]{24}\.E[0-9a-f]{24}(?:\[\])?$/;
+ const labels=new Map(),nominal=/^Confectory\.(?:Information|Reference)\.E[0-9a-f]{24}\.E[0-9a-f]{24}(?:\[\])?$/;
  for(const arg of [...data.signature.args,{name:'반환값',type:data.signature.return}])if(nominal.test(arg.type)){
   const base=arg.type.replace(/\[\]$/,'');if(!labels.has(base))labels.set(base,arg.name+'의 타입');
   for(const type of [base,base+'[]'])if(!allTypes.includes(type))allTypes.push(type);

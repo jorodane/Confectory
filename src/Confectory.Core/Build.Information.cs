@@ -23,7 +23,7 @@ public sealed partial class Builder
         if (HasModuleFlow) { CompileModuleFlowContracts(); return InformationContracts[ns]; }
         if (!informationCompiling.Add(ns)) throw new BuildError("INFORMATION_CLR_PACK_CYCLE", "The selected inline information values require cyclic pack type assemblies: " + ns);
         try {
-        var selected = informationTypes.Values.Where(d => PackPaths.Namespace(d.Id) == ns).OrderBy(d => d.Id, StringComparer.Ordinal).ToArray();
+        var selected = informationTypes.Values.Where(d => PackPaths.Namespace(d.Id) == ns).OrderBy(d => d.Id, StringComparer.Ordinal).ThenBy(d => d.ClrType, StringComparer.Ordinal).ToArray();
         if (selected.Length == 0) throw new BuildError("INFORMATION_CLR_SELECTION", "Information contract was not selected: " + ns);
         var references = new SortedDictionary<string, JsonObject>(StringComparer.Ordinal);
         void AddReference(string pack) {
@@ -36,7 +36,7 @@ public sealed partial class Builder
         string key = JsonData.Digest(new object[] { ArtifactLayout, InformationStructs.Profile, Tool.Identity, ns, selected.Select(d => new[] { d.Id, d.Source }).ToArray() });
         if (references.Count > 0) key = JsonData.Digest(new object[] { key, InformationStructs.CompoundProfile, references.Select(p => new[] { p.Key, p.Value["key"]!.GetValue<string>() }).ToArray() });
         var artifacts = cache.Get(key) ?? cache.Produce(key, work => Tool.Invoke("compile-contract", new { output = work, name,
-            sources = selected.Select(d => WriteSource(Path.Combine(work, Generation.Symbol(d.Id) + ".cs"), d.Source)).ToArray(), references = references.Values.Select(p => p["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject());
+            sources = selected.Select(d => WriteSource(Path.Combine(work, Generation.Symbol(InformationStructs.SourceKey(d)) + ".cs"), d.Source)).ToArray(), references = references.Values.Select(p => p["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject());
         if (!artifacts.ContainsKey("assembly") || !artifacts.ContainsKey("reference")) throw new BuildError("TOOL_PROTOCOL", "Information compilation must return assembly and reference");
         var result = JsonData.Object(artifacts); result["key"] = key; result["pack"] = ns; InformationContracts[ns] = result; return result;
         } finally { informationCompiling.Remove(ns); }

@@ -45,10 +45,10 @@ public static class ModuleInterfaces
         var dependencies = new SortedDictionary<string, InformationStructs.Dependency>(StringComparer.Ordinal);
         foreach (var method in methods.Values)
             foreach (string signatureType in InformationStructs.SignatureTypes(method.Signature!)) {
-                var definition = resolve(signatureType, method.Id); dependencies[definition.Id] = new(definition.Id, definition.ClrType, definition.ShapeHash);
+                var definition = resolve(signatureType, method.Id); dependencies[definition.ClrType] = new(definition.Id, definition.ClrType, definition.ShapeHash);
             }
         var publicContracts = methods.Values.Where(fn => BlueprintAsync.Has(fn) || BlueprintExecutionBranches.Has(fn)).Select(fn => fn.Id).ToArray();
-        var inputs = dependencies.Values.ToArray(); string profile = publicContracts.Length > 0 ? FlowProfile : inputs.Length == 0 ? Profile : NominalProfile;
+        var inputs = dependencies.Values.OrderBy(d => d.Id, StringComparer.Ordinal).ThenBy(d => d.ClrType, StringComparer.Ordinal).ToArray(); string profile = publicContracts.Length > 0 ? FlowProfile : inputs.Length == 0 ? Profile : NominalProfile;
         var rows = new JsonArray(methods.Values.Select(fn => (JsonNode)new JsonObject { ["id"] = fn.Id, ["clrMember"] = Member(fn.Id), ["signature"] = FeatureBlueprint.SignatureDocument(fn.Signature!) }).ToArray());
         foreach (var row in rows.OfType<JsonObject>()) {
             var fn = methods[row["id"]!.ToString()];
