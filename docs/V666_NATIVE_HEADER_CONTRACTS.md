@@ -29,3 +29,5 @@ UI 취소·Undo/Redo·저장 실패/재시도·응답 유실·cold·owner 경합
 선택 native callee 의존성과 기존 import/등록 외부 관측의 결합으로 대조한다.
 원래 조작의 재현·지원/정상 거절 경계와 회귀 증거를 종료 기준으로 삼고 타입/문맥의 모든 조합을 필수로 늘리지 않는다.
 M11/M12/M4는 회귀 없이 다시 열지 않는다. 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·물리 기기·전체 UI 검증은 자동화와 구분한다.
+
+이 owner 표시·native 계약·본문 단위의 [최종 신규 47·재사용0 검증과 보관](VALIDATION_V666_NATIVE_HEADER_CONTRACTS.md)을 마쳤다.
