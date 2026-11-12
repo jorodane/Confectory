@@ -12,7 +12,14 @@ internal static class InformationFunctionBodyGuards
   var map=new JsonObject();
   if(before.Args.Count!=after.Args.Count){foreach(var arg in before.Args)map[arg.Name]=after.Args.Contains(arg)?arg.Name:null;return map;}
   for(int i=0;i<before.Args.Count;i++)map[before.Args[i].Name]=after.Args[i].Name;
-  if(!InformationFunctionBodyBatch.ValueNames(before,after,map))for(int i=0;i<before.Args.Count;i++)if(before.Args[i].Type!=after.Args[i].Type)map[before.Args[i].Name]=null;
+  if(!InformationFunctionBodyBatch.ValueNames(before,after,map)){
+   // Equal counts can still contain an explicitly removed and appended input.
+   // Authenticate surviving identities before falling back to positional type
+   // replacements; do not mistake a shifted survivor for another replacement.
+   var retained=new JsonObject(before.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,after.Args.Contains(a)?JsonValue.Create(a.Name):null)));
+   if(InformationFunctionNativeInputs.Types(before,after,retained))return retained;
+   for(int i=0;i<before.Args.Count;i++)if(before.Args[i].Type!=after.Args[i].Type)map[before.Args[i].Name]=null;
+  }
   return map;
  }
  public static JsonObject Execute(JsonObject request,Func<Manifest,string> format)

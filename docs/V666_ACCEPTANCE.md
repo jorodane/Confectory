@@ -990,3 +990,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native 값 입력 삭제·본문·공유 caller 공동 저장](V666_NATIVE_INPUT_REMOVAL.md)은 남는 원래 native 별칭·입력/출력 연결을 유지하고 삭제한 원래 바인딩을 정확히 명시 해제한다. 원래 source/readGuards·후속 Save·Review/Confirm·CAS를 보존하며 다른 명시 계약 결합·opaque/private 계획·원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
 
 이 값 입력 삭제·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUT_REMOVAL.md)을 마쳤다.
+
+[명시 native 입력 삭제·추가·본문·공유 caller 공동 저장](V666_NATIVE_INPUT_DEFINITIONS.md)은 같은 함수의 기존 입력 해제와 새 값 선택을 원래 증거·한 후보/CAS로 결합한다. 남는 native 별칭·입력/출력 연결과 후속 Save·Review/Confirm·CAS를 보존하며 다른 복합 계약/opaque/private·원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
