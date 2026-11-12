@@ -410,3 +410,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 ### 원래 native C# out→값 역할 · 고정7/8행
 
 [명시 out→값 전환](V666_NATIVE_OUT_VALUE.md)은 새 리터럴 입력과 사라지는 out 소비자의 호환 반환 대응을 기존 C#·호출 계약 창에서 선택한다. 기존 입력/out·C# 원문·receipt/readGuards·Review/Confirm·CAS와 소유권을 유지한다. ref/다른 정의 결합·opaque/private 계획·다른 원본 의존성은 같은 고정 잔여다.
+
+이 out→값 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_VALUE.md)을 마쳤다.

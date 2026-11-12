@@ -29,3 +29,5 @@ LF/CRLF 독립 checkout·새 package·전체 복원을 별도 기록하며 실�
 잔여는 다른 ref 역할·값 입력 추가/삭제 등의 정의 결합, opaque/private 명시 C# 계획,
 선택 native callee 사이 의존성과 다른 원래 import/등록 외부 관측 결합이다. optional 조합을
 새 필수로 늘리거나 M11/M12/M4를 회귀 없이 다시 열지 않는다. main과 원본/보관 증거를 유지한다.
+
+이 out→값 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_VALUE.md)을 마쳤다.
