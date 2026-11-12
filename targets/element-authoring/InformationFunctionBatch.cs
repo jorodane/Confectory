@@ -10,9 +10,10 @@ internal sealed class InformationFunctionBatch
  readonly HashSet<string> functions;
  readonly bool composeCallers;
  readonly bool retainedBodies;
+ readonly string[] nativeRoleBodies;
  readonly Dictionary<string,JsonObject> outputPlans;
  readonly HashSet<string> completed=new(StringComparer.Ordinal);
- InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false){Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
+ InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false,string[]? nativeRoleBodies=null){this.nativeRoleBodies=nativeRoleBodies??[];Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
  public static InformationFunctionBatch? Begin(JsonObject request,JsonArray changes,Func<Element,string> format)
  {
   bool ContractEdit(JsonNode? row){
@@ -28,6 +29,7 @@ internal sealed class InformationFunctionBatch
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
   if(InformationFunctionNativeInputs.Prepare(request,changes,units,format) is {} nativeInputs)return new(request,nativeInputs,true,new());
+  if(InformationFunctionNativeRoles.Prepare(request,changes,units,format) is {} nativeRoles)return new(request,nativeRoles,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal),nativeRoleBodies:edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(p=>p.Key)).ToArray());
   if(InformationFunctionNativeOutputs.Prepare(request,changes,units,format) is {} nativeOutputs)return new(request,nativeOutputs,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal));
   if(InformationFunctionNativeReturns.Prepare(request,changes,units,format) is {} nativeReturns)return new(request,nativeReturns,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal));
   if(InformationFunctionBodyBatch.Prepare(request,edits,units,format) is {} bodyFunctions)return new(request,bodyFunctions,false,new(),true);
@@ -187,6 +189,13 @@ internal sealed class InformationFunctionBatch
   // is rebased onto a changed live source, and no intermediate result is saved.
   if(independent)foreach(var row in edits){var original=new Parser(units[row!["id"]!.ToString()]!["draft"]!.ToString(),"<original-group-contract>").ParseElement();var next=new Parser(units[original.Id]!["draft"]!.ToString(),"<group-contract>").ParseElement();DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
   return new(request,functions,wholeOrder||referencePins||wholeValue||typed||outputTyped||structures.Count>0||inputDefinitions.Count>0,projections);
+ }
+ // Unchanged explicitly reviewed native text is a read member of the same
+ // atomic proof. It never receives a new path, baseline or physical write.
+ public void RetainNativeBodies(JsonArray updates)
+ {
+  foreach(string id in nativeRoleBodies){if(updates.Any(row=>row!["id"]?.ToString()==id))continue;var unit=originalUnits[id]!.AsObject();updates.Add(new JsonObject{["id"]=id,["kind"]="body",["path"]=unit["path"]!.DeepClone(),["hash"]=Hash(unit["draft"]!.ToString()),["text"]=unit["draft"]!.DeepClone()});}
+  if(updates.Count>64)throw new ArgumentException("Function usage closure budget");
  }
  public JsonObject MappingFor(string function,JsonObject mapping)
  {

@@ -400,3 +400,7 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [명시 native out 추가·본문 공동 저장](V666_NATIVE_OUT_ADDITION.md)은 고정7/8행에서 여러 직접 소유 C# 함수에 scalar out과 수동 할당 본문을 추가하는 한 Save/CAS 단위다. 원래 입력/out·반환·소비자 대응과 receipt/readGuards·후속 설명 Save·Review/Confirm을 보존하며 새 out을 자동 연결하지 않는다. 역할·다른 입출력 정의 결합·opaque/private 계획·다른 원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
 
 이 명시 native out 추가·본문 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_ADDITION.md)을 마쳤다.
+
+### 원래 native C# 값→out 역할 · 고정7/8행
+
+[명시 역할 전환과 공동 저장](V666_NATIVE_VALUE_OUT.md)은 기존 C# 매개변수 창과 정확한 caller 입력 해제를 연결한다. 이름·타입·수·순서·반환·원문과 소유권을 유지하며 새 out은 자동 연결하지 않는다. 검증 결과는 별도 기록한다. 다른 역할/입출력 정의·opaque/private 명시 계획·선택 native 의존성 결합은 같은 유한 잔여다.

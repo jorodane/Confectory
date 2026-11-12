@@ -952,3 +952,7 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native out 추가·본문 공동 저장](V666_NATIVE_OUT_ADDITION.md)은 기존 출력 추가 UI와 새 out의 직접 C# 할당을 여러 native 함수의 한 Save/CAS에 결합하는 단위다. 원래 계약·소비자 연결·소유권·권한·후속 저장 보호·Review/Confirm을 유지하고 새 기본값/바인딩을 추정하지 않는다. 역할·다른 구조 결합·opaque/private 계획·다른 원본 의존성은 별도 잔여다.
 
 이 명시 native out 추가·본문 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_ADDITION.md)을 마쳤다.
+
+### 원래 native C# 값→out 역할 · 고정7/8행
+
+[명시 역할 전환과 공동 저장](V666_NATIVE_VALUE_OUT.md)은 기존 C# 매개변수 창과 정확한 caller 입력 해제를 연결한다. 이름·타입·수·순서·반환·원문과 소유권을 유지하며 새 out은 자동 연결하지 않는다. 검증 결과는 별도 기록한다. 다른 역할/입출력 정의·opaque/private 명시 계획·선택 native 의존성 결합은 같은 유한 잔여다.
