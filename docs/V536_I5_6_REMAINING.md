@@ -416,3 +416,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 ### 원래 native C# ref→out 역할 · 고정7/8행
 
 [명시 ref→out 전환](V666_NATIVE_REF_OUT.md)은 기존 저장소 연결의 정확한 해제와 새 out의 비자동 연결을 기존 C#·호출 계약 창에서 선택한다. caller 자체의 ref 계약과 C# 원문·receipt/readGuards·Review/Confirm·CAS를 유지하며 실제 저장소 갱신 차이를 검증한다. 다른 ref 방향/정의 결합·opaque/private 계획·원본 의존성은 같은 고정 잔여다.
+
+이 ref→out 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_REF_OUT.md)을 마쳤다.
