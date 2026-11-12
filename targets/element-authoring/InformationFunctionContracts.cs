@@ -6,7 +6,8 @@ internal static class InformationFunctionContracts
 {
  // Read-only targets for the existing explicit call-input picker. Save repeats
  // the complete closure validation; this snapshot never grants write access.
- static JsonArray CallerSources(FunctionSignature signature)=>new(signature.Args.Where(a=>!a.IsOut&&InformationStructs.IsType(a.Type)).Select(a=>(JsonNode)new JsonObject{["key"]=a.Name,["label"]="호출자 입력 "+a.Name,["type"]=a.Type,["source"]=new JsonObject{["input"]=a.Name}}).ToArray());
+ static bool ScalarRefType(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
+ static JsonArray CallerSources(FunctionSignature signature)=>new(signature.Args.Where(a=>!a.IsOut&&(InformationStructs.IsType(a.Type)||a.IsRef&&ScalarRefType(a.Type))).Select(a=>{bool storage=a.IsRef&&ScalarRefType(a.Type);var row=new JsonObject{["key"]=a.Name,["label"]=(storage?"호출자 ref 입력 ":"호출자 입력 ")+a.Name,["type"]=a.Type,["source"]=new JsonObject{["input"]=a.Name}};if(storage)row["storage"]=true;return (JsonNode)row;}).ToArray());
  public static JsonObject Inputs(JsonObject request)
  {
   string owner=request["id"]!.ToString(),function=request["function"]!.ToString(),ns=PackPaths.Namespace(owner);
@@ -143,9 +144,9 @@ internal static class InformationFunctionContracts
       if(choice is JsonValue name&&name.TryGetValue<string>(out var previousName)){
        var previousArg=old.Args.SingleOrDefault(a=>!a.IsOut&&a.Name==previousName);
        if(previousArg is null||previousArg.Type!=arg.Type||(previousArg.Mode!=arg.Mode&&selection is null)||!args.ContainsKey(previousName)||!used.Add(previousName))throw new InvalidOperationException("Select one exact compatible existing caller binding per input");bound[arg.Name]=args[previousName]?.DeepClone();
-      }else if(choice is JsonObject explicitBinding&&explicitBinding.Count==1&&explicitBinding["binding"] is JsonObject binding&&InformationStructs.IsType(arg.Type)){
+      }else if(choice is JsonObject explicitBinding&&explicitBinding.Count==1&&explicitBinding["binding"] is JsonObject binding&&(InformationStructs.IsType(arg.Type)||arg.IsRef&&ScalarRefType(arg.Type))){
        var sources=CallerSources(scope.Signature);
-       if(!sources.Any(source=>source!["type"]?.ToString()==arg.Type&&source["source"]?["node"]?.ToString()!=call["id"]!.ToString()&&JsonNode.DeepEquals(source["source"],binding)))throw new InvalidOperationException("Select an exact existing nominal caller value/storage; no source or instance is inferred");
+       if(!sources.Any(source=>source!["type"]?.ToString()==arg.Type&&source["source"]?["node"]?.ToString()!=call["id"]!.ToString()&&JsonNode.DeepEquals(source["source"],binding)))throw new InvalidOperationException("Select an exact existing caller value/ref storage; no source or instance is inferred");
        bound[arg.Name]=binding.DeepClone();
       }else if(choice is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue raw&&raw.TryGetValue<string>(out var json)&&json.Length<=65536&&arg.Mode is null){
        using var parsed=System.Text.Json.JsonDocument.Parse(json);bound[arg.Name]=new JsonObject{["constant"]=JsonNode.Parse(parsed.RootElement.GetRawText())};
