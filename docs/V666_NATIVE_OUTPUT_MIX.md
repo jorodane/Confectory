@@ -28,3 +28,5 @@ opaque/private 호출자의 명시 C# 계획, 선택 native callee 의존성과 
 정보별 구조체·종류 enum·모듈 interface, 기존 authored layout·예산을 유지한다.
 같은 게시 세대의 저장/재편집 기준이며 구 Reference reader·이전 authoring으로의 migration/downgrade는 바꾸지 않는다.
 초기 빈 화면 원인은 미확정이다. 실제 Windows/WebView2·물리 기기 및 전체 UI 전수 검증은 자동화와 구분한다.
+
+이 out·반환 타입·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUTPUT_MIX.md)을 마쳤다.
