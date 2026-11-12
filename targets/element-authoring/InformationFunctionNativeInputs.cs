@@ -7,11 +7,18 @@ using System.Text.Json.Nodes;
 internal static class InformationFunctionNativeInputs
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Addition(before,next,args)||Removal(before,next,args)||Definitions(before,next,args);
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Addition(before,next,args)||Removal(before,next,args)||Definitions(before,next,args)||TypeMix(before,next,args);
  static bool Replacement(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
  static bool Addition(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&next.Args.Count>before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name)&&next.Args.Take(before.Args.Count).SequenceEqual(before.Args)&&next.Args.Skip(before.Args.Count).All(a=>a.Mode is null&&Scalar(a.Type))&&next.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()==next.Args.Count;
  static bool Removal(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&next.Args.Count<before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args.ContainsKey(a.Name)&&(next.Args.Contains(a)?args[a.Name]?.ToString()==a.Name:args[a.Name] is null))&&next.Args.SequenceEqual(before.Args.Where(a=>next.Args.Contains(a)));
  static bool Definitions(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&args.Count==before.Args.Count&&before.Args.Any(a=>!next.Args.Any(b=>b.Name==a.Name))&&next.Args.Any(a=>!before.Args.Any(b=>b.Name==a.Name))&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args.ContainsKey(a.Name)&&(next.Args.Contains(a)?args[a.Name]?.ToString()==a.Name:args[a.Name] is null))&&next.Args.All(a=>a.Mode is null&&Scalar(a.Type))&&next.Args.SequenceEqual(before.Args.Where(a=>next.Args.Contains(a)).Concat(next.Args.Where(a=>!before.Args.Any(b=>b.Name==a.Name))))&&next.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()==next.Args.Count;
+ static bool TypeMix(FunctionSignature before,FunctionSignature next,JsonObject args)
+ {
+  if(before.Return!=next.Return||before.Return!="void"&&!Scalar(before.Return)||args.Count!=before.Args.Count||before.Args.Any(a=>a.Mode is not null||!Scalar(a.Type)||!args.ContainsKey(a.Name)||(next.Args.Contains(a)?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null))||next.Args.Any(a=>a.Mode is not null||!Scalar(a.Type))||next.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()!=next.Args.Count)return false;
+  bool changed=before.Args.Any(a=>next.Args.Any(b=>b.Name==a.Name&&b.Type!=a.Type)),definition=before.Args.Any(a=>!next.Args.Any(b=>b.Name==a.Name))||next.Args.Any(a=>!before.Args.Any(b=>b.Name==a.Name));
+  var retained=next.Args.Where(a=>before.Args.Any(b=>b.Name==a.Name)).ToArray();var added=next.Args.Where(a=>!before.Args.Any(b=>b.Name==a.Name));
+  return changed&&definition&&next.Args.SequenceEqual(retained.Concat(added))&&retained.Select(a=>a.Name).SequenceEqual(before.Args.Where(a=>next.Args.Any(b=>b.Name==a.Name)).Select(a=>a.Name));
+ }
  static bool ExplicitValue(JsonNode? value)=>value is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
@@ -23,6 +30,18 @@ internal static class InformationFunctionNativeInputs
   if(Edits(changes) is not {} edits)return null;
   foreach(var row in edits){
    var before=InformationFunctionBodies.Signature(row!["mapping"]!["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);
+   if(TypeMix(before,next,row["mapping"]!["args"]!.AsObject())){
+    var replaced=next.Args.Where(a=>!before.Args.Contains(a)).ToArray();var disconnected=before.Args.Where(a=>!next.Args.Contains(a)).Select(a=>a.Name).ToArray();
+    if(row["mapping"]!["callers"]!.AsObject().Count==0)throw new InvalidOperationException("Review original callers and select each retyped/new input and removed binding explicitly");
+    foreach(var selection in row["mapping"]!["bodies"]!.AsObject()){
+     var plan=selection.Value!.AsObject();var nativeBefore=InformationFunctionBodies.Signature(plan["beforeSignature"]!);var nativeNext=InformationFunctionBodies.Signature(plan["signature"]!);
+     if(!before.Matches(nativeBefore)||!next.Matches(nativeNext)||nativeNext.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()!=nativeNext.Args.Count)throw new InvalidOperationException("Review the exact original and explicitly authored current native declaration and body; no conversion is inferred");
+    }
+    foreach(var selection in row["mapping"]!["callers"]!.AsObject()){
+     if(selection.Value is not JsonObject plan||plan.Count!=5||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count||next.Args.Where(a=>before.Args.Contains(a)).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||replaced.Any(a=>!ExplicitValue(inputs[a.Name]))||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=disconnected.Length||disconnected.Any(name=>disconnect[name] is not JsonValue value||!value.TryGetValue<string>(out _)))throw new InvalidOperationException("Retain unchanged bindings/outputs; select each replacement value and disconnect every exact original removed or retyped binding");
+    }
+    continue;
+   }
    if(Definitions(before,next,row["mapping"]!["args"]!.AsObject())){
     var removed=before.Args.Where(a=>!next.Args.Contains(a)).Select(a=>a.Name).ToArray();var added=next.Args.Where(a=>!before.Args.Any(b=>b.Name==a.Name)).ToArray();
     if(row["mapping"]!["callers"]!.AsObject().Count==0)throw new InvalidOperationException("Review original callers, disconnect removed inputs and select every new value explicitly");
