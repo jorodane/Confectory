@@ -444,3 +444,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 입력 삭제·추가·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUT_DEFINITIONS.md)을 마쳤다.
 
 [명시 native 입력 정의·타입·본문 공동 저장](V666_NATIVE_INPUT_MIX.md)은 같은 함수의 입력 삭제/추가와 scalar 타입 선택을 명시 값·원래 해제·공유 caller 및 한 후보/CAS에 연결한다. 원래 source/readGuards·후속 Save·Review/Confirm과 caller ABI·출력·경로를 유지하며 다른 복합 계약/opaque/private·원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
+
+이 입력 정의·타입·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUT_MIX.md)을 마쳤다.
