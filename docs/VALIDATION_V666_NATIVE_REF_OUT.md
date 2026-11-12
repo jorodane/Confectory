@@ -48,7 +48,7 @@ LF/CRLF 독립 no-hardlinks checkout, 격리 HOME/NuGet·빈 엔진 cache의 Rel
 여유 25056227328bytes(23.34GiB)다.
 
 직접 소유 동기 scalar-return·공개 실행 분기/상속/override 없는 기능·단일 native target·일반 Blueprint caller 범위다.
-남은 고정7/8행은 ref를 새로 요구하는 다른 방향·값 입력 추가/삭제 등의 정의 결합, opaque/private 명시 C# 계획,
+남은 고정7/8행은 다른 ref 방향(ref→값·값/out→ref)·값 입력 추가/삭제 등의 정의 결합, opaque/private 명시 C# 계획,
 선택 native callee 사이 의존성과 다른 원래 import/등록 외부 관측 결합이다. optional 조합을 새 필수로 늘리지 않는다.
 M11/M12/M4를 회귀 없이 다시 열지 않는다. 권한·override 계약·authored layout·Review/Confirm·최종 CAS와
 64-member/240-check/2048-source 예산을 유지했다. 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI 전수 검증은

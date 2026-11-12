@@ -27,7 +27,7 @@ LF/CRLF 독립 checkout·새 package·전체 복원을 별도 기록하며 실�
 전체 UI 전수 검증과 구분한다. 구 Reference reader 제약·새 group의 같은 세대 재검토 기준과
 과거 간헐 빈 #app 원인 미확정 상태는 유지한다.
 
-잔여는 ref를 새로 요구하는 다른 방향·값 입력 추가/삭제 등의 정의 결합, opaque/private 명시
+잔여는 다른 ref 방향(ref→값·값/out→ref)·값 입력 추가/삭제 등의 정의 결합, opaque/private 명시
 C# 계획, 선택 native callee 사이 의존성과 다른 원래 import/등록 외부 관측 결합이다.
 optional 조합을 새 필수로 늘리거나 M11/M12/M4를 회귀 없이 다시 열지 않는다. main과 보관 증거를 유지한다.
 
