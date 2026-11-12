@@ -964,3 +964,7 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 out→값 전환](V666_NATIVE_OUT_VALUE.md)은 새 리터럴 입력과 사라지는 out 소비자의 호환 반환 대응을 기존 C#·호출 계약 창에서 선택한다. 기존 입력/out·C# 원문·receipt/readGuards·Review/Confirm·CAS와 소유권을 유지한다. ref/다른 정의 결합·opaque/private 계획·다른 원본 의존성은 같은 고정 잔여다.
 
 이 out→값 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_VALUE.md)을 마쳤다.
+
+### 원래 native C# ref→out 역할 · 고정7/8행
+
+[명시 ref→out 전환](V666_NATIVE_REF_OUT.md)은 기존 저장소 연결의 정확한 해제와 새 out의 비자동 연결을 기존 C#·호출 계약 창에서 선택한다. caller 자체의 ref 계약과 C# 원문·receipt/readGuards·Review/Confirm·CAS를 유지하며 실제 저장소 갱신 차이를 검증한다. 다른 ref 방향/정의 결합·opaque/private 계획·원본 의존성은 같은 고정 잔여다.
