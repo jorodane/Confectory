@@ -37,3 +37,5 @@ C# bytes와 부모/외부 소유권·override 계약·권한·authored layout을
 LF/CRLF·실패/경합/늦은 입력·새 package/full restore·보관을 구별한다. Linux native/Chromium
 자동화·Windows 교차 패키징과 실제 Windows/WebView2·물리 기기·IME·GPU/audio·전체 UI
 전수 검증은 별개다.
+
+이 명시 native out 추가·본문 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_ADDITION.md)을 마쳤다.
