@@ -454,3 +454,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [정보 헤더와 명시 native 계약·본문 공동 저장](V666_NATIVE_HEADER_CONTRACTS.md)은 기존 설명·아이콘을 지원된 native ABI/body/caller 그룹과 한 후보/CAS에 연결한다. 표시 검증과 원래 source/readGuards·후속 Save·Review/Confirm·권한·레이아웃을 보존하며 다른 복합 구조/opaque/private·원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
 
 이 owner 표시·native 계약·본문 단위의 [최종 신규 47·재사용0 검증과 보관](VALIDATION_V666_NATIVE_HEADER_CONTRACTS.md)을 마쳤다.
+
+[여러 표시 편집 뒤 native 읽기 범위 보존](V666_NATIVE_PRESENTATION_FOLLOWUP.md)은 저장한 ABI/body 그룹의 후속 설명·아이콘·함수 표시를 같은 캡처 출처 집합에서 보호한다. 원래 readGuards를 이어받고 알 수 없는 선언/캡처 밖 편집은 입력 보존 거절로 처리하며 Source/Review/Confirm·권한·레이아웃을 유지한다. 다른 복합 구조/opaque/private·원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
