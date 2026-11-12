@@ -20,3 +20,5 @@ C# 창은 남는 원래 native 매개변수를 표시하고, 사용자가 직접
 선택 native callee 사이 의존성과 다른 원래 import/등록 외부 관측 결합이다. 선택 가능한 모든 타입·문맥 조합을 필수로 추가하지 않는다.
 M11/M12/M4는 구체적 회귀 없이 다시 열지 않는다. 정보별 구조체·종류 enum·모듈 interface, 권한·원본 소유권·authored layout·기존 예산을 유지한다.
 초기 빈 화면 원인은 미확정이다. 실제 Windows/WebView2·물리 기기 및 전체 UI 전수 검증과 자동화 결과를 구분한다.
+
+이 값 입력 삭제·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUT_REMOVAL.md)을 마쳤다.
