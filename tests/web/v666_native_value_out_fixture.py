@@ -88,7 +88,7 @@ def after_contract(index):
         f.page.keyboard.insert_text('long nativeAmount, out long nativeCount');f.idle()
     if index==0:
         field=dialog.locator('[data-code-source]');field.evaluate("el=>{el.focus();el.setSelectionRange(el.value.indexOf('(')+1,el.value.indexOf(')'));}")
-        f.page.keyboard.insert_text('long nativeAmount, ref long nativeCount');f.idle();dialog.locator('[data-code-save]').click();expect(dialog.locator('[data-code-error]')).to_contain_text('원래 이름·자료형·순서');expect(dialog).to_be_visible();unchanged();dialog.locator('[data-code-cancel]').click();assert d.pending()==held
+        f.page.keyboard.insert_text('long renamedAmount, long nativeCount');f.idle();dialog.locator('[data-code-save]').click();expect(dialog.locator('[data-code-error]')).to_contain_text('원래 이름·자료형·순서');expect(dialog).to_be_visible();unchanged();dialog.locator('[data-code-cancel]').click();assert d.pending()==held
         f.owner().locator(selector).click();expect(dialog).to_be_visible()
     fill();dialog.locator('[data-code-cancel]').click();assert d.pending()==held
     f.owner().locator(selector).click();expect(dialog).to_be_visible();fill();dialog.locator('[data-code-save]').click()

@@ -422,3 +422,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [명시 native ref→값과 공유 caller](V666_NATIVE_REF_VALUE.md)는 원래 입력 바인딩을 값으로 읽고 callee 쓰기의 caller 전달을 제거하는 역할·본문 공동 저장 단위다. 원문·caller 자체 계약·출력 identity·source CAS를 보존한다. 값/out→ref·입력 정의·opaque/private 계획·원본 의존성 결합 및 reader/기기/전체 UI 잔여는 구별한다.
 
 이 ref→값 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_REF_VALUE.md)을 마쳤다.
+
+[명시 native 값→ref와 공유 caller](V666_NATIVE_VALUE_REF.md)는 실제 기존 입력 저장소를 직접 선택해 쓰기 전달을 추가하는 역할·본문 공동 저장 단위다. caller 자체 ABI·원문·출력 identity·CAS를 보존하고 리터럴/임시 ref 셀을 만들지 않는다. out→ref·입력 정의·opaque/private 계획·원본 의존성 및 reader/기기/전체 UI 잔여는 구별한다.
