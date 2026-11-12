@@ -1,13 +1,16 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Compose the existing explicit single-function native input replacement.
+// Compose explicit single-function native input replacements and additions.
 // New values, removed bindings, native signatures and C# text remain choices
 // made against each complete ORIGINAL source, never inferred conversions.
 internal static class InformationFunctionNativeInputs
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Addition(before,next,args);
+ static bool Replacement(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ static bool Addition(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&next.Args.Count>before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name)&&next.Args.Take(before.Args.Count).SequenceEqual(before.Args)&&next.Args.Skip(before.Args.Count).All(a=>a.Mode is null&&Scalar(a.Type))&&next.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()==next.Args.Count;
+ static bool ExplicitValue(JsonNode? value)=>value is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >8)return null;
@@ -16,6 +19,17 @@ internal static class InformationFunctionNativeInputs
  public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
   if(Edits(changes) is not {} edits)return null;
+  foreach(var row in edits){
+   var before=InformationFunctionBodies.Signature(row!["mapping"]!["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);if(next.Args.Count==before.Args.Count)continue;
+   if(row["mapping"]!["callers"]!.AsObject().Count==0)throw new InvalidOperationException("Review original callers and choose every new input value explicitly");
+   foreach(var selection in row["mapping"]!["bodies"]!.AsObject()){
+    var plan=selection.Value!.AsObject();var nativeBefore=InformationFunctionBodies.Signature(plan["beforeSignature"]!);var nativeNext=InformationFunctionBodies.Signature(plan["signature"]!);var identity=new JsonObject(nativeBefore.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name))));
+    if(!before.Matches(nativeBefore)||!next.Matches(nativeNext)||!Addition(nativeBefore,nativeNext,identity))throw new InvalidOperationException("Retain original native parameter names, types and order when adding explicit scalar values");
+   }
+   foreach(var selection in row["mapping"]!["callers"]!.AsObject()){
+    if(selection.Value is not JsonObject plan||plan.Count!=5||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count||before.Args.Any(a=>inputs[a.Name]?.ToString()!=a.Name)||next.Args.Skip(before.Args.Count).Any(a=>!ExplicitValue(inputs[a.Name]))||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0)throw new InvalidOperationException("Retain original bindings and outputs; choose an explicit value for every appended input without disconnecting source");
+   }
+  }
   return PrepareSources(request,edits,units,format);
  }
  internal static HashSet<string> PrepareSources(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format)

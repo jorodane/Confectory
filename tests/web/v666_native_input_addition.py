@@ -1,0 +1,52 @@
+"""Original-source proof, atomic native value input addition and existing UI lifecycle."""
+import copy,hashlib,json,os,pathlib,runpy,sys
+import v666_native_input_addition_fixture as x
+f=x.f;check=next((a.removeprefix('--check=')for a in sys.argv if a.startswith('--check=')),'ui')
+if check=='native':
+ try:
+  x.execute(x.original_result,'original-return-runtime');f.checked('original runtime interfaces return long34 with no out parameters; original shared caller executes38')
+  r=x.request();(f.case/'request.json').write_text(json.dumps(r,ensure_ascii=False,indent=2))
+  for row in r['changes']:
+   one=copy.deepcopy(r);one['changes']=[row];x.n.prepare(one)
+  x.unchanged();f.checked('both complete explicit original single type/body/caller selections validate independently')
+  if x.mode=='reproduce':x.n.prepare(r,False);x.unchanged();f.checked('published shared candidate rejects supported singles without changing original program38')
+  else:
+   p=x.n.prepare(r);updates=p['updates']+p['linkedUpdates'];x.verify_rows({row['id']:{'draft':row['text']}for row in updates});assert len({row['id']for row in updates})==len(updates)and all(row['hash']==hashlib.sha256(r['units'][row['id']]['draft'].encode()).hexdigest()for row in updates)
+   reverse=copy.deepcopy(r);reverse['changes'].reverse();q=x.n.prepare(reverse);assert{row['id']:row['text']for row in updates}=={row['id']:row['text']for row in q['updates']+q['linkedUpdates']};x.unchanged();f.checked('one order-independent original-hash candidate contains both native declarations/texts, explicit value input addition and complete shared caller')
+   for fault in ['mode','new-role','return-type','arg-map','missing-map','input-type','name','no-addition','map','missing-body','native-header','native-alias','native-role','stale-body','bad-code','missing-caller','outputs','out-identity','missing-value','implicit-binding','wrong-value-type','unexpected-disconnect','changed-input','caller-hash','unselected-context']:
+    bad=copy.deepcopy(r);row=bad['changes'][0];plan=next(iter(row['mapping']['bodies'].values()));caller=next(iter(row['mapping']['callers'].values()))
+    if fault=='mode':row['signature']['args'][0]['mode']='ref'
+    elif fault=='new-role':row['signature']['args'][2]['mode']='out'
+    elif fault=='return-type':row['signature']['return']='double'
+    elif fault=='arg-map':row['mapping']['args']['step']='step'
+    elif fault=='missing-map':del row['mapping']['args']['real']
+    elif fault=='input-type':row['signature']['args'][0]['type']='double'
+    elif fault=='name':row['signature']['args'][0]['name']='inferred'
+    elif fault=='no-addition':row['signature']['args'].pop()
+    elif fault=='map':row['mapping']['args']['amount']=None
+    elif fault=='missing-body':row['mapping']['bodies'].clear()
+    elif fault=='native-header':plan['signature']=copy.deepcopy(x.native)
+    elif fault=='native-alias':plan['signature']['args'][0]['name']='amount'
+    elif fault=='native-role':plan['signature']['args'][2]['mode']='ref'
+    elif fault=='stale-body':plan['hash']='0'*64
+    elif fault=='bad-code':plan['text']='return missingValue;'
+    elif fault=='missing-caller':row['mapping']['callers'].clear()
+    elif fault=='outputs':caller['outputs']={'return':None}
+    elif fault=='out-identity':caller['outputs']={'return':'step'}
+    elif fault=='missing-value':caller['inputs'].pop('step')
+    elif fault=='implicit-binding':caller['inputs']['step']='amount'
+    elif fault=='wrong-value-type':caller['inputs']['step']={'valueJson':'true'}
+    elif fault=='unexpected-disconnect':caller['disconnect']['amount']=json.dumps({'input':'first'},separators=(',',':'))
+    elif fault=='changed-input':caller['inputs']['amount']={'valueJson':'123'}
+    elif fault=='caller-hash':caller['hash']='0'*64
+    else:
+     key=x.n.caller+'Body/body:common';g=json.loads(bad['units'][key]['draft']);g['nodes'][0]['implementationContext']={};bad['units'][key]['draft']=json.dumps(g)
+    x.n.prepare(bad,False);x.unchanged()
+   f.checked('role/type/name/order/identity changes, implicit defaults or reused values, missing/mutated bodies/callers/aliases/output plans and invalid CSharp reject without source changes')
+
+ finally:(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2))
+elif check in ['api','guards','late','conflict']:
+ runpy.run_path(str(pathlib.Path(__file__).with_name('v666_native_input_addition_'+check+'.py')),run_name='__main__')
+elif check=='ui':
+ sys.modules['v536_information_shared_bodies_fixture']=x;os.environ['CONFECTORY_SHARED_BODIES']='1';runpy.run_path(str(pathlib.Path(__file__).with_name('v536_information_shared_return_types_ui.py')),run_name='__main__')
+else:raise ValueError(check)

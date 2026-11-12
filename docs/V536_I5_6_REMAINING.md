@@ -430,3 +430,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [명시 native out→ref와 기존 caller ref 출처](V666_NATIVE_OUT_REF.md)는 원래 선언된 scalar ref 입력을 직접 선택하고 기존 out 소비자를 호환 반환에 명시 대응하는 공동 저장 단위다. ref 출처 선언도 read/CAS 원본으로 유지한다. 입력 정의 변경·opaque/private 계획·원본 의존성 및 reader/기기/전체 UI 잔여를 구별하며 제한된 역할 방향 지원을 전체 계약 완성으로 표현하지 않는다.
 
 이 out→ref 명시 역할·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_REF.md)을 마쳤다.
+
+[명시 native 값 입력 추가·본문·공유 caller](V666_NATIVE_INPUT_ADDITION.md)는 기존 public/native 매개변수와 caller 바인딩·출력·ABI를 유지하며 새 입력의 명시 값과 직접 작성한 본문을 공동 저장하는 단위다. 원문은 자동 변환하지 않는다. 입력 삭제/다른 정의 결합·opaque/private 계획·원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
