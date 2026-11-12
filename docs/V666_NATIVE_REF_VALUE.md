@@ -24,3 +24,5 @@ opaque/private 명시 C# 계획과 선택 native callee 의존성·다른 원래
 optional type/context 조합을 새 필수로 늘리지 않는다. M11/M12/M4는 회귀 없이 다시 열지 않는다.
 구 Reference reader는 새 타입을 거절하는 과거 제약을 유지하고 자동 migration/downgrade를 약속하지 않는다.
 간헐 초기 빈 #app의 원인은 미확정이다. 실제 기기와 전체 UI 전수 검증은 별도 잔여다.
+
+이 ref→값 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_REF_VALUE.md)을 마쳤다.
