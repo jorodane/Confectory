@@ -63,11 +63,12 @@ internal static class InformationFunctionBodyGuards
   }
   JsonNode?[]? NativeEdits(JsonArray changes)
   {
-   if(InformationFunctionNativeOutputMix.Edits(changes) is {} mixedOutputs)return mixedOutputs;
-   if(InformationFunctionNativeRoles.Edits(changes) is {} roleGroup)return roleGroup;
-   if(InformationFunctionNativeOutputs.Edits(changes) is {} outputGroup)return outputGroup;
-   if(InformationFunctionNativeReturns.Edits(changes) is {} returnGroup)return returnGroup;
-   if(InformationFunctionNativeInputs.Edits(changes) is {} inputGroup)return inputGroup;
+   var nativeChanges=InformationFunctionBodyBatch.NativeChanges(changes)??changes;
+   if(InformationFunctionNativeOutputMix.Edits(nativeChanges) is {} mixedOutputs)return mixedOutputs;
+   if(InformationFunctionNativeRoles.Edits(nativeChanges) is {} roleGroup)return roleGroup;
+   if(InformationFunctionNativeOutputs.Edits(nativeChanges) is {} outputGroup)return outputGroup;
+   if(InformationFunctionNativeReturns.Edits(nativeChanges) is {} returnGroup)return returnGroup;
+   if(InformationFunctionNativeInputs.Edits(nativeChanges) is {} inputGroup)return inputGroup;
    if(InformationFunctionBodyBatch.Edits(changes) is {} group)return group;
    var edits=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();return changes.Count<=3&&edits.Length==1&&InformationFunctionBodyBatch.BodyEdit(edits[0])&&TypedFunction(edits[0]!["id"]!.ToString())?edits:null;
   }
@@ -149,7 +150,8 @@ internal static class InformationFunctionBodyGuards
   bool ObservedGroup(JsonNode? declaration)
   {
    if(declaration?["raw"] is not null||declaration?["changes"] is not JsonArray changes||NativeEdits(changes) is not {} edits)return false;
-   var functions=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);bool observed=ObservedScope(functions,edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(body=>(row["id"]!.ToString(),body.Key))));return observed||InformationFunctionNativeOutputMix.Edits(changes) is not null||InformationFunctionNativeInputs.Edits(changes) is not null||InformationFunctionNativeReturns.Edits(changes) is not null||InformationFunctionNativeOutputs.Edits(changes) is not null||InformationFunctionNativeRoles.Edits(changes) is not null;
+   var nativeChanges=InformationFunctionBodyBatch.NativeChanges(changes)??changes;
+   var functions=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);bool observed=ObservedScope(functions,edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(body=>(row["id"]!.ToString(),body.Key))));return observed||InformationFunctionNativeOutputMix.Edits(nativeChanges) is not null||InformationFunctionNativeInputs.Edits(nativeChanges) is not null||InformationFunctionNativeReturns.Edits(nativeChanges) is not null||InformationFunctionNativeOutputs.Edits(nativeChanges) is not null||InformationFunctionNativeRoles.Edits(nativeChanges) is not null;
   }
   bool ObservedReceipt(string owner,JsonObject receipt)
   {
