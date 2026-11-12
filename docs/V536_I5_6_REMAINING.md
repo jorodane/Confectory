@@ -406,3 +406,7 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [명시 역할 전환과 공동 저장](V666_NATIVE_VALUE_OUT.md)은 기존 C# 매개변수 창과 정확한 caller 입력 해제를 연결한다. 이름·타입·수·순서·반환·원문과 소유권을 유지하며 새 out은 자동 연결하지 않는다. 검증 결과는 별도 기록한다. 다른 역할/입출력 정의·opaque/private 명시 계획·선택 native 의존성 결합은 같은 유한 잔여다.
 
 이 값→out 명시 역할·본문 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_NATIVE_VALUE_OUT.md)을 마쳤다.
+
+### 원래 native C# out→값 역할 · 고정7/8행
+
+[명시 out→값 전환](V666_NATIVE_OUT_VALUE.md)은 새 리터럴 입력과 사라지는 out 소비자의 호환 반환 대응을 기존 C#·호출 계약 창에서 선택한다. 기존 입력/out·C# 원문·receipt/readGuards·Review/Confirm·CAS와 소유권을 유지한다. ref/다른 정의 결합·opaque/private 계획·다른 원본 의존성은 같은 고정 잔여다.
