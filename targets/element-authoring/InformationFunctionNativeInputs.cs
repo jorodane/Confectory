@@ -1,15 +1,16 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Compose explicit single-function native input replacements and additions.
+// Compose explicit single-function native input replacements, additions and removals.
 // New values, removed bindings, native signatures and C# text remain choices
 // made against each complete ORIGINAL source, never inferred conversions.
 internal static class InformationFunctionNativeInputs
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Addition(before,next,args);
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Replacement(before,next,args)||Addition(before,next,args)||Removal(before,next,args);
  static bool Replacement(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!Scalar(next.Args[i].Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null)).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
  static bool Addition(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&next.Args.Count>before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name)&&next.Args.Take(before.Args.Count).SequenceEqual(before.Args)&&next.Args.Skip(before.Args.Count).All(a=>a.Mode is null&&Scalar(a.Type))&&next.Args.Select(a=>a.Name).Distinct(StringComparer.Ordinal).Count()==next.Args.Count;
+ static bool Removal(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&(before.Return=="void"||Scalar(before.Return))&&next.Args.Count<before.Args.Count&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args.ContainsKey(a.Name)&&(next.Args.Contains(a)?args[a.Name]?.ToString()==a.Name:args[a.Name] is null))&&next.Args.SequenceEqual(before.Args.Where(a=>next.Args.Contains(a)));
  static bool ExplicitValue(JsonNode? value)=>value is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
@@ -21,6 +22,18 @@ internal static class InformationFunctionNativeInputs
   if(Edits(changes) is not {} edits)return null;
   foreach(var row in edits){
    var before=InformationFunctionBodies.Signature(row!["mapping"]!["before"]!);var next=InformationFunctionBodies.Signature(row["signature"]!);if(next.Args.Count==before.Args.Count)continue;
+   if(next.Args.Count<before.Args.Count){
+    var removed=before.Args.Where(a=>!next.Args.Contains(a)).Select(a=>a.Name).ToArray();
+    if(row["mapping"]!["callers"]!.AsObject().Count==0)throw new InvalidOperationException("Review original callers and explicitly disconnect every removed input");
+    foreach(var selection in row["mapping"]!["bodies"]!.AsObject()){
+     var plan=selection.Value!.AsObject();var nativeBefore=InformationFunctionBodies.Signature(plan["beforeSignature"]!);var nativeNext=InformationFunctionBodies.Signature(plan["signature"]!);
+     if(!before.Matches(nativeBefore)||!next.Matches(nativeNext)||!nativeNext.Args.SequenceEqual(before.Args.Select((a,i)=>(a,i)).Where(p=>next.Args.Contains(p.a)).Select(p=>nativeBefore.Args[p.i])))throw new InvalidOperationException("Retain surviving native parameter names, types and order when removing explicit scalar inputs");
+    }
+    foreach(var selection in row["mapping"]!["callers"]!.AsObject()){
+     if(selection.Value is not JsonObject plan||plan.Count!=5||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count||next.Args.Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=removed.Length||removed.Any(name=>disconnect[name] is not JsonValue value||!value.TryGetValue<string>(out _)))throw new InvalidOperationException("Retain surviving bindings and outputs; explicitly disconnect each exact original removed input");
+    }
+    continue;
+   }
    if(row["mapping"]!["callers"]!.AsObject().Count==0)throw new InvalidOperationException("Review original callers and choose every new input value explicitly");
    foreach(var selection in row["mapping"]!["bodies"]!.AsObject()){
     var plan=selection.Value!.AsObject();var nativeBefore=InformationFunctionBodies.Signature(plan["beforeSignature"]!);var nativeNext=InformationFunctionBodies.Signature(plan["signature"]!);var identity=new JsonObject(nativeBefore.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name))));
