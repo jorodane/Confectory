@@ -22,3 +22,5 @@ provider 반환은38로 같고 반사 호출 인자 셀은5→38로 바뀐다. �
 선택 native callee 의존성과 다른 원래 import/등록 외부 관측 결합이다. optional type/context 조합을 필수로 늘리지 않는다.
 M11/M12/M4는 회귀 없이 다시 열지 않는다. 정보별 구조체·종류 enum·모듈 interface 설계와 권한·override 계약은 유지한다.
 구 Reference reader 제약과 간헐 초기 빈 #app 원인 미확정 상태를 유지한다. 실제 기기와 전체 UI 전수 검증은 별도 잔여다.
+
+이 값→ref 명시 역할·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_VALUE_REF.md)을 마쳤다.
