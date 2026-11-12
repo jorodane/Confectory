@@ -980,3 +980,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 값→ref 명시 역할·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_VALUE_REF.md)을 마쳤다.
 
 [명시 native out→ref와 기존 caller ref 출처](V666_NATIVE_OUT_REF.md)는 원래 선언된 scalar ref 입력을 직접 선택하고 기존 out 소비자를 호환 반환에 명시 대응하는 공동 저장 단위다. ref 출처 선언도 read/CAS 원본으로 유지한다. 입력 정의 변경·opaque/private 계획·원본 의존성 및 reader/기기/전체 UI 잔여를 구별하며 제한된 역할 방향 지원을 전체 계약 완성으로 표현하지 않는다.
+
+이 out→ref 명시 역할·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_REF.md)을 마쳤다.

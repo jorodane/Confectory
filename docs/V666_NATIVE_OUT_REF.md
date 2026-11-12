@@ -27,3 +27,5 @@ C# UTF8 BOM·CRLF·bytes·inode·mode·mtime과 caller 자체 ABI를 유지한�
 기존 각 단위의 scalar·반환 호환·한 방향·소스 문맥 제한을 전체 계약 변경 완성으로 표현하지 않는다. M11/M12/M4는 회귀 없이 다시 열지 않는다.
 정보별 C# 구조체·종류 enum·모듈 interface, override 계약과 기존 예산을 유지한다.
 구 Reference reader 제약과 간헐 초기 빈 화면 원인 미확정 상태, 실제 기기·전체 UI 전수 검증의 한계를 유지한다.
+
+이 out→ref 명시 역할·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_OUT_REF.md)을 마쳤다.
