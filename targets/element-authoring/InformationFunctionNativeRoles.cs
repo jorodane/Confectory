@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Explicit value/out and ref-to-out roles keep original names, types, order and C# text.
+// Explicit value/out and ref-to-value/out roles keep original names, types, order and C# text.
 // Removed inputs, newly selected values and lost output consumers are proved
 // against ORIGINAL sources; the implementation never invents a binding.
 internal static class InformationFunctionNativeRoles
@@ -9,9 +9,10 @@ internal static class InformationFunctionNativeRoles
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
  static bool Role(FunctionSignature before,FunctionSignature next,JsonObject args,bool toValue)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||!Scalar(a.Type)||a.Mode is not (null or "out")||a.Mode!=next.Args[i].Mode&&!(toValue?a.IsOut&&next.Args[i].Mode is null&&a.Type==before.Return:a.Mode is null&&next.Args[i].IsOut)||args[a.Name]?.ToString()!=a.Name).Any()==false&&before.Args.Where((a,i)=>a.Mode!=next.Args[i].Mode).Any();
  static bool RefOut(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||!Scalar(a.Type)||a.Mode is not (null or "out" or "ref")||a.Mode!=next.Args[i].Mode&&!(a.IsRef&&next.Args[i].IsOut)||args[a.Name]?.ToString()!=a.Name).Any()==false&&before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any();
- public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Role(before,next,args,false)||Role(before,next,args,true)||RefOut(before,next,args);
+ static bool RefValue(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||!Scalar(a.Type)||a.Mode is not (null or "out" or "ref")||a.Mode!=next.Args[i].Mode&&!(a.IsRef&&next.Args[i].Mode is null)||args[a.Name]?.ToString()!=a.Name).Any()==false&&before.Args.Where((a,i)=>a.IsRef&&next.Args[i].Mode is null).Any();
+ public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Role(before,next,args,false)||Role(before,next,args,true)||RefOut(before,next,args)||RefValue(before,next,args);
  static bool ToValue(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsOut&&next.Args[i].Mode is null).Any();
- static string Direction(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any()?"ref-out":ToValue(before,next)?"out-value":"value-out";
+ static string Direction(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any()?"ref-out":before.Args.Where((a,i)=>a.IsRef&&next.Args[i].Mode is null).Any()?"ref-value":ToValue(before,next)?"out-value":"value-out";
  static bool ExplicitValue(JsonNode? value)=>value is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
