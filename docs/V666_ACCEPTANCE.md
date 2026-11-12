@@ -998,3 +998,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [명시 native 입력 정의·타입·본문 공동 저장](V666_NATIVE_INPUT_MIX.md)은 같은 함수의 입력 삭제/추가와 scalar 타입 선택을 명시 값·원래 해제·공유 caller 및 한 후보/CAS에 연결한다. 원래 source/readGuards·후속 Save·Review/Confirm과 caller ABI·출력·경로를 유지하며 다른 복합 계약/opaque/private·원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
 
 이 입력 정의·타입·본문 단위의 [최종 신규 46·재사용0 검증과 보관](VALIDATION_V666_NATIVE_INPUT_MIX.md)을 마쳤다.
+
+[명시 native out·비void 반환 타입·본문 공동 저장](V666_NATIVE_OUTPUT_MIX.md)은 같은 함수 또는 함수 간의 원래 출력 타입 선택을 명시 호환 소비·공유 caller·한 후보/CAS에 연결하는 단위다. 입력과 핀 이름/역할/수/순서·유지 출력 identity·원문 소유권·후속 Save·Review/Confirm을 보존하며 다른 복합 계약/opaque/private·원본 의존성과 reader/기기/전체 UI 잔여는 구별한다.
