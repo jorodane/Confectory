@@ -91,13 +91,22 @@ internal static class InformationFunctionBodyBatch
   };
   return contract&&(value["type"]!.ToString()=="unset"?path.Count==1&&value.Count==3&&value.All(p=>p.Key is "type" or "path" or "contract"):value.Count==4&&value.All(p=>p.Key is "type" or "path" or "contract" or "valueJson")&&value["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _));
  }
+ // Classify the existing direct field picker contract, never its authority.
+ // The original schema/hash, exact catalogue proof, defaults and every use
+ // still pass InformationDefinitions/FieldTypes without conversion or copying.
+ internal static bool OwnerFieldEdit(JsonNode? row)
+ {
+  bool Text(JsonNode? node)=>node is JsonValue text&&text.TryGetValue<string>(out string? value)&&!string.IsNullOrEmpty(value);
+  bool Shape(JsonNode? node)=>node is JsonObject shape&&shape.Count==3&&shape["cardinality"]?.ToString() is "single" or "multiple"&&Text(shape["type"])&&(shape["kind"]?.ToString()=="general"?shape["type"]?.ToString() is "bool" or "int" or "long" or "float" or "double" or "string":shape["kind"]?.ToString() is "compound" or "reference" or "function" or "enum");
+  return row is JsonObject value&&value.Count==7&&value.All(p=>p.Key is "type" or "path" or "contract" or "schema" or "schemaHash" or "definition" or "sources")&&value["type"]?.ToString()=="schema-field"&&value["path"] is JsonArray path&&path.Count==1&&Text(path[0])&&Text(value["schema"])&&Text(value["schemaHash"])&&Shape(value["contract"])&&Shape(value["definition"])&&(value["sources"] is null or JsonObject);
+ }
  // Share the existing declaration's 64-row budget; native plans remain 2..8.
  // Normalize only for classifying the explicit body-bearing native contracts.
  // The full declaration still passes the same validator and checkpoint CAS.
  internal static JsonArray? NativeChanges(JsonArray changes)
  {
   if(changes.Count is <2 or >64)return null;
-  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)&&!OwnerValueEdit(row)).ToArray();
+  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)&&!OwnerValueEdit(row)&&!OwnerFieldEdit(row)).ToArray();
   if(presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
   return new JsonArray(edits.Select(row=>row!.DeepClone()).ToArray());
  }

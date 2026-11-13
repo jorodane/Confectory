@@ -15,3 +15,5 @@ InformationFunctionBodyBatch의 분류와 기존 native 읽기 증거의 결합�
 구 Reference reader downgrade는 보장하지 않는다. 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·기기·OS IME·전체 UI 전수 검증을 자동화된 Linux 편집기 검증과 구별한다.
 
 이 typed 값·native 계약 공동 저장 단위의 [최종 신규 42·재사용0 검증과 보관](VALIDATION_V666_TYPED_VALUES_CONTRACTS.md)을 마쳤다.
+
+[기존 속성 정의와 native 계약·본문 공동 저장](V666_FIELD_CONTRACTS.md)은 기존 타입 선택의 직접 필드 계약과 그에 맞는 명시 값을 원래 검증·출처 증거·한 후보/CAS에 결합한다. 새 정의/소유 자식·opaque/private·다른 소유 callee 결합 및 구 reader·기기/전체 UI 잔여와 구별한다.

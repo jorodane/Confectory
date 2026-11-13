@@ -478,3 +478,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [기존 typed 값과 native 계약·본문 공동 저장](V666_TYPED_VALUES_CONTRACTS.md)은 복합·목록·참조·함수·종류 기본값의 기존 편집을 같은 명시 native 후보와 결합하는 단위다. 필드 정의/구조 전환과 opaque/private·외부 write closure 잔여를 구별하며 원래 typed 검증·읽기 관측·Review/Confirm·CAS를 유지한다.
 
 이 typed 값·native 계약 공동 저장 단위의 [최종 신규 42·재사용0 검증과 보관](VALIDATION_V666_TYPED_VALUES_CONTRACTS.md)을 마쳤다.
+
+[기존 속성 정의와 native 계약·본문 공동 저장](V666_FIELD_CONTRACTS.md)은 기존 타입 선택의 직접 필드 계약과 그에 맞는 명시 값을 원래 검증·출처 증거·한 후보/CAS에 결합한다. 새 정의/소유 자식·opaque/private·다른 소유 callee 결합 및 구 reader·기기/전체 UI 잔여와 구별한다.

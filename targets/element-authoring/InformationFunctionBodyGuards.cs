@@ -212,15 +212,24 @@ internal static class InformationFunctionBodyGuards
    if(receipt?["nativeBodyValues"] is JsonArray retained){if(declared.Count>0&&!JsonNode.DeepEquals(declared,retained))throw new InvalidOperationException("Retain the original typed value plan across presentation saves");declared=retained.DeepClone().AsArray();}
    if(declared.Count>64||declared.Any(row=>!InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)))throw new ArgumentException("Exact bounded typed value plan required");return declared;
   }
-  JsonArray ValueSources(Dictionary<string,JsonObject> sources,string owner,JsonArray values,bool preparing)
+  JsonArray OwnerPlans(JsonNode? declaration,JsonObject? receipt=null)
+  {
+   bool Extended(JsonNode? row)=>InformationFunctionBodyBatch.OwnerFieldEdit(row)&&!InformationFunctionBodyBatch.ScalarOwnerEdit(row);
+   bool Local(JsonNode? row)=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)||InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.OwnerFieldEdit(row);
+   var changes=declaration?["changes"] as JsonArray??new();
+   var declared=changes.Any(Extended)?new JsonArray(changes.Where(row=>!InformationFunctionBodyBatch.BodyPlan(row)).Select(row=>row!.DeepClone()).ToArray()):new JsonArray();
+   if(receipt?["nativeBodyOwnerEdits"] is JsonArray retained){if(declared.Count>0&&!JsonNode.DeepEquals(declared,retained))throw new InvalidOperationException("Retain the exact original owner definition plan across presentation saves");declared=retained.DeepClone().AsArray();}
+   if(declared.Count>64||declared.Count>0&&(!declared.Any(Extended)||declared.Any(row=>!Local(row))))throw new ArgumentException("Exact bounded original owner definition plan required");return declared;
+  }
+  JsonArray OwnerSources(Dictionary<string,JsonObject> sources,string owner,JsonArray values,bool preparing)
   {
    if(values.Count==0)return new JsonArray();
    string project=request["project"]?.ToString()??throw new InvalidOperationException("Original typed value project context required"),root=Path.GetDirectoryName(Path.GetFullPath(project))!;var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
    var originals=units.DeepClone().AsObject();foreach(var unit in originals)if(unit.Value?["original"] is JsonValue text)unit.Value!["draft"]=text.DeepClone();
    string original=originals[owner]?["draft"]?.ToString()??throw new InvalidOperationException("Original typed value owner required");
    var drafts=new JsonArray(originals.Where(row=>row.Key!=owner&&row.Value?["draft"] is JsonValue source&&source.TryGetValue<string>(out string? body)&&!string.IsNullOrEmpty(body)&&row.Value?["kind"]?.ToString() is "object" or "schema" or "function" or "implementation" or "module" or "category" or "concept" or "enum").Select(row=>(JsonNode)new JsonObject{["id"]=row.Key,["text"]=row.Value!["draft"]!.DeepClone()}).ToArray());
-   // Reuse the full original information validator, including the selected
-   // target/default observations. No caller-provided source paths are trusted.
+   // Replay the complete original owner plan through the same validator,
+   // including field catalogue proofs and explicit compatible value edits. No caller-provided source paths are trusted.
    var candidate=InformationDefinitions.Prepare(new JsonObject{["project"]=project,["manifest"]=originals[ns+"::ProjectManifest"]!["draft"]!.DeepClone(),["id"]=owner,["text"]=original,["drafts"]=drafts,["units"]=originals,["changes"]=values.DeepClone()},formatElement,format);
    var reads=new JsonArray();var owned=sources.Keys.ToHashSet(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
    foreach(var read in candidate["observations"]!.AsArray()){
@@ -246,8 +255,14 @@ internal static class InformationFunctionBodyGuards
   var validatedValueReads=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
   JsonArray Checks(string owner,JsonObject receipt)
   {
-   if(receipt["owner"]?.ToString()!=owner||receipt["version"]?.GetValue<int>()!=3||receipt["readGuards"] is not JsonObject guards)throw new InvalidOperationException("Save the native body group explicitly to bind its original dependencies; input retained");var expected=Sources(false);var values=ValuePlans(receipt["declaration"],receipt);var valueReads=ValueSources(expected,owner,values,false);
-   if(values.Count>0&&(receipt["nativeBodyValues"] is not JsonArray||!JsonNode.DeepEquals(valueReads,receipt["nativeBodyValueReads"]))||values.Count==0&&receipt["nativeBodyValueReads"] is not null)throw new InvalidOperationException("Retain the complete original typed value observation scope; input preserved");
+   if(receipt["owner"]?.ToString()!=owner||receipt["version"]?.GetValue<int>()!=3||receipt["readGuards"] is not JsonObject guards)throw new InvalidOperationException("Save the native body group explicitly to bind its original dependencies; input retained");var expected=Sources(false);var edits=OwnerPlans(receipt["declaration"],receipt);JsonArray valueReads;
+   if(edits.Count>0){
+    valueReads=OwnerSources(expected,owner,edits,false);
+    if(receipt["nativeBodyOwnerEdits"] is not JsonArray||!JsonNode.DeepEquals(valueReads,receipt["nativeBodyOwnerReads"])||receipt["nativeBodyValues"] is not null||receipt["nativeBodyValueReads"] is not null)throw new InvalidOperationException("Retain the complete original owner definition/source plan; input preserved");
+   }else{
+    var values=ValuePlans(receipt["declaration"],receipt);valueReads=OwnerSources(expected,owner,values,false);
+    if(receipt["nativeBodyOwnerReads"] is not null||values.Count>0&&(receipt["nativeBodyValues"] is not JsonArray||!JsonNode.DeepEquals(valueReads,receipt["nativeBodyValueReads"]))||values.Count==0&&receipt["nativeBodyValueReads"] is not null)throw new InvalidOperationException("Retain the complete original typed value observation scope; input preserved");
+   }
    foreach(var read in valueReads){string path=read!["path"]!.ToString();if(validatedValueReads.TryGetValue(path,out var prior)&&!JsonNode.DeepEquals(prior,read))throw new InvalidOperationException("Typed value source versions differ");validatedValueReads[path]=read.DeepClone();}
    var copies=CopyProofs(receipt["declaration"],receipt);
    var nativeFunctions=(receipt["sources"] as JsonObject??new()).Where(source=>source.Value?["kind"]?.ToString()=="function").Select(source=>source.Key).ToHashSet(StringComparer.Ordinal);
@@ -276,8 +291,10 @@ internal static class InformationFunctionBodyGuards
    if(guards.Count!=expected.Count||expected.Keys.Any(path=>guards[path] is not JsonObject row||row.Count!=2||row["path"]?.ToString()!=path||row["hash"] is null||!Token(row["hash"]!.ToString())))throw new InvalidOperationException("Complete original native body source checks are missing or changed; retain the saved group");return new JsonArray(guards.Select(p=>p.Value!.DeepClone()).ToArray());
   }
   if(request["action"]?.ToString()=="prepare"){
-   if(ObservedGroup(request["declaration"])){var values=ValuePlans(request["declaration"]);var sources=Sources(true);var reads=ValueSources(sources,request["declaration"]!["id"]!.ToString(),values,true);return new JsonObject{["required"]=true,["copies"]=CopyProofs(request["declaration"]),["values"]=values,["reads"]=reads,["checks"]=new JsonArray(sources.Values.Select(v=>(JsonNode)v).ToArray())};}
-   string? owner=request["declaration"]?["id"]?.ToString();if(owner is not null&&PresentationOnly(request["declaration"])&&units[owner]?["slotSaveReceipt"] is JsonObject prior&&RetainedSources(owner,prior) is not null&&(ObservedReceipt(owner,prior)||prior["readGuards"] is JsonObject priorGuards&&priorGuards.Count>0))return new JsonObject{["required"]=true,["checks"]=Checks(owner,prior),["values"]=ValuePlans(prior["declaration"],prior),["reads"]=prior["nativeBodyValueReads"]?.DeepClone()??new JsonArray(),["copies"]=CopyProofs(prior["declaration"],prior)};
+   if(ObservedGroup(request["declaration"])){var edits=OwnerPlans(request["declaration"]);var values=edits.Count>0?new JsonArray():ValuePlans(request["declaration"]);var sources=Sources(true);var reads=OwnerSources(sources,request["declaration"]!["id"]!.ToString(),edits.Count>0?edits:values,true);return new JsonObject{["required"]=true,["copies"]=CopyProofs(request["declaration"]),["ownerEdits"]=edits,["values"]=values,["reads"]=reads,["checks"]=new JsonArray(sources.Values.Select(v=>(JsonNode)v).ToArray())};}
+   string? owner=request["declaration"]?["id"]?.ToString();if(owner is not null&&PresentationOnly(request["declaration"])&&units[owner]?["slotSaveReceipt"] is JsonObject prior&&RetainedSources(owner,prior) is not null&&(ObservedReceipt(owner,prior)||prior["readGuards"] is JsonObject priorGuards&&priorGuards.Count>0)){
+    var checks=Checks(owner,prior);var edits=OwnerPlans(prior["declaration"],prior);return new JsonObject{["required"]=true,["checks"]=checks,["ownerEdits"]=edits,["values"]=edits.Count>0?new JsonArray():ValuePlans(prior["declaration"],prior),["reads"]=prior[edits.Count>0?"nativeBodyOwnerReads":"nativeBodyValueReads"]?.DeepClone()??new JsonArray(),["copies"]=CopyProofs(prior["declaration"],prior)};
+   }
    if(owner is not null&&units[owner]?["slotSaveReceipt"] is JsonObject captured&&BoundReadScope(owner,captured))throw new InvalidOperationException("Retain the captured native read scope with an explicit supported plan; all input retained");
    return new JsonObject{["required"]=false,["checks"]=new JsonArray()};
   }
