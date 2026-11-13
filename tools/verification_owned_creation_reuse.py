@@ -9,7 +9,7 @@ from verification_workspace import atomic_json,sha,verify_archive
 SOURCE='abe8a0c268158537b0e77a80af090d3cd6b6d621'
 ARCHIVE='2699cf2059d01681e7ae5f2b2d787dd2c80468fba64801574db8378a730260c8'
 TEST='tests/web/v666_owned_structure.py'
-TEST_SHA='9e97ffecfe92054d92f3ea1b52cffde66c4bacc7c97832a3365740aa1c2a402d'
+TEST_SHA='6bd5ceddaa7825e11db6c23600a825471f7e379acdbe5d0d92831e96f38df37d'
 NAMES={'lf-owned-creation-'+n for n in ['standalone-owned','native','normal','view','storage','guards','api','same-contract','owned-followup','extension-native','extension-normal','extension-guards','extension-late','extension-api']}
 ARG="    parser.add_argument('--reuse-owned-creation',type=Path,help='Fourteen sealed unchanged creation checks after migrating the prior new-child rejection; builds/failed checks/CRLF/packages/restore fresh')\n"
 HOOK="        if args.reuse_owned_creation:\n            if args.suite!='owned-creation':raise ValueError('Owned creation reuse requires its own suite')\n            from verification_owned_creation_reuse import bind\n            bind(repo,args.reuse_owned_creation,commit,inputs,work)\n"
