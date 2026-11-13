@@ -60,3 +60,5 @@ atomic 멤버·graph node라는 정확한 기존 모양만 원래 타입 guard�
 계획이나 새 nativeBody 보관 필드가 있는 그룹은 이 분리로 우회하지 않는다. 타입 guard·
 Review/Confirm·원래 최종 read lease와 C# 변환 의미는 유지한다. 새 opaque/private 그룹
 기능의 완료가 아니라 이미 제공한 단일 흐름의 회복이며, 이 수정 뒤 최종 검사는 전부 다시 수행한다.
+
+이 계약 불변 등록 helper·본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_BODY_REGISTERED.md)을 마쳤다.

@@ -1048,3 +1048,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 이 소유 자식 생성·등록·native 계약 공동 저장 단위의 [최종 신규 41·재사용 14·합계 55 검증과 보관](VALIDATION_V666_OWNED_CREATION.md)을 마쳤다.
 
 [등록 helper와 소유 C# 본문 공동 저장](V666_BODY_REGISTERED.md)은 기존 읽기 전용 등록 receipt·부모/manifest 관측을 계약 불변 두 본문·후속 표시 Save·한 후보/CAS에 결합하는 단위다. opaque/private 명시 계획과 실제 계약 변경 callee/import closure는 별도 고정 잔여다.
+
+이 계약 불변 등록 helper·본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_BODY_REGISTERED.md)을 마쳤다.
