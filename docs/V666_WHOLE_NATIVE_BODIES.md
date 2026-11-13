@@ -48,3 +48,5 @@ callee/import·등록 외부 관측 결합이다. 위 한 흐름의 검증을 �
 타입/문맥 조합을 새 의무로 늘리지 않는다. 기존 정보별 struct·종류 enum·모듈 interface,
 명시 async 전환 전 sync caller 오류·override·권한·배치·원본·백업을 유지하고 main은
 사용자의 검토/merge에 남긴다. M11/M12/M4 전체를 다시 여는 작업으로 표현하지 않는다.
+
+이 whole/native 본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_WHOLE_NATIVE_BODIES.md)을 마쳤다.
