@@ -23,14 +23,26 @@ internal static class InformationFunctionWholeBodies
   var information=Declaration(units,owner);
   foreach(var row in rows){
    string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;
-   if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Any(a=>args[a.Name]?.ToString()!=a.Name))throw new InvalidOperationException("Whole/native groups retain exact public contracts and explicit pin identities");
+   if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["callers"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Any(a=>args[a.Name]?.ToString()!=a.Name))throw new InvalidOperationException("Whole/native groups retain exact public contracts and explicit pin identities");
+   foreach(var caller in mapping["callers"] as JsonObject??new()){
+    var callerPlan=caller.Value?.AsObject()??throw new ArgumentException("Exact original caller plan required");var outputs=FeatureBlueprint.FeatureOutputs(signature).ToArray();
+    if(callerPlan.Count!=5+(callerPlan["outputs"] is null?0:1)||callerPlan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||callerPlan["inputs"] is not JsonObject inputMap||inputMap.Count!=signature.Args.Count(arg=>!arg.IsOut)||signature.Args.Where(arg=>!arg.IsOut).Any(arg=>inputMap[arg.Name]?.ToString()!=arg.Name)||callerPlan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||callerPlan["outputs"] is JsonObject outputMap&&(outputMap.Count!=outputs.Length||outputs.Any(output=>outputMap[output.Name]?.ToString()!=output.Name)))throw new InvalidOperationException("Retain every original caller input/output binding; source-only groups do not rewire consumers");
+   }
    var body=mapping["bodies"]!.AsObject().Single();string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("One explicit owned source per function required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
    if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||implementation.Imports.Count!=0||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"])||!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Retain the exact direct source declaration; callee/import changes require their separate explicit plan");
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
-    if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=graphId+"/node:"+whole["node"]?.ToString()||!InformationFunctionRetained.IsLift(JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject()))throw new InvalidOperationException("Keep the original exact whole-body lift, graph and source receipt");
+    if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=graphId+"/node:"+whole["node"]?.ToString())throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
+    var graph=JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject();
+    if(!InformationFunctionRetained.IsLift(graph)){
+     // Existing retained preparation owns every independent node/local/alias.
+     // This group changes explicit source text only: keep the original native
+     // outputs and positional storage, with no inferred consumer rewrite.
+     var contexts=graph["nodes"]!.AsArray().Where(node=>node?["implementationContext"] is not null||node?["forwardCallerStorage"]?.GetValue<bool>()==true).ToArray();var outputs=FeatureBlueprint.FeatureOutputs(implementation.Signature!).ToArray();
+     if(contexts.Length!=1||contexts[0]?["implementationContext"] is null||contexts[0]?["id"]?.ToString()!=whole["node"]?.ToString()||plan["outputs"] is not JsonObject selectedOutputs||selectedOutputs.Count!=outputs.Length||outputs.Any(output=>selectedOutputs[output.Name]?.ToString()!=output.Name))throw new InvalidOperationException("Explicitly retain each original output of one root context; private/storage or contract changes require their separate plan");
+    }
    }else{
     native=true;if(target.Value.SourceKind!="csharp"||source!=graphId||units[source]?["kind"]?.ToString()!="body")throw new InvalidOperationException("Direct original native source required");
    }
@@ -82,7 +94,7 @@ internal static class InformationFunctionWholeBodies
   if(row?["type"]?.ToString()!="function-edit"||row["id"] is not JsonValue id)return false;
   var saved=plans.SingleOrDefault(p=>p?["id"]?.ToString()==id.ToString());if(saved is null||!JsonNode.DeepEquals(row["signature"],saved["signature"]))return false;
   if(row["mapping"] is not JsonObject mapping)return true;
-  if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],saved["mapping"]!["args"])||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies")))return false;
+  if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],saved["mapping"]!["args"])||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
   if(mapping["bodies"] is not JsonObject bodies||bodies.Count==0)return true;
   var prior=saved["mapping"]!["bodies"]!.AsObject();if(bodies.Count!=prior.Count)return false;
   foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString()))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();a.Remove("hash");a.Remove("text");b.Remove("hash");b.Remove("text");if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();}return true;

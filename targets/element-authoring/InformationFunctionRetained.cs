@@ -46,6 +46,13 @@ internal static class InformationFunctionRetained
   void Rebind(JsonNode? value,string nodeId,JsonObject outputs){if(value is JsonObject o){if(o["node"]?.ToString()==nodeId){string old=o["output"]?.ToString()??"return";string to=outputs[old]?.GetValue<string>()??throw new InvalidOperationException("A removed native output still has a consumer; retain every source");if(to=="return")o.Remove("output");else o["output"]=to;return;}foreach(var p in o)if(p.Key!="constant")Rebind(p.Value,nodeId,outputs);}else if(value is JsonArray a)foreach(var v in a)Rebind(v,nodeId,outputs);}
   foreach(var (nodeId,outputs) in mappings){foreach(var node in graph["nodes"]!.AsArray())if(!coordinated.Contains(node!["id"]!.ToString())&&!created.Contains(node["id"]!.ToString()))foreach(var binding in node["arguments"]!.AsObject())if(!currentSlots.Contains(node["id"]+"#"+binding.Key))Rebind(binding.Value,nodeId,outputs);foreach(var local in graph["locals"] as JsonArray??new())Rebind(local!["source"],nodeId,outputs);foreach(var exit in graph["exits"]!.AsObject())if(!currentSlots.Contains("$exit:"+exit.Key+"#value"))Rebind(exit.Value,nodeId,outputs);}
   if(requested.Signature!.Args.Any(a=>a.IsRef||a.IsOut)&&!FeatureBlueprint.SupportsExternalRefs(graph["profile"]?.ToString()))graph["profile"]=FeatureBlueprint.ExternalRefsProfile;
+  // Source-only plans must not normalize the spelling of an already valid
+  // graph. Run the original root/output/binding validation above, then retain
+  // exact authored bytes when its sole change is an added empty output exit.
+  if(JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(one.Signature!))&&original.Signature!.Args.All(arg=>remap[arg.Name]?.ToString()==arg.Name)&&bodyPlans.Count==sources.Count&&implementationPlans.Count==0&&outputPlans.Count==0&&graphPlans.Count==0&&mappings.All(mapping=>mapping.Outputs.All(output=>output.Value?.ToString()==output.Key))){
+   var unchanged=graph.DeepClone().AsObject();foreach(var exit in graph["exits"]!.AsObject())if(exit.Value is null&&!originalGraph["exits"]!.AsObject().ContainsKey(exit.Key)&&FeatureBlueprint.FeatureOutputs(requested.Signature!).Any(output=>output.Name==exit.Key))unchanged["exits"]!.AsObject().Remove(exit.Key);
+   if(JsonNode.DeepEquals(unchanged,originalGraph))graph=originalGraph.DeepClone().AsObject();
+  }
   return new JsonObject{["function"]=format(requested),["implementation"]=format(one),["graph"]=graph,["sources"]=sources};
  }
 }
