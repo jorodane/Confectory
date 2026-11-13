@@ -49,3 +49,5 @@ IME/GPU/audio·전체 UI 검증을 구분한다. 과거 초기 빈 화면 원인
 등록 외부 관측 결합이다. 이번 root retained source-only 경로를 그 전체 완료로 표현하지
 않는다. 정보별 struct·종류 enum·모듈 interface와 명시 async 전환 전 sync caller 오류를
 유지한다. 원본·latest/rollback·증거와 기존 정리 범위를 보존하고 main은 사용자 검토/merge에 남긴다.
+
+이 retained/native 본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_RETAINED_BODY_GROUP.md)을 마쳤다.
