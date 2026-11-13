@@ -36,3 +36,5 @@ Review/Confirm·최종 CAS 및 serialization/receipt 버전을 유지한다. mig
 초기 간헐 빈 화면 원인은 여전히 미확정이다. 구 Reference reader 제약과 실제 Windows/WebView2·기기·OS IME·전체 UI 전수 미검증도 구별한다.
 고정7/8행의 다른 복합 구조·opaque/private 명시 계획·native callee 및 기존 import/등록 외부 의존성 결합은 같은 원래 잔여다.
 M11/M12/M4를 회귀 없이 다시 열지 않으며 main은 사용자 검토/merge에 남긴다.
+
+이 정보 소유 영역 Undo/Redo 경계 단위의 [최종 신규 39·재사용0 검증과 보관](VALIDATION_V666_OWNER_HISTORY.md)을 마쳤다.
