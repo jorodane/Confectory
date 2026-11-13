@@ -28,3 +28,5 @@ grant/credential·과금·migration은 없다. 정보별 struct·종류 enum·�
 전환 전 sync caller 오류, 공개 override·권한·authored layout·Review/Confirm·최종 CAS를 유지한다.
 구 reader downgrade와 실제 Windows/WebView2·기기·OS IME·GPU/audio·전체 UI 전수는 완료로
 세지 않으며 초기 빈 화면 원인은 미확정이다. main은 사용자 검토·merge 대상으로 유지한다.
+
+이 새 복합 속성·native 계약 공동 저장 단위의 [최종 신규 44·재사용0 검증과 보관](VALIDATION_V666_COMPOUND_CREATION.md)을 마쳤다.
