@@ -13,3 +13,5 @@
 원래64행/2..8 native 계획 제한·출처/권한·공개 override·authored layout·Review/Confirm·최종 CAS, 정보별 struct·종류 enum·모듈 interface, sync caller의 명시 async 전환 전 오류 정책을 유지한다. C#은 선택한 명시 계획만 바꾼다. 실제 Windows/WebView2·기기·OS IME·전체 UI 전수 및 구 reader downgrade를 보장하지 않는다. 초기 빈 화면 원인은 미확정이다.
 
 남은 다른 복합 구조/새 정의·소유 자식 결합, opaque/private 명시 C# 계획, 선택 소유 callee·기존 import 변경 그룹과 등록 외부 읽기 원본 결합은 별도다. 외부 원본은 계속 읽기 전용이며 M11/M12/M4를 회귀 없이 다시 열지 않는다.
+
+이 기존 필드 정의·native 계약 공동 저장 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_FIELD_CONTRACTS.md)을 마쳤다.
