@@ -40,3 +40,5 @@ field/typed-value/scalar receipt·사용처 보호도 회귀 검증한다. root 
 사용자 검토/merge에 남긴다. 같은 게시 세대의 authoring/runtime을 사용하며 구 reader의
 새 미확정 생성 초안 downgrade는 보장하지 않는다. 실제 Windows/WebView2·물리 기기·
 OS IME·GPU/audio·전체 UI 전수는 자동화와 구분하며 초기 빈 화면 원인은 미확정이다.
+
+이 소유 자식 생성·등록·native 계약 공동 저장 단위의 [최종 신규 41·재사용 14·합계 55 검증과 보관](VALIDATION_V666_OWNED_CREATION.md)을 마쳤다.
