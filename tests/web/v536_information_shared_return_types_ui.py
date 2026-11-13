@@ -142,14 +142,17 @@ try:
             f.page.screenshot(path=str(f.case/('shared-return-mapping-'+str(index)+'.png')))
             m.locator('[data-abi-remap-accept]').click();expect(m).to_have_count(0);f.idle()
         held=pending();assert len(held)==2
-        undo_trace=[held]
-        for _ in range(getattr(x,'undo_steps',2)):
-            f.owner().locator('[data-own-functions-toggle]').press('Control+z');undo_trace.append(pending())
-        (f.case/'shared-function-undo-trace.json').write_text(json.dumps(undo_trace,ensure_ascii=False,indent=2))
-        assert len(pending())==1
-        if hasattr(x,'undo_steps'):assert pending()[0][1]['id']==x.functions[0]
-        for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
-        assert pending()==held
+        if hasattr(x,'validate_history'):
+            x.validate_history()
+        else:
+            undo_trace=[held]
+            for _ in range(getattr(x,'undo_steps',2)):
+                f.owner().locator('[data-own-functions-toggle]').press('Control+z');undo_trace.append(pending())
+            (f.case/'shared-function-undo-trace.json').write_text(json.dumps(undo_trace,ensure_ascii=False,indent=2))
+            assert len(pending())==1
+            if hasattr(x,'undo_steps'):assert pending()[0][1]['id']==x.functions[0]
+            for _ in range(getattr(x,'undo_steps',2)):f.owner().locator('[data-own-functions-toggle]').press('Control+y')
+            assert pending()==held
         preserved();restart(1);assert pending()==held;preserved()
         f.checked('두 원본 상세창의 취소·명시 대응·Undo/Redo·미저장 cold는 두 함수 입력과 exact64 값을 보존한다')
         if x.mode=='cancel':

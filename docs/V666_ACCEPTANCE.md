@@ -1022,3 +1022,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Scalar 속성 구조·값과 native 계약·본문 공동 저장](V666_SCALAR_OWNER_CONTRACTS.md)은 같은 정보 창의 명시 생성/삭제·root 값/표시 편집을 기존 선언 검증과 원래 읽기 증거·한 후보/CAS에 결합한다. 다른 복합 구조·opaque/private·외부 의존성 및 구 reader/실기기/전체 UI 잔여를 구별한다.
 
 이 scalar 속성 구조·native 계약 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_SCALAR_OWNER_CONTRACTS.md)을 마쳤다.
+
+[정보 소유 영역의 거절된 Undo와 브라우저 입력 기록 분리](V666_OWNER_HISTORY.md)는 버튼에 전달된 키가 다른 scalar 입력의 native history로 흐르는 재현 결함을 다룬다. 함수·속성·헤더의 기존 snapshot/소유권/저장 보호와 텍스트 자체 Undo·전역 Ctrl+Y 정책을 유지한다. 다른 편집기·초기 빈 화면·실제 기기 및 고정7/8행 잔여는 구별한다.
