@@ -36,3 +36,5 @@ stale/foreign/중첩/중복·지원 밖 정의·부적합 기본값과 불완전
 남은 다른 복합 계약·속성 생성/삭제 및 구조 편집, opaque/private 명시 C# 계획,
 선택 native 의존성과 기존 import/등록 외부 원본의 closure는 같은 고정7/8행에 유지한다.
 타입·문맥의 가능한 모든 조합을 새 필수 항목으로 늘리지 않으며 M11/M12/M4는 회귀 없이 다시 열지 않는다.
+
+이 scalar 속성·native 계약 공동 저장 단위의 [최종 신규 50·재사용0 검증과 보관](VALIDATION_V666_NATIVE_SCHEMA_CONTRACTS.md)을 마쳤다.
