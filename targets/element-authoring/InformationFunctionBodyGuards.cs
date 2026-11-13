@@ -72,10 +72,15 @@ internal static class InformationFunctionBodyGuards
   bool OwnedFollowup(string owner,JsonNode? row)
   {
    if(!InformationFunctionBodyBatch.OwnerStructureEdit(row)||units[owner]?["slotSaveReceipt"]?["nativeBodyOwnerEdits"] is not JsonArray saved)return false;
-   var prior=saved.SingleOrDefault(value=>InformationFunctionBodyBatch.OwnerStructureEdit(value)&&value!["name"]?.ToString()==row!["name"]?.ToString());
-   return prior is not null&&new[]{"name","schema","contract","cardinality"}.All(key=>JsonNode.DeepEquals(prior[key],row![key]))&&JsonNode.DeepEquals(OwnedShape(prior["tree"]!),OwnedShape(row!["tree"]!));
+   var prior=saved.SingleOrDefault(value=>InformationFunctionBodyBatch.OwnerOwnedEdit(value)&&value!["name"]?.ToString()==row!["name"]?.ToString());
+   return prior is not null&&OwnedIdentity(owner,row!,prior)&&JsonNode.DeepEquals(OwnedShape(prior["tree"]!),OwnedShape(row!["tree"]!));
   }
-  bool SameOwnedIntent(JsonNode row,JsonNode prior)=>new[]{"name","displayName","icon","schema","contract","cardinality","tree"}.All(key=>JsonNode.DeepEquals(row[key],prior[key]))&&SameOwnedValue(row,prior);
+  bool OwnedIdentity(string owner,JsonNode row,JsonNode prior)
+  {
+   if(!InformationFunctionBodyBatch.OwnerNewOwnedEdit(prior))return new[]{"name","schema","contract","cardinality"}.All(key=>JsonNode.DeepEquals(prior[key],row[key]));
+   return InformationFunctionBodyBatch.OwnerStructureEdit(row)&&row["name"]?.ToString()==prior["name"]?.ToString()&&row["schema"]?.ToString()==owner&&row["cardinality"]?.ToString()=="single"&&row["contract"]?["type"]?.ToString()==OwnedInformationDefinitions.ChildId(owner,new[]{prior["name"]!.ToString()});
+  }
+  bool SameOwnedIntent(string owner,JsonNode row,JsonNode prior)=>OwnedIdentity(owner,row,prior)&&new[]{"displayName","icon","tree"}.All(key=>JsonNode.DeepEquals(row[key],prior[key]))&&SameOwnedValue(row,prior);
   bool RetainedLocalOnly(JsonNode? declaration)
   {
    if(declaration?["raw"] is not null||declaration?["id"] is not JsonValue owner||declaration?["changes"] is not JsonArray changes||changes.Count is <1 or >64)return false;
@@ -102,7 +107,10 @@ internal static class InformationFunctionBodyGuards
    if(InformationFunctionBodyBatch.Edits(changes) is {} group)return group;
    var edits=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();return changes.Count<=3&&edits.Length==1&&InformationFunctionBodyBatch.BodyEdit(edits[0])&&TypedFunction(edits[0]!["id"]!.ToString())?edits:null;
   }
-  HashSet<string> OwnedSchemas(string owner,JsonObject? receipt)=>receipt is null?new(StringComparer.Ordinal):OwnerPlans(receipt["declaration"],receipt).Where(InformationFunctionBodyBatch.OwnerStructureEdit).SelectMany(row=>row!["sources"]!.AsObject().Select(source=>source.Key)).Where(id=>id.StartsWith(owner+"_Properties_",StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
+  HashSet<string> OwnedSchemas(string owner,JsonObject? receipt)
+  {
+   if(receipt is null)return new(StringComparer.Ordinal);var plans=OwnerPlans(receipt["declaration"],receipt);var ids=plans.Where(InformationFunctionBodyBatch.OwnerStructureEdit).SelectMany(row=>row!["sources"]!.AsObject().Select(source=>source.Key)).Where(id=>id.StartsWith(owner+"_Properties_",StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);ids.UnionWith(OwnedInformationDefinitions.CreatedSchemas(owner,plans));return ids;
+  }
   bool NativeGroup(string owner)
   {
    if(units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count>64)return false;
@@ -234,8 +242,8 @@ internal static class InformationFunctionBodyGuards
   }
   JsonArray OwnerPlans(JsonNode? declaration,JsonObject? receipt=null)
   {
-   bool Extended(JsonNode? row)=>(InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row)||InformationFunctionBodyBatch.OwnerStructureEdit(row))&&!InformationFunctionBodyBatch.ScalarOwnerEdit(row);
-   bool Local(JsonNode? row)=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)||InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row)||InformationFunctionBodyBatch.OwnerStructureEdit(row);
+   bool Extended(JsonNode? row)=>(InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row)||InformationFunctionBodyBatch.OwnerOwnedEdit(row))&&!InformationFunctionBodyBatch.ScalarOwnerEdit(row);
+   bool Local(JsonNode? row)=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)||InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row)||InformationFunctionBodyBatch.OwnerOwnedEdit(row);
    var changes=declaration?["changes"] as JsonArray??new();
    var declared=changes.Any(Extended)?new JsonArray(changes.Where(row=>!InformationFunctionBodyBatch.BodyPlan(row)).Select(row=>row!.DeepClone()).ToArray()):new JsonArray();
    if(receipt?["nativeBodyOwnerEdits"] is JsonArray retained){if(declared.Count>0&&!JsonNode.DeepEquals(declared,retained)){
@@ -243,7 +251,7 @@ internal static class InformationFunctionBodyGuards
      // plan still owns the original physical reads. Compare the full intent,
      // never adopt its newer schema hash or child source versions.
      var owned=changes.Where(InformationFunctionBodyBatch.OwnerStructureEdit).ToArray();bool metadata=owned.Length>0&&changes.All(row=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.OwnerStructureEdit(row)||row?["type"]?.ToString()=="function-edit"&&(row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Count==0));
-     if(!metadata||owned.Any(row=>retained.SingleOrDefault(candidate=>InformationFunctionBodyBatch.OwnerStructureEdit(candidate)&&candidate!["name"]?.ToString()==row!["name"]?.ToString())is not JsonNode captured||!SameOwnedIntent(row!,captured)))throw new InvalidOperationException("Retain the exact original owner definition plan across presentation saves");
+     if(!metadata||owned.Any(row=>retained.SingleOrDefault(candidate=>InformationFunctionBodyBatch.OwnerOwnedEdit(candidate)&&candidate!["name"]?.ToString()==row!["name"]?.ToString())is not JsonNode captured||!SameOwnedIntent(declaration!["id"]!.ToString(),row!,captured)))throw new InvalidOperationException("Retain the exact original owner definition plan across presentation saves");
     }declared=retained.DeepClone().AsArray();}
    if(declared.Count>64||declared.Count>0&&(!declared.Any(Extended)||declared.Any(row=>!Local(row))))throw new ArgumentException("Exact bounded original owner definition plan required");return declared;
   }
@@ -257,11 +265,18 @@ internal static class InformationFunctionBodyGuards
    // Replay the complete original owner plan through the same validator,
    // including field catalogue proofs and explicit compatible value edits. No caller-provided source paths are trusted.
    var candidate=InformationDefinitions.Prepare(new JsonObject{["project"]=project,["manifest"]=originals[ns+"::ProjectManifest"]!["draft"]!.DeepClone(),["id"]=owner,["text"]=original,["drafts"]=drafts,["units"]=originals,["changes"]=values.DeepClone()},formatElement,format);
-   if(values.Any(InformationFunctionBodyBatch.OwnerStructureEdit)){
-    if(candidate["additions"]!.AsArray().Count!=0||candidate["manifest"]!.ToString()!=originals[ns+"::ProjectManifest"]!["draft"]!.ToString())throw new InvalidOperationException("Retain the existing owned schema footprint; child creation requires a separate explicit review");
+   if(values.Any(InformationFunctionBodyBatch.OwnerOwnedEdit)){
+    var created=OwnedInformationDefinitions.CreatedSchemas(owner,values);var additions=candidate["additions"]!.AsArray().ToDictionary(row=>row!["id"]!.ToString(),row=>row!.AsObject(),StringComparer.Ordinal);
+    if(!created.SetEquals(additions.Keys)||created.Count==0&&candidate["manifest"]!.ToString()!=originals[ns+"::ProjectManifest"]!["draft"]!.ToString())throw new InvalidOperationException("Retain exactly the original explicit owned creation or update footprint");
     var expected=candidate["updates"]!.AsArray().ToDictionary(row=>row!["id"]!.ToString(),row=>row!.AsObject(),StringComparer.Ordinal);var allowed=values.Where(InformationFunctionBodyBatch.OwnerStructureEdit).SelectMany(row=>row!["sources"]!.AsObject().Select(source=>source.Key)).ToHashSet(StringComparer.Ordinal);
     if(expected.Keys.Any(id=>!allowed.Contains(id)||originals[id]?["kind"]?.ToString()!="schema"))throw new InvalidOperationException("Keep each original owned child identity and source proof");
-    if(proof is not null){var actual=proof.Where(source=>source.Key!=owner&&source.Value?["kind"]?.ToString()=="schema").ToDictionary(source=>source.Key,source=>source.Value!,StringComparer.Ordinal);string Digest(JsonObject row)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(row["text"]!.ToString()));if(actual.Any(source=>!expected.TryGetValue(source.Key,out var row)||source.Value["hash"]?.ToString()!=Digest(row))||expected.Any(source=>Digest(source.Value)!=source.Value["hash"]?.ToString()&&!actual.ContainsKey(source.Key)))throw new InvalidOperationException("Retain the exact changed schemas from the complete original owned plan; input preserved");}
+    foreach(var addition in additions){string id=addition.Key,path="elements/"+id[(ns.Length+2)..]+".celem";if(addition.Value["kind"]?.ToString()!="schema"||addition.Value["path"]?.ToString()!=path||OwnedInformationDefinitions.Ownership(new JsonObject{["owner"]=owner,["ownerText"]=candidate["text"]!.DeepClone(),["id"]=id,["text"]=addition.Value["text"]!.DeepClone(),["path"]=path})["owned"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Exact original owned creation proof required");
+     if(proof is not null&&units[id] is null)throw new InvalidOperationException("Retain every created schema unit in its captured group");
+     if(units[id] is JsonNode unit&&(unit["kind"]?.ToString()!="schema"||unit["path"]?.ToString()!=path||unit["baseline"]?.ToString()!="missing"||unit["original"]?.ToString()!=""||unit["creationOwner"]?.ToString()!=owner))throw new InvalidOperationException("Retain the missing baseline and exact owner of each created child");
+     if(!preparing&&proof is not null&&JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(units[id]!["draft"]!.ToString()))!=proof[id]?["hash"]?.ToString())throw new InvalidOperationException("Created schema differs from its exact replayed source; retain input");
+     if(sources.TryGetValue(path,out var prior)){if(preparing&&prior["hash"]?.ToString()!="missing")throw new InvalidOperationException("Created child destination baseline changed; retain input");}else sources[path]=new JsonObject{["path"]=path,["hash"]=preparing?"missing":null};
+    }
+    if(proof is not null){var actual=proof.Where(source=>source.Key!=owner&&source.Value?["kind"]?.ToString()=="schema").ToDictionary(source=>source.Key,source=>source.Value!,StringComparer.Ordinal);string Digest(JsonObject row)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(row["text"]!.ToString()));var all=expected.Concat(additions).ToDictionary(row=>row.Key,row=>row.Value,StringComparer.Ordinal);if(actual.Any(source=>!all.TryGetValue(source.Key,out var row)||source.Value["hash"]?.ToString()!=Digest(row))||expected.Any(source=>Digest(source.Value)!=source.Value["hash"]?.ToString()&&!actual.ContainsKey(source.Key))||created.Any(id=>!actual.ContainsKey(id))||created.Count>0&&(proof[ns+"::ProjectManifest"]?["hash"]?.ToString()!=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(candidate["manifest"]!.ToString()))||proof[ns+"::ProjectManifest"]?["hash"]?.ToString()!=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(units[ns+"::ProjectManifest"]!["draft"]!.ToString()))))throw new InvalidOperationException("Retain the exact replayed owned schemas and creation registration; input preserved");}
    }
    var reads=new JsonArray();var owned=sources.Keys.ToHashSet(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
    foreach(var read in candidate["observations"]!.AsArray()){
@@ -289,6 +304,7 @@ internal static class InformationFunctionBodyGuards
   {
    if(receipt["owner"]?.ToString()!=owner||receipt["version"]?.GetValue<int>()!=3||receipt["readGuards"] is not JsonObject guards)throw new InvalidOperationException("Save the native body group explicitly to bind its original dependencies; input retained");var expected=Sources(false);var edits=OwnerPlans(receipt["declaration"],receipt);JsonArray valueReads;
    if(edits.Count>0){
+    if(edits.Any(InformationFunctionBodyBatch.OwnerOwnedEdit)&&RetainedSources(owner,receipt)is null)throw new InvalidOperationException("Retain the complete captured native/owned creation group before review");
     valueReads=OwnerSources(expected,owner,edits,false,receipt["sources"] as JsonObject);
     if(receipt["nativeBodyOwnerEdits"] is not JsonArray||!JsonNode.DeepEquals(valueReads,receipt["nativeBodyOwnerReads"])||receipt["nativeBodyValues"] is not null||receipt["nativeBodyValueReads"] is not null)throw new InvalidOperationException("Retain the complete original owner definition/source plan; input preserved");
    }else{
@@ -331,8 +347,8 @@ internal static class InformationFunctionBodyGuards
      var drafts=new JsonArray(units.Where(row=>row.Key!=owner&&row.Value?["draft"] is JsonValue source&&source.TryGetValue<string>(out string? body)&&!string.IsNullOrEmpty(body)&&row.Value?["kind"]?.ToString() is "object" or "schema" or "function" or "implementation" or "module" or "category" or "concept" or "enum").Select(row=>(JsonNode)new JsonObject{["id"]=row.Key,["text"]=row.Value!["draft"]!.DeepClone()}).ToArray());
      var fresh=InformationDefinitions.Prepare(new JsonObject{["project"]=request["project"]!.DeepClone(),["manifest"]=manifest,["id"]=owner,["text"]=text,["drafts"]=drafts,["units"]=units.DeepClone(),["changes"]=current.DeepClone()},formatElement,format);
      if(fresh["additions"]!.AsArray().Count!=0||fresh["manifest"]!.ToString()!=manifest)throw new InvalidOperationException("Owned value/presentation preserves every original source member and registration");
-     foreach(var row in current.Where(InformationFunctionBodyBatch.OwnerStructureEdit)){var original=edits.Single(value=>InformationFunctionBodyBatch.OwnerStructureEdit(value)&&value!["name"]?.ToString()==row!["name"]?.ToString())!;foreach(string key in new[]{"tree","valueJson","displayName","icon"})original[key]=row![key]!.DeepClone();}
-     var proof=new JsonObject();foreach(var update in fresh["updates"]!.AsArray())if(units[update!["id"]!.ToString()]?["kind"]?.ToString()=="schema")proof[update["id"]!.ToString()]=new JsonObject{["kind"]="schema",["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(update["text"]!.ToString()))};
+     foreach(var row in current.Where(InformationFunctionBodyBatch.OwnerStructureEdit)){var original=edits.Single(value=>InformationFunctionBodyBatch.OwnerOwnedEdit(value)&&value!["name"]?.ToString()==row!["name"]?.ToString())!;foreach(string key in new[]{"tree","valueJson","displayName","icon"})original[key]=row![key]!.DeepClone();}
+     var proof=new JsonObject{[ns+"::ProjectManifest"]=new JsonObject{["kind"]="project",["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(manifest))}};foreach(var update in fresh["updates"]!.AsArray())if(units[update!["id"]!.ToString()]?["kind"]?.ToString()=="schema")proof[update["id"]!.ToString()]=new JsonObject{["kind"]="schema",["hash"]=JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(update["text"]!.ToString()))};
      var originalChecks=checks.ToDictionary(row=>row!["path"]!.ToString(),row=>row!,StringComparer.Ordinal);var sources=Sources(false);foreach(var source in sources){if(!originalChecks.TryGetValue(source.Key,out var observed))throw new InvalidOperationException("Original owned source scope missing; retain input");source.Value["hash"]=observed["hash"]!.DeepClone();}var nextReads=OwnerSources(sources,owner,edits,true,proof);if(sources.Count!=checks.Count||checks.Any(row=>!JsonNode.DeepEquals(sources.GetValueOrDefault(row!["path"]!.ToString()),row))||!JsonNode.DeepEquals(nextReads,reads))throw new InvalidOperationException("Owned value/presentation cannot advance the captured native read scope; all input retained");reads=nextReads;
     }
     return new JsonObject{["required"]=true,["checks"]=checks,["ownerEdits"]=edits,["values"]=edits.Count>0?new JsonArray():ValuePlans(prior["declaration"],prior),["reads"]=reads,["copies"]=CopyProofs(prior["declaration"],prior)};

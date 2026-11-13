@@ -37,3 +37,5 @@ cold·늦은 입력/명시 후속 Save·peer 경합·Review 뒤 source 변경, L
 이번 자동화와 구분하며 초기 빈 화면 원인은 미확정이다.
 
 이 기존 소유 자식 구조·native 계약 단위의 [최종 신규 48·재사용0 검증과 보관](VALIDATION_V666_OWNED_STRUCTURE.md)을 마쳤다.
+
+[소유 자식 생성·등록과 함수 계획 공동 저장](V666_OWNED_CREATION.md)은 새 소유 root와 기존 트리의 새 자식 추가라는 두 원래 흐름을 원래 출처/missing 기준·생성 소유권·한 후보/CAS에 결합한다. opaque/private 계획과 callee/import·등록 외부 관측은 별도 고정 잔여다.

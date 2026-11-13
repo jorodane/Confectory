@@ -9,7 +9,7 @@ internal static class OwnedInformationDefinitions
 {
  internal const string Marker="editorOwnedDefinition";
  static string Hash(string s)=>JsonData.HashBytes(Encoding.UTF8.GetBytes(s));
- static string ChildId(string owner,IEnumerable<string> path)=>owner+"_Properties_"+Hash(JsonSerializer.Serialize(path.ToArray()))[..24];
+ internal static string ChildId(string owner,IEnumerable<string> path)=>owner+"_Properties_"+Hash(JsonSerializer.Serialize(path.ToArray()))[..24];
  static string Tag(string owner,IEnumerable<string> path)=>JsonSerializer.Serialize(new object[]{"owned-nested-v1",owner,path.ToArray()});
  static bool Marked(Element schema,string owner,string[] path)=>schema.Kind=="schema"&&schema.Parent is null&&schema.Id==ChildId(owner,path)&&schema.Values.TryGetValue(Marker,out var tag)&&tag.Value.ValueKind==JsonValueKind.String&&tag.Value.GetString()==Tag(owner,path);
  internal static bool PrivateSchema(Element schema)
@@ -21,6 +21,17 @@ internal static class OwnedInformationDefinitions
  static string Icon(Element e,string key){if(!e.Values.TryGetValue("editorFieldIcon_"+key,out var v))return "";if(v.Value.ValueKind!=JsonValueKind.String)throw new ArgumentException("Unknown owned icon metadata preserved");string value=v.Value.GetString()!;DeclarationAuthoring.PresentationIcon(value,true);return value;}
  static void Exact(JsonObject row,params string[] names){if(row.Count!=names.Length||row.Any(p=>!names.Contains(p.Key,StringComparer.Ordinal)))throw new ArgumentException("Exact owned definition required");}
  internal static bool Has(JsonArray changes)=>changes.Any(c=>c?["type"]?.ToString()=="owned-definition");
+ // Membership discovery only. Authority, exact declarations and registration
+ // are subsequently replayed through Prepare and the existing creation proof.
+ internal static HashSet<string> CreatedSchemas(string owner,IEnumerable<JsonNode?> changes)
+ {
+  var ids=new HashSet<string>(StringComparer.Ordinal);int fields=0;
+  foreach(var row in changes.Where(InformationFunctionBodyBatch.OwnerOwnedEdit)){
+   var known=row!["sources"]!.AsObject().Select(source=>source.Key).ToHashSet(StringComparer.Ordinal);Walk(row["tree"]!.AsObject(),new[]{row["name"]!.GetValue<string>()},0,known);
+  }
+  return ids;
+  void Walk(JsonObject tree,string[] path,int depth,HashSet<string> known){if(depth>8||tree.Count!=1||tree["fields"] is not JsonArray rows||rows.Count>64||ids.Count>128)throw new ArgumentException("Exact bounded created owned tree required");if(!known.Contains(ChildId(owner,path))&&!ids.Add(ChildId(owner,path)))throw new ArgumentException("Distinct created owned identity required");foreach(var row in rows){if(++fields>128)throw new ArgumentException("Created owned field budget");if(row?["definition"]?["kind"]?.ToString()=="owned")Walk(row["children"]!.AsObject(),path.Append(row["key"]!.GetValue<string>()).ToArray(),depth+1,known);}}
+ }
  internal static JsonObject Ownership(JsonObject request)
  {
   string owner=request["owner"]!.GetValue<string>(),id=request["id"]!.GetValue<string>();var schema=new Parser(request["text"]!.GetValue<string>(),"<owned-creation>").ParseElement();if(!schema.Values.TryGetValue(Marker,out var marker))return new(){["owned"]=false};
@@ -64,7 +75,8 @@ internal static class OwnedInformationDefinitions
   var before=Inspect(original,manifest,drafts,true);Valid(before);var model=before["schemaModel"]!.AsObject();var names=own.Select(r=>r["name"]!.GetValue<string>()).ToHashSet(StringComparer.Ordinal);if(names.Count!=own.Length)throw new ArgumentException("Distinct owned root fields required");
   var rest=new JsonArray(changes.Where(c=>c?["type"]?.ToString()!="owned-definition").Select(c=>c!.DeepClone()).ToArray());if(rest.Any(c=>names.Contains(c?["path"]?[0]?.ToString()??c?["name"]?.ToString()??"")))throw new ArgumentException("Resolve overlapping root definition/value input together");
   bool bodyGroup=rest.Any(c=>c?["type"]?.ToString()=="function-edit"&&c["mapping"]?["bodies"] is JsonObject bodies&&bodies.Count>0);
-  if(bodyGroup&&(InformationFunctionBodyBatch.NativeChanges(rest) is null||own.Any(row=>!InformationFunctionBodyBatch.OwnerStructureEdit(row))))throw new InvalidOperationException("Review existing owned child structures with a complete explicit native group; retain creations, conversions and other body plans for separate review");
+  var createdSchemas=CreatedSchemas(id,own);
+  if(bodyGroup&&(InformationFunctionBodyBatch.NativeChanges(rest) is null||!own.All(InformationFunctionBodyBatch.OwnerOwnedEdit)||createdSchemas.Count>0&&owner.Kind!="schema"))throw new InvalidOperationException("Review one complete new or existing owned tree group with explicit native plans; retain conversions and other body plans separately");
   var ordinaryRequest=request.DeepClone().AsObject();ordinaryRequest["changes"]=rest;var result=rest.Count==0?new JsonObject{["text"]=original,["manifest"]=manifest,["additions"]=new JsonArray(),["updates"]=new JsonArray(),["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false}:ordinary(ordinaryRequest);
   owner=new Parser(result["text"]!.ToString(),"<owned-candidate>").ParseElement();registration=new Parser(result["manifest"]!.ToString(),"<owned-registration-candidate>").ParseManifest();var additions=result["additions"]!.AsArray();var updates=result["updates"]!.AsArray();var nextDrafts=drafts.DeepClone().AsArray();foreach(var u in updates)Overlay(u!["id"]!.ToString(),u["text"]!.ToString());
   if(!bodyGroup&&(result["linkedUpdates"] as JsonArray??new()).Any(u=>u?["kind"]?.ToString() is "body" or "blueprint" or "blueprint-node"))throw new InvalidOperationException("Keep the complete explicit native body plan while composing owned structures; other source input is retained");
@@ -92,7 +104,7 @@ internal static class OwnedInformationDefinitions
    string json=row["valueJson"]!.GetValue<string>();if(json.Length>65536)throw new ArgumentException("Owned compound value budget");using var value=JsonDocument.Parse(json);if(owner.Kind=="schema")InformationDefaults.Set(owner,key,SchemaContracts.FromTransport(value.RootElement,id));else SchemaContracts.SetData(owner,key,value.RootElement);
    if(rootId!=id)Store(rootSchema);
   }
-  string text=DeclarationTextMerge.Merge(result["text"]!.ToString(),format(owner),result["text"]!.ToString(),format);string finalManifest=DeclarationTextMerge.MergeManifest(result["manifest"]!.ToString(),formatManifest(registration),formatManifest);if(bodyGroup&&(additions.Count>0||finalManifest!=manifest))throw new InvalidOperationException("Save and review owned child creation separately from this existing native group; all input retained");var after=Inspect(text,finalManifest,nextDrafts);Valid(after);
+  string text=DeclarationTextMerge.Merge(result["text"]!.ToString(),format(owner),result["text"]!.ToString(),format);string finalManifest=DeclarationTextMerge.MergeManifest(result["manifest"]!.ToString(),formatManifest(registration),formatManifest);if(bodyGroup&&(!createdSchemas.SetEquals(additions.Select(row=>row!["id"]!.ToString()))||createdSchemas.Count==0&&finalManifest!=manifest))throw new InvalidOperationException("Retain exactly the explicitly created child tree and registration");var after=Inspect(text,finalManifest,nextDrafts);Valid(after);
   var observations=new SortedDictionary<string,JsonNode>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);foreach(var o in before["observations"]!.AsArray().Concat(result["observations"]!.AsArray()).Concat(after["observations"]!.AsArray())){string path=o!["path"]!.ToString();if(observations.TryGetValue(path,out var old)&&!JsonNode.DeepEquals(old,o))throw new InvalidOperationException("Owned source changed during candidate validation");observations[path]=o.DeepClone();}foreach(var o in observations)if(Hash(Read(o.Key))!=o.Value["hash"]!.ToString())throw new InvalidOperationException("Owned source changed after validation");
   result["text"]=text;result["manifest"]=finalManifest;result["observations"]=new JsonArray(observations.Values.ToArray());return result;
   string Current(string schema)=>nextDrafts.Single(d=>d!["id"]!.ToString()==schema)!["text"]!.ToString();
