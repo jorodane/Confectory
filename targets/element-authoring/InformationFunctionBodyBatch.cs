@@ -110,13 +110,22 @@ internal static class InformationFunctionBodyBatch
   bool Text(JsonNode? node)=>node is JsonValue text&&text.TryGetValue<string>(out string? s)&&!string.IsNullOrEmpty(s);
   return value.Count==(value.ContainsKey("icon")?7:6)&&value.All(p=>p.Key is "type" or "name" or "displayName" or "contract" or "sources" or "valueJson" or "icon")&&Text(value["name"])&&Text(value["displayName"])&&Text(value["valueJson"])&&(!value.ContainsKey("icon")||value["icon"] is JsonValue icon&&icon.TryGetValue<string>(out _))&&value["contract"] is JsonObject shape&&shape.Count==3&&shape["kind"]?.ToString()=="compound"&&shape["cardinality"]?.ToString()=="single"&&Text(shape["type"])&&value["sources"] is JsonObject;
  }
+ // Existing directly owned child trees keep their complete original proof.
+ // Classification grants no schema authority: the original owned validator
+ // still proves markers, owner/path identity, exclusive uses, values and budget.
+ internal static bool OwnerStructureEdit(JsonNode? row)
+ {
+  if(row is not JsonObject value||value["type"]?.ToString()!="owned-definition")return false;
+  bool Text(JsonNode? node)=>node is JsonValue text&&text.TryGetValue<string>(out string? s)&&!string.IsNullOrEmpty(s);
+  return value.Count==11&&value.All(p=>p.Key is "type" or "name" or "displayName" or "icon" or "cardinality" or "contract" or "schema" or "schemaHash" or "tree" or "sources" or "valueJson")&&Text(value["name"])&&Text(value["displayName"])&&Text(value["schema"])&&Text(value["schemaHash"])&&Text(value["valueJson"])&&value["icon"] is JsonValue icon&&icon.TryGetValue<string>(out _)&&value["cardinality"]?.ToString()=="single"&&value["contract"] is JsonObject shape&&shape.Count==3&&shape["kind"]?.ToString()=="compound"&&shape["cardinality"]?.ToString()=="single"&&Text(shape["type"])&&value["sources"] is JsonObject sources&&sources.Count is >=1 and <=128&&value["tree"] is JsonObject tree&&tree.Count==1&&tree["fields"] is JsonArray fields&&fields.Count<=64;
+ }
  // Share the existing declaration's 64-row budget; native plans remain 2..8.
  // Normalize only for classifying the explicit body-bearing native contracts.
  // The full declaration still passes the same validator and checkpoint CAS.
  internal static JsonArray? NativeChanges(JsonArray changes)
  {
   if(changes.Count is <2 or >64)return null;
-  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)&&!OwnerValueEdit(row)&&!OwnerFieldEdit(row)&&!OwnerCreationEdit(row)).ToArray();
+  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)&&!OwnerValueEdit(row)&&!OwnerFieldEdit(row)&&!OwnerCreationEdit(row)&&!OwnerStructureEdit(row)).ToArray();
   if(presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
   return new JsonArray(edits.Select(row=>row!.DeepClone()).ToArray());
  }

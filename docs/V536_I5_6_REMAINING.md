@@ -486,3 +486,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [새 복합 속성·native 계약 공동 저장](V666_COMPOUND_CREATION.md)은 기존 타입을 선택한 명시 생성·기본값과 두 native 계획을 원래 검증·출처·한 후보/CAS에 결합하는 단위다. 새 소유 자식·opaque/private·callee/import 의존성과 구 reader·실기기/전체 UI 잔여는 구별한다.
 
 이 새 복합 속성·native 계약 공동 저장 단위의 [최종 신규 44·재사용0 검증과 보관](VALIDATION_V666_COMPOUND_CREATION.md)을 마쳤다.
+
+[기존 소유 자식 구조와 native 계약 공동 저장](V666_OWNED_STRUCTURE.md)은 원래 소유 정의 검증·source proof와 함수 그룹의 한 후보/CAS를 결합한다. 새 자식 생성/등록·opaque/private 계획·callee/import 의존성은 별도 고정 잔여로 유지한다.
