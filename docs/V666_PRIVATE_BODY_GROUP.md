@@ -41,3 +41,5 @@ authoring/runtime을 사용한다. 자동 migration/downgrade와 구 Reference p
 Linux 실제 엔진/portable 실행·Chromium 자동화는 Windows/WebView2·물리 기기·IME/GPU/
 오디오 및 전체 UI 검증과 구분한다. 과거 초기 빈 화면 원인은 미확정이다.
 원본·latest/rollback·증거와 기존 정리 범위를 유지하고 main은 사용자 검토/merge에 남긴다.
+
+이 private C#·보조 함수/native 본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_PRIVATE_BODY_GROUP.md)을 마쳤다.
