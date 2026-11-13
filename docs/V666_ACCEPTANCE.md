@@ -1058,3 +1058,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 현재 후속 단위는 [retained root 문맥·native 본문 공동 저장](V666_RETAINED_BODY_GROUP.md)이다. 독립 코드/helpers·alias/local·원래 출력/caller 대응을 보존하며 private 노드 자체 계획 및 실제 계약 변경 의존성은 별도 유한 잔여다.
 
 이 retained/native 본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_RETAINED_BODY_GROUP.md)을 마쳤다.
+
+현재 후속 단위는 [private C# 본문·보조 함수와 일반 본문 공동 저장](V666_PRIVATE_BODY_GROUP.md)이다. private 프레임/노드 ABI를 보존하며 독립 root code 자체 계획과 실제 계약 변경 callee/import·등록 외부 관측 결합은 별도 유한 잔여다.

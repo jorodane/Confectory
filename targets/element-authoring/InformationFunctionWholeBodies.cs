@@ -1,7 +1,7 @@
 using Confectory.Core;
 using System.Text.Json.Nodes;
 
-// Compose explicit, already lifted whole-body and native sources. The original
+// Compose explicit whole-body, qualified private code and native sources. The original
 // single-function validator remains the authority for each source and contract.
 internal static class InformationFunctionWholeBodies
 {
@@ -31,12 +31,20 @@ internal static class InformationFunctionWholeBodies
    var body=mapping["bodies"]!.AsObject().Single();string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("One explicit owned source per function required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
-   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||implementation.Imports.Count!=0||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"])||!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Retain the exact direct source declaration; callee/import changes require their separate explicit plan");
+   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||implementation.Imports.Count!=0||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact direct source declaration; callee/import changes require their separate explicit plan");
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
-    if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=graphId+"/node:"+whole["node"]?.ToString())throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
+    string key=whole["node"]!.ToString();
+    if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=BlueprintTree.SourceId(graphId,key))throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
     var graph=JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject();
-    if(!InformationFunctionRetained.IsLift(graph)){
+    if(key.Contains('/')){
+     // The qualified node owns its native ABI; the parent owns its frame.
+     // The original single-source validator authenticates the receipt, code,
+     // helper boundary and assembled context, without rewriting either ABI.
+     var node=BlueprintTree.Nodes(graph).Single(entry=>entry.Key==key).Node;
+     if(node["kind"]?.ToString()!="code"||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||!JsonNode.DeepEquals(plan["beforeSignature"],node["signature"])||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),row["signature"]))throw new InvalidOperationException("Retain the exact private code ABI and its parent frame/native declaration");
+    }else if(!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Retain the original whole-body native declaration");
+    else if(!InformationFunctionRetained.IsLift(graph)){
      // Existing retained preparation owns every independent node/local/alias.
      // This group changes explicit source text only: keep the original native
      // outputs and positional storage, with no inferred consumer rewrite.
@@ -44,7 +52,7 @@ internal static class InformationFunctionWholeBodies
      if(contexts.Length!=1||contexts[0]?["implementationContext"] is null||contexts[0]?["id"]?.ToString()!=whole["node"]?.ToString()||plan["outputs"] is not JsonObject selectedOutputs||selectedOutputs.Count!=outputs.Length||outputs.Any(output=>selectedOutputs[output.Name]?.ToString()!=output.Name))throw new InvalidOperationException("Explicitly retain each original output of one root context; private/storage or contract changes require their separate plan");
     }
    }else{
-    native=true;if(target.Value.SourceKind!="csharp"||source!=graphId||units[source]?["kind"]?.ToString()!="body")throw new InvalidOperationException("Direct original native source required");
+    native=true;if(target.Value.SourceKind!="csharp"||source!=graphId||units[source]?["kind"]?.ToString()!="body"||!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Direct original native source required");
    }
    var implementations=units.Where(unit=>unit.Value?["kind"]?.ToString()=="implementation"&&Declaration(units,unit.Key).Function==id).Select(unit=>unit.Key).ToArray();
    if(implementations.Length!=1||implementations[0]!=implementationId)throw new InvalidOperationException("Review additional targets or implementations separately; no source is inferred");
@@ -97,7 +105,7 @@ internal static class InformationFunctionWholeBodies
   if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],saved["mapping"]!["args"])||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
   if(mapping["bodies"] is not JsonObject bodies||bodies.Count==0)return true;
   var prior=saved["mapping"]!["bodies"]!.AsObject();if(bodies.Count!=prior.Count)return false;
-  foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString()))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();a.Remove("hash");a.Remove("text");b.Remove("hash");b.Remove("text");if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();}return true;
+  foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString())||old.ContainsKey("helpers")!=next.ContainsKey("helpers"))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();foreach(string key in new[]{"hash","text","helpers"}){a.Remove(key);b.Remove(key);}if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();if(next.ContainsKey("helpers"))old["helpers"]=next["helpers"]!.DeepClone();}return true;
  }
  internal static JsonObject? Guards(JsonObject request,Func<Element,string> formatElement,Func<Manifest,string> format)
  {
