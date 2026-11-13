@@ -35,3 +35,5 @@ cold·늦은 입력/명시 후속 Save·peer 경합·Review 뒤 source 변경, L
 권한·authored layout·Review/Confirm·최종 CAS를 유지한다. main은 사용자 검토/merge 대상으로 둔다.
 구 reader downgrade·실제 Windows/WebView2·물리 기기·OS IME·GPU/audio·전체 UI 전수는
 이번 자동화와 구분하며 초기 빈 화면 원인은 미확정이다.
+
+이 기존 소유 자식 구조·native 계약 단위의 [최종 신규 48·재사용0 검증과 보관](VALIDATION_V666_OWNED_STRUCTURE.md)을 마쳤다.
