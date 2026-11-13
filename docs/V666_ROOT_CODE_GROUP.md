@@ -44,3 +44,5 @@ pending 후보 수용은 보장하지 않고 같은 세대의 authoring/runtime�
 downgrade와 구 Reference parser 변경은 없다. Linux 엔진/portable 실행·Chromium 자동화와
 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI 검증은 구분한다. 과거 초기 빈 화면
 원인은 미확정이다. 원본·latest/rollback·증거를 보존하고 main은 사용자 검토/merge에 남긴다.
+
+이 독립 root C# 노드/native 본문 공동 저장 단위의 [최종 신규 28·재사용 13·합계 41 검증과 보관](VALIDATION_V666_ROOT_CODE_GROUP.md)을 마쳤다.
