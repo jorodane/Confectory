@@ -44,3 +44,5 @@ M11/M12/M4의 닫힌 범위를 다시 열지 않는다. 초기 빈 화면의 원
 Windows/WebView2·모바일·물리 IME·전체 UI·사용자 프로젝트/계정 검증은 아니다.
 
 최종 runtime `2897f3709cd44cf10c954ed9dd6a578dd421ec3d`의 신규13·동등재사용25, 유효38단계를 통과했다. 개발23통과/4실패·첫 최종33통과/패키지 경로1실패와 증거 재사용 근거는 최종 기록에서 구분한다.
+
+[등록 helper와 소유 C# 본문 공동 저장](V666_BODY_REGISTERED.md)은 기존 읽기 전용 등록 receipt·부모/manifest 관측을 계약 불변 두 본문·후속 표시 Save·한 후보/CAS에 결합하는 단위다. opaque/private 명시 계획과 실제 계약 변경 callee/import closure는 별도 고정 잔여다.

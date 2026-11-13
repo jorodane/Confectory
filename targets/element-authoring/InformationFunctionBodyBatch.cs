@@ -179,7 +179,7 @@ internal static class InformationFunctionBodyBatch
   Element Declaration(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Complete original body declaration required"),"<body-group>").ParseElement();
   foreach(var row in edits){
    string id=row!["id"]!.ToString();var original=Declaration(id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var selected=InformationFunctionBodies.Signature(row["signature"]!);
-   if(!functions.Add(id)||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["copies"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "copies"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||!ValueNames(signature,selected,args))throw new InvalidOperationException("Native body groups retain positional types, roles, count, return and explicit value-input name mapping");
+   if(!functions.Add(id)||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["copies"] is null?0:1)+(mapping["dependencies"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "copies" or "dependencies"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||!ValueNames(signature,selected,args))throw new InvalidOperationException("Native body groups retain positional types, roles, count, return and explicit value-input name mapping");
    if(naming&&(BlueprintAsync.Has(original)||BlueprintExecutionBranches.Has(original)||signature.Args.Any(a=>!Scalar(a.Type))||signature.Return!="void"&&!Scalar(signature.Return)))throw new InvalidOperationException("Named native body groups retain synchronous scalar contracts without public execution branches; all input retained");
    foreach(var body in mapping["bodies"]!.AsObject()){
     int at=body.Key.LastIndexOf("/body:",StringComparison.Ordinal);if(at<0)throw new InvalidOperationException("Direct native body target required");var implementation=Declaration(body.Key[..at]);string target=body.Key[(at+6)..];
@@ -187,6 +187,10 @@ internal static class InformationFunctionBodyBatch
    }
   }
   if(2+functions.Count+bodyIds.Count>64)throw new InvalidOperationException("Keep the complete native body group within the existing 64-member Review budget; all input retained");
+  // Existing registration receipts supply readonly declarations only. The
+  // complete original single plans below authenticate each exact receipt.
+  var registered=new InformationFunctionDependencies(request);foreach(string function in functions)if(registered.Read(function,units).Count>0&&naming)throw new InvalidOperationException("Registered body groups retain the exact public contract; review name changes separately");
+  var contracts=registered.AddTo(units.Where(p=>p.Value?["kind"]?.ToString()=="function").ToDictionary(p=>p.Key,p=>Declaration(p.Key),StringComparer.Ordinal));
   foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=Declaration(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
    if(!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||d.Bodies.Count is <1 or >8)throw new InvalidOperationException("Body-only groups preserve direct source ownership");
@@ -194,7 +198,7 @@ internal static class InformationFunctionBodyBatch
    // preparation and version3 read guards still bind their complete sources.
    if(naming&&(callee&&d.Bodies.Count!=1||consumer&&d.Bodies.Values.Any(body=>body.SourceKind!="blueprint")))throw new InvalidOperationException("Named body groups require single native targets and ordinary Blueprint callers; retain other source closures");
    if(callee&&!NativeTargets(d))throw new InvalidOperationException("Body-only groups retain all native targets and their original imports");
-   foreach(var import in d.Imports.Values){var dependency=Declaration(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException(callee?"Keep the exact owned native imports; no external contract is edited":"Keep the exact owned caller imports; no external contract is edited");}
+   foreach(var import in d.Imports.Values){var dependency=contracts.GetValueOrDefault(import.Id)??throw new InvalidOperationException("Read the existing registered import receipt before saving native bodies");if(dependency.Kind!="function"||import.Id.StartsWith(ns+"::",StringComparison.Ordinal)&&dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException(callee?"Keep the exact owned native imports; no external contract is edited":"Keep the exact owned caller imports; no external contract is edited");}
    if(callee)continue;
    foreach(var body in d.Bodies){
     if(body.Value.SourceKind=="csharp"){

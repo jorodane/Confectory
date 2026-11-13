@@ -49,6 +49,7 @@ internal sealed class InformationFunctionDependencies(JsonObject request,Action<
  {
   var result=owned.ToDictionary(p=>p.Key,p=>p.Value,StringComparer.Ordinal);foreach(var pair in functions){if(result.ContainsKey(pair.Key))throw new InvalidOperationException("A read-only declaration cannot replace an owned source");result[pair.Key]=pair.Value.Function;}return result;
  }
+ public JsonArray Observations()=>new(reads.OrderBy(p=>p.Key,StringComparer.Ordinal).Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=p.Value}).ToArray());
  public JsonObject Sources()=>new(functions.Select(p=>KeyValuePair.Create<string,JsonNode?>(p.Key,JsonValue.Create(p.Value.Text))));
  public static JsonObject Query(JsonObject request)
  {
