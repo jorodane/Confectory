@@ -66,7 +66,7 @@ try
         case "informationTypeGuards":reply=FunctionNativeTypes.Guards(request,FormatManifest);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
         case "informationPropertyGroupGuards":reply=InformationFunctionPropertyGuards.Execute(request);break;
-        case "informationBodyGroupGuards":reply=InformationFunctionBodyGuards.Execute(request,FormatManifest);break;
+        case "informationBodyGroupGuards":reply=InformationFunctionBodyGuards.Execute(request,Format,FormatManifest);break;
         case "ownedDefinitionOwnership":reply=OwnedInformationDefinitions.Ownership(request);break;
         case "informationFunctionRetirement":reply=InformationFunctionRetirement.Execute(request,Format,FormatManifest);break;
         case "rawOwnerEdits":reply=RawOwnerEdits.Prepare(request,Format,FormatManifest);break;

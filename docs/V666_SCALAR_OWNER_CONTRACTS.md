@@ -33,3 +33,5 @@ Reference 구 reader 제약과 초기 빈 화면 원인 미확정, 실제 Window
 이 scalar 속성 구조·native 계약 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_SCALAR_OWNER_CONTRACTS.md)을 마쳤다.
 
 [정보 소유 영역의 거절된 Undo와 브라우저 입력 기록 분리](V666_OWNER_HISTORY.md)는 버튼에 전달된 키가 다른 scalar 입력의 native history로 흐르는 재현 결함을 다룬다. 함수·속성·헤더의 기존 snapshot/소유권/저장 보호와 텍스트 자체 Undo·전역 Ctrl+Y 정책을 유지한다. 다른 편집기·초기 빈 화면·실제 기기 및 고정7/8행 잔여는 구별한다.
+
+[기존 typed 값과 native 계약·본문 공동 저장](V666_TYPED_VALUES_CONTRACTS.md)은 복합·목록·참조·함수·종류 기본값의 기존 편집을 같은 명시 native 후보와 결합하는 단위다. 필드 정의/구조 전환과 opaque/private·외부 write closure 잔여를 구별하며 원래 typed 검증·읽기 관측·Review/Confirm·CAS를 유지한다.

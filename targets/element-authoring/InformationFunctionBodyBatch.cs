@@ -51,8 +51,8 @@ internal static class InformationFunctionBodyBatch
  // These owner-local scalar rows add no function or source closure. This is
  // shape classification only: InformationDefinitions still proves the original
  // schema/hash/field, values, uniqueness, usage and observation/CAS constraints.
- // Compound/reference/array/function fields and owned schema creation keep
- // their existing separate paths; never infer a conversion or source proof.
+ // Other field definitions and owned schema creation keep their existing
+ // separate paths; never infer a conversion or source proof.
  internal static bool ScalarOwnerEdit(JsonNode? row)
  {
   if(ScalarField(row))return true;
@@ -73,13 +73,31 @@ internal static class InformationFunctionBodyBatch
    _=>false
   };
  }
+ // Existing typed values add no write member to a native body group. Keep
+ // the original path/contract/value and source observations for the full
+ // InformationDefinitions validator; this classifier grants no target access
+ // and never traverses a referenced owner or creates a missing parent.
+ internal static bool OwnerValueEdit(JsonNode? row)
+ {
+  if(row is not JsonObject value||value["type"]?.ToString() is not ("data" or "unset"))return false;
+  bool Text(JsonNode? node)=>node is JsonValue text&&text.TryGetValue<string>(out string? s)&&!string.IsNullOrEmpty(s);
+  bool Segment(JsonNode? node)=>Text(node)||node is JsonValue number&&number.TryGetValue<int>(out int index)&&index>=0;
+  if(value["path"] is not JsonArray path||path.Count is <1 or >64||!Text(path[0])||!path.Skip(1).All(Segment)||value["contract"] is not JsonObject shape||shape.Count!=3||shape["cardinality"]?.ToString() is not ("single" or "multiple")||!Text(shape["type"]))return false;
+  bool contract=shape["kind"]?.ToString() switch
+  {
+   "general"=>shape["type"]?.ToString() is "bool" or "int" or "long" or "float" or "double" or "string",
+   "compound" or "reference" or "function" or "enum"=>true,
+   _=>false
+  };
+  return contract&&(value["type"]!.ToString()=="unset"?path.Count==1&&value.Count==3&&value.All(p=>p.Key is "type" or "path" or "contract"):value.Count==4&&value.All(p=>p.Key is "type" or "path" or "contract" or "valueJson")&&value["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _));
+ }
  // Share the existing declaration's 64-row budget; native plans remain 2..8.
  // Normalize only for classifying the explicit body-bearing native contracts.
  // The full declaration still passes the same validator and checkpoint CAS.
  internal static JsonArray? NativeChanges(JsonArray changes)
  {
   if(changes.Count is <2 or >64)return null;
-  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)).ToArray();
+  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)&&!OwnerValueEdit(row)).ToArray();
   if(presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
   return new JsonArray(edits.Select(row=>row!.DeepClone()).ToArray());
  }
