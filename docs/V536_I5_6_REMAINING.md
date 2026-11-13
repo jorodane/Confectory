@@ -498,3 +498,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [등록 helper와 소유 C# 본문 공동 저장](V666_BODY_REGISTERED.md)은 기존 읽기 전용 등록 receipt·부모/manifest 관측을 계약 불변 두 본문·후속 표시 Save·한 후보/CAS에 결합하는 단위다. opaque/private 명시 계획과 실제 계약 변경 callee/import closure는 별도 고정 잔여다.
 
 이 계약 불변 등록 helper·본문 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_BODY_REGISTERED.md)을 마쳤다.
+
+현재 후속 단위: [기존 whole-body·일반 native 본문의 계약 불변 공동 저장](V666_WHOLE_NATIVE_BODIES.md). private 문맥 및 실제 계약 변경 callee/import는 별도 유한 잔여이며 최종 검증 결과는 해당 기록으로 구분한다.

@@ -39,6 +39,13 @@ internal static class InformationFunctionWholeBody
   var signature=FeatureBlueprint.SignatureDocument(original.Signature!);
   var proved=BlueprintRootContract.Prepare(new JsonObject{["functionText"]=format(original),["text"]=format(one),["bodyTarget"]=target,["graph"]=originalGraph.DeepClone(),["plan"]=new JsonObject{["args"]=signature["args"]!.DeepClone(),["returnType"]=original.Signature!.Return,["remap"]=new JsonObject(original.Signature.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name)))),["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=originalRecord["source"]!.DeepClone()}}},format,stableImports:JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(selected))?contracts:null);
   var graph=proved["graph"]!.DeepClone().AsObject();var code=graph["nodes"]!.AsArray().Single(n=>n!["id"]!.ToString()==nodeId)!;
+  // The exact original lift has just been proved. Editing its source alone
+  // does not change routes, layout or the authored spelling of empty exits.
+  // ABI-changing plans still use the explicit storage/return closure below.
+  if(JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(selected))){
+   if(!JsonNode.DeepEquals(whole,Receipt(id,units[id]!["draft"]!.ToString(),originalGraph,node.AsObject())))throw new InvalidOperationException("Retain the exact original whole-body return receipt");
+   return new JsonObject{["function"]=format(requested),["implementation"]=format(one),["graph"]=originalGraph.DeepClone(),["rootBody"]=new JsonObject{["node"]=nodeId,["source"]=text}};
+  }
   var priorReturn=graph["nodes"]!.AsArray().SingleOrDefault(n=>n!["kind"]?.ToString()=="export");
   string? returnId=whole["returnNode"]?.GetValue<string>();
   if(requested.Signature!.Return=="void"?returnId is not null:returnId is null||returnId==nodeId||returnId.Length>128||!System.Text.RegularExpressions.Regex.IsMatch(returnId,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z")||priorReturn is not null&&returnId!=priorReturn["id"]!.ToString())throw new InvalidOperationException("Retain the original return writer or explicitly select the new whole-body return; void has no writer");

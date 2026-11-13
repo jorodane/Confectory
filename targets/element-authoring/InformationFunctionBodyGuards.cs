@@ -24,6 +24,7 @@ internal static class InformationFunctionBodyGuards
  }
  public static JsonObject Execute(JsonObject request,Func<Element,string> formatElement,Func<Manifest,string> format)
  {
+  if(InformationFunctionWholeBodies.Guards(request,formatElement,format) is {} contexts)return contexts;
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
   // An explicit read scope cannot become a new empty legacy receipt merely
   // because a later presentation edit has a different number/shape of rows.
