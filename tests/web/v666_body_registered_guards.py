@@ -10,7 +10,7 @@ try:
  for row in json.loads(saved)['changes']:units[row['id']]=row
  result=validate(units,True);receipt=units[x.owner]['slotSaveReceipt'];assert result['result']['reads']==receipt['nativeBodyDependencyReads'];assert not any(row['path'].endswith(('Stable.csbody','StableBody.celem'))for row in receipt['nativeBodyDependencyReads']);f.checked('captured exact registered declaration/parent/registration observations are readonly final-CAS reads; no provider body or writable external member')
  redundant=copy.deepcopy(units);redundant[x.owner]['slotSaveReceipt'].pop('nativeBodyDependencies');assert validate(redundant,True)['result']['reads']==receipt['nativeBodyDependencyReads'];f.checked('an unchanged complete original declaration may authenticate a redundant missing capture field, without changing any saved read hash')
- for fault in ['proof','read','both','all-capture','missing-parent','rebase','extra-path','caller-hash','relocated','wrong-owner','missing-local','extra-member']:
+ for fault in ['proof','read','both','all-capture','missing-parent','rebase','extra-path','caller-hash','relocated','wrong-owner','missing-local','extra-member','fake-type-scope']:
   bad=copy.deepcopy(units);v=bad[x.owner]['slotSaveReceipt'];proof=v['nativeBodyDependencies'];reads=v['nativeBodyDependencyReads']
   if fault=='proof':
    v.pop('nativeBodyDependencies')
@@ -28,6 +28,9 @@ try:
   elif fault=='wrong-owner':v['owner']=f.n+'Unknown'
   elif fault=='missing-local':v['readGuards'].pop(x.retained_header)
   elif fault=='extra-member':v['sources'][x.helper]=dict(kind='function',path=str(x.external_function),hash='0'*64)
+  elif fault=='fake-type-scope':
+   v.pop('nativeBodyDependencies');v.pop('nativeBodyDependencyReads');v['nativeTypeProofs']={'$function:'+x.functions[0]:dict(shapeHash='0'*64,sources={})};v['nativeTypeReads']=[]
+   for row in v['declaration']['changes']:row.get('mapping',{}).pop('dependencies',None)
   validate(bad,False);assert cp.read_bytes()==saved;x.unchanged();f.checked(fault+' tampering rejects without changing source, checkpoint or external permissions')
  validate(units,True)
 finally:(f.case/'checks.json').write_text(json.dumps(f.checks,ensure_ascii=False,indent=2));f.stop()

@@ -49,3 +49,14 @@ closure다. 이번 계약 불변 등록 읽기를 그 전체 완료로 세지 �
 조합을 새 의무로 늘리지 않으며 M11/M12/M4는 회귀 없이 다시 열지 않는다. 정보별 struct·
 종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류·override 계약·authored 배치·
 권한·Review/Confirm을 유지하고 main은 사용자 검토/merge에 남긴다.
+
+## 기존 단일 타입 전환 영수증의 guard 분리
+
+집중 회귀에서 기존 단일 whole-body 타입 전환의 cold Review가 거절되는 잠복 결함도
+발견했다. 직전 보관 runtime `7dbe6d3f`에서도 동일했다. 원래 타입 guard는 전체 proof/read를
+유효하게 검증했지만 일반 본문 그룹 guard가 공통 readGuards만 보고 node/caller 멤버를
+잘못 주장했다. 하나의 직접 소유 함수·완전한 `$function:` 타입 proof/read·일치하는
+atomic 멤버·graph node라는 정확한 기존 모양만 원래 타입 guard에 남긴다. 일반 본문
+계획이나 새 nativeBody 보관 필드가 있는 그룹은 이 분리로 우회하지 않는다. 타입 guard·
+Review/Confirm·원래 최종 read lease와 C# 변환 의미는 유지한다. 새 opaque/private 그룹
+기능의 완료가 아니라 이미 제공한 단일 흐름의 회복이며, 이 수정 뒤 최종 검사는 전부 다시 수행한다.
