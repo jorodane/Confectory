@@ -36,26 +36,34 @@ internal static class InformationFunctionBodyBatch
  // Presentation stays under InformationDefinitions' existing exact-key,
  // duplicate, text and image validation. It cannot add another source closure.
  public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
+ // One existing direct scalar field may be explicitly edited alongside the
+ // native plans. This is only a classifier: InformationDefinitions still
+ // proves its original schema/hash/contract, defaults and every existing use.
+ // No new field, source/type proof, conversion or property mapping is inferred.
+ internal static bool ScalarField(JsonNode? row)
+ {
+  bool Scalar(string? type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
+  bool Shape(JsonNode? node)=>node is JsonObject shape&&shape.Count==3&&shape["kind"]?.ToString()=="general"&&shape["cardinality"]?.ToString()=="single"&&Scalar(shape["type"]?.ToString());
+  return row is JsonObject value&&value["type"]?.ToString()=="schema-field"&&value["path"] is JsonArray path&&path.Count==1&&path[0] is JsonValue name&&name.TryGetValue<string>(out _)&&Shape(value["contract"])&&(value.Count==6&&value.All(p=>p.Key is "type" or "path" or "contract" or "schema" or "schemaHash" or "nativeType")&&Scalar(value["nativeType"]?.ToString())||value.Count==7&&value.All(p=>p.Key is "type" or "path" or "contract" or "schema" or "schemaHash" or "definition" or "sources")&&value["sources"] is null&&Shape(value["definition"]));
+ }
  public static bool BodyPlan(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
  public static bool BodyEdit(JsonNode? row)=>BodyPlan(row)&&JsonNode.DeepEquals(row!["mapping"]!["before"],row["signature"]);
  // Owner presentation adds no function/source plan. Keep its existing exact
- // shape and budget, and pass only explicit body-bearing edits to the already
- // supported native contract classifiers. The complete declaration still goes
- // through InformationDefinitions' validation and the same checkpoint CAS.
+ // shape and budget. Separate at most one exact scalar-field row only while
+ // classifying the explicit body-bearing native contracts. The complete
+ // declaration still passes InformationDefinitions and the same checkpoint CAS.
  internal static JsonArray? NativeChanges(JsonArray changes)
  {
-  if(changes.Count is <2 or >10)return null;
-  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)).ToArray();
-  if(presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
+  if(changes.Count is <2 or >11)return null;
+  var presentation=changes.Where(Presentation).ToArray();var fields=changes.Where(ScalarField).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarField(row)).ToArray();
+  if(fields.Length>1||presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
   return new JsonArray(edits.Select(row=>row!.DeepClone()).ToArray());
  }
  internal static bool ValueNames(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Matches(next)&&args.Count==before.Args.Count&&!before.Args.Where((a,i)=>args[a.Name]?.GetValue<string>()!=next.Args[i].Name||a.Mode is not null&&a.Name!=next.Args[i].Name).Any();
  static bool NamedBodyEdit(JsonNode? row)=>BodyPlan(row)&&!BodyEdit(row)&&row!["mapping"]!["args"] is JsonObject args&&ValueNames(InformationFunctionBodies.Signature(row["mapping"]!["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args);
  public static JsonNode?[]? Edits(JsonArray changes)
  {
-  if(changes.Count is <2 or >10)return null;
-  var edits=changes.Where(row=>!Presentation(row)).ToArray();
-  return edits.Length is >=2 and <=8&&edits.All(row=>BodyEdit(row)||NamedBodyEdit(row))?edits:null;
+  var edits=NativeChanges(changes);return edits is not null&&edits.All(row=>BodyEdit(row)||NamedBodyEdit(row))?edits.ToArray():null;
  }
  // Earlier members may have staged their explicit presentation while all
  // public/native contracts stay unchanged. Project only those proved owned
