@@ -38,3 +38,5 @@ stale/foreign/중첩/중복·지원 밖 정의·부적합 기본값과 불완전
 타입·문맥의 가능한 모든 조합을 새 필수 항목으로 늘리지 않으며 M11/M12/M4는 회귀 없이 다시 열지 않는다.
 
 이 scalar 속성·native 계약 공동 저장 단위의 [최종 신규 50·재사용0 검증과 보관](VALIDATION_V666_NATIVE_SCHEMA_CONTRACTS.md)을 마쳤다.
+
+[속성 타입 Undo/Redo 포커스 복원](V666_PROPERTY_TYPE_FOCUS.md)은 기존 property path와 새 초안 definition key를 같은 소유 창에서 유지한다. 기본/독립 창과 공동 저장·취소·경합의 검증 결과는 해당 단위로 구분한다. 다른 복합 구조·opaque/private·외부 의존성과 실제 기기·전체 UI 잔여는 유지한다.

@@ -462,3 +462,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [기존 scalar 속성과 native 계약·본문 공동 저장](V666_NATIVE_SCHEMA_CONTRACTS.md)은 같은 정보 창의 명시 필드 타입 선택과 native ABI/body/caller 계획을 기존 검증·원래 읽기 증거·한 후보/CAS에 결합하는 단위다. 기본값/필드 ID·소유권·권한·override 계약을 보존하며 다른 복합 구조/opaque/private·원본 의존성 및 reader/기기/전체 UI 잔여와 구별한다.
 
 이 scalar 속성·native 계약 공동 저장 단위의 [최종 신규 50·재사용0 검증과 보관](VALIDATION_V666_NATIVE_SCHEMA_CONTRACTS.md)을 마쳤다.
+
+[속성 타입 Undo/Redo 포커스 복원](V666_PROPERTY_TYPE_FOCUS.md)은 기존 property path와 새 초안 definition key를 같은 소유 창에서 유지한다. 기본/독립 창과 공동 저장·취소·경합의 검증 결과는 해당 단위로 구분한다. 다른 복합 구조·opaque/private·외부 의존성과 실제 기기·전체 UI 잔여는 유지한다.
