@@ -36,10 +36,10 @@ internal static class InformationFunctionBodyBatch
  // Presentation stays under InformationDefinitions' existing exact-key,
  // duplicate, text and image validation. It cannot add another source closure.
  public static bool Presentation(JsonNode? row)=>row is JsonObject value&&value.Count==2&&value["type"]?.ToString() is "description" or "icon"&&value["text"] is JsonValue text&&text.TryGetValue<string>(out _);
- // One existing direct scalar field may be explicitly edited alongside the
+ // An existing direct scalar field type may be explicitly edited alongside the
  // native plans. This is only a classifier: InformationDefinitions still
  // proves its original schema/hash/contract, defaults and every existing use.
- // No new field, source/type proof, conversion or property mapping is inferred.
+ // No source/type proof, conversion or property mapping is inferred.
  internal static bool ScalarField(JsonNode? row)
  {
   bool Scalar(string? type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
@@ -48,15 +48,39 @@ internal static class InformationFunctionBodyBatch
  }
  public static bool BodyPlan(JsonNode? row)=>row?["type"]?.ToString()=="function-edit"&&row["mapping"] is JsonObject map&&map["before"] is JsonObject&&map["bodies"] is JsonObject bodies&&bodies.Count>0&&bodies.All(p=>p.Value is JsonObject plan&&!plan.ContainsKey("whole")&&!plan.ContainsKey("wrapper"));
  public static bool BodyEdit(JsonNode? row)=>BodyPlan(row)&&JsonNode.DeepEquals(row!["mapping"]!["before"],row["signature"]);
- // Owner presentation adds no function/source plan. Keep its existing exact
- // shape and budget. Separate at most one exact scalar-field row only while
- // classifying the explicit body-bearing native contracts. The complete
- // declaration still passes InformationDefinitions and the same checkpoint CAS.
+ // These owner-local scalar rows add no function or source closure. This is
+ // shape classification only: InformationDefinitions still proves the original
+ // schema/hash/field, values, uniqueness, usage and observation/CAS constraints.
+ // Compound/reference/array/function fields and owned schema creation keep
+ // their existing separate paths; never infer a conversion or source proof.
+ internal static bool ScalarOwnerEdit(JsonNode? row)
+ {
+  if(ScalarField(row))return true;
+  if(row is not JsonObject value)return false;
+  bool Exact(params string[] keys)=>value.Count==keys.Length&&keys.All(value.ContainsKey);
+  bool Shape(JsonNode? node)=>node is JsonObject shape&&shape.Count==3&&shape["kind"]?.ToString()=="general"&&shape["cardinality"]?.ToString()=="single"&&shape["type"]?.ToString() is "bool" or "int" or "long" or "float" or "double" or "string";
+  bool Text(string key)=>value[key] is JsonValue text&&text.TryGetValue<string>(out _);
+  var kind=value["type"]?.ToString();
+  if(kind is "typed-definition" or "info-definition")return (Exact("type","name","displayName","contract","sources","valueJson")||Exact("type","name","displayName","contract","sources","valueJson","icon")&&Text("icon"))&&Shape(value["contract"])&&value["sources"] is null&&Text("name")&&Text("displayName")&&Text("valueJson");
+  if(value["path"] is not JsonArray path||path.Count!=1||path[0] is not JsonValue name||!name.TryGetValue<string>(out _)||!Shape(value["contract"]))return false;
+  return kind switch
+  {
+   "data"=>Exact("type","path","contract","valueJson")&&Text("valueJson"),
+   "unset"=>Exact("type","path","contract"),
+   "schema-name"=>Exact("type","path","contract","schema","schemaHash","name")&&Text("name"),
+   "schema-icon"=>Exact("type","path","contract","schema","schemaHash","text")&&Text("text"),
+   "schema-remove"=>Exact("type","path","contract","schema","schemaHash"),
+   _=>false
+  };
+ }
+ // Share the existing declaration's 64-row budget; native plans remain 2..8.
+ // Normalize only for classifying the explicit body-bearing native contracts.
+ // The full declaration still passes the same validator and checkpoint CAS.
  internal static JsonArray? NativeChanges(JsonArray changes)
  {
-  if(changes.Count is <2 or >11)return null;
-  var presentation=changes.Where(Presentation).ToArray();var fields=changes.Where(ScalarField).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarField(row)).ToArray();
-  if(fields.Length>1||presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
+  if(changes.Count is <2 or >64)return null;
+  var presentation=changes.Where(Presentation).ToArray();var edits=changes.Where(row=>!Presentation(row)&&!ScalarOwnerEdit(row)).ToArray();
+  if(presentation.Length>2||presentation.Select(row=>row!["type"]!.ToString()).Distinct(StringComparer.Ordinal).Count()!=presentation.Length||edits.Length is <2 or >8||!edits.All(BodyPlan))return null;
   return new JsonArray(edits.Select(row=>row!.DeepClone()).ToArray());
  }
  internal static bool ValueNames(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Matches(next)&&args.Count==before.Args.Count&&!before.Args.Where((a,i)=>args[a.Name]?.GetValue<string>()!=next.Args[i].Name||a.Mode is not null&&a.Name!=next.Args[i].Name).Any();

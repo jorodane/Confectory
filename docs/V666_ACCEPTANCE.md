@@ -1018,3 +1018,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [속성 타입 Undo/Redo 포커스 복원](V666_PROPERTY_TYPE_FOCUS.md)은 기존 property path와 새 초안 definition key를 같은 소유 창에서 유지한다. 기본/독립 창과 공동 저장·취소·경합의 검증 결과는 해당 단위로 구분한다. 다른 복합 구조·opaque/private·외부 의존성과 실제 기기·전체 UI 잔여는 유지한다.
 
 이 속성 타입 Undo/Redo 포커스 단위의 [최종 신규 37·재사용0 검증과 보관](VALIDATION_V666_PROPERTY_TYPE_FOCUS.md)을 마쳤다.
+
+[Scalar 속성 구조·값과 native 계약·본문 공동 저장](V666_SCALAR_OWNER_CONTRACTS.md)은 같은 정보 창의 명시 생성/삭제·root 값/표시 편집을 기존 선언 검증과 원래 읽기 증거·한 후보/CAS에 결합한다. 다른 복합 구조·opaque/private·외부 의존성 및 구 reader/실기기/전체 UI 잔여를 구별한다.
