@@ -37,11 +37,12 @@ internal static class InformationFunctionWholeBodies
     string key=whole["node"]!.ToString();
     if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=BlueprintTree.SourceId(graphId,key))throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
     var graph=JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject();
-    if(key.Contains('/')){
-     // The qualified node owns its native ABI; the parent owns its frame.
+    var selectedNode=BlueprintTree.Nodes(graph).Single(entry=>entry.Key==key).Node;
+    if(key.Contains('/')||selectedNode["kind"]?.ToString()=="code"&&selectedNode["implementationContext"] is null&&selectedNode["forwardCallerStorage"]?.GetValue<bool>()!=true&&InformationFunctionGraphs.RootCodeGraph(graph)){
+     // Independent code owns its native ABI; the parent owns its frame.
      // The original single-source validator authenticates the receipt, code,
      // helper boundary and assembled context, without rewriting either ABI.
-     var node=BlueprintTree.Nodes(graph).Single(entry=>entry.Key==key).Node;
+     var node=selectedNode;
      if(node["kind"]?.ToString()!="code"||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||!JsonNode.DeepEquals(plan["beforeSignature"],node["signature"])||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),row["signature"]))throw new InvalidOperationException("Retain the exact private code ABI and its parent frame/native declaration");
     }else if(!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Retain the original whole-body native declaration");
     else if(!InformationFunctionRetained.IsLift(graph)){
