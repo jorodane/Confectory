@@ -15,3 +15,5 @@
 남은 다른 복합 구조/새 정의·소유 자식 결합, opaque/private 명시 C# 계획, 선택 소유 callee·기존 import 변경 그룹과 등록 외부 읽기 원본 결합은 별도다. 외부 원본은 계속 읽기 전용이며 M11/M12/M4를 회귀 없이 다시 열지 않는다.
 
 이 기존 필드 정의·native 계약 공동 저장 단위의 [최종 신규 43·재사용0 검증과 보관](VALIDATION_V666_FIELD_CONTRACTS.md)을 마쳤다.
+
+[새 복합 속성·native 계약 공동 저장](V666_COMPOUND_CREATION.md)은 기존 타입을 선택한 명시 생성·기본값과 두 native 계획을 원래 검증·출처·한 후보/CAS에 결합하는 단위다. 새 소유 자식·opaque/private·callee/import 의존성과 구 reader·실기기/전체 UI 잔여는 구별한다.

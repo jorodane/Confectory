@@ -214,8 +214,8 @@ internal static class InformationFunctionBodyGuards
   }
   JsonArray OwnerPlans(JsonNode? declaration,JsonObject? receipt=null)
   {
-   bool Extended(JsonNode? row)=>InformationFunctionBodyBatch.OwnerFieldEdit(row)&&!InformationFunctionBodyBatch.ScalarOwnerEdit(row);
-   bool Local(JsonNode? row)=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)||InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.OwnerFieldEdit(row);
+   bool Extended(JsonNode? row)=>(InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row))&&!InformationFunctionBodyBatch.ScalarOwnerEdit(row);
+   bool Local(JsonNode? row)=>InformationFunctionBodyBatch.Presentation(row)||InformationFunctionBodyBatch.ScalarOwnerEdit(row)||InformationFunctionBodyBatch.OwnerValueEdit(row)||InformationFunctionBodyBatch.OwnerFieldEdit(row)||InformationFunctionBodyBatch.OwnerCreationEdit(row);
    var changes=declaration?["changes"] as JsonArray??new();
    var declared=changes.Any(Extended)?new JsonArray(changes.Where(row=>!InformationFunctionBodyBatch.BodyPlan(row)).Select(row=>row!.DeepClone()).ToArray()):new JsonArray();
    if(receipt?["nativeBodyOwnerEdits"] is JsonArray retained){if(declared.Count>0&&!JsonNode.DeepEquals(declared,retained))throw new InvalidOperationException("Retain the exact original owner definition plan across presentation saves");declared=retained.DeepClone().AsArray();}
