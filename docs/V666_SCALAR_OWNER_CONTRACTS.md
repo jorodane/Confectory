@@ -29,3 +29,5 @@ Reference 구 reader 제약과 초기 빈 화면 원인 미확정, 실제 Window
 남은 원래 고정7/8행의 다른 복합/중첩/array/reference 속성 구조, opaque/private 명시 C# 계획,
 선택 native callee와 기존 import/등록 외부 원본 결합은 각각 별도 의존성·검증 경계로 유지한다.
 외부 쓰기나 출처 증거를 추정하지 않으며 M11/M12/M4를 회귀 없이 다시 열지 않는다.
+
+이 scalar 속성 구조·native 계약 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_SCALAR_OWNER_CONTRACTS.md)을 마쳤다.

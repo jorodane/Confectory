@@ -468,3 +468,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 이 속성 타입 Undo/Redo 포커스 단위의 [최종 신규 37·재사용0 검증과 보관](VALIDATION_V666_PROPERTY_TYPE_FOCUS.md)을 마쳤다.
 
 [Scalar 속성 구조·값과 native 계약·본문 공동 저장](V666_SCALAR_OWNER_CONTRACTS.md)은 같은 정보 창의 명시 생성/삭제·root 값/표시 편집을 기존 선언 검증과 원래 읽기 증거·한 후보/CAS에 결합한다. 다른 복합 구조·opaque/private·외부 의존성 및 구 reader/실기기/전체 UI 잔여를 구별한다.
+
+이 scalar 속성 구조·native 계약 공동 저장 단위의 [최종 신규 41·재사용0 검증과 보관](VALIDATION_V666_SCALAR_OWNER_CONTRACTS.md)을 마쳤다.
