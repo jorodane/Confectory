@@ -13,3 +13,5 @@ InformationFunctionBodyBatch의 분류와 기존 native 읽기 증거의 결합�
 고정7/8행의 다른 복합 속성 **구조/정의 변경**, opaque/private 명시 C# 계획, 선택 소유 native callee와 기존 import의 변경 그룹·등록 외부 원본의 읽기 관측 결합은 별도 잔여다. M11/M12/M4는 회귀 없이 다시 열지 않는다. 정보별 struct·종류 enum·모듈 interface, override 계약·권한·배치·Review/Confirm·최종 CAS를 보존한다. 새 grant/credential·과금·migration은 없다.
 
 구 Reference reader downgrade는 보장하지 않는다. 초기 빈 화면 원인은 미확정이며 실제 Windows/WebView2·기기·OS IME·전체 UI 전수 검증을 자동화된 Linux 편집기 검증과 구별한다.
+
+이 typed 값·native 계약 공동 저장 단위의 [최종 신규 42·재사용0 검증과 보관](VALIDATION_V666_TYPED_VALUES_CONTRACTS.md)을 마쳤다.
