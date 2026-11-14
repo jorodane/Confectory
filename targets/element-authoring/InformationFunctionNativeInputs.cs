@@ -23,7 +23,7 @@ internal static class InformationFunctionNativeInputs
  public static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >8)return null;
-  return changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["mapping"] is JsonObject map&&map.Count==4&&map.All(p=>p.Key is "before" or "args" or "bodies" or "callers")&&map["args"] is JsonObject args&&map["callers"] is JsonObject&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args))?changes.ToArray():null;
+  return changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["mapping"] is JsonObject map&&map.Count==4+(map["dependencies"] is null?0:1)&&map.All(p=>p.Key is "before" or "args" or "bodies" or "callers" or "dependencies")&&map["args"] is JsonObject args&&map["callers"] is JsonObject&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args))?changes.ToArray():null;
  }
  public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
@@ -90,10 +90,15 @@ internal static class InformationFunctionNativeInputs
     if(implementation.Function!=id||!InformationFunctionBodyBatch.NativeTargets(implementation)||implementation.Bodies.Count!=1||!implementation.Bodies.ContainsKey(body.Key[(at+6)..]))throw new InvalidOperationException("Native input groups retain one directly owned native target per implementation");
    }
   }
+  // Resolve only the already registered declarations and parents. Each
+  // original single-function plan below still authenticates its exact proof;
+  // foreign declarations never enter the owned units or write group.
+  var registered=new InformationFunctionDependencies(request);foreach(string function in functions)registered.Read(function,units);
+  var contracts=registered.AddTo(units.Where(unit=>unit.Value?["kind"]?.ToString()=="function").ToDictionary(unit=>unit.Key,unit=>Read(unit.Key),StringComparer.Ordinal));
   foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=Read(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
    if(d.Id!=unit.Key||!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||callee&&consumer||d.Bodies.Count!=1)throw new InvalidOperationException("Review native dependency composition separately; preserve direct ownership and targets");
-   foreach(var import in d.Imports.Values){var dependency=Read(import.Id);if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException("Retain exact owned imports; no dependency contract or permission is inferred");}
+   foreach(var import in d.Imports.Values){var dependency=contracts.GetValueOrDefault(import.Id)??throw new InvalidOperationException("Read the exact original owned or registered import receipt before changing the native contract");if(dependency.Kind!="function"||import.Id.StartsWith(ns+"::",StringComparison.Ordinal)&&dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException("Retain exact owned or registered imports; no dependency contract or permission is inferred");}
    if(callee){if(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(d.Id+"/body:"+d.Bodies.Keys.Single()))throw new InvalidOperationException("Explicitly review every affected native input target");continue;}
    var target=d.Bodies.Single();string id=d.Id+"/body:"+target.Key;var graph=JsonNode.Parse(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read every original native input caller"))!.AsObject();
    if(target.Value.SourceKind!="blueprint"||graph["copySource"] is not null||graph["profile"]?.ToString().StartsWith("sync-",StringComparison.Ordinal)!=true||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray nodes||nodes.Any(node=>node?["kind"]?.ToString()!="call"||node["control"]?.ToString()!="next"||node["graph"] is not null||node["implementationContext"] is not null||node["forwardCallerStorage"] is not null||node["postCall"] is not null))throw new InvalidOperationException("Native input replacements retain ordinary direct Blueprint callers; review opaque/private source plans separately");

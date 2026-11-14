@@ -519,3 +519,6 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [retained 필수 계획과 독립 코드 공동 저장](V666_RETAINED_CODE_PLANS.md)은 원래 retained 본문·출력 identity와 독립 root 노드/helpers를 모두 명시해 일반 native 본문과 함께 저장하는 한 흐름이다. 공개/native/노드 계약과 graph bytes·필수 계획·Review/Confirm/CAS를 유지한다. 실제 계약 변경 callee/import와 등록 외부 관측의 결합은 별도 유한 잔여이며 타입별 새 조합을 의무로 늘리지 않는다.
 
 [retained 필수 계획·독립 코드 공동 저장 검증](VALIDATION_V666_RETAINED_CODE_PLANS.md)은 신규41·재사용0으로 이 한 흐름을 마감한다. 실제 계약 변경 callee/import 및 등록 외부 관측 결합은 별도 유한 잔여다.
+
+
+[입력 계약 변경·import 관측 공동 저장](V666_INPUT_IMPORT_OBSERVATIONS.md)은 두 소유 native 함수의 명시 타입/본문·공유 caller 변경과 기존 로컬/등록 helper 읽기를 한 Save에 결합하는 다음 단위다. 외부 선언·부모·등록 proof/read set과 최종 CAS를 유지한다. 선택 callee의 native 구현이 다른 선택 callee의 바뀌는 계약을 호출하는 결합은 별도 유한 잔여이며 C#·권한·override 계약을 추측해 바꾸지 않는다.
