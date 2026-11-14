@@ -539,3 +539,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 현재 다음 단위는 [C# import 함수 간 값→ref 계약·본문 공동 저장](V666_NATIVE_ROLE_CHAIN.md)이다. 사용자가 직접 작성한 ref 호출과 기존 공유 caller의 ref 저장소·정확한 native 별칭을 한 후보/CAS에 결합한다. 동일 역할 방향·원문과 같은 명시 본문의 BOM/CRLF 보존까지 이 실제 흐름의 종료 기준으로 삼고 다른 역할·고급 타입 및 private/whole/override 경계를 구분한다.
 
 [값→ref 계약·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_ROLE_CHAIN.md)은 신규41·재사용0으로 기존 ref 셀과 직접 작성한 호출부를 포함한 실제 흐름을 마감한다. 다른 역할·고급 타입과 private/whole/override 및 구 reader/실기기·전체 UI 잔여는 구별한다.
+
+현재 다음 단위는 [두 고급 native 입력 계약과 C# 본문 공동 저장](V666_NATIVE_TYPE_GROUP.md)이다. 원래 함수별 타입·출처 proof와 겹치지 않는 구현·직접 caller 계획을 한 후보/최종 CAS에 결합한다. 실제 두 구조체 입력과 네 본문 흐름을 종료 기준으로 삼고, 공유 source·선택 함수 간 고급 import 및 reference/array·private/whole/override 결합과 구 reader/실기기 잔여는 구분한다.
