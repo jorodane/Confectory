@@ -28,17 +28,17 @@ internal static class InformationFunctionBodyGuards
   string ns=request["namespace"]!.ToString();var units=request["units"]!.AsObject();
   // An explicit read scope cannot become a new empty legacy receipt merely
   // because a later presentation edit has a different number/shape of rows.
-  // Single typed graph transitions already have their own complete type/read
+  // Single typed transitions already have their own complete type/read
   // proof and final lease. A nonempty shared readGuards map alone must not
-  // turn their node/caller members into an ordinary native body group.
-  bool TypedGraphReceipt(string owner,JsonObject receipt)
+  // turn their declaration/native/node/caller members into a shared body group.
+  bool TypedSingleReceipt(string owner,JsonObject receipt)
   {
    if(receipt["version"]?.GetValue<int>()!=3||receipt["nativeTypeProofs"] is not JsonObject types||receipt["nativeTypeReads"] is not JsonArray reads||reads.Count==0||receipt["sources"] is not JsonObject proof||receipt["declaration"]?["raw"] is not null||receipt["declaration"]?["changes"] is not JsonArray changes||NativeEdits(changes) is not null||new[]{"nativeBodyDependencies","nativeBodyDependencyReads","nativeBodyOwnerEdits","nativeBodyOwnerReads","nativeBodyValues","nativeBodyValueReads","nativeBodyCopies"}.Any(receipt.ContainsKey))return false;
    var functions=proof.Where(p=>p.Value?["kind"]?.ToString()=="function").Select(p=>p.Key).ToArray();
-   if(functions.Length!=1||!functions[0].StartsWith(owner+"_Function_",StringComparison.Ordinal)||types[FunctionNativeEdits.Prefix+functions[0]] is not JsonObject||!proof.Any(p=>p.Value?["kind"]?.ToString()=="blueprint-node")||proof.Count>64||units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString())))return false;
+   if(functions.Length!=1||!functions[0].StartsWith(owner+"_Function_",StringComparison.Ordinal)||types[FunctionNativeEdits.Prefix+functions[0]] is not JsonObject||proof.Count>64||units[owner]?["kind"]?.ToString()!="schema"||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString())))return false;
    return changes.All(row=>InformationFunctionBodyBatch.Presentation(row)||row?["type"]?.ToString()=="function-edit"&&row["id"]?.ToString()==functions[0])&&proof.All(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&units[p.Key]?["kind"]?.ToString()==p.Value?["kind"]?.ToString()&&units[p.Key]?["path"]?.ToString()==p.Value?["path"]?.ToString());
   }
-  bool BoundReadScope(string owner,JsonObject receipt)=>!TypedGraphReceipt(owner,receipt)&&(receipt["readGuards"] is JsonObject guards&&guards.Count>0||NativeGroup(owner)&&(receipt["sources"] is JsonObject sources&&sources.Any(source=>source.Value?["kind"]?.ToString()=="implementation")||units[owner]!["atomicEditGroup"]!.AsArray().Any(id=>units[id!.ToString()]?["kind"]?.ToString()=="implementation")));
+  bool BoundReadScope(string owner,JsonObject receipt)=>!TypedSingleReceipt(owner,receipt)&&(receipt["readGuards"] is JsonObject guards&&guards.Count>0||NativeGroup(owner)&&(receipt["sources"] is JsonObject sources&&sources.Any(source=>source.Value?["kind"]?.ToString()=="implementation")||units[owner]!["atomicEditGroup"]!.AsArray().Any(id=>units[id!.ToString()]?["kind"]?.ToString()=="implementation")));
   bool FunctionPresentation(string owner,JsonNode? row)
   {
    // The existing name/description editor sends a same-contract function row.
@@ -94,7 +94,7 @@ internal static class InformationFunctionBodyGuards
   bool SameOwnedIntent(string owner,JsonNode row,JsonNode prior)=>OwnedIdentity(owner,row,prior)&&new[]{"displayName","icon","tree"}.All(key=>JsonNode.DeepEquals(row[key],prior[key]))&&SameOwnedValue(row,prior);
   bool RetainedLocalOnly(JsonNode? declaration)
   {
-   if(declaration?["id"] is JsonValue typedOwner&&units[typedOwner.ToString()]?["slotSaveReceipt"] is JsonObject typedReceipt&&TypedGraphReceipt(typedOwner.ToString(),typedReceipt))return false;
+   if(declaration?["id"] is JsonValue typedOwner&&units[typedOwner.ToString()]?["slotSaveReceipt"] is JsonObject typedReceipt&&TypedSingleReceipt(typedOwner.ToString(),typedReceipt))return false;
    if(declaration?["raw"] is not null||declaration?["id"] is not JsonValue owner||declaration?["changes"] is not JsonArray changes||changes.Count is <1 or >64)return false;
    var seen=new HashSet<string>(StringComparer.Ordinal);int functions=0,owned=0;
    foreach(var row in changes){
@@ -135,7 +135,7 @@ internal static class InformationFunctionBodyGuards
   }
   (HashSet<string> Functions,string[] Bodies)? RetainedSources(string owner,JsonObject receipt)
   {
-   if(TypedGraphReceipt(owner,receipt))return null;
+   if(TypedSingleReceipt(owner,receipt))return null;
    bool native=BoundReadScope(owner,receipt)||NativeGroup(owner)&&(RetainedLocalOnly(receipt["declaration"])||receipt["declaration"]?["changes"] is JsonArray saved&&NativeEdits(saved) is not null);
    if(units[owner]?["kind"]?.ToString()!="schema"||receipt["declaration"]?["raw"] is not null||receipt["sources"] is not JsonObject proof||proof[owner]?["kind"]?.ToString()!="schema"||proof[ns+"::ProjectManifest"]?["kind"]?.ToString()!="project"){
     if(native)throw new InvalidOperationException("Retain the complete saved native body group proof; all input retained");return null;
