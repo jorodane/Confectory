@@ -25,7 +25,7 @@ internal static class InformationFunctionNativeInputs
   if(changes.Count is <2 or >8)return null;
   return changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["mapping"] is JsonObject map&&map.Count==4+(map["dependencies"] is null?0:1)&&map.All(p=>p.Key is "before" or "args" or "bodies" or "callers" or "dependencies")&&map["args"] is JsonObject args&&map["callers"] is JsonObject&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args))?changes.ToArray():null;
  }
- public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
+ public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format,InformationFunctionNativeJoint? joint=null)
  {
   if(Edits(changes) is not {} edits)return null;
   foreach(var row in edits){
@@ -76,9 +76,9 @@ internal static class InformationFunctionNativeInputs
     if(selection.Value is not JsonObject plan||plan.Count!=5||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=next.Args.Count||before.Args.Any(a=>inputs[a.Name]?.ToString()!=a.Name)||next.Args.Skip(before.Args.Count).Any(a=>!ExplicitValue(inputs[a.Name]))||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0)throw new InvalidOperationException("Retain original bindings and outputs; choose an explicit value for every appended input without disconnecting source");
    }
   }
-  return PrepareSources(request,edits,units,format);
+  return PrepareSources(request,edits,units,format,joint);
  }
- internal static HashSet<string> PrepareSources(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format)
+ internal static HashSet<string> PrepareSources(JsonObject request,JsonNode?[] edits,JsonObject units,Func<Element,string> format,InformationFunctionNativeJoint? joint=null)
  {
   string ns=PackPaths.Namespace(request["id"]!.ToString());var functions=new HashSet<string>(StringComparer.Ordinal);var bodies=new HashSet<string>(StringComparer.Ordinal);
   Element Read(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original native input source"),"<native-input-group>").ParseElement();
@@ -97,14 +97,14 @@ internal static class InformationFunctionNativeInputs
   var contracts=registered.AddTo(units.Where(unit=>unit.Value?["kind"]?.ToString()=="function").ToDictionary(unit=>unit.Key,unit=>Read(unit.Key),StringComparer.Ordinal));
   foreach(var unit in units.Where(p=>p.Value?["kind"]?.ToString()=="implementation")){
    var d=Read(unit.Key);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));if(!callee&&!consumer)continue;
-   if(d.Id!=unit.Key||!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||callee&&consumer||d.Bodies.Count!=1)throw new InvalidOperationException("Review native dependency composition separately; preserve direct ownership and targets");
+   if(d.Id!=unit.Key||!d.Id.StartsWith(ns+"::",StringComparison.Ordinal)||d.Parent is not null||callee&&consumer&&(joint is null||!joint.Header(d.Id))||d.Bodies.Count!=1)throw new InvalidOperationException("Review native dependency composition separately; preserve direct ownership and targets");
    foreach(var import in d.Imports.Values){var dependency=contracts.GetValueOrDefault(import.Id)??throw new InvalidOperationException("Read the exact original owned or registered import receipt before changing the native contract");if(dependency.Kind!="function"||import.Id.StartsWith(ns+"::",StringComparison.Ordinal)&&dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))throw new InvalidOperationException("Retain exact owned or registered imports; no dependency contract or permission is inferred");}
    if(callee){if(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(d.Id+"/body:"+d.Bodies.Keys.Single()))throw new InvalidOperationException("Explicitly review every affected native input target");continue;}
    var target=d.Bodies.Single();string id=d.Id+"/body:"+target.Key;var graph=JsonNode.Parse(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read every original native input caller"))!.AsObject();
    if(target.Value.SourceKind!="blueprint"||graph["copySource"] is not null||graph["profile"]?.ToString().StartsWith("sync-",StringComparison.Ordinal)!=true||graph["aliases"] is JsonObject aliases&&aliases.Count>0||graph["nodes"] is not JsonArray nodes||nodes.Any(node=>node?["kind"]?.ToString()!="call"||node["control"]?.ToString()!="next"||node["graph"] is not null||node["implementationContext"] is not null||node["forwardCallerStorage"] is not null||node["postCall"] is not null))throw new InvalidOperationException("Native input replacements retain ordinary direct Blueprint callers; review opaque/private source plans separately");
   }
   // No candidate may borrow another member's changes to validate its choices.
-  foreach(var row in edits){var original=Read(row!["id"]!.ToString());var next=Read(original.Id);DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,row["mapping"]!.AsObject(),format);}
+  foreach(var row in edits){var original=Read(row!["id"]!.ToString());var next=Read(original.Id);DeclarationAuthoring.Apply(next,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});InformationFunctionContracts.Prepare(request,original,next,joint?.Mapping(original.Id,row["mapping"]!.AsObject())??row["mapping"]!.AsObject(),format,nativeJoint:joint);}
   return functions;
  }
 }

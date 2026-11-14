@@ -524,3 +524,6 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [입력 계약 변경·import 관측 공동 저장](V666_INPUT_IMPORT_OBSERVATIONS.md)은 두 소유 native 함수의 명시 타입/본문·공유 caller 변경과 기존 로컬/등록 helper 읽기를 한 Save에 결합하는 다음 단위다. 외부 선언·부모·등록 proof/read set과 최종 CAS를 유지한다. 선택 callee의 native 구현이 다른 선택 callee의 바뀌는 계약을 호출하는 결합은 별도 유한 잔여이며 C#·권한·override 계약을 추측해 바꾸지 않는다.
 
 [입력 계약·import 관측 공동 저장 검증](VALIDATION_V666_INPUT_IMPORT_OBSERVATIONS.md)은 신규41·재사용0으로 이 한 흐름을 마감한다. 선택 callee의 native 구현이 다른 선택 callee의 바뀌는 계약을 호출하는 source/계약 결합은 별도 유한 잔여다.
+
+
+현재 후속 단위는 [함께 변경하는 native 함수의 import 계약·본문 공동 저장](V666_NATIVE_CHAIN.md)이다. 각 함수의 원래 명시 소스 계획과 새 컴파일 계약을 한 후보로 연결하며 외부 readonly 관측·caller·Review/Confirm/CAS를 보존한다. 이 실제 입력/호출 흐름의 검증을 종료 기준으로 삼고 기존 private/whole/override 경계를 임의로 확대하지 않는다.

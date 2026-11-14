@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 internal sealed class InformationFunctionBatch
 {
  public JsonObject Request { get; }
+ internal InformationFunctionNativeJoint? NativeJoint { get; }
  readonly JsonObject originalUnits;
  readonly HashSet<string> functions;
  readonly bool composeCallers;
@@ -13,7 +14,7 @@ internal sealed class InformationFunctionBatch
  readonly string[] nativeRoleBodies;
  readonly Dictionary<string,JsonObject> outputPlans;
  readonly HashSet<string> completed=new(StringComparer.Ordinal);
- InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false,string[]? nativeRoleBodies=null){this.nativeRoleBodies=nativeRoleBodies??[];Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
+ InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false,string[]? nativeRoleBodies=null,InformationFunctionNativeJoint? nativeJoint=null){NativeJoint=nativeJoint;this.nativeRoleBodies=nativeRoleBodies??[];Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
  public static InformationFunctionBatch? Begin(JsonObject request,JsonArray changes,Func<Element,string> format)
  {
   bool ContractEdit(JsonNode? row){
@@ -30,6 +31,7 @@ internal sealed class InformationFunctionBatch
   var nativeChanges=InformationFunctionBodyBatch.NativeChanges(changes);
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null&&nativeChanges is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
   var units=request["units"]?.AsObject()??throw new InvalidOperationException("Read every shared caller before saving the function group");if(units.Count>2048)throw new ArgumentException("Shared contract source budget");
+  if(InformationFunctionNativeJoint.Create(request,nativeChanges??changes,units) is {} joint){var selected=InformationFunctionNativeInputs.Prepare(request,nativeChanges??changes,units,format,joint)??throw new InvalidOperationException("Complete joint native input plans required");return new(request,selected,true,new(),nativeJoint:joint);}
   if(InformationFunctionNativeInputs.Prepare(request,nativeChanges??changes,units,format) is {} nativeInputs)return new(request,nativeInputs,true,new());
   if(InformationFunctionNativeRoles.Prepare(request,nativeChanges??changes,units,format) is {} nativeRoles)return new(request,nativeRoles,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal),nativeRoleBodies:edits.SelectMany(row=>row!["mapping"]!["bodies"]!.AsObject().Select(p=>p.Key)).ToArray());
   if(InformationFunctionNativeOutputMix.Prepare(request,nativeChanges??changes,units,format) is {} nativeOutputMix)return new(request,nativeOutputMix,true,edits.ToDictionary(row=>row!["id"]!.ToString(),row=>row!["mapping"]!["callers"]!.DeepClone().AsObject(),StringComparer.Ordinal));
@@ -226,7 +228,7 @@ internal sealed class InformationFunctionBatch
    // still carry the original request's source identity and checkpoint version.
    plan["hash"]=Hash(current);
   }
-  completed.Add(function);return prepared;
+  completed.Add(function);return NativeJoint?.Mapping(function,prepared)??prepared;
  }
  void ProjectOutputs(string id,JsonObject graph)
  {
@@ -246,6 +248,7 @@ internal sealed class InformationFunctionBatch
   string id=update["id"]!.ToString();var initial=originalUnits[id]??throw new InvalidOperationException("Original shared source missing");var current=Request["units"]![id]??throw new InvalidOperationException("Current shared source missing");
   if(update["kind"]?.ToString()!=initial["kind"]?.ToString()||update["path"]?.ToString()!=initial["path"]?.ToString()||update["hash"]?.ToString()!=Hash(current["draft"]!.ToString()))throw new InvalidOperationException("Shared source identity or preparation basis changed; no candidate applied");
   var prior=updates.SingleOrDefault(row=>row!["id"]?.ToString()==id);var merged=update.DeepClone().AsObject();merged["hash"]=Hash(initial["draft"]!.ToString());
+  if(NativeJoint?.Buffers(id)==true){if(prior is not null&&prior["text"]!.ToString()!=merged["text"]!.ToString())throw new InvalidOperationException("Joint native source closures disagree; retain every original and input");if(prior is null)updates.Add(merged);if(updates.Count>64)throw new ArgumentException("Combined function usage closure budget");return;}
   if(prior is null)updates.Add(merged);else updates[updates.IndexOf(prior)]=merged;
   if(updates.Count>64)throw new ArgumentException("Combined function usage closure budget");
   Stage(id,update["text"]!.ToString());

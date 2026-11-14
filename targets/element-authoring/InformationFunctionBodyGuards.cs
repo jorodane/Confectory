@@ -154,7 +154,8 @@ internal static class InformationFunctionBodyGuards
    foreach(string id in implementations){
     if(request["action"]?.ToString()=="headers")continue;
     var d=OriginalImplementation(id);bool callee=functions.Contains(d.Function!),consumer=d.Imports.Values.Any(i=>functions.Contains(i.Id));
-    if(d.Id!=id||d.Parent is not null||callee==consumer||d.Bodies.Count!=1||callee&&(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(id+"/body:"+d.Bodies.Keys.Single()))||consumer&&(d.Bodies.Values.Single().SourceKind!="blueprint"||!callers.Contains(id+"/body:"+d.Bodies.Keys.Single())))throw new InvalidOperationException("Retain only the captured native input declarations and ordinary caller import contracts");
+    bool joint=callee&&consumer&&InformationFunctionNativeJoint.Retains(id,units,proof,functions,formatElement);
+    if(d.Id!=id||d.Parent is not null||callee==consumer&&!joint||d.Bodies.Count!=1||callee&&(!InformationFunctionBodyBatch.NativeTargets(d)||!bodies.Contains(id+"/body:"+d.Bodies.Keys.Single()))||consumer&&!callee&&(d.Bodies.Values.Single().SourceKind!="blueprint"||!callers.Contains(id+"/body:"+d.Bodies.Keys.Single())))throw new InvalidOperationException("Retain only captured native input plans, selected joint sources and ordinary caller imports");
    }
    // A saved explicit value-name edit also owns the changed caller graph.
    // Retain only ordinary owned consumers of this native group; qualified
