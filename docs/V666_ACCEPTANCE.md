@@ -1072,3 +1072,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [입력 계약·import 관측 공동 저장](V666_INPUT_IMPORT_OBSERVATIONS.md)은 실제 입력 타입·본문·공유 caller를 기존 로컬/등록 helper의 원래 읽기 증거와 한 Save에 결합한다. [신규41·재사용0 검증](VALIDATION_V666_INPUT_IMPORT_OBSERVATIONS.md)을 따르며, 선택 callee+consumer의 실제 계약 결합·구 reader의 전체 UI 교환·초기 빈 화면 및 실제 기기 제약은 별도다.
+
+
+[함께 변경하는 native 함수 import 계약·본문](V666_NATIVE_CHAIN.md)은 각 함수의 원래 명시 source 계획·새 typed import와 ordinary caller를 한 후보/최종 CAS에 결합한다. [신규26·재사용15·합계41 검증](VALIDATION_V666_NATIVE_CHAIN.md)을 따르며, 구 reader 전체 UI 교환·초기 빈 화면 및 실제 기기/전체 UI 제약은 별도로 남긴다.

@@ -15,3 +15,5 @@
 이 단위의 종료 기준은 위 한 실제 import 호출 흐름에서 순서 독립적 공동 후보, 잘못된/누락된 C#·signature·body hash·caller·dependencies의 원자 거절, 기존 상세/타입/본문 UI의 취소·Undo/Redo·cold·Save 실패/재시도·응답 유실·프로젝트 왕복·늦은 입력, Save 전 및 Review 뒤 원본/외부 경합, LF/CRLF와 새 package/전체 ZIP 복원이다. 기존 scalar 입력 및 직전 helper 관측 경로는 회귀로 검사한다. 타입/문맥별 모든 조합을 새 완료 의무로 늘리지 않는다.
 
 이전 intact package의 원래 실행·공동 Save 거절과 새 pending receipt의 순수 guard 수용 여부는 별도 실제 진단으로 기록한다. 자동 migration/downgrade나 구 Reference parser 변경은 없다. 같은 세대 authoring/runtime을 사용한다. Linux 실제 .NET/portable 실행·Chromium 자동화와 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI를 구분한다. 과거 간헐 초기 빈 화면의 원인은 미확정이며 main은 사용자 검토/merge에 남긴다.
+
+이 단위는 [최종 신규 26·재사용15·합계41 검증](VALIDATION_V666_NATIVE_CHAIN.md)을 마쳤다.
