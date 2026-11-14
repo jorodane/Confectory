@@ -14,7 +14,7 @@ internal static class InformationFunctionNativeRoles
  static bool OutRef(FunctionSignature before,FunctionSignature next,JsonObject args)=>before.Return==next.Return&&Scalar(before.Return)&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Type!=next.Args[i].Type||!Scalar(a.Type)||a.Mode is not (null or "out" or "ref")||a.Mode!=next.Args[i].Mode&&!(a.IsOut&&next.Args[i].IsRef&&a.Type==before.Return)||args[a.Name]?.ToString()!=a.Name).Any()==false&&before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any();
  public static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Role(before,next,args,false)||Role(before,next,args,true)||RefOut(before,next,args)||RefValue(before,next,args)||ValueRef(before,next,args)||OutRef(before,next,args);
  static bool ToValue(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsOut&&next.Args[i].Mode is null).Any();
- static string Direction(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any()?"ref-out":before.Args.Where((a,i)=>a.IsRef&&next.Args[i].Mode is null).Any()?"ref-value":before.Args.Where((a,i)=>a.Mode is null&&next.Args[i].IsRef).Any()?"value-ref":before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any()?"out-ref":ToValue(before,next)?"out-value":"value-out";
+ internal static string Direction(FunctionSignature before,FunctionSignature next)=>before.Args.Where((a,i)=>a.IsRef&&next.Args[i].IsOut).Any()?"ref-out":before.Args.Where((a,i)=>a.IsRef&&next.Args[i].Mode is null).Any()?"ref-value":before.Args.Where((a,i)=>a.Mode is null&&next.Args[i].IsRef).Any()?"value-ref":before.Args.Where((a,i)=>a.IsOut&&next.Args[i].IsRef).Any()?"out-ref":ToValue(before,next)?"out-value":"value-out";
  static bool ExplicitValue(JsonNode? value)=>value is JsonObject literal&&literal.Count==1&&literal["valueJson"] is JsonValue text&&text.TryGetValue<string>(out _);
  static bool ExplicitRef(JsonNode? value)=>value is JsonObject choice&&choice.Count==1&&choice["binding"] is JsonObject source&&source.Count==1&&source["input"] is JsonValue name&&name.TryGetValue<string>(out _);
  public static JsonNode?[]? Edits(JsonArray changes)
@@ -24,7 +24,7 @@ internal static class InformationFunctionNativeRoles
   // proofs; mixed role directions are not inferred or rebased.
   return changes.Select(row=>Direction(InformationFunctionBodies.Signature(row!["mapping"]!["before"]!),InformationFunctionBodies.Signature(row["signature"]!))).Distinct().Count()==1?changes.ToArray():null;
  }
- public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
+ public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format,InformationFunctionNativeJoint? joint=null)
  {
   if(Edits(changes) is not {} edits)return null;
   foreach(var row in edits){
@@ -39,6 +39,6 @@ internal static class InformationFunctionNativeRoles
    }
   }
   // The existing single-function proof checks exact values/disconnections, compatible output consumers and C#.
-  return InformationFunctionNativeInputs.PrepareSources(request,edits,units,format);
+  return InformationFunctionNativeInputs.PrepareSources(request,edits,units,format,joint);
  }
 }

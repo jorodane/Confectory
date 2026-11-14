@@ -11,14 +11,15 @@ internal sealed class InformationFunctionNativeJoint
  readonly Dictionary<string,JsonObject> bodies=new(StringComparer.Ordinal);
  readonly Dictionary<string,FunctionSignature> signatures=new(StringComparer.Ordinal);
  internal bool ReturnChanges {get; private set;}
+ internal bool RoleChanges {get; private set;}
  InformationFunctionNativeJoint(){}
  internal static InformationFunctionNativeJoint? Create(JsonObject request,JsonArray changes,JsonObject units)
  {
-  var inputs=InformationFunctionNativeInputs.Edits(changes);var returns=inputs is null?InformationFunctionNativeReturns.Edits(changes):null;var edits=inputs??returns;if(edits is null)return null;var ids=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);
+  var inputs=InformationFunctionNativeInputs.Edits(changes);var returns=inputs is null?InformationFunctionNativeReturns.Edits(changes):null;var roles=inputs is null&&returns is null?InformationFunctionNativeRoles.Edits(changes):null;var edits=inputs??returns??roles;if(edits is null)return null;var ids=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);
   Element Read(string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read every original joint native source"),"<joint-native-original>").ParseElement();
   var implementations=units.Where(unit=>unit.Value?["kind"]?.ToString()=="implementation").Select(unit=>Read(unit.Key)).ToArray();
   if(!implementations.Any(d=>ids.Contains(d.Function!)&&d.Imports.Values.Any(import=>ids.Contains(import.Id))))return null;
-  var result=new InformationFunctionNativeJoint{ReturnChanges=returns is not null};
+  var result=new InformationFunctionNativeJoint{ReturnChanges=returns is not null,RoleChanges=roles is not null};
   foreach(var row in edits){
    string id=row!["id"]!.ToString();var original=Read(id);var selected=Read(id);DeclarationAuthoring.Apply(selected,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});result.features.Add(id,selected);
    var targets=implementations.Where(d=>d.Function==id).ToArray();if(targets.Length!=1||!InformationFunctionBodyBatch.NativeTargets(targets[0])||targets[0].Bodies.Count!=1)throw new InvalidOperationException("Joint native contracts retain one directly owned implementation and target per function");
@@ -32,7 +33,7 @@ internal sealed class InformationFunctionNativeJoint
  }
  // Cold/header discovery must retain the captured callee+consumer without
  // mistaking it for an unselected native caller. Authenticate only the saved
- // scalar input/return source shape and its exact permitted native header delta.
+ // scalar input/return/role source shape and its exact permitted native header delta.
  internal static bool Retains(string id,JsonObject units,JsonObject proof,HashSet<string> functions,Func<Element,string> format)
  {
   string Original(string key)=>units[key]?["original"]?.ToString() is {Length:>0} text?text:throw new InvalidOperationException("Read every original joint native contract before review");
@@ -41,7 +42,10 @@ internal sealed class InformationFunctionNativeJoint
   string original=Original(id),current=Captured(id,"implementation");var before=new Parser(original,"<retained-joint-header>").ParseElement();var after=new Parser(current,"<retained-joint-header>").ParseElement();
   if(before.Id!=id||after.Id!=id||!InformationFunctionBodyBatch.NativeTargets(before)||before.Bodies.Count!=1||before.Signature is null||after.Signature is null)return false;
   string function=before.Function!;var old=Feature(function,false).Signature!;var next=Feature(function,true).Signature!;var args=new JsonObject(old.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,next.Args.Contains(a)?JsonValue.Create(a.Name):null)));
-  if(!(InformationFunctionNativeInputs.Types(old,next,args)||InformationFunctionNativeReturns.Types(old,next,args))||!before.Signature.Matches(old)||!after.Signature.Matches(next))throw new InvalidOperationException("Retain the captured scalar input/return transition and its native declaration");
+  JsonObject Identity(FunctionSignature signature)=>new(signature.Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name))));
+  bool role=InformationFunctionNativeRoles.Types(old,next,Identity(old));
+  if(role){string direction=InformationFunctionNativeRoles.Direction(old,next);foreach(string member in functions){var originalMember=Feature(member,false).Signature!;var selectedMember=Feature(member,true).Signature!;if(!InformationFunctionNativeRoles.Types(originalMember,selectedMember,Identity(originalMember))||InformationFunctionNativeRoles.Direction(originalMember,selectedMember)!=direction)throw new InvalidOperationException("Retain one captured role direction and every original public input/output identity");}if(!InformationFunctionNativeRoles.Types(before.Signature,after.Signature,Identity(before.Signature))||InformationFunctionNativeRoles.Direction(before.Signature,after.Signature)!=direction)throw new InvalidOperationException("Retain original native names, types, order and the exact selected role direction");}
+  if(!(InformationFunctionNativeInputs.Types(old,next,args)||InformationFunctionNativeReturns.Types(old,next,args)||role)||!before.Signature.Matches(old)||!after.Signature.Matches(next))throw new InvalidOperationException("Retain the captured scalar input/return/role transition and its native declaration");
   string body=id+"/body:"+before.Bodies.Keys.Single();Captured(body,"body");before.Signature=after.Signature;
   foreach(string alias in before.Imports.Keys.ToArray()){var import=before.Imports[alias];if(!functions.Contains(import.Id))continue;if(!import.Signature.Matches(Feature(import.Id,false).Signature))throw new InvalidOperationException("Original joint import contract was stale");before.Imports[alias]=import with{Signature=Feature(import.Id,true).Signature!};}
   if(DeclarationTextMerge.MergeContract(original,format(before),format)!=current)throw new InvalidOperationException("Retain the exact captured native import/header delta; no source is inferred");return true;
