@@ -11,3 +11,5 @@
 이 실제 반환/호출 흐름의 종료 기준은 원래 프로그램 재현, 순서 독립적 공동 후보와 명시 출력 소비·거절 검사, 기존 상세/타입/own source UI의 취소·Undo/Redo·cold·Save 실패/재시도·응답 유실·프로젝트 왕복·늦은 입력/두 번째 Save, 원본 경합·후속 metadata Save와 Review/Confirm·CAS, LF/CRLF 및 새 package/전체 ZIP 복원이다. 기존 반환 및 이전 입력 import 경로를 회귀로 구분하며 모든 타입/문맥 조합을 새 의무로 늘리지 않는다.
 
 구 reader 수용은 intact package와 새 pending guard의 실제 진단으로 구분한다. 자동 migration/downgrade나 구 Reference parser 변경은 없다. 실제 Linux .NET/portable 실행·Chromium 자동화와 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI를 구분하며 초기 빈 화면 원인은 미확정이다. main은 사용자 검토/merge에 남긴다.
+
+이 단위는 [최종 신규41·재사용0 검증](VALIDATION_V666_NATIVE_RETURN_CHAIN.md)을 마쳤다.

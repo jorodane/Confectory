@@ -1075,3 +1075,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [함께 변경하는 native 함수 import 계약·본문](V666_NATIVE_CHAIN.md)은 각 함수의 원래 명시 source 계획·새 typed import와 ordinary caller를 한 후보/최종 CAS에 결합한다. [신규26·재사용15·합계41 검증](VALIDATION_V666_NATIVE_CHAIN.md)을 따르며, 구 reader 전체 UI 교환·초기 빈 화면 및 실제 기기/전체 UI 제약은 별도로 남긴다.
+
+
+[반환 계약·C# import 공동 저장](V666_NATIVE_RETURN_CHAIN.md)은 직접 작성한 두 반환 계약/본문과 기존 반환 소비자의 호환 out 선택을 원래 source·한 후보/최종 CAS에 연결한다. [신규41·재사용0 검증](VALIDATION_V666_NATIVE_RETURN_CHAIN.md)을 따르며 다른 역할·고급 타입/opaque 문맥과 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구별한다.
