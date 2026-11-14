@@ -529,3 +529,6 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 현재 후속 단위는 [함께 변경하는 native 함수의 import 계약·본문 공동 저장](V666_NATIVE_CHAIN.md)이다. 각 함수의 원래 명시 소스 계획과 새 컴파일 계약을 한 후보로 연결하며 외부 readonly 관측·caller·Review/Confirm/CAS를 보존한다. 이 실제 입력/호출 흐름의 검증을 종료 기준으로 삼고 기존 private/whole/override 경계를 임의로 확대하지 않는다.
 
 [선택 native import 계약·본문 공동 저장 검증](VALIDATION_V666_NATIVE_CHAIN.md)은 신규26·재사용15·합계41으로 이 실제 입력/호출 흐름을 마감한다. 기존 private/whole/override·외부 쓰기 경계를 확대하지 않으며 다른 고정 명세와 구 reader/기기/전체 UI 잔여는 구별한다.
+
+
+현재 다음 단위는 [C# import 함수 간 반환 계약·본문 공동 저장](V666_NATIVE_RETURN_CHAIN.md)이다. 기존 호환 out 소비자의 명시 선택과 각 원래 본문 계획을 한 후보/최종 CAS에 결합한다. 실제 반환/호출 한 흐름을 종료 기준으로 삼고 다른 역할·고급 타입과 private/whole/override 경계를 구분한다.

@@ -13,7 +13,7 @@ internal static class InformationFunctionNativeReturns
   if(changes.Count is <2 or >8)return null;
   return changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["mapping"] is JsonObject map&&map.Count==4&&map.All(p=>p.Key is "before" or "args" or "bodies" or "callers")&&map["args"] is JsonObject args&&map["callers"] is JsonObject callers&&callers.Count>0&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args))?changes.ToArray():null;
  }
- public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
+ public static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format,InformationFunctionNativeJoint? joint=null)
  {
   if(Edits(changes) is not {} edits)return null;
   foreach(var row in edits){
@@ -23,6 +23,6 @@ internal static class InformationFunctionNativeReturns
     if(plan.Count!=6||plan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||plan["inputs"] is not JsonObject inputs||inputs.Count!=before.Args.Count(a=>!a.IsOut)||before.Args.Where(a=>!a.IsOut).Any(a=>inputs[a.Name]?.ToString()!=a.Name)||plan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||plan["outputs"] is not JsonObject remap||remap.Count!=outputs.Length||before.Args.Where(a=>a.IsOut).Any(a=>remap[a.Name]?.ToString()!=a.Name)||before.Return!="void"&&(remap["return"] is not JsonValue target||!target.TryGetValue<string>(out string? name)||!before.Args.Any(a=>a.IsOut&&a.Name==name&&a.Type==before.Return)))throw new InvalidOperationException("Retain all inputs/out identities and explicitly choose a compatible original out for every old return consumer; no conversion is inferred");
    }
   }
-  return InformationFunctionNativeInputs.PrepareSources(request,edits,units,format);
+  return InformationFunctionNativeInputs.PrepareSources(request,edits,units,format,joint);
  }
 }
