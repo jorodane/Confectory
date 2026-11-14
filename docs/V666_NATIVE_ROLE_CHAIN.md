@@ -9,3 +9,5 @@
 범위는 직접 소유 동기 함수2~8개·함수당 단일 C# target·기존 scalar 역할 계획·ordinary shared Blueprint caller다. 이 단위의 실제 종료 기준은 원래 실행 재현, 순서 독립 공동 후보·명시 ref 저장소와 호출부·부적합 입력/출력·partial/stale/hash 거절, 기존 UI의 취소·Undo/Redo·cold·Save 실패/재시도·응답 유실·프로젝트 왕복·늦은 입력/두 번째 Save·원본 경합·후속 metadata Save 및 Review/Confirm·CAS, LF/CRLF·새 package·전체 ZIP 복원이다. 기존 값→ref와 반환 import 흐름은 별도 회귀로 검증한다. 다른 역할 방향·고급 타입·async/private/whole/override·외부 계약 변경의 지원을 이 흐름의 결과로 대신하지 않는다.
 
 정보별 struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류를 유지한다. 구 reader의 pending 수용은 온전한 이전 package에서 따로 측정하며 migration/downgrade하지 않는다. Linux .NET/portable 실행·Chromium 자동화와 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI를 구분한다. 초기 빈 화면 원인은 미확정이며 main은 사용자 검토/merge에 남긴다.
+
+이 단위는 [최종 신규41·재사용0 검증](VALIDATION_V666_NATIVE_ROLE_CHAIN.md)을 마쳤다.

@@ -1078,3 +1078,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [반환 계약·C# import 공동 저장](V666_NATIVE_RETURN_CHAIN.md)은 직접 작성한 두 반환 계약/본문과 기존 반환 소비자의 호환 out 선택을 원래 source·한 후보/최종 CAS에 연결한다. [신규41·재사용0 검증](VALIDATION_V666_NATIVE_RETURN_CHAIN.md)을 따르며 다른 역할·고급 타입/opaque 문맥과 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구별한다.
+
+
+[값→ref 계약·C# import 공동 저장](V666_NATIVE_ROLE_CHAIN.md)은 직접 작성한 두 계약/본문과 기존 ref 입력 셀·반환 소비를 원래 source·한 후보/최종 CAS에 연결한다. [신규41·재사용0 검증](VALIDATION_V666_NATIVE_ROLE_CHAIN.md)을 따르며 다른 역할·고급 타입/opaque 문맥과 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구별한다.
