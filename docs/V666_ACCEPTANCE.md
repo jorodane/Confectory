@@ -1066,3 +1066,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 현재 후속 단위는 [독립 root C# 노드·일반 본문 공동 저장](V666_ROOT_CODE_GROUP.md)이다. 일반 root의 노드/상위 ABI를 보존하며 whole/retained 필수 문맥 계획의 별도 결합 및 실제 계약 변경 callee/import·등록 외부 관측은 구별한다.
 
 이 독립 root C# 노드/native 본문 공동 저장 단위의 [최종 신규 28·재사용 13·합계 41 검증과 보관](VALIDATION_V666_ROOT_CODE_GROUP.md)을 마쳤다.
+
+
+[retained 필수 계획·독립 코드 공동 저장](V666_RETAINED_CODE_PLANS.md)은 원래 context/source/output과 독립 노드/helpers를 모두 명시해 일반 본문과 한 Save로 결합한다. [신규41·재사용0 검증](VALIDATION_V666_RETAINED_CODE_PLANS.md)으로 이 한 흐름을 마감하며 실제 계약 변경 callee/import·외부 관측, 구 reader와 초기 빈 화면/실제 기기 제약은 별도다.

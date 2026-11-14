@@ -13,3 +13,5 @@
 실제 계약 변경 callee/import와 등록 외부 관측의 결합은 별도 유한 잔여다. 이전 reader의 새 다중 source pending 후보 수용은 보장하지 않으며 같은 세대 authoring/runtime을 사용한다. 자동 migration/downgrade나 구 Reference parser 변경은 없다. Linux 엔진/portable 실행·Chromium 자동화와 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI 검증을 구분한다. 과거 간헐 초기 빈 화면 원인은 미확정이다. main은 사용자 검토/merge에 남긴다.
 
 최종 결과는 [검증 기록](VALIDATION_V666_RETAINED_CODE_PLANS.md)에 기록한다.
+
+이 단위는 [최종 신규 41단계·재사용0 검증](VALIDATION_V666_RETAINED_CODE_PLANS.md)을 마쳤다.
