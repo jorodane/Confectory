@@ -11,7 +11,7 @@ internal static class InformationFunctionWholeBodies
  {
   var rows=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();
   if(rows.Length is <2 or >8||!rows.Any(row=>row?["mapping"]?["bodies"] is JsonObject bodies&&bodies.Any(body=>body.Value?["whole"] is JsonObject)))return null;
-  if(rows.Any(row=>row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping||mapping["bodies"] is not JsonObject bodies||bodies.Count!=1||!JsonNode.DeepEquals(mapping["before"],row["signature"])||bodies.Any(body=>body.Value?["wrapper"] is not null||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"]))))return null;
+  if(rows.Any(row=>row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping||mapping["bodies"] is not JsonObject bodies||bodies.Count is <1 or >8||!JsonNode.DeepEquals(mapping["before"],row["signature"])||bodies.Any(body=>body.Value?["wrapper"] is not null||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"]))))return null;
   return rows;
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
@@ -28,22 +28,24 @@ internal static class InformationFunctionWholeBodies
     var callerPlan=caller.Value?.AsObject()??throw new ArgumentException("Exact original caller plan required");var outputs=FeatureBlueprint.FeatureOutputs(signature).ToArray();
     if(callerPlan.Count!=5+(callerPlan["outputs"] is null?0:1)||callerPlan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||callerPlan["inputs"] is not JsonObject inputMap||inputMap.Count!=signature.Args.Count(arg=>!arg.IsOut)||signature.Args.Where(arg=>!arg.IsOut).Any(arg=>inputMap[arg.Name]?.ToString()!=arg.Name)||callerPlan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||callerPlan["outputs"] is JsonObject outputMap&&(outputMap.Count!=outputs.Length||outputs.Any(output=>outputMap[output.Name]?.ToString()!=output.Name)))throw new InvalidOperationException("Retain every original caller input/output binding; source-only groups do not rewire consumers");
    }
-   var body=mapping["bodies"]!.AsObject().Single();string source=body.Key;var plan=body.Value!.AsObject();
-   int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("One explicit owned source per function required");
+   string? selectedImplementation=null;
+   foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
+   int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("Unique explicit owned sources required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
    if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||implementation.Imports.Count!=0||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact direct source declaration; callee/import changes require their separate explicit plan");
+   if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every explicit source in the same original owned implementation");selectedImplementation=implementationId;
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
     string key=whole["node"]!.ToString();
     if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=BlueprintTree.SourceId(graphId,key))throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
     var graph=JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject();
     var selectedNode=BlueprintTree.Nodes(graph).Single(entry=>entry.Key==key).Node;
-    if(key.Contains('/')||selectedNode["kind"]?.ToString()=="code"&&selectedNode["implementationContext"] is null&&selectedNode["forwardCallerStorage"]?.GetValue<bool>()!=true&&InformationFunctionGraphs.RootCodeGraph(graph)){
+    if(key.Contains('/')||selectedNode["kind"]?.ToString()=="code"&&selectedNode["implementationContext"] is null&&selectedNode["forwardCallerStorage"]?.GetValue<bool>()!=true&&(InformationFunctionGraphs.RootCodeGraph(graph)||InformationFunctionGraphs.RetainedCodePlans(graphId,units[graphId]!["draft"]!.ToString(),graph,implementation,original,units,mapping["bodies"]!.AsObject()))){
      // Independent code owns its native ABI; the parent owns its frame.
      // The original single-source validator authenticates the receipt, code,
      // helper boundary and assembled context, without rewriting either ABI.
      var node=selectedNode;
-     if(node["kind"]?.ToString()!="code"||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||!JsonNode.DeepEquals(plan["beforeSignature"],node["signature"])||!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),row["signature"]))throw new InvalidOperationException("Retain the exact private code ABI and its parent frame/native declaration");
+     if(node["kind"]?.ToString()!="code"||node["control"]?.ToString() is not ("next" or "branch" or "switch")||node["implementationContext"] is not null||!JsonNode.DeepEquals(plan["beforeSignature"],node["signature"])||InformationFunctionGraphs.RootCodeGraph(graph)&&!JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),row["signature"]))throw new InvalidOperationException("Retain the exact private code ABI and its parent frame/native declaration");
     }else if(!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Retain the original whole-body native declaration");
     else if(!InformationFunctionRetained.IsLift(graph)){
      // Existing retained preparation owns every independent node/local/alias.
@@ -55,8 +57,9 @@ internal static class InformationFunctionWholeBodies
    }else{
     native=true;if(target.Value.SourceKind!="csharp"||source!=graphId||units[source]?["kind"]?.ToString()!="body"||!JsonNode.DeepEquals(plan["beforeSignature"],FeatureBlueprint.SignatureDocument(implementation.Signature!)))throw new InvalidOperationException("Direct original native source required");
    }
+   }
    var implementations=units.Where(unit=>unit.Value?["kind"]?.ToString()=="implementation"&&Declaration(units,unit.Key).Function==id).Select(unit=>unit.Key).ToArray();
-   if(implementations.Length!=1||implementations[0]!=implementationId)throw new InvalidOperationException("Review additional targets or implementations separately; no source is inferred");
+   if(implementations.Length!=1||implementations[0]!=selectedImplementation)throw new InvalidOperationException("Review additional targets or implementations separately; no source is inferred");
    InformationFunctionContracts.Prepare(request,original,Declaration(units,id),mapping,format);
   }
   if(!native)throw new InvalidOperationException("This closure combines an existing whole-body source with an ordinary native body; retain other contexts separately");

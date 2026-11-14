@@ -42,7 +42,9 @@ def after_contract(index):
  selector='[data-inline-method="'+functions[index]+'"] [data-function-edit], [data-inline-method="'+functions[index]+'"] [data-function-write-direct]'
  held=d.pending();dialog=f.page.locator('[role=dialog]:has([data-code-source])')
  def open_edit():
-  f.owner().locator(selector).click();expect(dialog).to_be_visible();field=dialog.locator('[data-code-source]');assert sources[functions[index]]in field.input_value();field.evaluate('(el,text)=>{el.focus();const i=el.value.indexOf(text);if(i<0)throw Error("Original body absent");el.setSelectionRange(i,i+text.length);}',sources[functions[index]]);f.page.keyboard.insert_text(selected[functions[index]]);f.idle()
+  f.owner().locator(selector).click();expect(f.page.locator('[role=dialog]:has([data-code-source]), [role=dialog]:has([data-information-body])')).to_be_visible();choice=f.page.locator('[data-information-body="'+whole_node+'"]')
+  if choice.count():choice.click()
+  expect(dialog).to_be_visible();field=dialog.locator('[data-code-source]');assert sources[functions[index]]in field.input_value();field.evaluate('(el,text)=>{el.focus();const i=el.value.indexOf(text);if(i<0)throw Error("Original body absent");el.setSelectionRange(i,i+text.length);}',sources[functions[index]]);f.page.keyboard.insert_text(selected[functions[index]]);f.idle()
  open_edit();dialog.locator('[data-code-cancel]').click();assert d.pending()==held
  open_edit();dialog.locator('[data-code-save]').click();expect(dialog).to_have_count(0);accept=f.page.locator('[data-abi-remap-accept]');expect(accept).to_be_visible();mapping=f.page.locator('[role=dialog]:has([data-abi-remap-accept])');target=mapping.locator('section[data-abi-target="native:'+whole_node+'"]');expect(target).to_be_visible();target.locator('[data-abi-output=return]').select_option('return');f.page.screenshot(path=str(f.case/'retained-original-output-mapping.png'));accept.click();expect(accept).to_have_count(0);f.idle();saved=d.pending()
  trace=[saved]

@@ -514,3 +514,6 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 현재 후속 단위는 [독립 root C# 노드·일반 본문 공동 저장](V666_ROOT_CODE_GROUP.md)이다. 일반 root의 노드/상위 ABI를 보존하며 whole/retained 필수 문맥 계획의 별도 결합 및 실제 계약 변경 callee/import·등록 외부 관측은 구별한다.
 
 이 독립 root C# 노드/native 본문 공동 저장 단위의 [최종 신규 28·재사용 13·합계 41 검증과 보관](VALIDATION_V666_ROOT_CODE_GROUP.md)을 마쳤다.
+
+
+[retained 필수 계획과 독립 코드 공동 저장](V666_RETAINED_CODE_PLANS.md)은 원래 retained 본문·출력 identity와 독립 root 노드/helpers를 모두 명시해 일반 native 본문과 함께 저장하는 한 흐름이다. 공개/native/노드 계약과 graph bytes·필수 계획·Review/Confirm/CAS를 유지한다. 실제 계약 변경 callee/import와 등록 외부 관측의 결합은 별도 유한 잔여이며 타입별 새 조합을 의무로 늘리지 않는다.

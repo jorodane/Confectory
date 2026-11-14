@@ -49,7 +49,15 @@ internal static class InformationFunctionRetained
   // Source-only plans must not normalize the spelling of an already valid
   // graph. Run the original root/output/binding validation above, then retain
   // exact authored bytes when its sole change is an added empty output exit.
-  if(JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(one.Signature!))&&original.Signature!.Args.All(arg=>remap[arg.Name]?.ToString()==arg.Name)&&bodyPlans.Count==sources.Count&&implementationPlans.Count==0&&outputPlans.Count==0&&graphPlans.Count==0&&mappings.All(mapping=>mapping.Outputs.All(output=>output.Value?.ToString()==output.Key))){
+  bool sourceOnly=bodyPlans.Count==sources.Count;
+  if(!sourceOnly&&InformationFunctionGraphs.RetainedCodePlans(id,units[id]!["draft"]!.ToString(),originalGraph,implementation,original,units,bodyPlans)){
+   sourceOnly=true;foreach(var plan in bodyPlans.Where(plan=>!sources.ContainsKey(plan.Key))){
+    var entry=BlueprintTree.Nodes(originalGraph).SingleOrDefault(entry=>BlueprintTree.SourceId(id,entry.Key)==plan.Key);
+    if(entry is null||entry.Node["implementationContext"] is not null||entry.Node["forwardCallerStorage"]?.GetValue<bool>()==true||units[plan.Key] is not JsonObject unit||unit["kind"]?.ToString()!="blueprint-node"||plan.Value is not JsonObject selected){sourceOnly=false;break;}
+    InformationFunctionGraphs.Text(id,units[id]!["draft"]!.ToString(),originalGraph,entry.Key,entry.Node,unit,requested,selected,true);
+   }
+  }
+  if(JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(original.Signature!),FeatureBlueprint.SignatureDocument(requested.Signature!))&&JsonNode.DeepEquals(FeatureBlueprint.SignatureDocument(implementation.Signature!),FeatureBlueprint.SignatureDocument(one.Signature!))&&original.Signature!.Args.All(arg=>remap[arg.Name]?.ToString()==arg.Name)&&sourceOnly&&implementationPlans.Count==0&&outputPlans.Count==0&&graphPlans.Count==0&&mappings.All(mapping=>mapping.Outputs.All(output=>output.Value?.ToString()==output.Key))){
    var unchanged=graph.DeepClone().AsObject();foreach(var exit in graph["exits"]!.AsObject())if(exit.Value is null&&!originalGraph["exits"]!.AsObject().ContainsKey(exit.Key)&&FeatureBlueprint.FeatureOutputs(requested.Signature!).Any(output=>output.Name==exit.Key))unchanged["exits"]!.AsObject().Remove(exit.Key);
    if(JsonNode.DeepEquals(unchanged,originalGraph))graph=originalGraph.DeepClone().AsObject();
   }
