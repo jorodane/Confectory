@@ -11,3 +11,5 @@
 종료 기준은 원래 실행과 이전 planner 거절 재현, 순서 독립 후보·누락/교차/변조 증거·소스 공유·잘못된 C# 거절, 기존 원본 UI의 두 타입 선택·네 본문·취소·Undo/Redo·미저장/저장 cold·쓰기 실패/재시도·응답 유실·후속 입력·프로젝트 왕복, metadata Save·Review 뒤 caller/type 원본 경합·새 Review/Confirm, LF/CRLF·새 package·전체 ZIP 복원이다. 직전 역할 import와 기존 단일 고급 전환을 별도 회귀로 확인한다. 고급 타입/역할/문맥별 무한 조합을 새 의무로 늘리지 않는다.
 
 공유 C# caller·선택 함수 간 고급 import 계약, 고급 반환·reference/array·private/whole/override 결합은 기존 고정 잔여와 구분한다. 구 reader의 새 pending 수용은 온전한 이전 package에서 실제 측정하며 자동 migration/downgrade하지 않는다. 명시 async 전환 전 sync caller 오류·Review/Confirm·최종 CAS·원본 UI 레이아웃을 유지한다. Linux .NET/portable 실행·Chromium 자동화와 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI 검증을 구분하며 초기 빈 화면 원인은 미확정이다. main은 사용자 검토/merge에 남긴다.
+
+이 단위는 [최종 신규42·재사용0 검증](VALIDATION_V666_NATIVE_TYPE_GROUP.md)을 마쳤다.
