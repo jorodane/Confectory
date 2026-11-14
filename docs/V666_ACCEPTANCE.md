@@ -1069,3 +1069,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [retained 필수 계획·독립 코드 공동 저장](V666_RETAINED_CODE_PLANS.md)은 원래 context/source/output과 독립 노드/helpers를 모두 명시해 일반 본문과 한 Save로 결합한다. [신규41·재사용0 검증](VALIDATION_V666_RETAINED_CODE_PLANS.md)으로 이 한 흐름을 마감하며 실제 계약 변경 callee/import·외부 관측, 구 reader와 초기 빈 화면/실제 기기 제약은 별도다.
+
+
+[입력 계약·import 관측 공동 저장](V666_INPUT_IMPORT_OBSERVATIONS.md)은 실제 입력 타입·본문·공유 caller를 기존 로컬/등록 helper의 원래 읽기 증거와 한 Save에 결합한다. [신규41·재사용0 검증](VALIDATION_V666_INPUT_IMPORT_OBSERVATIONS.md)을 따르며, 선택 callee+consumer의 실제 계약 결합·구 reader의 전체 UI 교환·초기 빈 화면 및 실제 기기 제약은 별도다.
