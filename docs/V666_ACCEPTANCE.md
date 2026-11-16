@@ -1105,3 +1105,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [선택 함수의 명시 참조 반환](V666_NATIVE_REFERENCE_RETURN.md)은 기존 참조/여러 개 반환 선택·원소 증거와 실제 handle의 명시 Bind·반환 셀/배열 동일성을 한 후보/CAS에 연결한다. [신규47·재사용0 검증](VALIDATION_V666_NATIVE_REFERENCE_RETURN.md)을 따르며 입력/반환 혼합·opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여는 구분한다.
+
+
+[선택 함수의 명시 입출력 혼합](V666_NATIVE_IO_MIXED.md)은 함수별/동시 IO proof와 canonical C# source를 한 후보/CAS에 결합한다. [신규48·재사용0 검증](VALIDATION_V666_NATIVE_IO_MIXED.md)은 두 방향·동시 IO·값 복사·등록 view의 유한 흐름을 마감한다. 새 구조/역할·opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여는 구분한다.

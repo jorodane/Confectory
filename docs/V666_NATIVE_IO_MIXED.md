@@ -38,3 +38,5 @@ CLR 의미를 따르며 수명 registry·소유 이전·암묵적 변환을 추�
 원본 C# bytes를 유지한다. jagged 배열·새 private/whole 문맥과 구 reader 전체 UI 교환을
 완료로 세지 않는다. 실제 Windows/기기·전체 UI는 미검증이고 초기 빈 화면 원인은 미확정이다.
 자동 migration/downgrade는 없으며 최종 결과는 [검증 기록](VALIDATION_V666_NATIVE_IO_MIXED.md)에 구분한다.
+
+이 유한 흐름은 [신규48·재사용0 최종 검증](VALIDATION_V666_NATIVE_IO_MIXED.md)을 마쳤다.

@@ -573,3 +573,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [참조 반환·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_REFERENCE_RETURN.md)은 신규47·재사용0으로 같은 실제 Target/셀·배열 동일성·원소/등록 관측·원래 scalar 입력/native 이름·한 후보/CAS 흐름을 마감한다. 입력/반환 혼합·opaque·구 reader·기기/전체 UI 잔여는 구분한다.
 
 [선택 C# import 함수의 입출력 혼합 전환](V666_NATIVE_IO_MIXED.md)은 서로 다른 방향의 두 함수와 한 함수의 입력·반환 동시 선택을 기존 원본 proof·공유 source·명시 C#·한 후보/CAS에 결합하는 유한 흐름이다. 실제 참조/배열 동일성과 단일 값 복사를 구분하며 새 역할·jagged·opaque·구 reader·기기/전체 UI 조합을 필수 매트릭스로 늘리지 않는다.
+
+[입출력 혼합·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_IO_MIXED.md)은 신규48·재사용0으로 두 방향·동시 IO·값 복사·등록 view의 네 명시 source 흐름과 한 후보/CAS를 마감한다. 새 구조/역할·opaque·구 reader·기기/전체 UI 잔여는 구분하며 조합별 필수 매트릭스를 추가하지 않는다.
