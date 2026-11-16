@@ -12,6 +12,7 @@ internal sealed class InformationFunctionNativeJoint
  readonly Dictionary<string,FunctionSignature> signatures=new(StringComparer.Ordinal);
  internal bool ReturnChanges {get; private set;}
  internal bool RoleChanges {get; private set;}
+ internal JsonObject? TypeChoices {get; private set;}
  InformationFunctionNativeJoint(){}
  internal static InformationFunctionNativeJoint? Create(JsonObject request,JsonArray changes,JsonObject units)
  {
@@ -28,6 +29,32 @@ internal sealed class InformationFunctionNativeJoint
    var native=InformationFunctionBodies.Signature(plan["signature"]!);if(!implementation.Signature!.Matches(original.Signature)||!native.Matches(selected.Signature))throw new InvalidOperationException("Joint native declarations must match their original and explicitly selected public contracts");
    InformationFunctionBodies.Text(source,implementation.Bodies.Values.Single().Path,unit,implementation.Signature,native,selected.Signature!,plan);
    result.headers.Add(implementation.Id,implementation);result.bodies.Add(source,plan.DeepClone().AsObject());result.signatures.Add(implementation.Id,native);
+  }
+  return result;
+ }
+ // A shared nominal caller has its own unchanged ABI and one source plan.
+ // Every selected function still authenticates that plan against its ORIGINAL
+ // scope. Only equal authored source/signature plans may share this context.
+ internal static InformationFunctionNativeJoint? SharedTypes(JsonObject request,JsonArray changes,JsonObject units)
+ {
+  if(InformationFunctionNativeTypes.Edits(changes) is not {} edits)return null;var ids=edits.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);
+  Element Read(string id,string kind){var unit=units[id]??throw new InvalidOperationException("Read every shared nominal source");var value=new Parser(unit["draft"]?.ToString()??throw new InvalidOperationException("Original shared nominal source missing"),"<shared-nominal-original>").ParseElement();if(unit["kind"]?.ToString()!=kind||value.Id!=id||value.Kind!=kind)throw new InvalidOperationException("Retain direct owned nominal source identities");return value;}
+  var implementations=units.Where(p=>p.Value?["kind"]?.ToString()=="implementation").Select(p=>Read(p.Key,"implementation")).ToArray();
+  if(!implementations.Any(d=>!ids.Contains(d.Function!)&&d.Imports.Values.Count(i=>ids.Contains(i.Id))>1))return null;
+  var typeChoices=new JsonObject();var result=new InformationFunctionNativeJoint{TypeChoices=typeChoices};var paths=new Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);string root=Path.GetDirectoryName(Path.GetFullPath(request["project"]!.ToString()))!;
+  foreach(var row in edits){string function=row!["id"]!.ToString();var original=Read(function,"function");var selected=Read(function,"function");DeclarationAuthoring.Apply(selected,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});result.features.Add(function,selected);
+   foreach(var choice in row["nativeTypes"]!.AsObject()){if(typeChoices[choice.Key]is JsonNode prior&&!JsonNode.DeepEquals(prior,choice.Value))throw new InvalidOperationException("Retain one original version of every selected nominal type proof");typeChoices[choice.Key]=choice.Value!.DeepClone();}if(typeChoices.Count>64)throw new ArgumentException("Shared nominal type proof budget");
+   var affected=implementations.Where(d=>d.Function==function||d.Imports.Values.Any(i=>i.Id==function)).ToArray();var plans=row["mapping"]!["bodies"]!.AsObject();var expected=affected.Select(d=>d.Id+"/body:"+d.Bodies.Keys.Single()).ToHashSet(StringComparer.Ordinal);
+   if(!expected.SetEquals(plans.Select(p=>p.Key)))throw new InvalidOperationException("Explicitly select every original shared nominal implementation/caller source");
+   foreach(var header in affected){if(!InformationFunctionBodyBatch.NativeTargets(header)||header.Bodies.Count!=1||ids.Contains(header.Function!)&&header.Imports.Values.Any(i=>ids.Contains(i.Id)))throw new InvalidOperationException("Shared nominal callers retain one direct C# target; selected callee/import composition requires its own plan");
+    string source=header.Id+"/body:"+header.Bodies.Keys.Single();var unit=units[source]?.AsObject()??throw new InvalidOperationException("Original shared nominal body missing");var plan=plans[source]!.AsObject();var signature=InformationFunctionBodies.Signature(plan["signature"]!);var feature=header.Function==function?selected:Read(header.Function!,"function");
+    if(original.Parent is not null||feature.Parent is not null||BlueprintAsync.Has(feature)||BlueprintExecutionBranches.Has(feature)||!header.Signature!.Matches(header.Function==function?original.Signature:feature.Signature)||!signature.Matches(feature.Signature))throw new InvalidOperationException("Retain synchronous original native caller ABI and explicitly selected nominal callee declarations");
+    InformationFunctionBodies.Text(source,header.Bodies.Values.Single().Path,unit,header.Signature,signature,selected.Signature!,plan);
+    string path=PackPaths.Owned(root,unit["path"]!.ToString());if(paths.TryGetValue(path,out var owner)&&owner!=source)throw new InvalidOperationException("Distinct native owners cannot alias a shared source path");paths[path]=source;
+    if(result.bodies.TryGetValue(source,out var prior)){var a=prior.DeepClone().AsObject();var b=plan.DeepClone().AsObject();a.Remove("contract");b.Remove("contract");if(!JsonNode.DeepEquals(a,b))throw new InvalidOperationException("Explicit shared nominal source plans disagree; all input retained");}
+    else{result.bodies.Add(source,plan.DeepClone().AsObject());result.headers.Add(header.Id,header);result.signatures.Add(header.Id,signature);}
+    if(!ids.Contains(header.Function!))result.features.TryAdd(feature.Id,feature);
+   }
   }
   return result;
  }
