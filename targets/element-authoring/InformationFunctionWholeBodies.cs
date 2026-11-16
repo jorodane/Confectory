@@ -7,14 +7,23 @@ internal static class InformationFunctionWholeBodies
 {
  const string Capture="nativeBodyContexts";
  static string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
+ // A native source keeps its own ABI when one public value pin is explicitly
+ // renamed. Private/whole frames retain their public contracts in this group.
+ static bool Rename(JsonNode row)
+ {
+  if(row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
+  return a.Return==b.Return&&a.Args.Count==b.Args.Count&&a.Args.Count==args.Count&&a.Args.Where((pin,i)=>pin.Mode is not null||b.Args[i].Mode is not null||pin.Type!=b.Args[i].Type||args[pin.Name]?.ToString()!=b.Args[i].Name).Any()==false&&a.Args.Where((pin,i)=>pin.Name!=b.Args[i].Name).Count()==1&&b.Args.Where((pin,i)=>pin.Name!=a.Args[i].Name).All(pin=>!a.Args.Any(old=>old.Name==pin.Name));
+ }
  internal static JsonNode?[]? Edits(JsonArray changes)
  {
   var rows=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();
   if(rows.Length is <2 or >8||!rows.Any(row=>row?["mapping"]?["bodies"] is JsonObject bodies&&bodies.Any(body=>body.Value?["whole"] is JsonObject)))return null;
-  if(rows.Any(row=>row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping||mapping["bodies"] is not JsonObject bodies||bodies.Count is <1 or >8||!JsonNode.DeepEquals(mapping["before"],row["signature"])||bodies.Any(body=>body.Value?["wrapper"] is not null||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"]))))return null;
+  if(rows.Any(row=>row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping||mapping["bodies"] is not JsonObject bodies||bodies.Count is <1 or >8||!JsonNode.DeepEquals(mapping["before"],row["signature"])&&!Rename(row)||bodies.Any(body=>body.Value?["wrapper"] is not null||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"]))))return null;
   return rows;
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
+ static Element Selected(JsonObject units,JsonNode row){var value=Declaration(units,row["id"]!.ToString());DeclarationAuthoring.Apply(value,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});return value;}
  internal static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
   var rows=Edits(changes);if(rows is null)return null;
@@ -23,10 +32,10 @@ internal static class InformationFunctionWholeBodies
   var information=Declaration(units,owner);
   foreach(var row in rows){
    string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;
-   if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["callers"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Any(a=>args[a.Name]?.ToString()!=a.Name))throw new InvalidOperationException("Whole/native groups retain exact public contracts and explicit pin identities");
+   if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["callers"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Where((a,i)=>args[a.Name]?.ToString()!=InformationFunctionBodies.Signature(row["signature"]!).Args[i].Name).Any())throw new InvalidOperationException("Whole/native groups retain exact contracts or one explicit native public pin rename");
    foreach(var caller in mapping["callers"] as JsonObject??new()){
     var callerPlan=caller.Value?.AsObject()??throw new ArgumentException("Exact original caller plan required");var outputs=FeatureBlueprint.FeatureOutputs(signature).ToArray();
-    if(callerPlan.Count!=5+(callerPlan["outputs"] is null?0:1)||callerPlan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||callerPlan["inputs"] is not JsonObject inputMap||inputMap.Count!=signature.Args.Count(arg=>!arg.IsOut)||signature.Args.Where(arg=>!arg.IsOut).Any(arg=>inputMap[arg.Name]?.ToString()!=arg.Name)||callerPlan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||callerPlan["outputs"] is JsonObject outputMap&&(outputMap.Count!=outputs.Length||outputs.Any(output=>outputMap[output.Name]?.ToString()!=output.Name)))throw new InvalidOperationException("Retain every original caller input/output binding; source-only groups do not rewire consumers");
+    if(callerPlan.Count!=5+(callerPlan["outputs"] is null?0:1)||callerPlan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||callerPlan["inputs"] is not JsonObject inputMap||inputMap.Count!=signature.Args.Count(arg=>!arg.IsOut)||signature.Args.Where(arg=>!arg.IsOut).Any(arg=>inputMap[args[arg.Name]!.ToString()]?.ToString()!=arg.Name)||callerPlan["disconnect"] is not JsonObject disconnect||disconnect.Count!=0||callerPlan["outputs"] is JsonObject outputMap&&(outputMap.Count!=outputs.Length||outputs.Any(output=>outputMap[output.Name]?.ToString()!=output.Name)))throw new InvalidOperationException("Retain every original caller input/output binding across the explicit pin correspondence");
    }
    string? selectedImplementation=null;
    foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
@@ -60,7 +69,7 @@ internal static class InformationFunctionWholeBodies
    }
    var implementations=units.Where(unit=>unit.Value?["kind"]?.ToString()=="implementation"&&Declaration(units,unit.Key).Function==id).Select(unit=>unit.Key).ToArray();
    if(implementations.Length!=1||implementations[0]!=selectedImplementation)throw new InvalidOperationException("Review additional targets or implementations separately; no source is inferred");
-   InformationFunctionContracts.Prepare(request,original,Declaration(units,id),mapping,format);
+   InformationFunctionContracts.Prepare(request,original,Selected(units,row),mapping,format);
   }
   if(!native)throw new InvalidOperationException("This closure combines an existing whole-body source with an ordinary native body; retain other contexts separately");
   return functions;
@@ -88,15 +97,15 @@ internal static class InformationFunctionWholeBodies
   if(receipt["version"]?.GetValue<int>()!=3||receipt["owner"]?.ToString()!=owner||receipt[Capture] is not JsonArray plans||Edits(plans) is null||receipt["sources"] is not JsonObject proof||proof.Count>64||units[owner]?["atomicEditGroup"] is not JsonArray group||group.Count!=proof.Count||!proof.Select(p=>p.Key).ToHashSet(StringComparer.Ordinal).SetEquals(group.Select(id=>id!.ToString()))||receipt["readGuards"] is not JsonObject guards||new[]{"nativeBodyDependencies","nativeBodyDependencyReads","nativeBodyOwnerEdits","nativeBodyOwnerReads","nativeBodyValues","nativeBodyValueReads","nativeBodyCopies","nativeTypeProofs","nativeTypeReads"}.Any(receipt.ContainsKey))throw new InvalidOperationException("Retain the complete explicit whole/native receipt and atomic source group");
   var expected=Checks(units,ns,false);if(guards.Count!=expected.Count||expected.Any(row=>guards[row!["path"]!.ToString()] is not JsonObject read||read.Count!=2||read["path"]?.ToString()!=row["path"]!.ToString()||!System.Text.RegularExpressions.Regex.IsMatch(read["hash"]?.ToString()??"","^[a-f0-9]{64}$"))||guards.Count+proof.Count>240)throw new InvalidOperationException("Retain all original whole/native source checks without adding or dropping a path");
   var originals=Originals(units);var originalRequest=OriginalRequest(request,owner,originals);var functions=Prepare(originalRequest,plans,originals,format)??throw new InvalidOperationException("Original explicit whole/native plans required");
-  var updates=new Dictionary<string,string>(StringComparer.Ordinal);var mandatory=new HashSet<string>(functions,StringComparer.Ordinal){owner,ns+"::ProjectManifest"};
-  foreach(var row in plans){string id=row!["id"]!.ToString();if(row["hash"]?.ToString()!=Hash(originals[id]!["draft"]!.ToString()))throw new InvalidOperationException("Retain the original function plan basis");var candidate=InformationFunctionContracts.Prepare(originalRequest,Declaration(originals,id),Declaration(originals,id),row["mapping"]!.AsObject(),format);
-   foreach(var update in candidate["updates"]!.AsArray()){string key=update!["id"]!.ToString(),text=update["text"]!.ToString();if(updates.TryGetValue(key,out string? prior)&&prior!=text)throw new InvalidOperationException("Original whole/native closures disagree on a retained source");updates[key]=text;if(text!=originals[key]!["draft"]!.ToString())mandatory.Add(key);}
+  var updates=new Dictionary<string,string>(StringComparer.Ordinal);var selectedFunctions=new Dictionary<string,string>(StringComparer.Ordinal);var mandatory=new HashSet<string>(functions,StringComparer.Ordinal){owner,ns+"::ProjectManifest"};
+  foreach(var row in plans){string id=row!["id"]!.ToString();if(row["hash"]?.ToString()!=Hash(originals[id]!["draft"]!.ToString()))throw new InvalidOperationException("Retain the original function plan basis");var candidate=InformationFunctionContracts.Prepare(originalRequest,Declaration(originals,id),Selected(originals,row),row["mapping"]!.AsObject(),format);selectedFunctions[id]=candidate["function"]!.ToString();
+   foreach(var update in candidate["updates"]!.AsArray()){string key=update!["id"]!.ToString(),text=update["text"]!.ToString(),original=originals[key]!["draft"]!.ToString();if(updates.TryGetValue(key,out string? prior)&&prior!=text&&prior!=original&&text!=original)throw new InvalidOperationException("Original whole/native closures disagree on a changed source");if(prior is null||text!=original)updates[key]=text;if(text!=original)mandatory.Add(key);}
    mandatory.UnionWith(row["mapping"]!["bodies"]!.AsObject().Select(body=>body.Key));
   }
   if(!mandatory.IsSubsetOf(proof.Select(p=>p.Key))||proof.Any(p=>!mandatory.Contains(p.Key)&&!updates.ContainsKey(p.Key)))throw new InvalidOperationException("Retain exactly the selected sources and their original closure members");
   foreach(var source in proof){var unit=units[source.Key]??throw new InvalidOperationException("Whole/native member missing");if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||source.Value?["path"]?.ToString()!=unit["path"]?.ToString()||source.Value?["kind"]?.ToString()!=unit["kind"]?.ToString()||source.Value?["hash"]?.ToString()!=Hash(unit["draft"]!.ToString())||unit["atomicEditGroup"] is not JsonArray members||!JsonNode.DeepEquals(members,group))throw new InvalidOperationException("Whole/native source identity, draft or group changed");}
   foreach(var unit in units.Where(p=>p.Key.StartsWith(ns+"::",StringComparison.Ordinal))){string id=unit.Key;string original=originals[id]?["draft"]?.ToString()??throw new InvalidOperationException("Hydrate every known original whole/native source before review");string current=unit.Value?["draft"]?.ToString()??throw new InvalidOperationException("Hydrate every known current whole/native source before review");
-   if(id==owner||functions.Contains(id)){if(Shape(current,format)!=Shape(original,format))throw new InvalidOperationException("A whole/native presentation save cannot change contracts, ownership or structure");}
+   if(id==owner||functions.Contains(id)){if(Shape(current,format)!=Shape(selectedFunctions.GetValueOrDefault(id)??original,format))throw new InvalidOperationException("Retain the exact captured whole/native public contracts, ownership and structure");}
    else if(current!=(updates.GetValueOrDefault(id)??original))throw new InvalidOperationException("Retain the exact replayed whole/native source and unchanged surrounding graph");
   }
  }
@@ -106,7 +115,8 @@ internal static class InformationFunctionWholeBodies
   if(row?["type"]?.ToString()!="function-edit"||row["id"] is not JsonValue id)return false;
   var saved=plans.SingleOrDefault(p=>p?["id"]?.ToString()==id.ToString());if(saved is null||!JsonNode.DeepEquals(row["signature"],saved["signature"]))return false;
   if(row["mapping"] is not JsonObject mapping)return true;
-  if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],saved["mapping"]!["args"])||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
+  var identity=new JsonObject(InformationFunctionBodies.Signature(saved["signature"]!).Args.Select(a=>KeyValuePair.Create<string,JsonNode?>(a.Name,JsonValue.Create(a.Name))));
+  if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],identity)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
   if(mapping["bodies"] is not JsonObject bodies||bodies.Count==0)return true;
   var prior=saved["mapping"]!["bodies"]!.AsObject();if(bodies.Count!=prior.Count)return false;
   foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString())||old.ContainsKey("helpers")!=next.ContainsKey("helpers"))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();foreach(string key in new[]{"hash","text","helpers"}){a.Remove(key);b.Remove(key);}if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();if(next.ContainsKey("helpers"))old["helpers"]=next["helpers"]!.DeepClone();}return true;
