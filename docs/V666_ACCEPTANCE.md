@@ -1099,3 +1099,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [선택 함수의 명시 정보 배열 입력](V666_NATIVE_ARRAY_INPUT.md)은 원래 여러 개 선택·원소 증거·정확한 입력 선언·직접 작성한 소비 본문을 한 후보/최종 CAS에 연결한다. [신규47·재사용0 검증](VALIDATION_V666_NATIVE_ARRAY_INPUT.md)을 따르며 참조 배열·혼합/opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.
+
+
+[선택 함수의 명시 참조 배열 입력](V666_NATIVE_REFERENCE_INPUT.md)은 기존 참조/여러 개 선택·원소 증거와 실제 handle의 명시 Bind·셀/배열 동일성을 한 후보/CAS에 연결한다. [신규47·재사용0 검증](VALIDATION_V666_NATIVE_REFERENCE_INPUT.md)을 따르며 참조 반환·입출력 혼합·opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.

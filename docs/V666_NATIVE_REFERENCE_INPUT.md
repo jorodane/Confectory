@@ -32,3 +32,5 @@ metadata Save는 기존 receipt/Review/Confirm 경계를 사용한다. 새 profi
 제한을 확대하지 않는다. 구 reader의 Reference 타입 거절, 실제 Windows/기기·전체 UI와
 초기 빈 화면 원인 미확정도 유지한다. 검증과 게시 결과는
 [검증 기록](VALIDATION_V666_NATIVE_REFERENCE_INPUT.md)에 구분한다.
+
+이 유한 흐름은 [신규47·재사용0 최종 검증](VALIDATION_V666_NATIVE_REFERENCE_INPUT.md)을 마쳤다.
