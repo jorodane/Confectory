@@ -11,3 +11,5 @@
 기존 상세창의 타입 선택·호출 연결·C# 및 private helpers 편집, 취소·Undo/Redo·cold·실패/재시도·응답 유실·늦은 입력·프로젝트/창 경계·Review 취소/Confirm과 원본/정보 정의/등록 관측의 경합을 검사한다. LF/CRLF와 새 패키지·전체 ZIP 복원은 최종 동결본에서 별도 실행한다. 이 한 사용자 흐름의 검증으로 단위를 닫으며 가능한 타입·문맥의 곱을 새 필수 목록으로 늘리지 않는다.
 
 직전 온전한 패키지의 공동 거절과 새 pending 검증기 경계, 이미 Confirm된 source의 구 compiler 실행을 구분한다. 구 Reference parser 및 일반적인 migration/downgrade는 별도 잔여다. 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI는 미검증이고 과거 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거를 보호하고 main은 사용자 검토와 merge에 남긴다.
+
+이 유한 흐름은 [최종 신규26·재사용17 검증](VALIDATION_V666_PRIVATE_STRUCT_INPUT.md)을 마쳤다.

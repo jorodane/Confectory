@@ -1110,3 +1110,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [선택 함수의 명시 입출력 혼합](V666_NATIVE_IO_MIXED.md)은 함수별/동시 IO proof와 canonical C# source를 한 후보/CAS에 결합한다. [신규48·재사용0 검증](VALIDATION_V666_NATIVE_IO_MIXED.md)은 두 방향·동시 IO·값 복사·등록 view의 유한 흐름을 마감한다. 새 구조/역할·opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여는 구분한다.
 
 [Private 본문·공개 입력 이름 공동 저장](V666_PRIVATE_PIN_RENAME.md)은 기존 명시 pin 대응·private/helpers·공유 caller를 한 후보/CAS에 결합하며, [최종 신규43·재사용0 검증](VALIDATION_V666_PRIVATE_PIN_RENAME.md)을 마쳤다. 구 reader의 새 pending 거절은 실측 경계이고 자동 migration/downgrade·다른 opaque 계약·기기/전체 UI 잔여는 구분한다.
+
+[Private 본문·정보 값 입력 공동 저장](V666_PRIVATE_STRUCT_INPUT.md)은 기존 struct 값의 명시 연결·private/helpers·원래 type/source 관측을 한 후보/CAS에 결합하며 [최종 신규26·재사용17 검증](VALIDATION_V666_PRIVATE_STRUCT_INPUT.md)을 마쳤다. 구 pending reader 경계와 다른 계약·기기/전체 UI 잔여를 구분한다.
