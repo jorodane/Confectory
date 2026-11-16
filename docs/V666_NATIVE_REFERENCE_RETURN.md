@@ -33,3 +33,5 @@ opaque/private/whole·비소유 쓰기 범위는 이 단위의 완료로 세지 
 pending 수용은 별도 측정하고 자동 migration/downgrade하지 않는다. 실제 기기·전체 UI와
 초기 빈 화면 원인은 각각 미검증·미확정으로 유지한다. 최종 결과는
 [검증 기록](VALIDATION_V666_NATIVE_REFERENCE_RETURN.md)에 구분한다.
+
+이 유한 흐름은 [신규47·재사용0 최종 검증](VALIDATION_V666_NATIVE_REFERENCE_RETURN.md)을 마쳤다.
