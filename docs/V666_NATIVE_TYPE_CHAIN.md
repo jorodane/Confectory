@@ -8,4 +8,6 @@
 
 종료 기준은 원래 실행과 이전 planner 거절 재현, 원래 해시의 순서 독립 후보·상충 A 계획/잘못된 소비 선언·누락/교차 proof 거절, cold·후속 owner/function metadata·재서명한 import/native 선언 변조 방지, Main/A/type의 Review 후 경합과 새 Confirm, 기본/독립 UI·취소·Undo/Redo·실패 재시도·응답 유실·늦은 입력·프로젝트 왕복, LF/CRLF·새 패키지/전체 ZIP 복원이다. 이전 공유/개별 타입 경계·역할 전환과 기존 등록 외부 타입 읽기는 이번 source에 대한 회귀로 구분한다.
 
-직접 소유 동기 native 함수2~8개의 기존 scalar 입력→nominal 단일 값과 기존 C# target 범위다. 고급 반환·reference/array·out/ref·async·private/whole/override·외부 수정 결합은 별도 고정 잔여다. version2 workspace/version3 receipt·native-type-source-guards-v1·read240/member64·type64·권한·Review/Confirm·최종 CAS와 정보별 struct·종류 enum·모듈 interface를 유지한다. sync caller는 명시 async 전환 전 오류라는 결정도 유지한다. 구 reader의 새 pending 수용은 온전한 이전 package에서 측정하고 자동 migration/downgrade하지 않는다. Linux .NET/Chromium과 Windows/WebView2·실제 기기·전체 UI 검증을 구분하며 초기 빈 화면 원인은 미확정이다.
+직접 소유 동기 native 함수2~8개의 기존 scalar 입력→nominal 단일 값과 기존 C# target 범위다. 고급 반환·reference/array·out/ref·async·private/whole 결합은 별도 범위다. 오버라이드 공개 계약의 구조 변경은 기존 정책상 금지이며 필수 잔여로 추가하지 않는다. 외부 원본 수정 권한도 확장하지 않는다. version2 workspace/version3 receipt·native-type-source-guards-v1·read240/member64·type64·권한·Review/Confirm·최종 CAS와 정보별 struct·종류 enum·모듈 interface를 유지한다. sync caller는 명시 async 전환 전 오류라는 결정도 유지한다. 구 reader의 새 pending 수용은 온전한 이전 package에서 측정하고 자동 migration/downgrade하지 않는다. Linux .NET/Chromium과 Windows/WebView2·실제 기기·전체 UI 검증을 구분하며 초기 빈 화면 원인은 미확정이다.
+
+이 단위는 [신규45·재사용0 최종 검증](VALIDATION_V666_NATIVE_TYPE_CHAIN.md)을 마쳤다.

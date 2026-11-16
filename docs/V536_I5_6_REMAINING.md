@@ -549,3 +549,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [고급 입력·공유 C# caller 공동 저장 검증](VALIDATION_V666_NATIVE_TYPE_SHARED.md)은 신규43·재사용0으로 네 명시 선택·세 소스 흐름과 소유/등록 타입의 readonly 경계를 마감한다. 선택 native 함수 간 고급 import·반환/reference/array·private/whole/override 및 구 reader·기기/전체 UI 잔여는 구분한다.
 
 [선택 함수 간 nominal C# import 공동 저장](V666_NATIVE_TYPE_CHAIN.md)은 Main→선택 A→선택 B의 네 명시 계획·세 고유 source를 다음 유한 단위로 다룬다. 고급 반환/reference/array·opaque 문맥·외부 수정 결합 잔여와 구분한다.
+
+[선택 C# import·nominal 입력 공동 저장 검증](VALIDATION_V666_NATIVE_TYPE_CHAIN.md)은 신규45·재사용0으로 Main→선택 A→선택 B의 네 명시 계획·세 고유 source 흐름을 마감한다. 고급 반환/reference/array·opaque 문맥과 구 reader/기기/전체 UI 잔여를 구분하며, 오버라이드 공개 계약 및 외부 수정 금지 경계를 유지한다.
