@@ -9,3 +9,5 @@
 종료 기준은 원래 실행/이전 planner 거절·순서 독립 후보, 누락/교차 type/source proof·상충 A 계획·잘못된 C#·혼합 방향 거절, 원래 반환 선택 UI의 취소/Undo/Redo·정상/역순 재개방·cold·쓰기 실패/재시도·응답 유실·늦은 입력·프로젝트 전환, 후속 설명 저장·Main/A/type의 Review 후 충돌과 새 Confirm, 서로 다른 소유/기존 등록 구조체 반환의 readonly 경계, LF/CRLF·새 패키지/전체 ZIP 복원이다. 기존 nominal 입력/shared caller·단일 타입/증거 경계·scalar 반환 그룹은 회귀로 구분하며 무한 타입 조합을 새 요구로 늘리지 않는다.
 
 이번 실제 반환은 정보별 구조체 값이다. enum/interface 반환, 참조/배열 및 기타 복합 반환 조합 전체를 검증 완료로 분류하지 않는다. 구 reader의 새 pending 수용은 온전한 이전 package에서 측정하며 자동 migration/downgrade하지 않는다. Linux .NET/Chromium 검증과 실제 Windows/WebView2·물리 기기·전체 UI 검증은 구분하고 초기 빈 화면 원인은 미확정으로 유지한다.
+
+이 단위는 [신규47·재사용0 최종 검증](VALIDATION_V666_NATIVE_RETURN_STRUCT.md)을 마쳤다.

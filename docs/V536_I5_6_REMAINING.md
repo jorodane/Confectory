@@ -553,3 +553,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [선택 C# import·nominal 입력 공동 저장 검증](VALIDATION_V666_NATIVE_TYPE_CHAIN.md)은 신규45·재사용0으로 Main→선택 A→선택 B의 네 명시 계획·세 고유 source 흐름을 마감한다. 고급 반환/reference/array·opaque 문맥과 구 reader/기기/전체 UI 잔여를 구분하며, 오버라이드 공개 계약 및 외부 수정 금지 경계를 유지한다.
 
 [선택 C# import 함수의 nominal 값 반환](V666_NATIVE_RETURN_STRUCT.md)은 입력을 유지한 scalar→정보별 구조체 반환과 명시 소비 본문을 다음 유한 단위로 다룬다. 입력/반환 혼합·참조/배열·opaque 및 구 reader/기기 범위와 구분한다.
+
+[정보 값 반환·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_RETURN_STRUCT.md)은 신규47·재사용0으로 입력/native 별칭을 유지한 scalar→정보 구조체 반환 흐름을 마감한다. 입력/반환 혼합·참조/배열 및 기타 고급 반환/opaque·구 reader/기기 범위와 구분한다.
