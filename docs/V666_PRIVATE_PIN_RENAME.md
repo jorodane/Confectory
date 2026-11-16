@@ -11,3 +11,5 @@
 취소·Undo/Redo·실패/재시도·응답 유실·독립 창·프로젝트 경계·늦은 입력·후속 Save와 Review 취소/Confirm, private graph/node/독립 원문·공유 caller·바뀐 함수 원본 경합을 검증한다. LF/CRLF restore/build·새 package와 전체 ZIP 복원, 기존 계약 불변 private/retained·등록 helper 및 native import 회귀를 구분한다. 이 한 흐름을 마치면 가능한 타입/문맥 조합으로 새 매트릭스를 늘리지 않는다.
 
 직전 온전한 패키지의 단독 계획·원래 실행과 공동 거절을 새로 재현한다. 새 pending 계획의 구 reader 수용 여부도 같은 추출본에서 실제 측정한다. 이전 바이너리를 고치거나 데이터·Reference를 낮은 타입으로 바꿔 호환된다고 표시하지 않는다. 구 Reference parser 제약·일반적인 migration/downgrade는 별도 잔여이며, 새/구 reader 전체 UI 교환을 완료로 세지 않는다. 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI는 미검증이고 과거 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거와 기존 정리 범위를 보존하며 main은 사용자 검토/merge에 남긴다.
+
+이 유한 흐름은 [최종 신규43·재사용0 검증](VALIDATION_V666_PRIVATE_PIN_RENAME.md)을 마쳤다.
