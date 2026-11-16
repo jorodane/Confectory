@@ -10,13 +10,16 @@ internal static class InformationFunctionNativeTypes
  static bool Nominal(string type)=>InformationStructs.IsType(type)&&!InformationReferences.IsType(type)&&!type.EndsWith("[]",StringComparison.Ordinal);
  // Single values and one-dimensional value arrays use their existing element proof.
  static bool ValueContract(string type)=>Nominal(type)||type.EndsWith("[]",StringComparison.Ordinal)&&Nominal(type[..^2]);
- static bool Inputs(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&before.Return==next.Return&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null||!ValueContract(next.Args[i].Type))).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ // Explicit reference carriers keep the existing element proof and CLR lifetime.
+ // Only the scalar-to-input direction is composed here; no binding is inferred.
+ static bool InputContract(string type)=>ValueContract(type)||InformationReferences.IsType(type);
+ static bool Inputs(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&before.Return==next.Return&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null||!InputContract(next.Args[i].Type))).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
  static bool Returns(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&ValueContract(next.Return)&&before.Args.SequenceEqual(next.Args)&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name);
  internal static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Inputs(before,next,args)||Returns(before,next,args);
  internal static JsonNode?[]? Edits(JsonArray changes)
  {
   if(changes.Count is <2 or >8)return null;
-  if(!changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["nativeTypes"] is JsonObject types&&types[FunctionNativeEdits.Prefix+row["id"]] is JsonObject&&row["mapping"] is JsonObject map&&map.Count==3&&map.All(p=>p.Key is "before" or "args" or "bodies")&&map["args"] is JsonObject args&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args)))return null;
+  if(!changes.All(row=>InformationFunctionBodyBatch.BodyPlan(row)&&row!["nativeTypes"] is JsonObject types&&types[FunctionNativeEdits.Prefix+row["id"]] is JsonObject&&row["mapping"] is JsonObject map&&map.Count==3+(map["dependencies"] is null?0:1)&&map.All(p=>p.Key is "before" or "args" or "bodies" or "dependencies")&&map["args"] is JsonObject args&&Types(InformationFunctionBodies.Signature(map["before"]!),InformationFunctionBodies.Signature(row["signature"]!),args)))return null;
   bool returns=InformationFunctionBodies.Signature(changes[0]!["mapping"]!["before"]!).Return!=InformationFunctionBodies.Signature(changes[0]!["signature"]!).Return;
   return changes.All(row=>(InformationFunctionBodies.Signature(row!["mapping"]!["before"]!).Return!=InformationFunctionBodies.Signature(row["signature"]!).Return)==returns)?changes.ToArray():null;
  }

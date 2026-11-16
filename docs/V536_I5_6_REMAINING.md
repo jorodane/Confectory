@@ -563,3 +563,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [선택 C# import 함수의 정보 배열 입력](V666_NATIVE_ARRAY_INPUT.md)은 원래 여러 개 입력 선택·원소 proof와 native 인자 이름·명시 C# 소비·한 후보/CAS를 연결하는 다음 유한 단위다. 참조 배열·혼합/opaque 및 구 reader·기기/전체 UI 잔여와 구분한다.
 
 [정보 배열 입력·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_ARRAY_INPUT.md)은 신규47·재사용0으로 원소 proof·원래 native 이름·명시 소비와 배열 동일성을 한 후보/CAS에 연결한 흐름을 마감한다. 참조 배열·혼합/opaque·구 reader·기기/전체 UI 잔여와 구분한다.
+
+[선택 C# import 함수의 정보 참조 배열 입력](V666_NATIVE_REFERENCE_INPUT.md)은 원래 참조/여러 개 선택·원소 proof와 실제 handle의 명시 Bind·같은 셀/배열 동일성·한 후보/CAS를 연결하는 다음 유한 단위다. 참조 반환·입출력 혼합과 기존 opaque·구 reader·기기/전체 UI 잔여를 구분한다.
