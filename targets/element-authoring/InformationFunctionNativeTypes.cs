@@ -11,10 +11,10 @@ internal static class InformationFunctionNativeTypes
  // Single values and one-dimensional value arrays use their existing element proof.
  static bool ValueContract(string type)=>Nominal(type)||type.EndsWith("[]",StringComparison.Ordinal)&&Nominal(type[..^2]);
  // Explicit reference carriers keep the existing element proof and CLR lifetime.
- // Only the scalar-to-input direction is composed here; no binding is inferred.
- static bool InputContract(string type)=>ValueContract(type)||InformationReferences.IsType(type);
- static bool Inputs(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&before.Return==next.Return&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null||!InputContract(next.Args[i].Type))).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
- static bool Returns(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&ValueContract(next.Return)&&before.Args.SequenceEqual(next.Args)&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name);
+ // Input and return groups retain their own direction; no binding is inferred.
+ static bool NominalContract(string type)=>ValueContract(type)||InformationReferences.IsType(type);
+ static bool Inputs(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&before.Return==next.Return&&before.Args.Count==next.Args.Count&&args.Count==before.Args.Count&&before.Args.Where((a,i)=>a.Name!=next.Args[i].Name||a.Mode is not null||next.Args[i].Mode is not null||!Scalar(a.Type)||!args.ContainsKey(a.Name)||(a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=a.Name:args[a.Name] is not null||!NominalContract(next.Args[i].Type))).Any()==false&&before.Args.Where((a,i)=>a.Type!=next.Args[i].Type).Any();
+ static bool Returns(FunctionSignature before,FunctionSignature next,JsonObject args)=>Scalar(before.Return)&&NominalContract(next.Return)&&before.Args.SequenceEqual(next.Args)&&args.Count==before.Args.Count&&before.Args.All(a=>a.Mode is null&&Scalar(a.Type)&&args[a.Name]?.ToString()==a.Name);
  internal static bool Types(FunctionSignature before,FunctionSignature next,JsonObject args)=>Inputs(before,next,args)||Returns(before,next,args);
  internal static JsonNode?[]? Edits(JsonArray changes)
  {

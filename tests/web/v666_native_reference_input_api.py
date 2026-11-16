@@ -22,10 +22,10 @@ try:
   f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
  bad=copy.deepcopy(r);bad['declaration']['changes']=x.mixed(x.request(cats),cats)['changes'];f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
  f.checked('missing/crossed nominal function proofs, omitted caller, stale source, incompatible C# and conflicting shared source fail without applying any member')
- for kind in ['reference-return','jagged-array']:
+ for kind in ['jagged-array']:
   bad=copy.deepcopy(r);bad['declaration']['changes']=x.unsupported(x.request(cats),kind,cats)['changes'];f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
  bad=copy.deepcopy(r);proof=bad['declaration']['changes'][0]['nativeTypes'];base=bad['declaration']['changes'][0]['signature']['args'][0]['type'].removesuffix('[]');proof[base+'[]']=proof.pop(base);f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
- f.checked('reference returns/jagged inputs and array-keyed element proofs reject with every original and checkpoint intact')
+ f.checked('jagged inputs and array-keyed element proofs reject with every original and checkpoint intact')
  f.invoke('blueprint',r);ids=x.verify(checkpoint);f.checked('one Save captures both selected nominal scopes and every explicit native source and the selected callee/consumer in the existing group/receipt')
  f.stop();f.start(1);f.invoke('select',dict(id=x.owner));assert x.verify(checkpoint)==ids;f.checked('cold restore retains both nominal function scopes and body group')
  f.invoke('schema',dict(id=x.owner));s=f.state()['schema'];basis=f.invoke('blueprint',dict(action='readOwnerEdits',id=x.owner,hash=s['textHash']))['result']['result'];f.invoke('blueprint',dict(action='applySlots',id=x.owner,rows=[],basis=basis['basis'],declaration=dict(id=x.owner,hash=s['textHash'],changes=[dict(type='description',text='구조체 공동 저장 후 설명')])));assert x.verify(checkpoint)==ids;f.checked('follow-up owner metadata Save retains the captured native bodies and per-function type proofs')
