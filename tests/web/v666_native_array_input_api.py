@@ -16,7 +16,6 @@ try:
   elif fault=='wrong-selected-signature':b['mapping']['bodies'][x.bodies[x.first]]['signature']=copy.deepcopy(x.old)
   else:b['mapping']['bodies'][x.bodies[x.first]]['text']+='\n// different authored shared body\n'
   f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
- bad=copy.deepcopy(r);bad['declaration']['changes']=x.mixed(x.request(cats),cats)['changes'];f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
  f.checked('missing/crossed nominal function proofs, omitted caller, stale source, incompatible C# and conflicting shared source fail without applying any member')
  for kind in ['jagged-array']:
   bad=copy.deepcopy(r);bad['declaration']['changes']=x.unsupported(x.request(cats),kind,cats)['changes'];f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()

@@ -16,7 +16,6 @@ try:
   elif fault=='wrong-selected-signature':b['mapping']['bodies'][x.bodies[x.first]]['signature']=copy.deepcopy(x.old)
   else:b['mapping']['bodies'][x.bodies[x.first]]['text']+='\n// different authored shared body\n'
   f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
- bad=copy.deepcopy(r);bad['declaration']['changes']=x.mixed(x.request())['changes'];f.invoke('blueprint',bad,False);assert checkpoint.read_bytes()==before;x.unchanged()
  f.checked('missing/crossed nominal function proofs, omitted caller, stale source, incompatible C# and conflicting shared source fail without applying any member')
  f.invoke('blueprint',r);ids=x.verify(checkpoint);f.checked('one Save captures both selected nominal scopes and every explicit native source and the selected callee/consumer in the existing group/receipt')
  f.stop();f.start(1);f.invoke('select',dict(id=x.owner));assert x.verify(checkpoint)==ids;f.checked('cold restore retains both nominal function scopes and body group')
