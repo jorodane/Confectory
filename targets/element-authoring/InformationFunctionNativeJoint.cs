@@ -32,7 +32,8 @@ internal sealed class InformationFunctionNativeJoint
   }
   return result;
  }
- // A shared nominal caller has its own unchanged ABI and one source plan.
+ // Unselected nominal callers retain their ABI. Selected consumers use their
+ // own independently authored future declaration and one canonical source plan.
  // Every selected function still authenticates that plan against its ORIGINAL
  // scope. Only equal authored source/signature plans may share this context.
  internal static InformationFunctionNativeJoint? SharedTypes(JsonObject request,JsonArray changes,JsonObject units)
