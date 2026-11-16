@@ -1084,3 +1084,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [두 고급 native 입력·명시 C# 공동 저장](V666_NATIVE_TYPE_GROUP.md)은 함수별 type/출처 proof와 겹치지 않는 native 구현·caller 계획을 한 후보/최종 CAS에 결합한다. [신규42·재사용0 검증](VALIDATION_V666_NATIVE_TYPE_GROUP.md)을 따르며 공유 고급 import·reference/array·opaque 문맥과 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.
+
+
+[고급 입력·공유 C# caller 공동 저장](V666_NATIVE_TYPE_SHARED.md)은 함수별 원래 proof와 같은 native caller 계획을 내부 future context/한 후보/최종 CAS에 결합한다. [신규43·재사용0 검증](VALIDATION_V666_NATIVE_TYPE_SHARED.md)을 따르며 선택 callee 간 고급 import·reference/array·opaque 문맥과 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.

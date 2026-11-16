@@ -11,3 +11,5 @@
 이 단위의 유한 종료 기준은 원래 실행·이전 planner 거절 재현, 순서 독립 후보·충돌하는 공유 계획·누락/교차 proof·소스/선언 변조 거절, 기존 UI의 두 선택·네 명시 계획·세 소스·취소/Undo/Redo/cold·쓰기 실패/응답 유실/늦은 입력/프로젝트 왕복, metadata Save·Review 후 caller/type 경합·새 Confirm, 서로 다른 소유/등록 타입의 읽기 경계, LF/CRLF·새 package·전체 ZIP 복원이다. 기존 disjoint·단일 nominal·incremental 경계와 역할 import는 별도 회귀로 구분하며 문맥별 무한 조합을 새 의무로 늘리지 않는다.
 
 선택 함수 간 고급 import·고급 반환·reference/array·private/whole/override 결합은 별도 고정 잔여다. 구 reader의 pending 수용은 온전한 이전 package에서 실제 측정하며 자동 migration/downgrade하지 않는다. Linux .NET/portable 실행·Chromium 자동화와 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI 검증을 구분한다. 초기 빈 화면 원인은 미확정이며 main은 사용자 검토/merge에 남긴다.
+
+이 단위는 [최종 신규43·재사용0 검증](VALIDATION_V666_NATIVE_TYPE_SHARED.md)을 마쳤다.
