@@ -1093,3 +1093,6 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 
 
 [선택 함수의 명시 정보 값 반환](V666_NATIVE_RETURN_STRUCT.md)은 한 방향의 반환 전환·함수별 원래 증거·직접 작성한 C# 소비·원래 입력/native 별칭을 한 후보/최종 CAS로 결합한다. [신규47·재사용0 검증](VALIDATION_V666_NATIVE_RETURN_STRUCT.md)을 따르며 참조/배열·입출력 혼합·opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.
+
+
+[선택 함수의 명시 정보 배열 반환](V666_NATIVE_RETURN_ARRAY.md)은 원래 여러 개 선택과 원소 증거·정확한 배열 선언·직접 작성한 소비 본문을 한 후보/최종 CAS에 결합한다. [신규47·재사용0 검증](VALIDATION_V666_NATIVE_RETURN_ARRAY.md)을 따르며 참조 배열·배열 입력·혼합/opaque 및 구 reader·기기/전체 UI·초기 빈 화면 잔여를 구분한다.

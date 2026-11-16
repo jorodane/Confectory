@@ -8,4 +8,6 @@
 
 종료 기준은 이전 planner의 거절 및 인자 별칭 UI 재현, 순서 독립 후보·원소 증거/배열 선언 변조·상충 source·잘못된 C# 거절, 타입 선택기 “여러 개”·취소/Undo/Redo·정상/역순 재개방·cold·실패/재시도·응답 유실·늦은 입력·프로젝트 전환, 후속 표시 Save와 Review 후 Main/A/원소 정의 충돌의 최종 CAS, 소유/등록 원소 반환, LF/CRLF 및 새 패키지/전체 ZIP 복원이다. 기존 단일 반환·입력·공유 source 증거·scalar 반환의 회귀는 구분한다. 타입/문맥별 무한 조합을 새 요구로 늘리지 않는다.
 
-이번 전환 지원은 scalar→정보 값의 단일/일차원 배열 반환과 그대로인 scalar 값 입력이다. 참조 배열·jagged 배열·배열 입력 전환·입력/반환 혼합·다른 역할·async·private/whole 결합은 별도 잔여이며 이번 지원 경계를 영구 금지 정책으로 확정하지 않는다. 실제 확인하지 않은 enum/interface 반환 조합 전체를 완료로 세지 않는다. 정보별 struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류, override 공개 계약 금지·권한·원본 바이트·v666 배치·Review/Confirm/CAS를 유지한다. 구 reader의 새 pending 수용은 이전 패키지에서 별도 측정하고 자동 migration/downgrade하지 않는다. 실제 기기·전체 UI와 초기 빈 화면 원인은 별도 미검증/미확정으로 유지한다.
+이번 전환 지원은 scalar→정보 값의 단일/일차원 배열 반환과 그대로인 scalar 값 입력이다. 참조 배열·배열 입력 전환·입력/반환 혼합 등 기존 잔여는 유지한다. jagged 배열이나 추가 역할·문맥 조합을 이번 단위로 지원하거나 새 필수 항목으로 만들지 않는다. 이번 지원 경계를 영구 금지 정책으로 확정하지 않는다. 실제 확인하지 않은 enum/interface 반환 조합 전체를 완료로 세지 않는다. 정보별 struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류, override 공개 계약 금지·권한·원본 바이트·v666 배치·Review/Confirm/CAS를 유지한다. 구 reader의 새 pending 수용은 이전 패키지에서 별도 측정하고 자동 migration/downgrade하지 않는다. 실제 기기·전체 UI와 초기 빈 화면 원인은 별도 미검증/미확정으로 유지한다.
+
+이 단위는 [신규47·재사용0 최종 검증](VALIDATION_V666_NATIVE_RETURN_ARRAY.md)을 마쳤다.
