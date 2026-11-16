@@ -555,3 +555,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [선택 C# import 함수의 nominal 값 반환](V666_NATIVE_RETURN_STRUCT.md)은 입력을 유지한 scalar→정보별 구조체 반환과 명시 소비 본문을 다음 유한 단위로 다룬다. 입력/반환 혼합·참조/배열·opaque 및 구 reader/기기 범위와 구분한다.
 
 [정보 값 반환·C# import 공동 저장 검증](VALIDATION_V666_NATIVE_RETURN_STRUCT.md)은 신규47·재사용0으로 입력/native 별칭을 유지한 scalar→정보 구조체 반환 흐름을 마감한다. 입력/반환 혼합·참조/배열 및 기타 고급 반환/opaque·구 reader/기기 범위와 구분한다.
+
+[선택 C# import 함수의 정보 배열 반환](V666_NATIVE_RETURN_ARRAY.md)은 원래 여러 개 선택과 원소 타입 proof를 명시 반환/본문 계획·한 후보/최종 CAS에 연결하는 다음 유한 단위다. 참조·배열 입력·혼합/opaque 및 구 reader·기기/전체 UI 잔여와 구분한다.
