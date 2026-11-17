@@ -1134,3 +1134,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private 본문·선택 callee 값→out](V666_PRIVATE_CALLEE_VALUE_OUT.md)는 [총48: 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_CALLEE_VALUE_OUT.md)을 마쳤다. 한 명시 out·두 원래 입력 해제·나머지 ABI·권한·Review/Confirm·최종 CAS를 유지한다. 남은 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI는 구분한다.
 
 [Private 본문·선택 callee out→값](V666_PRIVATE_CALLEE_OUT_VALUE.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_OUT_VALUE.md)을 마쳤다. 두 새 입력 값·이전 out의 반환 대응·나머지 ABI·권한·Review/Confirm·최종 CAS를 유지하며 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI 잔여를 구분한다.
+
+[Private 본문·선택 callee ref→값](V666_PRIVATE_CALLEE_REF_VALUE.md)는 [최종48(신규21·재사용27) 검증](VALIDATION_V666_PRIVATE_CALLEE_REF_VALUE.md)을 마쳤다. 두 caller의 ref 계약·저장소·동일 입력/반환·private ABI·권한·Review/Confirm·최종 CAS를 유지하며 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI·최초60초 미응답 원인 잔여를 구분한다.

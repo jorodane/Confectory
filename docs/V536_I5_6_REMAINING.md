@@ -611,3 +611,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Private 본문·선택 callee 값→out](V666_PRIVATE_CALLEE_VALUE_OUT.md)는 [총48: 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_CALLEE_VALUE_OUT.md)으로 두 원래 입력 해제·원래 반환/private ABI와 한 Save/읽기/CAS 흐름을 마감한다. 이전 성공 증거와 경로 실패는 보존했으며 다른 callee 계약·private ABI·retained/opaque 및 reader/기기/전체 UI는 잔여다.
 
 [Private 본문·선택 callee out→값](V666_PRIVATE_CALLEE_OUT_VALUE.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_OUT_VALUE.md)으로 두 원래 out 소비자의 명시 반환 대응·새 리터럴5·원래 반환/private ABI와 한 Save/읽기/CAS 흐름을 마감한다. 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI는 잔여다.
+
+[Private 본문·선택 callee ref→값](V666_PRIVATE_CALLEE_REF_VALUE.md)는 [최종48(신규21·재사용27) 검증](VALIDATION_V666_PRIVATE_CALLEE_REF_VALUE.md)으로 두 caller의 ref 계약·저장소·입력/반환과 최초 source proof를 유지하는 한 Save/읽기/CAS 흐름을 마감한다. 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI·최초60초 미응답 원인은 잔여다.
