@@ -13,3 +13,5 @@ UI는 기존 C# Script 매개변수 영역과 호출 계약 갱신 선택을 사
 이전 게시본은 이 새 공동 계획을 거절한다. 이미 Confirm한 일반 source와 checkpoint 읽기 호환성은 별도 확인하며 자동 migration을 의미하지 않는다. 구 Reference reader 제약, 과거 초기 빈 화면 원인 미확정 상태와 실제 Windows/WebView2·물리 기기·전체 UI 미검증 한계는 유지한다.
 
 잔여는 다른 callee 역할·반환·고급 ABI와 retained/opaque 및 외부 원본 관측의 명시 결합이다. optional 조합을 새 필수 범위로 늘리지 않고 기존 완료 단위·main·원본·보관 증거를 보존한다.
+
+[Private 본문·선택 callee ref→out](V666_PRIVATE_CALLEE_REF_OUT.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_REF_OUT.md)으로 두 원래 ref 입력의 명시 해제·caller ref 저장소 보존·새 out 자동 연결 금지와 한 Save/읽기/CAS 흐름을 마쳤다. 다른 계약·private ABI·retained/opaque 및 reader/기기/전체 UI 잔여는 구분한다.
