@@ -58,7 +58,15 @@ internal static class InformationFunctionWholeBodies
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsRef)==1&&a.Args.All(pin=>pin.Mode is null||pin.IsRef)&&b.Args.Count(pin=>pin.IsOut)==1&&b.Args.All(pin=>pin.Mode is null||pin.IsOut)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-out";
  }
- static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row)||RefValue(row)||RefOut(row);
+ // A new ref uses an explicitly reviewed original caller binding. The
+ // ordinary role validator proves that binding is existing ref storage.
+ static bool ValueRef(JsonNode row)
+ {
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
+  return a.Args.All(pin=>pin.Mode is null)&&b.Args.Count(pin=>pin.IsRef)==1&&b.Args.All(pin=>pin.Mode is null||pin.IsRef)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="value-ref";
+ }
+ static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row)||RefValue(row)||RefOut(row)||ValueRef(row);
  // Replace one ordinary native scalar return, retaining every original input
  // and out. Original return consumers explicitly select a compatible old out.
  static bool ScalarReturn(JsonNode row)
