@@ -13,3 +13,5 @@ fixture의 원래115/ref5는 명시 편집 후56/ref19가 된다. private 직접
 LF/CRLF 격리 checkout·실제 엔진/Chromium·새 package·전체 ZIP 복원을 구분해 기록한다. 모의 renderer는 실제 엔진/CLR 증거와 구분한다. 이전 guard의 새 pending 거절과 Confirm된 일반 source의 이전 CLI 빌드/실행 호환성은 별도 확인하며 자동 migration/downgrade를 의미하지 않는다.
 
 이 단위는 private 노드 자체 ABI 변경을 완료하지 않는다. 다른 callee 역할/고급 ABI·retained/opaque 및 외부 관측 결합, 구 Reference reader 일반 호환성·실제 Windows/WebView2·물리 기기·전체 UI는 잔여다. 과거 초기 빈 화면과 이전60초 result timeout 원인은 미확정으로 유지한다. 원본·latest/rollback·기존 증거와 정리 범위를 보존하고 main은 사용자 검토에 남긴다.
+
+[Private 본문·선택 callee 값→ref](V666_PRIVATE_CALLEE_VALUE_REF.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_VALUE_REF.md)으로 두 caller의 기존 ref 저장소 명시 선택·리터럴/새 셀 거절·원래 ABI와 한 Save/읽기/CAS 흐름을 마쳤다. private 노드 자체 ABI·retained/opaque·다른 역할/고급 ABI와 reader/기기/전체 UI는 잔여다.
