@@ -50,7 +50,15 @@ internal static class InformationFunctionWholeBodies
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsRef)==1&&b.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-value";
  }
- static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row)||RefValue(row);
+ // A selected callee may replace its one original ref with out. Callers keep
+ // their original ref storage and explicitly disconnect that old input.
+ static bool RefOut(JsonNode row)
+ {
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
+  return a.Args.Count(pin=>pin.IsRef)==1&&a.Args.All(pin=>pin.Mode is null||pin.IsRef)&&b.Args.Count(pin=>pin.IsOut)==1&&b.Args.All(pin=>pin.Mode is null||pin.IsOut)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-out";
+ }
+ static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row)||RefValue(row)||RefOut(row);
  // Replace one ordinary native scalar return, retaining every original input
  // and out. Original return consumers explicitly select a compatible old out.
  static bool ScalarReturn(JsonNode row)
@@ -118,13 +126,13 @@ internal static class InformationFunctionWholeBodies
   if(units[owner]?["kind"]?.ToString()!="schema"||units.Count>240)throw new InvalidOperationException("Keep the complete whole/native owner observation within its existing read budget");
   var information=Declaration(units,owner);
   foreach(var row in rows){
-   string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var next=InformationFunctionBodies.Signature(row["signature"]!);bool typed=TypedInput(row),valueOut=ValueOut(row),outValue=OutValue(row),role=Role(row),returned=ScalarReturn(row);
+   string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var next=InformationFunctionBodies.Signature(row["signature"]!);bool typed=TypedInput(row),valueOut=ValueOut(row),outValue=OutValue(row),refOut=RefOut(row),role=Role(row),returned=ScalarReturn(row);
    if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames" or "nativeTypes"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["callers"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Where((a,i)=>a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=next.Args[i].Name:args[a.Name] is not null).Any())throw new InvalidOperationException("Retain every original pin or explicitly select one information-value input");
    if(typed){string type=next.Args.Single(a=>!signature.Args.Any(b=>b.Name==a.Name&&b.Type==a.Type)).Type;var proof=row["nativeTypes"]![type]!["sources"]!.AsObject();if(!proof.Any(p=>p.Key.StartsWith(PackPaths.Namespace(owner)+"::",StringComparison.Ordinal)&&units[p.Key]?["kind"]?.ToString()=="schema"&&InformationStructs.Type(p.Key)==type)||mapping["callers"] is not JsonObject callers||callers.Count==0)throw new InvalidOperationException("Select an existing owned information value and every original caller explicitly");}
    if((role||returned)&&(mapping["callers"] is not JsonObject roleCallers||roleCallers.Count==0))throw new InvalidOperationException("Explicitly review every original caller input and output correspondence");
    foreach(var caller in mapping["callers"] as JsonObject??new()){
     var callerPlan=caller.Value?.AsObject()??throw new ArgumentException("Exact original caller plan required");var outputs=FeatureBlueprint.FeatureOutputs(signature).ToArray();
-    var removed=signature.Args.Where(a=>args[a.Name] is null||valueOut&&next.Args.Any(b=>b.Name==a.Name&&b.IsOut)).Select(a=>a.Name).ToHashSet(StringComparer.Ordinal);var inputs=(role?next.Args:signature.Args).Where(a=>!a.IsOut).ToArray();
+    var removed=signature.Args.Where(a=>args[a.Name] is null||(valueOut||refOut)&&next.Args.Any(b=>b.Name==a.Name&&b.IsOut)).Select(a=>a.Name).ToHashSet(StringComparer.Ordinal);var inputs=(role?next.Args:signature.Args).Where(a=>!a.IsOut).ToArray();
     if(callerPlan.Count!=5+(callerPlan["outputs"] is null?0:1)||callerPlan.Any(p=>p.Key is not ("graph" or "node" or "hash" or "inputs" or "disconnect" or "outputs"))||callerPlan["inputs"] is not JsonObject inputMap||inputMap.Count!=inputs.Length||inputs.Any(arg=>outValue&&signature.Args.Single(a=>a.Name==arg.Name).IsOut?!ExplicitValue(inputMap[arg.Name]):args[arg.Name] is null?inputMap[arg.Name] is not JsonObject choice||choice.Count!=1||choice["binding"] is not JsonObject:inputMap[args[arg.Name]!.ToString()]?.ToString()!=arg.Name)||callerPlan["disconnect"] is not JsonObject disconnect||disconnect.Count!=removed.Count||disconnect.Any(p=>!removed.Contains(p.Key)||p.Value is not JsonValue value||!value.TryGetValue<string>(out _))||(role||returned)&&callerPlan["outputs"] is not JsonObject||callerPlan["outputs"] is JsonObject outputMap&&(outputMap.Count!=outputs.Length||outputs.Any(output=>returned&&output.Name=="return"?!signature.Args.Any(pin=>pin.IsOut&&pin.Type==signature.Return&&outputMap[output.Name]?.ToString()==pin.Name):outputMap[output.Name]?.ToString()!=(outValue&&output.Name!="return"?"return":output.Name))))throw new InvalidOperationException("Retain unchanged inputs/out identities; explicitly review new inputs, removed inputs and compatible original outputs for changed returns or outs");
    }
    string? selectedImplementation=null;
