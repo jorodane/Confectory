@@ -72,9 +72,9 @@ internal static class InformationFunctionWholeBodies
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
  // Preserve original owned imports as reads, including ordinary helper calls in
- // an unchanged private graph. Selected callees and foreign/parent contracts
- // still need their separate explicit plans.
- static bool StableOwnedImports(Element implementation,JsonObject units,HashSet<string> selected,string ns)
+ // an unchanged private graph. A selected native callee must retain its entire
+ // public contract and carry its own explicit body plan; no import is rewritten.
+ static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns)
  {
   if(implementation.Imports.Count==0)return true;
   if(implementation.Bodies.Count!=1)return false;
@@ -85,9 +85,11 @@ internal static class InformationFunctionWholeBodies
    graph=originalGraph;
   }
   foreach(var pair in implementation.Imports){var import=pair.Value;
-   if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||selected.Contains(import.Id)||units[import.Id]?["kind"]?.ToString()!="function")return false;
+   if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||units[import.Id]?["kind"]?.ToString()!="function")return false;
    var dependency=Declaration(units,import.Id);
    if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
+   var callee=selected.SingleOrDefault(row=>row?["id"]?.ToString()==import.Id);
+   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
    if(graph is not null&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
   }
   return true;
@@ -96,7 +98,7 @@ internal static class InformationFunctionWholeBodies
  internal static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
   var rows=Edits(changes);if(rows is null)return null;
-  string owner=request["id"]!.ToString(),ns=PackPaths.Namespace(owner);var selected=rows.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);var functions=new HashSet<string>(StringComparer.Ordinal);var sources=new HashSet<string>(StringComparer.Ordinal);bool native=false;
+  string owner=request["id"]!.ToString(),ns=PackPaths.Namespace(owner);var functions=new HashSet<string>(StringComparer.Ordinal);var sources=new HashSet<string>(StringComparer.Ordinal);bool native=false;
   if(units[owner]?["kind"]?.ToString()!="schema"||units.Count>240)throw new InvalidOperationException("Keep the complete whole/native owner observation within its existing read budget");
   var information=Declaration(units,owner);
   foreach(var row in rows){
@@ -113,7 +115,7 @@ internal static class InformationFunctionWholeBodies
    foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("Unique explicit owned sources required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
-   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,selected,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact source, stable owned imports and original ordinary graph calls; selected callee, foreign or retained-context imports require their separate explicit plan");
+   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,rows,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact source, stable owned imports and original ordinary graph calls; changed callee contracts, foreign or retained-context imports require their separate explicit plan");
    if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every explicit source in the same original owned implementation");selectedImplementation=implementationId;
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
