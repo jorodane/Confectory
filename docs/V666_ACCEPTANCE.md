@@ -1126,3 +1126,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private 구현의 원래 일반 helper 호출·import](V666_PRIVATE_ROOT_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_ROOT_IMPORT.md)을 마쳤다. 원래 root header·graph·helper 원본과 권한·Review/Confirm·최종 CAS를 유지한다. 선택 callee·다른 역할/반환 구조·private ABI·retained/opaque import·외부 관측과 reader/기기/전체 UI 잔여를 구분한다.
 
 [Private 본문·계약 그대로인 선택 callee](V666_PRIVATE_SELECTED_IMPORT.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_SELECTED_IMPORT.md)을 마쳤다. 원래 root header/graph·import/callee ABI·권한·Review/Confirm·최종 CAS를 유지하며 실제 계약 변경·private ABI·retained/opaque import와 reader/기기/전체 UI 잔여를 구분한다.
+
+[Private 본문·선택 callee 공개 pin 이름](V666_PRIVATE_CALLEE_RENAME.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_RENAME.md)을 마쳤다. 원래 root/native header·명시 caller 이름 대응·native/private ABI·권한·Review/Confirm·최종 CAS를 유지하며 다른 callee 계약·private ABI·retained/opaque import와 reader/기기/전체 UI 잔여를 구분한다.

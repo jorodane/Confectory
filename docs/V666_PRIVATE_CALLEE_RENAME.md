@@ -13,3 +13,5 @@
 저장 뒤 private 본문을 다시 편집할 때에는 현재 metadata가 반환하는 graph receipt를 사용한다. guard는 이미 원래 계획으로 재생 검증한 pending graph의 같은 노드와 그 receipt가 정확히 일치하는지 확인한다. 이는 현재 편집 검증이며, 캡처한 최초 whole receipt/source hash와 물리 읽기 버전은 바꾸지 않는다. 현재 graph에 오래된 편집 receipt를 쓰거나 다른 hash/노드/graph/반환을 제시하면 거절한다.
 
 정보별 C# struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류를 유지한다. 다른 callee 계약 구조·private ABI·retained/opaque import와 외부 관측은 별도 잔여다. 가능한 조합으로 필수 매트릭스를 늘리지 않는다. 구 Reference reader·Windows/WebView2/물리 기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보존한다.
+
+이 유한 흐름은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_RENAME.md)을 마쳤다.
