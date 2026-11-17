@@ -70,10 +70,18 @@ internal static class InformationFunctionWholeBodies
   int contracts=rows.Count(row=>Role(row!)||ScalarReturn(row!));if(contracts>1||contracts==1&&rows.Any(row=>!Role(row!)&&!ScalarReturn(row!)&&!JsonNode.DeepEquals(row!["mapping"]!["before"],row["signature"])))return null;
   return rows;
  }
+ // Prepare has already authenticated both original source scopes. A callee
+ // pin rename can change its caller graph before that caller's private source
+ // is visited; compose these original closures without rebasing their receipts.
+ internal static bool RenamedCallee(JsonArray changes,JsonObject units)
+ {
+  var rows=Edits(changes);if(rows is null)return false;
+  return rows.Where(row=>Rename(row!)).Any(callee=>rows.Any(row=>row!["id"]!.ToString()!=callee!["id"]!.ToString()&&row["mapping"]!["bodies"]!.AsObject().Any(body=>Declaration(units,body.Key[..body.Key.LastIndexOf("/body:",StringComparison.Ordinal)]).Imports.Values.Any(import=>import.Id==callee["id"]!.ToString()))));
+ }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
  // Preserve original owned imports as reads, including ordinary helper calls in
- // an unchanged private graph. A selected native callee must retain its entire
- // public contract and carry its own explicit body plan; no import is rewritten.
+ // an original private graph. A selected native callee carries its own explicit
+ // body plan and retains its ABI; one explicit public pin rename uses Rename.
  static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns)
  {
   if(implementation.Imports.Count==0)return true;
@@ -89,7 +97,7 @@ internal static class InformationFunctionWholeBodies
    var dependency=Declaration(units,import.Id);
    if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
    var callee=selected.SingleOrDefault(row=>row?["id"]?.ToString()==import.Id);
-   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
+   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])&&!Rename(callee)||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
    if(graph is not null&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
   }
   return true;
@@ -190,6 +198,13 @@ internal static class InformationFunctionWholeBodies
    else if(current!=(updates.GetValueOrDefault(id)??original))throw new InvalidOperationException("Retain the exact replayed whole/native source and unchanged surrounding graph");
   }
  }
+ static bool CurrentWhole(JsonObject units,JsonObject original,JsonNode? receipt)
+ {
+  string id=original["graph"]!.ToString(),key=original["node"]!.ToString();
+  if(units[id]?["kind"]?.ToString()!="blueprint"||units[id]?["draft"] is not JsonValue source||!source.TryGetValue<string>(out string? text)||JsonNode.Parse(text) is not JsonObject graph)return false;
+  var node=BlueprintTree.Nodes(graph).SingleOrDefault(entry=>entry.Key==key)?.Node;
+  return node is not null&&JsonNode.DeepEquals(receipt,InformationFunctionWholeBody.Receipt(id,text,graph,node,key));
+ }
  static bool Local(JsonNode? row,JsonObject units,JsonArray plans)
  {
   if(InformationFunctionBodyBatch.Presentation(row))return true;
@@ -200,7 +215,13 @@ internal static class InformationFunctionWholeBodies
   if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],identity)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
   if(mapping["bodies"] is not JsonObject bodies||bodies.Count==0)return true;
   var prior=saved["mapping"]!["bodies"]!.AsObject();if(bodies.Count!=prior.Count)return false;
-  foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString())||old.ContainsKey("helpers")!=next.ContainsKey("helpers"))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();if(TypedInput(saved)||Role(saved)||ScalarReturn(saved))a["beforeSignature"]=a["signature"]!.DeepClone();foreach(string key in new[]{"hash","text","helpers"}){a.Remove(key);b.Remove(key);}if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();if(next.ContainsKey("helpers"))old["helpers"]=next["helpers"]!.DeepClone();}return true;
+  bool currentWhole=RenamedCallee(plans,Originals(units));
+  foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString())||old.ContainsKey("helpers")!=next.ContainsKey("helpers"))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();
+   // Validate the editor's current graph receipt against the exact pending
+   // candidate already replayed by Validate. Keep the captured ORIGINAL graph
+   // receipt for cold/final replay; only explicit source/helpers are replaced.
+   if(currentWhole&&a["whole"] is JsonObject originalWhole){if(!CurrentWhole(units,originalWhole,b["whole"]))return false;b["whole"]=originalWhole.DeepClone();}
+   if(TypedInput(saved)||Role(saved)||ScalarReturn(saved))a["beforeSignature"]=a["signature"]!.DeepClone();foreach(string key in new[]{"hash","text","helpers"}){a.Remove(key);b.Remove(key);}if(!JsonNode.DeepEquals(a,b))return false;old["text"]=next["text"]!.DeepClone();if(next.ContainsKey("helpers"))old["helpers"]=next["helpers"]!.DeepClone();}return true;
  }
  internal static JsonObject? Guards(JsonObject request,Func<Element,string> formatElement,Func<Manifest,string> format)
  {

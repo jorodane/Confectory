@@ -11,10 +11,11 @@ internal sealed class InformationFunctionBatch
  readonly HashSet<string> functions;
  readonly bool composeCallers;
  readonly bool retainedBodies;
+ readonly bool originalClosures;
  readonly string[] nativeRoleBodies;
  readonly Dictionary<string,JsonObject> outputPlans;
  readonly HashSet<string> completed=new(StringComparer.Ordinal);
- InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false,string[]? nativeRoleBodies=null,InformationFunctionNativeJoint? nativeJoint=null){NativeJoint=nativeJoint;this.nativeRoleBodies=nativeRoleBodies??[];Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;}
+ InformationFunctionBatch(JsonObject request,HashSet<string> functions,bool composeCallers,Dictionary<string,JsonObject> outputPlans,bool retainedBodies=false,string[]? nativeRoleBodies=null,InformationFunctionNativeJoint? nativeJoint=null,bool originalClosures=false){NativeJoint=nativeJoint;this.nativeRoleBodies=nativeRoleBodies??[];Request=request.DeepClone().AsObject();originalUnits=request["units"]!.AsObject();this.functions=functions;this.composeCallers=composeCallers;this.outputPlans=outputPlans;this.retainedBodies=retainedBodies;this.originalClosures=originalClosures;}
  public static InformationFunctionBatch? Begin(JsonObject request,JsonArray changes,Func<Element,string> format)
  {
   bool ContractEdit(JsonNode? row){
@@ -26,7 +27,7 @@ internal sealed class InformationFunctionBatch
   }
   var edits=changes.Where(ContractEdit).ToArray();
   if(edits.Length<2)return null;
-  if(InformationFunctionWholeBodies.Prepare(request,changes,request["units"]!.AsObject(),format) is {} wholeBodies)return new(request,wholeBodies,false,new());
+  if(InformationFunctionWholeBodies.Prepare(request,changes,request["units"]!.AsObject(),format) is {} wholeBodies)return new(request,wholeBodies,false,new(),originalClosures:InformationFunctionWholeBodies.RenamedCallee(changes,request["units"]!.AsObject()));
   bool presentation=changes.Count!=edits.Length;
   var nativeChanges=InformationFunctionBodyBatch.NativeChanges(changes);
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null&&nativeChanges is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");
@@ -244,12 +245,23 @@ internal sealed class InformationFunctionBatch
    }
   }
  }
- public void Stage(string id,string text){var unit=Request["units"]![id]??throw new InvalidOperationException("Observed shared contract source missing");unit["draft"]=text;}
+ public void Stage(string id,string text){var unit=Request["units"]![id]??throw new InvalidOperationException("Observed shared contract source missing");if(!originalClosures)unit["draft"]=text;}
  public void Merge(JsonArray updates,JsonObject update)
  {
   string id=update["id"]!.ToString();var initial=originalUnits[id]??throw new InvalidOperationException("Original shared source missing");var current=Request["units"]![id]??throw new InvalidOperationException("Current shared source missing");
   if(update["kind"]?.ToString()!=initial["kind"]?.ToString()||update["path"]?.ToString()!=initial["path"]?.ToString()||update["hash"]?.ToString()!=Hash(current["draft"]!.ToString()))throw new InvalidOperationException("Shared source identity or preparation basis changed; no candidate applied");
   var prior=updates.SingleOrDefault(row=>row!["id"]?.ToString()==id);var merged=update.DeepClone().AsObject();merged["hash"]=Hash(initial["draft"]!.ToString());
+  if(originalClosures){
+   // Each result was prepared against the same authenticated original source.
+   // An unchanged observation may accompany one explicit change; two different
+   // changes are a conflict, never a field merge or permission to rebase.
+   if(prior is null)updates.Add(merged);
+   else if(prior["text"]!.ToString()!=merged["text"]!.ToString()){
+    if(prior["text"]!.ToString()==initial["draft"]!.ToString())updates[updates.IndexOf(prior)]=merged;
+    else if(merged["text"]!.ToString()!=initial["draft"]!.ToString())throw new InvalidOperationException("Original whole/native source closures disagree; retain every input");
+   }
+   if(updates.Count>64)throw new ArgumentException("Combined original source closure budget");return;
+  }
   if(NativeJoint?.Buffers(id)==true){if(prior is not null&&prior["text"]!.ToString()!=merged["text"]!.ToString())throw new InvalidOperationException("Joint native source closures disagree; retain every original and input");if(prior is null)updates.Add(merged);if(updates.Count>64)throw new ArgumentException("Combined function usage closure budget");return;}
   if(prior is null)updates.Add(merged);else updates[updates.IndexOf(prior)]=merged;
   if(updates.Count>64)throw new ArgumentException("Combined function usage closure budget");
