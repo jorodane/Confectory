@@ -13,3 +13,5 @@
 취소/Undo·실패/재시도·응답 유실·늦은 입력·독립 창/프로젝트·후속 Save·Review 취소/Confirm·실제 원본 경합을 검사한다. LF/CRLF·새 package/전체 ZIP 복원과 기존 역할·struct·whole/retained/helper·직전 selected-callee 값→out 회귀를 구분한다. 구 guard의 새 pending 거절과 구 CLI의 확정 일반 source 실행은 별도 측정한다. schema/workspace1·receipt3/nativeBodyContexts·예산·소유권·권한·Review/Confirm·최종 CAS를 유지한다.
 
 정보별 struct·종류 enum·모듈 interface와 명시 async 전환 전 sync caller 오류를 유지한다. 다른 callee 타입/역할/반환 구조·private ABI·retained/opaque import·외부 관측은 잔여다. 조합별 새 필수 매트릭스를 늘리지 않는다. 구 Reference reader·실제 Windows/WebView2·기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보존한다.
+
+이 유한 흐름은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_OUT_VALUE.md)을 마쳤다.
