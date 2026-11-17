@@ -71,11 +71,24 @@ internal static class InformationFunctionWholeBodies
   return rows;
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
+ // Preserve existing typed owned helper imports as reads. A selected callee,
+ // foreign/parent contract or private implementation import needs its own plan.
+ static bool StableOwnedImports(Element implementation,JsonObject units,HashSet<string> selected,string ns)
+ {
+  if(implementation.Imports.Count==0)return true;
+  if(!InformationFunctionBodyBatch.NativeTargets(implementation)||implementation.Bodies.Count!=1)return false;
+  foreach(var import in implementation.Imports.Values){
+   if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||selected.Contains(import.Id)||units[import.Id]?["kind"]?.ToString()!="function")return false;
+   var dependency=Declaration(units,import.Id);
+   if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
+  }
+  return true;
+ }
  static Element Selected(JsonObject units,JsonNode row){var value=Declaration(units,row["id"]!.ToString());DeclarationAuthoring.Apply(value,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});return value;}
  internal static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
   var rows=Edits(changes);if(rows is null)return null;
-  string owner=request["id"]!.ToString();var functions=new HashSet<string>(StringComparer.Ordinal);var sources=new HashSet<string>(StringComparer.Ordinal);bool native=false;
+  string owner=request["id"]!.ToString(),ns=PackPaths.Namespace(owner);var selected=rows.Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);var functions=new HashSet<string>(StringComparer.Ordinal);var sources=new HashSet<string>(StringComparer.Ordinal);bool native=false;
   if(units[owner]?["kind"]?.ToString()!="schema"||units.Count>240)throw new InvalidOperationException("Keep the complete whole/native owner observation within its existing read budget");
   var information=Declaration(units,owner);
   foreach(var row in rows){
@@ -92,7 +105,7 @@ internal static class InformationFunctionWholeBodies
    foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("Unique explicit owned sources required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
-   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||implementation.Imports.Count!=0||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact direct source declaration; callee/import changes require their separate explicit plan");
+   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,selected,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact direct source and stable owned helper imports; selected callee, foreign or private imports require their separate explicit plan");
    if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every explicit source in the same original owned implementation");selectedImplementation=implementationId;
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
