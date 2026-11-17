@@ -1114,3 +1114,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private 본문·정보 값 입력 공동 저장](V666_PRIVATE_STRUCT_INPUT.md)은 기존 struct 값의 명시 연결·private/helpers·원래 type/source 관측을 한 후보/CAS에 결합하며 [최종 신규26·재사용17 검증](VALIDATION_V666_PRIVATE_STRUCT_INPUT.md)을 마쳤다. 구 pending reader 경계와 다른 계약·기기/전체 UI 잔여를 구분한다.
 
 [Private 본문·값 입력→out 공동 저장](V666_PRIVATE_VALUE_OUT.md)은 기존 Script 역할 편집·명시 할당/입력 해제·원래 반환/증거를 한 후보/CAS에 결합하며 [최종 신규32·재사용11 검증](VALIDATION_V666_PRIVATE_VALUE_OUT.md)을 마쳤다. 다른 역할/반환·opaque import·구 reader/기기·전체 UI 잔여를 구분한다.
+
+[Private 본문·out→값 입력 공동 저장](V666_PRIVATE_OUT_VALUE.md)은 기존 Script 편집·명시 리터럴/기존 out 소비자 대응·원래 ABI/증거를 한 후보/CAS에 결합하며 [최종 신규44·재사용0 검증](VALIDATION_V666_PRIVATE_OUT_VALUE.md)을 마쳤다. 다른 역할/반환·opaque import·구 reader/기기·전체 UI 잔여를 구분한다.
