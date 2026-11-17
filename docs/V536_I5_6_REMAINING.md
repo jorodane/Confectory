@@ -587,3 +587,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Private 본문·값 입력→out 공동 저장](V666_PRIVATE_VALUE_OUT.md)은 모든 private ABI와 원래 native 이름/타입/반환을 보존하며 다른 소유 함수의 명시 역할·기존 입력 해제·반환 identity를 한 후보/CAS에 결합하는 유한 단위다. 다른 역할/반환·opaque import·구 reader/기기·전체 UI 잔여를 구분한다.
 
 [Private 본문·값 입력→out 공동 저장 검증](VALIDATION_V666_PRIVATE_VALUE_OUT.md)은 신규32·재사용11으로 명시 역할/할당·정확한 입력 해제·반환 identity·원래 증거와 한 Save/CAS 흐름을 마감한다. 다른 역할/반환·opaque import·구 reader/기기·전체 UI 잔여를 구분한다.
+
+[Private 본문·out→값 입력 공동 저장](V666_PRIVATE_OUT_VALUE.md)은 기존 private ABI와 native 이름/타입/반환을 보존하며 새 리터럴·실제 기존 out 소비자의 반환 대응을 한 후보/CAS에 결합하는 다음 유한 단위다. 다른 역할/반환·private ABI·opaque import·구 reader/기기·전체 UI 잔여는 구분한다.
