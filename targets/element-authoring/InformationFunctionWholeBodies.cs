@@ -42,7 +42,15 @@ internal static class InformationFunctionWholeBodies
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsOut)==1&&b.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="out-value";
  }
- static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row);
+ // Reading an original caller ref as a value never converts its contract or
+ // storage. Only the explicitly selected native callee loses its ref role.
+ static bool RefValue(JsonNode row)
+ {
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
+  return a.Args.Count(pin=>pin.IsRef)==1&&b.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-value";
+ }
+ static bool Role(JsonNode row)=>ValueOut(row)||OutValue(row)||RefValue(row);
  // Replace one ordinary native scalar return, retaining every original input
  // and out. Original return consumers explicitly select a compatible old out.
  static bool ScalarReturn(JsonNode row)
@@ -71,7 +79,7 @@ internal static class InformationFunctionWholeBodies
   return rows;
  }
  // Prepare has already authenticated both original source scopes. A callee
- // pin rename, return or explicit value/out role can change its caller graph before its private source
+ // pin rename, return or explicit role can change its caller graph before its private source
  // is visited; compose these original closures without rebasing their receipts.
  internal static bool ChangedCallee(JsonArray changes,JsonObject units)
  {
@@ -81,7 +89,7 @@ internal static class InformationFunctionWholeBodies
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
  // Preserve original owned imports as reads, including ordinary helper calls in
  // an original private graph. A selected native callee carries its own explicit
- // body plan; only explicit Rename, ScalarReturn or value/out role plans can change its ABI.
+ // body plan; only explicit Rename, ScalarReturn or accepted role plans can change its ABI.
  static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns)
  {
   if(implementation.Imports.Count==0)return true;
@@ -110,7 +118,7 @@ internal static class InformationFunctionWholeBodies
   if(units[owner]?["kind"]?.ToString()!="schema"||units.Count>240)throw new InvalidOperationException("Keep the complete whole/native owner observation within its existing read budget");
   var information=Declaration(units,owner);
   foreach(var row in rows){
-   string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var next=InformationFunctionBodies.Signature(row["signature"]!);bool typed=TypedInput(row),valueOut=ValueOut(row),outValue=OutValue(row),role=valueOut||outValue,returned=ScalarReturn(row);
+   string id=row!["id"]!.ToString();var original=Declaration(units,id);var mapping=row["mapping"]!.AsObject();var signature=original.Signature;var next=InformationFunctionBodies.Signature(row["signature"]!);bool typed=TypedInput(row),valueOut=ValueOut(row),outValue=OutValue(row),role=Role(row),returned=ScalarReturn(row);
    if(row.AsObject().Any(p=>p.Key is not ("type" or "id" or "hash" or "name" or "description" or "signature" or "mapping" or "icon" or "returnName" or "argumentNames" or "nativeTypes"))||!functions.Add(id)||!id.StartsWith(owner+"_Function_",StringComparison.Ordinal)||!information.Contains.Any(child=>child.Id==id&&child.Kind=="function")||original.Id!=id||original.Kind!="function"||original.Parent is not null||signature is null||!JsonNode.DeepEquals(mapping["before"],FeatureBlueprint.SignatureDocument(signature))||mapping.Count!=3+(mapping["callers"] is null?0:1)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping["args"] is not JsonObject args||args.Count!=signature.Args.Count||signature.Args.Where((a,i)=>a.Type==next.Args[i].Type?args[a.Name]?.ToString()!=next.Args[i].Name:args[a.Name] is not null).Any())throw new InvalidOperationException("Retain every original pin or explicitly select one information-value input");
    if(typed){string type=next.Args.Single(a=>!signature.Args.Any(b=>b.Name==a.Name&&b.Type==a.Type)).Type;var proof=row["nativeTypes"]![type]!["sources"]!.AsObject();if(!proof.Any(p=>p.Key.StartsWith(PackPaths.Namespace(owner)+"::",StringComparison.Ordinal)&&units[p.Key]?["kind"]?.ToString()=="schema"&&InformationStructs.Type(p.Key)==type)||mapping["callers"] is not JsonObject callers||callers.Count==0)throw new InvalidOperationException("Select an existing owned information value and every original caller explicitly");}
    if((role||returned)&&(mapping["callers"] is not JsonObject roleCallers||roleCallers.Count==0))throw new InvalidOperationException("Explicitly review every original caller input and output correspondence");
