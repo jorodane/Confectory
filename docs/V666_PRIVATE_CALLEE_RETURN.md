@@ -11,3 +11,5 @@
 기존 UI의 반환 선택·두 명시 caller 출력 대응·구현 선택·취소/Undo·실패/재시도·응답 유실·늦은 입력·창/프로젝트 경계, 실제 원본 경합과 fresh Confirm을 검사한다. LF/CRLF·새 package/전체 ZIP 복원과 완료한 선택 callee 이름 대응 및 기존 역할/struct/whole/retained/helper 회귀를 구분한다. 구 guard의 새 pending 거절과 구 CLI의 확정 일반 source 실행을 따로 측정한다. schema/workspace version1·receipt version3와 기존 예산·권한·소유권·authored layout을 유지한다.
 
 정보별 C# struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류를 유지한다. 다른 callee 입력 타입·역할·반환 구조, private ABI·retained/opaque import·외부 관측은 별도 잔여다. 가능한 조합으로 필수 매트릭스를 늘리지 않는다. 구 Reference reader·Windows/WebView2/물리 기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보존한다.
+
+이 유한 흐름은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_RETURN.md)을 마쳤다.

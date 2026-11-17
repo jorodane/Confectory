@@ -605,3 +605,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Private 본문·계약 그대로인 선택 callee](V666_PRIVATE_SELECTED_IMPORT.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_SELECTED_IMPORT.md)으로 원래 호출/import·모든 ABI와 읽기/CAS를 보존한 공동 저장 흐름을 마감한다. 실제 callee 계약 변경·private ABI·retained/opaque import·다른 역할/반환·외부 관측과 reader/기기/전체 UI는 별도 잔여다.
 
 [Private 본문·선택 callee 공개 pin 이름](V666_PRIVATE_CALLEE_RENAME.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_RENAME.md)으로 명시 이름 대응·두 원래 호출자의 바인딩·native/private ABI와 읽기/CAS를 보존한 공동 저장 흐름을 마감한다. 다른 callee 타입/역할/반환 구조·private ABI·retained/opaque import·다른 역할/반환·외부 관측과 reader/기기/전체 UI는 별도 잔여다.
+
+[Private 본문·선택 callee scalar 반환](V666_PRIVATE_CALLEE_RETURN.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_RETURN.md)으로 명시 반환·두 원래 호출자의 출력 대응·native 입력/out·private ABI와 읽기/CAS를 보존한 공동 저장 흐름을 마감한다. 다른 callee 타입/역할/반환 구조·private ABI·retained/opaque import·다른 역할/반환·외부 관측과 reader/기기/전체 UI는 별도 잔여다.
