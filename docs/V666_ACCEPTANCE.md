@@ -1120,3 +1120,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private 본문·scalar 반환 공동 저장](V666_PRIVATE_SCALAR_RETURN.md)은 기존 반환 선택·명시 호환 out 대응·원래 ABI/증거를 한 후보/CAS에 결합하며 [최종 신규44·재사용0 검증](VALIDATION_V666_PRIVATE_SCALAR_RETURN.md)을 마쳤다. 다른 역할/반환 구조·별칭 UI·opaque import·구 reader/기기·전체 UI 잔여를 구분한다.
 
 [Scalar 반환 UI의 원래 별칭 보존](V666_PRIVATE_RETURN_ALIAS.md)은 readonly 헤더·명시 서명·이전 초안의 의미를 유지하며 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_ALIAS.md)을 마쳤다. 다른 역할/반환 구조·opaque/import 및 reader/기기/전체 UI 잔여를 구분한다.
+
+[Private 본문·반환 변경과 기존 소유 helper import](V666_PRIVATE_RETURN_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_IMPORT.md)을 마쳤다. helper는 쓰기 그룹 밖의 기존 읽기 관측이며 원본·권한·Review/Confirm·최종 CAS를 유지한다. 선택 callee/import·private 구현 import/ABI·외부 관측과 reader/기기/전체 UI 잔여를 구분한다.

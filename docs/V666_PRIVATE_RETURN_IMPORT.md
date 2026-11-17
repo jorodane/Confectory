@@ -11,3 +11,5 @@
 유한 종료 기준은 이 한 후보의 순서 독립성, 원래 UI·취소/Undo·cold·저장 실패/재시도·응답 유실·늦은 입력·후속 Save·창/프로젝트 경계, helper 함수/구현/본문의 Review 이후 실제 원본 경합 거절과 복원 후 새 Confirm/실행이다. LF/CRLF, 새 package·전체 ZIP 복원과 기존 private/반환/역할·struct·whole/retained·등록 helper 회귀를 구분한다. 구 pending guard와 Confirm된 일반 source의 이전 CLI 실행도 별도로 측정한다.
 
 정보별 C# struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류 정책과 기존 예산·소유권·권한·authored layout을 유지한다. 다른 역할/반환 구조·선택 callee/import 결합·private ABI·외부 관측은 잔여다. 구 Reference reader 일반 호환성·자동 migration/downgrade를 주장하지 않는다. 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보호한다.
+
+이 유한 흐름은 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_IMPORT.md)을 마쳤다.
