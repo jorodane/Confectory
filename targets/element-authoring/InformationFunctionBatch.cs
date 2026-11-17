@@ -27,7 +27,7 @@ internal sealed class InformationFunctionBatch
   }
   var edits=changes.Where(ContractEdit).ToArray();
   if(edits.Length<2)return null;
-  if(InformationFunctionWholeBodies.Prepare(request,changes,request["units"]!.AsObject(),format) is {} wholeBodies)return new(request,wholeBodies,false,new(),originalClosures:InformationFunctionWholeBodies.RenamedCallee(changes,request["units"]!.AsObject()));
+  if(InformationFunctionWholeBodies.Prepare(request,changes,request["units"]!.AsObject(),format) is {} wholeBodies)return new(request,wholeBodies,false,new(),originalClosures:InformationFunctionWholeBodies.ChangedCallee(changes,request["units"]!.AsObject()));
   bool presentation=changes.Count!=edits.Length;
   var nativeChanges=InformationFunctionBodyBatch.NativeChanges(changes);
   if(edits.Length>8||presentation&&InformationFunctionBodyBatch.Edits(changes) is null&&nativeChanges is null)throw new InvalidOperationException("Save up to eight direct function contracts together; other input is retained");

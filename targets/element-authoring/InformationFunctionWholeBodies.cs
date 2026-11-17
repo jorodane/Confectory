@@ -71,17 +71,17 @@ internal static class InformationFunctionWholeBodies
   return rows;
  }
  // Prepare has already authenticated both original source scopes. A callee
- // pin rename can change its caller graph before that caller's private source
+ // pin rename or return can change its caller graph before its private source
  // is visited; compose these original closures without rebasing their receipts.
- internal static bool RenamedCallee(JsonArray changes,JsonObject units)
+ internal static bool ChangedCallee(JsonArray changes,JsonObject units)
  {
   var rows=Edits(changes);if(rows is null)return false;
-  return rows.Where(row=>Rename(row!)).Any(callee=>rows.Any(row=>row!["id"]!.ToString()!=callee!["id"]!.ToString()&&row["mapping"]!["bodies"]!.AsObject().Any(body=>Declaration(units,body.Key[..body.Key.LastIndexOf("/body:",StringComparison.Ordinal)]).Imports.Values.Any(import=>import.Id==callee["id"]!.ToString()))));
+  return rows.Where(row=>Rename(row!)||ScalarReturn(row!)).Any(callee=>rows.Any(row=>row!["id"]!.ToString()!=callee!["id"]!.ToString()&&row["mapping"]!["bodies"]!.AsObject().Any(body=>Declaration(units,body.Key[..body.Key.LastIndexOf("/body:",StringComparison.Ordinal)]).Imports.Values.Any(import=>import.Id==callee["id"]!.ToString()))));
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
  // Preserve original owned imports as reads, including ordinary helper calls in
  // an original private graph. A selected native callee carries its own explicit
- // body plan and retains its ABI; one explicit public pin rename uses Rename.
+ // body plan; only explicit Rename or ScalarReturn plans can change its ABI.
  static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns)
  {
   if(implementation.Imports.Count==0)return true;
@@ -97,7 +97,7 @@ internal static class InformationFunctionWholeBodies
    var dependency=Declaration(units,import.Id);
    if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
    var callee=selected.SingleOrDefault(row=>row?["id"]?.ToString()==import.Id);
-   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])&&!Rename(callee)||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
+   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])&&!Rename(callee)&&!ScalarReturn(callee)||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
    if(graph is not null&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
   }
   return true;
@@ -215,7 +215,7 @@ internal static class InformationFunctionWholeBodies
   if(!JsonNode.DeepEquals(mapping["before"],saved["signature"])||!JsonNode.DeepEquals(mapping["args"],identity)||mapping.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||mapping.ContainsKey("callers")&&!JsonNode.DeepEquals(mapping["callers"],saved["mapping"]!["callers"]))return false;
   if(mapping["bodies"] is not JsonObject bodies||bodies.Count==0)return true;
   var prior=saved["mapping"]!["bodies"]!.AsObject();if(bodies.Count!=prior.Count)return false;
-  bool currentWhole=RenamedCallee(plans,Originals(units));
+  bool currentWhole=ChangedCallee(plans,Originals(units));
   foreach(var body in bodies){if(prior[body.Key] is not JsonObject old||body.Value is not JsonObject next||next["hash"]?.ToString()!=Hash(units[body.Key]!["draft"]!.ToString())||old.ContainsKey("helpers")!=next.ContainsKey("helpers"))return false;var a=old.DeepClone().AsObject();var b=next.DeepClone().AsObject();
    // Validate the editor's current graph receipt against the exact pending
    // candidate already replayed by Validate. Keep the captured ORIGINAL graph

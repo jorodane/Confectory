@@ -1,0 +1,33 @@
+"""Controlled C# editor drafts; real DOM, simulated metadata, no compiler claims."""
+import http.server,json,pathlib,sys,tempfile,threading
+from playwright.sync_api import sync_playwright,expect
+
+repo=pathlib.Path(sys.argv[1]).resolve();case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-callee-return-renderer-'));checks=[];errors=[]
+class Handler(http.server.SimpleHTTPRequestHandler):
+ def __init__(self,*a,**kw):super().__init__(*a,directory=str(repo),**kw)
+ def log_message(self,*a):pass
+server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler);threading.Thread(target=server.serve_forever,daemon=True).start()
+bootstrap=r"""async()=>{
+ const {createFeatureAuthoring}=await import('/examples/editor-home/ui/feature-authoring.js');
+ const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)],esc=v=>String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
+ const before={args:[{name:'amount',type:'long'},{name:'count',type:'long',mode:'out'}],return:'long'},contract={...structuredClone(before),return:'double'},native={args:[{name:'nativeAmount',type:'long'},{name:'nativeCount',type:'long',mode:'out'}],return:'long'};
+ const text='nativeCount=5;return checked(nativeAmount+nativeCount); // 한글 😀\r\n',row={hash:'a'.repeat(64),sourceKind:'csharp',signature:native,contractSignature:before,text,path:'B.csbody'},state={saved:{},drafts:JSON.parse(sessionStorage.aliasDrafts||'{}'),commits:[],toasts:[]};
+ const controller=createFeatureAuthoring({$,$$,esc,authorInputs:new Map(),toast:t=>state.toasts.push(t),modal:(title,html,mount)=>{const root=document.createElement('section');root.setAttribute('role','dialog');root.innerHTML=html;document.body.append(root);mount(root,()=>root.remove());}});
+ globalThis.fixture={state,row,contract,text,open:()=>{controller.editInformationBodies({allowNativeRoles:false,title:'별칭 보존',rows:{body:row,privateCaller:{sourceKind:'scoped-code-csharp',caller:true,name:'원래 private caller'}},contract,alive:()=>true,saved:state.saved,drafts:state.drafts,retain:(id,v)=>{state.drafts[id]=v;sessionStorage.aliasDrafts=JSON.stringify(state.drafts);},cancel:()=>{},commit:(id,v)=>state.commits.push(v)});document.querySelector('[data-information-body=body]')?.click();},drop:()=>document.querySelector('[role=dialog]')?.remove()};
+}"""
+def checked(label):checks.append(label);print('PASS '+label,flush=True)
+def header():return page.locator('[data-code-source]').input_value().split('\n{',1)[0]
+def body(text):
+ field=page.locator('[data-code-source]');field.evaluate('(el)=>{const s=[...el.closest(".bp-script-editor").querySelectorAll("[data-code-highlight]>span")],b=s.find(v=>v.dataset.codeRegion==="body"),start=s.slice(0,s.indexOf(b)).reduce((n,v)=>n+v.textContent.length,0);if(!b)throw Error("missing body");el.focus();el.setSelectionRange(start,start+b.textContent.length)}');page.keyboard.insert_text(text)
+try:
+ with sync_playwright() as p:
+  expect.set_options(timeout=10000);browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.goto('http://127.0.0.1:'+str(server.server_port)+'/');page.evaluate(bootstrap)
+  page.evaluate('()=>fixture.open()');assert header()=='public double Invoke(long nativeAmount, out long nativeCount)';page.locator('[data-code-save]').click();original=page.evaluate('()=>fixture.text');assert page.evaluate('()=>fixture.state.commits[0].text')==original and original.endswith('\r\n');checked('header-only Code Save retains exact original CRLF body and original argument aliases')
+  page.evaluate('()=>fixture.open()');manual='nativeCount=7;return nativeCount+0.5; // 직접 작성 😀\n';body(manual);draft=page.evaluate('()=>fixture.state.drafts.body');(case/'retained-draft.json').write_text(json.dumps(draft,ensure_ascii=False,indent=2));assert draft['parameters']=='long nativeAmount, out long nativeCount' and draft['text']==manual[:-1]+'\r\n',draft
+  page.reload();page.evaluate(bootstrap);assert page.evaluate('()=>fixture.state.drafts.body')==draft;page.evaluate('()=>fixture.open()');assert header()=='public double Invoke(long nativeAmount, out long nativeCount)';assert manual in page.locator('[data-code-source]').input_value();page.locator('[data-code-save]').click();accepted=page.evaluate('()=>fixture.state.commits[0]');(case/'accepted-evaluation.json').write_text(json.dumps(accepted,ensure_ascii=False,indent=2));accepted=json.loads(page.evaluate('()=>JSON.stringify(fixture.state.commits[0])'));assert accepted['signature']['args']==page.evaluate('()=>fixture.row.signature.args') and accepted['text']==draft['text'];checked('readonly parameter marker and incomplete body survive a fresh renderer without changing aliases or text')
+  page.evaluate('()=>{fixture.state.drafts={body:{hash:fixture.row.hash,text:"return amount; // legacy public header"}};fixture.open()}');assert header()=='public double Invoke(long amount, out long count)';page.locator('[data-code-save]').click();assert json.loads(page.evaluate('()=>JSON.stringify(fixture.state.commits.at(-1).signature.args)'))==page.evaluate('()=>fixture.contract.args');checked('unmarked legacy draft retains its original public-header interpretation without guessed source renaming')
+  page.evaluate('()=>{fixture.state.drafts={};fixture.state.saved={body:{hash:fixture.row.hash,contract:structuredClone(fixture.contract),signature:{return:"double",args:[{name:"chosenAmount",type:"long"},{name:"chosenCount",type:"long",mode:"out"}]},text:"chosenCount=8;return chosenAmount;"}};fixture.open()}');assert header()=='public double Invoke(long chosenAmount, out long chosenCount)';page.locator('[data-code-save]').click();assert json.loads(page.evaluate('()=>JSON.stringify(fixture.state.commits.at(-1).signature.args)'))==page.evaluate('()=>fixture.state.saved.body.signature.args');checked('previous explicitly captured C# argument aliases remain authoritative')
+  page.evaluate('()=>{fixture.state.saved={};fixture.state.drafts={body:{hash:"b".repeat(64),text:"unconfirmed draft"}};fixture.open()}');expect(page.locator('[role=dialog]')).to_have_count(0);assert page.evaluate('()=>fixture.state.drafts.body.text')=='unconfirmed draft' and page.evaluate('()=>fixture.state.toasts.length')==1;assert not errors,errors;checked('changed source hash rejects reentry while retaining unconfirmed draft bytes')
+  browser.close()
+finally:server.shutdown()
+record=dict(controlledRenderer=True,actualEngine=False,checks=checks,evidence=str(case));(case/'evidence.json').write_text(json.dumps(record,ensure_ascii=False,indent=2));print(json.dumps(record,ensure_ascii=False))
