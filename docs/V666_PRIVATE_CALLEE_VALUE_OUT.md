@@ -13,3 +13,5 @@ UI는 기존 구현 선택기·C# 매개변수 영역을 사용한다. scoped ca
 취소/Undo·실패/재시도·응답 유실·늦은 입력·독립 창/프로젝트·Review 취소/Confirm과 실제 경합을 검사한다. LF/CRLF·새 package/전체 ZIP 복원, 이전 callee scalar 반환과 기존 역할/struct/whole/retained/helper 회귀를 구분한다. 구 guard의 새 pending 거절과 구 CLI의 확정 일반 source 실행도 따로 측정한다. schema/workspace version1·receipt version3/nativeBodyContexts·예산·소유권·권한·authored layout·Review/Confirm·최종 CAS를 유지한다.
 
 정보별 struct·종류 enum·모듈 interface와 명시 async 전환 전 sync caller 오류를 유지한다. 다른 callee 타입/역할/반환 구조·private ABI·retained/opaque import·외부 관측은 별도 잔여다. 가능한 조합으로 필수 매트릭스를 늘리지 않는다. 구 Reference reader·실제 Windows/WebView2/물리 기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보존한다.
+
+이 유한 흐름은 [총48: 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_CALLEE_VALUE_OUT.md)을 마쳤다. 이전46 성공 기록과 복원 renderer 경로 실패를 보존하고 제품 변경 없이 남은 검사를 완료했다.
