@@ -1122,3 +1122,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Scalar 반환 UI의 원래 별칭 보존](V666_PRIVATE_RETURN_ALIAS.md)은 readonly 헤더·명시 서명·이전 초안의 의미를 유지하며 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_ALIAS.md)을 마쳤다. 다른 역할/반환 구조·opaque/import 및 reader/기기/전체 UI 잔여를 구분한다.
 
 [Private 본문·반환 변경과 기존 소유 helper import](V666_PRIVATE_RETURN_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_IMPORT.md)을 마쳤다. helper는 쓰기 그룹 밖의 기존 읽기 관측이며 원본·권한·Review/Confirm·최종 CAS를 유지한다. 선택 callee/import·private 구현 import/ABI·외부 관측과 reader/기기/전체 UI 잔여를 구분한다.
+
+[Private 구현의 원래 일반 helper 호출·import](V666_PRIVATE_ROOT_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_ROOT_IMPORT.md)을 마쳤다. 원래 root header·graph·helper 원본과 권한·Review/Confirm·최종 CAS를 유지한다. 선택 callee·다른 역할/반환 구조·private ABI·retained/opaque import·외부 관측과 reader/기기/전체 UI 잔여를 구분한다.

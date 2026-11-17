@@ -599,3 +599,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Scalar 반환 UI의 원래 별칭 보존](V666_PRIVATE_RETURN_ALIAS.md)은 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_ALIAS.md)으로 private 공동 저장의 별칭 잔여를 마감한다. 기존 명시 서명·이전 초안·source 관측/CAS를 유지한다. 다른 역할/반환 구조·opaque/import·구 reader·기기/전체 UI는 별도 잔여다.
 
 [Private 본문·반환 변경과 기존 소유 helper import](V666_PRIVATE_RETURN_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_IMPORT.md)으로 원래 helper 계약/별칭·읽기/CAS를 보존한 한 공동 저장 흐름을 마감한다. 선택 callee/import·private 구현 import/ABI·외부 관측 및 구 reader·기기/전체 UI는 별도 잔여다.
+
+[Private 구현의 원래 일반 helper 호출·import](V666_PRIVATE_ROOT_IMPORT.md)는 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_ROOT_IMPORT.md)으로 원래 고정 별칭·typed 계약·graph/ABI와 읽기/CAS를 보존한 공동 저장 흐름을 마감한다. 선택 callee·다른 역할/반환 구조·private ABI·retained/opaque import·외부 관측과 reader/기기/전체 UI는 별도 잔여다.
