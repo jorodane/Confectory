@@ -9,3 +9,5 @@
 취소/Undo·cold·저장 실패/재시도·응답 유실·늦은 입력/후속 Save·창/프로젝트 경계와 원본 경합을 검사한다. LF/CRLF·새 package·전체 ZIP 복원과 이전 일반 helper·역할/반환·whole/retained 회귀를 구분한다. 구 guard의 새 pending 거절과 구 CLI의 확정 일반 source 실행도 별도로 측정한다.
 
 정보별 C# struct·종류 enum·모듈 interface, 명시 async 전환 전 sync caller 오류를 유지한다. 실제 계약이 바뀌는 선택 callee/import·private ABI·retained/opaque import와 다른 역할/반환 구조·외부 관측은 잔여다. 조합별 필수 매트릭스를 늘리지 않는다. 구 Reference reader·실제 Windows/WebView2·물리 기기·전체 UI는 별도이며 초기 빈 화면 원인은 미확정이다. 원본·latest/rollback·증거·main을 보존한다.
+
+이 유한 흐름은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_SELECTED_IMPORT.md)을 마쳤다.
