@@ -71,16 +71,24 @@ internal static class InformationFunctionWholeBodies
   return rows;
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
- // Preserve existing typed owned helper imports as reads. A selected callee,
- // foreign/parent contract or private implementation import needs its own plan.
+ // Preserve original owned imports as reads, including ordinary helper calls in
+ // an unchanged private graph. Selected callees and foreign/parent contracts
+ // still need their separate explicit plans.
  static bool StableOwnedImports(Element implementation,JsonObject units,HashSet<string> selected,string ns)
  {
   if(implementation.Imports.Count==0)return true;
-  if(!InformationFunctionBodyBatch.NativeTargets(implementation)||implementation.Bodies.Count!=1)return false;
-  foreach(var import in implementation.Imports.Values){
+  if(implementation.Bodies.Count!=1)return false;
+  JsonObject? graph=null;
+  if(!InformationFunctionBodyBatch.NativeTargets(implementation)){
+   var target=implementation.Bodies.Single();string source=implementation.Id+"/body:"+target.Key;
+   if(target.Value.SourceKind!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint"||JsonNode.Parse(units[source]?["draft"]?.ToString()??"null") is not JsonObject originalGraph)return false;
+   graph=originalGraph;
+  }
+  foreach(var pair in implementation.Imports){var import=pair.Value;
    if(!import.Id.StartsWith(ns+"::",StringComparison.Ordinal)||selected.Contains(import.Id)||units[import.Id]?["kind"]?.ToString()!="function")return false;
    var dependency=Declaration(units,import.Id);
    if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
+   if(graph is not null&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
   }
   return true;
  }
@@ -105,7 +113,7 @@ internal static class InformationFunctionWholeBodies
    foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("Unique explicit owned sources required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
-   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,selected,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact direct source and stable owned helper imports; selected callee, foreign or private imports require their separate explicit plan");
+   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,selected,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact source, stable owned imports and original ordinary graph calls; selected callee, foreign or retained-context imports require their separate explicit plan");
    if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every explicit source in the same original owned implementation");selectedImplementation=implementationId;
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
