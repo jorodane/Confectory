@@ -36,4 +36,4 @@ finally:server.shutdown()
 record=dict(controlledRenderer=True,actualEngine=False,checks=checks,evidence=str(case));(case/'evidence.json').write_text(json.dumps(record,ensure_ascii=False,indent=2));print(json.dumps(record,ensure_ascii=False))
 
 import runpy
-runpy.run_path(str(repo/'tests/web/v666_private_callee_return_renderer.py'),run_name='__main__')
+runpy.run_path(str(pathlib.Path(__file__).with_name('v666_private_callee_return_renderer.py')),run_name='__main__')
