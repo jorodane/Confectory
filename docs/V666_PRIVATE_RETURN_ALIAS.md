@@ -9,3 +9,5 @@
 제품 변경은 기존 `feature-authoring.js`의 서명 선택·초안 문맥·원문 문자열 보존과 해당 WebBundle의 정규화 크기/hash뿐이다. backend·workspace version1·receipt version3·nativeBodyContexts·전체 읽기 관측·최종 CAS·원본 권한·authored layout은 유지한다. 구 패키지 UI의 실패 재현과 구 backend의 유효한 명시 계획 수용은 구분해 기록한다.
 
 검증은 native 엔진/컴파일러와 Chromium 자동화의 저장·Undo/Redo·cold 복원·실패/재시도·응답 유실·늦은 입력·Review 뒤 경합·LF/CRLF·새 패키지/전체 복원으로 구분한다. 이전 초안/명시 별칭/원문 CRLF의 독립 렌더러 검사는 모의 metadata 검사로 별도 표시한다. Windows/WebView2·물리 기기·전체 UI를 완료로 주장하지 않는다. 초기 빈 화면 원인은 미확정이며 구 Reference reader 제약도 유지한다.
+
+이 유한 흐름은 [최종 신규46·재사용0 검증](VALIDATION_V666_PRIVATE_RETURN_ALIAS.md)을 마쳤다.
