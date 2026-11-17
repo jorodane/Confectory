@@ -11,3 +11,5 @@
 원래 C#·private helpers 편집기의 취소·Undo/Redo·cold·실패/재시도·응답 유실·늦은 입력·창/프로젝트 경계·후속 Save·Review 취소/Confirm과 원본 경합을 검사한다. LF/CRLF·새 package/전체 ZIP 복원 및 이전 struct 입력/공개 pin 이름·whole/retained·일반 native 역할/import·등록 helper 회귀를 구분한다. 이 사용자 흐름으로 단위를 닫고 가능한 역할/문맥의 모든 조합을 새 필수로 늘리지 않는다.
 
 직전 온전한 package의 공동 거절과 새 pending 검증기 수용 경계, Confirm된 source의 구 compiler 실행을 구분한다. 구 Reference parser·일반 migration/downgrade는 별도 잔여다. 실제 Windows/WebView2·물리 기기·IME/GPU/audio·전체 UI는 미검증이고 과거 초기 빈 화면 원인은 미확정이다. 원본·권한·latest/rollback·증거·main을 보호한다.
+
+이 유한 흐름은 [최종 신규32·재사용11 검증](VALIDATION_V666_PRIVATE_VALUE_OUT.md)을 마쳤다.
