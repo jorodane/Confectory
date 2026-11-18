@@ -623,3 +623,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Private 값 인자 long→double](V666_PRIVATE_NODE_TYPES.md)은 [최종 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_NODE_TYPES.md)으로 원래 정확한 정수 상수·부모 계약/연결·수동 본문/helpers와 다른 native 본문을 한 Save/읽기/CAS에 연결했다. 다른 타입·바인딩·역할·반환·구조와 retained/opaque·reader/기기/전체 UI는 잔여다.
 
 [Private 노드의 미사용 long→double 반환](V666_PRIVATE_NODE_RETURNS.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_RETURNS.md)으로 원래 매개변수·모든 연결·부모 계약과 수동 본문/helpers·다른 native 본문을 한 Save/읽기/CAS에 연결했다. 반환 사용처가 있는 exit/local/다른 노드 입력은 유효한 원본 실행 뒤 거절했다. 다른 반환/타입·역할/구조·retained/opaque·reader/기기/전체 UI는 잔여이며 최초 복원480초 시간 초과 원인은 미확정이다.
+
+[Private 노드의 미사용 long→void 전환](V666_PRIVATE_NODE_VOID.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_VOID.md)으로 수동 void 본문/helpers·부모 계약·원래 연결·다른 native 본문을 한 Save/읽기/CAS에 결합했다. 이전 값 반환 본문을 그대로 둔 후보는 CS0127, 원래 반환 사용처가 있는 후보는 소비 보호로 거절했다. 다른 타입/ref-out/반환/구조·retained/opaque·reader/기기/전체 UI와 최초480초 시간 초과 원인 미확정은 잔여다.
