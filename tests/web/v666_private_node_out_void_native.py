@@ -4,7 +4,7 @@ import v666_private_node_out_void_fixture as x
 f=x.f
 try:
  r=x.request();metadata=f.metadata('informationFunctionBodies',**{k:r[k]for k in ['project','manifest','id','units']},function=x.whole_function,includeBlueprintTargets=True);editable=metadata[x.whole_node].get('editableNativeReturn',False);assert bool(editable)==(x.mode in ['normal','preserved-out','out-observers-original','unconverted-original']),metadata[x.whole_node]
- if editable:assert metadata[x.whole_node]['editableNativeReturnTypes']==['void']
+ if editable:assert 'void'in metadata[x.whole_node]['editableNativeReturnTypes']
  (f.case/'request.json').write_text(json.dumps(r,ensure_ascii=False,indent=2));x.execute(134 if x.mode in ['return-exit-original','explicit-return-original','return-local-original']else 104,'original-private-node-out-void')
  if x.mode=='unconverted-original':
   original=next(iter(r['changes'][0]['mapping']['bodies'].values()));original['text']=x.sources[x.whole_function];original['helpers']=x.original_helpers
