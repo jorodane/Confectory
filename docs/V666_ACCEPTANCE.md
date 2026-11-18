@@ -1144,3 +1144,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private C# 노드 자체 인자 이름](V666_PRIVATE_NODE_NAMES.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_NAMES.md)으로 명시한 이름 하나·원래 위치의 입력 표현식·수동 본문/helpers와 다른 native 본문을 한 Save/읽기/CAS에 연결했다. 부모 계약/프레임은 보존하며 private 타입·역할·반환·구조와 추가 retained/opaque·reader/기기/전체 UI는 잔여다.
 
 [Private 값 인자 long→double](V666_PRIVATE_NODE_TYPES.md)은 [최종 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_NODE_TYPES.md)으로 원래 정확한 정수 상수·부모 계약/연결·수동 본문/helpers와 다른 native 본문을 한 Save/읽기/CAS에 연결했다. 다른 타입·바인딩·역할·반환·구조와 retained/opaque·reader/기기/전체 UI는 잔여다.
+
+[Private 노드의 미사용 long→double 반환](V666_PRIVATE_NODE_RETURNS.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_RETURNS.md)으로 원래 매개변수·모든 연결·부모 계약과 수동 본문/helpers·다른 native 본문을 한 Save/읽기/CAS에 연결했다. 반환 사용처가 있는 exit/local/다른 노드 입력은 유효한 원본 실행 뒤 거절했다. 다른 반환/타입·역할/구조·retained/opaque·reader/기기/전체 UI는 잔여이며 최초 복원480초 시간 초과 원인은 미확정이다.
