@@ -36,7 +36,7 @@ internal static class InformationFunctionGraphs
  internal static bool Returns(JsonNode plan)
  {
   if(plan["whole"]?["node"]?.ToString().Contains('/')!=true||plan["beforeSignature"] is not JsonObject before||plan["signature"] is not JsonObject after)return false;
-  return before["return"]?.ToString()=="long"&&after["return"]?.ToString()=="double"&&JsonNode.DeepEquals(before["args"],after["args"]);
+  return before["return"]?.ToString()=="long"&&(after["return"]?.ToString() is "double" or "void")&&JsonNode.DeepEquals(before["args"],after["args"]);
  }
  internal static bool UnusedReturn(JsonObject root,string key,JsonObject node)
  {
@@ -97,7 +97,7 @@ internal static class InformationFunctionGraphs
   if(root["copySource"] is not null||!key.Contains('/')&&!RootCodeGraph(root)&&!retainedContext||plan.Count!=7+(plan.ContainsKey("helpers")?1:0)||!JsonNode.DeepEquals(plan["whole"],InformationFunctionWholeBody.Receipt(id,graphText,root,before,key))||before["kind"]?.ToString()!="code"||before["control"]?.ToString() is not ("next" or "branch" or "switch")||before["implementationContext"] is not null)throw new InvalidOperationException("Exact original private code/context and explicit text required");
   var native=InformationFunctionBodies.Signature(before["signature"]!);var selected=native;
   if(!JsonNode.DeepEquals(plan["beforeSignature"],plan["signature"])){
-   if(after is null||!Nameable(before)||!Names(plan)&&!Types(plan)&&!Returns(plan)||!JsonNode.DeepEquals(after["signature"],before["signature"])||!JsonNode.DeepEquals(after["arguments"],before["arguments"]))throw new InvalidOperationException("Select one explicit private parameter edit or an unused long-to-double return; retain the parent contract and every original binding");
+   if(after is null||!Nameable(before)||!Names(plan)&&!Types(plan)&&!Returns(plan)||!JsonNode.DeepEquals(after["signature"],before["signature"])||!JsonNode.DeepEquals(after["arguments"],before["arguments"]))throw new InvalidOperationException("Select one explicit private parameter edit or an unused long-to-double/void return; retain the parent contract and every original binding");
    selected=InformationFunctionBodies.Signature(plan["signature"]!);var inputs=before["arguments"]!.AsObject();if(inputs.Count!=native.Args.Count||native.Args.Any(pin=>!inputs.ContainsKey(pin.Name)))throw new InvalidOperationException("Every original private input binding is required");
    if(Types(plan)){string changed=native.Args.Where((pin,i)=>pin.Type!=selected.Args[i].Type).Single().Name;if(!LiteralInputs(before).Any(name=>name?.ToString()==changed))throw new InvalidOperationException("Select an unchanged exact int32 literal for long-to-double; input/storage, typed literals and precision changes require their separate explicit binding plan");}
    if(Returns(plan)&&!UnusedReturn(root,key,before))throw new InvalidOperationException("Private return changes require an unused original output; preserve all consumers, frame and caller contracts");
