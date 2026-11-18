@@ -619,3 +619,5 @@ opaque reference 속성과 live compound의 안전한 거절을 migration 잔여
 [Private 본문·선택 callee 값→ref](V666_PRIVATE_CALLEE_VALUE_REF.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_CALLEE_VALUE_REF.md)으로 두 caller의 기존 ref 저장소 명시 선택·리터럴/새 셀 거절·원래 ABI와 한 Save/읽기/CAS 흐름을 마쳤다. private 노드 자체 ABI·retained/opaque·다른 역할/고급 ABI와 reader/기기/전체 UI는 잔여다.
 
 [Private C# 노드 자체 인자 이름](V666_PRIVATE_NODE_NAMES.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_NAMES.md)으로 명시한 이름 하나·원래 위치의 입력 표현식·수동 본문/helpers와 다른 native 본문을 한 Save/읽기/CAS에 연결했다. 부모 계약/프레임은 보존하며 private 타입·역할·반환·구조와 추가 retained/opaque·reader/기기/전체 UI는 잔여다.
+
+[Private 값 인자 long→double](V666_PRIVATE_NODE_TYPES.md)은 [최종 신규21·재사용27 검증](VALIDATION_V666_PRIVATE_NODE_TYPES.md)으로 원래 정확한 정수 상수·부모 계약/연결·수동 본문/helpers와 다른 native 본문을 한 Save/읽기/CAS에 연결했다. 다른 타입·바인딩·역할·반환·구조와 retained/opaque·reader/기기/전체 UI는 잔여다.
