@@ -7,11 +7,19 @@ internal static class InformationFunctionWholeBodies
 {
  const string Capture="nativeBodyContexts";
  static string Hash(string text)=>JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(text));
+ // A caller source is an explicit ORIGINAL root-context plan, not another
+ // implementation of the edited function. Its own native/frame ABI stays put.
+ static bool RootCallerPlan(string source,JsonNode? value)
+ {
+  if(value is not JsonObject plan||plan.Count!=7||plan["whole"] is not JsonObject whole||whole["node"] is not JsonValue node||!node.TryGetValue<string>(out var key)||string.IsNullOrEmpty(key)||key.Contains('/')||!JsonNode.DeepEquals(plan["beforeSignature"],plan["signature"]))return false;
+  return source==whole["graph"]?.ToString()+"/node:"+key;
+ }
+ static bool NativeSources(JsonObject bodies)=>bodies.Any(body=>body.Value?["whole"] is null)&&bodies.All(body=>body.Value?["whole"] is null||RootCallerPlan(body.Key,body.Value));
  // A native source keeps its own ABI when one public value pin is explicitly
  // renamed. Private/whole frames retain their public contracts in this group.
  static bool Rename(JsonNode row)
  {
-  if(row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Return==b.Return&&a.Args.Count==b.Args.Count&&a.Args.Count==args.Count&&a.Args.Where((pin,i)=>pin.Mode is not null||b.Args[i].Mode is not null||pin.Type!=b.Args[i].Type||args[pin.Name]?.ToString()!=b.Args[i].Name).Any()==false&&a.Args.Where((pin,i)=>pin.Name!=b.Args[i].Name).Count()==1&&b.Args.Where((pin,i)=>pin.Name!=a.Args[i].Name).All(pin=>!a.Args.Any(old=>old.Name==pin.Name));
  }
@@ -32,13 +40,13 @@ internal static class InformationFunctionWholeBodies
  // editor. Private frames, other roles and every original output stay intact.
  static bool ValueOut(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="value-out"&&b.Args.Count(pin=>pin.IsOut)==1;
  }
  static bool OutValue(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsOut)==1&&b.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="out-value";
  }
@@ -46,7 +54,7 @@ internal static class InformationFunctionWholeBodies
  // storage. Only the explicitly selected native callee loses its ref role.
  static bool RefValue(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsRef)==1&&b.Args.All(pin=>pin.Mode is null)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-value";
  }
@@ -54,7 +62,7 @@ internal static class InformationFunctionWholeBodies
  // their original ref storage and explicitly disconnect that old input.
  static bool RefOut(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.Count(pin=>pin.IsRef)==1&&a.Args.All(pin=>pin.Mode is null||pin.IsRef)&&b.Args.Count(pin=>pin.IsOut)==1&&b.Args.All(pin=>pin.Mode is null||pin.IsOut)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="ref-out";
  }
@@ -62,7 +70,7 @@ internal static class InformationFunctionWholeBodies
  // ordinary role validator proves that binding is existing ref storage.
  static bool ValueRef(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Args.All(pin=>pin.Mode is null)&&b.Args.Count(pin=>pin.IsRef)==1&&b.Args.All(pin=>pin.Mode is null||pin.IsRef)&&InformationFunctionNativeRoles.Types(a,b,args)&&InformationFunctionNativeRoles.Direction(a,b)=="value-ref";
  }
@@ -71,7 +79,7 @@ internal static class InformationFunctionWholeBodies
  // and out. Original return consumers explicitly select a compatible old out.
  static bool ScalarReturn(JsonNode row)
  {
-  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||bodies.Any(p=>p.Value?["whole"] is not null))return false;
+  if(row["nativeTypes"] is not null||row["mapping"]?["before"] is not JsonObject before||row["signature"] is not JsonObject next||row["mapping"]?["args"] is not JsonObject args||row["mapping"]?["bodies"] is not JsonObject bodies||!NativeSources(bodies))return false;
   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(next);
   return a.Return!="void"&&b.Return!="void"&&InformationFunctionNativeReturns.Types(a,b,args);
  }
@@ -100,13 +108,19 @@ internal static class InformationFunctionWholeBodies
  internal static bool ChangedCallee(JsonArray changes,JsonObject units)
  {
   var rows=Edits(changes);if(rows is null)return false;
-  return rows.Where(row=>Rename(row!)||ScalarReturn(row!)||Role(row!)).Any(callee=>rows.Any(row=>row!["id"]!.ToString()!=callee!["id"]!.ToString()&&row["mapping"]!["bodies"]!.AsObject().Any(body=>Declaration(units,body.Key[..body.Key.LastIndexOf("/body:",StringComparison.Ordinal)]).Imports.Values.Any(import=>import.Id==callee["id"]!.ToString()))));
+  var callees=rows.Where(row=>Rename(row!)||ScalarReturn(row!)||Role(row!)).Select(row=>row!["id"]!.ToString()).ToHashSet(StringComparer.Ordinal);
+  return rows.Any(row=>row!["mapping"]!["bodies"]!.AsObject().Any(body=>{
+   var implementation=Declaration(units,body.Key[..body.Key.LastIndexOf("/body:",StringComparison.Ordinal)]);
+   // A foreign caller plan is stored on the callee's edit row. Its actual
+   // implementation owner, rather than that row ID, identifies the caller.
+   return implementation.Function is string function&&callees.Any(callee=>function!=callee&&implementation.Imports.Values.Any(import=>import.Id==callee));
+  }));
  }
  static Element Declaration(JsonObject units,string id)=>new Parser(units[id]?["draft"]?.ToString()??throw new InvalidOperationException("Read the complete original whole/native source"),"<whole-native-source>").ParseElement();
  // Preserve original owned imports as reads, including ordinary helper calls in
  // an original private graph. A selected native callee carries its own explicit
  // body plan; only explicit Rename, ScalarReturn or accepted role plans can change its ABI.
- static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns)
+ static bool StableOwnedImports(Element implementation,JsonObject units,JsonNode?[] selected,string ns,bool opaqueCaller=false)
  {
   if(implementation.Imports.Count==0)return true;
   if(implementation.Bodies.Count!=1)return false;
@@ -121,8 +135,8 @@ internal static class InformationFunctionWholeBodies
    var dependency=Declaration(units,import.Id);
    if(dependency.Id!=import.Id||dependency.Kind!="function"||dependency.Parent is not null||!import.Signature.Matches(dependency.Signature))return false;
    var callee=selected.SingleOrDefault(row=>row?["id"]?.ToString()==import.Id);
-   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])&&!Rename(callee)&&!ScalarReturn(callee)&&!Role(callee)||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||calleeBodies.Count!=1||calleeBodies.Any(body=>body.Value?["whole"] is not null)))return false;
-   if(graph is not null&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
+   if(callee is not null&&(graph is null||!JsonNode.DeepEquals(callee["mapping"]?["before"],callee["signature"])&&!Rename(callee)&&!ScalarReturn(callee)&&!Role(callee)||callee["nativeTypes"] is not null||callee["mapping"]?["bodies"] is not JsonObject calleeBodies||!NativeSources(calleeBodies)))return false;
+   if(graph is not null&&!opaqueCaller&&(pair.Key!=FeatureBlueprint.ImportAlias(import.Id)||!BlueprintTree.Nodes(graph).Any(entry=>entry.Node["kind"]?.ToString()=="call"&&entry.Node["control"]?.ToString()=="next"&&entry.Node["feature"]?.ToString()==import.Id&&entry.Node["implementationContext"] is null&&entry.Node["forwardCallerStorage"]?.GetValue<bool>()!=true&&entry.Node["signature"] is JsonObject signature&&import.Signature.Matches(InformationFunctionBodies.Signature(signature)))))return false;
   }
   return true;
  }
@@ -147,14 +161,21 @@ internal static class InformationFunctionWholeBodies
    foreach(var body in mapping["bodies"]!.AsObject()){string source=body.Key;var plan=body.Value!.AsObject();
    int marker=source.LastIndexOf("/body:",StringComparison.Ordinal);if(marker<0||!sources.Add(source))throw new ArgumentException("Unique explicit owned sources required");
    string implementationId=source[..marker];var implementation=Declaration(units,implementationId);
-   if(implementation.Id!=implementationId||implementation.Function!=id||implementation.Parent is not null||!StableOwnedImports(implementation,units,rows,ns)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact source, stable owned imports and original ordinary graph calls; changed callee contracts, foreign or retained-context imports require their separate explicit plan");
-   if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every explicit source in the same original owned implementation");selectedImplementation=implementationId;
+   bool own=implementation.Function==id;
+   bool caller=!own&&implementation.Id.StartsWith(ns+"::",StringComparison.Ordinal)&&implementation.Function?.StartsWith(ns+"::",StringComparison.Ordinal)==true&&implementation.Imports.Values.Any(import=>import.Id==id)&&RootCallerPlan(source,plan);
+   if(implementation.Id!=implementationId||!own&&!caller||implementation.Parent is not null||!StableOwnedImports(implementation,units,rows,ns,caller)||implementation.Bodies.Count!=1||!JsonNode.DeepEquals(plan["contract"],row["signature"]))throw new InvalidOperationException("Retain the exact owned source and typed imports; every changed opaque caller needs its original explicit root-context plan");
+   if(own){if(selectedImplementation is not null&&selectedImplementation!=implementationId)throw new InvalidOperationException("Keep every own source in the same original owned implementation");selectedImplementation=implementationId;}
    var target=implementation.Bodies.Single();string graphId=implementationId+"/body:"+target.Key;
    if(plan["whole"] is JsonObject whole){
     string key=whole["node"]!.ToString();
     if(target.Value.SourceKind!="blueprint"||units[graphId]?["kind"]?.ToString()!="blueprint"||units[source]?["kind"]?.ToString()!="blueprint-node"||whole["graph"]?.ToString()!=graphId||source!=BlueprintTree.SourceId(graphId,key))throw new InvalidOperationException("Keep the original exact whole-body graph and source receipt");
     var graph=JsonNode.Parse(units[graphId]!["draft"]!.ToString())!.AsObject();
     var selectedNode=BlueprintTree.Nodes(graph).Single(entry=>entry.Key==key).Node;
+    if(caller){
+     if(key.Contains('/')||selectedNode["implementationContext"] is null||units[implementation.Function!]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Explicitly select the original owned root C# caller; retain other private/storage contexts separately");
+     var feature=Declaration(units,implementation.Function!);if(feature.Kind!="function"||feature.Id!=implementation.Function||feature.Parent is not null)throw new InvalidOperationException("Retain the original directly owned caller function");
+     InformationFunctionWholeBody.Caller(graphId,graph,implementation,feature,Selected(units,row),units,plan,selectedNode);continue;
+    }
     if(key.Contains('/')||selectedNode["kind"]?.ToString()=="code"&&selectedNode["implementationContext"] is null&&selectedNode["forwardCallerStorage"]?.GetValue<bool>()!=true&&(InformationFunctionGraphs.RootCodeGraph(graph)||InformationFunctionGraphs.RetainedCodePlans(graphId,units[graphId]!["draft"]!.ToString(),graph,implementation,original,units,mapping["bodies"]!.AsObject()))){
      // Independent code owns its native ABI; the parent owns its frame.
      // The original single-source validator authenticates the receipt, code,
