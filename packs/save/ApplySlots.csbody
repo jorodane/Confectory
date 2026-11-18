@@ -60,6 +60,20 @@ lock(state){
   // Retain it in the existing read-only receipt for Review and final file CAS.
   var nativeReads=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="prepare",["project"]=state["project"]!.DeepClone(),["namespace"]=state["namespace"]!.DeepClone(),["units"]=before.DeepClone(),["declaration"]=rows[0]?["declaration"]?.DeepClone()}.ToJsonString()))!;
   if(nativeReads["required"]?.GetValue<bool>()==true){foreach(var source in nativeReads["checks"]!.AsArray())Guard(source!["path"]!.ToString(),source["hash"]!.ToString());if(proof.Count+readGuards.Count>240)throw new ArgumentException("Complete native body CAS budget; all input retained");}
+  // An explicitly selected source is a Review member even when its text did
+  // not change. The metadata prepare above validates these original locators;
+  // retain their existing ownership and physical reads instead of dropping
+  // the source or relaxing the complete whole/native receipt guard.
+  if(nativeReads["contexts"] is System.Text.Json.Nodes.JsonArray selectedNativeContexts){
+   var members=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(proof.AsObject(),row=>row.Key),StringComparer.Ordinal);
+   foreach(var context in selectedNativeContexts){members.Add(context!["id"]!.ToString());foreach(var body in context["mapping"]!["bodies"]!.AsObject())members.Add(body.Key);}
+   if(members.Count>64||members.Count+readGuards.Count>240)throw new ArgumentException("Complete selected native source budget; all input retained");
+   var group=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderBy(members,id=>id,StringComparer.Ordinal),id=>(System.Text.Json.Nodes.JsonNode)System.Text.Json.Nodes.JsonValue.Create(id)!)));
+   foreach(string id in members){
+    if(!id.StartsWith(state["namespace"]!.ToString()+"::",StringComparison.Ordinal)||before[id] is not System.Text.Json.Nodes.JsonObject originalUnit||candidate["units"]?[id] is not System.Text.Json.Nodes.JsonObject unit||unit["draft"] is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(unit["kind"],originalUnit["kind"])||!System.Text.Json.Nodes.JsonNode.DeepEquals(unit["path"],originalUnit["path"]))throw new InvalidOperationException("Retain the exact original selected native source identity");
+    unit["atomicEditGroup"]=group.DeepClone();proof[id]=new System.Text.Json.Nodes.JsonObject{["path"]=unit["path"]!.DeepClone(),["kind"]=unit["kind"]!.DeepClone(),["hash"]=Hash(unit["draft"]!.ToString())};
+   }
+  }
   void OriginalValueSources(){foreach(var read in nativeReads["reads"] as System.Text.Json.Nodes.JsonArray??new System.Text.Json.Nodes.JsonArray()){string path=read!["path"]!.ToString();for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent)if(entry.LinkTarget is not null)throw new UnauthorizedAccessException("Typed value source cannot traverse links");if(!System.IO.File.Exists(path)||new System.IO.FileInfo(path).Length>1048576||calls.Snapshot.Invoke(path)[2]!=read["hash"]!.ToString())throw new InvalidOperationException("Typed value source changed before Save; retain all input");}}
   OriginalValueSources();
   var propertyReads=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("informationPropertyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="prepare",["project"]=state["project"]!.DeepClone(),["namespace"]=state["namespace"]!.DeepClone(),["units"]=before.DeepClone(),["declaration"]=rows[0]?["declaration"]?.DeepClone()}.ToJsonString()))!;
