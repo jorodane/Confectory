@@ -1156,3 +1156,5 @@ ObjectModel 인스턴스를 명시적 정보 계약에 연결하고 같은 handl
 [Private 값→ref와 기존 지역 저장소](V666_PRIVATE_NODE_VALUE_REF.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_VALUE_REF.md)으로 원래 long local 연결·부모 계약·수동 본문/helpers·다른 native 본문을 한 Save/읽기/CAS에 결합했다. 원래 value copy40·같은 source의 명시적 ref104·별도 수동 편집20과 실제 long&를 구분해 확인했다. inverse/out·다른 구조/저장소·retained/opaque·reader/실제 기기/전체 UI와 과거 초기 빈 화면/시간 초과 원인 미확정은 잔여다.
 
 [Private ref→값과 기존 지역 저장소](V666_PRIVATE_NODE_REF_VALUE.md)는 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_REF_VALUE.md)으로 원래 long local 읽기·부모 계약·수동 본문/helpers·다른 native 본문을 한 Save/읽기/CAS에 결합했다. 원래 ref104·동일 source의 명시적 값 복사40·별도 수동 편집30과 실제 long&→long을 구분해 확인했다. 다른 역할/out·구조/저장소·retained/opaque·reader/실제 기기/전체 UI와 과거 초기 빈 화면/시간 초과 원인 미확정은 잔여다.
+
+[Private 상수 값→out](V666_PRIVATE_NODE_VALUE_OUT.md)은 [최종 신규48·재사용0 검증](VALIDATION_V666_PRIVATE_NODE_VALUE_OUT.md)으로 마지막 원래 int32 상수 해제·out 직접 할당·반환/부모 계약·수동 본문/helpers·다른 native 본문을 한 Save/읽기/CAS에 결합했다. 동일 source134·실제 out99/반환129와 수동 source20·out5/반환25를 구분했다. 미할당·할당 전 읽기는 compiler가 거절했고 첫 DOM의 잘못된 거절 기대를 교정해 로그를 보존했다. 다른 역할/구조/연결·retained/opaque·reader/실제 기기/전체 UI와 초기 빈 화면·과거 시간 초과 원인 미확정은 잔여다.
