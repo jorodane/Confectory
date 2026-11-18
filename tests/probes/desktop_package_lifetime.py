@@ -31,8 +31,16 @@ def worker(mode, repo, package, reuse):
         screenshot = Page.screenshot
 
         def failed_screenshot(page, *args, **kwargs):
-            screenshot(page, *args, **kwargs)
-            raise RuntimeError("isolated UI assertion after screenshot")
+            result = screenshot(page, *args, **kwargs)
+            target = Path(kwargs.get("path") or "")
+            if target.name == "packaged-login.png":
+                assert target.is_file()
+                (target.parent / "ui-failure-injection.json").write_text(json.dumps({
+                    "target": target.name, "afterScreenshotWritten": True,
+                    "diagnosticScreenshotsUnaffected": True,
+                }, indent=2) + "\n")
+                raise RuntimeError("isolated UI assertion after screenshot")
+            return result
         Page.screenshot = failed_screenshot
     elif mode == "tamper-check-failure":
         original = subprocess.run
@@ -103,6 +111,12 @@ def main():
             assert (fixture / "packaged-login.png").is_file()
             assert (fixture / "packaged-host.log").is_file()
             assert (fixture / "owned checkout/.confectory/editor-home/retained-settings").read_bytes() == b"fixture user profile unchanged"
+        if mode == "ui-failure":
+            assert json.loads((fixture / "ui-failure-injection.json").read_text()) == {
+                "target": "packaged-login.png", "afterScreenshotWritten": True,
+                "diagnosticScreenshotsUnaffected": True,
+            }
+            assert json.loads((fixture / "package-login-readiness.json").read_text())["passed"] is True
         assert {p.relative_to(package) for p in package.rglob("*") if p.is_file()} == set(files)
         assert {name: (sha(path), path.stat().st_nlink) for name, path in files.items()} == original
         assert {p: sha(p) for p in runtime_files} == runtime_files
