@@ -50,6 +50,11 @@ def caller_exits(signatures=None):
 
 
 def verify_rows(rows, signatures=None):
+    # Candidate updates are a write delta. Unchanged C# records remain original
+    # read observations; a returned update must override that observation.
+    observed = {unit['id']: {'draft': (f.project/unit['path']).read_bytes().decode('utf-8-sig')}
+                for unit in f.metadata('describe', project=str(f.manifest))['units']}
+    rows = observed | rows
     signatures = signatures or nexts
     caller = json.loads(rows[n.caller+'Body/body:common']['draft'])
     assert caller['edges'] == graph['edges'] and caller['entry'] == graph['entry']
