@@ -96,6 +96,7 @@ internal static class InformationFunctionWholeBodies
  }
  internal static JsonNode?[]? Edits(JsonArray changes)
  {
+  if(InformationFunctionRetainedContracts.Edits(changes) is {} retained)return retained;
   var rows=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();
   if(rows.Length is <2 or >8||!rows.Any(row=>row?["mapping"]?["bodies"] is JsonObject bodies&&bodies.Any(body=>body.Value?["whole"] is JsonObject)))return null;
   if(rows.Any(row=>row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject mapping||mapping["bodies"] is not JsonObject bodies||bodies.Count is <1 or >8||!JsonNode.DeepEquals(mapping["before"],row["signature"])&&!Rename(row)&&!TypedInput(row)&&!Role(row)&&!ScalarReturn(row)||row["nativeTypes"] is not null&&!TypedInput(row)||bodies.Any(body=>body.Value?["wrapper"] is not null||!JsonNode.DeepEquals(body.Value?["beforeSignature"],body.Value?["signature"])&&!NativeInputSignature(row,body.Value!)&&!NativeRoleSignature(row,body.Value!)&&!NativeReturnSignature(row,body.Value!)&&!InformationFunctionGraphs.Names(body.Value!)&&!InformationFunctionGraphs.Types(body.Value!)&&!((InformationFunctionGraphs.Returns(body.Value!)||InformationFunctionGraphs.OutNarrows(body.Value!))||InformationFunctionGraphs.OutLongs(body.Value!))&&!InformationFunctionGraphs.Removes(body.Value!)&&!(InformationFunctionGraphs.Reorders(body.Value!)||(InformationFunctionGraphs.ValueRefs(body.Value!)||(InformationFunctionGraphs.RefValues(body.Value!)||(InformationFunctionGraphs.ValueOuts(body.Value!)||InformationFunctionGraphs.RemovesOut(body.Value!)))))))||rows.Count(row=>TypedInput(row!))>1)return null;
@@ -143,6 +144,7 @@ internal static class InformationFunctionWholeBodies
  static Element Selected(JsonObject units,JsonNode row){var value=Declaration(units,row["id"]!.ToString());DeclarationAuthoring.Apply(value,new JsonObject{["action"]="signature",["value"]=row["signature"]!.DeepClone()});return value;}
  internal static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
+  if(InformationFunctionRetainedContracts.Prepare(request,changes,units,format) is {} retained)return retained;
   var rows=Edits(changes);if(rows is null)return null;
   string owner=request["id"]!.ToString(),ns=PackPaths.Namespace(owner);var functions=new HashSet<string>(StringComparer.Ordinal);var sources=new HashSet<string>(StringComparer.Ordinal);bool native=false;
   if(units[owner]?["kind"]?.ToString()!="schema"||units.Count>240)throw new InvalidOperationException("Keep the complete whole/native owner observation within its existing read budget");
@@ -232,9 +234,19 @@ internal static class InformationFunctionWholeBodies
   if(guards.Count!=expected.Count||expected.Any(row=>guards[row!["path"]!.ToString()] is not JsonObject read||read.Count!=2||read["path"]?.ToString()!=row["path"]!.ToString()||!System.Text.RegularExpressions.Regex.IsMatch(read["hash"]?.ToString()??"","^[a-f0-9]{64}$"))||guards.Count+proof.Count>240)throw new InvalidOperationException("Retain all original whole/native and selected type source checks without adding or dropping a path");
   var originals=Originals(units);var originalRequest=OriginalRequest(request,owner,originals);var functions=Prepare(originalRequest,plans,originals,format)??throw new InvalidOperationException("Original explicit whole/native plans required");
   var updates=new Dictionary<string,string>(StringComparer.Ordinal);var selectedFunctions=new Dictionary<string,string>(StringComparer.Ordinal);var mandatory=new HashSet<string>(functions,StringComparer.Ordinal){owner,ns+"::ProjectManifest"};
+  if(InformationFunctionRetainedContracts.Edits(plans) is not null){
+   // Replay the complete original typed candidate through the established
+   // internal overlay. Two independent graph texts are never field-merged.
+   var replay=originalRequest.DeepClone().AsObject();replay["changes"]=plans.DeepClone();var candidate=InformationDefinitions.Prepare(replay,format,formatManifest);
+   foreach(var row in candidate["updates"]!.AsArray())selectedFunctions[row!["id"]!.ToString()]=row["text"]!.ToString();
+   selectedFunctions[owner]=candidate["text"]!.ToString();
+   foreach(var row in candidate["linkedUpdates"]!.AsArray()){string key=row!["id"]!.ToString(),text=row["text"]!.ToString();updates.Add(key,text);if(text!=originals[key]!["draft"]!.ToString())mandatory.Add(key);}
+   foreach(var row in plans)mandatory.UnionWith(row!["mapping"]!["bodies"]!.AsObject().Select(body=>body.Key));
+  }else{
   foreach(var row in plans){string id=row!["id"]!.ToString();if(row["hash"]?.ToString()!=Hash(originals[id]!["draft"]!.ToString()))throw new InvalidOperationException("Retain the original function plan basis");var candidate=InformationFunctionContracts.Prepare(originalRequest,Declaration(originals,id),Selected(originals,row),row["mapping"]!.AsObject(),format,row["nativeTypes"] as JsonObject);selectedFunctions[id]=candidate["function"]!.ToString();
    foreach(var update in candidate["updates"]!.AsArray()){string key=update!["id"]!.ToString(),text=update["text"]!.ToString(),original=originals[key]!["draft"]!.ToString();if(updates.TryGetValue(key,out string? prior)&&prior!=text&&prior!=original&&text!=original)throw new InvalidOperationException("Original whole/native closures disagree on a changed source");if(prior is null||text!=original)updates[key]=text;if(text!=original)mandatory.Add(key);}
    mandatory.UnionWith(row["mapping"]!["bodies"]!.AsObject().Select(body=>body.Key));
+  }
   }
   if(!mandatory.IsSubsetOf(proof.Select(p=>p.Key))||proof.Any(p=>!mandatory.Contains(p.Key)&&!updates.ContainsKey(p.Key)))throw new InvalidOperationException("Retain exactly the selected sources and their original closure members");
   foreach(var source in proof){var unit=units[source.Key]??throw new InvalidOperationException("Whole/native member missing");if(!source.Key.StartsWith(ns+"::",StringComparison.Ordinal)||source.Value?["path"]?.ToString()!=unit["path"]?.ToString()||source.Value?["kind"]?.ToString()!=unit["kind"]?.ToString()||source.Value?["hash"]?.ToString()!=Hash(unit["draft"]!.ToString())||unit["atomicEditGroup"] is not JsonArray members||!JsonNode.DeepEquals(members,group))throw new InvalidOperationException("Whole/native source identity, draft or group changed");}
@@ -286,7 +298,7 @@ internal static class InformationFunctionWholeBodies
   var selection=request["selected"]?.AsArray()??throw new ArgumentException("Selected whole/native group required");if(selection.Count>64)throw new ArgumentException("Whole/native Review budget");
   bool Affected(string owner,JsonNode? unit)=>selection.Any(id=>id?.ToString()==owner||unit?["atomicEditGroup"] is JsonArray group&&group.Any(member=>member?.ToString()==id?.ToString())||unit?["slotSaveReceipt"]?["sources"] is JsonObject proof&&proof.ContainsKey(id!.ToString()));
   foreach(var pair in units){if(pair.Value?["slotSaveReceipt"] is not JsonObject receipt||receipt.ContainsKey(Capture)||!Affected(pair.Key,pair.Value)||receipt["sources"] is not JsonObject proof)continue;
-   if(proof.Count(p=>p.Value?["kind"]?.ToString()=="function")>=2&&proof.Any(p=>p.Value?["kind"]?.ToString()=="body")&&proof.Any(p=>p.Value?["kind"]?.ToString()=="blueprint-node"))throw new InvalidOperationException("Explicit whole/native context receipt missing; retain the complete source group");
+   if(InformationFunctionRetainedContracts.RequiresCapture(receipt)||proof.Count(p=>p.Value?["kind"]?.ToString()=="function")>=2&&proof.Any(p=>p.Value?["kind"]?.ToString()=="body")&&proof.Any(p=>p.Value?["kind"]?.ToString()=="blueprint-node"))throw new InvalidOperationException("Explicit whole/native context receipt missing; retain the complete source group");
   }
   var owners=units.Where(p=>p.Value?["slotSaveReceipt"] is JsonObject receipt&&receipt.ContainsKey(Capture)&&Affected(p.Key,p.Value)).Select(p=>p.Key).ToArray();if(owners.Length==0)return null;
   var delegated=request.DeepClone().AsObject();foreach(string owner in owners){if(action=="validate")Validate(request,owner,units[owner]!["slotSaveReceipt"]!.AsObject(),formatElement,format);delegated["units"]![owner]!.AsObject().Remove("slotSaveReceipt");}
