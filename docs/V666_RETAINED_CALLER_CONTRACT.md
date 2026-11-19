@@ -9,3 +9,5 @@
 대표 요청은 caller의 amount→leftAmount, callee의 amount→rightAmount 및 callee의 수동 덧셈→뺄셈이다. caller의 retained C# source/record·exact64 local·좌표·edges, 선택 밖 C# 및 원래 orphan csbody bytes/mtime를 보존한다. 변경 순서가 바뀌어도 최종 후보가 같다. Review/Confirm 뒤 실제 결과22를 확인하는 검증을 둔다. 누락·잘못된 before/map/hash/source·외부 소유·copy/opaque 문맥과 malformed receipt 및 Review 뒤 관측 원본 경합은 전체 거절한다.
 
 이 단위는 caller의 type/ref/out/반환 구조, native alias 변경이나 whole/private/opaque caller 자체 ABI를 일반화하지 않는다. 그 조합은 기존 명시 계획·지원 경계와 함께 별도로 검토한다. 다음 우선순위는 같은 retained/opaque source에 모이는 여러 변경 계약의 명시 일치 계획, 실제 소비되는 private 반환의 명시 대응 및 copy/registered/forwarded 관측 closure다. 구 pending reader migration, 실제 Windows/물리 기기·전체 UI와 초기 빈 화면의 미확정 원인도 남는다.
+
+[최종 신규37·재사용0 검증](VALIDATION_V666_RETAINED_CALLER_CONTRACT.md)을 마쳤다.
