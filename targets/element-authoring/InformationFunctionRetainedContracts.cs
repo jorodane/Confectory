@@ -7,16 +7,30 @@ using System.Text.Json.Nodes;
 internal static class InformationFunctionRetainedContracts
 {
  static bool Scalar(string type)=>type is "bool" or "int" or "long" or "float" or "double" or "string";
+ internal static bool Typed(JsonNode? row)
+ {
+  if(row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject map||map["before"] is not JsonObject before||row["signature"] is not JsonObject after||map["args"] is not JsonObject args||map["callers"] is not JsonObject callers||callers.Count is <1 or >64||map["implementations"] is not JsonObject uses||uses.Count is <1 or >64||map.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers" or "implementations"))||(map["bodies"] is not null&&map["bodies"] is not JsonObject))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(after);
+  return a.Return==b.Return&&Scalar(a.Return)&&a.Args.Count is >=1 and <=8&&a.Args.Count==b.Args.Count&&args.Count==a.Args.Count&&a.Args.Where((pin,i)=>pin.Type!=b.Args[i].Type).Count()==1&&a.Args.Select((pin,i)=>pin.Name==b.Args[i].Name&&pin.Mode is null&&b.Args[i].Mode is null&&Scalar(pin.Type)&&Scalar(b.Args[i].Type)&&args.ContainsKey(pin.Name)&&(pin.Type==b.Args[i].Type?args[pin.Name]?.ToString()==pin.Name:args[pin.Name] is null)).All(ok=>ok);
+ }
+ static bool Names(JsonNode? row)
+ {
+  if(row?["type"]?.ToString()!="function-edit"||row["mapping"] is not JsonObject map||map["before"] is not JsonObject before||row["signature"] is not JsonObject after||map["args"] is not JsonObject args||map.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||map["bodies"] is not null&&map["bodies"] is not JsonObject||map["callers"] is not null&&(map["callers"] is not JsonObject callers||callers.Count!=0))return false;
+  var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(after);
+  return a.Matches(b)&&Scalar(a.Return)&&a.Args.Count is >=1 and <=8&&!a.Args.Any(p=>p.Mode is not null||!Scalar(p.Type))&&InformationFunctionBodyBatch.ValueNames(a,b,args)&&a.Args.Where((pin,i)=>pin.Name!=b.Args[i].Name).Count()==1;
+ }
  internal static JsonNode?[]? Edits(JsonArray changes)
  {
-  var rows=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();if(rows.Length!=2)return null;
-  foreach(var row in rows){
-   if(row?["type"]?.ToString()!="function-edit"||row["nativeTypes"] is not null||row["mapping"] is not JsonObject map||map["before"] is not JsonObject before||row["signature"] is not JsonObject after||map["args"] is not JsonObject args||map.Any(p=>p.Key is not ("before" or "args" or "bodies" or "callers"))||map["bodies"] is not null&&map["bodies"] is not JsonObject||map["callers"] is not null&&(map["callers"] is not JsonObject callers||callers.Count!=0))return null;
-   var a=InformationFunctionBodies.Signature(before);var b=InformationFunctionBodies.Signature(after);
-   if(!a.Matches(b)||!Scalar(a.Return)||a.Args.Count is <1 or >8||a.Args.Any(p=>p.Mode is not null||!Scalar(p.Type))||!InformationFunctionBodyBatch.ValueNames(a,b,args)||a.Args.Where((pin,i)=>pin.Name!=b.Args[i].Name).Count()!=1)return null;
-  }
-  if(rows.Count(row=>(row!["mapping"]!["bodies"] as JsonObject)?.Count is null or 0)!=1||rows.Count(row=>(row!["mapping"]!["bodies"] as JsonObject)?.Count==1)!=1)return null;
+  var rows=changes.Where(row=>!InformationFunctionBodyBatch.Presentation(row)).ToArray();if(rows.Length!=2||rows.Any(row=>row?["nativeTypes"] is not null||!Names(row)&&!Typed(row)))return null;
+  if(rows.Count(row=>(row!["mapping"]!["bodies"] as JsonObject)?.Count is null or 0)!=1||rows.Count(row=>(row!["mapping"]!["bodies"] as JsonObject)?.Count==1)!=1||rows.Any(row=>Typed(row)&&(row!["mapping"]!["bodies"] as JsonObject)?.Count>0))return null;
   var normalized=rows.Select(row=>row!.DeepClone()).ToArray();foreach(var row in normalized)row["mapping"]!["bodies"]??=new JsonObject();return normalized;
+ }
+ // Original typed selections name original graph hashes. Prove both closures
+ // first, then apply the caller's explicit detach/replacement before the callee
+ // rename. Only the preparation order changes; no live hash or choice is rebased.
+ internal static IEnumerable<JsonNode?> Order(JsonArray changes)
+ {
+  var typed=Edits(changes)?.SingleOrDefault(Typed);return typed is null?changes:changes.OrderBy(row=>row?["id"]?.ToString()==typed["id"]!.ToString()?0:1);
  }
  internal static HashSet<string>? Prepare(JsonObject request,JsonArray changes,JsonObject units,Func<Element,string> format)
  {
