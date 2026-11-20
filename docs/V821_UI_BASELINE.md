@@ -143,3 +143,10 @@ primary 객체 카드에서 직접 붙인 소유 모듈의 기존 local 슬롯 �
 고정 소스 `42d28235fa2508ae3f1c48c2b7eba4a0f14bdfad`의 신규 23단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 같은 local ID의 두 형제, 실제 emitter 결과/해시, 무변경·읽기 권한·stale 거절·늦은 응답과 cold 입력 보존, 기존 네이티브/자식/복합/분기/일반/슬롯 회귀, 새 패키지와 전체 복원을 확인했다. 공유 조상에 대한 실제 preview metadata 가드도 별도로 거절을 확인했다. 자세한 근거·개발 검사 이력·2세대 백업은 [자식 미리보기 검증 기록](VALIDATION_V821_CHILD_PREVIEW.md)에 둔다.
 
 이전 private 미지원 범위 중 위 leaf 하나만 연 첫 단위다. 상위 복합 전체·branch/shared·opaque/receiver/forwarded·async·슬롯·상속/복사·독립 properties-view 문맥, 직접 private C# 편집과 비어 있지 않은 helper 멤버 검증은 남아 있다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이며, 교차 패키지/managed 앱의 Linux 검사와 구분한다. 구 Reference reader 제약과 과거 초기 빈 화면 원인은 이번 결과로 해소됐다고 단정하지 않는다. main과 Sites는 변경하지 않는다.
+
+
+## 연결된 일반 셀 삭제의 계약 검토 — 구현 보류
+
+`105923e951f8b8ff3019124b3163c20eb117fa95`의 현행 계약을 실제 Linux UI/엔진의 격리 fixture에서 조사했다. 기존 직접 제거는 disconnected/unreferenced 노드만 허용하고 C# 파일을 보존한다. raw 연결 변경/제거 조합은 셀을 graph에서 제거하지만, 선택 셀의 stale sourceProof를 수용하고 제거 원본을 현재 관측에서 내린 뒤 Review 이후의 그 파일 수정도 Confirm에서 거절하지 않았다. 저장 뒤 공유 history는 OWNERSHIP_CHANGED로 역복구를 제공하지 않는다.
+
+요청한 관측·동시 수정·파일 수명/복구 조건을 충족하는 새 삭제 조작은 구현·게시하지 않았다. 삭제 소스의 원래 관측을 권한 확장 없이 Save/cold·Review/최종 CAS와 복구 경계까지 유지하는 선행 계약을 별도로 검토해야 한다. 새 저장 형식이나 파일 수명 의미를 추정하지 않고 기존 제품·권한·형식을 유지한다. 재현·보관·미실행 범위는 [셀 삭제 계약 조사](V821_CELL_REMOVAL_CONTRACT.md)에 둔다. 이전 자식 미리보기 23단계를 이번 새 기능 검증으로 합산하지 않는다.
