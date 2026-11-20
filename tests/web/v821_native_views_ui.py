@@ -52,6 +52,7 @@ try:
    restart(2);editor=panel().locator('[data-native-source]');expect(editor).to_have_value(candidate);assert read_native()['source']==candidate;x.original();f.checked('native Save stages one exact body and source history; shared Undo/Redo and cold checkpoint retain source without graph conversion or original writes')
    stale=read_native();stale['sources'][0]['hash']='0'*64
    f.invoke('blueprint',dict(action='saveNative',feature=feature,id=stale['id'],sources=stale['sources'],checkpointHash=stale['checkpointHash'],text='return 999;'),False);assert read_native()['source']==candidate;x.original();f.checked('native direct Save rejects forged/stale source closure without mutation')
+   saved('return MissingNativeSymbol;');r=review();r.locator('#confirm').click();expect(r.locator('#confirm')).to_be_disabled(timeout=120000);f.idle();assert f.state()['review']['status']=='invalid';assert read_native()['source']=='return MissingNativeSymbol;';x.original();r.locator('[data-reject]').click();saved(candidate);f.checked('native compiler failure rejects Confirm and retains the invalid draft and all originals for explicit correction')
    r=review();r.locator('[data-reject]').click();x.original();assert read_native()['source']==candidate
    r=review();native_file=f.project/'Native.csbody';original=native_file.read_bytes();native_file.write_bytes(original+b'\n// peer change')
    r.locator('#confirm').click();f.idle();assert native_file.read_bytes()==original+b'\n// peer change';assert read_native()['source']==candidate;native_file.write_bytes(original);
