@@ -55,7 +55,7 @@ public static class BlueprintCellRegion
         Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
     }
-    static JsonObject FrameOrder(JsonObject root,string path,JsonArray edits)
+    static JsonObject OwnedFrame(JsonObject root,string path)
     {
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
@@ -69,7 +69,43 @@ public static class BlueprintCellRegion
             Need(S(owner,"kind")=="graph","Every frame path segment must be an owned compound");
             selected=owner["graph"]!.AsObject();
         }
-        return CompoundOrder(selected,edits,true);
+        var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=selected["entry"]!.DeepClone()}};
+        foreach(var edge in selected["edges"]!.AsArray())routes.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
+        CompoundOrder(selected,routes,true);
+        return selected;
+    }
+    static JsonObject FrameCreate(JsonObject root,string path,JsonArray edits)
+    {
+        var selected=OwnedFrame(root,path);
+        Need(edits.Count==6,"Exactly one owned child insertion required");
+        var creation=edits.Single(e=>S(e,"action")=="createNode")!;
+        string id=S(creation,"node");var definition=creation["definition"]!.AsObject();
+        Need(creation.AsObject().Count==3 && definition.Count==4
+            && definition.All(p=>p.Key is "kind" or "control" or "intent" or "signature")
+            && Ordinary(definition,"") && !string.IsNullOrWhiteSpace(S(definition,"intent"))
+            && System.Text.RegularExpressions.Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z")
+            && !selected["nodes"]!.AsArray().Any(n=>S(n,"id")==id)
+            && definition["signature"] is JsonObject sig && sig.Count==2
+            && sig["args"] is JsonArray{Count:0} && S(sig,"return")=="void",
+            "One new local no-argument void code cell required");
+        Need(new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1)
+            && edits.Where(e=>S(e,"action")!="route").All(e=>S(e,"node")==id&&(ReferenceEquals(e,creation)
+                ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"
+                &&e["text"] is JsonValue value&&value.TryGetValue<string>(out _))),"Only the new child body/name may be edited");
+        var routes=edits.Where(e=>S(e,"action")=="route").ToArray();
+        Need(routes.Length==2&&routes.All(e=>e is JsonObject row&&row.Count==4
+            &&row.All(p=>p.Key is "action" or "node" or "port" or "to")&&S(e,"port")=="next"),"Two exact insertion routes required");
+        var incoming=routes.Single(e=>S(e,"node")!=id)!;var outgoing=routes.Single(e=>S(e,"node")==id)!;
+        Need(S(incoming,"to")==id&&selected["nodes"]!.AsArray().Any(n=>S(n,"id")==S(incoming,"node"))
+            &&selected["edges"]!.AsArray().Any(e=>S(e,"from")==S(incoming,"node")&&S(e,"port")=="next"&&S(e,"to")==S(outgoing,"to")),
+            "Insert after one observed cell without changing its continuation");
+        var candidate=root.DeepClone().AsObject();var child=OwnedFrame(candidate,path);
+        var made=definition.DeepClone().AsObject();made["id"]=id;child["nodes"]!.AsArray().Add(made);
+        var edge=child["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!;edge["to"]=id;
+        child["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=S(outgoing,"to")});
+        // Recheck the original depth/per-frame/global limits including the new cell.
+        OwnedFrame(candidate,path);
+        return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
     }
     static Region Read(JsonObject graph, string owner, string port)
     {
@@ -106,11 +142,11 @@ public static class BlueprintCellRegion
 
     public static JsonObject Query(JsonObject request)
     {
-        bool frame=S(request,"action")=="frame-order";
+        bool frame=S(request,"action") is "frame-order" or "frame-create";
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
-        if(frame)return FrameOrder(graph,S(request,"path"),edits);
+        if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
         if(action=="compound-order")return CompoundOrder(graph,edits);
         if(action=="order"){
             Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")

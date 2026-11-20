@@ -45,7 +45,7 @@ try:
   if mode=='shared':
    assert original['documentFrameOrderBinding']is None;expect(doc().locator('[data-document-up=tail]')).to_be_disabled()
   else:
-   binding=original['documentFrameOrderBinding'];assert binding['root']==t.graph and binding['graph']==frame and binding['path']=='body/nest';expect(doc().locator('[data-document-add=inner]')).to_be_disabled();expect(doc().locator('[data-document-add=tail]')).to_be_disabled();doc().locator('[data-document-up=tail]').click();f.idle()
+   binding=original['documentFrameOrderBinding'];assert binding['root']==t.graph and binding['graph']==frame and binding['path']=='body/nest';expect(doc().locator('[data-document-add=inner]')).to_be_enabled();expect(doc().locator('[data-document-add=tail]')).to_be_enabled();doc().locator('[data-document-up=tail]').click();f.idle()
   if mode!='normal':
    assert order()==initial and not pending();untouched();assert checkpoint.read_bytes()==before
    doc().locator('[data-document-name=inner]').fill('자식 입력 보존 α');doc().locator('.fd-document-title').click();held=pending();assert held;f.invoke('blueprint',request(original),False);assert checkpoint.read_bytes()==before and pending()==held and read()['entry']=='inner';untouched();restart(1);assert pending()==held and order()==initial;expect(doc().locator('[data-document-name=inner]')).to_have_value('자식 입력 보존 α');untouched()
