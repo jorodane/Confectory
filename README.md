@@ -1,6 +1,6 @@
 # Confectory C# build core
 
-현재 에디터 UI/UX 구현 기준은 사용자가 지정한 **Confectory-v821.7z**다. [새 기준과 확인 상태](docs/V821_UI_BASELINE.md)에 문서형 논리 코드·수직 셀 방향과 원본 접근 제약을 기록한다. [v666 고정 수용 목록](docs/V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존한다. 기준 변경과 실제 기능 구현·검증 완료는 구별한다.
+현재 에디터 UI/UX 구현 기준은 사용자가 지정한 **Confectory-v821.7z**다. [새 기준과 확인 상태](docs/V821_UI_BASELINE.md)에 문서형 논리 코드·수직 셀 방향과 원본 접근 제약을 기록한다. [v666 고정 수용 목록](docs/V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존한다. 기준 변경과 실제 기능 구현·검증 완료는 구별한다. 문서형 수직 셀 첫 단위의 구현 범위·실제 엔진 검증·남은 경계는 [별도 기록](docs/VALIDATION_V821_DOCUMENT_CELLS.md)에 둔다.
 
 Windows entry: **[Confectory.bat](Confectory.bat)**. After a Windows package build, open **`Builds/Windows-x64/Confectory.exe`** with its complete output folder; see [exe package prerequisites and commands](docs/WINDOWS_LAUNCHER.md#빌드-후-exe-실행). See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
 

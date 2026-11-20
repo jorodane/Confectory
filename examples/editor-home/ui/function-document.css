@@ -1,0 +1,32 @@
+.has-function-document .fd-view-tabs{display:flex;flex:none;gap:4px;padding:7px 12px;background:#202020;border-bottom:1px solid #424242;overflow:auto}
+.fd-view-tabs button{flex:none;padding:7px 12px;border:1px solid transparent;border-radius:5px;background:transparent;color:#bdbdbd;white-space:nowrap}
+.fd-view-tabs [aria-selected=true]{color:#ffdda5;border-color:#796648;background:#393124}
+.fd-view-tabs button:disabled{opacity:.45;cursor:default}
+.blueprint-editor.fd-logic>.bp-layout,.blueprint-editor.fd-logic>.bp-mobile-flow,.blueprint-editor.fd-logic .bp-mobile-tools,.blueprint-editor.fd-logic>.bp-tools{display:none!important}
+.function-document{min-height:0;flex:1;overflow:auto;padding:18px clamp(10px,3vw,36px);background:#181818;color:#e2e2e2;overscroll-behavior:contain}
+.function-document[hidden],.function-document [hidden]{display:none!important}
+.fd-document-title{max-width:900px;margin:0 auto 16px;font-size:18px;font-weight:600}
+.fd-cell{max-width:900px;margin:0 auto 14px;border:1px solid #454545;border-radius:7px;background:#232323;overflow:hidden}
+.fd-cell-header{display:flex;align-items:center;gap:8px;min-height:44px;padding:5px 9px;background:#2c2c2c;border-bottom:1px solid #414141}
+.fd-cell-header>button{flex:none;border:0;background:transparent;color:#ccc;padding:5px}
+.fd-cell-header>.fd-cell-title{flex:1;min-width:0;margin:0;border:0;border-radius:3px;background:transparent;color:#eee;font-family:inherit;font-size:14px;font-weight:600;line-height:1.5;padding:3px 0;text-overflow:ellipsis}
+.fd-cell-header>input.fd-cell-title:focus{outline:1px solid #c6a46b}
+.fd-cell-state{flex:none;font-size:11px;color:#d1bd98;white-space:nowrap}
+.fd-cell-grip:disabled{opacity:.4;cursor:default}
+.fd-cell-io{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;padding:12px}
+.fd-outputs{text-align:right}
+.fd-pin{display:flex;flex-direction:column;gap:5px;min-width:0;margin:3px 0 12px;font-size:12px}
+.fd-pin small{color:#aaa;font-size:10px;margin-left:5px}
+.fd-pin>button{min-height:32px;padding:6px 9px;border:1px solid #4a4a4a;border-left:3px solid #7baa91;border-radius:4px;background:#191919;color:#e0e0e0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
+.fd-outputs .fd-pin{border-right:3px solid #7baa91;padding-right:7px}
+.fd-empty{color:#858585;font-size:11px}
+.fd-cell-actions{display:flex;gap:5px;flex-wrap:wrap;padding:0 12px 10px}
+.fd-cell-actions button{padding:5px 9px;border:1px solid #494949;border-radius:4px;background:#2a2a2a;color:#ccc;font-size:11px}
+.fd-branches{border-top:1px solid #494238}
+.fd-branch-tabs{display:flex;gap:3px;overflow:auto;background:#27241f;padding:6px}
+.fd-branch-tabs button{flex:none;background:transparent;color:#ccc;border:1px solid transparent;border-radius:4px;padding:6px 10px;white-space:nowrap}
+.fd-branch-tabs [aria-pressed=true]{background:#44392a;color:#ffdda5;border-color:#7b6747}
+.fd-branch-panel{padding:12px 12px 0 24px;border-left:2px solid #796547;margin:0 12px}
+.fd-reference{max-width:900px;margin:8px auto 14px;color:#baa982;font-size:12px}
+.fd-detached{max-width:900px;margin:24px auto 0;border-top:1px dashed #555;padding-top:10px}
+.fd-detached>h3{font-size:12px;color:#aaa;font-weight:400}
