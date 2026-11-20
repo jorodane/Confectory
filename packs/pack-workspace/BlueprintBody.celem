@@ -23,4 +23,6 @@ import Confectory.Save::Read as ReadSaved (string) -> string;
 import Confectory.EditWorkspace::Export as ExportDraft (string) -> string;
 import Confectory.Save::Location as CheckpointLocation (string) -> string;
 import Confectory.FileStream::Snapshot as CheckpointSnapshot (string) -> string[];
+import Confectory.EditWorkspace::DiscoverBodies as DiscoverBodies (string,string) -> string;
+import Confectory.EditWorkspace::ReadBoundedBody as ReadBoundedBody (string,string,string,int) -> string[];
 body common "Blueprint.csbody";}

@@ -33,7 +33,7 @@ try:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page(viewport={'width':1280,'height':950});page.on('pageerror',lambda e:errors.append(str(e)))
   page.goto('http://127.0.0.1:'+str(server.server_port)+'/fixture');page.evaluate(setup)
   root=page.locator('.blueprint-editor');doc=root.locator('.function-document')
-  expect(doc).to_be_visible();expect(root.get_by_role('tab',name='논리 코드',exact=True)).to_have_attribute('aria-selected','true');expect(root.get_by_role('tab',name='네이티브 미리보기',exact=True)).to_be_disabled()
+  expect(doc).to_be_visible();expect(root.get_by_role('tab',name='논리 코드',exact=True)).to_have_attribute('aria-selected','true');expect(root.get_by_role('tab',name='네이티브 미리보기',exact=True)).to_be_enabled()
   assert doc.locator('[data-document-cell]').evaluate_all('(els)=>els.map(e=>e.dataset.documentCell)')==['$entry','first','second','$exit:return']
   assert page.evaluate('fixture.graph.nodes.map(n=>n.id)')==['second','first'];assert page.evaluate('fixture.inputs.size')==0
   cell=doc.locator('[data-document-cell=first]');left=cell.locator('.fd-inputs').bounding_box();right=cell.locator('.fd-outputs').bounding_box();assert left['x']+left['width']<right['x']

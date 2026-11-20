@@ -84,7 +84,7 @@ public static class BlueprintDocuments
         var propertyContracts=RuntimeObjectContracts.ForGraph(registry,implementation.Id,graph,request["definitionsOnly"]?.GetValue<bool>()==true);
         var result=FeatureBlueprint.Execute(new JsonObject
         {
-            ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
+            ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : request["assemblePreview"]?.GetValue<bool>() == true ? "featureBlueprintAssemble" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
             ["inspectStalePostCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStalePostCalls"]?.GetValue<bool>() == true,
             ["inspectStaleAsyncCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStaleAsyncCalls"]?.GetValue<bool>() == true,
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,

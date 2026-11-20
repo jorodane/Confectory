@@ -30,3 +30,9 @@
 .fd-reference{max-width:900px;margin:8px auto 14px;color:#baa982;font-size:12px}
 .fd-detached{max-width:900px;margin:24px auto 0;border-top:1px dashed #555;padding-top:10px}
 .fd-detached>h3{font-size:12px;color:#aaa;font-weight:400}
+
+.fd-native-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;overflow-wrap:anywhere;font-size:12px;color:#cbbb9c}
+.fd-native-scope{color:#aaa;font-size:12px}
+.function-native-preview pre{white-space:pre;overflow:auto;font:13px/1.6 monospace;border:1px solid #444;padding:12px;background:#202020}
+
+.native-function{display:flex;flex-direction:column;gap:12px}.native-function textarea{flex:1;min-height:240px;resize:none;white-space:pre;overflow:auto;font:13px/1.6 monospace;background:#202020;color:#eee;border:1px solid #555;padding:12px;tab-size:4}

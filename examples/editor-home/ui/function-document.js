@@ -29,13 +29,14 @@ export function mountFunctionDocument(root,api){
   const style=document.createElement('link');style.rel='stylesheet';style.href=new URL('./function-document.css',import.meta.url).href;style.dataset.functionDocumentStyle='';document.head.append(style);
  }
  const esc=api.esc,events=new AbortController(),context=api.context,views=Object.assign(Object.create(null),api.view.meta.functionDocumentViews||{});
- const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:prior?.mode==='blueprint'?'blueprint':'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
- let destroyed=false,frame=0,activated=false;
+ const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:['blueprint','native'].includes(prior?.mode)?prior.mode:'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
+ let destroyed=false,frame=0,activated=false,previewRequest=0,previewVersion=null;
  const owns=()=>!destroyed&&root.isConnected&&!api.view.el.hidden&&api.owns();
  const nav=document.createElement('nav');nav.className='fd-view-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','기능 보기');
- nav.innerHTML='<button type="button" role="tab" data-function-view="logic">논리 코드</button><button type="button" role="tab" data-function-view="native" disabled title="생성된 함수 전체의 네이티브 미리보기는 아직 지원하지 않습니다.">네이티브 미리보기</button><button type="button" role="tab" data-function-view="blueprint">블루프린트 보기</button>';
+ nav.innerHTML='<button type="button" role="tab" data-function-view="logic">논리 코드</button><button type="button" role="tab" data-function-view="native">네이티브 미리보기</button><button type="button" role="tab" data-function-view="blueprint">블루프린트 보기</button>';
  root.querySelector('.bp-toolbar').after(nav);
  const host=document.createElement('section');host.className='function-document';host.tabIndex=-1;host.setAttribute('role','tabpanel');host.setAttribute('aria-label','논리 코드');root.append(host);
+ const preview=document.createElement('section');preview.className='function-native-preview function-document';preview.hidden=true;preview.setAttribute('role','tabpanel');preview.setAttribute('aria-label','네이티브 미리보기');root.append(preview);
  root.classList.add('has-function-document');
  function persist(){
   if(!owns())return;
@@ -73,14 +74,26 @@ export function mountFunctionDocument(root,api){
   for(const button of host.querySelectorAll('[data-document-internal]'))button.onclick=()=>{if(owns())api.internal(button.dataset.documentInternal);};
   for(const button of host.querySelectorAll('[data-document-source]'))button.onclick=()=>{if(owns())api.source(button.dataset.documentSource);};
  }
+ async function generate(){
+  const request=++previewRequest;previewVersion=api.nativeVersion?.();
+  preview.innerHTML='<div class="fd-native-tools"><span role="status">생성 중…</span><button type="button" data-native-refresh>갱신</button></div><p class="fd-native-scope">현재 함수의 엔진 생성 C# 본문 · 읽기 전용 · 컴파일·실행 검증 전</p><pre data-native-body tabindex="0" aria-label="생성된 C# 본문"></pre><pre data-native-members tabindex="0" aria-label="생성된 C# 멤버" hidden></pre>';
+  preview.querySelector('[data-native-refresh]').onclick=()=>{if(owns())generate();};
+  try{
+   const result=await api.previewNative();if(!owns()||state.mode!=='native'||request!==previewRequest)return;
+   if(previewVersion!==api.nativeVersion?.())throw Error('소스가 바뀌어 결과가 오래됐습니다. 갱신해 주세요.');
+   preview.querySelector('[data-native-body]').textContent=result.body;
+   const members=preview.querySelector('[data-native-members]');members.textContent=result.members;members.hidden=!result.members;
+   preview.querySelector('[role=status]').textContent='생성됨 · '+result.bodyHash;
+  }catch(error){if(owns()&&state.mode==='native'&&request===previewRequest){preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent=error.message||'생성하지 못했습니다. 원본과 입력은 유지됩니다.';}}
+ }
  // openWindow may render while hidden. Set view DOM now and activate its
  // model/callbacks after the current owner becomes visible.
  function mode(next,initial=false){
-  if(destroyed||!['logic','blueprint'].includes(next)||!initial&&(!owns()||api.closeValues('preserve')===false||!owns()))return;
-  state.mode=next;host.hidden=next!=='logic';root.classList.toggle('fd-logic',next==='logic');
-  root.querySelector('.bp-layout').inert=next==='logic';
+  if(destroyed||!['logic','native','blueprint'].includes(next)||!initial&&(!owns()||api.closeValues('preserve')===false||!owns()))return;
+  state.mode=next;host.hidden=next!=='logic';preview.hidden=next!=='native';root.classList.toggle('fd-logic',next!=='blueprint');previewRequest++;
+  root.querySelector('.bp-layout').inert=next!=='blueprint';
   for(const button of nav.querySelectorAll('[data-function-view]'))button.setAttribute('aria-selected',String(button.dataset.functionView===next));
-  if(owns()){activated=true;api.switchView?.(next);if(next==='logic'){render();host.scrollTop=state.scroll;}else api.graph();}
+  if(owns()){activated=true;api.switchView?.(next);if(next==='logic'){render();host.scrollTop=state.scroll;}else if(next==='native')generate();else api.graph();}
   if(!initial)persist();
  }
  for(const button of nav.querySelectorAll('[data-function-view]:not(:disabled)'))button.onclick=()=>mode(button.dataset.functionView);
@@ -91,5 +104,5 @@ export function mountFunctionDocument(root,api){
   else if(['z','y'].includes(key)&&!event.target.closest('input,textarea,select')){event.preventDefault();event.stopPropagation();api.undo(key==='y'||event.shiftKey);}
  },{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='logic'&&!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();root.classList.remove('fd-logic','has-function-document');}};
+ return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'&&!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
 }
