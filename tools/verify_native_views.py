@@ -46,6 +46,8 @@ def main():
     work.run(label+'-document-'+mode,[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(c),str(report),mode],cwd=c,env=env)
    for mode in ['preview','native']:
     work.run(label+'-native-'+mode,[sys.executable,str(c/'tests/web/v821_native_views_ui.py'),str(c),str(report),mode],cwd=c,env=env)
+   for mode in ['normal','dependency']:
+    work.run(label+'-structure-'+mode,[sys.executable,str(c/'tests/web/v821_document_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env)
    work.run(label+'-legacy-node-names',[sys.executable,str(c/'tests/web/v666_node_names_recovery_ui.py'),str(c),str(report),'normal'],cwd=c,env=env)
    if git(c,'status','--porcelain'):raise RuntimeError('Verification changed source checkout')
   c=checkouts['lf'];env=environments['lf'];dotnet=str(a.sdk/'dotnet');package=work.root/'Windows-x64'
@@ -55,6 +57,7 @@ def main():
   work.run('packaged-document',[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env)
   for mode in ['preview','native']:
    work.run('packaged-native-'+mode,[sys.executable,str(c/'tests/web/v821_native_views_ui.py'),str(package/'content'),str(report),mode],cwd=c,env=env)
+  work.run('packaged-structure',[sys.executable,str(c/'tests/web/v821_document_structure_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env)
   candidate=work.root/'package.zip';entry=store.prepare(package,candidate,commit,work.record.with_suffix('.zip'),inputs['identity'])
   restored=work.root/'restored';restored.mkdir();verify_archive(candidate,entry['files'],restored)
   atomic_json(work.evidence/'full-restore.json',dict(files=len(entry['files']),archiveSha256=sha(candidate),allBytesVerified=True))
