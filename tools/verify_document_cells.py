@@ -10,7 +10,7 @@ from verification_workspace import Workspace,PackageStore,atomic_json,files,sha,
 
 def main():
  p=argparse.ArgumentParser(description=__doc__)
- p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
+ p.add_argument('--reuse-document-lf',type=Path,help='Sealed identical LF UI checks after the exact legacy attachment-wait correction');p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
  a=p.parse_args();repo=a.repo.resolve();commit=git(repo,'rev-parse',a.commit)
  if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Source checkout must be clean and frozen')
  inputs=dependency_identity(a.sdk,a.nuget_seed,commit)
@@ -19,6 +19,9 @@ def main():
  print(json.dumps({'record':str(work.record),'root':str(work.root),'source':commit}),flush=True)
  try:
   atomic_json(work.evidence/'preflight.json',plan);atomic_json(work.evidence/'dependencies.json',inputs)
+  if a.reuse_document_lf:
+   from verification_document_reuse import bind
+   bind(repo,a.reuse_document_lf,commit,inputs,work)
   checkouts={};environments={}
   for label,crlf in [('lf','false'),('crlf','true')]:
    c=work.root/label;checkouts[label]=c
@@ -58,7 +61,7 @@ def main():
   if dependency_identity(a.sdk,a.nuget_seed,commit)!=inputs:raise RuntimeError('Public dependencies changed')
   if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Frozen source changed')
   atomic_json(work.evidence/'package.json',entry)
-  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='document-cells',freshStages=len(work.state['results']),reusedChecks=[],independentCheckouts=2,actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
+  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='document-cells',freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),independentCheckouts=2,actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
   # Preserve user-like fixture sources/checkpoints/profiles. Reproducible build
   # outputs retain exact hashes outside the evidence archive to bound storage.
   generated=work.root/'generated';generated.mkdir();omitted=[];candidates=[]
@@ -75,7 +78,7 @@ def main():
    if path.name.startswith('cfb-')and path.is_dir()and not path.is_symlink():
     retained=work.evidence/path.name;shutil.move(str(path),str(retained));work.profile(retained)
   work.state['packagePublication']={'store':str(store.root),'candidate':candidate.name,'entry':entry};work.save();work.finish(cleanup=False);index=store.promote(candidate,entry);work.cleanup()
-  print(json.dumps(dict(status='passed',sourceCommit=commit,record=str(work.record),latest=index['latest']['sourceCommit'],rollback=index['rollback']['sourceCommit'],freshStages=len(work.state['results']),packageSha256=entry['sha256'],packageBytes=entry['archiveBytes'])),flush=True)
+  print(json.dumps(dict(status='passed',sourceCommit=commit,record=str(work.record),latest=index['latest']['sourceCommit'],rollback=index['rollback']['sourceCommit'],freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),packageSha256=entry['sha256'],packageBytes=entry['archiveBytes'])),flush=True)
  except BaseException as error:
   try:work.finish(error)
   except BaseException as preservation_error:

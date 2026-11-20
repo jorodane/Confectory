@@ -11,7 +11,7 @@ def open_graph(feature=x.feature,node='choose'):
  tab=panel().get_by_role('tab',name='블루프린트 보기',exact=True)
  if tab.is_visible():tab.click()
  if panel().is_visible() and panel().locator('[data-bp-node="'+node+'"]').count():return
- f.page.locator('#workspace').click(button='right',position={'x':1300,'y':300});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.get_by_role('button',name='기능',exact=True).click();b.locator('[data-browser-control=object-query]').fill(feature.split('::')[-1]);b.locator('[data-browser-control=object-search]').click();b.locator('[data-object="'+feature+'"]').press('Enter');b.locator('[data-close]').first.click();f.idle();f.page.locator('[data-operation=feature-author-open]').first.click();tab=panel().get_by_role('tab',name='블루프린트 보기',exact=True)
+ f.page.locator('#workspace').click(button='right',position={'x':1300,'y':300});f.page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=f.page.locator('.window[data-key^="browser:project:"]');b.get_by_role('button',name='기능',exact=True).click();b.locator('[data-browser-control=object-query]').fill(feature.split('::')[-1]);b.locator('[data-browser-control=object-search]').click();b.locator('[data-object="'+feature+'"]').press('Enter');b.locator('[data-close]').first.click();f.idle();f.page.locator('[data-operation=feature-author-open]').first.click();panel().locator('[data-bp-node="'+node+'"]').wait_for(state='attached');tab=panel().get_by_role('tab',name='블루프린트 보기',exact=True)
  if tab.is_visible():tab.click()
  expect(panel().locator('[data-bp-node="'+node+'"]')).to_be_visible()
 def toggle(node=None):
