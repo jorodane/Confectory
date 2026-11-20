@@ -479,7 +479,7 @@ lock(state){
   return new System.Text.Json.Nodes.JsonObject{["rows"]=callableRows,["total"]=callMatches.Count,["page"]=callPage,["pageSize"]=32}.ToJsonString();
  }
  if(targetOperation is "readNative" or "saveNative"){
-  if(input["owner"] is not null||input["uiSurface"] is not null)throw new InvalidOperationException("Native direct editing requires the standalone owned function surface");
+  if(input["owner"] is not null||!string.IsNullOrEmpty(input["uiSurface"]?.ToString()))throw new InvalidOperationException("Native direct editing requires the standalone owned function surface");
   string feature=input["feature"]!.GetValue<string>(),bodyId=input["id"]!.GetValue<string>();
   var catalog=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"featureBodies",new System.Text.Json.Nodes.JsonObject{["feature"]=feature}.ToJsonString()))!;
   var selected=System.Linq.Enumerable.Single(catalog["rows"]!.AsArray(),r=>r!["id"]!.ToString()==bodyId)!;
@@ -508,7 +508,7 @@ lock(state){
     if(!calls.EditBatch.Invoke(staged,new[]{bodyId},new[]{text},new[]{long.Parse(body[4])},new[]{Hash(body[3])}))throw new InvalidOperationException("Native body revision changed; input retained");
     var prior=new System.Text.Json.Nodes.JsonObject{[bodyId]=body[3]};var planner=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryPlanner."+draft) as Func<System.Text.Json.Nodes.JsonObject,System.Text.Json.Nodes.JsonObject,string,System.Text.Json.Nodes.JsonObject>??throw new InvalidOperationException("Native source history unavailable");
     candidate["history"]=text==body[3]?live["history"]!.DeepClone():planner(candidate,prior,"native-body-edit");candidate["checkpointSourceChecks"]=System.Text.Json.JsonSerializer.SerializeToNode(ids);
-    bool recovered=false;try{calls.WriteChecked.Invoke(staged,checkpoint);}catch(Exception failure){bool identical;try{identical=calls.ReadSaved.Invoke(staged)==calls.ExportDraft.Invoke(staged);}catch(Exception verify){throw new AggregateException("Native checkpoint outcome unknown; input retained",failure,verify);}if(!identical)throw;recovered=true;}
+    bool recovered=false;try{calls.WriteChecked.Invoke(staged,checkpoint);}catch(Exception failure){bool identical;try{identical=calls.ReadSaved.Invoke(staged)==calls.ExportDraft.Invoke(staged);}catch(Exception verify){throw new AggregateException("Native checkpoint outcome unknown; input retained",failure,verify);}if(!identical)throw;foreach(var observed in nativeSources){var row=calls.Read.Invoke(draft,observed!["id"]!.ToString());if(calls.CheckpointSnapshot.Invoke(System.IO.Path.Combine(identity[3],row[2]))[2]!=row[5])throw new InvalidOperationException("Native originals changed; input retained",failure);}recovered=true;}
     if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before,live["units"]))throw new InvalidOperationException("Unexpected native draft mutation; input retained");
     live["units"]=candidate["units"]!.DeepClone();live["history"]=candidate["history"]!.DeepClone();live["checkpointVersion"]=candidate["checkpointVersion"]!.DeepClone();state["review"]=null;
     return new System.Text.Json.Nodes.JsonObject{["id"]=bodyId,["checkpointSaved"]=true,["checkpointRecovered"]=recovered,["sourceWritten"]=false,["compiled"]=false}.ToJsonString();

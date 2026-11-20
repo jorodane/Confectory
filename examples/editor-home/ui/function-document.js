@@ -84,7 +84,7 @@ export function mountFunctionDocument(root,api){
    preview.querySelector('[data-native-body]').textContent=result.body;
    const members=preview.querySelector('[data-native-members]');members.textContent=result.members;members.hidden=!result.members;
    preview.querySelector('[role=status]').textContent='생성됨 · '+result.bodyHash;
-  }catch(error){if(owns()&&state.mode==='native'&&request===previewRequest){preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent=error.message||'생성하지 못했습니다. 원본과 입력은 유지됩니다.';}}
+  }catch(error){if(owns()&&state.mode==='native'&&request===previewRequest){preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent=error.message==='consumer_error'?'네이티브 생성에 실패했습니다. 소스 충돌과 지원 문맥을 확인해 주세요. 원본과 입력은 유지됩니다.':error.message||'생성하지 못했습니다. 원본과 입력은 유지됩니다.';}}
  }
  // openWindow may render while hidden. Set view DOM now and activate its
  // model/callbacks after the current owner becomes visible.

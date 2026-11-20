@@ -69,4 +69,5 @@ try:
  print(json.dumps(dict(checks=f.checks,actualLinuxEngine=True,actualWindows=False,fullUI=False,mockupVisualCompared=False,evidence=str(f.case)),ensure_ascii=False))
 except BaseException:
  (f.case/'native-failure.txt').write_text(traceback.format_exc());raise
-finally:f.stop()
+finally:
+ (f.case/'native-traffic.json').write_text(json.dumps(f.traffic,ensure_ascii=False));(f.case/'native-errors.json').write_text(json.dumps(f.errors,ensure_ascii=False));f.stop()
