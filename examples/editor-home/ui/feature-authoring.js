@@ -552,10 +552,11 @@ function blueprintNormalizeControls(scope){
   };
   const applyCellOrder=chain=>{if(chain)structuralEdit(w,()=>{privateValue(w,chain.owner||'$entry',chain.owner?'route:'+chain.port:'entry',chain.order[0]);chain.order.forEach((node,index)=>privateValue(w,node,'route',chain.order[index+1]||chain.exit));});};
   const moveCell=(id,offset)=>{if(!canvasOwns()||![-1,1].includes(offset))return;const chain=linearCells(id);if(chain)applyCellOrder(cellOrderPlan(id,chain.order.indexOf(id)+offset));};
+  // Compound drag uses only the same engine-observed whole-call chain as the buttons.
   const cellDrag=id=>{
    if(!canvasOwns()||api.busy||!frameInputsClear())return null;
-   const chain=linearCells(id),held=saveEntries(w);if(!chain||chain.compound||!chain.order.includes(id)||(data.locals||[]).length||held.length&&!ownedCellOrder(w,held))return null;
-   if(chain.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||n.kind!=='code'||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
+   const chain=linearCells(id),held=saveEntries(w);if(!chain||!chain.order.includes(id)||(data.locals||[]).length||held.length&&!ownedCellOrder(w,held))return null;
+   if(chain.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||!(n.kind==='code'||chain.compound&&n.kind==='graph')||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
    return {scope:JSON.stringify([surface.context,chain.owner||'',chain.port||'']),order:[...chain.order],exit:chain.exit,version:JSON.stringify([proof(data),data.checkpointHash,saveEntries(w),chain.order,api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]])};
   };
   const cellDropPlan=(id,slot,expected)=>{
