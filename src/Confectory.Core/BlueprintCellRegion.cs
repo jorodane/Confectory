@@ -14,6 +14,46 @@ public static class BlueprintCellRegion
         && n["executionEnum"] is null && n["async"]?.GetValue<bool>()!=true && n["forwardCallerStorage"]?.GetValue<bool>()!=true;
 
     sealed record Region(string Owner, string Port, List<string> Nodes, string End);
+    // Move an existing compound as one invocation. No descendant, signature or
+    // storage binding is rewritten; the normal compiler checks value dominance.
+    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits)
+    {
+        int total=0;
+        string Chain(JsonObject g,int depth)
+        {
+            Need(depth<=8 && S(g,"profile")==FeatureBlueprint.NestedProfile && g["copySource"] is null
+                && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
+            var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
+            Need(nodes.Count is >0 and <64 && total<=256,"Bounded complete compound chain required");
+            var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
+            Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
+                && new[]{"branchOwner","implementationContext","postCall","executionEnum","executionSource","retainedCode","contextBoundary"}.All(k=>n![k] is null)
+                && n!["async"]?.GetValue<bool>()!=true && n["forwardCallerStorage"]?.GetValue<bool>()!=true),
+                "Preserve branch, call, opaque, receiver and forwarded storage contexts");
+            var edges=g["edges"]!.AsArray();
+            Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
+                &&edges.Select(e=>S(e,"from")).Distinct(StringComparer.Ordinal).Count()==nodes.Count,"One exclusive next route per cell required");
+            var links=edges.ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
+            var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(g,"entry");
+            while(names.Contains(at)){Need(seen.Add(at),"Compound chain cannot cycle");at=links[at];}
+            Need(seen.Count==names.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&g["exits"]!.AsObject().ContainsKey(at[5..]),"Retain every cell and the original frame exit");
+            foreach(var node in nodes.Where(n=>S(n,"kind")=="graph"))Chain(node!["graph"]!.AsObject(),depth+1);
+            return at;
+        }
+        string terminal=Chain(graph,0);
+        var original=graph["nodes"]!.AsArray();
+        Need(original.Any(n=>S(n,"kind")=="graph"),"An existing compound invocation is required");
+        Need(edits.Count==original.Count+1 && edits.All(e=>e is JsonObject row&&row["to"] is JsonValue v&&v.TryGetValue<string>(out _)
+            &&(row.Count==3&&S(row,"action")=="entry"&&S(row,"node")=="$entry"
+            ||row.Count==4&&S(row,"action")=="route"&&S(row,"port")=="next"&&row.All(p=>p.Key is "action" or "node" or "port" or "to"))),"Exact complete compound order required");
+        var entry=edits.Single(e=>S(e,"action")=="entry")!;
+        var routes=edits.Where(e=>S(e,"action")=="route").ToDictionary(e=>S(e,"node"),e=>S(e,"to"),StringComparer.Ordinal);
+        Need(routes.Count==original.Count&&original.All(n=>routes.ContainsKey(S(n,"id"))),"Keep the original compound node set and frame");
+        string next=S(entry,"to");var visited=new HashSet<string>(StringComparer.Ordinal);
+        while(routes.ContainsKey(next)){Need(visited.Add(next),"Compound order cannot cycle");next=routes[next];}
+        Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
+        return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
+    }
     static Region Read(JsonObject graph, string owner, string port)
     {
         Need(S(graph,"profile")==FeatureBlueprint.SwitchProfile && graph["executionExitMode"]?.GetValue<bool>()!=true
@@ -52,6 +92,7 @@ public static class BlueprintCellRegion
         Need(request.Count is 3 or 4 && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits"),"Exact branch editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
+        if(action=="compound-order")return CompoundOrder(graph,edits);
         if(action=="order"){
             Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
                 &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");

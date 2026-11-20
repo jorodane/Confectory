@@ -44,3 +44,22 @@ export function branchCreationCells(data,cells){
  }catch{}
  return false;
 }
+
+// Whole compound invocations stay in the same physical root frame. Descendant
+// eligibility is projected by the engine from the observed original graph.
+export function compoundCellChain(data,edges=data.edges){
+ if(data.documentCompoundOrderAvailable!==true||!data.id||data.id!==data.rootId||data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||data.profile!=='sync-acyclic-nested-v1'||!data.nodes.some(n=>n.kind==='graph')||data.nodes.length>=64)return null;
+ if(data.nodes.some(n=>!['code','graph'].includes(n.kind)||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
+ const names=new Set(data.nodes.map(n=>n.id)),routes=edges.filter(e=>e.from!=='$entry'),start=edges.find(e=>e.from==='$entry'&&e.port==='next')?.to||data.entry;
+ if(routes.length!==names.size||routes.some(e=>e.port!=='next'||!names.has(e.from))||new Set(routes.map(e=>e.from)).size!==names.size)return null;
+ const order=[],seen=new Set();let at=start;
+ while(names.has(at)){if(seen.has(at))return null;seen.add(at);order.push(at);at=normal(routes.find(e=>e.from===at).to);}
+ return order.length===names.size&&at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5))?{order,exit:at,compound:true}:null;
+}
+export function compoundOrderCells(data,cells){
+ const region=compoundCellChain(data),rows=cells.map(([,v])=>v);
+ if(!region||rows.length!==region.order.length+1||new Set(rows.map(v=>v.node)).size!==rows.length||rows.filter(v=>v.type==='entry'&&v.node==='$entry').length!==1||rows.some(v=>typeof v.text!=='string'||!(v.type==='entry'&&v.node==='$entry'||v.type==='route'&&region.order.includes(v.node))))return false;
+ const links=new Map(rows.map(v=>[v.node,normal(v.text)])),seen=new Set();let at=links.get('$entry');
+ while(region.order.includes(at)){if(seen.has(at))return false;seen.add(at);at=links.get(at);}
+ return seen.size===region.order.length&&at===region.exit;
+}
