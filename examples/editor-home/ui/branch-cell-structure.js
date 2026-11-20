@@ -1,0 +1,46 @@
+// Editor projection only. The engine independently checks the original region,
+// complete plan, value dominance, source closure and checkpoint CAS.
+const normal=to=>to?.startsWith('$exit:')?to.slice(1):to;
+export function branchCellRegion(data,edges,owner,port){
+ if(!data.id||data.id!==data.rootId||data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.profile!=='sync-acyclic-switch-v1'||data.nodes.length>=64)return null;
+ const byId=new Map(data.nodes.map(n=>[n.id,n])),parent=byId.get(owner);
+ if(!parent||parent.kind!=='code'||parent.control!=='switch'||parent.branchOwner||parent.postCall||parent.implementationContext||parent.executionSource||parent.async||parent.forwardCallerStorage||!parent.executionEnum?.members.some(m=>m.id!==parent.executionEnum.primary&&port==='case:'+m.id))return null;
+ if(new Set(edges.map(e=>e.from+'|'+e.port)).size!==edges.length||!edges.some(e=>e.from===owner&&e.port===port))return null;
+ const next=(id,p)=>normal(edges.find(e=>e.from===id&&e.port===p)?.to)||'return:'+owner,order=[],seen=new Set();let at=next(owner,port);
+ while(byId.has(at)){
+  const n=byId.get(at);if(n.kind!=='code'||n.control!=='next'||n.branchOwner!==owner||n.implementationContext||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum||seen.has(at))return null;
+  seen.add(at);order.push(at);at=next(at,'next');
+ }
+ if(at!=='return:'+owner&&!(at?.startsWith('exit:')&&(data.exits||[]).some(e=>(e.name||e.id)===at.slice(5))))return null;
+ for(let i=0;i<order.length;i++){
+  const from=i?order[i-1]:owner,p=i?'next':port,id=order[i];
+  if(data.entry===id||edges.some(e=>normal(e.to)===id&&(e.from!==from||e.port!==p))||edges.some(e=>e.from===id&&e.port!=='next'))return null;
+ }
+ return {owner,port,order,exit:at};
+}
+
+export function branchOrderCells(data,cells){
+ const routes=cells.map(([,v])=>v),anchors=routes.filter(v=>v.type.startsWith('route:case:'));
+ if(anchors.length!==1||routes.some(v=>typeof v.text!=='string'||v.type!=='route'&&!v.type.startsWith('route:case:'))||new Set(routes.map(v=>v.node)).size!==routes.length)return false;
+ const anchor=anchors[0],region=branchCellRegion(data,data.edges,anchor.node,anchor.type.slice(6));
+ if(!region||routes.length!==region.order.length+1||routes.some(v=>v!==anchor&&!region.order.includes(v.node)))return false;
+ const byId=new Map(routes.map(v=>[v.node,v])),seen=new Set();let at=normal(anchor.text);
+ while(region.order.includes(at)){if(seen.has(at))return false;seen.add(at);at=normal(byId.get(at)?.text);}
+ return seen.size===region.order.length&&at===region.exit;
+}
+
+export function branchCreationCells(data,cells){
+ try{
+  if(cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;
+  const creation=cells.find(([,v])=>v.type==='create')[1],definition=JSON.parse(creation.text),created=creation.node,owner=definition.branchOwner;
+  if(!owner||data.nodes.some(n=>n.id===created)||Object.keys(definition).length!==5||Object.keys(definition).some(k=>!['kind','control','intent','signature','branchOwner'].includes(k))||definition.kind!=='code'||definition.control!=='next'||!definition.intent?.trim()||Object.keys(definition.signature).length!==2||definition.signature.return!=='void'||!Array.isArray(definition.signature.args)||definition.signature.args.length)return false;
+  const routes=cells.filter(([,v])=>v.type==='route'||v.type.startsWith('route:case:')).map(([,v])=>v),out=routes.find(v=>v.node===created),incoming=routes.find(v=>v.node!==created);
+  if(routes.length!==2||!out||out.type!=='route'||!incoming||incoming.text!==created||cells.some(([,v])=>!routes.includes(v)&&v.node!==created))return false;
+  for(const member of data.nodes.find(n=>n.id===owner)?.executionEnum?.members||[]){
+   const region=branchCellRegion(data,data.edges,owner,'case:'+member.id);if(!region)continue;
+   const i=region.order.indexOf(incoming.node),valid=incoming.node===owner&&incoming.type==='route:'+region.port||i>=0&&incoming.type==='route';
+   if(valid&&normal(out.text)===(i<0?region.order[0]||region.exit:region.order[i+1]||region.exit))return true;
+  }
+ }catch{}
+ return false;
+}

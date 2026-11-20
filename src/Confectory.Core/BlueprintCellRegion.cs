@@ -1,0 +1,102 @@
+using System.Text.Json.Nodes;
+
+namespace Confectory.Core;
+
+// An editor plan over existing switch semantics. This grants no source ownership
+// and adds no runtime or persisted graph format. The author batch owns the CAS.
+public static class BlueprintCellRegion
+{
+    static void Need(bool condition, string message)
+    { if (!condition) throw new ArgumentException(message); }
+    static string S(JsonNode? node, string key) => node?[key]?.GetValue<string>() ?? "";
+    static bool Ordinary(JsonNode n, string owner) => S(n,"kind")=="code" && S(n,"control")=="next"
+        && S(n,"branchOwner")==owner && n["implementationContext"] is null && n["postCall"] is null
+        && n["executionEnum"] is null && n["async"]?.GetValue<bool>()!=true && n["forwardCallerStorage"]?.GetValue<bool>()!=true;
+
+    sealed record Region(string Owner, string Port, List<string> Nodes, string End);
+    static Region Read(JsonObject graph, string owner, string port)
+    {
+        Need(S(graph,"profile")==FeatureBlueprint.SwitchProfile && graph["executionExitMode"]?.GetValue<bool>()!=true
+            && graph["copySource"] is null, "Only an existing synchronous owned switch region is supported");
+        var nodes=graph["nodes"]!.AsArray().ToDictionary(n=>S(n,"id"),n=>n!,StringComparer.Ordinal);
+        Need(nodes.Count is >0 and <64 && nodes.TryGetValue(owner,out var parent),"Existing bounded branch owner required");
+        parent=nodes[owner];
+        Need(S(parent,"kind")=="code" && S(parent,"control")=="switch" && parent["branchOwner"] is null
+            && parent["postCall"] is null && parent["implementationContext"] is null && parent["executionSource"] is null
+            && parent["async"]?.GetValue<bool>()!=true && parent["forwardCallerStorage"]?.GetValue<bool>()!=true,
+            "Direct ordinary root switch required; preserve nested, copied and opaque contexts");
+        Need(parent["executionEnum"]?["members"] is JsonArray members && members.Any(m=>"case:"+S(m,"id")==port
+            && S(m,"id")!=S(parent["executionEnum"],"primary")),"Select one declared non-primary branch");
+        var edges=graph["edges"]!.AsArray();
+        Need(edges.GroupBy(e=>(S(e,"from"),S(e,"port"))).All(g=>g.Count()==1),"Distinct original routes required");
+        Need(edges.Any(e=>S(e,"from")==owner&&S(e,"port")==port),"An explicit original branch route is required; preserve implicit/default flow");
+        string Next(string from,string p)=>edges.SingleOrDefault(e=>S(e,"from")==from&&S(e,"port")==p)?["to"]?.GetValue<string>()??"return:"+owner;
+        var order=new List<string>();var seen=new HashSet<string>(StringComparer.Ordinal);string at=Next(owner,port);
+        while(nodes.TryGetValue(at,out var node)){
+            Need(Ordinary(node,owner)&&seen.Add(at),"Branch editing requires an acyclic ordinary chain in one region");
+            order.Add(at);at=Next(at,"next");
+        }
+        Need(at=="return:"+owner || at.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(at[5..]),
+            "Retain this branch return or existing exit");
+        for(int i=0;i<order.Count;i++){
+            string from=i==0?owner:order[i-1],p=i==0?port:"next",id=order[i];
+            Need(S(graph,"entry")!=id && edges.Where(e=>S(e,"to")==id).All(e=>S(e,"from")==from&&S(e,"port")==p),
+                "Shared branch entries cannot be moved or extended");
+            Need(edges.Where(e=>S(e,"from")==id).All(e=>S(e,"port")=="next"),"Retain non-serial routes");
+        }
+        return new(owner,port,order,at);
+    }
+
+    public static JsonObject Query(JsonObject request)
+    {
+        Need(request.Count is 3 or 4 && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits"),"Exact branch editor plan required");
+        var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
+        Need(edits.Count is >0 and <=64,"Bounded branch edits required");
+        if(action=="order"){
+            Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
+                &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");
+            var anchor=edits.Single(e=>S(e,"port").StartsWith("case:",StringComparison.Ordinal))!;
+            var region=Read(graph,S(anchor,"node"),S(anchor,"port"));
+            var routes=edits.ToDictionary(e=>S(e,"node"),e=>e!,StringComparer.Ordinal);
+            Need(routes.Count==region.Nodes.Count+1 && region.Nodes.All(routes.ContainsKey)
+                &&edits.Where(e=>!ReferenceEquals(e,anchor)).All(e=>S(e,"port")=="next"&&region.Nodes.Contains(S(e,"node"))),
+                "One complete original branch chain required");
+            var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(anchor,"to");
+            while(region.Nodes.Contains(at)){Need(seen.Add(at),"Branch order cannot contain a cycle");at=S(routes[at],"to");}
+            Need(seen.Count==region.Nodes.Count&&at==region.End,"Branch order cannot drop nodes or change its exit");
+            var edges=graph["edges"]!.DeepClone().AsArray();
+            foreach(var row in edits){
+                foreach(var edge in edges.Where(e=>S(e,"from")==S(row,"node")&&S(e,"port")==S(row,"port")).ToArray())edges.Remove(edge);
+                edges.Add(new JsonObject{["from"]=S(row,"node"),["port"]=S(row,"port"),["to"]=S(row,"to")});
+            }
+            return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
+        }
+        Need(action=="create"&&edits.Count==6,"One ordinary branch insertion required");
+        var creation=edits.Single(e=>S(e,"action")=="createNode")!;string created=S(creation,"node");var definition=creation["definition"]!.AsObject();string owner=S(definition,"branchOwner");
+        Need(creation.AsObject().Count==3 && definition.Count==5 && definition.All(p=>p.Key is "kind" or "control" or "intent" or "signature" or "branchOwner")
+            && Ordinary(definition,owner) && owner.Length>0 && !graph["nodes"]!.AsArray().Any(n=>S(n,"id")==created)
+            && definition["signature"] is JsonObject sig && sig.Count==2 && sig["args"] is JsonArray{Count:0} && S(sig,"return")=="void",
+            "New no-argument void cell with the original branch owner required");
+        Need(edits.Where(e=>S(e,"action")!="route").All(e=>S(e,"node")==created&&(ReferenceEquals(e,creation)
+            ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"&&e["text"] is JsonValue text&&text.TryGetValue<string>(out _)))
+            &&new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1),"Exact new cell source and name required");
+        var routesForCreation=edits.Where(e=>S(e,"action")=="route").ToArray();
+        Need(routesForCreation.Length==2&&routesForCreation.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")),"Exact insertion routes required");
+        var outgoing=routesForCreation.Single(e=>S(e,"node")==created)!;var incoming=routesForCreation.Single(e=>S(e,"node")!=created)!;
+        Need(S(outgoing,"port")=="next"&&S(incoming,"to")==created,"One new serial cell required");
+        var parent=graph["nodes"]!.AsArray().Single(n=>S(n,"id")==owner)!;
+        var possibilities=parent["executionEnum"]!["members"]!.AsArray().Where(m=>S(m,"id")!=S(parent["executionEnum"],"primary"));
+        bool accepted=false;
+        foreach(var member in possibilities){
+            string port="case:"+S(member,"id");
+            if(S(incoming,"node")==owner&&S(incoming,"port")!=port)continue;
+            Region region;try{region=Read(graph,owner,port);}catch(ArgumentException){continue;}
+            int index=region.Nodes.IndexOf(S(incoming,"node"));
+            if(!(S(incoming,"node")==owner&&S(incoming,"port")==port||index>=0&&S(incoming,"port")=="next"))continue;
+            string next=index<0?(region.Nodes.FirstOrDefault()??region.End):index+1<region.Nodes.Count?region.Nodes[index+1]:region.End;
+            if(S(outgoing,"to")==next){accepted=true;break;}
+        }
+        Need(accepted,"Insert inside one exclusive original branch without changing its continuation");
+        return new JsonObject{["accepted"]=true};
+    }
+}
