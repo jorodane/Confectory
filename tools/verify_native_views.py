@@ -11,6 +11,7 @@ from verification_workspace import Workspace,PackageStore,atomic_json,files,sha,
 def main():
  p=argparse.ArgumentParser(description=__doc__)
  p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
+ p.add_argument('--reuse-source-ui',type=Path,help='Sealed identical LF/CRLF UI results after the exact package helper-location correction; builds/packages/restore stay fresh')
  a=p.parse_args();repo=a.repo.resolve();commit=git(repo,'rev-parse',a.commit)
  if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Source checkout must be clean and frozen')
  inputs=dependency_identity(a.sdk,a.nuget_seed,commit)
@@ -19,6 +20,9 @@ def main():
  print(json.dumps({'record':str(work.record),'root':str(work.root),'source':commit}),flush=True)
  try:
   atomic_json(work.evidence/'preflight.json',plan);atomic_json(work.evidence/'dependencies.json',inputs)
+  if a.reuse_source_ui:
+   from verification_native_views_reuse import bind
+   bind(repo,a.reuse_source_ui,commit,inputs,work)
   checkouts={};environments={}
   for label,crlf in [('lf','false'),('crlf','true')]:
    c=work.root/label;checkouts[label]=c

@@ -1,11 +1,13 @@
 """Real document structure, source-bound atomic Save, next semantics and guards."""
 import ast,copy,json,sys,time,uuid
+from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 import v666_node_names_recovery_fixture as t
 f=t.f;x=t.x;mode=sys.argv[3]if len(sys.argv)>3 else'normal'
 # Reuse only the existing user-flow helpers, without running their test body.
-helpers=ast.parse((f.repo/'tests/web/v821_function_document_ui.py').read_text())
-exec(compile(ast.Module(body=[node for node in helpers.body if isinstance(node,ast.FunctionDef)],type_ignores=[]),str(f.repo/'tests/web/v821_function_document_ui.py'),'exec'),globals())
+helper_path=Path(__file__).with_name('v821_function_document_ui.py')
+helpers=ast.parse(helper_path.read_text())
+exec(compile(ast.Module(body=[node for node in helpers.body if isinstance(node,ast.FunctionDef)],type_ignores=[]),str(helper_path),'exec'),globals())
 if mode=='dependency':
  graph=copy.deepcopy(t.definition);after=next(node for node in graph['nodes']if node['id']=='after');after['signature']['args']=[dict(name='value',type='int')];after['arguments']={'value':{'node':'body'}}
  definitions=f.metadata('featureBlueprintNodes',featureSource=t.base.function if hasattr(t,'base')else x.function,graph=graph)
