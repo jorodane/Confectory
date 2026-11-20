@@ -30,7 +30,7 @@ export function mountFunctionDocument(root,api){
  }
  const esc=api.esc,events=new AbortController(),context=api.context,views=Object.assign(Object.create(null),api.view.meta.functionDocumentViews||{});
  const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:prior?.mode==='blueprint'?'blueprint':'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
- let destroyed=false,frame=0;
+ let destroyed=false,frame=0,activated=false;
  const owns=()=>!destroyed&&root.isConnected&&!api.view.el.hidden&&api.owns();
  const nav=document.createElement('nav');nav.className='fd-view-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','기능 보기');
  nav.innerHTML='<button type="button" role="tab" data-function-view="logic">논리 코드</button><button type="button" role="tab" data-function-view="native" disabled title="생성된 함수 전체의 네이티브 미리보기는 아직 지원하지 않습니다.">네이티브 미리보기</button><button type="button" role="tab" data-function-view="blueprint">블루프린트 보기</button>';
@@ -73,13 +73,14 @@ export function mountFunctionDocument(root,api){
   for(const button of host.querySelectorAll('[data-document-internal]'))button.onclick=()=>{if(owns())api.internal(button.dataset.documentInternal);};
   for(const button of host.querySelectorAll('[data-document-source]'))button.onclick=()=>{if(owns())api.source(button.dataset.documentSource);};
  }
+ // openWindow may render while hidden. Set view DOM now and activate its
+ // model/callbacks after the current owner becomes visible.
  function mode(next,initial=false){
-  if(!owns()||!['logic','blueprint'].includes(next)||!initial&&api.closeValues('preserve')===false||!owns())return;
+  if(destroyed||!['logic','blueprint'].includes(next)||!initial&&(!owns()||api.closeValues('preserve')===false||!owns()))return;
   state.mode=next;host.hidden=next!=='logic';root.classList.toggle('fd-logic',next==='logic');
   root.querySelector('.bp-layout').inert=next==='logic';
   for(const button of nav.querySelectorAll('[data-function-view]'))button.setAttribute('aria-selected',String(button.dataset.functionView===next));
-  api.switchView?.(next);
-  if(next==='logic'){render();host.scrollTop=state.scroll;}else api.graph();
+  if(owns()){activated=true;api.switchView?.(next);if(next==='logic'){render();host.scrollTop=state.scroll;}else api.graph();}
   if(!initial)persist();
  }
  for(const button of nav.querySelectorAll('[data-function-view]:not(:disabled)'))button.onclick=()=>mode(button.dataset.functionView);
@@ -90,5 +91,5 @@ export function mountFunctionDocument(root,api){
   else if(['z','y'].includes(key)&&!event.target.closest('input,textarea,select')){event.preventDefault();event.stopPropagation();api.undo(key==='y'||event.shiftKey);}
  },{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(owns()&&state.mode==='logic'&&!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();root.classList.remove('fd-logic','has-function-document');}};
+ return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='logic'&&!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();root.classList.remove('fd-logic','has-function-document');}};
 }

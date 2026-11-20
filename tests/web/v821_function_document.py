@@ -40,7 +40,8 @@ try:
   checked('logic is default; actual next links determine top-to-bottom order without rewriting node order, with left inputs/right outputs')
   baseline=page.evaluate('({graph:JSON.stringify(fixture.graph),inputs:[...fixture.inputs],traffic:fixture.traffic.length,undo:fixture.w.authorUndo?.length||0,positions:JSON.stringify(fixture.w.meta.blueprintPositions||{})})')
   cell.locator('[data-document-fold]').click();expect(cell.locator('.fd-cell-content')).to_be_hidden();expect(cell.locator('.fd-cell-title')).to_be_visible();expect(cell.locator('.fd-cell-state')).to_be_visible()
-  page.evaluate('fixture.open()');expect(doc.locator('[data-document-cell=first] .fd-cell-content')).to_be_hidden()
+  page.evaluate('async()=>{fixture.w.el.hidden=true;await fixture.open();fixture.w.el.hidden=false;window.dispatchEvent(new Event("resize"));}');expect(doc.locator('[data-document-cell=first] .fd-cell-content')).to_be_hidden()
+  expect(root.get_by_role('tab',name='논리 코드',exact=True)).to_have_attribute('aria-selected','true');expect(root.locator('.bp-layout')).to_be_hidden()
   actual=root.locator('.bp-layout').evaluate('(el)=>el.style.getPropertyValue("--bp-output-width")');assert actual=='250px';assert page.evaluate('fixture.w.meta.outputSidebar.width')==250
   # Reopening performs the existing read; folds themselves emit no provider writes.
   assert page.evaluate('fixture.traffic.every(r=>["featureBodies","read"].includes(r.input.action))')
