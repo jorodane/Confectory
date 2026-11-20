@@ -188,17 +188,112 @@ public static class BlueprintCellRegion
         return new(owner,port,order,at);
     }
 
+    sealed record TransferScope(Region[] Cases, HashSet<string> Movable);
+
+    static TransferScope ReadTransferScope(JsonObject graph)
+    {
+        Need(graph["schema"]?.GetValue<int>()==1 && (graph["locals"] is null or JsonArray {Count:0}),
+            "Transfer requires a standalone switch with no local storage");
+        var nodes=graph["nodes"]!.AsArray();
+        var selectors=nodes.Where(n=>S(n,"control")=="switch").ToArray();
+        Need(selectors.Length==1 && nodes.All(n=>S(n,"kind")=="code" && PlainCallContext(n!)
+            && S(n,"control") is "next" or "switch"),"Exactly one ordinary switch and ordinary code cells required");
+        var selector=selectors[0]!;
+        string owner=S(selector,"id");
+        var execution=selector["executionEnum"]!.AsObject();
+        var cases=execution["members"]!.AsArray().Where(m=>S(m,"id")!=S(execution,"primary"))
+            .Select(m=>Read(graph,owner,"case:"+S(m,"id"))).ToArray();
+        Need(cases.Length==2,"Exactly two explicit non-primary cases required");
+        var edges=graph["edges"]!.AsArray();
+        var members=cases.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
+        Need(members.Count>0 && members.Count==cases.Sum(region=>region.Nodes.Count)
+            && nodes.Where(n=>n!["branchOwner"] is not null).All(n=>members.Contains(S(n,"id")))
+            && edges.Where(e=>S(e,"from")==owner).All(e=>S(e,"port")=="next"||cases.Any(region=>region.Port==S(e,"port")))
+            && edges.Any(e=>S(e,"from")==owner&&S(e,"port")=="next")
+            && members.All(id=>edges.Any(e=>S(e,"from")==id&&S(e,"port")=="next")),
+            "Keep unique explicitly linked cases and the original switch continuation");
+
+        var referenced=new HashSet<string>(StringComparer.Ordinal);
+        void ReadValueReferences(JsonNode? value)
+        {
+            if(value is JsonObject obj){
+                if(obj["node"] is JsonValue node && node.TryGetValue<string>(out var id))referenced.Add(id);
+                foreach(var property in obj)ReadValueReferences(property.Value);
+            }else if(value is JsonArray array){
+                foreach(var item in array)ReadValueReferences(item);
+            }
+        }
+        foreach(var node in nodes)ReadValueReferences(node!["arguments"]);
+        ReadValueReferences(graph["exits"]);
+        var movable=nodes.Where(n=>members.Contains(S(n,"id")) && n!["signature"] is JsonObject signature
+            && S(signature,"return")=="void" && signature["args"] is JsonArray {Count:0}
+            && n["arguments"] is null or JsonObject {Count:0} && !referenced.Contains(S(n,"id")))
+            .Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
+        return new(cases,movable);
+    }
+
+    static JsonObject TransferOptions(TransferScope scope) => new(){
+        ["owner"]=scope.Cases[0].Owner,
+        ["cases"]=new JsonArray(scope.Cases.Select(region=>(JsonNode)new JsonObject{
+            ["port"]=region.Port,["exit"]=region.End,
+            ["order"]=System.Text.Json.JsonSerializer.SerializeToNode(region.Nodes)
+        }).ToArray()),
+        ["movable"]=System.Text.Json.JsonSerializer.SerializeToNode(scope.Movable.Order(StringComparer.Ordinal))
+    };
+
+    static JsonObject TransferOrder(JsonObject graph, JsonArray edits, TransferScope scope)
+    {
+        var owner=scope.Cases[0].Owner;
+        var routes=edits.ToDictionary(e=>(S(e,"node"),S(e,"port")),e=>S(e,"to"));
+        var members=scope.Cases.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
+        Need(routes.Count==members.Count+2 && members.All(id=>routes.ContainsKey((id,"next")))
+            && scope.Cases.All(region=>routes.ContainsKey((owner,region.Port))),"Both exact complete case routes required");
+        var seen=new HashSet<string>(StringComparer.Ordinal);
+        List<string> Candidate(Region region){
+            var order=new List<string>();
+            string at=routes[(owner,region.Port)];
+            while(members.Contains(at)){
+                Need(seen.Add(at),"Case plan cannot repeat or share a cell");
+                order.Add(at);at=routes[(at,"next")];
+            }
+            Need(at==region.End,"Retain each case's original terminal");
+            return order;
+        }
+        var result=scope.Cases.Select(Candidate).ToArray();
+        Need(seen.Count==members.Count,"Retain the union of both original cases");
+        bool MovedOneToEnd(int destination){
+            int source=1-destination;
+            if(result[destination].Count!=scope.Cases[destination].Nodes.Count+1)return false;
+            string moved=result[destination][^1];
+            return scope.Movable.Contains(moved) && scope.Cases[source].Nodes.Contains(moved)
+                && result[source].SequenceEqual(scope.Cases[source].Nodes.Where(id=>id!=moved))
+                && result[destination].SkipLast(1).SequenceEqual(scope.Cases[destination].Nodes);
+        }
+        Need(MovedOneToEnd(0)||MovedOneToEnd(1),"Move exactly one unconnected void cell to the other case's end");
+
+        var edges=graph["edges"]!.DeepClone().AsArray();
+        foreach(var edge in edges){
+            if(routes.TryGetValue((S(edge,"from"),S(edge,"port")),out var to))edge!["to"]=to;
+        }
+        return new JsonObject{["edges"]=edges};
+    }
+
     public static JsonObject Query(JsonObject request)
     {
         bool frame=S(request,"action") is "frame-order" or "frame-create";
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
+        if(action=="transfer-options"){
+            Need(edits.Count==0,"Read transfer options without edits");
+            return TransferOptions(ReadTransferScope(graph));
+        }
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
-        if(action=="order"){
+        if(action is "order" or "transfer"){
             Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
                 &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");
+            if(action=="transfer")return TransferOrder(graph,edits,ReadTransferScope(graph));
             var anchor=edits.Single(e=>S(e,"port").StartsWith("case:",StringComparison.Ordinal))!;
             var region=Read(graph,S(anchor,"node"),S(anchor,"port"));
             var routes=edits.ToDictionary(e=>S(e,"node"),e=>e!,StringComparer.Ordinal);
