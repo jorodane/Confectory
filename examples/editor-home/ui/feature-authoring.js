@@ -467,7 +467,7 @@ function blueprintNormalizeControls(scope){
   overview.addEventListener('wheel',e=>{e.preventDefault();e.stopPropagation();camera.x-=(e.deltaX||e.deltaY)*(e.deltaMode===1?40:e.deltaMode===2?viewport.clientWidth:1);applyZoom();},{passive:false,signal});
   viewport.addEventListener('wheel',e=>{e.stopPropagation();const input=e.target.closest('textarea');if(input&&input.scrollHeight>input.clientHeight+1)return;e.preventDefault();if(!canvasOwns()||w.el.hidden)return;const next=zoomWheel(zoom,e);if(next===zoom)return;const rect=viewport.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top,ratio=next/zoom;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;zoom=next;applyZoom();},{passive:false,signal});
   zoomControl=bindCanvasZoomMenu({button:q('[data-bp-percent]'),signal,isCurrent:()=>canvasOwns()&&!w.el.hidden&&root.isConnected,getScale:()=>zoom,setScale:next=>{zoomWheel.reset();const ratio=next/zoom,x=viewport.clientWidth/2,y=viewport.clientHeight/2;camera.x=x-(x-camera.x)*ratio;camera.y=y-(y-camera.y)*ratio;zoom=next;applyZoom();},fit:()=>fit()});
-  root.addEventListener('keydown',e=>{if(e.key==='Escape'){pending=null;selected=null;closeMenu();pendingPort();schedule();}},{signal});document.addEventListener('pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!menu._popup?.contains(e.target)&&!e.target.closest('.bp-port,.bp-pin-plug,[data-exit-value]'))closeMenu(root.contains(e.target)&&e.target.closest('[data-document-fold],[data-document-group],[data-document-branch],[data-function-view]')?'preserve':'commit');},{capture:true,signal});
+  root.addEventListener('keydown',e=>{if(e.key==='Escape'){pending=null;selected=null;closeMenu();pendingPort();schedule();}},{signal});document.addEventListener('pointerdown',e=>{if(menu&&!menu.contains(e.target)&&!menu._popup?.contains(e.target)&&!e.target.closest('.bp-port,.bp-pin-plug,[data-exit-value]'))closeMenu(root.contains(e.target)&&e.target.closest('[data-document-fold],[data-document-group],[data-document-branch],[data-document-drag],[data-function-view]')?'preserve':'commit');},{capture:true,signal});
   // The original renderer aligns main-line headers to the entry rail on first placement.
   {const header=$(':scope>.bp-node-header',wall);header.style.marginTop='48px';q('.bp-wall-exec-port').style.top=(header.offsetTop+header.offsetHeight/2-22.5)+'px';const starts=new Set(['$entry']);for(let i=0;i<nodes.length;i++)for(const l of links())if(starts.has(l.from)&&!starts.has(l.to)){const n=nodeById(l.to),a=port(l.from,'out','exec',l.port||'next'),b=port(l.to,'in');if(n&&a&&b){if(!w.meta.blueprintPositions?.[n.id]){const pa=point(a),pb=point(b);n.x+=Math.max(0,pa.x+32-pb.x);n.y=Math.max(header.offsetTop-1,n.y+pa.y-pb.y);position(n);}starts.add(n.id);}}}
 
@@ -539,17 +539,29 @@ function blueprintNormalizeControls(scope){
    while(names.has(id)){if(seen.has(id))return null;seen.add(id);order.push(id);const next=edges.filter(e=>e.from===id);if(next.length!==1||next[0].port!=='next')return null;id=next[0].to;}
    return order.length===names.size&&id?.startsWith('$exit:')?{order,exit:id.slice(1)}:null;
   };
-  const moveCell=(id,offset)=>{
-   if(!canvasOwns()||![-1,1].includes(offset))return;
+  // Buttons and document drag share one complete order plan and one Undo record.
+  const cellOrderPlan=(id,to)=>{
    const chain=linearCells(id),held=saveEntries(w);if(!chain||held.length&&!ownedCellOrder(w,held))throw Error('이 이동은 직렬 셀의 전체 실행 순서만 지원합니다. 다른 입력과 분기·참조 연결은 유지됩니다.');
    if(chain.frame)guardOtherInputs(w,data);
-   const from=chain.order.indexOf(id),to=from+offset;if(from<0||to<0||to>=chain.order.length)return;
-   [chain.order[from],chain.order[to]]=[chain.order[to],chain.order[from]];
+   const from=chain.order.indexOf(id);if(from<0||!Number.isInteger(to)||to<0||to>=chain.order.length||from===to)return null;
+   chain.order.splice(from,1);chain.order.splice(to,0,id);
    const positions=new Map(chain.order.map((node,index)=>[node,index]));
    const dependencies=(value,consumer)=>{if(!value||typeof value!=='object')return;if(typeof value.node==='string'&&positions.has(value.node)&&positions.get(value.node)>=positions.get(consumer))throw Error('연결된 값을 만드는 셀보다 앞에 놓을 수 없습니다. 기존 실행 순서와 입력은 유지됩니다.');for(const child of Object.values(value))dependencies(child,consumer);};
    for(const node of data.nodes)for(const argument of node.arguments||[])dependencies(JSON.parse(argument.valueJson),node.id);
-
-   structuralEdit(w,()=>{privateValue(w,chain.owner||'$entry',chain.owner?'route:'+chain.port:'entry',chain.order[0]);chain.order.forEach((node,index)=>privateValue(w,node,'route',chain.order[index+1]||chain.exit));});
+   return chain;
+  };
+  const applyCellOrder=chain=>{if(chain)structuralEdit(w,()=>{privateValue(w,chain.owner||'$entry',chain.owner?'route:'+chain.port:'entry',chain.order[0]);chain.order.forEach((node,index)=>privateValue(w,node,'route',chain.order[index+1]||chain.exit));});};
+  const moveCell=(id,offset)=>{if(!canvasOwns()||![-1,1].includes(offset))return;const chain=linearCells(id);if(chain)applyCellOrder(cellOrderPlan(id,chain.order.indexOf(id)+offset));};
+  const cellDrag=id=>{
+   if(!canvasOwns()||api.busy||!frameInputsClear())return null;
+   const chain=linearCells(id),held=saveEntries(w);if(!chain||chain.compound||!chain.order.includes(id)||(data.locals||[]).length||held.length&&!ownedCellOrder(w,held))return null;
+   if(chain.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||n.kind!=='code'||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
+   return {scope:JSON.stringify([surface.context,chain.owner||'',chain.port||'']),order:[...chain.order],exit:chain.exit,version:JSON.stringify([proof(data),data.checkpointHash,saveEntries(w),chain.order,api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]])};
+  };
+  const cellDropPlan=(id,slot,expected)=>{
+   const now=cellDrag(id);if(!now||!expected||now.scope!==expected.scope||now.version!==expected.version)throw Error('입력 또는 편집 흐름이 바뀌었습니다. 원래 순서와 입력은 유지됩니다.');
+   const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;
+   return cellOrderPlan(id,slot-(slot>from?1:0));
   };
   const insertCell=(chain,from,port,next)=>{
    if(!chain||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
@@ -632,7 +644,9 @@ function blueprintNormalizeControls(scope){
   mobile=mountMobileBlueprint(root,surface);
   applySidebar();
   documentView=mountFunctionDocument(root,{...surface,context:w.authorScope+'|function-document|'+(w.meta.authorView||'primary')+'|'+(w.meta.slotOwner||'')+'|'+String(data.id||data.rootId||w.meta.id)+'|'+(data.privatePath||''),nativeDefinition:!!data.privateConversion,model:()=>({...mobileModel(),inputs:inputFields}),
-   cellActions:id=>{const chain=linearCells(id),held=saveEntries(w),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear());return {up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀은 같은 상위 흐름에서 이동만 지원합니다. 내부·슬롯 구조는 유지됩니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};},
+   cellActions:id=>{const chain=linearCells(id),held=saveEntries(w),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear());return {drag:!!cellDrag(id),up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀은 같은 상위 흐름에서 이동만 지원합니다. 내부·슬롯 구조는 유지됩니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};},
+   cellDrag,canDropCell:(id,slot,expected)=>{try{return !!cellDropPlan(id,slot,expected);}catch{return false;}},
+   dropCell:(id,slot,expected)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>applyCellOrder(cellDropPlan(id,slot,expected)),'');},
    branchActions:(owner,port)=>({add:!!branchChain(owner,port)&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
    moveCell:(id,offset)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>moveCell(id,offset),'');},addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
    nativeVersion:()=>JSON.stringify([w.authorData.id,w.authorData.rootId,w.authorData.privatePath,w.authorData.documentFrameOrderBinding,w.authorData.checkpointHash,proof(w.authorData),saveEntries(w),api.otherPending?.((w.authorData.sources||[]).map(row=>row.id)),api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]]),

@@ -36,3 +36,8 @@
 .function-native-preview pre{white-space:pre;overflow:auto;font:13px/1.6 monospace;border:1px solid #444;padding:12px;background:#202020}
 
 .native-function{display:flex;flex-direction:column;gap:12px}.native-function textarea{flex:1;min-height:240px;resize:none;white-space:pre;overflow:auto;font:13px/1.6 monospace;background:#202020;color:#eee;border:1px solid #555;padding:12px;tab-size:4}
+
+.fd-cell-grip[draggable=true]{cursor:grab;user-select:none;touch-action:pan-y}
+.fd-cell-dragging .fd-cell-grip[draggable=true]{cursor:grabbing}
+.fd-cell-drop-marker{position:fixed;height:3px;background:#e4be7d;pointer-events:none;z-index:10002;transform:translateY(-50%);box-shadow:0 0 0 1px #181818}
+.fd-cell-drop-marker span{position:absolute;right:0;bottom:4px;padding:2px 7px;border-radius:3px;background:#e4be7d;color:#211b13;font:11px/1.5 sans-serif;white-space:nowrap}

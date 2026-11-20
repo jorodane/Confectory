@@ -30,7 +30,7 @@ export function mountFunctionDocument(root,api){
  }
  const esc=api.esc,events=new AbortController(),context=api.context,views=Object.assign(Object.create(null),api.view.meta.functionDocumentViews||{});
  const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:['blueprint','native'].includes(prior?.mode)?prior.mode:'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
- let destroyed=false,frame=0,activated=false,previewRequest=0,previewVersion=null;
+ let destroyed=false,frame=0,activated=false,previewRequest=0,previewVersion=null,drag=null,pointerType=null;
  const owns=()=>!destroyed&&root.isConnected&&!api.view.el.hidden&&api.owns();
  const nav=document.createElement('nav');nav.className='fd-view-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','기능 보기');
  nav.innerHTML='<button type="button" role="tab" data-function-view="logic">논리 코드</button><button type="button" role="tab" data-function-view="native">네이티브 미리보기</button><button type="button" role="tab" data-function-view="blueprint">블루프린트 보기</button>';
@@ -44,16 +44,21 @@ export function mountFunctionDocument(root,api){
   while(Object.keys(views).length>64)delete views[Object.keys(views).find(key=>key!==context)];
   api.view.meta.functionDocumentViews=views;api.persist();
  }
+ const dragType='application/x-confectory-document-cell',marker=document.createElement('div');marker.className='fd-cell-drop-marker';marker.setAttribute('aria-label','셀 배치 위치');marker.innerHTML='<span>여기에 놓기</span>';
+ const clearDrop=()=>{marker.remove();if(drag)drag.slot=null;};
+ const cancelDrag=()=>{clearDrop();drag=null;pointerType=null;host.classList.remove('fd-cell-dragging');};
+ const currentDrag=()=>{const now=drag&&api.cellDrag?.(drag.id);return !!now&&owns()&&state.mode==='logic'&&now.scope===drag.binding.scope&&now.version===drag.binding.version;};
  const fieldLabel=field=>esc(field.name||field.id)+' <small>'+esc((field.type||field.nativeType||'')+(field.multi?'[]':''))+'</small>';
  // Keep the active text/caret while pending input changes action eligibility.
  function syncActions(){
   for(const button of host.querySelectorAll('[data-document-up],[data-document-down],[data-document-add]')){
    const kind=button.hasAttribute('data-document-up')?'up':button.hasAttribute('data-document-down')?'down':'add',id=button.dataset.documentUp||button.dataset.documentDown||button.dataset.documentAdd,actions=api.cellActions?.(id);button.disabled=actions?.[kind]!==true;button.title=button.disabled?actions?.reason||'기존 입력과 현재 실행 범위를 먼저 확인해 주세요.':'';
   }
+  for(const button of host.querySelectorAll('[data-document-drag]')){const enabled=api.cellActions?.(button.dataset.documentDrag)?.drag===true;button.disabled=!enabled;button.draggable=enabled;button.title=enabled?'같은 흐름 안에서 끌어 이동 · Alt+↑/↓':'현재 입력과 편집 문맥에서는 드래그할 수 없습니다. 기존 입력은 유지됩니다.';}
   for(const button of host.querySelectorAll('[data-document-branch-add]'))button.disabled=api.branchActions?.(button.dataset.documentOwner,button.dataset.documentBranchAdd)?.add!==true;
  }
  function render(){
-  if(!owns()||state.mode!=='logic')return;
+  if(!owns()||state.mode!=='logic')return;if(pointerType==='mouse'&&!drag)return;if(drag){if(currentDrag())return;cancelDrag();}
   const model=api.model(),tree=functionDocumentTree(model);
   const fields=(node,side)=>{
    const values=side==='inputs'?api.values(node.id):[];
@@ -67,7 +72,7 @@ export function mountFunctionDocument(root,api){
   const cells=items=>items.map(item=>{
    if(item.reference)return '<div class="fd-reference">↪ '+esc(item.reference.name)+'</div>';
    const {node,branches}=item,actions=api.cellActions?.(node.id),folded=state.cells[node.id]===true,selected=branches.some(branch=>branch.id===state.tabs[node.id])?state.tabs[node.id]:branches[0]?.id,groupFolded=state.groups[node.id]===true;
-   return '<article class="fd-cell" data-document-cell="'+esc(node.id)+'"><header class="fd-cell-header"><button type="button" data-document-fold="'+esc(node.id)+'" aria-label="'+esc(node.name)+' '+(folded?'펼치기':'접기')+'" aria-expanded="'+!folded+'">'+(folded?'▸':'▾')+'</button>'+(node.readonly||node.id==='$entry'?'<strong class="fd-cell-title">'+esc(node.name)+'</strong>':'<input class="fd-cell-title" data-document-name="'+esc(node.id)+'" aria-label="동작 이름" value="'+esc(node.name)+'">')+'<span class="fd-cell-state">'+esc({entry:'입력',action:'동작',call:'참조',export:'출력',set:'저장',property:'속성'}[node.kind]||'동작')+'</span><button type="button" class="fd-cell-grip" disabled aria-label="셀 이동" title="지원되는 직렬 셀은 위로·아래로 버튼으로 이동할 수 있습니다.">⠿</button></header><div class="fd-cell-content" '+(folded?'hidden':'')+'><div class="fd-cell-io"><section class="fd-inputs" aria-label="셀 입력">'+fields(node,'inputs')+'</section><section class="fd-outputs" aria-label="셀 출력">'+fields(node,'outputs')+'</section></div>'+(node.id!=='$entry'&&!node.terminal?'<div class="fd-cell-actions">'+(actions?'<button type="button" data-document-up="'+esc(node.id)+'" '+(actions.up?'':'disabled title="'+esc(actions.reason||'현재 분기의 첫 셀입니다.')+'"')+'>위로</button><button type="button" data-document-down="'+esc(node.id)+'" '+(actions.down?'':'disabled title="'+esc(actions.reason||'현재 분기의 마지막 셀입니다.')+'"')+'>아래로</button><button type="button" data-document-add="'+esc(node.id)+'" '+(actions.add?'':'disabled title="'+esc(actions.reason||'현재 문맥의 추가는 지원하지 않습니다.')+'"')+'>이 아래에 동작 추가</button>':'')+(node.codeEditable?'<button type="button" data-document-code="'+esc(node.id)+'">네이티브 코드 편집</button>':'')+(node.internal?'<button type="button" data-document-internal="'+esc(node.id)+'">내부 흐름</button>':'')+(node.kind==='call'?'<button type="button" data-document-source="'+esc(node.id)+'">원본 열기</button>':'')+'</div>':'')+(branches.length?'<section class="fd-branches"><nav class="fd-branch-tabs" aria-label="실행 분기"><button type="button" data-document-group="'+esc(node.id)+'" aria-label="분기 내용 '+(groupFolded?'펼치기':'접기')+'" aria-expanded="'+!groupFolded+'">'+(groupFolded?'▸':'▾')+'</button>'+branches.map(branch=>'<button type="button" data-document-branch="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" aria-pressed="'+(branch.id===selected)+'">'+esc(branch.name)+'</button>').join('')+'</nav>'+branches.map(branch=>'<div class="fd-branch-panel" data-document-panel="'+esc(branch.id)+'" '+(groupFolded||branch.id!==selected?'hidden':'')+'>'+('<button type="button" data-document-branch-add="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" '+(api.branchActions?.(node.id,branch.id)?.add?'':'disabled title="미저장 입력을 먼저 저장하거나 기존 분기·공유·소유 범위를 확인해 주세요."')+'>이 분기에 동작 추가</button>')+cells(branch.cells)+'</div>').join('')+'</section>':'')+'</div></article>';
+   return '<article class="fd-cell" data-document-cell="'+esc(node.id)+'"><header class="fd-cell-header"><button type="button" data-document-fold="'+esc(node.id)+'" aria-label="'+esc(node.name)+' '+(folded?'펼치기':'접기')+'" aria-expanded="'+!folded+'">'+(folded?'▸':'▾')+'</button>'+(node.readonly||node.id==='$entry'?'<strong class="fd-cell-title">'+esc(node.name)+'</strong>':'<input class="fd-cell-title" data-document-name="'+esc(node.id)+'" aria-label="동작 이름" value="'+esc(node.name)+'">')+'<span class="fd-cell-state">'+esc({entry:'입력',action:'동작',call:'참조',export:'출력',set:'저장',property:'속성'}[node.kind]||'동작')+'</span><button type="button" class="fd-cell-grip" data-document-drag="'+esc(node.id)+'" '+(actions?.drag?'draggable="true"':'disabled')+' aria-label="'+esc(node.name)+' 셀 이동" title="'+(actions?.drag?'같은 흐름 안에서 끌어 이동 · Alt+↑/↓ · 위로·아래로 버튼도 사용할 수 있습니다.':'현재 입력과 편집 문맥에서는 드래그할 수 없습니다. 기존 입력은 유지됩니다.')+'">⠿</button></header><div class="fd-cell-content" '+(folded?'hidden':'')+'><div class="fd-cell-io"><section class="fd-inputs" aria-label="셀 입력">'+fields(node,'inputs')+'</section><section class="fd-outputs" aria-label="셀 출력">'+fields(node,'outputs')+'</section></div>'+(node.id!=='$entry'&&!node.terminal?'<div class="fd-cell-actions">'+(actions?'<button type="button" data-document-up="'+esc(node.id)+'" '+(actions.up?'':'disabled title="'+esc(actions.reason||'현재 분기의 첫 셀입니다.')+'"')+'>위로</button><button type="button" data-document-down="'+esc(node.id)+'" '+(actions.down?'':'disabled title="'+esc(actions.reason||'현재 분기의 마지막 셀입니다.')+'"')+'>아래로</button><button type="button" data-document-add="'+esc(node.id)+'" '+(actions.add?'':'disabled title="'+esc(actions.reason||'현재 문맥의 추가는 지원하지 않습니다.')+'"')+'>이 아래에 동작 추가</button>':'')+(node.codeEditable?'<button type="button" data-document-code="'+esc(node.id)+'">네이티브 코드 편집</button>':'')+(node.internal?'<button type="button" data-document-internal="'+esc(node.id)+'">내부 흐름</button>':'')+(node.kind==='call'?'<button type="button" data-document-source="'+esc(node.id)+'">원본 열기</button>':'')+'</div>':'')+(branches.length?'<section class="fd-branches"><nav class="fd-branch-tabs" aria-label="실행 분기"><button type="button" data-document-group="'+esc(node.id)+'" aria-label="분기 내용 '+(groupFolded?'펼치기':'접기')+'" aria-expanded="'+!groupFolded+'">'+(groupFolded?'▸':'▾')+'</button>'+branches.map(branch=>'<button type="button" data-document-branch="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" aria-pressed="'+(branch.id===selected)+'">'+esc(branch.name)+'</button>').join('')+'</nav>'+branches.map(branch=>'<div class="fd-branch-panel" data-document-panel="'+esc(branch.id)+'" '+(groupFolded||branch.id!==selected?'hidden':'')+'>'+('<button type="button" data-document-branch-add="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" '+(api.branchActions?.(node.id,branch.id)?.add?'':'disabled title="미저장 입력을 먼저 저장하거나 기존 분기·공유·소유 범위를 확인해 주세요."')+'>이 분기에 동작 추가</button>')+cells(branch.cells)+'</div>').join('')+'</section>':'')+'</div></article>';
   }).join('');
   const scroll=host.scrollTop;
   host.innerHTML='<div class="fd-document-title">'+esc(model.name)+'</div>'+cells(tree.cells)+(tree.detached.length?'<section class="fd-detached"><h3>별도 셀</h3>'+cells(tree.detached)+'</section>':'');
@@ -79,12 +84,45 @@ export function mountFunctionDocument(root,api){
   for(const button of host.querySelectorAll('[data-document-value]'))button.onclick=()=>{if(owns())api.editValue(button.dataset.documentValue,button.dataset.documentPort,button);};
   for(const button of host.querySelectorAll('[data-document-code]'))button.onclick=()=>{if(owns())api.code(button.dataset.documentCode);};
   for(const button of host.querySelectorAll('[data-document-internal]'))button.onclick=()=>{if(owns())api.internal(button.dataset.documentInternal);};
+  for(const button of host.querySelectorAll('[data-document-drag]')){
+   button.onpointerdown=event=>{event.stopPropagation();pointerType=event.pointerType;};
+   button.ondragstart=event=>{
+    if(pointerType!=='mouse'||!owns()||api.closeValues('preserve')===false){event.preventDefault();return;}
+    const id=button.dataset.documentDrag,binding=api.cellDrag?.(id);if(!binding){event.preventDefault();return;}
+    event.stopPropagation();cancelDrag();drag={id,binding,parent:button.closest('[data-document-cell]').parentElement,token:crypto.randomUUID(),slot:null};host.classList.add('fd-cell-dragging');event.dataTransfer.effectAllowed='move';event.dataTransfer.setData(dragType,drag.token);
+   };
+   button.ondragend=()=>{cancelDrag();render();};
+   button.onkeydown=event=>{if(!event.isComposing&&event.altKey&&['ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();event.stopPropagation();cancelDrag();if(owns())api.moveCell(button.dataset.documentDrag,event.key==='ArrowUp'?-1:1);}};
+  }
   for(const button of host.querySelectorAll('[data-document-up]'))button.onclick=()=>{if(owns())api.moveCell(button.dataset.documentUp,-1);};
   for(const button of host.querySelectorAll('[data-document-down]'))button.onclick=()=>{if(owns())api.moveCell(button.dataset.documentDown,1);};
   for(const button of host.querySelectorAll('[data-document-add]'))button.onclick=()=>{if(owns())api.addCell(button.dataset.documentAdd);};
   for(const button of host.querySelectorAll('[data-document-branch-add]'))button.onclick=()=>{if(owns())api.addBranch(button.dataset.documentOwner,button.dataset.documentBranchAdd);};
   for(const button of host.querySelectorAll('[data-document-source]'))button.onclick=()=>{if(owns())api.source(button.dataset.documentSource);};
  }
+ function dropPosition(event){
+  if(!currentDrag()){cancelDrag();return null;}
+  const target=event.target.closest('[data-document-cell]'),parent=drag.parent;
+  if(!parent.isConnected||target&&target.parentElement!==parent||!target&&!parent.contains(event.target))return null;
+  if(target&&!drag.binding.order.includes(target.dataset.documentCell)&&!(parent===host&&['$entry','$'+drag.binding.exit].includes(target.dataset.documentCell)))return null;
+  const cells=drag.binding.order.map(id=>Array.from(parent.children).find(el=>el.dataset.documentCell===id));if(cells.some(el=>!el))return null;
+  let slot=cells.findIndex(el=>{const r=el.getBoundingClientRect();return event.clientY<r.top+r.height/2;});if(slot<0)slot=cells.length;
+  if(!api.canDropCell?.(drag.id,slot,drag.binding))return null;
+  const anchor=cells[Math.min(slot,cells.length-1)],rect=anchor.getBoundingClientRect(),bounds=host.getBoundingClientRect(),y=slot<cells.length?rect.top-5:rect.bottom+5;
+  if(event.clientX<rect.left||event.clientX>rect.right||y<bounds.top+3||y>bounds.bottom-3)return null;
+  return {slot,x:Math.max(rect.left,bounds.left+5),y,width:Math.min(rect.right,bounds.right-5)-Math.max(rect.left,bounds.left+5)};
+ }
+ host.addEventListener('dragover',event=>{
+  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();clearDrop();const target=dropPosition(event);event.dataTransfer.dropEffect=target?'move':'none';if(!target)return;drag.slot=target.slot;Object.assign(marker.style,{left:target.x+'px',top:target.y+'px',width:target.width+'px'});document.body.append(marker);
+ },{signal:events.signal});
+ host.addEventListener('drop',event=>{
+  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();const token=event.dataTransfer.getData(dragType),target=dropPosition(event),moving=drag;cancelDrag();if(target&&token===moving?.token)api.dropCell?.(moving.id,target.slot,moving.binding);else render();
+ },{signal:events.signal});
+ host.addEventListener('dragleave',event=>{if(drag&&!host.contains(event.relatedTarget))clearDrop();},{signal:events.signal});
+ window.addEventListener('keydown',event=>{if(drag&&event.key==='Escape'){event.preventDefault();event.stopPropagation();cancelDrag();render();}},{capture:true,signal:events.signal});
+ window.addEventListener('pointerup',()=>{if(pointerType!==null){pointerType=null;if(!drag)render();}},{signal:events.signal});
+ window.addEventListener('pointercancel',()=>{if(!drag&&pointerType!==null){cancelDrag();render();}},{signal:events.signal});
+ window.addEventListener('blur',()=>{if(drag||pointerType!==null){cancelDrag();render();}},{signal:events.signal});
  async function generate(){
   const request=++previewRequest;previewVersion=api.nativeVersion?.();
   preview.innerHTML='<div class="fd-native-tools"><span role="status">생성 중…</span><button type="button" data-native-refresh>갱신</button></div><p class="fd-native-scope">'+esc(api.nativeScope?.()||'선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전')+'</p><pre data-native-body tabindex="0" aria-label="생성된 C# 본문"></pre><pre data-native-members tabindex="0" aria-label="생성된 C# 멤버" hidden></pre>';
@@ -100,6 +138,7 @@ export function mountFunctionDocument(root,api){
  // openWindow may render while hidden. Set view DOM now and activate its
  // model/callbacks after the current owner becomes visible.
  function mode(next,initial=false){
+  cancelDrag();
   if(destroyed||!['logic','native','blueprint'].includes(next)||!initial&&(!owns()||api.closeValues('preserve')===false||!owns()))return;
   state.mode=next;host.hidden=next!=='logic';preview.hidden=next!=='native';root.classList.toggle('fd-logic',next!=='blueprint');previewRequest++;
   root.querySelector('.bp-layout').inert=next!=='blueprint';
@@ -108,7 +147,7 @@ export function mountFunctionDocument(root,api){
   if(!initial)persist();
  }
  for(const button of nav.querySelectorAll('[data-function-view]:not(:disabled)'))button.onclick=()=>mode(button.dataset.functionView);
- host.addEventListener('scroll',()=>{if(owns()&&state.mode==='logic'){state.scroll=host.scrollTop;persist();}},{passive:true,signal:events.signal});
+ host.addEventListener('scroll',()=>{if(drag)clearDrop();if(owns()&&state.mode==='logic'){state.scroll=host.scrollTop;persist();}},{passive:true,signal:events.signal});
  host.addEventListener('keydown',event=>{
   if(!owns()||event.isComposing||event.keyCode===229||!(event.ctrlKey||event.metaKey))return;
   const key=event.key.toLowerCase();if(key==='s'){event.preventDefault();event.stopPropagation();if(api.closeValues()!==false)api.save();}
@@ -116,5 +155,5 @@ export function mountFunctionDocument(root,api){
  },{signal:events.signal});
  root.addEventListener('input',()=>{if(owns()&&state.mode==='native'&&preview.querySelector('[data-native-body]')&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}},{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'){syncActions();if(!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();}});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
+ return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'){syncActions();if(!host.querySelector('input:focus,textarea:focus,button:focus')&&!document.querySelector('.bp-value-menu'))render();}});},destroy(){cancelDrag();destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
 }
