@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)에 둔다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)에 둔다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -125,3 +125,12 @@ primary 객체 카드에서 직접 붙인 소유 모듈의 기존 local 슬롯 �
 고정 소스 `58178272bcf88eb0cf08f852c0c7dc999a027a26`의 신규 24단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 실제 슬롯 실행값 45와 out 55/true, 원본·모드 보존, 응답 유실 후 단일 Save receipt 확인, 동시 수정/최종 CAS, 기존 슬롯 API/UI와 일반·분기·복합·자식·네이티브 회귀, 새 패키지·전체 복원을 확인했다. 상세 증거와 정확한 Undo 경계·2세대 백업은 [슬롯 교체 검증 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)에 둔다.
 
 신규/빈 슬롯·정보/schema 소유자·상속/등록/공유/default 후보·고급/배열/async/공개 실행 계약·여러 슬롯 공동 편집·내부 구조와 private 네이티브 보기는 별도 범위다. 기존 표시 없는 슬롯 API의 대표 회귀 통과와 모든 구 reader의 새 배정 checkpoint 호환을 구별한다. Windows x64 교차 패키지와 managed 앱의 Linux 검사는 실제 Windows 실행이 아니다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이다. 구 Reference reader 제약과 과거 초기 빈 화면 원인은 이번 단위로 해결됐다고 표현하지 않는다. main과 Sites는 변경하지 않는다.
+
+
+## 직접 소유 자식 frame에 일반 동작 하나 추가
+
+기존 자식 전체 경로 관측과 원자 생성 경로를 결합해, 직접 소유한 독립 직렬 자식의 기존 셀 뒤에 args 없는 void 동작 하나를 추가할 수 있다. 생성·이름·의도·C# 본문과 두 next 연결을 정확한 후보로 검증하며 기존 entry/exit·스코프·값 의존성·부모/형제·원문·권한을 보존한다. depth/local ID·전체/frame별 노드·소스/바이트 한계를 유지한다. 다른 source 초안·소유자/frame·ABI·후속 연결 변경·공유 진입·슬롯·분기/opaque/receiver/async 문맥을 이 경로에 섞지 않는다. 저장 전 개인 Undo/Redo·cold는 제공하고 저장 뒤 기존 OWNERSHIP_CHANGED 경계를 유지한다.
+
+개발에서 확인한 최종 Confirm의 형제 읽기 CAS 누락을 기존 원본 읽기 관측·등록 읽기·Review/최종 commit lease에 연결해 수정했다. 새로운 프로젝트/노드/체크포인트 형식이나 런타임·종료 의미를 추가하지 않았다. 고정 소스 `e6b0973d341e736b5e58a0e772408502cb1bff34`의 신규 25단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 추가·본문 편집·저장/cold·정확한 history 경계·최종 CAS/읽기 전용 거절·실제 실행 10, 이전 자식/복합/분기/일반/슬롯/네이티브 회귀와 새 패키지·전체 복원을 확인했다. 상세 증거·실패 이력·2세대 백업은 [자식 추가 검증 기록](VALIDATION_V821_CHILD_INSERT.md)에 둔다.
+
+빈 자식의 첫 entry 생성·내부 삭제·복합 생성/분해·여러 frame/새 셀 공동 편집·슬롯 내부·private 네이티브 보기와 지원하지 않는 문맥은 남아 있다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이며 교차 패키지와 구별한다. 구 Reference reader 제약과 과거 초기 빈 화면 원인은 미확정으로 유지한다. main과 Sites는 변경하지 않는다.
