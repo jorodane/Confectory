@@ -95,8 +95,11 @@ try:
    if mode=='frame':
     root_view();enter('other/nest');folded();other_before=logical_ids();stale_drop('inner',token);wait_order(other_before);assert not pending();doc().locator('[data-document-name=inner]').fill('다른 frame 입력 보존');doc().locator('.fd-document-title').click();held=pending();stale_drop('inner',token);assert pending()==held;unchanged();f.checked('same full-path child mouse drag and button/Undo use the original order path; breadcrumb/outside drop cancels, and a synthetic completed token cannot move another frame with duplicate local IDs or overwrite its input')
    else:
-    # This tab is outside the owned positive branch panel; native drop cannot change it.
-    start_drag(last);r=doc().locator('[data-document-branch="case:negative"]').bounding_box();f.page.mouse.move(r['x']+r['width']/2,r['y']+r['height']/2,steps=10);expect(f.page.locator('.fd-cell-drop-marker')).to_have_count(0);f.page.mouse.up();wait_order(initial);assert not pending();unchanged();f.checked('same exclusive branch mouse drag and button/Undo preserve its scope; branch-owner/root and another branch tab refuse drops without changing enum, continuation or input')
+    # This cell takes a root input. Same-case order may change, but its execution condition may not.
+    start_drag(last);r=doc().locator('[data-document-branch="case:negative"]').bounding_box();x_pos=r['x']+r['width']/2;y_pos=r['y']+r['height']/2
+    f.page.mouse.move(x_pos+3,y_pos,steps=10);f.page.mouse.move(x_pos,y_pos,steps=3)
+    expect(f.page.locator('.fd-cell-drop-marker')).to_have_count(0);f.page.mouse.up();wait_order(initial);assert not pending() and checkpoint.read_bytes()==before;unchanged()
+    f.checked('same-case mouse drag and button/Undo work with a root input; dropping that cell on the owner or another case preserves the original route and binding')
   else:
    assert initial==['body','after','middle','last']
    move('last','body',capture=True);wait_order(['last','body','after','middle']);assert len(pending())==5;unchanged();assert checkpoint.read_bytes()==before

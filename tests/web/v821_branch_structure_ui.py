@@ -14,6 +14,11 @@ def cell(id,owner=None):
 graph['nodes'] += [cell('a','choose'),cell('b','choose'),cell('continued')]
 graph['edges']=[dict(**{'from':'choose','port':'next','to':'continued'}),dict(**{'from':'choose','port':'case:positive','to':'a'}),dict(**{'from':'choose','port':'case:negative','to':'exit:no'}),dict(**{'from':'a','port':'next','to':'b'}),dict(**{'from':'b','port':'next','to':'return:choose'}),dict(**{'from':'continued','port':'next','to':'exit:none'})]
 bodies={'choose':t.original_source,'a':'global::System.Console.WriteLine("A");','b':'global::System.Console.WriteLine("B");','continued':'global::System.Console.WriteLine("continue");'}
+if mode=='branch':
+ # Same-case drag can preserve a root input binding. A case transfer cannot move this cell.
+ bound=next(node for node in graph['nodes'] if node['id']=='b')
+ bound['signature']['args']=[dict(type='long',name='amount')]
+ bound['arguments']={'amount':{'input':'amount'}}
 if mode=='dependency':
  graph['nodes'][1]['signature']['return']='int';graph['nodes'][2]['signature']['args']=[dict(type='int',name='value')];graph['nodes'][2]['arguments']={'value':{'node':'a'}}
  bodies['a']='global::System.Console.WriteLine("A");return 3;';bodies['b']='global::System.Console.WriteLine("B:"+value);'
