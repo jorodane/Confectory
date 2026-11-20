@@ -46,6 +46,14 @@ public static class BlueprintDocuments
         var registry = new Registry(project, new Documents(Path.Combine(Path.GetDirectoryName(project)!, ".confectory", "document-cache"), new BuildStatistics()), new BuildStatistics());
         var implementation = new Parser(request["text"]!.GetValue<string>(), "<assigned-implementation>").ParseElement();
         Require(implementation.Id == request["id"]!.ToString() && implementation.Kind == "implementation" && PackPaths.Namespace(implementation.Id) == registry.Project.Namespace, "Assigned project implementation required");
+        string assemblyPath=request["assemblePreview"]?.GetValue<bool>()==true?request["privatePath"]?.GetValue<string>()??"":"";
+        if(assemblyPath.Length>0){
+            Require(implementation.Parent is null&&PackPaths.Namespace(implementation.Function!)==registry.Project.Namespace,"Direct owned child preview required");
+            var root=request["graph"]!.AsObject();var frame=BlueprintTree.Select(root,assemblyPath);
+            var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=frame["entry"]!.DeepClone()}};
+            foreach(var edge in frame["edges"]!.AsArray())routes.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
+            BlueprintCellRegion.Query(new JsonObject{["action"]="frame-order",["graph"]=root.DeepClone(),["path"]=assemblyPath,["edits"]=routes});
+        }
         if (implementation.Parent is not null)
         {
             registry.Elements[implementation.Id] = implementation;
@@ -88,14 +96,21 @@ public static class BlueprintDocuments
             ["inspectStalePostCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStalePostCalls"]?.GetValue<bool>() == true,
             ["inspectStaleAsyncCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStaleAsyncCalls"]?.GetValue<bool>() == true,
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
-            ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts
+            ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts,
+            ["assemblyPath"] = assemblyPath.Length>0?assemblyPath:null
         });
         if(rebind)result["reboundGraph"]=graph.DeepClone();
         if(request["privatePath"] is JsonValue privatePath && privatePath.GetValue<string>().Length>0 && result["state"]?.ToString()!="invalid")
         {
             Require(!rebind,"Private contract belongs to its parent node signature");
             BlueprintTree.Select(graph,privatePath.GetValue<string>());
+            var assembled=result["selectedAssembly"]?.DeepClone();
             result=BlueprintTree.SelectDescription(result,privatePath.GetValue<string>());
+            if(assemblyPath.Length>0){
+                Require(result["state"]?.ToString()=="source-assembled"&&assembled?["path"]?.ToString()==assemblyPath
+                    &&assembled["bodyHash"]?.ToString()==result["bodyHash"]?.ToString(),"Exact actual child assembly unavailable");
+                result["body"]=assembled!["body"]!.DeepClone();result["members"]=assembled["members"]!.DeepClone();result["assembledPath"]=assemblyPath;
+            }
         }
         result["propertyContracts"]=propertyContracts.DeepClone();
         return result;

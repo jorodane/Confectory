@@ -30,7 +30,8 @@ public static partial class FeatureBlueprint
             ["inspectStalePostCalls"] = parent["inspectStalePostCalls"]?.DeepClone(),
             ["inspectStaleAsyncCalls"] = parent["inspectStaleAsyncCalls"]?.DeepClone(),
             ["inspectPendingAsyncCaller"] = parent["inspectPendingAsyncCaller"]?.DeepClone(),
-            ["implementations"] = parent["implementations"]?.DeepClone()
+            ["implementations"] = parent["implementations"]?.DeepClone(),
+            ["assemblyPath"] = parent["assemblyPath"]?.DeepClone()
         };
     }
 
@@ -63,12 +64,23 @@ public static partial class FeatureBlueprint
             foreach (var map in result["sourceMap"]?.AsArray() ?? new JsonArray()) map!["node"] = prefix + "/" + map["node"];
             foreach (var node in result["nodeSources"]?.AsArray() ?? new JsonArray()) node!["id"] = prefix + "/" + node["id"];
         }
+        // Capture the actual child emitter result before parent aggregation strips
+        // its source. No slicing, alternate emitter, or persisted graph metadata.
+        JsonObject? selectedAssembly = null;
+        if (prefix is not null && request["assemblyPath"]?.ToString()==prefix
+            && result["state"]?.ToString()=="source-assembled")
+            selectedAssembly=new JsonObject{["path"]=prefix,["body"]=result["body"]!.DeepClone(),
+                ["members"]=result["members"]!.DeepClone(),["bodyHash"]=result["bodyHash"]!.DeepClone()};
         var descendants = new JsonArray();
         var summaries = new JsonObject();
         var nestedWarnings = new JsonArray();
         foreach (var child in request["privateChildren"]!.AsObject())
         {
             var value = child.Value!.AsObject();
+            if(value["selectedAssembly"] is JsonObject assembled){
+                Need(selectedAssembly is null,"GRAPH_ASSEMBLY_PATH_DUPLICATE",assembled["path"]!.ToString());
+                selectedAssembly=assembled.DeepClone().AsObject();
+            }
             foreach(var warning in value["warnings"]?.AsArray()??new JsonArray()){
                 var scoped=warning!.DeepClone().AsObject();scoped["privatePath"]=RecordKey(request,child.Key);nestedWarnings.Add(scoped);
             }
@@ -79,12 +91,13 @@ public static partial class FeatureBlueprint
                 if (result[collection] is JsonArray target) foreach (var node in value[collection]?.AsArray() ?? new JsonArray()) target.Add(node!.DeepClone());
             if (result["members"] is not null && value["members"] is not null) result["members"] = result["members"]!.GetValue<string>() + value["members"]!.GetValue<string>();
             var summary = value.DeepClone().AsObject();
-            foreach (string field in new[] { "body", "members", "sourceMap", "nodeSources" }) summary.Remove(field);
+            foreach (string field in new[] { "body", "members", "sourceMap", "nodeSources", "selectedAssembly" }) summary.Remove(field);
             summaries[child.Key] = summary;
         }
         if(result["body"] is not null && result["members"] is not null) result["bodyHash"] = Hash(result["body"]!.GetValue<string>() + result["members"]!.GetValue<string>());
         if (summaries.Count > 0) { result["children"] = summaries; result["nestedNodes"] = descendants; }
         if(nestedWarnings.Count>0)result["nestedWarnings"]=nestedWarnings;
+        if(selectedAssembly is not null)result["selectedAssembly"]=selectedAssembly;
         return result;
     }
 }
