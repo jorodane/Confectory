@@ -14,21 +14,69 @@ public static class BlueprintCellRegion
         && n["executionEnum"] is null && n["async"]?.GetValue<bool>()!=true && n["forwardCallerStorage"]?.GetValue<bool>()!=true;
 
     sealed record Region(string Owner, string Port, List<string> Nodes, string End);
+
+    static bool PlainCallContext(JsonNode node) =>
+        new[]{"implementationContext","postCall","executionSource","retainedCode","contextBoundary"}.All(key=>node[key] is null)
+        && node["async"]?.GetValue<bool>()!=true && node["forwardCallerStorage"]?.GetValue<bool>()!=true;
+
+    // This child is an opaque unit to the parent order plan, but its existing
+    // topology must be explicit and exclusive before that plan can move it.
+    static string CheckCompoundSwitchChild(JsonObject graph, JsonArray nodes)
+    {
+        var selectors=nodes.Where(n=>S(n,"control")=="switch").ToArray();
+        Need(selectors.Length==1,"Exactly one direct child switch required");
+        var selector=selectors[0]!;
+        string owner=S(selector,"id");
+        Need(selector["executionEnum"] is JsonObject,"Declared switch cases required");
+        var flow=selector["executionEnum"]!.AsObject();
+        var members=flow["members"]!.AsArray();
+        var cases=members.Where(member=>S(member,"id")!=S(flow,"primary")).ToArray();
+        Need(members.Count==3&&cases.Length==2&&nodes.All(n=>S(n,"kind")=="code"&&PlainCallContext(n!)),
+            "One owned switch with two explicit cases and plain code cells required");
+        var edges=graph["edges"]!.AsArray();
+        var casesByPort=cases.Select(member=>Read(graph,owner,"case:"+S(member,"id"))).ToArray();
+        var branches=casesByPort.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
+        Need(casesByPort.All(region=>region.Nodes.Count>0&&region.End=="return:"+owner)
+            && branches.Count==casesByPort.Sum(region=>region.Nodes.Count)
+            && edges.Count==nodes.Count+cases.Length
+            && nodes.All(n=>edges.Count(e=>S(e,"from")==S(n,"id")&&S(e,"port")=="next")==1)
+            && edges.All(e=>S(e,"port")=="next" ||
+                S(e,"from")==owner&&casesByPort.Any(region=>region.Port==S(e,"port"))),
+            "Keep explicit, disjoint case chains and their original switch return");
+
+        var main=nodes.Where(n=>!branches.Contains(S(n,"id"))).ToDictionary(n=>S(n,"id"),n=>n!,StringComparer.Ordinal);
+        string at=S(graph,"entry");
+        var visited=new HashSet<string>(StringComparer.Ordinal);
+        while(main.TryGetValue(at,out var node)){
+            Need(visited.Add(at)&&node["branchOwner"] is null &&
+                (at==owner || S(node,"control")=="next"&&node["executionEnum"] is null),
+                "Keep the explicit serial switch continuation");
+            at=S(edges.Single(e=>S(e,"from")==at&&S(e,"port")=="next"),"to");
+        }
+        Need(visited.Count==main.Count&&visited.Contains(owner)&&at.StartsWith("exit:",StringComparison.Ordinal)
+            && graph["exits"]!.AsObject().ContainsKey(at[5..]),"Keep the switch child's existing exit");
+        return at;
+    }
+
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
-    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false)
+    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false)
     {
-        int total=0;
+        int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
-            Need(depth<=8 && S(g,"profile")==FeatureBlueprint.NestedProfile && g["copySource"] is null
+            bool switchChild=allowSwitchChild&&depth==1&&S(g,"profile")==FeatureBlueprint.SwitchProfile;
+            Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
             Need(nodes.Count is >0 and <64 && total<=256,"Bounded complete compound chain required");
+            if(switchChild){
+                Need(++switchChildren==1,"At most one direct switch child per compound order");
+                return CheckCompoundSwitchChild(g,nodes);
+            }
             var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
             Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
-                && new[]{"branchOwner","implementationContext","postCall","executionEnum","executionSource","retainedCode","contextBoundary"}.All(k=>n![k] is null)
-                && n!["async"]?.GetValue<bool>()!=true && n["forwardCallerStorage"]?.GetValue<bool>()!=true),
+                && n!["branchOwner"] is null && n["executionEnum"] is null && PlainCallContext(n)),
                 "Preserve branch, call, opaque, receiver and forwarded storage contexts");
             var edges=g["edges"]!.AsArray();
             Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
@@ -147,7 +195,7 @@ public static class BlueprintCellRegion
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
-        if(action=="compound-order")return CompoundOrder(graph,edits);
+        if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
         if(action=="order"){
             Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
                 &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");

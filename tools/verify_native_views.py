@@ -11,6 +11,7 @@ from verification_workspace import Workspace,PackageStore,atomic_json,files,sha,
 def main():
  p=argparse.ArgumentParser(description=__doc__)
  p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
+ p.add_argument('--switch-compound-drag',action='store_true',help='Fresh LF branch-containing compound mouse drag, protected states, earlier drag regressions and package restore')
  p.add_argument('--compound-drag',action='store_true',help='Fresh LF whole compound mouse drag, original order/CAS contract, ordinary drag regression and full package restore')
  p.add_argument('--cell-drag',action='store_true',help='Fresh LF real desktop cell drag, dependency/frame/branch refusal, existing buttons/native view and package/full restore; no mobile/Windows execution claim')
  p.add_argument('--child-preview',action='store_true',help='Fresh LF exact owned child emitter preview, read-only/scope/stale checks, native/structure regressions and full package restore')
@@ -21,8 +22,8 @@ def main():
  p.add_argument('--branch-cells',action='store_true',help='Focused fresh LF branch structure, ordinary/native regressions and package/full restore; no CRLF or Windows execution claim')
  p.add_argument('--reuse-source-ui',type=Path,help='Sealed identical LF/CRLF UI results after the exact package helper-location correction; builds/packages/restore stay fresh')
  a=p.parse_args();
- if sum([a.compound_drag,a.cell_drag,a.child_preview,a.child_insert,a.slot_assignment,a.frame_cells,a.compound_cells,a.branch_cells])>1:raise ValueError('Choose one focused suite')
- if (a.compound_drag or a.cell_drag or a.child_preview or a.child_insert or a.slot_assignment or a.branch_cells or a.compound_cells or a.frame_cells) and a.reuse_source_ui:raise ValueError('Focused product changes require fresh checks')
+ if sum([a.switch_compound_drag,a.compound_drag,a.cell_drag,a.child_preview,a.child_insert,a.slot_assignment,a.frame_cells,a.compound_cells,a.branch_cells])>1:raise ValueError('Choose one focused suite')
+ if (a.switch_compound_drag or a.compound_drag or a.cell_drag or a.child_preview or a.child_insert or a.slot_assignment or a.branch_cells or a.compound_cells or a.frame_cells) and a.reuse_source_ui:raise ValueError('Focused product changes require fresh checks')
  repo=a.repo.resolve();commit=git(repo,'rev-parse',a.commit)
  if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Source checkout must be clean and frozen')
  inputs=dependency_identity(a.sdk,a.nuget_seed,commit)
@@ -35,7 +36,7 @@ def main():
    from verification_native_views_reuse import bind
    bind(repo,a.reuse_source_ui,commit,inputs,work)
   checkouts={};environments={}
-  for label,crlf in ([('lf','false')]if (a.compound_drag or a.cell_drag or a.child_preview or a.child_insert or a.slot_assignment or a.branch_cells or a.compound_cells or a.frame_cells) else[('lf','false'),('crlf','true')]):
+  for label,crlf in ([('lf','false')]if (a.switch_compound_drag or a.compound_drag or a.cell_drag or a.child_preview or a.child_insert or a.slot_assignment or a.branch_cells or a.compound_cells or a.frame_cells) else[('lf','false'),('crlf','true')]):
    c=work.root/label;checkouts[label]=c
    work.run(label+'-clone',['git','clone','--no-hardlinks','--no-checkout','-c','core.autocrlf='+crlf,str(repo),str(c)])
    work.run(label+'-checkout',['git','checkout','--detach',commit],cwd=c)
@@ -53,6 +54,11 @@ def main():
    work.run(label+'-mcp',[dotnet,'build','targets/mcp-host','-c','Release','--no-restore','-nr:false','-p:UseSharedCompilation=false'],cwd=c,env=env)
    work.run(label+'-engine',[dotnet,str(c/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(c/'examples/editor-home/project.cpack'),'linux'],cwd=c,env=env)
    full=json.loads((work.evidence/(label+'-engine.log')).read_text());report=work.evidence/(label+'-engine.json');atomic_json(report,{k:full[k]for k in ['run','output','key']})
+   if a.switch_compound_drag:
+    for mode in ['normal','shared','implicit','readonly','aliased']:
+     work.run(label+'-switch-compound-drag-'+mode,[sys.executable,str(c/'tests/web/v821_switch_compound_drag_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 300)
+    work.run(label+'-compound-drag-normal',[sys.executable,str(c/'tests/web/v821_compound_drag_ui.py'),str(c),str(report),'normal'],cwd=c,env=env,timeout=900)
+    work.run(label+'-ordinary-drag-normal',[sys.executable,str(c/'tests/web/v821_cell_drag_ui.py'),str(c),str(report),'normal'],cwd=c,env=env,timeout=600)
    if a.compound_drag:
     for mode in ['normal','dependency','shared']:
      work.run(label+'-compound-drag-'+mode,[sys.executable,str(c/'tests/web/v821_compound_drag_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 300)
@@ -94,7 +100,7 @@ def main():
    if a.compound_cells or a.frame_cells:
     for mode in ['normal','dependency','shared']:
      work.run(label+'-compound-'+mode,[sys.executable,str(c/'tests/web/v821_compound_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 240)
-   if a.compound_drag or a.cell_drag or a.child_preview or a.child_insert:pass
+   if a.switch_compound_drag or a.compound_drag or a.cell_drag or a.child_preview or a.child_insert:pass
    elif a.slot_assignment:
     for mode in ['normal','contract','conflict']:
      work.run(label+'-slot-assignment-'+mode,[sys.executable,str(c/'tests/web/v821_slot_assignment_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 300)
@@ -129,7 +135,9 @@ def main():
   work.run('windows-package',[dotnet,str(c/'targets/editor-desktop/bin/Release/net10.0/Confectory.dll'),'package',str(c),str(package)],cwd=c,env=env)
   work.run('windows-package-probe',[sys.executable,str(c/'tests/probes/desktop_package.py'),str(c),str(package)],cwd=c,env=env)
   report=work.evidence/'packaged-engine.json';atomic_json(report,{'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-  if a.compound_drag:
+  if a.switch_compound_drag:
+   work.run('packaged-switch-compound-drag-normal',[sys.executable,str(c/'tests/web/v821_switch_compound_drag_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=900)
+  elif a.compound_drag:
    work.run('packaged-compound-drag-normal',[sys.executable,str(c/'tests/web/v821_compound_drag_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=900)
   elif a.cell_drag:
    work.run('packaged-cell-drag-normal',[sys.executable,str(c/'tests/web/v821_cell_drag_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=600)
@@ -153,7 +161,9 @@ def main():
   restored=work.root/'restored';restored.mkdir();verify_archive(candidate,entry['files'],restored)
   atomic_json(work.evidence/'full-restore.json',dict(files=len(entry['files']),archiveSha256=sha(candidate),allBytesVerified=True))
   report=work.evidence/'restored-engine.json';atomic_json(report,{'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-  if a.compound_drag:
+  if a.switch_compound_drag:
+   work.run('restored-switch-compound-drag-shared',[sys.executable,str(c/'tests/web/v821_switch_compound_drag_ui.py'),str(restored/'content'),str(report),'shared'],cwd=c,env=env,timeout=300)
+  elif a.compound_drag:
    work.run('restored-compound-drag-dependency',[sys.executable,str(c/'tests/web/v821_compound_drag_ui.py'),str(restored/'content'),str(report),'dependency'],cwd=c,env=env,timeout=300)
   elif a.cell_drag:
    work.run('restored-cell-drag-frame',[sys.executable,str(c/'tests/web/v821_cell_drag_ui.py'),str(restored/'content'),str(report),'frame'],cwd=c,env=env,timeout=300)
@@ -177,7 +187,7 @@ def main():
   if dependency_identity(a.sdk,a.nuget_seed,commit)!=inputs:raise RuntimeError('Public dependencies changed')
   if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Frozen source changed')
   atomic_json(work.evidence/'package.json',entry)
-  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='compound-drag'if a.compound_drag else'cell-drag'if a.cell_drag else'child-preview'if a.child_preview else'child-insert'if a.child_insert else'slot-assignment'if a.slot_assignment else'frame-cells'if a.frame_cells else'compound-cells'if a.compound_cells else'branch-cells'if a.branch_cells else'native-views',freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),independentCheckouts=len(checkouts),actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
+  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='switch-compound-drag'if a.switch_compound_drag else'compound-drag'if a.compound_drag else'cell-drag'if a.cell_drag else'child-preview'if a.child_preview else'child-insert'if a.child_insert else'slot-assignment'if a.slot_assignment else'frame-cells'if a.frame_cells else'compound-cells'if a.compound_cells else'branch-cells'if a.branch_cells else'native-views',freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),independentCheckouts=len(checkouts),actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
   # Preserve user-like fixture sources/checkpoints/profiles. Reproducible build
   # outputs retain exact hashes outside the evidence archive to bound storage.
   generated=work.root/'generated';generated.mkdir();omitted=[];candidates=[]

@@ -532,7 +532,7 @@ function blueprintNormalizeControls(scope){
   const frameInputsClear=()=>{try{guardOtherInputs(w,data);return true;}catch{return false;}};
   const linearCells=selectedId=>{
    if(!w.meta.copyDraft){const frame=frameCellChain(data,links());if(frame)return frame;}
-   if(!w.meta.copyDraft){const compound=compoundCellChain(data,links());if(compound)return compound;}
+   if(!w.meta.copyDraft){const compound=compoundCellChain(data,links());if(compound)return data.documentCompoundOrderWritable===false?null:compound;}
    const selected=data.nodes.find(n=>n.id===selectedId);if(selected?.branchOwner){const owner=data.nodes.find(n=>n.id===selected.branchOwner);for(const member of owner?.executionEnum?.members||[]){const chain=branchChain(owner.id,'case:'+member.id);if(chain?.order.includes(selectedId))return chain;}return null;}
    if(!data.id||data.id!==data.rootId||data.privatePath||data.slotContext||data.privateCopy||w.meta.copyDraft||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||!data.nodes.length||data.nodes.length>63||data.nodes.some(n=>n.kind!=='code'||n.control!=='next'||n.branchOwner||n.implementationContext||n.forwardCallerStorage||n.postCall))return null;
    const names=new Set(data.nodes.map(n=>n.id)),edges=links(),order=[],seen=new Set();let id=edges.find(e=>e.from==='$entry'&&e.port==='next')?.to;
