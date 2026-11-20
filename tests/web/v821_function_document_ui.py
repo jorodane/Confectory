@@ -63,7 +63,11 @@ try:
     assert doc().locator('[data-document-cell]').evaluate_all('(els)=>els.map(e=>e.dataset.documentCell)')==['$entry','body','after','$exit:return']
     first=doc().locator('[data-document-cell=body]');left=first.locator('.fd-inputs').bounding_box();right=first.locator('.fd-outputs').bounding_box();assert left['x']+left['width']<right['x'];first.locator('[data-document-fold=body]').click()
     panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('.bp-viewport')).to_be_visible()
-    resize=panel().locator('[data-bp-output-resize]');sidebar_width=int(resize.get_attribute('aria-valuenow'))+16;resize.press('ArrowLeft');expect(resize).to_have_attribute('aria-valuenow',str(sidebar_width));positions=panel().locator('[data-bp-node=body]').get_attribute('style')
+    resize=panel().locator('[data-bp-output-resize]');sidebar_width=int(resize.get_attribute('aria-valuenow'))+16;resize.press('ArrowLeft');expect(resize).to_have_attribute('aria-valuenow',str(sidebar_width))
+    # Preserve authored coordinates, not the renderer's unplaced entry-rail
+    # alignment. Use the existing drag handle to create an actual layout.
+    handle=panel().locator('[data-bp-node=body] [data-bp-node-name]');box=handle.bounding_box();px=box['x']+box['width']/2;py=box['y']+box['height']/2;f.page.mouse.move(px,py);f.page.mouse.down();f.page.mouse.move(px+64,py+72,steps=8);f.page.mouse.up()
+    positions=panel().locator('[data-bp-node=body]').evaluate('(el)=>({left:el.style.left,top:el.style.top})');(f.case/'authored-layout.json').write_text(json.dumps(dict(body=positions,sidebarWidth=sidebar_width)))
     panel().get_by_role('tab',name='논리 코드',exact=True).click();expect(first.locator('.fd-cell-content')).to_be_hidden();first.locator('[data-document-fold=body]').click()
     panel().locator('[data-close]').first.click();open_document();expect(panel().get_by_role('tab',name='논리 코드',exact=True)).to_have_attribute('aria-selected','true');expect(panel().locator('.bp-layout')).to_be_hidden();expect(panel().locator('[data-bp-output-resize]')).to_have_attribute('aria-valuenow',str(sidebar_width));assert panel().locator('.bp-layout').evaluate('(el)=>el.style.getPropertyValue("--bp-output-width")')==str(sidebar_width)+'px';assert not pending();assert checkpoint.read_bytes()==before;assert t.read()['nodes']==baseline['nodes'];x.original()
     f.checked('real graph defaults to vertical next order and left/right pins; fold/view switches preserve graph, checkpoint, inputs and native sources')
@@ -78,7 +82,7 @@ try:
     f.checked('atomic name/value guard rejects other node/frame and unknown argument without live, checkpoint or original changes')
     doc().locator('[data-document-code=body]').click();dialog=f.page.locator('.bp-script-dialog');expect(dialog.locator('[data-code-source]')).to_be_visible();assert 'amount+3' in dialog.locator('[data-code-source]').input_value();dialog.locator('[data-code-cancel]').click();assert not pending();x.original()
     literal('9');name='문서 계산 α 😀';first.locator('[data-document-name=body]').fill(name);doc().locator('.fd-document-title').click();held=pending();assert len(held)==2,held
-    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('[data-bp-node=body] [data-bp-node-name]')).to_have_text(name);assert panel().locator('[data-bp-node=body]').get_attribute('style')==positions
+    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('[data-bp-node=body] [data-bp-node-name]')).to_have_text(name);assert panel().locator('[data-bp-node=body]').evaluate('(el)=>({left:el.style.left,top:el.style.top})')==positions
     panel().get_by_role('tab',name='논리 코드',exact=True).click();restart(1);assert pending()==held;x.original();assert checkpoint.read_bytes()==before;expect(doc().locator('[data-document-name=body]')).to_have_value(name);expect(doc().locator('[data-document-value=body][data-document-port="field:amount"]')).to_have_text('9')
     f.checked('document edits share the original graph draft and retain exact pending name/value across view switches and cold restart')
     if mode=='storage':
