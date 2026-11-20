@@ -79,7 +79,7 @@ export function mountFunctionDocument(root,api){
  }
  async function generate(){
   const request=++previewRequest;previewVersion=api.nativeVersion?.();
-  preview.innerHTML='<div class="fd-native-tools"><span role="status">생성 중…</span><button type="button" data-native-refresh>갱신</button></div><p class="fd-native-scope">현재 함수의 엔진 생성 C# 본문 · 읽기 전용 · 컴파일·실행 검증 전</p><pre data-native-body tabindex="0" aria-label="생성된 C# 본문"></pre><pre data-native-members tabindex="0" aria-label="생성된 C# 멤버" hidden></pre>';
+  preview.innerHTML='<div class="fd-native-tools"><span role="status">생성 중…</span><button type="button" data-native-refresh>갱신</button></div><p class="fd-native-scope">선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전</p><pre data-native-body tabindex="0" aria-label="생성된 C# 본문"></pre><pre data-native-members tabindex="0" aria-label="생성된 C# 멤버" hidden></pre>';
   preview.querySelector('[data-native-refresh]').onclick=()=>{if(owns())generate();};
   try{
    const result=await api.previewNative();if(!owns()||state.mode!=='native'||request!==previewRequest)return;
@@ -106,6 +106,7 @@ export function mountFunctionDocument(root,api){
   const key=event.key.toLowerCase();if(key==='s'){event.preventDefault();event.stopPropagation();if(api.closeValues()!==false)api.save();}
   else if(['z','y'].includes(key)&&!event.target.closest('input,textarea,select')){event.preventDefault();event.stopPropagation();api.undo(key==='y'||event.shiftKey);}
  },{signal:events.signal});
+ root.addEventListener('input',()=>{if(owns()&&state.mode==='native'&&preview.querySelector('[data-native-body]')&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}},{signal:events.signal});
  mode(state.mode,true);
  return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'&&!host.querySelector('input:focus,textarea:focus')&&!document.querySelector('.bp-value-menu'))render();});},destroy(){destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
 }

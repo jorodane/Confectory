@@ -36,12 +36,19 @@ try:
    panel().get_by_role('tab',name='네이티브 미리보기',exact=True).click();view=panel().locator('.function-native-preview');expect(view.locator('[role=status]')).to_contain_text('생성됨',timeout=90000)
    assert view.locator('[data-native-body]').text_content()==expected['body'];assert not view.locator('textarea,input,[contenteditable=true]').count();assert 'body' in expected['body'] and 'after' in expected['body'];x.original();assert checkpoint.read_bytes()==before;assert not f.pending()['blueprint']
    f.checked('logical native preview equals the real source-assembled engine body and hash; read-only tab writes neither graph nor checkpoint')
+   graph_file=f.project/t.graph_file;raw=graph_file.read_bytes();graph_file.write_bytes(raw+b' ')
+   try:
+    view.locator('[data-native-refresh]').click();expect(view.locator('[role=status]')).to_contain_text('생성에 실패');assert not view.locator('[data-native-body]').text_content();assert graph_file.read_bytes()==raw+b' '
+   finally:graph_file.write_bytes(raw)
+   view.locator('[data-native-refresh]').click();expect(view.locator('[role=status]')).to_contain_text('생성됨');assert view.locator('[data-native-body]').text_content()==expected['body'];assert checkpoint.read_bytes()==before;x.original();f.checked('preview refresh rejects an externally changed source baseline, clears the old body and regenerates only after the original conflict is resolved')
+
    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('.bp-viewport')).to_be_visible();panel().get_by_role('tab',name='논리 코드',exact=True).click();panel().locator('[data-document-name=body]').fill('未保存 한글');held=f.pending()['blueprint']
    panel().get_by_role('tab',name='네이티브 미리보기',exact=True).click();expect(view.locator('[role=status]')).to_contain_text('저장하지 않은 입력');assert not view.locator('[data-native-body]').text_content();assert f.pending()['blueprint']==held;assert t.read()['nodes']==baseline['nodes'];x.original()
    restart(1);view=panel().locator('.function-native-preview');expect(view).to_be_visible();expect(view.locator('[role=status]')).to_contain_text('저장하지 않은 입력');assert f.pending()['blueprint']==held;x.original()
    x.build('preview-no-write',10,'body\nafter\n10');f.checked('unsaved and cold-restored logical inputs refuse stale preview, preserve exact private text, legacy view and actual execution')
   else:
    editor=panel().locator('[data-native-source]');expect(editor).to_be_visible();assert panel().get_by_role('tab').all_text_contents()==['네이티브 코드'];assert editor.input_value()=='return input+3;';assert not panel().locator('.bp-layout').count();x.original()
+   panel().locator('[data-native-convert]').click();f.idle();expect(panel().locator('[data-bp-node=body]')).to_be_visible();x.original();assert checkpoint.read_bytes()==before;assert not f.pending()['blueprint'];panel().locator('[data-close]').first.click();open_function();editor=panel().locator('[data-native-source]');expect(editor).to_have_value('return input+3;');f.checked('legacy explicit Blueprint conversion preview remains reachable and cancel/reopen keeps native source and checkpoint unchanged')
    candidate='// 직접 네이티브 편집 α 😀\nreturn input+8;';editor.fill(candidate);held=f.pending()['blueprint'];checkpoint.chmod(0o400)
    try:
     panel().locator('[data-native-save]').click();f.idle();expect(panel().locator('.bp-status')).not_to_have_text('저장 중…',timeout=90000);assert f.pending()['blueprint']==held;assert read_native()['source']=='return input+3;';assert checkpoint.read_bytes()==before;x.original()
