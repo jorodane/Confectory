@@ -11,12 +11,13 @@ from verification_workspace import Workspace,PackageStore,atomic_json,files,sha,
 def main():
  p=argparse.ArgumentParser(description=__doc__)
  p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
+ p.add_argument('--frame-cells',action='store_true',help='Fresh LF full-path owned child order, compound/branch/ordinary/native regressions and full package restore; no Windows execution claim')
  p.add_argument('--compound-cells',action='store_true',help='Fresh LF whole-compound ordering, branch/ordinary/native regressions and package/full restore; no Windows execution claim')
  p.add_argument('--branch-cells',action='store_true',help='Focused fresh LF branch structure, ordinary/native regressions and package/full restore; no CRLF or Windows execution claim')
  p.add_argument('--reuse-source-ui',type=Path,help='Sealed identical LF/CRLF UI results after the exact package helper-location correction; builds/packages/restore stay fresh')
  a=p.parse_args();
- if a.compound_cells and a.branch_cells:raise ValueError('Choose one focused suite')
- if (a.branch_cells or a.compound_cells) and a.reuse_source_ui:raise ValueError('Focused product changes require fresh checks')
+ if sum([a.frame_cells,a.compound_cells,a.branch_cells])>1:raise ValueError('Choose one focused suite')
+ if (a.branch_cells or a.compound_cells or a.frame_cells) and a.reuse_source_ui:raise ValueError('Focused product changes require fresh checks')
  repo=a.repo.resolve();commit=git(repo,'rev-parse',a.commit)
  if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Source checkout must be clean and frozen')
  inputs=dependency_identity(a.sdk,a.nuget_seed,commit)
@@ -29,7 +30,7 @@ def main():
    from verification_native_views_reuse import bind
    bind(repo,a.reuse_source_ui,commit,inputs,work)
   checkouts={};environments={}
-  for label,crlf in ([('lf','false')]if (a.branch_cells or a.compound_cells) else[('lf','false'),('crlf','true')]):
+  for label,crlf in ([('lf','false')]if (a.branch_cells or a.compound_cells or a.frame_cells) else[('lf','false'),('crlf','true')]):
    c=work.root/label;checkouts[label]=c
    work.run(label+'-clone',['git','clone','--no-hardlinks','--no-checkout','-c','core.autocrlf='+crlf,str(repo),str(c)])
    work.run(label+'-checkout',['git','checkout','--detach',commit],cwd=c)
@@ -47,10 +48,13 @@ def main():
    work.run(label+'-mcp',[dotnet,'build','targets/mcp-host','-c','Release','--no-restore','-nr:false','-p:UseSharedCompilation=false'],cwd=c,env=env)
    work.run(label+'-engine',[dotnet,str(c/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(c/'examples/editor-home/project.cpack'),'linux'],cwd=c,env=env)
    full=json.loads((work.evidence/(label+'-engine.log')).read_text());report=work.evidence/(label+'-engine.json');atomic_json(report,{k:full[k]for k in ['run','output','key']})
-   if a.compound_cells:
+   if a.frame_cells:
+    for mode in ['normal','dependency','shared']:
+     work.run(label+'-frame-'+mode,[sys.executable,str(c/'tests/web/v821_frame_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 240)
+   if a.compound_cells or a.frame_cells:
     for mode in ['normal','dependency','shared']:
      work.run(label+'-compound-'+mode,[sys.executable,str(c/'tests/web/v821_compound_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal'else 240)
-   if a.branch_cells or a.compound_cells:
+   if a.branch_cells or a.compound_cells or a.frame_cells:
     for mode in ['normal','dependency','shared','fallback','legacy']:
      work.run(label+'-branch-'+mode,[sys.executable,str(c/'tests/web/v821_branch_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env,timeout=900 if mode=='normal' else 180)
     work.run(label+'-document-branches',[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(c),str(report),'branches'],cwd=c,env=env)
@@ -73,7 +77,9 @@ def main():
   work.run('windows-package',[dotnet,str(c/'targets/editor-desktop/bin/Release/net10.0/Confectory.dll'),'package',str(c),str(package)],cwd=c,env=env)
   work.run('windows-package-probe',[sys.executable,str(c/'tests/probes/desktop_package.py'),str(c),str(package)],cwd=c,env=env)
   report=work.evidence/'packaged-engine.json';atomic_json(report,{'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-  if a.compound_cells:
+  if a.frame_cells:
+   work.run('packaged-frame-normal',[sys.executable,str(c/'tests/web/v821_frame_structure_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=900)
+  elif a.compound_cells:
    work.run('packaged-compound-normal',[sys.executable,str(c/'tests/web/v821_compound_structure_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=900)
   elif a.branch_cells:
    work.run('packaged-branch-normal',[sys.executable,str(c/'tests/web/v821_branch_structure_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env,timeout=900)
@@ -85,7 +91,9 @@ def main():
   restored=work.root/'restored';restored.mkdir();verify_archive(candidate,entry['files'],restored)
   atomic_json(work.evidence/'full-restore.json',dict(files=len(entry['files']),archiveSha256=sha(candidate),allBytesVerified=True))
   report=work.evidence/'restored-engine.json';atomic_json(report,{'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-  if a.compound_cells:
+  if a.frame_cells:
+   work.run('restored-frame-dependency',[sys.executable,str(c/'tests/web/v821_frame_structure_ui.py'),str(restored/'content'),str(report),'dependency'],cwd=c,env=env)
+  elif a.compound_cells:
    work.run('restored-compound-dependency',[sys.executable,str(c/'tests/web/v821_compound_structure_ui.py'),str(restored/'content'),str(report),'dependency'],cwd=c,env=env)
   elif a.branch_cells:
    work.run('restored-branch-dependency',[sys.executable,str(c/'tests/web/v821_branch_structure_ui.py'),str(restored/'content'),str(report),'dependency'],cwd=c,env=env)
@@ -97,7 +105,7 @@ def main():
   if dependency_identity(a.sdk,a.nuget_seed,commit)!=inputs:raise RuntimeError('Public dependencies changed')
   if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Frozen source changed')
   atomic_json(work.evidence/'package.json',entry)
-  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='compound-cells'if a.compound_cells else'branch-cells'if a.branch_cells else'native-views',freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),independentCheckouts=len(checkouts),actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
+  atomic_json(work.evidence/'summary.json',dict(sourceCommit=commit,allStagesPassed=True,suite='frame-cells'if a.frame_cells else'compound-cells'if a.compound_cells else'branch-cells'if a.branch_cells else'native-views',freshStages=len(work.state['results']),reusedChecks=work.state.get('reusedChecks',[]),independentCheckouts=len(checkouts),actualLinux=True,actualWindows=False,actualMobile=False,fullUI=False,mockupVisualCompared=False,archiveBytes=entry['archiveBytes']))
   # Preserve user-like fixture sources/checkpoints/profiles. Reproducible build
   # outputs retain exact hashes outside the evidence archive to bound storage.
   generated=work.root/'generated';generated.mkdir();omitted=[];candidates=[]

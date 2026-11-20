@@ -16,7 +16,7 @@ public static class BlueprintCellRegion
     sealed record Region(string Owner, string Port, List<string> Nodes, string End);
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
-    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits)
+    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false)
     {
         int total=0;
         string Chain(JsonObject g,int depth)
@@ -42,7 +42,8 @@ public static class BlueprintCellRegion
         }
         string terminal=Chain(graph,0);
         var original=graph["nodes"]!.AsArray();
-        Need(original.Any(n=>S(n,"kind")=="graph"),"An existing compound invocation is required");
+        Need(ordinaryFrame?original.All(n=>S(n,"kind")=="code"):original.Any(n=>S(n,"kind")=="graph"),
+            "Existing ordinary child cells or a compound invocation required");
         Need(edits.Count==original.Count+1 && edits.All(e=>e is JsonObject row&&row["to"] is JsonValue v&&v.TryGetValue<string>(out _)
             &&(row.Count==3&&S(row,"action")=="entry"&&S(row,"node")=="$entry"
             ||row.Count==4&&S(row,"action")=="route"&&S(row,"port")=="next"&&row.All(p=>p.Key is "action" or "node" or "port" or "to"))),"Exact complete compound order required");
@@ -53,6 +54,22 @@ public static class BlueprintCellRegion
         while(routes.ContainsKey(next)){Need(visited.Add(next),"Compound order cannot cycle");next=routes[next];}
         Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
+    }
+    static JsonObject FrameOrder(JsonObject root,string path,JsonArray edits)
+    {
+        // Verify the entire owned tree, including every ancestor and sibling.
+        // IDs remain local to each frame; the caller binds the physical root.
+        var unchanged=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=root["entry"]!.DeepClone()}};
+        foreach(var edge in root["edges"]!.AsArray())unchanged.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
+        CompoundOrder(root,unchanged);
+        var parts=path.Split('/');Need(parts.Length is >0 and <=8 && parts.All(p=>p.Length>0),"Exact nonempty owned frame path required");
+        var selected=root;
+        foreach(string part in parts){
+            var owner=selected["nodes"]!.AsArray().Single(n=>S(n,"id")==part)!;
+            Need(S(owner,"kind")=="graph","Every frame path segment must be an owned compound");
+            selected=owner["graph"]!.AsObject();
+        }
+        return CompoundOrder(selected,edits,true);
     }
     static Region Read(JsonObject graph, string owner, string port)
     {
@@ -89,9 +106,11 @@ public static class BlueprintCellRegion
 
     public static JsonObject Query(JsonObject request)
     {
-        Need(request.Count is 3 or 4 && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits"),"Exact branch editor plan required");
+        bool frame=S(request,"action")=="frame-order";
+        Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
+        if(frame)return FrameOrder(graph,S(request,"path"),edits);
         if(action=="compound-order")return CompoundOrder(graph,edits);
         if(action=="order"){
             Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
