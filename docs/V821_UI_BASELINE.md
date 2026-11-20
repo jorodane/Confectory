@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md)에 둔다. 앞선 [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)에 둔다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -107,3 +107,12 @@ Sites를 변경하지 않고 해당 프로토타입의 버전 metadata를 읽어
 고정 소스 `dfd80058d7e2f6ddd217e2adb5588e73546188e7`의 신규 24단계·실패 0·재사용 0이 실제 Linux 앱/엔진, 일반·분기·네이티브 회귀, 새 패키지·전체 복원에서 통과했다. 이동은 기존 개인/공유 Undo/Redo를 사용하고 원문·권한·Review/Confirm·CAS와 이전 정상 패키지를 보존했다. 상세 증거와 정확한 지원 경계는 [복합 셀 검증 기록](VALIDATION_V821_COMPOUND_CELLS.md)에 둔다.
 
 복합 생성/분해와 내부 구조 추가·이동, 슬롯 배정/내부 구조는 후속 범위다. private 네이티브 보기와 실제 Windows는 이번 단위에 섞지 않았다. 신규 실행은 LF이며 실제 Windows/WebView2·물리 기기·전체 UI·원본 목업 시각 대조·신규 CRLF 실행은 미실행이다. 과거 초기 빈 화면의 원인은 미확정이다.
+
+
+## 직접 소유 자식 내부의 기존 일반 셀 순서 편집
+
+물리 root와 전체 소유 경로 및 root/선택 frame의 관측 해시로 정확한 자식을 선택해 기존 일반 셀의 위·아래 이동을 제공한다. root와 모든 자식이 기존 exit로 끝나는 직접 소유 nested-profile의 독립 직렬 흐름일 때만 가능하다. 같은 local ID를 가진 형제, 입출력·종료·부모/형제 후속 흐름을 유지하며 선택된 자식의 entry/next만 원자 저장한다. 값 의존성·공유 진입·다른 소유자/경로·frame 사이 이동을 거절한다. 추가·삭제·분해·슬롯·새 private 네이티브 보기는 이 경로에 열지 않는다.
+
+고정 소스 `e9ad9dcd2604d6b1e33a1dc1642c6a13d7624239`의 신규 27단계·실패 0·재사용 0이 실제 Linux 앱/엔진, 이전 복합 전체·분기·일반·네이티브 회귀, 새 패키지·전체 복원에서 통과했다. 개인/공유 Undo/Redo와 명시 Save/cold, 실패 후 입력 복원, 형제 원본 CAS와 Review/Confirm·최종 CAS, 원본 바이트·모드를 검증했다. 기존 ownedRoute receipt의 전체 자식 경로를 확인해 Undo가 원본 바이트로 돌아간 뒤 저장·cold·Redo하는 경우도 root 관측을 보존한다. 새 런타임이나 프로젝트/체크포인트 형식은 없다. 상세 증거와 2세대 백업은 [자식 순서 검증 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)에 둔다.
+
+나머지 내부 추가·삭제·복합 생성/분해, 여러 frame 공동 계획, branch/opaque/async/receiver 문맥과 슬롯은 별도 범위다. 신규 실행은 LF이며 Windows x64 교차 패키지 생성과 Linux managed 앱 검사를 실제 Windows 실행과 구분한다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 시각 대조·신규 CRLF 실행은 미실행이다. 구 reader Reference 제약과 과거 초기 빈 화면 원인은 이번 단위로 해소됐다고 단정하지 않는다. main과 Sites는 변경하지 않는다.
