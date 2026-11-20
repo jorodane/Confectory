@@ -17,6 +17,7 @@ setup=setup.replace("if(invalid||!durable||input.id!==graph.id", """if(input.edi
       argument.valueJson=edit.valueJson;graph.sources[0].revision++;graph.basis='b'+graph.sources[0].revision;(fixture.batchReceipts??=new Map()).set(input.attempt,structuredClone(input));return {checkpointSaved:true};
      }
      if(invalid||!durable||input.id!==graph.id""")
+setup=setup.replace("meta:{id:'Owned::Serial'","meta:{id:'Owned::Serial',outputSidebar:{width:250,collapsed:false}")
 styles='\n'.join((repo/'examples/editor-home/ui'/name).read_text() for name in ['style.css','consumer.css','runtime.css']);styles=re.sub(r'@import\s+url\([^)]*\)\s*;','',styles)
 class Handler(http.server.SimpleHTTPRequestHandler):
  def __init__(self,*args,**kw):super().__init__(*args,directory=str(repo),**kw)
@@ -40,6 +41,7 @@ try:
   baseline=page.evaluate('({graph:JSON.stringify(fixture.graph),inputs:[...fixture.inputs],traffic:fixture.traffic.length,undo:fixture.w.authorUndo?.length||0,positions:JSON.stringify(fixture.w.meta.blueprintPositions||{})})')
   cell.locator('[data-document-fold]').click();expect(cell.locator('.fd-cell-content')).to_be_hidden();expect(cell.locator('.fd-cell-title')).to_be_visible();expect(cell.locator('.fd-cell-state')).to_be_visible()
   page.evaluate('fixture.open()');expect(doc.locator('[data-document-cell=first] .fd-cell-content')).to_be_hidden()
+  actual=root.locator('.bp-layout').evaluate('(el)=>el.style.getPropertyValue("--bp-output-width")');assert actual=='250px';assert page.evaluate('fixture.w.meta.outputSidebar.width')==250
   # Reopening performs the existing read; folds themselves emit no provider writes.
   assert page.evaluate('fixture.traffic.every(r=>["featureBodies","read"].includes(r.input.action))')
   doc.locator('[data-document-cell=first] [data-document-fold]').click()

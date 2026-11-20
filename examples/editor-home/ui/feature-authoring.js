@@ -595,13 +595,14 @@ function blueprintNormalizeControls(scope){
    search:(spot,anchor)=>{if(!canvasOwns()||api.busy||data.privateConversion)return;if(spot&&inputs.has(prefix(w)+'$root|root-parameters'))return api.toast('기능 계약을 먼저 저장해 주세요. 입력은 유지됩니다.');pending=spot?port(spot.from,'out','exec',spot.port):null;const rect=anchor.getBoundingClientRect();resources({preventDefault(){},stopPropagation(){},clientX:rect.left,clientY:rect.bottom},true,spot);},closeValues:(reason='commit')=>closeMenu(reason),graph:()=>{applyZoom();},save:()=>{if(canvasOwns())q('[data-bp-save]').click();}
   };
   mobile=mountMobileBlueprint(root,surface);
+  applySidebar();
   documentView=mountFunctionDocument(root,{...surface,context:w.authorScope+'|function-document|'+(w.meta.authorView||'primary')+'|'+(w.meta.slotOwner||'')+'|'+String(data.id||data.rootId||w.meta.id)+'|'+(data.privatePath||''),nativeDefinition:!!data.privateConversion,model:()=>({...mobileModel(),inputs:inputFields}),
    editValue:(...args)=>{surface.editValue(...args);document.querySelector('.bp-value-menu input[type=search]')?.focus({preventScroll:true});},
    switchView:mode=>{if(mode==='blueprint')mobile?.graph();else mobile?.suspend();},
    undo:redo=>{if(canvasOwns()&&!api.busy&&!data.privateConversion)undoStructure(w,redo);}
   });
   w.authorSuspend=()=>{w.authorCloseDialog?.(true);zoomControl?.close(false);closeMenu('preserve');mobile?.suspend();};
-  const observer=new ResizeObserver(schedule);observer.observe(root);applySidebar();schedule();return ()=>{disposed=true;if(w.authorFindContext===findContext)delete w.authorFindContext;documentView?.destroy();mobile?.destroy();observer.disconnect();if(frame)cancelAnimationFrame(frame);dragCancel?.();closeMenu('preserve');};
+  const observer=new ResizeObserver(schedule);observer.observe(root);schedule();return ()=>{disposed=true;if(w.authorFindContext===findContext)delete w.authorFindContext;documentView?.destroy();mobile?.destroy();observer.disconnect();if(frame)cancelAnimationFrame(frame);dragCancel?.();closeMenu('preserve');};
  }
  function rootScriptPlan(w,row,saved){
   const native=signature(row.signature),contract=signature(w.authorData.signature),list=saved.parameters.trim()?saved.parameters.split(','):[];if(list.length!==native.args.length||contract.args.length!==native.args.length)throw Error('이 본문은 현재 매개변수의 이름·자료형·순서를 유지합니다.');const plan={args:structuredClone(contract.args),returnType:contract.return,remap:Object.fromEntries(contract.args.map(a=>[a.name,a.name])),inputModes:{},rootBody:{node:row.id,source:saved.source}};

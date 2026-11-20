@@ -62,8 +62,10 @@ try:
    else:
     assert doc().locator('[data-document-cell]').evaluate_all('(els)=>els.map(e=>e.dataset.documentCell)')==['$entry','body','after','$exit:return']
     first=doc().locator('[data-document-cell=body]');left=first.locator('.fd-inputs').bounding_box();right=first.locator('.fd-outputs').bounding_box();assert left['x']+left['width']<right['x'];first.locator('[data-document-fold=body]').click()
-    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('.bp-viewport')).to_be_visible();positions=panel().locator('[data-bp-node=body]').get_attribute('style')
-    panel().get_by_role('tab',name='논리 코드',exact=True).click();expect(first.locator('.fd-cell-content')).to_be_hidden();first.locator('[data-document-fold=body]').click();assert not pending();assert checkpoint.read_bytes()==before;assert t.read()['nodes']==baseline['nodes'];x.original()
+    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('.bp-viewport')).to_be_visible()
+    resize=panel().locator('[data-bp-output-resize]');sidebar_width=int(resize.get_attribute('aria-valuenow'))+16;resize.press('ArrowLeft');expect(resize).to_have_attribute('aria-valuenow',str(sidebar_width));positions=panel().locator('[data-bp-node=body]').get_attribute('style')
+    panel().get_by_role('tab',name='논리 코드',exact=True).click();expect(first.locator('.fd-cell-content')).to_be_hidden();first.locator('[data-document-fold=body]').click()
+    panel().locator('[data-close]').first.click();open_document();expect(panel().locator('[data-bp-output-resize]')).to_have_attribute('aria-valuenow',str(sidebar_width));assert panel().locator('.bp-layout').evaluate('(el)=>el.style.getPropertyValue("--bp-output-width")')==str(sidebar_width)+'px';assert not pending();assert checkpoint.read_bytes()==before;assert t.read()['nodes']==baseline['nodes'];x.original()
     f.checked('real graph defaults to vertical next order and left/right pins; fold/view switches preserve graph, checkpoint, inputs and native sources')
     # Bound the new atomic classifier: no other node/frame or unknown field.
     template=dict(action='authorBatch',id=t.graph,checkpointHash=baseline['checkpointHash'],sourceProof=x.proof(baseline),edits=[dict(action='rename',node='body',text='not-applied'),dict(action='argument',node='body',name='amount',valueJson='{"constant":9}')])
