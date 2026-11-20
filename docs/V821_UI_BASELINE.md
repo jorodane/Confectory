@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [데스크톱 직렬 셀 드래그 기록](VALIDATION_V821_CELL_DRAG.md)에 둔다. 앞선 [직접 소유 자식 경로의 네이티브 미리보기 기록](VALIDATION_V821_CHILD_PREVIEW.md)도 보존한다. 앞선 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)도 보존한다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [같은 부모 흐름의 복합 호출 드래그 기록](VALIDATION_V821_COMPOUND_DRAG.md)에 둔다. 앞선 [데스크톱 직렬 셀 드래그 기록](VALIDATION_V821_CELL_DRAG.md)도 보존한다. 앞선 [직접 소유 자식 경로의 네이티브 미리보기 기록](VALIDATION_V821_CHILD_PREVIEW.md)도 보존한다. 앞선 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)도 보존한다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -156,3 +156,9 @@ primary 객체 카드에서 직접 붙인 소유 모듈의 기존 local 슬롯 �
 고정 소스 `542b600367e368fd222212030ac25ec113eef739`에서 기존 전체 순서 편집·개인 Undo·Save 경로를 사용하는 마우스 손잡이를 연결했다. 같은 root 흐름·정확한 직접 소유 일반 child frame·같은 독립 분기 내부만 대상으로 하며 유효한 경계에 배치 선을 표시한다. 다른 frame/분기·별도 미저장 입력·값 의존성 위반은 원래 순서와 입력을 보존한다. 기존 버튼과 키보드를 유지하고 엔진·저장 형식·권한·Review/Confirm·CAS를 바꾸지 않는다.
 
 신규 18단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 일반 root의 실제 드래그·취소·보기 전환·실패/정상 Save·공유 history·Confirm·실행·cold와 child/분기의 이동·개인 Undo·범위 거절을 구별해 검증했다. 패키지 실행·전체 복원 및 기존 복합 버튼/네이티브 회귀도 확인했다. 실제 Windows·모바일·전체 UI·새 CRLF·원본 목업 직접 시각 대조는 미실행이다. 상세 증거·패키지와 rollback·개발 이력은 [드래그 검증 기록](VALIDATION_V821_CELL_DRAG.md)에 둔다. 삭제 계약 조사와 기존 private/복합/슬롯의 남은 제한, 과거 빈 화면 원인 미확정도 유지한다.
+
+## 같은 부모 흐름의 복합 호출 데스크톱 드래그
+
+고정 소스 `5a6d2ba90af16966f0030bb25ad4fe3349d39820`에서 기존 복합 전체 위·아래 버튼의 엔진 관측 사슬을 그대로 드래그 대상 판정에 연결했다. 같은 직접 소유 root 부모의 직렬 복합 호출만 한 단위로 이동하며 자식 graph/식별자/계약/바인딩·기존 종료점·원문을 바꾸지 않는다. 분기 포함 복합 호출은 기존 재귀 직렬 계약이 허용하지 않으므로 계속 미지원이다. cross-frame/분기·공유 진입·모바일/롱프레스·삭제·새 런타임/저장 형식/권한은 추가하지 않는다.
+
+신규 18단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 실제 마우스 상하 이동·배치/취소·키보드/버튼·개인/공유 Undo/Redo·Save/cold·Confirm/CAS·실행과 자식/옆 셀 원문·모드를 확인했다. 의존성/공유 분기 거절, 기존 일반 드래그/생성 미리보기/네이티브 회귀, 패키지 및 전체 복원도 검사했다. 실제 Windows·모바일·전체 UI·신규 CRLF·목업 직접 대조는 미실행이며 기존 빈 화면 원인 미확정도 유지한다. [상세 검증과 지원 경계](VALIDATION_V821_COMPOUND_DRAG.md)를 따른다.
