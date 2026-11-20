@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)에 둔다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [직접 소유 자식 경로의 네이티브 미리보기 기록](VALIDATION_V821_CHILD_PREVIEW.md)에 둔다. 앞선 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)도 보존한다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -134,3 +134,12 @@ primary 객체 카드에서 직접 붙인 소유 모듈의 기존 local 슬롯 �
 개발에서 확인한 최종 Confirm의 형제 읽기 CAS 누락을 기존 원본 읽기 관측·등록 읽기·Review/최종 commit lease에 연결해 수정했다. 새로운 프로젝트/노드/체크포인트 형식이나 런타임·종료 의미를 추가하지 않았다. 고정 소스 `e6b0973d341e736b5e58a0e772408502cb1bff34`의 신규 25단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 추가·본문 편집·저장/cold·정확한 history 경계·최종 CAS/읽기 전용 거절·실제 실행 10, 이전 자식/복합/분기/일반/슬롯/네이티브 회귀와 새 패키지·전체 복원을 확인했다. 상세 증거·실패 이력·2세대 백업은 [자식 추가 검증 기록](VALIDATION_V821_CHILD_INSERT.md)에 둔다.
 
 빈 자식의 첫 entry 생성·내부 삭제·복합 생성/분해·여러 frame/새 셀 공동 편집·슬롯 내부·private 네이티브 보기와 지원하지 않는 문맥은 남아 있다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이며 교차 패키지와 구별한다. 구 Reference reader 제약과 과거 초기 빈 화면 원인은 미확정으로 유지한다. main과 Sites는 변경하지 않는다.
+
+
+## 직접 소유 자식 경로의 읽기 전용 네이티브 미리보기
+
+직접 소유한 독립 직렬 nested-profile tree의 일반 code leaf 하나에서, 같은 root emitter가 실제 생성한 정확한 전체 경로의 C# body/members 스냅샷을 읽기 전용으로 표시한다. physical root·전체 자식 경로·root/frame 해시·완전한 source 관측·checkpoint를 서버에서 확인하고, 생성 뒤 원본과 checkpoint를 다시 검사한다. root 전체/형제 private 본문을 자식 응답에 넣지 않고 문자열 절단이나 별도 재생성도 하지 않는다. 입력·경로·관측 변경이나 실패에는 코드 표시를 비우며, 기존 권한·원문·Review/Confirm·CAS·저장 형식을 유지한다.
+
+고정 소스 `42d28235fa2508ae3f1c48c2b7eba4a0f14bdfad`의 신규 23단계·실패 0·재사용 0이 실제 Linux 앱/엔진에서 통과했다. 같은 local ID의 두 형제, 실제 emitter 결과/해시, 무변경·읽기 권한·stale 거절·늦은 응답과 cold 입력 보존, 기존 네이티브/자식/복합/분기/일반/슬롯 회귀, 새 패키지와 전체 복원을 확인했다. 공유 조상에 대한 실제 preview metadata 가드도 별도로 거절을 확인했다. 자세한 근거·개발 검사 이력·2세대 백업은 [자식 미리보기 검증 기록](VALIDATION_V821_CHILD_PREVIEW.md)에 둔다.
+
+이전 private 미지원 범위 중 위 leaf 하나만 연 첫 단위다. 상위 복합 전체·branch/shared·opaque/receiver/forwarded·async·슬롯·상속/복사·독립 properties-view 문맥, 직접 private C# 편집과 비어 있지 않은 helper 멤버 검증은 남아 있다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이며, 교차 패키지/managed 앱의 Linux 검사와 구분한다. 구 Reference reader 제약과 과거 초기 빈 화면 원인은 이번 결과로 해소됐다고 단정하지 않는다. main과 Sites는 변경하지 않는다.
