@@ -50,6 +50,24 @@ try:
    panel().locator('[data-native-save]').click();f.idle();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=90000);assert read_native()['source']==candidate;x.original();assert not f.pending()['blueprint']
    panel().locator('[data-native-undo]').click();f.idle();expect(editor).to_have_value('return input+3;');panel().locator('[data-native-redo]').click();f.idle();expect(editor).to_have_value(candidate);x.original()
    restart(2);editor=panel().locator('[data-native-source]');expect(editor).to_have_value(candidate);assert read_native()['source']==candidate;x.original();f.checked('native Save stages one exact body and source history; shared Undo/Redo and cold checkpoint retain source without graph conversion or original writes')
+   # Hold the actual engine Save result while typing a later private value.
+   submitted=candidate+'\n// 동시 저장 α';late=submitted+'\n// 응답 전 추가 입력 β 😀';requests=set();paused={}
+   def interrupt(route):
+    body=route.request.post_data_json
+    if body.get('op')=='invoke'and body.get('endpoint')=='blueprint'and body.get('input',{}).get('action')=='saveNative':requests.add(body['requestId'])
+    response=route.fetch();payload=response.json()
+    if not paused and any(row.get('ok')and row.get('requestId')in requests for row in payload.get('results',[])):paused.update(route=route,response=response);return
+    route.fulfill(response=response,json=payload)
+   editor.fill(submitted);f.page.route('**/api/request',interrupt);panel().locator('[data-native-save]').click()
+   for _ in range(1000):
+    if paused:break
+    f.page.wait_for_timeout(30)
+   assert paused and len(requests)==1;editor.fill(late);paused['route'].fulfill(response=paused['response']);f.page.unroute('**/api/request',interrupt);f.idle();assert read_native()['source']==submitted;assert any(value.get('text')==late for _,value in f.pending()['blueprint'])
+   restart(100);expect(panel().locator('[data-native-source]')).to_have_value(late);panel().locator('[data-native-save]').click();f.idle();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=90000);candidate=late;assert read_native()['source']==candidate;assert not f.pending()['blueprint'];x.original();f.checked('late native input survives an actual held Save response and cold restart; the next Save applies only the later source')
+   native_file=f.project/'Native.csbody';original=native_file.read_bytes();checkpoint_before=checkpoint.read_bytes();observed=read_native();native_file.write_bytes(original+b'\n// peer before Save')
+   try:f.invoke('blueprint',dict(action='saveNative',feature=feature,id=observed['id'],sources=observed['sources'],checkpointHash=observed['checkpointHash'],text='return 123;'),False);assert read_native()['source']==candidate;assert checkpoint.read_bytes()==checkpoint_before;assert native_file.read_bytes()==original+b'\n// peer before Save'
+   finally:native_file.write_bytes(original)
+   f.checked('native Save checks original source baselines inside checkpoint CAS and preserves a peer file change without live/checkpoint mutation')
    stale=read_native();stale['sources'][0]['hash']='0'*64
    f.invoke('blueprint',dict(action='saveNative',feature=feature,id=stale['id'],sources=stale['sources'],checkpointHash=stale['checkpointHash'],text='return 999;'),False);assert read_native()['source']==candidate;x.original();f.checked('native direct Save rejects forged/stale source closure without mutation')
    saved('return MissingNativeSymbol;');r=review();r.locator('#confirm').click();expect(r.locator('#confirm')).to_be_disabled(timeout=120000);f.idle();assert f.state()['review']['status']=='invalid';assert read_native()['source']=='return MissingNativeSymbol;';x.original();r.locator('[data-reject]').click();saved(candidate);f.checked('native compiler failure rejects Confirm and retains the invalid draft and all originals for explicit correction')

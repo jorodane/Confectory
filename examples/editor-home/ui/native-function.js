@@ -26,6 +26,7 @@ export function mountNativeFunction(root,api){
  async function save(complete=false){
   if(!owns()||writing)return;writing=true;message('저장 중…');
   try{
+   if(api.otherPending?.())throw Error('같은 원본의 다른 편집 입력을 먼저 저장해 주세요. 네이티브 입력은 유지됩니다.');
    const held=pending(),captured=held&&structuredClone(held);
    if(captured){if(!matches(captured))throw Error('소스가 바뀌었습니다. 입력은 보존됩니다. 원본과 비교한 뒤 다시 열어 주세요.');const result=await api.save(captured);if(!owns())return;if(result.id!==data.id||result.checkpointSaved!==true)throw Error('저장 응답을 확인하지 못했습니다. 입력은 보존됩니다.');if(JSON.stringify(pending())===JSON.stringify(captured)){api.inputs.delete(key);api.persist();}await refresh(captured);}
    else await refresh();
@@ -33,7 +34,7 @@ export function mountNativeFunction(root,api){
   }catch(error){if(owns())message(error.message==='consumer_error'?'네이티브 초안을 저장하지 못했습니다. 입력은 보존됩니다. 저장 권한과 원본 충돌을 확인해 주세요.':error.message||'저장하지 못했습니다. 입력은 보존됩니다.');}finally{writing=false;}
  }
  async function history(redo){
-  if(!owns()||writing)return;if(pending()){message('저장하지 않은 입력을 먼저 확인해 주세요. 텍스트 실행 취소는 편집기에서 사용할 수 있습니다.');return;}
+  if(!owns()||writing)return;if(pending()||api.otherPending?.()){message('저장하지 않은 입력을 먼저 확인해 주세요. 텍스트 실행 취소는 편집기에서 사용할 수 있습니다.');return;}
   writing=true;try{await api.history(redo);await refresh();}catch(error){if(owns())message(error.message);}finally{writing=false;}
  }
  root.querySelector('[data-native-save]').onclick=()=>api.work(()=>save());root.querySelector('[data-native-complete]').onclick=()=>api.work(()=>save(true));

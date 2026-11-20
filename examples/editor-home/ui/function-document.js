@@ -36,7 +36,7 @@ export function mountFunctionDocument(root,api){
  nav.innerHTML='<button type="button" role="tab" data-function-view="logic">논리 코드</button><button type="button" role="tab" data-function-view="native">네이티브 미리보기</button><button type="button" role="tab" data-function-view="blueprint">블루프린트 보기</button>';
  root.querySelector('.bp-toolbar').after(nav);
  const host=document.createElement('section');host.className='function-document';host.tabIndex=-1;host.setAttribute('role','tabpanel');host.setAttribute('aria-label','논리 코드');root.append(host);
- const preview=document.createElement('section');preview.className='function-native-preview function-document';preview.hidden=true;preview.setAttribute('role','tabpanel');preview.setAttribute('aria-label','네이티브 미리보기');root.append(preview);
+ const preview=document.createElement('section');preview.className='function-native-preview';preview.hidden=true;preview.setAttribute('role','tabpanel');preview.setAttribute('aria-label','네이티브 미리보기');root.append(preview);
  root.classList.add('has-function-document');
  function persist(){
   if(!owns())return;

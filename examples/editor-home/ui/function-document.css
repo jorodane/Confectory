@@ -3,8 +3,8 @@
 .fd-view-tabs [aria-selected=true]{color:#ffdda5;border-color:#796648;background:#393124}
 .fd-view-tabs button:disabled{opacity:.45;cursor:default}
 .blueprint-editor.fd-logic>.bp-layout,.blueprint-editor.fd-logic>.bp-mobile-flow,.blueprint-editor.fd-logic .bp-mobile-tools,.blueprint-editor.fd-logic>.bp-tools{display:none!important}
-.function-document{min-height:0;flex:1;overflow:auto;padding:18px clamp(10px,3vw,36px);background:#181818;color:#e2e2e2;overscroll-behavior:contain}
-.function-document[hidden],.function-document [hidden]{display:none!important}
+.function-document,.function-native-preview{min-height:0;flex:1;overflow:auto;padding:18px clamp(10px,3vw,36px);background:#181818;color:#e2e2e2;overscroll-behavior:contain}
+.function-document[hidden],.function-native-preview[hidden],.function-document [hidden],.function-native-preview [hidden]{display:none!important}
 .fd-document-title{max-width:900px;margin:0 auto 16px;font-size:18px;font-weight:600}
 .fd-cell{max-width:900px;margin:0 auto 14px;border:1px solid #454545;border-radius:7px;background:#232323;overflow:hidden}
 .fd-cell-header{display:flex;align-items:center;gap:8px;min-height:44px;padding:5px 9px;background:#2c2c2c;border-bottom:1px solid #414141}
