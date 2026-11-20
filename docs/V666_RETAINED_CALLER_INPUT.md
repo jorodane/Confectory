@@ -11,3 +11,5 @@
 기존 workspace1·receipt3/nativeBodyContexts에 최초 타입/사용처/호출자/본문 계획을 보존한다. cold에서는 원본 전체 후보를 재생하고 정확한 source/group/read 경계를 확인한다. 후속 설명과 callee 본문 Save에서도 최초 계약·선택·물리 읽기 버전을 유지한다. 권한·Review/Confirm·최종 CAS, 정의별 struct·종류 enum·모듈 interface와 명시 async 전환 전 sync caller 오류를 유지한다. 새 형식·profile·receipt 필드·자동 cast/변환·C# 생성은 추가하지 않는다.
 
 callee 변경과 함께 묶는 caller의 여러 입력/다른 구조·ref/out·반환, callee 자체 입력 타입/native ABI의 동시 변경, whole/private/opaque 다중 계약 일치 계획은 별도 잔여다. 소비되는 private 반환과 copy/registered/forwarded 관측 closure, 구 reader migration도 남는다. 이번 대표 흐름을 모든 타입 조합이나 전체 UI 완료로 세지 않는다. 실제 Windows/물리 기기·전체 UI는 별도 검증 대상이며 초기 빈 화면 원인은 미확정이다.
+
+[최종 신규38·재사용0 검증](VALIDATION_V666_RETAINED_CALLER_INPUT.md)을 마쳤다.

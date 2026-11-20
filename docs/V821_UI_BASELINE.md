@@ -6,7 +6,11 @@
 
 요청에서 지정한 Library ID는 `libfile_84b30a4819008191bedd1fd471e3a85d`다. 현재 Library 안내에 따라 정확한 ID를 준비하고 소비 환경의 별도 경로로 전달을 시도한 뒤, 지원되는 `/workspace` 목적지에서 한 번 재시도했다. 두 번 모두 전송 도구가 `download failed`를 반환했고 실제 파일은 생성되지 않았다. 이어 사용자가 다시 첨부한 `sediment://file_00000000fec4820687d88f2ef3e1d98b`도 정확한 파일 ID로 준비했지만 전송이 실패했다. 응답 metadata의 이름은 `Confectory-v821.7z`, 크기는 19,040,042bytes다. 크기 일치는 바이트 동일성의 증거가 아니며 압축 파일 SHA, 압축 해제 및 내부 파일은 미확인이다.
 
+전송 응답의 정규 Library ID `libfile_fde3_f-84b30a4819008191bedd1fd471e3a85d_df25fe9156c48191955dc4385d783ffa`와 file ID `file_00000000ed9c81fdacd0e7240b540eed`는 후속 전달된 정확한 참조와 일치한다. 별도 환경에서 수신해 읽은 동일 이름·크기 7z의 비교용 SHA-256은 `f98a9ec73b750839cd5d66454f90b6cdd53d0bf0205a34e733c17e2ba001e2f6`로 전달받았다. 이 환경에는 아직 실제 수신 파일이 없으므로 이 해시를 로컬 검증 결과로 쓰지 않는다. 접근이 복구되면 실제 수신 바이트를 해시로 대조한다.
+
 읽기 전용 HTTP 진단에서 일반 GitHub HTTPS 요청은 200이고, 첨부 다운로드 호스트 `sdmntprwestus3.oaiusercontent.com`의 프록시 연결은 `Tunnel connection failed: 403 Forbidden`이다. 로컬 DNS 실패만으로 전송 원인을 판단하지 않는다. 네트워크 정책·권한을 확장하거나 기존 파일을 덮어쓰는 우회는 하지 않았다. 이 차단이 해소되기 전에는 첨부 소스 및 화면을 읽었다고 기록하지 않는다.
+
+2026-11-20 사용자는 해당 호스트 허용을 게시하려다 오류가 났고 환경 담당 대화에서는 허용돼 있다고 안내받았다고 전달했다. 재확인한 실행 환경의 시작 정책과 live 프록시 상태에는 해당 호스트가 표시되지 않았고 실제 HTTPS 연결의 403도 계속됐다. 환경 상태 조회는 한 차례 `UNAVAILABLE / Sheep MCP session closed: RPC INTERNAL`을 반환했으며 해당 환경의 진단 캡처 metadata는 `not_found`였다. 다음 상태 조회는 복구됐고 동일 환경의 desired/observed revision `672`, `observations_current=true`, `network_policy.state=enforced`였지만 유효 허용 목록에 해당 호스트는 없었다. 셸 및 기존 검증 프로세스는 계속 실행됐다. 설정 게시 오류의 원인이나 호스트 허용 반영 완료를 단정하지 않으며 환경 재생성·초기화나 프록시 우회는 하지 않는다.
 
 Sites를 변경하지 않고 해당 프로토타입의 버전 metadata를 읽어 다음 두 source를 확인했다.
 
@@ -36,7 +40,7 @@ Sites를 변경하지 않고 해당 프로토타입의 버전 metadata를 읽어
 | 1 | 문서형 기능 편집 화면·기존 보기의 실제 동작, 탭·접힘·핀 배치를 로컬에서 확인 | 첨부 전송 차단으로 대기 |
 | 2 | 같은 실제 graph의 수직 셀 핵심 흐름과 기존 Blueprint 보기 전환을 연결 | 미구현. 목업을 추정해 대체하지 않음 |
 | 3 | 실제 입력·출력·실행 순서 및 명시 분기 선택을 기존 공유 초안에 연결 | 기존 계약·권한·입력 복구·원문 보호를 유지하며 구현 예정 |
-| 4 | Save/cold·Undo/Redo·Review/Confirm·CAS 및 기존 보기 회귀 검증 | 기존 미게시 계약 저장 검증을 독립적으로 마무리하며 새 UI 회귀는 구현 뒤 실행 |
+| 4 | Save/cold·Undo/Redo·Review/Confirm·CAS 및 기존 보기 회귀 검증 | 기존 미게시 계약 저장은 [별도 검증 완료](VALIDATION_V666_RETAINED_CALLER_INPUT.md). 새 수직 셀·보기 전환 회귀는 미실행 |
 | 5 | `CHANGES-v666-v821` 전체와 실제 소스·엔진 대조 및 나머지 우선순위 | 원본 미열람으로 미실행 |
 
 현재 엔진의 주요 접점은 `examples/editor-home/ui/blueprint.js`(공유 graph 읽기·선택·적용·Save·Review), `blueprint-viewport.js`(기존 배치·카메라), `blueprint-pins.js`(기존 연결), `blueprint-code-editor.js`(보호된 C# 본문 편집), `element-functions.js`(함수 계약과 명시 대응)다. 파일을 읽어 확인한 구조이며 새 목업과의 시각·동작 대조 결과는 아니다. 체크아웃과 상위 작업공간에서 `AGENTS.md` 및 추가 `.agents/skills` 지시는 발견하지 못했다.
@@ -50,3 +54,5 @@ Sites를 변경하지 않고 해당 프로토타입의 버전 metadata를 읽어
 중단된 검증 record `c75b77a82eb84a0ebfc37e39c792737e`는 `running` 표시와 12단계 통과 기록이 남아 있으나 해당 프로세스 및 `/tmp/cv-7gttyl3b` 작업공간은 현재 없다. 이전의 `/tmp/cv-5xgaibtx`도 현재 없다. 이 재개 작업에서 두 경로를 삭제하지 않았으며 사라진 원인을 단정하지 않는다. 소스 커밋·영구 로그, 개발·첫 실패·원인 분리 검증의 보관 증거 및 latest/rollback 패키지는 존재한다. 없어진 임시 실행을 완료로 바꾸거나 남은 단계가 통과했다고 기록하지 않는다. 실제 실행 중인 검증이 없음을 확인한 뒤 기존 미게시 변경의 별도 신규 검증을 시작했고, 이전 12단계를 신규 통과 결과로 합산하지 않는다.
 
 이번 기준 기록은 실제 Windows/WebView2·물리 기기·전체 UI 검증이 아니다. v821 로컬 목업의 시각·동작 및 새 수직 셀은 아직 검증하지 않았다. 과거 초기 빈 화면과 복원 시간 초과의 원인은 미확정으로 유지한다. 개별 엔진 검증 결과는 해당 검증 문서에 따로 기록한다.
+
+기존 미게시 caller 입력 타입·callee 계약/본문 공동 저장 변경은 runtime `ba352b4c8d91f17ff1a81ead2dbb13728e828d7a`의 [신규38단계·재사용0·실패0](VALIDATION_V666_RETAINED_CALLER_INPUT.md)으로 독립적으로 마무리했다. LF17·CRLF13·새 패키지/전체 복원/실패 수명8건이며 실제 Linux engine/Chromium의 정보 창을 확인했다. 보관 증거와 패키지를 검증한 뒤 이번에 생성한 인증된 임시 작업공간만 정리했다. v821 기준 및 후속 검증 기록은 문서 변경이며 이 runtime 이후 제품 코드는 바꾸지 않았다. 2026-11-20 00:21 UTC의 마지막 첨부 호스트 점검도 프록시 연결 403이었다. 수직 셀 첫 구현 단위는 아직 완료되지 않았으며, 파일 수신·기대 SHA 대조·목업 대조 뒤 진행한다.
