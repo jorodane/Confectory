@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)에 둔다. 앞선 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md)에 둔다. 앞선 [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -98,3 +98,12 @@ Sites를 변경하지 않고 해당 프로토타입의 버전 metadata를 읽어
 고정 소스 `c556cf783022120d297bfcdb36dfd27e1a30563e`의 신규 21단계·실패 0·재사용 0이 실제 Linux 앱/엔진, 새 패키지·전체 복원과 일반 셀/네이티브 회귀에서 통과했다. 원문·권한·Review/Confirm·CAS와 기존 표시 없는 Blueprint API를 보존한다. 프로젝트 그래프/체크포인트 버전과 런타임 분기 의미는 바꾸지 않았다. 상세 증거와 저장 후 history 경계는 [분기 검증 기록](VALIDATION_V821_BRANCH_CELLS.md)에 둔다.
 
 복합/슬롯/private 구조 편집과 개별 private 네이티브 보기는 남아 있다. 이번 신규 검사는 LF 체크아웃이며 Windows 패키지 생성과 실제 Windows 실행을 구별한다. 실제 Windows/WebView2·물리 기기·전체 UI·원본 목업 시각 대조와 신규 CRLF 실행은 미실행이다. 과거 초기 빈 화면의 원인은 미확정으로 유지한다.
+
+
+## 복합 호출 셀을 보존하는 순서 편집
+
+직접 소유한 nested-profile root의 완전한 직렬 흐름에서는 복합 셀 전체와 주변 일반 셀을 같은 상위 순서에서 이동할 수 있다. 자식 graph·노드·본문과 입출력·호출/종료 경계는 재작성하지 않는다. 값 의존성 위반과 공유/분기 진입, 다른 frame·소유자, 슬롯/copy·opaque/receiver·async 문맥을 거절한다. 내부 탐색과 기존 보기, 조건 탭 규칙은 유지하며 새 셀 추가·내부 구조 편집은 이 경로에 허용하지 않는다.
+
+고정 소스 `dfd80058d7e2f6ddd217e2adb5588e73546188e7`의 신규 24단계·실패 0·재사용 0이 실제 Linux 앱/엔진, 일반·분기·네이티브 회귀, 새 패키지·전체 복원에서 통과했다. 이동은 기존 개인/공유 Undo/Redo를 사용하고 원문·권한·Review/Confirm·CAS와 이전 정상 패키지를 보존했다. 상세 증거와 정확한 지원 경계는 [복합 셀 검증 기록](VALIDATION_V821_COMPOUND_CELLS.md)에 둔다.
+
+복합 생성/분해와 내부 구조 추가·이동, 슬롯 배정/내부 구조는 후속 범위다. private 네이티브 보기와 실제 Windows는 이번 단위에 섞지 않았다. 신규 실행은 LF이며 실제 Windows/WebView2·물리 기기·전체 UI·원본 목업 시각 대조·신규 CRLF 실행은 미실행이다. 과거 초기 빈 화면의 원인은 미확정이다.
