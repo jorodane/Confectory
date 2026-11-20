@@ -979,6 +979,7 @@ function blueprintNormalizeControls(scope){
  async function nativeView(w,row){
   const data=await call(w,{action:'readNative',feature:w.meta.id,id:row.id});
   if(!owns(w))throw Error('편집 대상이 바뀌었습니다. 입력은 유지됩니다.');
+  if(api.openWindow('blueprint',displayName(w.authorInfo||{id:w.meta.id})+' · 네이티브 코드',850,600,{refresh:true})!==w)throw Error('편집 창이 바뀌었습니다. 입력은 유지됩니다.');
   w.meta.implementationBody=row.id;w.meta.nativeBody=row.id;delete w.meta.conversionDraft;delete w.meta.blueprintGraph;
   const scope=w.authorScope,generation=w.authorGeneration,alive=()=>owns(w,scope)&&!w.el.hidden&&w.authorGeneration===generation;
   w.authorCleanup?.();w.authorData=null;w.body.innerHTML='<section class="blueprint-editor" aria-label="네이티브 기능 편집기"></section>';

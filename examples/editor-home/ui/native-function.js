@@ -29,13 +29,13 @@ export function mountNativeFunction(root,api){
    if(api.otherPending?.())throw Error('같은 원본의 다른 편집 입력을 먼저 저장해 주세요. 네이티브 입력은 유지됩니다.');
    const held=pending(),captured=held&&structuredClone(held);
    if(captured){if(!matches(captured))throw Error('소스가 바뀌었습니다. 입력은 보존됩니다. 원본과 비교한 뒤 다시 열어 주세요.');const result=await api.save(captured);if(!owns())return;if(result.id!==data.id||result.checkpointSaved!==true)throw Error('저장 응답을 확인하지 못했습니다. 입력은 보존됩니다.');if(JSON.stringify(pending())===JSON.stringify(captured)){api.inputs.delete(key);api.persist();}await refresh(captured);}
-   else await refresh();
+   else{const snapshot={id:data.id,text:data.source,sources:structuredClone(data.sources),checkpointHash:data.checkpointHash};const result=await api.save(snapshot);if(!owns())return;if(result.id!==data.id||result.checkpointSaved!==true)throw Error('초안 저장을 확인하지 못했습니다. 현재 소스는 유지됩니다.');await refresh(snapshot);}
    if(complete){if(pending())throw Error('저장 도중 추가한 입력은 유지됩니다. 먼저 새 입력을 저장해 주세요.');await api.review(data.reviewIds);}
   }catch(error){if(owns())message(error.message==='consumer_error'?'네이티브 초안을 저장하지 못했습니다. 입력은 보존됩니다. 저장 권한과 원본 충돌을 확인해 주세요.':error.message||'저장하지 못했습니다. 입력은 보존됩니다.');}finally{writing=false;}
  }
  async function history(redo){
   if(!owns()||writing)return;if(pending()||api.otherPending?.()){message('저장하지 않은 입력을 먼저 확인해 주세요. 텍스트 실행 취소는 편집기에서 사용할 수 있습니다.');return;}
-  writing=true;try{await api.history(redo);await refresh();}catch(error){if(owns())message(error.message);}finally{writing=false;}
+  writing=true;try{await api.history(redo);await refresh();if(owns())message((redo?'다시 실행됨':'실행 취소됨')+' · 저장 전 초안');}catch(error){if(owns())message(error.message);}finally{writing=false;}
  }
  root.querySelector('[data-native-save]').onclick=()=>api.work(()=>save());root.querySelector('[data-native-complete]').onclick=()=>api.work(()=>save(true));
  root.querySelector('[data-native-convert]').onclick=()=>{if(!owns()||writing)return;if(pending()){message('입력을 먼저 저장해 주세요. 변환 전 원본은 유지됩니다.');return;}if(data.sources.find(row=>row.id===data.id)?.hash!==data.sources.find(row=>row.id===data.id)?.baseline){message('네이티브 초안을 먼저 검토·확정한 뒤 변환해 주세요.');return;}api.work(api.convert);};
