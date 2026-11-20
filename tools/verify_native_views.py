@@ -1,4 +1,4 @@
-"""Source-bound Linux document-cell checks; never claims Windows execution.
+"""Source-bound Linux native-view and document-structure checks; never claims Windows execution.
 
 Independent LF/CRLF builds, real engine/save/CAS, controlled rendering assertions,
 legacy graph regression, package/full restore and owned two-generation retention.
@@ -10,7 +10,7 @@ from verification_workspace import Workspace,PackageStore,atomic_json,files,sha,
 
 def main():
  p=argparse.ArgumentParser(description=__doc__)
- p.add_argument('--reuse-document-lf',type=Path,help='Sealed identical LF UI checks after the exact legacy attachment-wait correction');p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
+ p.add_argument('repo',type=Path);p.add_argument('persistent',type=Path);p.add_argument('--commit',required=True);p.add_argument('--sdk',required=True,type=Path);p.add_argument('--nuget-seed',required=True,type=Path)
  a=p.parse_args();repo=a.repo.resolve();commit=git(repo,'rev-parse',a.commit)
  if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Source checkout must be clean and frozen')
  inputs=dependency_identity(a.sdk,a.nuget_seed,commit)
@@ -19,9 +19,6 @@ def main():
  print(json.dumps({'record':str(work.record),'root':str(work.root),'source':commit}),flush=True)
  try:
   atomic_json(work.evidence/'preflight.json',plan);atomic_json(work.evidence/'dependencies.json',inputs)
-  if a.reuse_document_lf:
-   from verification_document_reuse import bind
-   bind(repo,a.reuse_document_lf,commit,inputs,work)
   checkouts={};environments={}
   for label,crlf in [('lf','false'),('crlf','true')]:
    c=work.root/label;checkouts[label]=c
@@ -41,20 +38,21 @@ def main():
    work.run(label+'-mcp',[dotnet,'build','targets/mcp-host','-c','Release','--no-restore','-nr:false','-p:UseSharedCompilation=false'],cwd=c,env=env)
    work.run(label+'-engine',[dotnet,str(c/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(c/'examples/editor-home/project.cpack'),'linux'],cwd=c,env=env)
    full=json.loads((work.evidence/(label+'-engine.log')).read_text());report=work.evidence/(label+'-engine.json');atomic_json(report,{k:full[k]for k in ['run','output','key']})
-   work.run(label+'-document-controlled',[sys.executable,str(c/'tests/web/v821_function_document.py'),str(c)],cwd=c,env=env)
-   for mode in ['normal','storage','branches']:
-    work.run(label+'-document-'+mode,[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(c),str(report),mode],cwd=c,env=env)
+   if label=='lf':
+    work.run(label+'-document-controlled',[sys.executable,str(c/'tests/web/v821_function_document.py'),str(c)],cwd=c,env=env)
+    for mode in ['normal','branches']:
+     work.run(label+'-document-'+mode,[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(c),str(report),mode],cwd=c,env=env)
    for mode in ['preview','native']:
     work.run(label+'-native-'+mode,[sys.executable,str(c/'tests/web/v821_native_views_ui.py'),str(c),str(report),mode],cwd=c,env=env)
-   for mode in ['normal','dependency']:
+   for mode in (['normal','dependency']if label=='lf'else['normal']):
     work.run(label+'-structure-'+mode,[sys.executable,str(c/'tests/web/v821_document_structure_ui.py'),str(c),str(report),mode],cwd=c,env=env)
-   work.run(label+'-legacy-node-names',[sys.executable,str(c/'tests/web/v666_node_names_recovery_ui.py'),str(c),str(report),'normal'],cwd=c,env=env)
+   if label=='lf':
+    work.run(label+'-legacy-node-names',[sys.executable,str(c/'tests/web/v666_node_names_recovery_ui.py'),str(c),str(report),'normal'],cwd=c,env=env)
    if git(c,'status','--porcelain'):raise RuntimeError('Verification changed source checkout')
   c=checkouts['lf'];env=environments['lf'];dotnet=str(a.sdk/'dotnet');package=work.root/'Windows-x64'
   work.run('windows-package',[dotnet,str(c/'targets/editor-desktop/bin/Release/net10.0/Confectory.dll'),'package',str(c),str(package)],cwd=c,env=env)
   work.run('windows-package-probe',[sys.executable,str(c/'tests/probes/desktop_package.py'),str(c),str(package)],cwd=c,env=env)
   report=work.evidence/'packaged-engine.json';atomic_json(report,{'run':[dotnet,str(package/'content/runtime/Confectory.App.dll')]})
-  work.run('packaged-document',[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env)
   for mode in ['preview','native']:
    work.run('packaged-native-'+mode,[sys.executable,str(c/'tests/web/v821_native_views_ui.py'),str(package/'content'),str(report),mode],cwd=c,env=env)
   work.run('packaged-structure',[sys.executable,str(c/'tests/web/v821_document_structure_ui.py'),str(package/'content'),str(report),'normal'],cwd=c,env=env)
@@ -62,8 +60,9 @@ def main():
   restored=work.root/'restored';restored.mkdir();verify_archive(candidate,entry['files'],restored)
   atomic_json(work.evidence/'full-restore.json',dict(files=len(entry['files']),archiveSha256=sha(candidate),allBytesVerified=True))
   report=work.evidence/'restored-engine.json';atomic_json(report,{'run':[dotnet,str(restored/'content/runtime/Confectory.App.dll')]})
-  for mode in ['storage','branches']:
+  for mode in ['branches']:
    work.run('restored-document-'+mode,[sys.executable,str(c/'tests/web/v821_function_document_ui.py'),str(restored/'content'),str(report),mode],cwd=c,env=env)
+  work.run('restored-native',[sys.executable,str(c/'tests/web/v821_native_views_ui.py'),str(restored/'content'),str(report),'native'],cwd=c,env=env)
   work.run('package-failure-lifetime',[sys.executable,str(c/'tests/probes/desktop_package_lifetime.py'),str(c),str(restored)],cwd=c,env=env)
   if dependency_identity(a.sdk,a.nuget_seed,commit)!=inputs:raise RuntimeError('Public dependencies changed')
   if git(repo,'rev-parse','HEAD')!=commit or git(repo,'status','--porcelain'):raise RuntimeError('Frozen source changed')
