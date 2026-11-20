@@ -55,8 +55,8 @@ try:
    finally:checkpoint.chmod(0o600)
    restart(1);editor=panel().locator('[data-native-source]');expect(editor).to_have_value(candidate);assert read_native()['source']=='return input+3;';x.original();f.checked('pure native definitions have only the native-code surface; failed checkpoint Save preserves live draft, file bytes and cold input')
    panel().locator('[data-native-save]').click();f.idle();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=90000);assert read_native()['source']==candidate;x.original();assert not f.pending()['blueprint']
-   panel().locator('[data-native-undo]').click();f.idle();expect(editor).to_have_value('return input+3;');panel().locator('[data-native-redo]').click();f.idle();expect(editor).to_have_value(candidate);x.original()
-   restart(2);editor=panel().locator('[data-native-source]');expect(editor).to_have_value(candidate);assert read_native()['source']==candidate;x.original();f.checked('native Save stages one exact body and source history; shared Undo/Redo and cold checkpoint retain source without graph conversion or original writes')
+   panel().locator('[data-native-undo]').click();f.idle();expect(editor).to_have_value('return input+3;');panel().locator('[data-native-save]').click();f.idle();restart(2);editor=panel().locator('[data-native-source]');expect(editor).to_have_value('return input+3;');panel().locator('[data-native-redo]').click();f.idle();expect(editor).to_have_value(candidate);panel().locator('[data-native-save]').click();f.idle();x.original()
+   restart(200);editor=panel().locator('[data-native-source]');expect(editor).to_have_value(candidate);assert read_native()['source']==candidate;x.original();f.checked('native Save stages one exact body and source history; shared Undo/Redo and cold checkpoint retain source without graph conversion or original writes')
    # Hold the actual engine Save result while typing a later private value.
    submitted=candidate+'\n// 동시 저장 α';late=submitted+'\n// 응답 전 추가 입력 β 😀';requests=set();paused={}
    def interrupt(route):
