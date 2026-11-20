@@ -190,7 +190,7 @@ public static class BlueprintCellRegion
 
     sealed record TransferScope(Region[] Cases, HashSet<string> Movable);
 
-    static TransferScope ReadTransferScope(JsonObject graph)
+    static TransferScope ReadTransferScope(JsonObject graph, bool includeRoot=false)
     {
         Need(graph["schema"]?.GetValue<int>()==1 && (graph["locals"] is null or JsonArray {Count:0}),
             "Transfer requires a standalone switch with no local storage");
@@ -206,7 +206,7 @@ public static class BlueprintCellRegion
         Need(cases.Length==2,"Exactly two explicit non-primary cases required");
         var edges=graph["edges"]!.AsArray();
         var members=cases.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
-        Need(members.Count>0 && members.Count==cases.Sum(region=>region.Nodes.Count)
+        Need((includeRoot||members.Count>0) && members.Count==cases.Sum(region=>region.Nodes.Count)
             && nodes.Where(n=>n!["branchOwner"] is not null).All(n=>members.Contains(S(n,"id")))
             && edges.Where(e=>S(e,"from")==owner).All(e=>S(e,"port")=="next"||cases.Any(region=>region.Port==S(e,"port")))
             && edges.Any(e=>S(e,"from")==owner&&S(e,"port")=="next")
@@ -225,11 +225,98 @@ public static class BlueprintCellRegion
         }
         foreach(var node in nodes)ReadValueReferences(node!["arguments"]);
         ReadValueReferences(graph["exits"]);
-        var movable=nodes.Where(n=>members.Contains(S(n,"id")) && n!["signature"] is JsonObject signature
+        var movable=nodes.Where(n=>(includeRoot||members.Contains(S(n,"id"))) && S(n,"control")=="next"
+            && n!["signature"] is JsonObject signature
             && S(signature,"return")=="void" && signature["args"] is JsonArray {Count:0}
             && n["arguments"] is null or JsonObject {Count:0} && !referenced.Contains(S(n,"id")))
             .Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
         return new(cases,movable);
+    }
+
+    sealed record Lane(string Id, string Anchor, string Port, List<string> Order, string Exit);
+    sealed record ScopeTransfer(string Owner, List<Lane> Lanes, HashSet<string> Movable);
+
+    static ScopeTransfer ReadScopeTransfer(JsonObject graph)
+    {
+        var cases=ReadTransferScope(graph,true);
+        string owner=cases.Cases[0].Owner;
+        var root=graph["nodes"]!.AsArray().Where(n=>n!["branchOwner"] is null)
+            .Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
+        var edges=graph["edges"]!.AsArray();
+        Need(edges.Count==graph["nodes"]!.AsArray().Count+cases.Cases.Length,
+            "One authored continuation per ordinary node required");
+        var links=edges.Where(e=>S(e,"port")=="next").ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
+        var seen=new HashSet<string>(StringComparer.Ordinal);
+        string entry=S(graph,"entry"), at=entry, previous="";
+        var before=new List<string>();
+        var after=new List<string>();
+        bool passedSwitch=false;
+        while(root.Contains(at)){
+            string here=at;
+            Need(seen.Add(here) && edges.Where(e=>S(e,"to")==here)
+                .All(e=>S(e,"from")==previous&&S(e,"port")=="next"),"Keep the exclusive root execution chain");
+            if(here==owner)passedSwitch=true;
+            else (passedSwitch?after:before).Add(here);
+            previous=here;
+            at=links[here];
+        }
+        Need(passedSwitch && seen.SetEquals(root) && at.StartsWith("exit:",StringComparison.Ordinal)
+            && graph["exits"]!.AsObject().ContainsKey(at[5..]),"Retain the complete root chain and explicit exit");
+        var lanes=new List<Lane>{new("root-before","$entry","next",before,owner)};
+        // Keep the exact switch continuation. Its first cell may anchor an
+        // insertion after itself, but may never move or acquire a predecessor.
+        if(after.Count>0)lanes.Add(new("root-after",after[0],"next",after.Skip(1).ToList(),at));
+        lanes.AddRange(cases.Cases.Select(c=>new Lane(c.Port,owner,c.Port,c.Nodes,c.End)));
+        cases.Movable.IntersectWith(lanes.SelectMany(lane=>lane.Order));
+        return new(owner,lanes,cases.Movable);
+    }
+
+    static bool Case(Lane lane) => lane.Id.StartsWith("case:",StringComparison.Ordinal);
+
+    static JsonObject ScopeTransferOptions(ScopeTransfer scope) => new(){
+        ["owner"]=scope.Owner,
+        ["lanes"]=new JsonArray(scope.Lanes.Select(lane=>(JsonNode)new JsonObject{
+            ["id"]=lane.Id,["anchor"]=lane.Anchor,["port"]=lane.Port,["exit"]=lane.Exit,
+            ["order"]=System.Text.Json.JsonSerializer.SerializeToNode(lane.Order)
+        }).ToArray()),
+        ["movable"]=System.Text.Json.JsonSerializer.SerializeToNode(scope.Movable.Order(StringComparer.Ordinal))
+    };
+
+    static JsonObject TransferScopeBoundary(JsonObject graph, JsonArray edits)
+    {
+        Need(edits.Count==1 && edits[0] is JsonObject row && row.Count==3
+            && S(row,"action")=="crossCase" && row["definition"] is JsonObject plan && plan.Count==3,
+            "One exact scope transfer placement required");
+        var edit=edits[0]!;
+        var destination=edit["definition"]!;
+        string moved=S(edit,"node"), laneId=S(destination,"lane"), anchor=S(destination,"anchor"), side=S(destination,"side");
+        var scope=ReadScopeTransfer(graph);
+        Need(scope.Movable.Contains(moved),"Only one unconnected void cell may move between scopes");
+        var source=scope.Lanes.Single(lane=>lane.Order.Contains(moved));
+        var target=scope.Lanes.Single(lane=>lane.Id==laneId);
+        Need(Case(source)!=Case(target) && side is "before" or "after","Select a placement in the other execution scope");
+        int index=target.Order.IndexOf(anchor);
+        if(index>=0)index+=side=="after"?1:0;
+        else if(target.Id=="root-before"&&anchor==scope.Owner&&side=="before")index=target.Order.Count;
+        else if(target.Id=="root-after"&&anchor==target.Anchor&&side=="after")index=0;
+        else if(Case(target)&&target.Order.Count==0&&anchor=="$empty"&&side=="before")index=0;
+        Need(index>=0,"Select a cell in the observed destination or the empty case position");
+
+        source.Order.Remove(moved);
+        target.Order.Insert(index,moved);
+        var candidate=graph.DeepClone().AsObject();
+        var edges=candidate["edges"]!.AsArray().ToDictionary(e=>(S(e,"from"),S(e,"port")));
+        foreach(var lane in new[]{source,target}){
+            string first=lane.Order.FirstOrDefault()??lane.Exit;
+            if(lane.Anchor=="$entry")candidate["entry"]=first;
+            else edges[(lane.Anchor,lane.Port)]!["to"]=first;
+            for(int i=0;i<lane.Order.Count;i++)edges[(lane.Order[i],"next")]!["to"]=i+1<lane.Order.Count?lane.Order[i+1]:lane.Exit;
+        }
+        var node=candidate["nodes"]!.AsArray().Single(n=>S(n,"id")==moved)!.AsObject();
+        if(Case(target))node["branchOwner"]=scope.Owner;
+        else node.Remove("branchOwner");
+        ReadScopeTransfer(candidate);
+        return new JsonObject{["graph"]=candidate};
     }
 
     static JsonObject TransferOptions(TransferScope scope) => new(){
@@ -287,6 +374,11 @@ public static class BlueprintCellRegion
             Need(edits.Count==0,"Read transfer options without edits");
             return TransferOptions(ReadTransferScope(graph));
         }
+        if(action=="scope-transfer-options"){
+            Need(edits.Count==0,"Read scope transfer options without edits");
+            return ScopeTransferOptions(ReadScopeTransfer(graph));
+        }
+        if(action=="scope-transfer")return TransferScopeBoundary(graph,edits);
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);

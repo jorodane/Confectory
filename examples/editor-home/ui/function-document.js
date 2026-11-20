@@ -51,6 +51,8 @@ export function mountFunctionDocument(root,api){
  const fieldLabel=field=>esc(field.name||field.id)+' <small>'+esc((field.type||field.nativeType||'')+(field.multi?'[]':''))+'</small>';
  const dragTitle=actions=>{
   if(!actions?.drag)return '현재 입력과 편집 문맥에서는 드래그할 수 없습니다. 기존 입력은 유지됩니다.';
+  if(actions.cross&&actions.transfer)return '주 흐름이나 열린 분기의 셀 앞뒤에 놓아 실행 위치를 옮깁니다. 다른 분기의 탭에 놓으면 그 분기 끝으로 이동합니다.';
+  if(actions.cross)return '주 흐름이나 열린 분기의 셀 앞뒤에 놓아 실행 위치를 옮깁니다.';
   if(actions.transfer)return '다른 분기 탭에 놓으면 그 분기 끝으로 이동합니다. 같은 분기는 Alt+↑/↓로 이동할 수 있습니다.';
   return '같은 흐름 안에서 끌어 이동 · Alt+↑/↓';
  };
@@ -117,6 +119,28 @@ export function mountFunctionDocument(root,api){
    return {slot:null,transfer,x:rect.left,y:rect.bottom,width:rect.width};
   }
   const target=event.target.closest('[data-document-cell]'),parent=drag.parent;
+  const empty=event.target.closest('[data-document-branch-add]');
+  const area=empty?.parentElement||target?.parentElement;
+  if(drag.binding.cross&&area&&area!==parent){
+   const {owner,lanes}=drag.binding.cross,anchor=empty?'$empty':target.dataset.documentCell;
+   const panel=area.dataset.documentPanel,box=(empty||target).getBoundingClientRect();
+   const side=empty||event.clientY<box.top+box.height/2?'before':'after';
+   let lane;
+   if(panel&&area.closest('[data-document-cell]')?.dataset.documentCell===owner){
+    lane=lanes.find(row=>row.id===panel&&(row.order.includes(anchor)||empty&&!row.order.length));
+   }else if(area===host){
+    lane=lanes.find(row=>row.order.includes(anchor)||row.id==='root-before'&&anchor===owner&&side==='before'
+     &&event.target.closest('.fd-cell-header')?.parentElement===target
+     ||row.id==='root-after'&&anchor===row.anchor&&side==='after');
+   }
+   if(lane){
+    const transfer={lane:lane.id,anchor,side};
+    if(!api.canDropCell?.(drag.id,null,drag.binding,transfer))return null;
+    const bounds=host.getBoundingClientRect(),y=side==='before'?box.top-3:box.bottom+3;
+    if(y<bounds.top+3||y>bounds.bottom-3)return null;
+    return {slot:null,transfer,x:Math.max(bounds.left+5,box.left),y,width:Math.min(bounds.right-5,box.right)-Math.max(bounds.left+5,box.left)};
+   }
+  }
   if(!parent.isConnected||target&&target.parentElement!==parent||!target&&!parent.contains(event.target))return null;
   if(target&&!drag.binding.order.includes(target.dataset.documentCell)&&!(parent===host&&['$entry','$'+drag.binding.exit].includes(target.dataset.documentCell)))return null;
   const cells=drag.binding.order.map(id=>Array.from(parent.children).find(el=>el.dataset.documentCell===id));if(cells.some(el=>!el))return null;
@@ -127,7 +151,12 @@ export function mountFunctionDocument(root,api){
   return {slot,x:Math.max(rect.left,bounds.left+5),y,width:Math.min(rect.right,bounds.right-5)-Math.max(rect.left,bounds.left+5)};
  }
  host.addEventListener('dragover',event=>{
-  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();clearDrop();const target=dropPosition(event);event.dataTransfer.dropEffect=target?'move':'none';if(!target)return;drag.slot=target.slot;marker.toggleAttribute('data-branch-transfer',!!target.transfer);marker.firstElementChild.textContent=target.transfer?'분기 끝에 놓기':'여기에 놓기';Object.assign(marker.style,{left:target.x+'px',top:target.y+'px',width:target.width+'px'});document.body.append(marker);
+  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();clearDrop();const target=dropPosition(event);event.dataTransfer.dropEffect=target?'move':'none';if(!target)return;drag.slot=target.slot;
+  const lane=target.transfer?.lane,branch=lane?.startsWith('case:');
+  marker.toggleAttribute('data-branch-transfer',!!target.transfer&&!lane);
+  if(lane)marker.dataset.scopeTransfer=branch?'case':'root';else delete marker.dataset.scopeTransfer;
+  marker.firstElementChild.textContent=lane?(branch?'분기 안에 놓기':'주 흐름에 놓기'):target.transfer?'분기 끝에 놓기':'여기에 놓기';
+  Object.assign(marker.style,{left:target.x+'px',top:target.y+'px',width:target.width+'px'});document.body.append(marker);
  },{signal:events.signal});
  host.addEventListener('drop',event=>{
   if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();const token=event.dataTransfer.getData(dragType),target=dropPosition(event),moving=drag;cancelDrag();if(target&&token===moving?.token)api.dropCell?.(moving.id,target.slot,moving.binding,target.transfer);else render();
