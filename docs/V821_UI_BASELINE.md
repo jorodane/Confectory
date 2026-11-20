@@ -2,7 +2,7 @@
 
 2026-11-19 사용자가 일시정지를 해제하고 첨부 **Confectory-v821.7z**를 새 UI/UX 구현 기준으로 지정했다. 엔진 저장소는 `jorodane/Confectory`, 게시 대상은 `work/current`다. `main`, 강제 푸시, Sites 수정·배포는 대상이 아니다. [v666 원본과 수용 기록](V666_ACCEPTANCE.md)은 과거 비교·회귀 기준으로 보존하며 기존 기능·계약을 미구현으로 되돌리지 않는다.
 
-현재 구현·검증 상태는 [같은 switch의 case 사이 이동 기록](VALIDATION_V821_CASE_TRANSFER.md)에 둔다. [분기 포함 복합 호출 드래그 기록](VALIDATION_V821_SWITCH_COMPOUND_DRAG.md)도 보존한다. 앞선 [직렬 복합 호출 드래그 기록](VALIDATION_V821_COMPOUND_DRAG.md)도 보존한다. 앞선 [데스크톱 직렬 셀 드래그 기록](VALIDATION_V821_CELL_DRAG.md)도 보존한다. 앞선 [직접 소유 자식 경로의 네이티브 미리보기 기록](VALIDATION_V821_CHILD_PREVIEW.md)도 보존한다. 앞선 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)도 보존한다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
+현재 구현·검증 상태는 [주 흐름과 열린 case 사이 이동 기록](VALIDATION_V821_SCOPE_TRANSFER.md)에 둔다. [같은 switch의 case 사이 이동 기록](VALIDATION_V821_CASE_TRANSFER.md)도 보존한다. [분기 포함 복합 호출 드래그 기록](VALIDATION_V821_SWITCH_COMPOUND_DRAG.md)도 보존한다. 앞선 [직렬 복합 호출 드래그 기록](VALIDATION_V821_COMPOUND_DRAG.md)도 보존한다. 앞선 [데스크톱 직렬 셀 드래그 기록](VALIDATION_V821_CELL_DRAG.md)도 보존한다. 앞선 [직접 소유 자식 경로의 네이티브 미리보기 기록](VALIDATION_V821_CHILD_PREVIEW.md)도 보존한다. 앞선 [직접 소유 자식의 일반 동작 추가 기록](VALIDATION_V821_CHILD_INSERT.md)도 보존한다. 앞선 [직접 소유 슬롯의 기존 구현 교체 기록](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 보존한다. 앞선 [소유 자식 일반 셀 순서 편집 기록](VALIDATION_V821_CHILD_FRAME_ORDER.md)도 보존한다. 앞선 [복합 호출 셀 순서 편집 기록](VALIDATION_V821_COMPOUND_CELLS.md), [분기 내부 수직 셀 편집 기록](VALIDATION_V821_BRANCH_CELLS.md)과 [네이티브 보기·일반 셀 구조 편집 기록](VALIDATION_V821_NATIVE_STRUCTURE.md)도 보존한다. 아래의 첫 재개·첫 단위 대기 상태는 당시의 이력이다.
 
 ## 원본 식별과 실제 접근
 
@@ -174,3 +174,10 @@ primary 객체 카드에서 직접 붙인 소유 모듈의 기존 local 슬롯 �
 고정 구현 `87572a9d6c710bb82d7fb3f14c1a6e484f03cd59`에서 직접 소유한 기존 root switch의 독립적인 명시적 case 두 개 사이로 값 연결 없는 일반 void 셀을 옮길 수 있다. 논리 코드에서 상대 case 탭에 놓으면 끝에 추가된다. 명시적 종료점만 있는 빈 대상에도 놓을 수 있다. 각각의 종료점과 원래 switch 계속점, ID, 다른 바인딩과 C#의 원문을 보존하며 두 case의 실행 연결을 원자적으로 적용한다.
 
 독립 고정 소스로 19개 검증을 충족했다. 제품과 해당 단언이 동일한 첫 실행 6개와 후속 실행의 신규 13개로 구성된다. 실제 Linux에서 양방향 마우스·배치 표시·취소, 저장/재진입, 개인·공유 Undo/Redo, 양쪽 case의 컴파일·실행, 값 연결·공유 진입·읽기 전용 거절, Review/Confirm 충돌 보호, 기존 일반·분기 드래그, 패키지 전체 복원과 네이티브 편집을 검사했다. Windows 실기기·모바일·전체 UI·원본 목업의 직접 시각 대조는 미검증이다. [증거와 지원 경계](VALIDATION_V821_CASE_TRANSFER.md)
+
+
+## 주 흐름과 열린 case 사이 동작 이동
+
+고정 구현 `2f28d7f0d4ab4490d427ce859df090efa9f42827`에서 직접 소유한 root switch의 주 흐름과 열린 명시적 case 사이로 값 연결 없는 일반 void 셀을 옮긴다. 대상을 셀의 위·아래 또는 빈 case의 기존 추가 위치에서 선택한다. 기존 case 탭 끝 배치, switch 계속점, 각 case의 종료점과 C# 원문은 유지된다. 그래프와 옮긴 노드의 정의 해시는 하나의 Undo와 리뷰 범위를 이룬다.
+
+독립 LF의 신규 21단계에서 Linux 마우스·저장·재진입·Undo/Redo, 두 경로 실행, 거절·CAS 보호, 기존 드래그와 패키지 복원을 확인했다. 실제 Windows, 모바일, 전체 UI와 원본 목업의 직접 시각 대조는 미검증이다. [증거와 지원 경계](VALIDATION_V821_SCOPE_TRANSFER.md)
