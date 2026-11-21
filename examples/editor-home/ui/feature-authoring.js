@@ -713,10 +713,17 @@ function blueprintNormalizeControls(scope){
    const model={...mobileModel(),inputs:inputFields};
    const removal=saveEntries(w).find(([,value])=>value.type==='document-cell-remove')?.[1]?.node;
    if(!removal)return model;
-   const successor=model.links.find(link=>link.from===removal&&link.port==='next');
+   const successor=data.edges.find(edge=>edge.from===removal&&edge.port==='next');
    if(!successor)return model;
-   return {...model,nodes:model.nodes.filter(node=>node.id!==removal),
-    links:model.links.filter(link=>link.from!==removal).map(link=>link.to===removal?{...link,to:successor.to}:link)};
+   const links=model.links.flatMap(link=>{
+    if(link.from===removal)return [];
+    if(link.to!==removal)return [link];
+    const to=successor.to;
+    // Match an already saved empty case, whose direct return is not drawn.
+    if(caseLane(link.port))return to.startsWith('return:')?[]:[{...link,to}];
+    return [{...link,to:to.startsWith('exit:')?'$'+to:to}];
+   });
+   return {...model,nodes:model.nodes.filter(node=>node.id!==removal),links};
   };
   documentView=mountFunctionDocument(root,{...surface,context:w.authorScope+'|function-document|'+(w.meta.authorView||'primary')+'|'+(w.meta.slotOwner||'')+'|'+String(data.id||data.rootId||w.meta.id)+'|'+(data.privatePath||''),nativeDefinition:!!data.privateConversion,model:documentModel,
    removeCell:id=>{if(canRemoveDocumentCell(id)&&surface.closeValues('preserve')!==false)structuralEdit(w,()=>privateValue(w,id,'document-cell-remove',''));},

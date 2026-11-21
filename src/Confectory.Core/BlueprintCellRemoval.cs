@@ -14,11 +14,15 @@ public static class BlueprintCellRemoval
             graph["copySource"] is not null || graph["executionExitMode"]?.GetValue<bool>() == true ||
             graph["locals"] is not (null or JsonArray { Count: 0 }) ||
             graph["nodes"] is not JsonArray nodes || nodes.Count is < 2 or > 63 ||
-            graph["edges"] is not JsonArray edges || edges.Count != nodes.Count ||
+            graph["edges"] is not JsonArray edges ||
             graph["exits"] is not JsonObject exits)
             return [];
 
-        if (nodes.Any(node => Value(node, "kind") != "code" || Value(node, "control") != "next" ||
+        if (Value(graph, "profile") == FeatureBlueprint.SwitchProfile &&
+            nodes.Any(node => Value(node, "control") == "switch"))
+            return BlueprintCellRegion.RemovableCaseCells(graph);
+
+        if (edges.Count != nodes.Count || nodes.Any(node => Value(node, "kind") != "code" || Value(node, "control") != "next" ||
             new[] { "branchOwner", "executionEnum", "implementationContext", "contextBoundary", "retainedCode",
                 "sourceIdentity", "postCall", "executionSource", "graph" }.Any(field => node?[field] is not null) ||
             node?["async"]?.GetValue<bool>() == true || node?["forwardCallerStorage"]?.GetValue<bool>() == true))
@@ -53,7 +57,7 @@ public static class BlueprintCellRemoval
     public static JsonObject Remove(JsonObject graph, string id)
     {
         if (!Options(graph).Contains(id, StringComparer.Ordinal))
-            throw new ArgumentException("Only one unconnected void action in an explicit serial root can be removed");
+            throw new ArgumentException("Only one unconnected void action in an explicit serial root or case can be removed");
         var result = graph.DeepClone().AsObject();
         var nodes = result["nodes"]!.AsArray();
         nodes.Remove(nodes.Single(node => Value(node, "id") == id));

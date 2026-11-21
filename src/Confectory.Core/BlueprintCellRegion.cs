@@ -190,7 +190,7 @@ public static class BlueprintCellRegion
 
     sealed record TransferScope(Region[] Cases, HashSet<string> Movable);
 
-    static TransferScope ReadTransferScope(JsonObject graph, bool includeRoot=false)
+    static TransferScope ReadTransferScope(JsonObject graph, bool includeRoot=false, bool requirePair=true)
     {
         Need(graph["schema"]?.GetValue<int>()==1 && (graph["locals"] is null or JsonArray {Count:0}),
             "Transfer requires a standalone switch with no local storage");
@@ -203,7 +203,8 @@ public static class BlueprintCellRegion
         var execution=selector["executionEnum"]!.AsObject();
         var cases=execution["members"]!.AsArray().Where(m=>S(m,"id")!=S(execution,"primary"))
             .Select(m=>Read(graph,owner,"case:"+S(m,"id"))).ToArray();
-        Need(cases.Length==2,"Exactly two explicit non-primary cases required");
+        Need(requirePair ? cases.Length==2 : cases.Length is >0 and <64,
+            requirePair ? "Exactly two explicit non-primary cases required" : "Bounded explicit non-primary cases required");
         var edges=graph["edges"]!.AsArray();
         var members=cases.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
         Need((includeRoot||members.Count>0) && members.Count==cases.Sum(region=>region.Nodes.Count)
@@ -236,9 +237,9 @@ public static class BlueprintCellRegion
     sealed record Lane(string Id, string Anchor, string Port, List<string> Order, string Exit);
     sealed record ScopeTransfer(string Owner, List<Lane> Lanes, HashSet<string> Movable);
 
-    static ScopeTransfer ReadScopeTransfer(JsonObject graph)
+    static ScopeTransfer ReadScopeTransfer(JsonObject graph, bool requirePair=true)
     {
-        var cases=ReadTransferScope(graph,true);
+        var cases=ReadTransferScope(graph,true,requirePair);
         string owner=cases.Cases[0].Owner;
         var root=graph["nodes"]!.AsArray().Where(n=>n!["branchOwner"] is null)
             .Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
@@ -258,7 +259,8 @@ public static class BlueprintCellRegion
             if(here==owner)passedSwitch=true;
             else (passedSwitch?after:before).Add(here);
             previous=here;
-            at=links[here];
+            Need(links.TryGetValue(here,out string? next),"Keep every explicit root next route");
+            at=next!;
         }
         Need(passedSwitch && seen.SetEquals(root) && at.StartsWith("exit:",StringComparison.Ordinal)
             && graph["exits"]!.AsObject().ContainsKey(at[5..]),"Retain the complete root chain and explicit exit");
@@ -272,6 +274,20 @@ public static class BlueprintCellRegion
     }
 
     static bool Case(Lane lane) => lane.Id.StartsWith("case:",StringComparison.Ordinal);
+
+    internal static string[] RemovableCaseCells(JsonObject graph)
+    {
+        // Reuse the same partition proof as root/case transfers. Exclude any
+        // context whose code source is retained under a separate identity.
+        if(graph["nodes"]!.AsArray().Any(n=>n?["sourceIdentity"] is not null))
+            return [];
+        try {
+            var scope=ReadScopeTransfer(graph,requirePair:false);
+            return scope.Lanes.Where(Case).SelectMany(lane=>lane.Order).Where(scope.Movable.Contains).ToArray();
+        } catch(ArgumentException) {
+            return [];
+        }
+    }
 
     static JsonObject ScopeTransferOptions(ScopeTransfer scope) => new(){
         ["owner"]=scope.Owner,
