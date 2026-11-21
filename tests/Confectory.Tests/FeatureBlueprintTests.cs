@@ -445,12 +445,23 @@ public sealed partial class FeatureBlueprintTests : TestCase
         }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
 
+    private static void BindBlueprintConsumer(string sample, string additionalBindings = "")
+    {
+        string path = Path.Combine(sample, "main.celem");
+        string source = File.ReadAllText(path);
+        const string boundedRead = """
+            provide Confectory.EditWorkspace::ReadBoundedBody with Confectory.EditWorkspace::ReadBoundedBodyBody;
+            provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+            """;
+        File.WriteAllText(path, source.Insert(source.LastIndexOf('}'), "\n" + boundedRead + "\n" + additionalBindings + "\n"));
+    }
+
     public void test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore()
     {
         f.Sync();string sample=Path.Combine(f.Root,"feature-creation-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/edit-workspace"),sample);
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","development-tools"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";registry Confectory.DevelopmentTools \"../packs/development-tools/pack.cpack\";dependency Confectory.DevelopmentTools version \"0.1.0\";\nelement Main function"));
-        string composition=Path.Combine(sample,"main.celem"),compositionText=File.ReadAllText(composition);File.WriteAllText(composition,compositionText.Insert(compositionText.LastIndexOf('}'),"provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;"));
+        BindBlueprintConsumer(sample, "provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;");
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
@@ -499,15 +510,25 @@ public sealed partial class FeatureBlueprintTests : TestCase
          ready=Prepare();var created=Blueprint("createFeature",new{id=feature,basis=ready["basis"]!.ToString()});string graphId=created["id"]!.ToString(),nodeId=created["node"]!.ToString();
          System.Text.Json.Nodes.JsonNode Read()=>Blueprint("read",new{id=graphId});var graph=Read();Check(graph["nodes"]!.AsArray().Count==1&&graph["signature"]!["args"]![0]!["name"]!.ToString()=="n"&&graph["diagnostics"]!["state"]!.ToString()=="needs-implementation"&&!created["compiled"]!.GetValue<bool>(),"exact external contract maps to an unimplemented independent node");
          string capability=calls.OpenNode.Invoke(project,"fixture","App","owner","create-feature",nodeId);try{var scope=Json(calls.ToolSnapshot.Invoke(capability));Check(scope["rights"]!.AsArray().Count==4&&scope["nodeScope"]!["observations"]!["App::ProjectManifest"] is not null&&scope["nodeScope"]!["observations"]![feature] is not null,"new node task keeps four rights and explicitly exposes related registration as human support");}finally{calls.CloseTool.Invoke(capability);}
-         var group=Group(graph);Check(group.Length==5&&Array.IndexOf(group,feature)>=0&&Array.IndexOf(group,"App::ProjectManifest")>=0&&graph["sources"]!.AsArray().Count==5,"all five owned sources and registration are explicit");
-         var pathList=new System.Collections.Generic.List<string>();foreach(var row in graph["sources"]!.AsArray())if(row!["id"]!.ToString()!="App::ProjectManifest")pathList.Add(System.IO.Path.Combine(root,row["path"]!.ToString()));var paths=pathList.ToArray();Check(Missing(paths),"creation writes no final sources");
+         string[] expectedGroup={feature,"App::FreshBlueprintBody",graphId,nodeId,"App::ProjectManifest"};
+         bool HasExpectedGroup(string[] ids)=>ids.Length==expectedGroup.Length&&Array.TrueForAll(expectedGroup,id=>Array.IndexOf(ids,id)>=0);
+         var group=Group(graph);Check(HasExpectedGroup(group),"the exact five-source registration group is explicit");
+         // The graph also observes the existing entry sources when fencing registration dependencies.
+         string[] observedEntry={"App::Main","App::MainBody","App::MainBody/body:common"};
+         var sources=System.Linq.Enumerable.ToDictionary(graph["sources"]!.AsArray(),row=>row!["id"]!.ToString());
+         Check(sources.Count==expectedGroup.Length+observedEntry.Length&&
+               Array.TrueForAll(expectedGroup,id=>sources.ContainsKey(id))&&
+               Array.TrueForAll(observedEntry,id=>sources.TryGetValue(id,out var row)&&!row!["dirty"]!.GetValue<bool>()),
+               "registration sources and unchanged entry observations are distinct");
+         var paths=Array.ConvertAll(Array.FindAll(expectedGroup,id=>id!="App::ProjectManifest"),id=>System.IO.Path.Combine(root,sources[id]!["path"]!.ToString()));
+         Check(Missing(paths),"creation writes no final sources");
          foreach(string omitted in group){var subset=Array.FindAll(group,id=>id!=omitted);Refused(()=>Cmd("review",new{target="portable",ids=subset}),"partial registration group refused: "+omitted);string draft=calls.BorrowDraft.Invoke(view);Check(calls.ConfirmDirect.Invoke(draft,subset,"portable",calls.Changes.Invoke(draft,subset))[0]=="invalid","direct Confirm cannot bypass group: "+omitted);}
-         Cmd("save",new{});calls.Close.Invoke(peer);peer="";calls.Close.Invoke(view);view=calls.Open.Invoke(project,"owner","create-feature");graph=Read();Check(graph["reviewIds"]!.AsArray().Count==5&&Missing(paths),"genuine cold restore preserves missing source group without final writes");
+         Cmd("save",new{});calls.Close.Invoke(peer);peer="";calls.Close.Invoke(view);view=calls.Open.Invoke(project,"owner","create-feature");graph=Read();Check(HasExpectedGroup(Group(graph))&&Missing(paths),"genuine cold restore preserves the exact registration group without final writes");
          var review=Cmd("review",new{target="portable",ids=group})["review"]!;var confirmed=Cmd("confirm",new{token=review["token"]!.ToString(),ids=group});Check(confirmed["confirmation"]![0]!.ToString()=="invalid"&&Missing(paths),"unimplemented reachable body cannot pass actual compiler Confirm");
          graph=Read();string basis=graph["basis"]!.ToString();Cmd("create",new{kind="function",id="App::AnotherPending"});Refused(()=>Blueprint("source",new{id=graphId,basis,node="body",text="return n + 9;"}),"registration peer change fences node source edit");
          graph=Read();Blueprint("source",new{id=graphId,basis=graph["basis"]!.ToString(),node="body",text="return n + 9;"});graph=Read();group=Group(graph);Check(Array.IndexOf(group,"App::AnotherPending")>=0,"all new declarations in shared registration are reviewed explicitly");
          string draftHandle=calls.BorrowDraft.Invoke(view);var manifestUnit=Cmd("select",new{id="App::ProjectManifest"})["unit"]!;string manifestText=manifestUnit["text"]!.ToString();long manifestRevision=manifestUnit["revision"]!.GetValue<long>();Check(calls.EditBatch.Invoke(draftHandle,new[]{"App::ProjectManifest"},new[]{manifestText},new[]{manifestRevision},new[]{Hash(manifestText)}),"batch can observe unchanged registration");Refused(()=>calls.EditBatch.Invoke(draftHandle,new[]{"App::ProjectManifest"},new[]{manifestText+" "},new[]{manifestRevision},new[]{Hash(manifestText)}),"batch cannot edit registration");
-         string foreign=paths[0];System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(foreign)!);System.IO.File.WriteAllText(foreign,"preserve appeared file");review=Cmd("review",new{target="portable",ids=group})["review"]!;Check(review["status"]!.ToString()!="ready"&&System.IO.File.ReadAllText(foreign)=="preserve appeared file","appearance prevents ready publication without overwriting");System.IO.File.Delete(foreign);
+         string foreign=System.IO.Path.Combine(root,sources[graphId]!["path"]!.ToString());System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(foreign)!);System.IO.File.WriteAllText(foreign,"preserve appeared file");review=Cmd("review",new{target="portable",ids=group})["review"]!;Check(review["status"]!.ToString()!="ready"&&System.IO.File.ReadAllText(foreign)=="preserve appeared file","appearance prevents ready publication without overwriting");System.IO.File.Delete(foreign);
          review=Cmd("review",new{target="portable",ids=group})["review"]!;confirmed=Cmd("confirm",new{token=review["token"]!.ToString(),ids=group});Check(confirmed["confirmation"]![0]!.ToString()=="confirmed",confirmed.ToJsonString());foreach(string path in paths)Check(System.IO.File.Exists(path),"verified registration publishes all owned files");
          foreach(var pair in originals)if(pair.Key!=project)Check(System.Linq.Enumerable.SequenceEqual(pair.Value,System.IO.File.ReadAllBytes(pair.Key)),"existing sources stay byte-identical");
          string packRoot=System.IO.Path.Combine(root,"plain-pack");System.IO.Directory.CreateDirectory(packRoot);string packProject=System.IO.Path.Combine(packRoot,"pack.cpack");System.IO.File.WriteAllText(packProject,"pack Plain version \"1\" {}");string packView=calls.Open.Invoke(packProject,"owner","pack-creation");try{var createdContract=Json(calls.Command.Invoke(packView,"create",Serialize(new{kind="function",id="Plain::Pending"})))["unit"]!;Refused(()=>calls.Blueprint.Invoke(packView,"readFeature",Serialize(new{id="Plain::Pending",revision=createdContract["revision"]!.GetValue<long>(),hash=Hash(createdContract["text"]!.ToString())})),"standalone pack without ProjectPack compiler context cannot create an unreadable graph");Check(Json(calls.Snapshot.Invoke(packView))["ownedTotal"]!.GetValue<int>()==2,"unsupported context keeps its function and manifest drafts without partial graph");}finally{calls.Close.Invoke(packView);}
@@ -534,6 +555,7 @@ public sealed partial class FeatureBlueprintTests : TestCase
         string sample=Path.Combine(f.Root,"call-wrapper-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/edit-workspace"),sample);
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";\nelement Main function"));
+        BindBlueprintConsumer(sample);
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
@@ -609,7 +631,12 @@ public sealed partial class FeatureBlueprintTests : TestCase
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","element-view"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";\nelement Main function"));
         string consumerManifest=File.ReadAllText(project);File.WriteAllText(project,consumerManifest.Insert(consumerManifest.LastIndexOf('}'),"registry Confectory.ElementView \"../packs/element-view/pack.cpack\";dependency Confectory.ElementView version \"0.1.0\";"));
-        string composition=Path.Combine(sample,"main.celem"),compositionText=File.ReadAllText(composition);File.WriteAllText(composition,compositionText.Insert(compositionText.LastIndexOf('}'),"provide Confectory.ElementView::Create with Confectory.ElementView::CreateBody;provide Confectory.ElementView::Poll with Confectory.ElementView::PollBody;provide Confectory.ElementView::Labels with Confectory.ElementView::LabelsBody;provide Confectory.ElementView::Close with Confectory.ElementView::CloseBody;"));
+        BindBlueprintConsumer(sample, """
+            provide Confectory.ElementView::Create with Confectory.ElementView::CreateBody;
+            provide Confectory.ElementView::Poll with Confectory.ElementView::PollBody;
+            provide Confectory.ElementView::Labels with Confectory.ElementView::LabelsBody;
+            provide Confectory.ElementView::Close with Confectory.ElementView::CloseBody;
+            """);
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
