@@ -42,6 +42,7 @@ try:
   expect.set_options(timeout=45000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size(dict(width=1800,height=1400));open_document()
   if mode=='shared':assert doc().locator('[data-document-branch]').all_text_contents()==['Positive','Negative']
   enter();original=read();initial=order();assert initial==['$entry','inner','tail','$exit:return']
+  expect(doc().locator('[data-document-remove]')).to_have_count(0)
   if mode=='shared':
    assert original['documentFrameOrderBinding']is None;expect(doc().locator('[data-document-up=tail]')).to_be_disabled()
   else:

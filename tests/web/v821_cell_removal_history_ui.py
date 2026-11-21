@@ -15,16 +15,21 @@ import v666_node_names_recovery_fixture as t
 f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
-                "case-shared", "case-implicit", "case-readonly", "case-value"}
+                "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly"}
 case = mode.startswith("case")
-positive_modes = {"normal", "case", "case-empty", "case-exit"}
+child_case = mode.startswith("child")
+frame_path = "other" if mode == "child-first" else "body"
+sibling_path = "body" if frame_path == "other" else "other"
+positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last"}
 helper = Path(__file__).with_name("v821_function_document_ui.py")
 functions = [node for node in ast.parse(helper.read_text()).body if isinstance(node, ast.FunctionDef)]
 exec(compile(ast.Module(body=functions, type_ignores=[]), str(helper), "exec"), globals())
 
 graph = f.project / t.graph_file
-cell_id = {"case": "move", "case-exit": "right"}.get(mode, "left" if case else "after")
-leaf = f.project / f"Pair.{cell_id}.node.json"
+cell_id = {"case": "move", "case-exit": "right", "child-first": "inner",
+           "child-last": "tail", "child-readonly": "tail"}.get(mode, "left" if case else "after")
+source_name = f"Pair.{frame_path}.{cell_id}.node.json" if child_case else f"Pair.{cell_id}.node.json"
+leaf = f.project / source_name
 case_port = "case:negative" if mode == "case-exit" else "case:positive"
 
 
@@ -44,11 +49,38 @@ def expect_case_order(port, cells):
     assert actions.evaluate_all("(rows)=>rows.map(row=>row.dataset.documentCell)") == cells
 
 
+def read_graph(frame=frame_path):
+    if not child_case:
+        return t.read()
+    return f.invoke("blueprint", {"action": "read", "id": f"{t.graph}/graph:{frame}"})["result"]["result"]
+
+
+def select_frame(frame):
+    if panel().locator(".bp-breadcrumbs").count():
+        panel().locator(".bp-breadcrumbs button").first.click()
+        f.idle()
+    doc().locator(f"[data-document-internal={frame}]").click()
+    f.idle()
+    expect(panel().locator(".bp-breadcrumbs")).to_be_visible()
+
+
+def press_history_shortcut(direction):
+    doc().locator(".fd-document-title").click()
+    doc().press("Control+z" if direction == "undo" else "Control+y")
+    f.idle()
+
+
 def expect_cell(present):
     expect(doc().locator(f"[data-document-cell={cell_id}]")).to_have_count(int(present))
     if case:
         cells = original_case if present else [cell for cell in original_case if cell != cell_id]
         expect_case_order(case_port, cells)
+    elif child_case:
+        selected_nodes = ["inner", "tail"] if present else [node for node in ["inner", "tail"] if node != cell_id]
+        exit_cell = ["$exit:return"] if frame_path == "body" else []
+        assert order() == ["$entry", *selected_nodes, *exit_cell], order()
+        if not present:
+            expect(doc().locator("[data-document-remove]")).to_have_count(0)
     else:
         assert order() == (["$entry", "body", "after", "$exit:return"] if present else ["$entry", "body", "$exit:return"])
 
@@ -62,12 +94,12 @@ def real_files_unchanged():
 def undo_or_redo(direction, expected):
     history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"][direction]
     assert history["available"] and history["kind"] == "cell-removal"
-    doc().locator(".fd-document-title").click()
-    doc().press("Control+z" if direction == "undo" else "Control+y")
+    assert history.get("frame") == (frame_path if child_case else None)
+    press_history_shortcut(direction)
     expect_cell(direction == "undo")
-    f.idle()
-    current = t.read()
-    assert current["edges"] == expected["edges"]
+    current = read_graph()
+    expected = select_graph(expected, frame_path) if child_case else expected
+    assert current["entry"] == expected["entry"] and current["edges"] == expected["edges"]
     assert current["diagnostics"]["state"] in {"source-ready", "source-assembled"}
 
 
@@ -108,7 +140,47 @@ def change_definition(definition, changed_node):
     graph.write_text(json.dumps(definition, ensure_ascii=False))
 
 
+def select_graph(root, path):
+    return next(node["graph"] for node in root["nodes"] if node["id"] == path)
+
+
+def prepare_child(root):
+    load_functions("v821_frame_structure_ui.py", {"edge", "signature", "code", "child", "compound"})
+    amount = [{"name": "amount", "type": "int"}]
+    owned = child([
+        code("inner", "Pair.body.inner.node.json", signature(amount, "int"), {"amount": {"input": "amount"}}),
+        code("tail", "Pair.body.tail.node.json"),
+    ], {"return": {"node": "inner"}})
+    peer = child([code("inner", "Pair.other.inner.node.json"), code("tail", "Pair.other.tail.node.json")],
+                 {"return": None})
+    root["profile"] = "sync-acyclic-nested-v1"
+    root["nodes"][0].pop("implementation")
+    root["nodes"][0].update(kind="graph", graph=owned)
+    root["nodes"].insert(1, compound("other", peer))
+    root["edges"] = [edge("body", "other"), edge("other", "after"), edge("after", "exit:return")]
+    graph.write_text(json.dumps(root, ensure_ascii=False))
+    definitions = f.metadata("blueprintDescribeOwned", project=str(f.manifest), id=f.n + "PairBody",
+                             text=(f.project / "PairBody.celem").read_text(), bodyTarget="common",
+                             graph=root, definitionsOnly=True)
+    assert definitions["state"] == "node-definitions", definitions
+    bodies = {
+        "body/inner": 'global::System.Console.WriteLine("body");\r\nreturn checked(amount+3);',
+        "body/tail": 'global::System.Console.WriteLine("inside");',
+        "other/inner": 'global::System.Console.WriteLine("peer-inner");',
+        "other/tail": 'global::System.Console.WriteLine("peer-tail");',
+        "after": 'global::System.Console.WriteLine("after");',
+    }
+    for node, source in bodies.items():
+        row = next(row for row in definitions["nodes"] + definitions["nestedNodes"] if row["id"] == node)
+        file = f.project / f"Pair.{node.replace('/', '.')}.node.json"
+        record = dict(schema=1, node=node.split("/")[-1], definitionHash=row["definitionHash"], source=source)
+        file.write_bytes((json.dumps(record, indent=2, ensure_ascii=False).replace("\n", "\r\n") + "\r\n").encode())
+    x.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
+
+
 definition = copy.deepcopy(t.definition)
+if child_case:
+    prepare_child(definition)
 if case:
     load_functions("v821_case_transfer_ui.py", {"code", "edge"})
     load_functions("v821_scope_transfer_ui.py", {"prepare_project"})
@@ -140,7 +212,7 @@ if case:
     other_case = ["left"] if mode == "case-exit" else ["right"]
     x.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
 
-if mode == "readonly":
+if mode in {"readonly", "child-readonly"}:
     leaf.chmod(stat.S_IMODE(leaf.stat().st_mode) & ~0o222)
 elif mode == "shared":
     manifest = f.project / "project.cproj"
@@ -166,10 +238,14 @@ initial = graph.read_bytes()
 leaf_bytes = leaf.read_bytes()
 if mode in positive_modes:
     removed = copy.deepcopy(definition)
-    removed["nodes"] = [node for node in removed["nodes"] if node["id"] != cell_id]
-    outgoing = next(edge for edge in removed["edges"] if edge["from"] == cell_id)
-    next(edge for edge in removed["edges"] if edge["to"] == cell_id)["to"] = outgoing["to"]
-    removed["edges"].remove(outgoing)
+    selected = select_graph(removed, frame_path) if child_case else removed
+    selected["nodes"] = [node for node in selected["nodes"] if node["id"] != cell_id]
+    outgoing = next(edge for edge in selected["edges"] if edge["from"] == cell_id)
+    if selected["entry"] == cell_id:
+        selected["entry"] = outgoing["to"]
+    else:
+        next(edge for edge in selected["edges"] if edge["to"] == cell_id)["to"] = outgoing["to"]
+    selected["edges"].remove(outgoing)
     if case:
         positive = ["pre", "moved", "left", "body", "after", "result:10"]
         negative = ["pre", "right", "result:41"] if mode == "case" else ["pre", "moved", "right", "result:41"]
@@ -177,6 +253,10 @@ if mode in positive_modes:
         output_before = output_after.copy()
         output_after.remove({"case": "moved", "case-empty": "left", "case-exit": "right"}[mode])
         exit_code = 51
+    elif child_case:
+        output_before, exit_code = ["body", "inside", "peer-inner", "peer-tail", "after", "10"], 10
+        output_after = output_before.copy()
+        output_after.remove("peer-inner" if mode == "child-first" else "inside")
     else:
         output_before, output_after, exit_code = ["body", "after", "10"], ["body", "10"], 10
 
@@ -192,6 +272,11 @@ try:
         f.page = f.setup()
         f.page.set_viewport_size({"width": 1800, "height": 1400})
         open_document()
+        if child_case:
+            expect(doc().locator("[data-document-remove]")).to_have_count(0)
+            select_frame(frame_path)
+            if frame_path == "body":
+                expect(doc().locator("[data-document-remove=inner]")).to_have_count(0)
         remove = doc().locator(f"[data-document-remove={cell_id}]")
         expect_cell(True)
         assert doc().locator("[data-document-remove=body]").count() == 0
@@ -221,7 +306,7 @@ try:
             assert not pending(), panel().locator(".bp-status").inner_text()
             saved = json.loads(checkpoint.read_bytes())
             assert saved["version"] == 3 and saved["cellHistoryProfile"] == "retained-blueprint-cell-v1"
-            assert saved["history"]["undo"][-1]["cellRemoval"]["node"] == cell_id
+            assert saved["history"]["undo"][-1]["cellRemoval"]["node"] == (f"{frame_path}/{cell_id}" if child_case else cell_id)
             assert [row["id"] for row in saved["changes"]] == [t.graph]
             assert graph.read_bytes() == initial
             real_files_unchanged()
@@ -229,6 +314,16 @@ try:
             expect_cell(False)
             if case:
                 expect_case_order(other_port, other_case)
+            if child_case:
+                selected_before = read_graph()
+                sibling_before = read_graph(sibling_path)
+                select_frame(sibling_path)
+                expect(doc().locator(f"[data-document-cell={cell_id}]")).to_be_visible()
+                press_history_shortcut("undo")
+                assert read_graph()["edges"] == selected_before["edges"]
+                assert read_graph(sibling_path)["edges"] == sibling_before["edges"]
+                select_frame(frame_path)
+                f.checked("keyboard Undo in a sibling with the same local ID leaves the saved edit and sibling intact")
             undo_or_redo("undo", definition)
             assert graph.read_bytes() == initial
             undo_or_redo("redo", removed)
@@ -250,7 +345,7 @@ try:
             f.idle()
             restart(5)
             expect_cell(True)
-            assert t.read()["diagnostics"]["state"] in {"source-ready", "source-assembled"}
+            assert read_graph()["diagnostics"]["state"] in {"source-ready", "source-assembled"}
             confirm()
             assert graph.read_bytes() == initial
             real_files_unchanged()
@@ -291,7 +386,7 @@ try:
             expect_cell(False)
             f.idle()
             assert leaf.read_bytes() == peer_bytes and json.loads(graph.read_bytes()) == removed
-            assert t.read()["edges"] == removed["edges"]
+            assert read_graph()["edges"] == (select_graph(removed, frame_path) if child_case else removed)["edges"]
             f.checked("an independent C# source edit prevents cold Undo and is never overwritten")
 finally:
     f.stop()

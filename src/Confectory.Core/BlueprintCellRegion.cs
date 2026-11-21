@@ -103,7 +103,7 @@ public static class BlueprintCellRegion
         Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
     }
-    static JsonObject OwnedFrame(JsonObject root,string path)
+    internal static JsonObject OwnedFrame(JsonObject root,string path)
     {
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.

@@ -20,7 +20,9 @@ System.Text.Json.Nodes.JsonObject Preview(string direction){
    ["units"]=state["units"]!.DeepClone(),["entry"]=entry.DeepClone()
   }.ToJsonString());
  }catch{available=false;}
- return new(){["available"]=available,["code"]=available?"READY":"SOURCE_CHANGED",["token"]=Hash(handle+history["epoch"]!.ToString()+history["revision"]!.ToString()+direction+entry["id"]!.ToString()+fingerprints.ToJsonString()),["id"]=entry["id"]!.DeepClone(),["label"]=entry["label"]!.DeepClone(),["kind"]=entry["cellRemoval"] is null?null:"cell-removal",["units"]=units};
+ string cell=entry["cellRemoval"]?["node"]?.ToString()??"";
+ int lastSegment=cell.LastIndexOf('/');
+ return new(){["available"]=available,["code"]=available?"READY":"SOURCE_CHANGED",["token"]=Hash(handle+history["epoch"]!.ToString()+history["revision"]!.ToString()+direction+entry["id"]!.ToString()+fingerprints.ToJsonString()),["id"]=entry["id"]!.DeepClone(),["label"]=entry["label"]!.DeepClone(),["kind"]=entry["cellRemoval"] is null?null:"cell-removal",["frame"]=lastSegment<0?null:cell[..lastSegment],["units"]=units};
 }
 string Inspect(bool accepted=false,bool changed=false,string? code=null){
  var history=state["history"]!;var entries=new System.Text.Json.Nodes.JsonArray();foreach(string direction in new[]{"undo","redo"})foreach(var entry in System.Linq.Enumerable.Reverse(history[direction]!.AsArray()))entries.Add(new System.Text.Json.Nodes.JsonObject{["id"]=entry!["id"]!.DeepClone(),["label"]=entry["label"]!.DeepClone(),["direction"]=direction,["ids"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(entry["units"]!.AsArray(),unit=>(System.Text.Json.Nodes.JsonNode?)System.Text.Json.Nodes.JsonValue.Create(unit!["id"]!.ToString()))))});
@@ -56,7 +58,7 @@ lock(state){
  }catch{return Inspect(code:"HISTORY_CHANGED");}
  foreach(var recorded in entry["units"]!.AsArray()){var unit=state["units"]![recorded!["id"]!.ToString()]!;unit["draft"]=recorded[operation=="undo"?"before":"after"]!.DeepClone();unit["revision"]=unit["revision"]!.GetValue<long>()+1;if(recorded["hierarchyVersion"]?.GetValue<int>()==1){unit.AsObject().Remove("hierarchyGroup");var group=recorded[operation=="undo"?"beforeGroup":"afterGroup"];if(group is not null)unit["hierarchyGroup"]=group.DeepClone();}}
  if(entry["cellRemoval"] is System.Text.Json.Nodes.JsonObject removal){
-  string graphId=removal["graph"]!.ToString(),leafId=graphId+"/node:"+removal["node"]!.ToString();
+  string graphId=removal["graph"]!.ToString(),leafId=graphId+"/node:"+removal["node"]!.ToString().Replace("/","/node:",StringComparison.Ordinal);
   var graph=state["units"]![graphId]!.AsObject();
   graph.Remove("authorSaveReceipt");
   if(System.Text.Json.Nodes.JsonNode.DeepEquals(graph["draft"],graph["original"]))graph.Remove("cellRemovalPending");

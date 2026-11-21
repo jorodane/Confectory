@@ -201,7 +201,9 @@ internal static class BlueprintCellRemovalHistory
     {
         string action = S(request, "action");
         if (action == "options") return new() {
-            ["nodes"] = new JsonArray(BlueprintCellRemoval.Options(request["graph"]!.AsObject()).Select(id => (JsonNode)JsonValue.Create(id)!).ToArray())
+            ["nodes"] = new JsonArray(BlueprintCellRemoval.Options(
+                request["graph"]!.AsObject(), request["path"]?.GetValue<string>() ?? "")
+                .Select(id => (JsonNode)JsonValue.Create(id)!).ToArray())
         };
         if (action == "validate") { Transition(request["entry"]!); return new(); }
         if (action == "entry") {

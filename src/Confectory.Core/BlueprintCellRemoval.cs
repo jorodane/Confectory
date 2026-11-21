@@ -6,6 +6,18 @@ public static class BlueprintCellRemoval
 {
     static string Value(JsonNode? row, string key) => row?[key]?.GetValue<string>() ?? "";
 
+    public static string[] Options(JsonObject graph, string frame)
+    {
+        if (frame.Length == 0) return Options(graph);
+        if (frame.Contains('/')) return [];
+        try {
+            return Options(BlueprintCellRegion.OwnedFrame(graph, frame));
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException) {
+            return [];
+        }
+    }
+
     public static string[] Options(JsonObject graph)
     {
         if (graph["schema"]?.GetValue<int>() != 1 ||
@@ -56,17 +68,22 @@ public static class BlueprintCellRemoval
 
     public static JsonObject Remove(JsonObject graph, string id)
     {
-        if (!Options(graph).Contains(id, StringComparer.Ordinal))
-            throw new ArgumentException("Only one unconnected void action in an explicit serial root or case can be removed");
+        int separator = id.LastIndexOf('/');
+        string frame = separator < 0 ? "" : id[..separator];
+        string local = id[(separator + 1)..];
+        if ((separator >= 0 && frame.Length == 0) || !Options(graph, frame).Contains(local, StringComparer.Ordinal))
+            throw new ArgumentException("Only one unconnected void action in a supported owned serial flow can be removed");
         var result = graph.DeepClone().AsObject();
-        var nodes = result["nodes"]!.AsArray();
-        nodes.Remove(nodes.Single(node => Value(node, "id") == id));
-        var edges = result["edges"]!.AsArray();
-        var outgoing = edges.Single(edge => Value(edge, "from") == id)!;
+        var selected = frame.Length == 0 ? result : BlueprintCellRegion.OwnedFrame(result, frame);
+        var nodes = selected["nodes"]!.AsArray();
+        nodes.Remove(nodes.Single(node => Value(node, "id") == local));
+        var edges = selected["edges"]!.AsArray();
+        var outgoing = edges.Single(edge => Value(edge, "from") == local)!;
         var successor = outgoing["to"]!.DeepClone();
-        if (Value(result, "entry") == id) result["entry"] = successor;
-        else edges.Single(edge => Value(edge, "to") == id)!["to"] = successor;
+        if (Value(selected, "entry") == local) selected["entry"] = successor;
+        else edges.Single(edge => Value(edge, "to") == local)!["to"] = successor;
         edges.Remove(outgoing);
+        if (frame.Length > 0) BlueprintCellRegion.OwnedFrame(result, frame);
         return result;
     }
 }
