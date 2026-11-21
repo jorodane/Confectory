@@ -48,6 +48,43 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
  foreach(var read in System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("informationPropertyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="validate",["project"]=identity[0],["namespace"]=draftState!["namespace"]!.DeepClone(),["units"]=draftState["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["reads"]!.AsArray())registeredReads.Add(read!.DeepClone());
  foreach(var read in System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("informationBodyGroupGuards",new System.Text.Json.Nodes.JsonObject{["action"]="validate",["project"]=identity[0],["namespace"]=draftState!["namespace"]!.DeepClone(),["units"]=draftState["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["reads"]!.AsArray())registeredReads.Add(read!.DeepClone());
  var fullGuarded=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(guardedPaths,p=>System.IO.Path.GetFullPath(System.IO.Path.Combine(root,p))),OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);var reads=new System.Text.Json.Nodes.JsonArray();foreach(var read in registeredReads){string path=read!["path"]!.ToString();if(fullGuarded.Add(path))reads.Add(read.DeepClone());}
+ if(System.Linq.Enumerable.Any(draftState!["units"]!.AsObject(),row=>row.Value?["cellRemovalPending"] is not null)){
+  var cellChecks=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRemovalHistory",new System.Text.Json.Nodes.JsonObject{
+   ["action"]="pending",["project"]=draftState["project"]!.DeepClone(),["namespace"]=draftState["namespace"]!.DeepClone(),
+   ["units"]=draftState["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)
+  }.ToJsonString()))!["checks"]!.AsArray();
+  if(cellChecks.Count>0){
+   // Final source may advance only while the actor's saved recovery evidence still
+   // describes this exact candidate. Treat the checkpoint as another read guard.
+   string checkpointPath=calls.CheckpointLocation.Invoke(handle);
+   var checkpoint=calls.Snapshot.Invoke(checkpointPath);
+   if(checkpoint[0]!="exists"||checkpoint[2]!=draftState["checkpointVersion"]?.ToString())
+    throw new InvalidOperationException("Saved cell history changed before Confirm; preserve the candidate");
+   var saved=System.Text.Json.Nodes.JsonNode.Parse(checkpoint[1])!["changes"]!.AsArray();
+   foreach(string id in selected){
+    var unit=draftState["units"]?[id];if(unit?["cellRemovalPending"] is null)continue;
+    var row=System.Linq.Enumerable.SingleOrDefault(saved,item=>item?["id"]?.ToString()==id);
+    if(row is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(unit["draft"],row["draft"])||
+       !System.Text.Json.Nodes.JsonNode.DeepEquals(unit["cellRemovalPending"],row["cellRemovalPending"]))
+     throw new InvalidOperationException("The saved cell edit must match the reviewed candidate");
+   }
+   cellChecks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.GetRelativePath(root,checkpointPath),["hash"]=checkpoint[2]});
+  }
+  foreach(var guard in cellChecks){
+   string path=guard!["path"]!.ToString();
+   bool Same(System.Text.Json.Nodes.JsonNode? item)=>string.Equals(item!["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);
+   var same=System.Linq.Enumerable.SingleOrDefault(System.Linq.Enumerable.Concat(writes,checks),Same);
+   if(same is null)checks.Add(guard.DeepClone());
+   else if(same["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Cell source observations disagree");
+   string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,path));
+   for(int n=reads.Count-1;n>=0;n--){
+    var read=reads[n]!;
+    if(!string.Equals(read["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))continue;
+    if(read["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Cell source observations disagree");
+    reads.RemoveAt(n);
+   }
+  }
+ }
  var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}

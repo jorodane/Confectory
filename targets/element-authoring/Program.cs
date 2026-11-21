@@ -21,6 +21,7 @@ try
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
         case "blueprintCellRegion":reply=BlueprintCellRegion.Query(request);break;
+        case "blueprintCellRemovalHistory":reply=BlueprintCellRemovalHistory.Query(request);break;
         case "slotAssignment":reply=SlotAssignment.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;
         case "blueprintPrepareImplementation":reply=BlueprintCreation.PrepareForOwner(request,Format);break;

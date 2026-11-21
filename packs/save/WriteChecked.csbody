@@ -22,5 +22,17 @@ if(workspace["checkpointSourceChecks"] is System.Text.Json.Nodes.JsonArray sourc
  if(sourceChecks.Count is <1 or >64)throw new ArgumentException("Bounded checkpoint source checks required");
  foreach(var id in sourceChecks){var unit=workspace["units"]?[id!.ToString()]??throw new InvalidOperationException("Unknown checkpoint source");if(unit["baseline"] is null)throw new InvalidOperationException("Unobserved checkpoint source");var priorCheck=System.Linq.Enumerable.FirstOrDefault(checks,c=>c!["path"]!.ToString()==unit["path"]!.ToString());if(priorCheck is not null){if(priorCheck["hash"]!.ToString()!=unit["baseline"]!.ToString())throw new InvalidOperationException("Checkpoint source baselines differ");}else checks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=unit["path"]!.DeepClone(),["hash"]=unit["baseline"]!.DeepClone()});}
 }
+if(System.Linq.Enumerable.Any(workspace["units"]!.AsObject(),row=>row.Value?["cellRemovalPending"] is not null)){
+ var cellChecks=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRemovalHistory",new System.Text.Json.Nodes.JsonObject{
+  ["action"]="pending",["project"]=workspace["project"]!.DeepClone(),["namespace"]=workspace["namespace"]!.DeepClone(),
+  ["units"]=workspace["units"]!.DeepClone()
+ }.ToJsonString()))!["checks"]!.AsArray();
+ foreach(var guard in cellChecks){
+  string guardPath=guard!["path"]!.ToString();
+  var same=System.Linq.Enumerable.SingleOrDefault(checks,item=>string.Equals(item!["path"]!.ToString(),guardPath,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
+  if(same is null)checks.Add(guard.DeepClone());
+  else if(same["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Cell source observations disagree");
+ }
+}
 var checkPaths=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(checks,c=>System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],c!["path"]!.ToString()))),OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);for(int i=reads.Count-1;i>=0;i--)if(checkPaths.Contains(reads[i]!["path"]!.ToString()))reads.RemoveAt(i);
 var result=reads.Count==0&&checks.Count==0?calls.Commit.Invoke(identity[3],paths.ToArray(),hashes.ToArray(),texts.ToArray()):calls.CommitPlan.Invoke(identity[3],new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks.DeepClone(),["reads"]=reads.DeepClone()}.ToJsonString());if(result[0]!="applied")throw new InvalidOperationException("Concurrent Save changed local draft/activity; retry with live draft retained.");var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(state is not null)lock(state)state["checkpointVersion"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(saved))).ToLowerInvariant();return path;
