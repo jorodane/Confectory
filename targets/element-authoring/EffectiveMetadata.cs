@@ -46,6 +46,10 @@ internal static class EffectiveMetadata
 
    var effective=registry.Effective(id);var descriptionSource=selected;while(!descriptionSource.DescriptionPresent&&descriptionSource.Parent is not null)descriptionSource=registry.Get(descriptionSource.Parent,descriptionSource.Kind,descriptionSource.Id,descriptionSource.Loc);
 var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
+   // Keep declaration provenance separate from the applied module card that can show it.
+   var appliedModuleIds=schemaView&&effective.Kind=="object"
+       ?effective.Modules.Select(reference=>reference.Id).Distinct(StringComparer.Ordinal).ToArray()
+       :[];
    var values=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Values.OrderBy(p=>p.Key,StringComparer.Ordinal))values.Add(new System.Text.Json.Nodes.JsonObject{["field"]=pair.Key,["value"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Value),["origin"]=pair.Value.Origin});
    var requirements=new System.Text.Json.Nodes.JsonArray();foreach(var pair in module.Required.OrderBy(p=>p.Key,StringComparer.Ordinal))
    {
@@ -53,7 +57,14 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
     // Module requirements constrain positional types/modes; the function owns pin names.
     // Read its public declaration only. Never infer names from a selected provider body.
     var requiredFunction=registry.Get(pair.Key,"function",pair.Value.Origin,pair.Value.Loc);var requiredSignature=requiredFunction.Signature??throw new System.ArgumentException("Required function must declare its named signature");if(!pair.Value.Signature.Matches(requiredSignature))throw new System.ArgumentException("Required module and function signatures differ");
-    requirements.Add(new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(requiredSignature),["moduleSignature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults});
+    var requirement=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["signature"]=System.Text.Json.JsonSerializer.SerializeToNode(requiredSignature),["moduleSignature"]=System.Text.Json.JsonSerializer.SerializeToNode(pair.Value.Signature),["origin"]=pair.Value.Origin,["defaults"]=defaults};
+    if(appliedModuleIds.Length>0&&!appliedModuleIds.Contains(pair.Value.Origin,StringComparer.Ordinal))
+    {
+     var owners=appliedModuleIds.Where(applied=>planner.Module(applied).Required.TryGetValue(pair.Key,out var inherited)
+         &&inherited.Origin==pair.Value.Origin).Take(2).ToArray();
+     if(owners.Length==1) requirement["appliedModule"]=owners[0];
+    }
+    requirements.Add(requirement);
    }
    var providers=new System.Text.Json.Nodes.JsonArray();foreach(var pair in effective.Provides.OrderBy(p=>p.Key,StringComparer.Ordinal)){
     var provider=new System.Text.Json.Nodes.JsonObject{["function"]=pair.Key,["implementation"]=pair.Value.Id,["origin"]=pair.Value.Origin};
