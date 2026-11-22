@@ -1,0 +1,83 @@
+using Confectory.Core;
+using System.Text.Json.Nodes;
+
+internal static class BlueprintPrivateReturnRemap
+{
+    public static JsonObject Choices(JsonObject root, string path)
+    {
+        var result = new JsonObject();
+        if (path.Length == 0 || path.Contains('/') || root["profile"]?.ToString() != FeatureBlueprint.NestedProfile)
+            return result;
+
+        if (Serial(root, path) is null) return result;
+        var child = BlueprintTree.Select(root, path);
+        if (child["profile"]?.ToString() != FeatureBlueprint.MethodsProfile) return result;
+        var order = Serial(child, null);
+        if (order is null) return result;
+
+        for (int index = 0; index + 1 < order.Count; index++)
+        {
+            var producer = order[index];
+            string id = producer["id"]!.ToString();
+            if (producer["signature"]?["return"]?.ToString() != "long") continue;
+            var outputs = producer["signature"]!["args"]!.AsArray()
+                .Where(arg => arg?["mode"]?.ToString() == "out" && arg["type"]?.ToString() == "long")
+                .ToArray();
+            if (outputs.Length != 1) continue;
+            var consumer = order[index + 1];
+            var uses = order.SelectMany(node => ReturnUses(node["arguments"], id))
+                .Concat(ReturnUses(child["exits"], id)).Concat(ReturnUses(child["locals"], id))
+                .Take(2).ToArray();
+            if (uses.Length != 1 || uses[0].Count != (uses[0].ContainsKey("output") ? 2 : 1)
+                || uses[0].Parent is not JsonObject arguments || !ReferenceEquals(arguments, consumer["arguments"]))
+                continue;
+            string name = arguments.Single(entry => ReferenceEquals(entry.Value, uses[0])).Key;
+            if (!consumer["signature"]!["args"]!.AsArray().Any(arg => arg?["name"]?.ToString() == name
+                && arg["type"]?.ToString() == "long" && arg["mode"] is null)) continue;
+            result[id] = new JsonObject
+            {
+                ["consumer"] = consumer["id"]!.DeepClone(), ["argument"] = name,
+                ["output"] = outputs[0]!["name"]!.DeepClone()
+            };
+        }
+        return result;
+    }
+
+    static List<JsonObject>? Serial(JsonObject graph, string? child)
+    {
+        if (graph["schema"]?.GetValue<int>() != 1 || graph["copySource"] is not null
+            || graph["executionExitMode"] is not null || graph["exits"] is not JsonObject { Count: 1 } exits
+            || graph["nodes"] is not JsonArray { Count: > 0 and <= 32 } nodes
+            || graph["edges"] is not JsonArray edges || edges.Count != nodes.Count)
+            return null;
+        var byId = nodes.Select(node => node!.AsObject()).ToDictionary(node => node["id"]!.ToString(), StringComparer.Ordinal);
+        if (byId.Values.Any(node => node["kind"]?.ToString() != (node["id"]?.ToString() == child ? "graph" : "code")
+            || node["control"]?.ToString() != "next" || new[] { "implementationContext", "contextBoundary", "forwardCallerStorage",
+                "executionEnum", "executionSource", "completionBranch", "branchOwner", "async" }.Any(node.ContainsKey))) return null;
+        var next = edges.Where(edge => edge?["port"]?.ToString() == "next")
+            .ToDictionary(edge => edge!["from"]!.ToString(), edge => edge!["to"]!.ToString(), StringComparer.Ordinal);
+        string at = graph["entry"]!.ToString();
+        var order = new List<JsonObject>(nodes.Count);
+        while (byId.Remove(at, out var node) && next.TryGetValue(at, out var after))
+        {
+            order.Add(node);
+            at = after;
+        }
+        return order.Count == nodes.Count && at == "exit:" + exits.Single().Key
+            && (child is null || order.Any(node => node["id"]?.ToString() == child)) ? order : null;
+    }
+
+    static IEnumerable<JsonObject> ReturnUses(JsonNode? value, string node)
+    {
+        if (value is JsonObject obj)
+        {
+            if (obj.ContainsKey("constant")) yield break;
+            if (obj["node"]?.ToString() == node && (obj["output"]?.ToString() ?? "return") == "return") yield return obj;
+            foreach (var field in obj)
+                foreach (var use in ReturnUses(field.Value, node)) yield return use;
+        }
+        else if (value is JsonArray array)
+            foreach (var item in array)
+                foreach (var use in ReturnUses(item, node)) yield return use;
+    }
+}

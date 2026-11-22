@@ -36,6 +36,7 @@ try
         case "blueprintCompletionEditor":reply=BlueprintCompletionAdapter.Editor(request["node"]!.AsObject(),request["source"]!.GetValue<string>(),request["helpers"]?.GetValue<string>()??"");break;
         case "blueprintAsyncGuards":reply=BlueprintAsyncTransition.Validate(request);break;
         case "blueprintPropertyObservations":reply=BlueprintPropertyObservations.Query(request);break;
+        case "blueprintPrivateReturnChoices":reply=BlueprintPrivateReturnRemap.Choices(request["graph"]!.AsObject(),request["path"]!.GetValue<string>());break;
         case "blueprintRootExecutionGuards":reply=BlueprintRootExecution.Guards(request);break;
         case "blueprintPublicCopyReturnGuards":reply=BlueprintPublicCopyReturns.Guards(request);break;
         case "blueprintRootExecutionCandidates":reply=BlueprintRootExecution.Candidates(request);break;
