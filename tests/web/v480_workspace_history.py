@@ -1,6 +1,25 @@
 """IMP7 completed private moves/links through the real editor and durable presentation."""
 import copy,json,shutil,uuid
 from playwright.sync_api import expect
+from editor_navigation import choose_project_tool, create_workspace_item
+
+
+def place_score_view(page):
+    score = page.locator('.window[data-key="browser"] [data-object="Example.ButtonGame::Score"]')
+    score.drag_to(page.locator('#workspace'), target_position={'x': 1320, 'y': 280})
+    view = page.locator('.window[data-key="editor-1"].is-placed')
+    expect(view.get_by_role('textbox', name='객체 설명', exact=True)).to_be_visible()
+
+
+def open_score_body(page):
+    page.get_by_role('button', name='검색', exact=True).click()
+    finder = page.get_by_role('dialog', name='검색', exact=True)
+    finder.locator('[data-find-mode="text"]').click()
+    finder.get_by_role('searchbox').fill('Unknown score operation')
+    finder.get_by_role('button', name='ChangeScoreBody · C# · common', exact=False).click()
+    source = page.locator('.window[data-key="source"]')
+    expect(source.locator('#selection')).to_have_text('Example.ButtonGame::ChangeScoreBody/body:common')
+    expect(source.get_by_role('textbox', name='Source draft')).to_be_visible()
 
 def prepare_history(project,root):
  second=root/'second-project';shutil.copytree(project,second,ignore=shutil.ignore_patterns('.confectory'))
@@ -9,7 +28,7 @@ def prepare_history(project,root):
 
 def verify_history(page,project,mount,send,envelope,settle,restart):
  page.set_viewport_size({'width':2200,'height':1400});original={p:p.read_bytes() for folder in [project,project.parent/'second-project'] for p in folder.rglob('*') if p.is_file() and '.confectory' not in p.parts}
- def ready():expect(page.locator('#nav')).to_be_enabled(timeout=180000);expect(page.locator('#workspace-save-state')).not_to_contain_text('편집창 복원 중',timeout=180000)
+ def ready():expect(page.locator('#title')).to_be_enabled(timeout=180000);expect(page.locator('#workspace-save-state')).not_to_contain_text('편집창 복원 중',timeout=180000)
  def window(key):return page.locator('.window[data-key="'+key+'"]')
  def title(key):return window(key).locator('.window-title')
  def state():
@@ -30,17 +49,16 @@ def verify_history(page,project,mount,send,envelope,settle,restart):
  def geometry(value,owner='root'):
   rows=value['layout'] if owner=='root' else next(s for s in value['workspaces'] if s['id']==owner)['layout'];return {r['key']:[r['x'],r['y']] for r in rows if r['key'] in ['source','editor-1','browser']}
  def nav():
-  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='개념',exact=True).click();ready()
-  if page.locator('.nav-menu').count():page.locator('#nav').click()
+  ready();choose_project_tool(page, '개념');ready()
  def root():page.locator('#workspace-home-tab').click();ready()
  def intact():
-  expect(window('source').locator('#source')).to_have_value(latest_source);expect(window('editor-1').locator('[data-description]')).to_have_value(latest_property)
-  assert page.locator('#source').evaluate('e=>e===globalThis.__imp7Source');assert window('editor-1').locator('[data-description]').evaluate('e=>e===globalThis.__imp7Property')
+  expect(window('source').locator('#source')).to_have_value(latest_source);expect(window('editor-1').locator('[aria-label="객체 설명"]')).to_have_value(latest_property)
+  assert page.locator('#source').evaluate('e=>e===globalThis.__imp7Source');assert window('editor-1').locator('[aria-label="객체 설명"]').evaluate('e=>e===globalThis.__imp7Property')
   assert saved()['inputs']['source']['draft']==basis['draft'];assert [(v['view'],v['id'],v['mode']) for v in state()['editorViews']]==bindings
- nav();page.locator('[data-id="Example.ButtonGame::Score"]').click();expect(window('schema').locator('[data-description]')).to_be_visible(timeout=120000);window('schema').locator('[data-close]').click();page.locator('#browser-actions').click();page.locator('#keep-properties').click();ready();expect(window('editor-1').locator('[data-description]')).to_be_visible();position('editor-1',1230,220);page.locator('#browser-actions').click();page.locator('#advanced-source').click();ready()
- latest_source=page.locator('#source').input_value()+'\n// IMP7_PENDING';latest_property='IMP7_PROPERTY_PENDING';page.locator('#source').fill(latest_source);window('editor-1').locator('[data-description]').fill(latest_property);position('source',500,180);position('browser',240,750);position('editor-1',1230,220)
+ nav();place_score_view(page);position('editor-1',1230,220);open_score_body(page);ready()
+ latest_source=page.locator('#source').input_value()+'\n// IMP7_PENDING';latest_property='IMP7_PROPERTY_PENDING';page.locator('#source').fill(latest_source);window('editor-1').locator('[aria-label="객체 설명"]').fill(latest_property);position('source',500,180);position('browser',240,750);position('editor-1',1230,220)
  basis=copy.deepcopy(saved()['inputs']['source']);bindings=[(v['view'],v['id'],v['mode']) for v in state()['editorViews']]
- def remember():page.locator('#source').evaluate('e=>globalThis.__imp7Source=e');window('editor-1').locator('[data-description]').evaluate('e=>globalThis.__imp7Property=e')
+ def remember():page.locator('#source').evaluate('e=>globalThis.__imp7Source=e');window('editor-1').locator('[aria-label="객체 설명"]').evaluate('e=>globalThis.__imp7Property=e')
  remember();initial=history();menu('source','자식 창 연결…');page.keyboard.press('Escape');assert history()==initial
  connect('source','editor-1');h=history();assert len(h['undo'])==len(initial['undo'])+1;step();assert not saved()['links'];assert len(history()['redo'])==1;step(False);assert saved()['links']==[{'parent':'source','child':'editor-1'}];intact()
  connect('editor-1','browser');connect('source','browser');assert saved()['links']==[{'parent':'source','child':'editor-1'},{'parent':'source','child':'browser'}];step();assert saved()['links'][-1]=={'parent':'editor-1','child':'browser'};step(False)
@@ -51,9 +69,9 @@ def verify_history(page,project,mount,send,envelope,settle,restart):
   snapshot=history();b=title('source').bounding_box();drag('source',b['x']+230,b['y']+78,cancel);assert history()==snapshot;assert geometry(saved())==geometry(moved)
  snapshot=history();title('source').click(position={'x':110,'y':18});assert history()==snapshot
  b=title('source').bounding_box();page.mouse.move(b['x']+120,b['y']+18);page.mouse.down();page.mouse.move(b['x']+230,b['y']+78,steps=10);assert geometry(saved())==geometry(moved);assert history()==snapshot;page.keyboard.press('Escape');page.mouse.up()
- latest_source+='\n// EDIT_AFTER_MOVE';latest_property='EDIT_AFTER_MOVE';page.locator('#source').fill(latest_source);window('editor-1').locator('[data-description]').fill(latest_property);step();assert geometry(saved())==geometry(before);intact();step(False);assert geometry(saved())==geometry(moved);intact()
+ latest_source+='\n// EDIT_AFTER_MOVE';latest_property='EDIT_AFTER_MOVE';page.locator('#source').fill(latest_source);window('editor-1').locator('[aria-label="객체 설명"]').fill(latest_property);step();assert geometry(saved())==geometry(before);intact();step(False);assert geometry(saved())==geometry(moved);intact()
  # A portal transfer and its internal forest undo/redo together, using the same retained document DOM.
- area=page.locator('#workspace').bounding_box();page.locator('#workspace').click(button='right',position={'x':1850-area['x'],'y':950-area['y']});page.get_by_role('button',name='하위 Workspace 만들기',exact=True).click();portal=page.locator('.workspace-portal').last;child=portal.get_attribute('data-workspace-id');prior=saved();box=portal.bounding_box();drag('source',box['x']+box['width']/2,box['y']+box['height']/2);transferred=saved();assert len(geometry(transferred,child))==3;assert len(next(s for s in transferred['workspaces'] if s['id']==child)['links'])==2
+ area=page.locator('#workspace').bounding_box();create_workspace_item(page, 'portal', {'x':1850-area['x'],'y':950-area['y']});portal=page.locator('.workspace-portal').last;child=portal.get_attribute('data-workspace-id');prior=saved();box=portal.bounding_box();drag('source',box['x']+box['width']/2,box['y']+box['height']/2);transferred=saved();assert len(geometry(transferred,child))==3;assert len(next(s for s in transferred['workspaces'] if s['id']==child)['links'])==2
  step();assert geometry(saved())==geometry(prior);intact();step(False);assert geometry(saved(),child)==geometry(transferred,child);portal.dblclick();ready();intact();step();assert not geometry(saved(),child);root();intact();step(False);portal=page.locator('.workspace-portal[data-workspace-id="'+child+'"]');portal.dblclick();ready();intact();root()
  # Backend accepts scoped history, rejects document/input snapshots and identity changes in it.
  valid=saved()
@@ -74,10 +92,24 @@ def verify_history(page,project,mount,send,envelope,settle,restart):
  invoke('savePresentation',{'presentation':committed});restart();ready();root();step();remember();intact();step(False);page.locator('.workspace-portal[data-workspace-id="'+child+'"]').dblclick();ready();remember();intact();page.screenshot(path='/tmp/confectory-imp7-history.png',full_page=True)
  # The existing containing-group rule contributes both decorations and linked windows to one inverse.
  def create(label,x,y):
-  area=page.locator('#workspace').bounding_box();page.locator('#workspace').click(button='right',position={'x':x-area['x'],'y':y-area['y']});page.get_by_role('button',name=label,exact=True).click()
- create('메모 만들기',1850,1000);note=page.locator('.workspace-note').last;note.locator('textarea').fill('GROUP_NOTE_FIRST');nid=note.get_attribute('data-workspace-item');create('그룹 만들기',1850,850);gid=page.locator('.workspace-group').last.get_attribute('data-workspace-item')
- fixture=saved();owner=next(s for s in fixture['workspaces'] if s['id']==child);group=next(i for i in owner['items'] if i['id']==gid);members=owner['layout']+[i for i in owner['items'] if i['id']==nid];left=min(r['x'] for r in members);top=min(r['y'] for r in members);group.update(x=left-30,y=top-40,width=max(r['x']+r['width'] for r in members)-left+60,height=max(r['y']+r['height'] for r in members)-top+70);invoke('savePresentation',{'presentation':fixture});restart();ready();remember();intact();note=page.locator('.workspace-note[data-workspace-item="'+nid+'"]');note.locator('textarea').evaluate('e=>globalThis.__imp7Note=e');g=page.locator('.workspace-group[data-workspace-item="'+gid+'"]');b=g.locator('.workspace-item-handle').bounding_box();prior=saved();page.mouse.move(b['x']+100,b['y']+18);page.mouse.down();page.mouse.move(b['x']+180,b['y']+68,steps=15);page.mouse.up();ready();after=saved();assert geometry(after,child)!=geometry(prior,child);assert len(after['privateHistory']['undo'][-1]['changes'])==5
- note.locator('textarea').fill('GROUP_NOTE_LATEST');step();assert geometry(saved(),child)==geometry(prior,child);expect(note.locator('textarea')).to_have_value('GROUP_NOTE_LATEST');assert note.locator('textarea').evaluate('e=>e===globalThis.__imp7Note');intact();step(False);assert geometry(saved(),child)==geometry(after,child);expect(note.locator('textarea')).to_have_value('GROUP_NOTE_LATEST');assert note.locator('textarea').evaluate('e=>e===globalThis.__imp7Note');intact();page.screenshot(path='/tmp/confectory-imp7-history.png',full_page=True)
+  area=page.locator('#workspace').bounding_box();create_workspace_item(page, label, {'x':x-area['x'],'y':y-area['y']})
+ create('note',1850,1000);note=page.locator('.workspace-note').last;note.locator('[data-note-editor],textarea').fill('GROUP_NOTE_FIRST');nid=note.get_attribute('data-workspace-item');create('group',1850,850);gid=page.locator('.workspace-group').last.get_attribute('data-workspace-item')
+ fixture=saved();owner=next(s for s in fixture['workspaces'] if s['id']==child);group=next(i for i in owner['items'] if i['id']==gid);members=owner['layout']+[i for i in owner['items'] if i['id']==nid];left=min(r['x'] for r in members);top=min(r['y'] for r in members);group.update(x=left-30,y=top-40,width=max(r['x']+r['width'] for r in members)-left+60,height=max(r['y']+r['height'] for r in members)-top+70);invoke('savePresentation',{'presentation':fixture});restart();ready();remember();intact();note=page.locator('.workspace-note[data-workspace-item="'+nid+'"]');note.locator('[data-note-editor],textarea').evaluate('e=>globalThis.__imp7Note=e');g=page.locator('.workspace-group[data-workspace-item="'+gid+'"]')
+ handle=g.locator('.workspace-item-handle')
+ grab=handle.evaluate("""handle => {
+  const bounds = handle.getBoundingClientRect();
+  for (const fraction of [.5, .25, .75, .1, .9]) {
+   const x = bounds.left + bounds.width * fraction, y = bounds.top + bounds.height / 2;
+   const hit = document.elementFromPoint(x, y);
+   if (handle.contains(hit) && !hit.closest('button,input')) return {x,y};
+  }
+  return null;
+ }""")
+ assert grab, ('Group title must have an uncovered, visible drag handle',handle.bounding_box())
+ prior=saved();page.mouse.move(grab['x'],grab['y']);page.mouse.down();page.mouse.move(grab['x']+80,grab['y']+50,steps=15);page.mouse.up();ready();after=saved()
+ assert geometry(after,child)!=geometry(prior,child),(geometry(prior,child),geometry(after,child))
+ assert len(after['privateHistory']['undo'][-1]['changes'])==5
+ note.locator('[data-note-editor],textarea').fill('GROUP_NOTE_LATEST');step();assert geometry(saved(),child)==geometry(prior,child);expect(note.locator('[data-note-editor],textarea')).to_have_value('GROUP_NOTE_LATEST');assert note.locator('[data-note-editor],textarea').evaluate('e=>e===globalThis.__imp7Note');intact();step(False);assert geometry(saved(),child)==geometry(after,child);expect(note.locator('[data-note-editor],textarea')).to_have_value('GROUP_NOTE_LATEST');assert note.locator('[data-note-editor],textarea').evaluate('e=>e===globalThis.__imp7Note');intact();page.screenshot(path='/tmp/confectory-imp7-history.png',full_page=True)
  for file,data in original.items():assert file.read_bytes()==data,file
  assert not (project/'.confectory/project-activity').exists()
  print('PASS actual IMP7 private layout history: linked/group movement with latest canonical note and atomic portal/forest transfer Undo/redo, connect/reparent/disconnect-all, no-op/Escape/pointercancel/lostcapture and provisional checkpoint, redo branching, project isolation, cold both stacks, newest source/property DOM and CAS, atomic conflict and strict private payload',flush=True)

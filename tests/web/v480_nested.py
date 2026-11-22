@@ -1,6 +1,7 @@
 """Actual private graph creation/navigation, source ownership, cold input and compiler Confirm."""
 import json,uuid,time
 from playwright.sync_api import expect
+from editor_navigation import choose_project_tool
 
 def verify_nested(page,project,mount,send,envelope,settle,restart):
  page.set_viewport_size({'width':1700,'height':1150});graph='Example.ButtonGame::NodeValueBody/body:common';before={p:p.read_bytes() for p in project.iterdir() if p.is_file()};calls=[]
@@ -12,7 +13,7 @@ def verify_nested(page,project,mount,send,envelope,settle,restart):
    except ValueError:pass
  page.on('request',record)
  def ready():
-  expect(page.locator('#nav')).to_be_enabled(timeout=180000);expect(page.locator('#workspace-save-state')).not_to_contain_text('편집창 복원 중',timeout=180000)
+  expect(page.locator('#title')).to_be_enabled(timeout=180000);expect(page.locator('#workspace-save-state')).not_to_contain_text('편집창 복원 중',timeout=180000)
  def invoke(endpoint,args):
   v=mount();request=uuid.uuid4().hex;assert send(envelope(v,'invoke',endpoint=endpoint,requestId=request,expectedRevision=v['revision'],input=args))['ok'];deadline=time.monotonic()+180;result=None
   while time.monotonic()<deadline:
@@ -21,8 +22,7 @@ def verify_nested(page,project,mount,send,envelope,settle,restart):
    time.sleep(.02)
   assert result and result['ok'],result;assert send(envelope(v,'dispose'))['ok'];return result['result']
  def nav():
-  ready();page.locator('#nav').click();page.locator('.nav-menu').get_by_role('button',name='기능 Blueprint',exact=True).click();ready()
-  if page.locator('.nav-menu').count():page.locator('#nav').click()
+  ready();choose_project_tool(page, '기능 Blueprint');ready()
  def panel():return page.locator('.window[data-key="blueprint"]')
  def local_window():return page.locator('.window[data-key="blueprint-code:'+graph+'/$locals"]')
  def read(id=None):return invoke('blueprint',{'action':'read','id':id or graph})

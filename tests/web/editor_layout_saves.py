@@ -1,4 +1,4 @@
-from editor_navigation import goto_editor
+from editor_navigation import choose_project_tool, create_workspace_item, goto_editor, open_workspace_menu
 import json,os,pathlib,subprocess,tempfile,time,shutil,sys,signal,urllib.request,hashlib
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
@@ -62,7 +62,8 @@ with sync_playwright() as p:
  try:
   phase('idle_poll',lambda:None,2500)
   def menus():
-   for _ in range(5):page.locator('#workspace').click(button='right',position={'x':1100,'y':400});page.keyboard.press('Escape');page.wait_for_timeout(350)
+   for _ in range(5):
+    menu=open_workspace_menu(page);page.keyboard.press('Escape');expect(menu).to_be_hidden();page.wait_for_timeout(350)
   phase('right_click_menus',menus)
   phase('same_origin_repeat',lambda:[(page.locator('#workspace-home-tab').click(),page.wait_for_timeout(350)) for _ in range(5)])
   def pan():
@@ -72,14 +73,14 @@ with sync_playwright() as p:
   phase('pan',pan)
   phase('zoom_burst_300ms',lambda:[(page.mouse.move(1100,350),page.mouse.wheel(0,-20),page.wait_for_timeout(300)) for _ in range(8)])
   if len(sys.argv)>3 and sys.argv[3]=='after':phase('slow_zoom_550ms',lambda:[(page.mouse.move(1100,350),page.mouse.wheel(0,20),page.wait_for_timeout(550)) for _ in range(8)])
-  page.locator('#nav').click();page.locator('.nav-menu button').filter(has_text='개념').first.click();expect(page.locator('#nav')).to_be_enabled();page.locator('#nav').click();page.wait_for_timeout(1400)
+  choose_project_tool(page, '개념');expect(page.locator('#title')).to_be_enabled();page.wait_for_timeout(1400)
   phase('selection_focus',lambda:[(page.locator('.window[data-key="browser"] .window-title').click(),page.wait_for_timeout(300)) for _ in range(5)])
   def window_drag():
    box=page.locator('.window[data-key="browser"]').bounding_box();page.mouse.move(box['x']+170,box['y']+16);page.mouse.down()
    for i in range(8):page.mouse.move(box['x']+170+i*3,box['y']+16+i*2);page.wait_for_timeout(100)
    page.mouse.up()
   phase('window_move',window_drag)
-  page.locator('#workspace').click(button='right',position={'x':1050,'y':450});page.get_by_role('button',name='메모 만들기',exact=True).click();page.wait_for_timeout(1400);note=page.locator('.workspace-note textarea').last
+  create_workspace_item(page, 'note');page.wait_for_timeout(1400);note=page.locator('.workspace-note').last.locator('[data-note-editor],textarea')
   phase('continuous_input_300ms',lambda:[(note.type(ch),page.wait_for_timeout(300)) for ch in 'abcdefghi'])
   # Re-send exactly the already persisted presentation through the normal API.
   token=url.split('#',1)[1];address=url.split('#',1)[0]+'api/request'
