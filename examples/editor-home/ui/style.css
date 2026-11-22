@@ -211,7 +211,8 @@
 .helper-main-control{font-size:10px;padding:2px 5px;border:1px solid #a94f59;color:#ffb1ba;border-radius:4px;white-space:nowrap}.helper-main-control:disabled{opacity:1;background:#a94f5925;cursor:default}
 .chatbar #chat-inner{display:flex;flex-direction:column;gap:8px;overflow:hidden;padding-bottom:10px}.chatbar #messages{flex:1;min-height:0;width:100%;overflow-y:auto}.chatbar #chat-form{display:flex;flex:none;width:100%;gap:8px;align-items:stretch}.chatbar #chat-input{flex:1;min-width:0;width:auto;height:36px;min-height:36px;max-height:36px;resize:none;padding:7px 10px;font-size:13px;line-height:20px}.chatbar #chat-form>button{flex:none;width:auto;min-width:64px;padding:6px 12px;white-space:nowrap;font-size:13px}.chatbar.is-minimized #chat-inner{display:none}
 
-.chatbar #messages{padding:7px 10px}.bubble-dock #yogi-bubble,.bubble-dock #augment-bubble,.bubble-dock #run,.bubble-dock #build{font-size:24px;line-height:1}
+.chatbar #messages{padding:7px 10px}
+.chatbar #chat-latest-log{flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.bubble-dock #yogi-bubble,.bubble-dock #augment-bubble,.bubble-dock #run,.bubble-dock #build{font-size:24px;line-height:1}
 
 .bubble-dock #augment-bubble>span[aria-hidden]{font-family:"Segoe UI Symbol",sans-serif;font-size:32px;line-height:1}
 
