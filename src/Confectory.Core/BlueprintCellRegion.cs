@@ -137,20 +137,25 @@ public static class BlueprintCellRegion
             && sig["args"] is JsonArray{Count:0} && S(sig,"return")=="void",
             "One new local no-argument void code cell required");
         Need(new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1)
-            && edits.Where(e=>S(e,"action")!="route").All(e=>S(e,"node")==id&&(ReferenceEquals(e,creation)
+            && edits.Where(e=>S(e,"action") is not ("route" or "entry")).All(e=>S(e,"node")==id&&(ReferenceEquals(e,creation)
                 ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"
                 &&e["text"] is JsonValue value&&value.TryGetValue<string>(out _))),"Only the new child body/name may be edited");
-        var routes=edits.Where(e=>S(e,"action")=="route").ToArray();
-        Need(routes.Length==2&&routes.All(e=>e is JsonObject row&&row.Count==4
-            &&row.All(p=>p.Key is "action" or "node" or "port" or "to")&&S(e,"port")=="next"),"Two exact insertion routes required");
+        var routes=edits.Where(e=>S(e,"action") is "route" or "entry").ToArray();
+        Need(routes.Length==2&&routes.All(e=>e is JsonObject row&&row["to"] is JsonValue value&&value.TryGetValue<string>(out _)
+            &&(S(row,"action")=="entry"&&row.Count==3&&S(row,"node")=="$entry"
+                ||S(row,"action")=="route"&&row.Count==4&&S(row,"port")=="next"
+                    &&row.All(p=>p.Key is "action" or "node" or "port" or "to"))),"Exact insertion connections required");
         var incoming=routes.Single(e=>S(e,"node")!=id)!;var outgoing=routes.Single(e=>S(e,"node")==id)!;
-        Need(S(incoming,"to")==id&&selected["nodes"]!.AsArray().Any(n=>S(n,"id")==S(incoming,"node"))
-            &&selected["edges"]!.AsArray().Any(e=>S(e,"from")==S(incoming,"node")&&S(e,"port")=="next"&&S(e,"to")==S(outgoing,"to")),
-            "Insert after one observed cell without changing its continuation");
+        bool atStart=S(incoming,"action")=="entry";
+        string successor=S(outgoing,"to");
+        Need(S(outgoing,"action")=="route"&&S(incoming,"to")==id
+            &&(atStart?successor==S(selected,"entry"):selected["edges"]!.AsArray().Any(e=>S(e,"from")==S(incoming,"node")&&S(e,"port")=="next"&&S(e,"to")==successor)),
+            "Insert on one observed connection without changing its continuation");
         var candidate=root.DeepClone().AsObject();var child=OwnedFrame(candidate,path);
         var made=definition.DeepClone().AsObject();made["id"]=id;child["nodes"]!.AsArray().Add(made);
-        var edge=child["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!;edge["to"]=id;
-        child["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=S(outgoing,"to")});
+        if(atStart)child["entry"]=id;
+        else child["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!["to"]=id;
+        child["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=successor});
         // Recheck the original depth/per-frame/global limits including the new cell.
         OwnedFrame(candidate,path);
         return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};

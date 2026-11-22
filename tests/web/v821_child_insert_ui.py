@@ -6,12 +6,18 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 fixture=Path(__file__).with_name('v821_frame_structure_ui.py');nodes=ast.parse(fixture.read_text()).body
 exec(compile(ast.Module(body=nodes[:next(i for i,n in enumerate(nodes)if isinstance(n,ast.Try))],type_ignores=[]),str(fixture),'exec'),globals())
+at_start=mode=='start'
+anchor='$entry' if at_start else 'inner'
+def inserted_order(created):
+ return ['$entry',created,'inner','tail','$exit:return'] if at_start else ['$entry','inner',created,'tail','$exit:return']
 def resume(i):
  restart(i)
  if panel().locator('.bp-breadcrumbs button').count():root_view()
  enter()
-def proposal(data,node='cell_probe',after='inner',to='tail'):
- return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get('documentFrameOrderBinding')or dict(root=t.graph,graph=frame,path='body/nest',rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='새 동작',signature=signature())),dict(action='rename',node=node,text='자식 추가 α'),dict(action='intent',node=node,text='자식 추가 α'),dict(action='source',node=node,text='global::System.Console.WriteLine("inserted-child");\nreturn;'),dict(action='route',node=after,port='next',to=node),dict(action='route',node=node,port='next',to=to)])
+def proposal(data,node='cell_probe',after=anchor,to=None):
+ incoming=dict(action='entry',node='$entry',to=node) if after=='$entry' else dict(action='route',node=after,port='next',to=node)
+ successor=to or ('inner' if after=='$entry' else 'tail')
+ return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get('documentFrameOrderBinding')or dict(root=t.graph,graph=frame,path='body/nest',rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='새 동작',signature=signature())),dict(action='rename',node=node,text='자식 추가 α'),dict(action='intent',node=node,text='자식 추가 α'),dict(action='source',node=node,text='global::System.Console.WriteLine("inserted-child");\nreturn;'),incoming,dict(action='route',node=node,port='next',to=successor)])
 def edit_body(created):
  doc().locator('[data-document-code="'+created+'"]').click();dialog=f.page.locator('.bp-script-dialog');source=dialog.locator('[data-code-source]');body=dialog.locator('[data-code-region=body]').text_content();source.evaluate('(el,text)=>{el.focus();const at=el.value.indexOf(text);if(at<0)throw Error("Missing protected body");el.setSelectionRange(at,at+text.length)}',body);f.page.keyboard.insert_text('global::System.Console.WriteLine("inserted-child");\nreturn;');dialog.locator('[data-code-save]').click();f.idle()
 def pure_denied(graph,path,edits):
@@ -21,11 +27,16 @@ def pure_denied(graph,path,edits):
 try:
  f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:
-  expect.set_options(timeout=45000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size(dict(width=1800,height=1400));open_document();enter();original=read();initial=order()
+  expect.set_options(timeout=45000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size(dict(width=1800,height=1400));open_document()
+  insert_at_start=lambda:doc().locator('[data-document-add="$entry"]')
+  expect(insert_at_start()).to_have_count(0)
+  enter();original=read();initial=order()
   if mode=='shared':
+   expect(insert_at_start()).to_have_count(0)
    assert original['documentFrameOrderBinding']is None;expect(doc().locator('[data-document-add=inner]')).to_be_disabled();doc().locator('[data-document-name=inner]').fill('공유 경계 입력 보존');doc().locator('.fd-document-title').click();held=pending();f.invoke('blueprint',proposal(original),False);assert checkpoint.read_bytes()==before and pending()==held;untouched();resume(1);assert pending()==held;expect(doc().locator('[data-document-name=inner]')).to_have_value('공유 경계 입력 보존');x.build('child-insert-shared-unchanged',10,'body\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10');untouched();f.checked('shared ancestor refuses child addition in UI/server and retains full-path private input and original execution through cold')
   else:
-   assert original['documentFrameOrderBinding']['path']=='body/nest';expect(doc().locator('[data-document-add=inner]')).to_be_enabled()
+   assert original['documentFrameOrderBinding']['path']=='body/nest'
+   add=doc().locator('[data-document-add="'+anchor+'"]');expect(add).to_be_enabled()
    # Pure compiler plan limits include the new cell; metadata reads grant no writes.
    q=proposal(original);f.metadata('blueprintCellRegion',action='frame-create',graph=base,path='body/nest',edits=q['edits'])
    qparent=proposal(original,node='finish');f.metadata('blueprintCellRegion',action='frame-create',graph=base,path='body/nest',edits=qparent['edits'])
@@ -36,10 +47,15 @@ try:
    for i in reversed(range(9)):deep=child([compound('p'+str(i),deep)],{'return':None})
    pure_denied(deep,'/'.join('p'+str(i)for i in range(9)),q['edits'])
    many=child([compound('x'+str(i),child([code('n'+str(j),'unused.node.json')for j in range(51 if i==0 else 50)],{'return':None}))for i in range(5)],{'return':None});pure_denied(many,'x0',proposal(original,after='n0',to='n1')['edits'])
-   doc().locator('[data-document-add=inner]').click();f.idle();created=[id for id in order()if id.startswith('cell_')];assert len(created)==1;created=created[0];assert order()==['$entry','inner',created,'tail','$exit:return'];assert len(pending())==6;doc().locator('.fd-document-title').click();doc().press('Control+z');assert order()==initial;doc().press('Control+y');assert created in order();edit_body(created);held=pending();assert len(held)==6;untouched();assert checkpoint.read_bytes()==before
-   root_view();enter('other/nest');expect(doc().locator('[data-document-add=inner]')).to_be_disabled();assert read(other)['entry']=='inner';root_view();enter();assert pending()==held
+   add.click();f.idle();created=[id for id in order()if id.startswith('cell_')];assert len(created)==1;created=created[0];assert order()==inserted_order(created);assert len(pending())==6
+   doc().locator('.fd-document-title').click();doc().press('Control+z');assert order()==initial;doc().press('Control+y');assert order()==inserted_order(created)
+   if at_start:expect(insert_at_start()).to_be_disabled()
+   edit_body(created);held=pending();assert len(held)==6;untouched();assert checkpoint.read_bytes()==before
+   root_view();enter('other/nest');expect(add).to_be_disabled();assert read(other)['entry']=='inner';root_view();enter();assert pending()==held
    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click();expect(panel().locator('[data-bp-node="'+created+'"]').first).to_be_visible();panel().get_by_role('tab',name='논리 코드',exact=True).click();resume(1);assert pending()==held and created in order();untouched();f.checked('one qualified child insertion edits its protected C# body, private Undo/Redo and cold; sibling duplicate local IDs and original source/ABI remain distinct; depth/per-frame/global limits hold')
-   for mutation in ['unbound','root','path','root-hash','frame-hash','owner','frame','local-id','args','return','scope','continuation','source','remove','two','checkpoint','proof','mixed']:
+   faults=['unbound','root','path','root-hash','frame-hash','owner','frame','local-id','args','return','scope','continuation','source','remove','two','checkpoint','proof','mixed']
+   if at_start:faults+=['wrong-first-cell','wrong-entry-anchor','extra-entry-key']
+   for mutation in faults:
     q=proposal(read());e=q['edits']
     if mutation=='unbound':q.pop('documentFrame')
     elif mutation=='root':q['documentFrame']['root']=f.n+'Missing/body:common'
@@ -53,6 +69,9 @@ try:
     elif mutation=='return':e[0]['definition']['signature']['return']='int'
     elif mutation=='scope':e[0]['definition']['branchOwner']='inner'
     elif mutation=='continuation':e[-1]['to']='exit:return'
+    elif mutation=='wrong-first-cell':e[-1]['to']='tail'
+    elif mutation=='wrong-entry-anchor':e[-2]['node']='inner'
+    elif mutation=='extra-entry-key':e[-2]['port']='next'
     elif mutation=='source':e[3]['node']='inner'
     elif mutation=='remove':e[0]['action']='removeNode'
     elif mutation=='two':e.append(copy.deepcopy(e[0]))
@@ -80,7 +99,14 @@ try:
    try:r.locator('#confirm').click();f.idle();assert checkpoint.read_bytes()==saved and graph_path.read_bytes()==x.physical[graph_path];assert not[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts]
    finally:graph_path.chmod(old_mode)
    if r.is_visible():r.locator('[data-reject]').click()
-   r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle();x.build('owned-child-insert',10,'body\ninserted-child\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10');assert all(p.read_bytes()==v for p,v in x.physical.items()if p.name!=t.graph_file);assert all(stat.S_IMODE(p.stat().st_mode)==m for p,m in source_modes.items());written=json.loads((f.project/t.graph_file).read_text());c=chosen(written);new=next(n for n in c['nodes']if n['id']==created);c['nodes'].remove(new);c['edges']=copy.deepcopy(target['edges']);assert written==base;new_sources=[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts];assert len(new_sources)==1 and json.loads(new_sources[0].read_text())['node']==created;resume(4);assert created in order()and len(read(other)['nodes'])==2;f.checked('Review cancel/final sibling CAS and read-only graph preserve originals and missing new body; Confirm writes one graph insertion and one new local body, real execution returns 10 with parent/sibling continuation intact, and reopens')
+   r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle()
+   first_two='inserted-child\nbody' if at_start else 'body\ninserted-child'
+   x.build('owned-child-insert',10,first_two+'\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10');assert all(p.read_bytes()==v for p,v in x.physical.items()if p.name!=t.graph_file);assert all(stat.S_IMODE(p.stat().st_mode)==m for p,m in source_modes.items());written=json.loads((f.project/t.graph_file).read_text());c=chosen(written);new=next(n for n in c['nodes']if n['id']==created)
+   if at_start:
+    assert c['entry']==created
+    assert c['edges']==target['edges']+[edge(created,target['entry'])]
+    c['entry']=target['entry']
+   c['nodes'].remove(new);c['edges']=copy.deepcopy(target['edges']);assert written==base;new_sources=[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts];assert len(new_sources)==1 and json.loads(new_sources[0].read_text())['node']==created;resume(4);assert order()==inserted_order(created) and len(read(other)['nodes'])==2;f.checked('Review cancel/final sibling CAS and read-only graph preserve originals and missing new body; Confirm writes one graph insertion and one new local body, real execution returns 10 with parent/sibling continuation intact, and reopens')
   doc().scroll_into_view_if_needed();f.page.screenshot(path=str(f.case/('child-insert-'+mode+'.png')),full_page=True);assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except BaseException:
  if getattr(f,'page',None):

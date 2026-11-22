@@ -632,9 +632,20 @@ function blueprintNormalizeControls(scope){
    if(!chain||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
    if(!next)throw Error('다음 연결을 확인하지 못했습니다. 기존 흐름은 유지됩니다.');
    const created='cell_'+crypto.randomUUID().replaceAll('-','').slice(0,16),name='새 동작',definition={kind:'code',control:'next',intent:name,signature:{args:[],return:'void'},...(chain.owner?{branchOwner:chain.owner}:{})};
-   structuralEdit(w,()=>{privateValue(w,created,'create',JSON.stringify(definition));privateValue(w,created,'rename',name);privateValue(w,created,'intent',name);privateValue(w,created,'source','return;');privateValue(w,from,port==='next'?'route':'route:'+port,created);privateValue(w,created,'route',next.startsWith('$exit:')?next.slice(1):next);});
+   structuralEdit(w,()=>{privateValue(w,created,'create',JSON.stringify(definition));privateValue(w,created,'rename',name);privateValue(w,created,'intent',name);privateValue(w,created,'source','return;');privateValue(w,from,from==='$entry'?'entry':port==='next'?'route':'route:'+port,created);privateValue(w,created,'route',next.startsWith('$exit:')?next.slice(1):next);});
   };
-  const addCell=id=>{if(!canvasOwns())return;const chain=linearCells(id),index=chain?.order.indexOf(id)??-1;if(index<0||chain.compound)throw Error('복합 셀은 같은 상위 흐름의 이동만 지원합니다. 내부·슬롯 구조와 입력은 유지됩니다.');if(chain.frame)guardOtherInputs(w,data);insertCell(chain,id,'next',chain.order[index+1]||chain.exit);};
+  const addCell=id=>{
+   if(!canvasOwns())return;
+   const chain=linearCells(id);
+   if(id==='$entry'){
+    if(!chain?.frame)throw Error('직접 소유한 자식의 직렬 흐름에서만 시작 뒤에 추가할 수 있어요.');
+    guardOtherInputs(w,data);insertCell(chain,id,'next',chain.order[0]);return;
+   }
+   const index=chain?.order.indexOf(id)??-1;
+   if(index<0||chain.compound)throw Error('복합 셀은 같은 상위 흐름의 이동만 지원합니다. 내부·슬롯 구조와 입력은 유지됩니다.');
+   if(chain.frame)guardOtherInputs(w,data);
+   insertCell(chain,id,'next',chain.order[index+1]||chain.exit);
+  };
   const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchChain(owner,port);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
   const mobileModel=()=>({name:data.privatePath?.split('/').at(-1)||displayName(w.authorInfo||{id:w.meta.id}),parent:!!data.privatePath,description:q('[data-bp-description]').value,descriptionReadonly:q('[data-bp-description]').readOnly,nodes:nodes.map(n=>{const row=rows.find(r=>r.id===n.id);return {...n,name:n.id==='$entry'?'시작':n.kind==='export'?(outputField(n)?.name||n.name)+' 내보내기':row?.kind==='call'?short(row.calledFeature):get(w,n.id,'rename',row?.displayName||n.name),description:n.id==='$entry'?'시작':row?get(w,n.id,'intent',row.intent||''):n.kind==='export'?bindingLabel(binding(port(n.id,'in','data','value'))):'',kind:row?.kind==='call'?'call':n.kind,inputs:row?rowFields(w,row,'inputs'):[],outputs:row?rowFields(w,row,'outputs'):[],codeEditable:row?.kind==='code'||!!row?.postCall,builtin:row?.kind==='property-set',internal:row?.kind==='graph'&&(!data.slotContext||data.privateCopy||data.slotContext.copySource)||canInternalCode(w,row),readonly:!row||!['code','graph'].includes(row.kind)||row.renameable===false||!!data.privateConversion,output:n.kind==='export'?(outputField(n)?.id||row?.output):null,outputName:n.kind==='export'?get(w,n.id,'contract-draft:export-name',outputField(n)?.name||''):null,outputDefinitionName:n.kind==='export'?outputField(n)?.name||'':null,outputType:n.kind==='export'?type(outputField(n)):'',outputReadonly:!outputEditable||!!data.privateConversion,terminal:n.id.startsWith('$exit:'),wrapper:!!row?.postCall,branches:[...(nodeAsync(w,row||{})?[{id:'completion',name:'완료 시'}]:[]),...(row?.executionEnum?.members||[]).filter(m=>m.id!==row.executionEnum.primary).map(m=>({id:branchPort(row,m),name:branchLabel(row,m)}))]};}),links:links(),outputs:outputFields.map(f=>({id:f.id,name:f.name,type:type(f)}))});
   const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;if(api.busy&&!(kind==='rename'&&w.authorSavePending&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage))return;privateValue(w,id,kind,text);const source=kind==='intent'?element(id)?.querySelector('[data-inline-description]'):element(id)?.querySelector('[data-bp-node-name]');if(source){if('value' in source)source.value=text;else source.textContent=text;}if(kind==='rename'){const node=nodeById(id);if(node)node.name=text;}status(w);mobile?.refresh();documentView?.refresh();};
@@ -740,7 +751,15 @@ function blueprintNormalizeControls(scope){
       $('[data-compound-delete-confirm]',root).onclick=()=>{close();remove();};
      });
    },
-   cellActions:id=>{const chain=linearCells(id),held=saveEntries(w),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear());const drag=cellDrag(id);return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀 이동은 같은 상위 흐름에서 지원합니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};},
+   cellActions:id=>{
+    const held=saveEntries(w);
+    if(id==='$entry'){
+     const showAdd=!w.meta.copyDraft&&!!frameCellChain(data);
+     return {showAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
+    }
+    const chain=linearCells(id),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
+    return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀 이동은 같은 상위 흐름에서 지원합니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
+   },
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},
    dropCell:(id,slot,expected,transfer)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>{
     const plan=cellDropPlan(id,slot,expected,transfer);
