@@ -1,6 +1,7 @@
 """Body search reads bounded owned drafts and opens one explicit observed target."""
 import hashlib,json,sys,time,traceback
 from playwright.sync_api import sync_playwright,expect
+from editor_navigation import create_workspace_item
 import v666_finder_bodies_fixture as bodies
 f=bodies.f;ns=bodies.ns;owner=ns+'MainBody';mode=sys.argv[3];page=None
 panel=lambda:page.locator('#workspace-find-panel')
@@ -37,6 +38,97 @@ def guards():
 def lifecycle(browser):
  global page
  open_find();search('BodyCommonNeedle',['common']);search('BodyQueryMustNotPersist',[]);page.evaluate('()=>globalThis.confectoryFlushPresentation()');assert'BodyQueryMustNotPersist'not in json.dumps(f.state()['presentation']);page.close();f.stop();f.start(1);page=f.setup(browser);expect(panel()).to_have_count(0);expect(page.locator('#chat-input')).to_have_value('본문 검색 중에도 보존할 개인 입력');open_find();expect(panel().get_by_role('searchbox')).to_have_value('');search('BodyCommonNeedle',['common']);panel().get_by_role('searchbox').press('Escape');f.call('leaveProject',{});expect(page.locator('.home-grid')).to_be_visible();page.close();f.stop();f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[1]);f.start(2);page=f.setup(browser);open_find();search('BodyCommonNeedle',[]);search('OtherProjectBodyOnly',['common']);f.checked('cold/home/new project preserves private input only in its owner and cannot adopt code/query from identical namespace/body IDs')
+
+def reopen_source(browser):
+ global page
+ page.set_viewport_size({'width':1800,'height':1250})
+ create_workspace_item(page,'note')
+ note=page.locator('.workspace-note').last
+ note_id=note.get_attribute('data-workspace-item')
+ note_text='Independent note input survives reopening a C# body'
+ note.locator('[data-note-editor],textarea').fill(note_text)
+
+ def source_window():return page.locator('.window[data-key="source"]')
+ def source():return source_window().locator('#source')
+ def pick(query='BodyCommonNeedle',target='common'):
+  open_find()
+  search(query,[target])
+  mark=len(f.requests)
+  panel().locator('.workspace-find-result').click()
+  expect(panel()).to_have_count(0)
+  return mark
+ def close_source():
+  source_window().get_by_role('button',name='창 닫기',exact=True).click()
+  expect(source_window()).to_be_hidden()
+ def assert_reopened(text,binding):
+  expect(source_window()).to_be_visible()
+  expect(source_window()).to_have_count(1)
+  expect(source()).to_have_value(text)
+  assert f.state()['draft']==binding
+ def assert_no_source_requests(mark):
+  disallowed={'finderBody','select','editDraft','saveDraft','reviewDraft','confirmDraft'}
+  seen=disallowed.intersection(row.get('endpoint') for row in f.requests[mark:])
+  assert not seen,seen
+
+ pick()
+ expect(source()).to_be_visible()
+ binding=f.state()['draft']
+ assert binding['id']==owner+'/body:common'
+ initial=source().input_value()
+ pending=initial+'\n// First private input, before shared Save\n'
+ source().fill(pending)
+ source().evaluate('element => { globalThis.reopenedSource = element; }')
+ mark=len(f.requests)
+ close_source()
+ pick('BodyLinuxNeedle','linux')
+ expect(page.locator('#status')).to_contain_text('미적용 소스 입력을 먼저 Apply하세요')
+ expect(source_window()).to_be_hidden()
+ pick()
+ assert_reopened(pending,binding)
+ close_source()
+ pick()
+ assert_reopened(pending,binding)
+ assert source().evaluate('element => element === globalThis.reopenedSource')
+ assert_no_source_requests(mark)
+ f.checked('same-body searches repeatedly reopen the retained live document before Save; another target preserves the hidden input and binding')
+
+ source_window().locator('#save').click()
+ expect(page.locator('#status')).to_contain_text('Draft saved; final sources unchanged')
+ binding=f.state()['draft']
+ assert binding['text']==pending
+ newer=pending+'// New private input after shared Save\n'
+ source().fill(newer)
+ mark=len(f.requests)
+ source_window().locator('.window-title').click(button='right',position={'x':110,'y':18})
+ page.locator('.context-menu').get_by_role('button',name='탭으로 열기',exact=True).click()
+ page.get_by_role('tab',name='Workspace',exact=True).click()
+ note.locator('.workspace-item-handle').click(button='right',position={'x':25,'y':14})
+ page.locator('.context-menu').get_by_role('button',name='탭으로 열기',exact=True).click()
+ page.locator('[data-window-tab="source"]').click()
+ page.locator('[data-window-tab-close="source"]').click()
+ expect(source_window()).to_be_hidden()
+ pick()
+ assert_reopened(newer,binding)
+ close_source()
+ page.evaluate('()=>globalThis.confectoryFlushPresentation()')
+ checkpoint=f.state()['presentation']['inputs']['source']
+ assert checkpoint['dirty'] and checkpoint['draft']==binding and checkpoint['text']==newer
+ assert_no_source_requests(mark)
+ page.close()
+ f.stop()
+ f.start(1)
+ page=f.setup(browser)
+ page.set_viewport_size({'width':1800,'height':1250})
+ expect(source_window()).to_be_hidden()
+ # Cold startup restores the saved source cursor. The search click must reuse it.
+ mark=pick()
+ assert_reopened(newer,binding)
+ page.locator('[data-note-tab="'+note_id+'"]').click()
+ expect(page.locator('[data-note-document="'+note_id+'"] [data-note-editor]')).to_have_text(note_text)
+ assert f.state()['presentation']['inputs']['source']==checkpoint
+ assert_no_source_requests(mark)
+ f.checked('shared Save and a separate private edit survive source-tab closure, cold reopen, and switching back to the untouched note tab')
+
 try:
  f.start(0)
  with sync_playwright()as p:
@@ -44,8 +136,10 @@ try:
   try:
    if mode=='baseline':
     open_find();panel().get_by_role('searchbox').fill('BodyCommonNeedle');expect(panel().locator('[data-find-content-refresh]')).to_be_visible(timeout=120000);expect(panel().locator('.workspace-find-result')).to_have_count(0);assert not content().get('bodies');f.checked('published baseline cannot search a declared owned C# body even though the body locator already exists')
-   else:{'normal':normal,'guards':guards,'lifecycle':lambda:lifecycle(browser)}[mode]()
-   f.original();assert f.outside.read_bytes()==f.outside_bytes;assert not f.errors and not f.external,(f.errors,f.external);assert not {'editDraft','saveDraft','reviewDraft','confirmDraft','editField','runProject','nodeTask','startAI'}.intersection(r.get('endpoint')for r in f.requests);page.screenshot(path=str(f.root/('finder-bodies-'+mode+'.png')));page.close();browser.close()
+   else:{'normal':normal,'guards':guards,'lifecycle':lambda:lifecycle(browser),'reopen':lambda:reopen_source(browser)}[mode]()
+   forbidden={'editDraft','saveDraft','reviewDraft','confirmDraft','editField','runProject','nodeTask','startAI'}
+   if mode=='reopen':forbidden-={'editDraft','saveDraft'} # The only source Save is explicitly tested above.
+   f.original();assert f.outside.read_bytes()==f.outside_bytes;assert not f.errors and not f.external,(f.errors,f.external);assert not forbidden.intersection(r.get('endpoint')for r in f.requests);page.screenshot(path=str(f.root/('finder-bodies-'+mode+'.png')));page.close();browser.close()
   except Exception:
    try:page.screenshot(path=str(f.root/'failure.png'));(f.root/'failure.html').write_text(page.content())
    except Exception:pass

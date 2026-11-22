@@ -133,7 +133,24 @@ const workspaceFinder=createWorkspaceFinder({
  loadState:()=>inventoryLoadScheduled?'loading':browserProjection.error?'failed':null,load:()=>{if(browserProjection.error)browserProjection.retry();ensureBrowserInventory();},
  nodes:()=>workspaceRuntime.state.workspaceNodes.values(),windows:()=>windows.values(),objects:()=>browserProjection.workspaceRows(),text:element=>placedFind.text(element),decorationName:item=>workspaceRuntime.decorationName(item),
  namespace:()=>current.namespace,contentEnsure:wanted=>finderContent.ensure(wanted),contentRows:()=>finderContent.rows,contentStatus:()=>finderContent.status,contentRefresh:()=>finderContent.refresh(),contentClose:()=>finderContent.close(),
- openBody:(owner,body)=>{const scope=current.projectId,generation=view.generation;return work(async()=>{if(dirty)throw Error('미적용 소스 입력을 먼저 Apply하세요. 입력은 유지됩니다.');if(!browserProjection.workspaceRows().some(row=>row.id===owner&&row.owned!==false))throw Error('본문의 소유 대상이 바뀌었습니다.');const opened=await view.call('finderBody',{id:owner,target:body.target,ownerRevision:body.ownerRevision,ownerHash:body.ownerHash,revision:body.revision,textHash:body.textHash});if(current.projectId!==scope||view.generation!==generation||opened?.id!==body.id||current.draft?.id!==body.id)throw Error('본문을 열 작업 공간이 바뀌었습니다.');editor();focusWindow(windows.get('source'));},'선택한 소유 C# 본문');},
+ openBody:(owner,body)=>{
+  if(busy)return;
+  const ownsBody=()=>browserProjection.workspaceRows().some(row=>row.id===owner&&row.owned!==false);
+  const pendingMessage='미적용 소스 입력을 먼저 Apply하세요. 입력은 유지됩니다.';
+  if(dirty){
+   // Reopen the retained editor without selecting a source or rebinding its input.
+   if(draft?.kind==='body'&&draft.id===body.id&&ownsBody()&&actualWorkspace.reveal('source'))return;
+   toast(pendingMessage);return;
+  }
+  const scope=current.projectId,generation=view.generation;
+  return work(async()=>{
+   if(dirty)throw Error(pendingMessage);
+   if(!ownsBody())throw Error('본문의 소유 대상이 바뀌었습니다.');
+   const opened=await view.call('finderBody',{id:owner,target:body.target,ownerRevision:body.ownerRevision,ownerHash:body.ownerHash,revision:body.revision,textHash:body.textHash});
+   if(current.projectId!==scope||view.generation!==generation||opened?.id!==body.id||current.draft?.id!==body.id)throw Error('본문을 열 작업 공간이 바뀌었습니다.');
+   editor();focusWindow(windows.get('source'));
+  },'선택한 소유 C# 본문');
+ },
  openObject:id=>{if(browserProjection.workspaceRows().some(row=>row.id===id))actualWorkspaceOpenDeclaration(id);},
  focusNode:key=>{const node=workspaceRuntime.state.workspaceNodes.get(key)||windows.get(key);if(!node?.el.isConnected||node.el.hidden)return;if(windows.get(key)===node){actualWorkspace.reveal(key);if(!node.documentDocked)workspaceRuntime.focusWorkspaceWindow(node);}else{actualWorkspace.activateBackground();workspaceRuntime.focusWorkspaceNode(node);workspaceRuntime.workspaceCenterOn(node.x+node.width/2,node.y+node.height/2);}}
 });
