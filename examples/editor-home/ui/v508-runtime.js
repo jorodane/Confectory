@@ -242,14 +242,39 @@ if(w.meta.group==='resource'){if(w.resourceScope===current.projectId&&w.resource
 resourceBrowser.retire(w);
   const retained=w.body.querySelector('[data-browser-control="object-query"]');
   if(!refresh&&w.browserScope===current?.projectId&&retained&&(!workspaceRuntime.isProjectBrowserKey(key)||w.body.querySelector('[data-tab].selected')?.dataset.tab===w.meta.group)&&retained.value===(w.meta.queryInput??w.meta.query??'')&&Number(w.body.querySelector('[data-density].selected')?.dataset.density)===w.meta.density){renderObjects(key);ensureBrowserInventory();controls();return w;}
-  w.browserScope=current?.projectId;mountBrowserShell(w,{esc,groups:{concept:'개념',info:'정보',feature:'기능',module:'모듈',resource:'자료'},projectBrowser:workspaceRuntime.isProjectBrowserKey(key),trackDrag:(...args)=>workspaceRuntime.trackWorkspaceDrag(...args),scale:()=>actualWorkspace.project?.workspaceView.scale||1,density:()=>{renderObjects(key);actualWorkspace.schedule();},persist:()=>actualWorkspace.schedule()});
+  w.browserSearch=null;w.browserScope=current?.projectId;mountBrowserShell(w,{esc,groups:{concept:'개념',info:'정보',feature:'기능',module:'모듈',resource:'자료'},projectBrowser:workspaceRuntime.isProjectBrowserKey(key),trackDrag:(...args)=>workspaceRuntime.trackWorkspaceDrag(...args),scale:()=>actualWorkspace.project?.workspaceView.scale||1,density:()=>{renderObjects(key);actualWorkspace.schedule();},persist:()=>actualWorkspace.schedule()});
 for(const node of $$('[id]',w.body)){node.dataset.browserControl=node.id;if(key!=='browser')node.id=key+'-'+node.id;}
-const find=id=>$('[data-browser-control="'+id+'"]',w.body),filter=()=>{
- w.browserCommitStamp=null;const query=find('object-query').value;if(!w.meta.catalogue&&dirty){toast('Apply local input before changing selection');return;}
- if(w.meta.catalogue){w.meta.query=query;renderObjects(key);actualWorkspace.schedule();}
- else{const scope=current.projectId;return work(async()=>{await readBrowserObjects(w,{kind:{concept:'object',info:'schema',feature:'function',module:'module'}[w.meta.group],query});if(current.projectId===scope&&windows.get(key)===w){w.meta.query=query;w.browserFilterRestored=true;w.browserFilterError=false;actualWorkspace.schedule();}},'Ready');}
+const find=id=>$('[data-browser-control="'+id+'"]',w.body),field=find('object-query');
+const filter=async()=>{
+ const query=field.value;if(!w.meta.catalogue&&dirty){toast('Apply local input before changing selection');return;}
+ w.browserCommitStamp=null;
+ if(w.meta.catalogue){w.meta.query=query;renderObjects(key);actualWorkspace.schedule();return;}
+ const scope=current.projectId,generation=view.generation,group=w.meta.group,search={confirmed:false,failed:false};
+ w.browserSearch=search;
+ const ownsSearch=()=>w.browserSearch===search&&current.projectId===scope&&view.generation===generation&&
+  windows.get(key)===w&&field.isConnected&&w.meta.group===group&&!w.meta.catalogue;
+ // Browser reads share the serialized view. Keep only the newest explicit search
+ // when Enter is pressed while another read is settling.
+ while(busy)await whenIdle();
+ if(ownsSearch()&&!w.el.hidden)await work(async()=>{
+  if(!ownsSearch()||w.el.hidden||dirty)return false;
+  await readBrowserObjects(w,{kind:{concept:'object',info:'schema',feature:'function',module:'module'}[group],query});
+  if(!ownsSearch()||w.el.hidden)return false;
+  w.meta.query=query;w.browserFilterRestored=true;w.browserFilterError=false;
+  search.confirmed=true;renderObjects(key);actualWorkspace.schedule();
+ },'Ready');
+ if(ownsSearch()&&!search.confirmed){search.failed=true;renderObjects(key);}
 };
-$$('[data-tab]',w.body).forEach(b=>{b.onclick=()=>switchBrowserGroup(w,b.dataset.tab);b.ondragstart=e=>{e.stopPropagation();const key=workspaceRuntime.browserInstanceKey('tab',b.dataset.tab),size=workspaceRuntime.browserInitialSize(key);workspaceRuntime.startWorkspaceDrag(e,{kind:'tab',key,group:b.dataset.tab,title:({concept:'개념',info:'정보',feature:'기능',module:'모듈',resource:'자료'}[b.dataset.tab])+' 브라우저',...size});};b.ondragend=workspaceRuntime.endWorkspaceDrag;});find('object-search').onclick=filter;find('object-query').onkeydown=e=>{if(e.key==='Enter')filter();};find('object-query').oninput=()=>{w.meta.queryInput=find('object-query').value;actualWorkspace.schedule();};$('[data-new]',w.body).onclick=e=>contextMenu(e.clientX,e.clientY,[['카테고리 생성',()=>declarationDialog('category')],['개념 생성',()=>declarationDialog('object')],['스키마 생성',()=>declarationDialog('schema')],['개념 선언 생성',()=>declarationDialog('concept')],['기능 생성',()=>declarationDialog('function')],['모듈 생성',()=>declarationDialog('module')]]);find('browser-actions').onclick=e=>browserActionMenu(e,w);setupBrowserFolderDrop(w);renderObjects(key);ensureBrowserInventory();controls();return w;}
+let composing=false;
+field.addEventListener('compositionstart',()=>{composing=true;});
+field.addEventListener('compositionend',()=>{composing=false;});
+field.onkeydown=e=>{
+ if(e.key!=='Enter'||e.defaultPrevented||composing||e.isComposing||e.keyCode===229)return;
+ e.preventDefault();if(!e.repeat)void filter();
+};
+field.oninput=()=>{w.meta.queryInput=field.value;actualWorkspace.schedule();};
+find('object-search').onclick=filter;
+$$('[data-tab]',w.body).forEach(b=>{b.onclick=()=>switchBrowserGroup(w,b.dataset.tab);b.ondragstart=e=>{e.stopPropagation();const key=workspaceRuntime.browserInstanceKey('tab',b.dataset.tab),size=workspaceRuntime.browserInitialSize(key);workspaceRuntime.startWorkspaceDrag(e,{kind:'tab',key,group:b.dataset.tab,title:({concept:'개념',info:'정보',feature:'기능',module:'모듈',resource:'자료'}[b.dataset.tab])+' 브라우저',...size});};b.ondragend=workspaceRuntime.endWorkspaceDrag;});$('[data-new]',w.body).onclick=e=>contextMenu(e.clientX,e.clientY,[['카테고리 생성',()=>declarationDialog('category')],['개념 생성',()=>declarationDialog('object')],['스키마 생성',()=>declarationDialog('schema')],['개념 선언 생성',()=>declarationDialog('concept')],['기능 생성',()=>declarationDialog('function')],['모듈 생성',()=>declarationDialog('module')]]);find('browser-actions').onclick=e=>browserActionMenu(e,w);setupBrowserFolderDrop(w);renderObjects(key);ensureBrowserInventory();controls();return w;}
 function setupBrowserFolderDrop(w){
  const root=w.el,scope=current.projectId,alive=()=>current.projectId===scope&&windows.get(w.key)===w,clear=()=>root.querySelectorAll('.browser-move-target').forEach(el=>el.classList.remove('browser-move-target'));
  const candidate=e=>{const payload=workspaceRuntime.state.workspaceDragPayload;if(!alive()||e.target.closest('.browser-view')!==root||payload?.kind!=='object'||payload.owner!==scope||!e.dataTransfer?.types.includes('application/x-semantic-object'))return null;const hit=e.target.closest('[data-object],[data-tree-id]'),id=hit?.dataset.object||hit?.dataset.treeId,target=browserProjection.rows().find(row=>row.id===id),namespace=e.target.closest('[data-namespace]')?.dataset.namespace,proofs=payload.sourceProofs||[];let folder;if(target?.kind==='category')folder=target;else if(namespace!==undefined||!hit&&e.target.closest('.browser-items')&&(w.meta.parent?browserProjection.rows().find(row=>row.id===w.meta.parent)?.kind==='category':true)){folder=w.meta.parent?browserProjection.rows().find(row=>row.id===w.meta.parent):null;if(namespace!==undefined)folder=null;}else return null;if(!proofs.length||proofs.length>32||proofs.length!==payload.ids?.length||new Set(proofs.map(row=>row.id)).size!==proofs.length)return null;const valid=(namespace===undefined||!namespace||namespace===current.namespace)&&proofs.every(proof=>{const row=browserProjection.rows().find(row=>row.id===proof.id);return row?.owned!==false&&row?.namespace===current.namespace&&row.group===w.meta.group&&(!folder||folder.owned!==false&&folder.namespace===current.namespace&&folder.group===row.group)&&row.id!==folder?.id&&Number.isInteger(proof.revision)&&typeof proof.hash==='string';});return {valid,proofs,folder,el:hit||e.target.closest('.browser-items,.folder-tree-name')};};
@@ -450,12 +475,45 @@ async function createBrowserVariation(input,alive){
 }
 function variationDialog(unit){return work(async()=>{if(dirty||[...schemaInputs.keys()].some(key=>key.startsWith(current.projectId+'|'+unit.id+'|')))throw Error('부모의 미적용 입력을 먼저 적용하거나 취소하세요.');if(unit.kind!=='object'||unit.id.split('::')[0]!==current.namespace)throw Error('현재 소유 객체를 부모로 선택하세요.');await view.call('select',{id:unit.id});await view.call('schema',{id:unit.id});declarationDialog('object',structuredClone(view.state.schema));},'바리에이션 부모 확인');}
 function objectActions(e,unit){const menuOwner=current.projectId;const functions=unit.kind==='object'?['바리에이션 생성','미리보기','전투 테스트','컨셉 아트 생성','밸런스 검토']:unit.kind==='function'?['기능 Blueprint','계약 검토']:unit.kind==='module'?['모듈 검토']:[];const items=[...functions.map(name=>name==='기능 Blueprint'?[name,()=>blueprintUI.open(unit.id)]:name==='바리에이션 생성'?[name,()=>variationDialog(unit)]:['계약 검토','모듈 검토'].includes(name)?[name,()=>openDeclaration(unit.id)]:['예시 · '+name+' · 미지원',()=>unsupported(name,'메뉴 확장 예시이며 실행 기능은 등록되지 않았습니다.')]),...(['object','schema'].includes(unit.kind)&&unit.owned!==false?[['새 창으로 열기',()=>current.projectId===menuOwner?openElementInstance(unit.id,{forceWindow:true}):toast('프로젝트가 바뀌었습니다. 현재 요소에서 다시 열어 주세요.')]]:[]),['상세 편집',()=>['object','schema'].includes(unit.kind)?act('select',{id:unit.id}):openDeclaration(unit.id)],['스키마 열기',()=>work(async()=>{const alive=()=>current.projectId===menuOwner;if(dirty&&draft?.id!==unit.id)throw Error('소스 입력을 먼저 적용하거나 취소해 주세요. 입력은 유지됩니다.');await readCurrentView('select',{id:unit.id},alive);await readCurrentView('schema',{id:unit.id},()=>alive()&&current.draft?.id===unit.id);showSchema();const shown=windows.get('schema');if(shown)focusWindow(shown);},'실제 객체 스키마')],['EY로 담기',()=>work(async()=>{await view.call('yogi',{action:'exactly',id:unit.id});showYogi();},'의미 객체 담김')],['표시 이름·부모·설명 편집 · F2',()=>openDeclaration(unit.id)],['삭제',()=>requestBrowserRemoval([unit.id],()=>current.projectId===menuOwner)]];if(unit.kind==='object')contextActionsUI.open(e,unit,items);else contextMenu(e.clientX,e.clientY,items);}
-function renderObjects(key){if(!key){for(const w of windows.values())if(w.key==='browser'||w.key.startsWith('browser:')||w.key.startsWith('browser-tree:'))renderObjects(w.key);return;}const w=windows.get(key);if(w?.meta.group==='resource'){if(w.resourceGeneration!==view.generation||!w.resourceLifetime)resourceBrowser.mount(w);else resourceBrowser.render(w);return;}const root=w&&$('[data-browser-control=objects]',w.body);if(!root||!w||!current)return;const scope=current.projectId,selected=reviewSelections.get(scope)||new Set(),items=inventoryUI.items(w)||[...current.units],mode=w.meta.density<=0?'Compact':w.meta.density>=100?'Data':'Preview';if(w.meta.sort?.startsWith('name'))items.sort((a,b)=>a.id.localeCompare(b.id)*(w.meta.sort==='name-desc'?-1:1));$('[data-browser-control=density-label]',w.body).textContent=mode;$('[data-total]',w.body).textContent=items.length+' 객체 · '+mode;inventoryUI.tree(w);if(w.key==='browser'&&!w.meta.catalogue&&!w.browserFilterRestored){root.innerHTML='<div class="empty">'+(dirty?'미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다.':w.browserFilterError?'그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.':'그룹과 검색을 복원하는 중입니다.')+'</div>';return;}refreshBrowserCommitStatus(w,items);const iconSize=24+Math.max(0,Math.min(98,w.meta.density-1))*24/98;root.style.setProperty('--browser-icon-size',iconSize+'px');root.style.setProperty('--browser-tile-size',(iconSize+56)+'px');if(!items.length&&mode!=='Data'){root.innerHTML='<div class="empty">'+(w.meta.catalogue&&current.inventory?.status!=='available'?'실제 registry 목록을 먼저 불러오세요.':'검색 결과가 없습니다.')+'</div>';return;}
+function renderObjects(key){if(!key){for(const w of windows.values())if(w.key==='browser'||w.key.startsWith('browser:')||w.key.startsWith('browser-tree:'))renderObjects(w.key);return;}const w=windows.get(key);if(w?.meta.group==='resource'){if(w.resourceGeneration!==view.generation||!w.resourceLifetime)resourceBrowser.mount(w);else resourceBrowser.render(w);return;}const root=w&&$('[data-browser-control=objects]',w.body);if(!root||!w||!current)return;
+const scope=current.projectId,generation=view.generation,group=w.meta.group,search=w.meta.catalogue?null:w.browserSearch;
+// The transport can deliver units before work() finishes. Do not make an
+// earlier result current while the last submitted query is unresolved.
+if(search&&!search.confirmed){
+ if(search.failed){root.innerHTML='<div class="empty">그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.</div>';updateBrowserCommitActions(w,null);}
+ return;
+}
+const selected=reviewSelections.get(scope)||new Set(),items=inventoryUI.items(w)||[...current.units],mode=w.meta.density<=0?'Compact':w.meta.density>=100?'Data':'Preview';if(w.meta.sort?.startsWith('name'))items.sort((a,b)=>a.id.localeCompare(b.id)*(w.meta.sort==='name-desc'?-1:1));$('[data-browser-control=density-label]',w.body).textContent=mode;$('[data-total]',w.body).textContent=items.length+' 객체 · '+mode;inventoryUI.tree(w);if(w.key==='browser'&&!w.meta.catalogue&&!w.browserFilterRestored){root.innerHTML='<div class="empty">'+(dirty?'미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다.':w.browserFilterError?'그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.':'그룹과 검색을 복원하는 중입니다.')+'</div>';return;}refreshBrowserCommitStatus(w,items);const iconSize=24+Math.max(0,Math.min(98,w.meta.density-1))*24/98;root.style.setProperty('--browser-icon-size',iconSize+'px');root.style.setProperty('--browser-tile-size',(iconSize+56)+'px');if(!items.length&&mode!=='Data'){root.innerHTML='<div class="empty">'+(w.meta.catalogue&&current.inventory?.status!=='available'?'실제 registry 목록을 먼저 불러오세요.':'검색 결과가 없습니다.')+'</div>';return;}
 const focusedObject=document.activeElement,focusId=mode!=='Data'&&root.contains(focusedObject)&&focusedObject.matches('[data-object]')?focusedObject.dataset.object:null;
 if(mode==='Data')browserData.render(w,root,items);else root.innerHTML=`<div class="${mode==='Compact'?'compact-list':'object-grid'}">${items.map(u=>`<div class="${mode==='Compact'?'object-row':'object-card concept-tile concept-file'}" data-object="${esc(u.id)}" data-id="${esc(u.id)}" tabindex="0"><span class="obj-icon">${browserIconMarkup(u,esc)}</span><${mode==='Compact'?'strong':'div class="name"'}>${esc(browserObjectName(u.id))}</${mode==='Compact'?'strong':'div'}><small>${esc(u.kind)}</small>${mode==='Compact'?'':'<div class="object-ref"></div>'}</div>`).join('')}</div>`;
-for(const el of $$('[data-object]',root)){const u=items.find(u=>u.id===el.dataset.object);
+for(const el of $$('[data-object]',root)){
+ const u=items.find(u=>u.id===el.dataset.object),open=()=>u.owned===false?openBrowserDefinition(u):act('select',{id:u.id});
  el.classList.toggle('selected',current.draft?.id===u.id);
- const handle=mode==='Data'?el.firstElementChild:el;if(!handle.dataset.referenceDrag)referenceGestures.source(handle,u.id);if(u.owned===false){el.dataset.readonly='true';el.onclick=el.ondblclick=e=>{if(!e.target.closest('button,input'))openBrowserDefinition(u);};el.oncontextmenu=e=>{e.preventDefault();el.onclick();};el.onkeydown=e=>{if(e.key==='Enter')el.onclick();};continue;}el.onclick=e=>{if(e.target.closest('input,button'))return;act('select',{id:u.id});};el.ondblclick=e=>{if(!e.target.closest('input,button,textarea,select'))act('select',{id:u.id});};el.oncontextmenu=e=>{if(e.target.closest('input,button,textarea,select'))return;e.preventDefault();objectActions(e,u);};el.onkeydown=e=>{if(e.target.closest('input,button,textarea,select'))return;if(e.key==='Enter')act('select',{id:u.id});if(e.key==='F2'){e.preventDefault();openDeclaration(u.id);}else if(e.key==='Delete'){e.preventDefault();requestBrowserRemoval([u.id],()=>windows.get(w.key)===w&&current.projectId===scope);}};}
+ const handle=mode==='Data'?el.firstElementChild:el;if(!handle.dataset.referenceDrag)referenceGestures.source(handle,u.id);
+ const activeResults=()=>current.projectId===scope&&view.generation===generation&&windows.get(w.key)===w&&
+  root.isConnected&&!w.el.hidden&&w.browserScope===scope&&w.meta.group===group&&(w.meta.catalogue?null:w.browserSearch)===search;
+ el.onkeydown=async e=>{
+  if(e.defaultPrevented||e.isComposing||e.keyCode===229||e.target.closest('input,button,textarea,select')||!activeResults())return;
+  if(e.key==='Enter'){
+   e.preventDefault();if(e.repeat)return;
+   // A confirmed row can be visible while the workspace flushes. After a
+   // repaint, use its exact qualified ID only if the same row still has focus.
+   while(busy)await whenIdle();
+   const focused=document.activeElement;
+   if(activeResults()&&root.contains(focused)&&focused.dataset.object===u.id)open();
+  }else if(u.owned!==false&&e.key==='F2'){e.preventDefault();openDeclaration(u.id);}
+  else if(u.owned!==false&&e.key==='Delete'){e.preventDefault();requestBrowserRemoval([u.id],activeResults);}
+ };
+ if(u.owned===false){
+  el.dataset.readonly='true';
+  el.onclick=el.ondblclick=e=>{if(!e.target.closest('button,input')&&activeResults())open();};
+  el.oncontextmenu=e=>{e.preventDefault();if(activeResults())open();};
+ }else{
+  el.onclick=e=>{if(!e.target.closest('input,button')&&activeResults())open();};
+  el.ondblclick=e=>{if(!e.target.closest('input,button,textarea,select')&&activeResults())open();};
+  el.oncontextmenu=e=>{if(e.target.closest('input,button,textarea,select'))return;e.preventDefault();if(activeResults())objectActions(e,u);};
+ }
+}
 
 decorateBrowserRows(w,root,items);controls();
 // A completed read may repaint these cards between focus and Enter. Restore
