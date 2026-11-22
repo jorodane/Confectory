@@ -44,7 +44,7 @@ public sealed class NestedAuthoringTests : TestCase
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","development-tools"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";element Main function"));
         File.WriteAllText(project,File.ReadAllText(project).Replace("element Main function","registry Confectory.DevelopmentTools \"../packs/development-tools/pack.cpack\";dependency Confectory.DevelopmentTools version \"0.1.0\";element Main function"));
-        string composition=Path.Combine(sample,"main.celem"),compositionText=File.ReadAllText(composition);File.WriteAllText(composition,compositionText.Insert(compositionText.LastIndexOf('}'),"provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;"));
+        Fixture.BindBlueprintConsumer(sample, "provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;");
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;

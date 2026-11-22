@@ -105,6 +105,16 @@ public sealed class Fixture : IDisposable
             string path = Path.Combine(Root, "target", name); File.WriteAllText(path, File.ReadAllText(path).Replace("bin/Release/net10.0/Confectory.Build.DotNet.dll", "fake/Confectory.Tests.dll", StringComparison.Ordinal));
         }
     }
+    public static void BindBlueprintConsumer(string sample, string additionalBindings = "")
+    {
+        string path = Path.Combine(sample, "main.celem");
+        string source = File.ReadAllText(path);
+        const string boundedRead = """
+            provide Confectory.EditWorkspace::ReadBoundedBody with Confectory.EditWorkspace::ReadBoundedBodyBody;
+            provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+            """;
+        File.WriteAllText(path, source.Insert(source.LastIndexOf('}'), "\n" + boundedRead + "\n" + additionalBindings + "\n"));
+    }
     public static void CopyTree(string source, string destination)
     {
         Directory.CreateDirectory(destination);

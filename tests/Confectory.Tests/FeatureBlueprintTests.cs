@@ -445,23 +445,12 @@ public sealed partial class FeatureBlueprintTests : TestCase
         }finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
     }
 
-    private static void BindBlueprintConsumer(string sample, string additionalBindings = "")
-    {
-        string path = Path.Combine(sample, "main.celem");
-        string source = File.ReadAllText(path);
-        const string boundedRead = """
-            provide Confectory.EditWorkspace::ReadBoundedBody with Confectory.EditWorkspace::ReadBoundedBodyBody;
-            provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
-            """;
-        File.WriteAllText(path, source.Insert(source.LastIndexOf('}'), "\n" + boundedRead + "\n" + additionalBindings + "\n"));
-    }
-
     public void test_blueprint_new_feature_registration_contract_group_compiler_and_cold_restore()
     {
         f.Sync();string sample=Path.Combine(f.Root,"feature-creation-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/edit-workspace"),sample);
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","development-tools"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";registry Confectory.DevelopmentTools \"../packs/development-tools/pack.cpack\";dependency Confectory.DevelopmentTools version \"0.1.0\";\nelement Main function"));
-        BindBlueprintConsumer(sample, "provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;");
+        Fixture.BindBlueprintConsumer(sample, "provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;");
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
@@ -555,7 +544,7 @@ public sealed partial class FeatureBlueprintTests : TestCase
         string sample=Path.Combine(f.Root,"call-wrapper-consumer");Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples/edit-workspace"),sample);
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";\nelement Main function"));
-        BindBlueprintConsumer(sample);
+        Fixture.BindBlueprintConsumer(sample);
         File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
         implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
         import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
@@ -631,7 +620,7 @@ public sealed partial class FeatureBlueprintTests : TestCase
         foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set","pack-workspace","element-view"})Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
         string project=Path.Combine(sample,"project.cpack");File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/").Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack").Replace("element Main function","registry Confectory.PackWorkspace \"../packs/pack-workspace/pack.cpack\";dependency Confectory.PackWorkspace version \"0.1.0\";\nelement Main function"));
         string consumerManifest=File.ReadAllText(project);File.WriteAllText(project,consumerManifest.Insert(consumerManifest.LastIndexOf('}'),"registry Confectory.ElementView \"../packs/element-view/pack.cpack\";dependency Confectory.ElementView version \"0.1.0\";"));
-        BindBlueprintConsumer(sample, """
+        Fixture.BindBlueprintConsumer(sample, """
             provide Confectory.ElementView::Create with Confectory.ElementView::CreateBody;
             provide Confectory.ElementView::Poll with Confectory.ElementView::PollBody;
             provide Confectory.ElementView::Labels with Confectory.ElementView::LabelsBody;
