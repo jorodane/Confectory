@@ -47,7 +47,7 @@ export function createSourceConflicts(api){
    if(api.current.draft?.id!==id)await api.view.call('select',{id});
    const data=await api.view.call('inspectSourceConflict',{id});if(api.current.projectId!==scope)throw Error('프로젝트가 바뀌었습니다.');
    const k=key(scope,id);if(raw.dirty&&!inputs.has(k))inputs.set(k,{text:raw.text,revision:raw.revision,draftHash:null,fileHash:null,rawOrigin:{text:raw.text,revision:raw.revision}});
-   if(prior&&(!prior.el.isConnected||api.windows.get('conflict')!==prior))return false;api.reveal('conflict');const w=show(id,data);api.focus(w);api.persist();
+   if(prior&&(!prior.el.isConnected||api.windows.get('conflict')!==prior))return false;api.reveal('conflict');const w=show(id,data);api.focus(w);api.persist();return true;
   },'현재 파일과 공유 초안 비교');
  }
  function restore(meta){const id=meta.conflictSourceId;if(!id)return null;return show(id,null,meta);}
