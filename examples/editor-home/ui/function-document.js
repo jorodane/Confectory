@@ -102,7 +102,7 @@ export function mountFunctionDocument(root,api){
     event.stopPropagation();cancelDrag();drag={id,binding,parent:button.closest('[data-document-cell]').parentElement,token:crypto.randomUUID(),slot:null};host.classList.add('fd-cell-dragging');event.dataTransfer.effectAllowed='move';event.dataTransfer.setData(dragType,drag.token);
    };
    button.ondragend=()=>{cancelDrag();render();};
-   button.onkeydown=event=>{if(!event.isComposing&&event.altKey&&['ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();event.stopPropagation();cancelDrag();if(owns())api.moveCell(button.dataset.documentDrag,event.key==='ArrowUp'?-1:1);}};
+   button.onkeydown=event=>{if(!event.isComposing&&event.altKey&&['ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();event.stopPropagation();cancelDrag();if(owns())api.moveCell(button.dataset.documentDrag,event.key==='ArrowUp'?-1:1,button);}};
   }
   for(const button of host.querySelectorAll('[data-document-remove]'))button.onclick=()=>{if(owns())api.removeCell(button.dataset.documentRemove);};
   for(const button of host.querySelectorAll('[data-document-up]'))button.onclick=()=>{if(owns())api.moveCell(button.dataset.documentUp,-1);};
@@ -202,5 +202,9 @@ export function mountFunctionDocument(root,api){
  },{signal:events.signal});
  root.addEventListener('input',()=>{if(owns()&&state.mode==='native'&&preview.querySelector('[data-native-body]')&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}},{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'){syncActions();if(!host.querySelector('input:focus,textarea:focus,button:focus')&&!document.querySelector('.bp-value-menu'))render();}});},destroy(){cancelDrag();destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
+ return {get mode(){return state.mode;},focusGrip(id){
+  if(!owns()||state.mode!=='logic')return;
+  syncActions();
+  host.querySelector('[data-document-drag="'+CSS.escape(id)+'"]:enabled')?.focus();
+ },refresh(){cancelAnimationFrame(frame);frame=requestAnimationFrame(()=>{if(!owns())return;if(!activated){mode(state.mode,true);return;}if(state.mode==='native'&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}if(state.mode==='logic'){syncActions();if(!host.querySelector('input:focus,textarea:focus,button:focus')&&!document.querySelector('.bp-value-menu'))render();}});},destroy(){cancelDrag();destroyed=true;cancelAnimationFrame(frame);events.abort();nav.remove();host.remove();preview.remove();root.classList.remove('fd-logic','has-function-document');}};
 }

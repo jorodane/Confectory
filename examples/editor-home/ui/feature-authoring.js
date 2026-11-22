@@ -844,7 +844,17 @@ function blueprintNormalizeControls(scope){
     });
    },'');},
    branchActions:(owner,port)=>({add:caseInsertionAvailable(branchChain(owner,port,true))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
-   moveCell:(id,offset)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>moveCell(id,offset),'');},addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
+   moveCell:async(id,offset,grip)=>{
+    if(!canvasOwns()||api.busy||surface.closeValues('preserve')===false)return;
+    const generation=await api.work(()=>{
+     const restore=grip===document.activeElement;
+     moveCell(id,offset);
+     if(restore&&w.authorGeneration!==canvasGeneration)return w.authorGeneration;
+    },'');
+    // Only the keyboard action may restore focus after its own canvas rebuild.
+    if(generation&&owns(w,canvasScope)&&w.authorGeneration===generation&&w.authorData===data&&document.activeElement===document.body)
+     w.authorDocumentView?.focusGrip(id);
+   },addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
    nativeVersion:()=>JSON.stringify([w.authorData.id,w.authorData.rootId,w.authorData.privatePath,w.authorData.documentFramePreviewBinding??w.authorData.documentFrameOrderBinding,w.authorData.checkpointHash,proof(w.authorData),saveEntries(w),api.otherPending?.((w.authorData.sources||[]).map(row=>row.id)),api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]]),
    nativeScope:()=>data.privatePath?'선택한 자식 흐름의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전':'선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전',
    previewNative:async()=>{if(!canvasOwns())throw Error('편집 대상이 바뀌었어요.');guardOtherInputs(w,data);const frame=data.privatePath?(data.documentFramePreviewBinding??data.documentFrameOrderBinding):null;if(!data.id||data.privatePath&&!frame||data.privateCopy||data.privateConversion||w.meta.copyDraft||w.meta.nodeFlowDraft||frame&&(data.slotContext||w.meta.authorView))throw Error('이 문맥의 네이티브 미리보기는 아직 지원하지 않습니다.');if(saveEntries(w).length||api.ownerInputs&&[...api.ownerInputs].some(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')))throw Error('저장하지 않은 입력이 있습니다. 저장한 뒤 미리보기를 갱신해 주세요.');const expected=proof(data),identity=JSON.stringify([data.id,data.rootId,data.privatePath,frame,data.checkpointHash]),result=await call(w,{action:'nativePreview',id:data.id,...(frame?{documentFrame:structuredClone(frame),sourceProof:expected,checkpointHash:data.checkpointHash}:{}),...(data.slotContext?{owner:data.slotContext.owner,ownerHash:w.meta.slotHash,ownerRevision:w.meta.slotRevision}:{})});if(!canvasOwns()||proof(w.authorData)!==expected||proof(result)!==expected||JSON.stringify([result.id,result.rootId,result.privatePath,result.documentFramePreviewBinding??result.documentFrameOrderBinding,result.checkpointHash])!==identity&&frame||saveEntries(w).length)throw Error('소스나 자식 경로가 바뀌어 결과가 오래됐습니다. 입력을 보존하고 다시 열어 갱신해 주세요.');guardOtherInputs(w,data);if(result.diagnostics?.state!=='source-assembled'||typeof result.diagnostics.body!=='string'||frame&&result.diagnostics.assembledPath!==data.privatePath)throw Error('네이티브 생성 불가: '+(result.diagnostics?.diagnostics?.map(d=>d.message||d.code).join(' · ')||result.diagnostics?.state||'진단을 확인해 주세요.'));return {body:result.diagnostics.body,members:result.diagnostics.members||'',bodyHash:result.diagnostics.bodyHash};},
@@ -866,8 +876,9 @@ function blueprintNormalizeControls(scope){
     },'');
    }
   });
+  w.authorDocumentView=documentView;
   w.authorSuspend=()=>{w.authorCloseDialog?.(true);zoomControl?.close(false);closeMenu('preserve');mobile?.suspend();};
-  const observer=new ResizeObserver(schedule);observer.observe(root);schedule();return ()=>{disposed=true;if(w.authorFindContext===findContext)delete w.authorFindContext;documentView?.destroy();mobile?.destroy();observer.disconnect();if(frame)cancelAnimationFrame(frame);dragCancel?.();closeMenu('preserve');};
+  const observer=new ResizeObserver(schedule);observer.observe(root);schedule();return ()=>{disposed=true;if(w.authorFindContext===findContext)delete w.authorFindContext;if(w.authorDocumentView===documentView)delete w.authorDocumentView;documentView?.destroy();mobile?.destroy();observer.disconnect();if(frame)cancelAnimationFrame(frame);dragCancel?.();closeMenu('preserve');};
  }
  function rootScriptPlan(w,row,saved){
   const native=signature(row.signature),contract=signature(w.authorData.signature),list=saved.parameters.trim()?saved.parameters.split(','):[];if(list.length!==native.args.length||contract.args.length!==native.args.length)throw Error('이 본문은 현재 매개변수의 이름·자료형·순서를 유지합니다.');const plan={args:structuredClone(contract.args),returnType:contract.return,remap:Object.fromEntries(contract.args.map(a=>[a.name,a.name])),inputModes:{},rootBody:{node:row.id,source:saved.source}};

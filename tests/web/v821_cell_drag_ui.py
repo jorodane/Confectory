@@ -113,7 +113,13 @@ try:
    move('last','last',valid=False);wait_order(wanted);assert pending()==held;unchanged();assert checkpoint.read_bytes()==before
    # Existing buttons and their keyboard activation, plus accessible grip arrows.
    cell('body').locator('[data-document-fold]').click();up=doc().locator('[data-document-up=body]');expect(up).to_be_visible();expect(up).to_be_enabled();up.focus();f.page.set_viewport_size(dict(width=1801,height=1400));f.page.wait_for_timeout(100);assert up.evaluate('el=>document.activeElement===el');f.page.keyboard.press('Enter');f.idle();wait_order(['after','middle','body','last']);local_undo();wait_order(wanted);folded()
-   grip('body').focus();f.page.keyboard.press('Alt+ArrowUp');f.idle();wait_order(['after','middle','body','last']);local_undo();wait_order(wanted)
+   grip('body').focus()
+   f.page.keyboard.press('Alt+ArrowUp');f.idle();wait_order(['after','middle','body','last'])
+   expect(grip('body')).to_be_focused()
+   f.page.keyboard.press('Alt+ArrowUp');f.idle();wait_order(['after','body','middle','last'])
+   expect(grip('body')).to_be_focused()
+   local_undo();wait_order(['after','middle','body','last'])
+   local_undo();wait_order(wanted)
    f.checked('Escape, outside/invalid/self drop preserve exact pending inputs and order; existing Enter/button, Ctrl+Z/Y and grip Alt+arrows share the same movement path')
    checkpoint.chmod(0o400)
    try:save();assert retained(held)and checkpoint.read_bytes()==before;unchanged()
