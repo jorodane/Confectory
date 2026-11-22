@@ -483,17 +483,29 @@ function updateHomeProjectStats(){
 }
 function renderHomeProjects(){
  const root=$('#home-projects');if(!root)return;homeCardsSnapshot=JSON.stringify(current.cards);homeCardsIdentity=homeProjectIdentity(current.cards);
- const query=homePreferences.value.projectQuery.trim().toLocaleLowerCase(),cards=current.cards.filter(p=>(p.title+' '+(p.description||'')).toLocaleLowerCase().includes(query));
- const order=db.favoriteProjectIds||[],favorites=cards.filter(p=>p.favorite).sort((a,b)=>(order.includes(a.id)?order.indexOf(a.id):1000)-(order.includes(b.id)?order.indexOf(b.id):1000)),regular=cards.filter(p=>!p.favorite);
+ const query=homePreferences.value.projectQuery.trim().toLocaleLowerCase();
+ const matchesQuery=card=>(card.title+' '+(card.description||'')).toLocaleLowerCase().includes(query);
+ const order=db.favoriteProjectIds||[];
+ const rank=card=>order.includes(card.id)?order.indexOf(card.id):1000;
+ const orderedFavorites=current.cards.filter(card=>card.favorite).sort((a,b)=>rank(a)-rank(b));
+ const favorites=orderedFavorites.filter(matchesQuery),regular=current.cards.filter(card=>!card.favorite&&matchesQuery(card));
  const card=p=>`<article class="project-card${p.favorite?' is-favorite':''}" data-project="${esc(p.id)}" ${p.favorite?'draggable="true"':''}><button type="button" class="project-favorite" data-favorite="${esc(p.id)}" aria-pressed="${p.favorite===true}" aria-label="${esc(p.title)} 즐겨찾기" title="즐겨찾기">${p.favorite?'★':'☆'}</button><button type="button" class="card-menu" data-manage="${esc(p.id)}" aria-label="${esc(p.title)} 관리">···</button><button type="button" data-enter="${esc(p.id)}" class="project-card-main"><span class="project-icon">◈</span><span class="project-card-copy"><h2>${esc(p.title)}</h2><p>${esc(p.description||'새로운 제작을 시작할 프로젝트')}</p></span></button><div class="project-card-stats">${homeProjectStats(p)}</div></article>`;
- root.innerHTML=(favorites.length||!query?`<section class="project-section" aria-label="즐겨찾기"><h2><button type="button" class="favorite-section-toggle" aria-expanded="${!db.favoriteProjectsCollapsed}" aria-controls="favorite-project-content"><span class="favorite-section-chevron" aria-hidden="true">${db.favoriteProjectsCollapsed?'▸':'▾'}</span>즐겨찾기 <small>${favorites.length}</small></button></h2><div class="project-section-content" id="favorite-project-content" ${db.favoriteProjectsCollapsed?'hidden':''}>${favorites.map(card).join('')||'<p class="project-empty">☆ 프로젝트 왼쪽의 별을 눌러 추가하세요.</p>'}</div></section>`:'')+(regular.length?`<section class="project-section" aria-label="일반 프로젝트"><h2>프로젝트 <small>${regular.length}</small></h2>${regular.map(card).join('')}</section>`:'')+(!cards.length&&query?'<p class="project-empty">검색 결과가 없어요.</p>':'');
+ root.innerHTML=(favorites.length||!query?`<section class="project-section" aria-label="즐겨찾기"><h2><button type="button" class="favorite-section-toggle" aria-expanded="${!db.favoriteProjectsCollapsed}" aria-controls="favorite-project-content"><span class="favorite-section-chevron" aria-hidden="true">${db.favoriteProjectsCollapsed?'▸':'▾'}</span>즐겨찾기 <small>${favorites.length}</small></button></h2><div class="project-section-content" id="favorite-project-content" ${db.favoriteProjectsCollapsed?'hidden':''}>${favorites.map(card).join('')||'<p class="project-empty">☆ 프로젝트 왼쪽의 별을 눌러 추가하세요.</p>'}</div></section>`:'')+(regular.length?`<section class="project-section" aria-label="일반 프로젝트"><h2>프로젝트 <small>${regular.length}</small></h2>${regular.map(card).join('')}</section>`:'')+(!favorites.length&&!regular.length&&query?'<p class="project-empty">검색 결과가 없어요.</p>':'');
  $('.favorite-section-toggle',root)?.addEventListener('click',()=>{db.favoriteProjectsCollapsed=!db.favoriteProjectsCollapsed;persist();renderHomeProjects();$('.favorite-section-toggle',root)?.focus();});
  let dragging=null,dragged=false;
  for(const el of $$('[data-project]',root)){
   el.ondragstart=e=>{if(!el.classList.contains('is-favorite')){e.preventDefault();return;}dragging=el.dataset.project;dragged=true;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',dragging);el.classList.add('is-dragging');};
   el.ondragover=e=>{if(!dragging||!el.classList.contains('is-favorite'))return;e.preventDefault();el.classList.add('drop-before');};
   el.ondragleave=()=>el.classList.remove('drop-before');
-  el.ondrop=e=>{e.preventDefault();if(!dragging||dragging===el.dataset.project)return;const ids=favorites.map(p=>p.id).filter(id=>id!==dragging);ids.splice(ids.indexOf(el.dataset.project),0,dragging);db.favoriteProjectIds=ids;persist();renderHomeProjects();};
+  el.ondrop=e=>{
+   e.preventDefault();
+   const target=el.dataset.project;
+   if(!dragging||dragging===target||!el.classList.contains('is-favorite'))return;
+   // Search changes which cards are visible, not which favorites have an order.
+   const ids=orderedFavorites.map(card=>card.id).filter(id=>id!==dragging);
+   ids.splice(ids.indexOf(target),0,dragging);
+   db.favoriteProjectIds=ids;persist();renderHomeProjects();
+  };
   el.ondragend=()=>{dragging=null;el.classList.remove('is-dragging');$$('.drop-before',root).forEach(x=>x.classList.remove('drop-before'));setTimeout(()=>dragged=false,0);};
  }
  $$('[data-enter]',root).forEach(b=>b.onclick=()=>{if(!dragged)act('openProject',{id:b.dataset.enter});});$$('[data-manage]',root).forEach(b=>b.onclick=e=>projectMenu(current.cards.find(p=>p.id===b.dataset.manage),e));$$('[data-favorite]',root).forEach(b=>b.onclick=()=>act('favoriteProject',{id:b.dataset.favorite,favorite:b.getAttribute('aria-pressed')!=='true'}));controls();
