@@ -785,8 +785,12 @@ function blueprintNormalizeControls(scope){
   const canRemoveDocumentCell=id=>canvasOwns()&&!api.busy&&!data.privateCopy&&!data.slotContext&&(!data.privatePath||!!frameRemovalBinding(data))&&
    !w.meta.copyDraft&&!document.body.classList.contains('is-mobile-editor')&&!saveEntries(w).length&&frameInputsClear()&&
    (data.documentRemovableCells||[]).includes(id);
+  const callsNeedingReview=new Set((data.nodes||[]).filter(row=>
+   row.kind==='call'&&row.postCallStale===true&&row.postCallSignatureMatches===false).map(row=>row.id));
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
+   if(callsNeedingReview.size)model.nodes=model.nodes.map(node=>callsNeedingReview.has(node.id)
+    ?{...node,contractReviewRequired:true}:node);
    const removal=saveEntries(w).find(([,value])=>value.type==='document-cell-remove')?.[1]?.node;
    if(!removal)return model;
    const successor=data.edges.find(edge=>edge.from===removal&&edge.port==='next');
