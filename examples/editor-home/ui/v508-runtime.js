@@ -706,13 +706,26 @@ function renderGlobalHelperDraft(root,h){helperAgentsUI.renderGlobal(root,h);}
 function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[['이름 변경',()=>work(()=>showProjectInformation(p.id,{focusTitle:true}))]]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
 
 async function leaveActiveProject(){
- const scope=current.projectId;if(!scope)return;
+ const scope=current.projectId,generation=view.generation;if(!scope)return;
+ const owns=()=>current.projectId===scope&&view.generation===generation;
  await resourcePreviews.flushDrafts();
- if($('#chat-input'))await view.call('chatDraft',{value:$('#chat-input').value});
+ if(!owns())throw Error('숨길 프로젝트 범위가 바뀌었습니다.');
+ const chat=$('#chat-input');
+ if(chat){
+  const value=chat.value,baseline=current.chatDraft;
+  // Browser status reads can advance the transport revision before the draft write is admitted.
+  for(let attempt=0;attempt<3;attempt++){
+   await view.update();
+   if(!owns()||$('#chat-input')!==chat||chat.value!==value)throw Error('프로젝트 대화 입력이 바뀌었습니다. 입력을 확인한 뒤 다시 시도해 주세요.');
+   if(current.chatDraft!==baseline)throw Error('저장된 프로젝트 대화 초안이 바뀌었습니다. 현재 입력은 유지됩니다.');
+   try{await view.call('chatDraft',{value});break;}
+   catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}
+  }
+ }
  await actualWorkspace.flush();
  // A rejected transport revision executed no navigation. Never retry source or AI commands.
  for(let attempt=0;attempt<3;attempt++){
-  await view.update();if(current.projectId!==scope)throw Error('숨길 프로젝트 범위가 바뀌었습니다.');
+  await view.update();if(!owns())throw Error('숨길 프로젝트 범위가 바뀌었습니다.');
   try{await view.call('leaveProject',{});await recover();return;}
   catch(error){if(error.message==='stale_revision'&&attempt<2)continue;if(['scope_changed','view_closed'].includes(error.message)){await recover();if(!current.projectId)return;}throw error;}
  }
