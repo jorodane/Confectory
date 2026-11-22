@@ -23,7 +23,16 @@ function addParticipant(kind,ownerAgentId='',editing=null,onRestored=null){hydra
  const name='<div class="field"><label for="participant-name">이름</label><input id="participant-name" required maxlength="40" placeholder="'+label+' 이름"></div>';
  modal(editing?editing.name+' 설정':label+' 추가','<form>'+images+(agent?name:'<div class="helper-create-identity">'+imageSlot('icon','도우미 아이콘','아이콘 생성')+'<div class="helper-create-name-stack">'+agentPicker+name+'<div class="field"><label for="participant-short-description">간단 설명</label><input id="participant-short-description" maxlength="40" placeholder="예: 차분한 길잡이"></div></div></div>')+'<div class="field"><label for="participant-description">설명</label><textarea id="participant-description" rows="2" maxlength="120" placeholder="'+(agent?'모델이나 실행 환경 설명':'캐릭터의 성격이나 특징')+'"></textarea></div><div class="actions"><button class="primary" type="submit">추가</button></div></form>',(r,close)=>{
   r.classList.add('helper-create-modal');r.dataset.v508Helper='true';r.dataset.referenceVersion='536';const artwork=r.querySelector('.helper-create-artwork');if(artwork)r.prepend(artwork)
-  const key=editing?.retained?'restore:'+editing.id:editing?.id||'create:'+owner.id,input=drafts.get(key)||{creationId:crypto.randomUUID().replaceAll('-',''),name:editing?.name||'',shortDescription:editing?.shortDescription||'',description:editing?.description||'',agent:editing?.agentId||owner.id};drafts.set(key,input);let selectedAgent=input.agent;
+  const key=editing?.retained?'restore:'+editing.id:editing?.id||'create:'+owner.id;
+  const initial={name:editing?.name||'',shortDescription:editing?.shortDescription||'',description:editing?.description||'',agent:editing?.agentId||owner.id};
+  const input=drafts.get(key)||{creationId:crypto.randomUUID().replaceAll('-',''),...initial};
+  drafts.set(key,input);
+  let selectedAgent=input.agent;
+  if(editing&&!editing.retained){
+   r._ownedCleanup=()=>{
+    if(Object.keys(initial).every(field=>input[field]===initial[field]))drafts.delete(key);
+   };
+  }
   const remember=()=>{input.name=$('#participant-name',r).value;input.shortDescription=$('#participant-short-description',r).value;input.description=$('#participant-description',r).value;input.agent=selectedAgent;};
   for(const [id,field] of [['name','name'],['short-description','shortDescription'],['description','description']]){const fieldInput=$('#participant-'+id,r);fieldInput.value=input[field];fieldInput.oninput=remember;}
   const choose=id=>{selectedAgent=id;const button=[...r.querySelectorAll('[data-select-agent]')].find(b=>b.dataset.selectAgent===id);for(const item of r.querySelectorAll('[data-select-agent]'))item.setAttribute('aria-pressed',String(item===button));r.querySelector('.helper-agent-dropdown summary').innerHTML=(button?button.innerHTML:'Agent를 선택하세요')+'<span class="agent-picker-chevron">⌄</span>';r.querySelector('.helper-agent-dropdown').open=false;remember();};
