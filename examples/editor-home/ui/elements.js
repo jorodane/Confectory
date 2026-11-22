@@ -68,7 +68,7 @@ export function createElementEditors(api){
  function action(w,key){if(!w.elementSchema||api.current.projectId!==w.elementScope||api.windows.get(w.key)!==w)return;const discarded=key==='discard'?entries(w.elementScope,w.elementSchema.id):null,copyDiscard=key==='discard'?api.copyDiscardSnapshot?.(w.elementSchema.id):null,browserDiscard=key==='discard'&&!api.localDiscardOnly?api.captureBrowserDiscard?.(w.elementSchema):null;return api.work(async()=>{const schema=w.elementSchema,scope=w.elementScope,id=schema.id,alive=()=>api.current.projectId===scope&&api.current.draft?.id===id&&api.windows.get(w.key)===w;
   try{if(!api.localDiscardOnly&&api.current.draft?.id!==id){if(api.dirty)throw Error('다른 소스의 미적용 입력을 먼저 처리해 주세요. 입력은 유지됩니다.');const sameSurface=()=>api.current.projectId===scope&&api.windows.get(w.key)===w&&w.elementSchema?.id===id;await call('select',{id},sameSurface);}if(!alive())throw Error('편집 대상이 바뀌었습니다.');if(unresolved(w))throw Error('이전 편집창의 입력을 아직 연결하지 못했어요. 입력을 보존하고 저장과 취소를 막았어요.');
    if(key==='discard'){if(api.cancelImplementationArchive&&api.implementationArchive?.(id)&&!discarded.length&&!api.raw?.has(id)&&!api.hasOwnerAttempt?.(id)){await api.cancelImplementationArchive(w,schema,alive);if(alive()){w.elementStamp=null;show(api.current.schema);api.persist();}return;}if(api.raw?.has(id))await api.raw.discard(id,alive);if(api.hasOwnerAttempt?.(id))await api.discardOwnerAttemptInWork(id,alive);if(copyDiscard)api.validateCopyDiscard(copyDiscard);const status=await call('browserDrafts',{action:'status',ids:[id]},alive);w.elementStatus=status;if(status&&(!status.ids?.includes(id)||status.rows?.find(row=>row.id===id)===undefined))throw Error('변경 상태의 편집 대상이 다릅니다. 입력은 유지됩니다.');if((status?.unsaved||status?.canRecover)&&(!api.localDiscardOnly||classificationGroup(w))){if(api.localDiscardOnly&&api.classificationPeers?.())throw Error('다른 창의 같은 정보 입력을 먼저 저장하거나 취소해 주세요. 입력은 유지됩니다.');if(status.rows?.find(row=>row.id===id)?.revision!==schema.revision)throw Error('변경 상태를 다시 확인해 주세요. 입력은 유지됩니다.');const archive=(api.current.retirements||[]).find(row=>row.owner===id&&['pending','restoring'].includes(row.state)&&status.ids.includes(row.manifest));if(archive&&api.archiveAction)await api.archiveAction(archive,archive.state==='pending'?'recover':'cancel',alive);else await call('browserDrafts',{action:'discard',ids:status.ids,revisions:status.rows.map(row=>row.revision),hashes:status.rows.map(row=>row.hash),checkpointHash:status.checkpointHash,ownerHash:status.ownerHash},alive);api.finishBrowserDiscard?.(browserDiscard);}else if(!status)throw Error('변경 상태를 확인하지 못했어요. 입력은 유지됩니다.');if(copyDiscard)await api.discardCopiesInWork(copyDiscard,alive);for(const [entry,value] of discarded)if(inputs.get(entry)===value)inputs.delete(entry);}
-   else{const saved=await flush(w);if(entries(scope,id).length)throw Error('저장 중 새로 입력한 내용이 있어요. 입력은 유지됩니다.');if(key==='save'){if(!saved?.copiesSaved)await call('saveDraft',{},alive);api.browserSaved?.(id);}else{await api.review(id);return;}}
+   else{const saved=await flush(w);if(entries(scope,id).length)throw Error('저장 중 새로 입력한 내용이 있어요. 입력은 유지됩니다.');if(key==='save'){if(!saved?.copiesSaved){await call('saveDraft',{},alive);w.elementStatusStamp=null;}api.browserSaved?.(id);}else{await api.review(id);return;}}
    await call('schema',{id},alive);if(schema.kind==='schema'&&(!api.localDiscardOnly||api.classificationInView))await api.refreshClassification?.();if(!alive())return;w.elementStamp=null;show(api.current.schema);api.persist();
   }catch(error){fail(w,error);throw error;}
  },'');}
@@ -116,7 +116,76 @@ export function createElementEditors(api){
   if(kind==='schema-remove'&&entries(scope,schema.id).some(([,value])=>value.path?.[0]===row.path[0]))return fail(w,Error('이 속성의 미저장 입력을 먼저 저장하거나 취소해 주세요. 입력은 유지됩니다.'));
   const before=new Map(entries(scope,schema.id)),prior=inputs.get(key);if(kind==='schema-name'&&text===(row.displayName||row.name)||kind==='schema-icon'&&text===(row.icon||''))inputs.delete(key);else inputs.set(key,{kind,path:structuredClone(row.path),contract:{kind:row.kind,cardinality:row.cardinality,type:row.type},schema:row.schemaOrigin,schemaHash:prior?.schemaHash??row.schemaHash,...(['schema-name','schema-icon'].includes(kind)?{text}:{}),revision:prior?.revision??schema.revision,hash:prior?.hash??schema.textHash});recordPropertyEdit(w,schema,before);controls(w);api.persist();if(kind==='schema-remove')fields(w,schema);
  }
+ function bindSchemaFieldOrder(w,schema,list,order){
+  if(api.localDiscardOnly||order.length<2||schema.validation?.status!=='valid')return;
+  const rows=[...list.children].filter(row=>order.includes(row.dataset.propertyId));
+  if(rows.length!==order.length||rows.some((row,i)=>row.dataset.propertyId!==order[i]))return;
+  const {id}=schema,scope=w.elementScope;
+  const alive=()=>api.current.projectId===scope&&api.windows.get(w.key)===w&&w.elementSchema?.id===id&&
+   api.current.draft?.id===id&&!w.el.hidden&&!w.elementInactive;
+  let dragged=null;
+  const clear=()=>rows.forEach(row=>row.classList.remove('property-drop-before','property-drop-after','property-dragging'));
+  const after=(event,row)=>{const rect=row.getBoundingClientRect();return event.clientY>rect.top+rect.height/2;};
+  const move=async(from,to,below,focus=false)=>{
+   if(from===to||!alive()||!list.isConnected)return;
+   const next=order.filter(name=>name!==from);
+   next.splice(next.indexOf(to)+(below?1:0),0,from);
+   if(next.every((name,i)=>name===order[i]))return;
+   while(api.busy)await api.whenIdle();
+   if(!alive()||!list.isConnected)return;
+   return api.work(async()=>{
+    const ready=()=>alive()&&list.isConnected&&w.elementSchema.revision===schema.revision&&w.elementSchema.textHash===schema.textHash&&
+     !unresolved(w)&&!api.dirty&&!api.classificationPending([id]);
+    if(!schema.textHash||!ready())
+     throw Error('현재 속성과 미적용 입력을 먼저 확인해 주세요. 입력은 유지됩니다.');
+    await call('editDeclaration',{id,revision:schema.revision,hash:schema.textHash,edit:{action:'field-order',order:next}},ready);
+    if(!alive())return false;
+    await call('schema',{id},alive);
+    if(!alive())return false;
+    show(api.current.schema);api.persist();
+    if(focus&&document.activeElement===document.body)$(
+     '.own-property-body>.property-fields>[data-property-id="'+CSS.escape(from)+'"]',w.body)?.focus({preventScroll:true});
+   },'필드 순서를 작업 사본에 적용했습니다. 원본 반영은 별도 검토가 필요합니다.');
+  };
+  for(const [index,row] of rows.entries()){
+   const name=order[index];
+   row.draggable=true;row.tabIndex=0;
+   row.setAttribute('aria-label',name+' 순서 이동: 위아래 화살표 키');
+   row.onkeydown=event=>{
+    if(event.target!==row||event.isComposing||event.keyCode===229||!['ArrowUp','ArrowDown'].includes(event.key))return;
+    event.preventDefault();event.stopPropagation();if(event.repeat)return;
+    const step=event.key==='ArrowDown'?1:-1,target=order[index+step];
+    if(target)move(name,target,step>0,true);
+   };
+   row.ondragstart=event=>{
+    if(!alive()||!list.isConnected||api.busy||event.target.closest('input,button,select,textarea,.property-multi-item')||
+       event.target.closest('[data-property-id]')!==row){event.preventDefault();return;}
+    event.stopPropagation();dragged=name;
+    event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('application/x-property-order',name);
+    row.classList.add('property-dragging');
+   };
+   row.ondragend=()=>{dragged=null;clear();};
+   row.ondragover=event=>{
+    if(!dragged||!alive()||api.busy)return;
+    event.preventDefault();event.stopPropagation();event.dataTransfer.dropEffect='move';
+    rows.forEach(item=>item.classList.remove('property-drop-before','property-drop-after'));
+    if(dragged!==name)row.classList.add(after(event,row)?'property-drop-after':'property-drop-before');
+   };
+   row.ondragleave=event=>{if(!row.contains(event.relatedTarget))row.classList.remove('property-drop-before','property-drop-after');};
+   row.ondrop=event=>{
+    if(!dragged)return;
+    event.preventDefault();event.stopPropagation();
+    const from=dragged;dragged=null;clear();
+    move(from,name,after(event,row));
+   };
+  }
+ }
  function fields(w,schema){const root=$('.object-schema',w.body),own=[],inherited=new Map();for(const row of schema.rows.filter(row=>row.path.length===1)){const origin=row.fieldSource||row.schemaOrigin;const target=origin&&origin!==schema.id?(inherited.has(origin)?inherited.get(origin):(inherited.set(origin,[]),inherited.get(origin))):own;target.push(row);}
+ const order=schema.kind==='schema'?schema.localFieldOrder||[]:[];
+ if(order.length){
+  const rank=new Map(order.map((key,index)=>[key,index]));
+  own.sort((a,b)=>(rank.get(a.name)??order.length)-(rank.get(b.name)??order.length));
+ }
  root.onkeydown=e=>{
   if(e.isComposing||!(e.ctrlKey||e.metaKey)||!['z','y'].includes(e.key.toLowerCase())||e.target.closest('input,textarea,[contenteditable]'))return;
   // Consume even a missing/stale snapshot; native Undo owns text focus only.
@@ -145,6 +214,7 @@ export function createElementEditors(api){
  for(const [key,value] of entries(w.elementScope,schema.id).filter(([,v])=>v.kind==='owned-definition'))if(!schema.rows.some(row=>row.path.length===1&&row.name===value.name))ownedDefinitions.render(w,schema,$('.own-property-body>.property-fields',root),key,value);
  for(const [key,value] of entries(w.elementScope,schema.id).filter(([,v])=>v.kind==='definition')){const field=document.createElement('section');field.className='object-property-row editable-property-row';field.dataset.definitionKey=key;field.dataset.propertyPath=JSON.stringify([value.nativeKey||value.name]);field.innerHTML='<div class="property-content-box"><button type="button" class="property-type-select" data-property-type aria-haspopup="dialog" aria-expanded="false">'+esc(value.definition?(value.typeChoice?.name||typeLabel(value.definition.type))+(value.definition.cardinality==='multiple'?' 여러 개':''):value.information?name(value.information.id):typeLabel(value.type))+'</button><button type="button" class="property-icon-edit" data-property-icon aria-label="속성 아이콘 편집"><span aria-hidden="true">◇</span></button><input class="property-name-input" data-property-name aria-label="속성 이름" maxlength="60"><div class="object-property-default"><input data-property-value aria-label="새 속성 기본값"></div><button type="button" class="property-remove" data-schema-remove aria-label="새 속성 삭제">×</button><p class="property-error" role="alert"></p></div>';$('.own-property-body>.property-fields',root).append(field);const input=$('[data-property-value]',field),nameInput=$('[data-property-name]',field);nameInput.value=value.name;input.type=value.type==='bool'?'checkbox':value.type==='string'?'text':'number';input.step=['int','long'].includes(value.type)?'1':'any';input.value=value.text;if(value.type==='bool')input.checked=value.text==='true';const changed=()=>{const current=inputs.get(key);if(!current)return;inputs.set(key,{...current,name:nameInput.value,text:input.type==='checkbox'?String(input.checked):input.value});controls(w);api.persist();};nameInput.oninput=input.oninput=changed;if(value.information||value.definition){nameInput.oninput=()=>{const prior=inputs.get(key);if(prior)inputs.set(key,{...prior,name:nameInput.value});controls(w);api.persist();};renderInformationValues(Object.assign(Object.create(api),{inputs,name,controls,fail,fieldTargets,recordEnum}),w,schema,key,value,field,fields);}nameInput.onkeydown=e=>{e.stopPropagation();if(e.key==='Enter'){e.preventDefault();$('[data-property-value]',field)?.focus();}};$('[data-property-type]',field).onclick=e=>{const anchor=e.currentTarget,scope=w.elementScope,alive=()=>api.current.projectId===scope&&api.windows.get(w.key)===w&&w.elementSchema===schema&&inputs.has(key);return api.work(async()=>{try{const prepared=await fieldChoices(w,schema);if(!alive())return;typePicker(w,anchor,{...value,ownedReset:!ownedDefinitions.untouchedNew(value)},(choice,cardinality)=>{const current=inputs.get(key);if(!current||!alive())return;if(choice?.kind==='owned'){ownedDefinitions.fromNew(w,schema,key,current,cardinality,prepared.definitionTypes||[]);return;}const before=new Map(entries(scope,schema.id));const definition=definitionContract(choice,cardinality),old=current.definition||{kind:current.information?'compound':'general',type:current.type,cardinality:'single'};let text;if(old.kind===definition.kind&&old.type===definition.type){const raw=current.wireJson?current.text:api.valueJson({value:current.text,type:current.type==='bool'?'checkbox':'text',checked:current.text==='true'},{kind:'general',cardinality:'single',type:current.type,inputKind:current.type==='bool'?'boolean':current.type==='string'?'text':'number'});try{text=cardinalValue(raw,old.cardinality,cardinality);}catch(error){fail(w,error);return;}}else{const raw=current.wireJson?current.text:api.valueJson({value:current.text,type:current.type==='bool'?'checkbox':'text',checked:current.text==='true'},{kind:'general',cardinality:'single',type:current.type,inputKind:current.type==='bool'?'boolean':current.type==='string'?'text':'number'}),base=old.kind==='general'?(old.type==='string'?'\"\"':old.type==='bool'?'false':'0'):current.typeChoice?.valueJson??current.information?.valueJson??'null',defaultRaw=old.cardinality==='multiple'?'['+base+']':base;let untouched=false;try{untouched=printTypedJson(parseTypedJson(raw))===printTypedJson(parseTypedJson(defaultRaw));}catch{}text=untouched?(typeof choice==='string'?(choice==='string'?'\"\"':choice==='bool'?'false':'0'):choice.valueJson??'null'):raw;if(untouched&&cardinality==='multiple')text='['+text+']';}inputs.set(key,{...current,type:definition.type,definition,typeChoice:typeof choice==='string'?null:structuredClone(choice),text,information:undefined,wireJson:true,invalidChildren:current.invalidChildren||{}});recordPropertyEdit(w,schema,before);fields(w,schema);controls(w);api.persist();},(prepared.definitionTypes||[]).filter(info=>schema.kind!=='schema'||info.kind!=='compound'||info.id!==schema.id&&!info.types?.[schema.id]),true);}catch(error){fail(w,error);throw error;}},'');};$('[data-schema-remove]',field).onclick=()=>{inputs.delete(key);fields(w,schema);controls(w);api.persist();};const icon=$('[data-property-icon]',field);if(['schema','object'].includes(schema.kind)){icon.innerHTML=value.icon?browserIconMarkup({kind:'schema',icon:value.icon},esc):'<span aria-hidden="true">◇</span>';icon.onclick=e=>{const current=inputs.get(key);if(current)editIcon(w,schema,e.currentTarget,{draftKey:key,name:current.name});};}else icon.onclick=unsupported;}
 
+  bindSchemaFieldOrder(w,schema,$('.own-property-body>.property-fields',root),order);
   fitInformation(w);
  }
  function variations(w,schema){

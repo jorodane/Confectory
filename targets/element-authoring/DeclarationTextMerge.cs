@@ -164,13 +164,31 @@ internal static class DeclarationTextMerge
         if (requested.Any(key => !source.Statements.ContainsKey(key))) throw new InvalidOperationException("Function membership changed during order merge");
         var slots = source.Statements.Where(row => t.Contains(row.Key)).Select(row => row.Value).OrderBy(part => part.Start).ToArray();
         if (slots.Length != requested.Length) throw new InvalidOperationException("Complete function order required");
-        var result = new StringBuilder(merged);
-        // Move each exact clause (including its internal comments). Whitespace,
-        // comments outside clauses, other contain kinds and all other text stay.
-        for (int i = slots.Length - 1; i >= 0; i--) { var part = slots[i]; result.Remove(part.Start, part.End - part.Start); result.Insert(part.Start, source.Statements[requested[i]].Text); }
-        string final = result.ToString();
+        string final = ReorderParts(merged, slots, requested.Select(key => source.Statements[key]).ToArray());
         if (final.Length > 1048576 || !Order(Read(canonical(final))).Where(t.Contains).SequenceEqual(requested)) throw new InvalidOperationException("Function order differs from explicit candidate");
         return final;
+    }
+    public static string ReorderFields(string text, IEnumerable<string> fields)
+    {
+        var source = Read(text);
+        var observed = source.Statements.Keys.Where(key => key.StartsWith("field:w:", StringComparison.Ordinal)).ToArray();
+        var order = fields.Select(name => "field:w:" + name).ToArray();
+        if (order.Length != observed.Length || !order.ToHashSet(StringComparer.Ordinal).SetEquals(observed))
+            throw new InvalidOperationException("Exact local field statements required");
+        return ReorderParts(text, observed.Select(key => source.Statements[key]).ToArray(),
+                            order.Select(key => source.Statements[key]).ToArray());
+    }
+    static string ReorderParts(string text, Part[] slots, Part[] ordered)
+    {
+        var result = new StringBuilder(text);
+        // Move each exact clause. Trivia between clauses and all unrelated text stay.
+        for (int i = slots.Length - 1; i >= 0; i--)
+        {
+            var part = slots[i];
+            result.Remove(part.Start, part.End - part.Start);
+            result.Insert(part.Start, ordered[i].Text);
+        }
+        return result.ToString();
     }
     static bool HasComments(Part part)
     {

@@ -157,11 +157,15 @@ try
         }
         case "editDeclaration":
         {
-            var element=new Parser(S("text"),"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
+            string text=S("text");var element=new Parser(text,"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
             if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum" or "implementation"))throw new ArgumentException("Authored declaration required");
-            DeclarationAuthoring.Apply(element,request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required"));
-            string formatted=Format(element);var parsed=new Parser(formatted,"<draft>").ParseElement();
+            var edit=request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required");
+            DeclarationAuthoring.Apply(element,edit);
+            bool reorder=edit["action"]!.GetValue<string>()=="field-order";
+            string formatted=reorder?DeclarationTextMerge.ReorderFields(text,element.Fields.Keys):Format(element);
+            var parsed=new Parser(formatted,"<draft>").ParseElement();
             if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");
+            if(reorder&&!parsed.Fields.Keys.SequenceEqual(element.Fields.Keys))throw new InvalidOperationException("Explicit local field order required");
             reply=JsonValue.Create(formatted);break;
         }
         case "setDataPath": case "setField": case "setData":
