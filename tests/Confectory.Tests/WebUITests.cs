@@ -402,6 +402,17 @@ public sealed class WebUITests : TestCase
         var run=Processes.Run(new[]{"python3",Path.Combine(Fixture.Repo,"tests/web/web_ui.py"),Fixture.Repo,report,"build-jobs"},timeoutSeconds:600);
         True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("PASS actual build-only jobs"),run.Stdout+run.Stderr);
     }
+    public void test_actual_editor_v821_build_only_cancel_during_compilation()
+    {
+        if (!OperatingSystem.IsLinux()) Skip("The compiler process observations require Linux /proc");
+        var built = new Builder(Path.Combine(Fixture.Repo, "examples/editor-home/project.cpack"), "linux").Build();
+        string report = Path.Combine(f.Root, "build-cancel-during-compilation.json");
+        File.WriteAllText(report, built.ToJsonString());
+        var run = Processes.Run(new[] { "python3", Path.Combine(Fixture.Repo, "tests/web/v821_build_compiling_cancel_ui.py"), Fixture.Repo, report }, timeoutSeconds: 300);
+        Console.WriteLine(run.Stdout.Trim());
+        True(run.ExitCode == 0, run.Stdout + run.Stderr);
+        True(run.Stdout.Contains("PASS The separate Run survives cancellation", StringComparison.Ordinal), run.Stdout);
+    }
     public void test_actual_editor_v424_shared_draft_history_cas_and_cold_restart()
     {
         var built=new Builder(Path.Combine(Fixture.Repo,"examples/editor-home/project.cpack"),"linux").Build();string report=Path.Combine(f.Root,"draft-history.json");File.WriteAllText(report,built.ToJsonString());
