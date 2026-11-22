@@ -652,6 +652,11 @@ async function showProjectInformation(id){
   $('form',r).onsubmit=e=>{e.preventDefault();work(async()=>{if(current.projectId!==scope)throw Error('프로젝트 범위가 바뀌었습니다. 입력은 유지됩니다.');await view.call('saveProjectInformation',{id,...input});projectInformationInputs.delete(id);close();},'프로젝트 목록 표시 정보 저장됨',{failureMessage:'프로젝트 정보를 저장하지 못했습니다. 입력은 유지됩니다. 목록 저장본과 범위를 다시 확인하세요.'});};
  });
 }
+function showProjectSettings(id,trigger){
+ if(!current.projectId||current.listingId!==id)return;
+ trigger?.focus({preventScroll:true});
+ modal('프로젝트 설정',`<section data-project-settings><dl><dt>네임스페이스</dt><dd data-project-settings-namespace>${esc(current.namespace||'확인할 수 없음')}</dd></dl><p>실행에는 이 프로젝트의 확정된 ProjectPack을 사용합니다.</p><p class="small">읽기 전용</p></section>`);
+}
 function openHelperSettings(h){return work(async()=>{await view.call('helperProfiles',{});showHelpers(helpers.find(row=>row.id===h.id));},'Helper 표시 프로필 조회됨');}
 function helperDisplayDraft(h){
  if(!helperProfileInputs.has(h.id)||(!helperProfileInputs.get(h.id).dirty&&helperProfileInputs.get(h.id).revision!==h.presentation?.revision)){const saved=h.presentation?.value;helperProfileInputs.set(h.id,{revision:h.presentation?.revision,value:{version:1,helper:h.id,name:saved?.name||h.name||h.id,shortDescription:saved?.shortDescription||h.shortDescription||h.speciality||'',description:saved?.description||h.description||h.personality||'',globalDraft:saved?.globalDraft||''}});}return helperProfileInputs.get(h.id);
@@ -670,7 +675,7 @@ async function saveHelperGlobalDraft(h){
  if(result.conflict){const error=Error('helper_draft_changed');error.saved=result;throw error;}draft.revision=result.revision;draft.draftRevision=result.draftRevision;if(draft.value.globalDraft===text){draft.dirty=false;draft.value=result.value;}return result;
 }
 function renderGlobalHelperDraft(root,h){helperAgentsUI.renderGlobal(root,h);}
-function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
+function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
 
 async function leaveActiveProject(){
  const scope=current.projectId;if(!scope)return;

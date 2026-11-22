@@ -1,4 +1,4 @@
-"""Verify project menus and desktop Run against the real Linux editor and disposable projects."""
+"""Verify project menus, settings and desktop Run in the real Linux editor."""
 from contextlib import contextmanager
 import json
 import os
@@ -165,6 +165,7 @@ def check_menu_switch(page):
 def check(page, origin, first_output, second_output, second_body, second_title):
     requests = []
     project_changes = []
+    invocations = []
     errors = []
     external = []
     page.on("pageerror", lambda error: errors.append(str(error)))
@@ -179,6 +180,7 @@ def check(page, origin, first_output, second_output, second_body, second_title):
             data = req.post_data_json
             if data.get("op") == "invoke":
                 endpoint = data.get("endpoint")
+                invocations.append(endpoint)
                 if endpoint in ("runWindow", "runProject", "startRun"):
                     requests.append((endpoint, data["input"].get("operation")))
                 if endpoint in ("openProject", "leaveProject", "closeProject"):
@@ -203,11 +205,46 @@ def check(page, origin, first_output, second_output, second_body, second_title):
         expect(menu).to_have_count(0)
         assert requests == before, requests
 
+    def settings_only(trigger, name, keyboard):
+        root = first_output.parent
+        files = [root / "profile/projects.json"]
+        for project in ("First", "Second"):
+            files.extend(path for path in (root / project).iterdir() if path.is_file())
+        before_files = {path: path.read_bytes() for path in files}
+        before_requests = len(invocations)
+        if keyboard:
+            trigger.press("Enter")
+        else:
+            trigger.click()
+        entry = page.locator(".context-menu").get_by_role("button", name="프로젝트 설정", exact=True)
+        if keyboard:
+            entry.press("Enter")
+        else:
+            entry.click()
+        dialog = page.get_by_role("dialog", name="프로젝트 설정", exact=True)
+        expect(dialog).to_be_visible()
+        expect(dialog.locator("[data-project-settings-namespace]")).to_have_text("Dock." + name)
+        expect(dialog).to_contain_text("확정된 ProjectPack")
+        expect(dialog).to_contain_text("읽기 전용")
+        expect(dialog.locator("form, input, textarea, select, [contenteditable=true]")).to_have_count(0)
+        expect(page.locator(".context-menu")).to_have_count(0)
+        if keyboard:
+            page.keyboard.press("Escape")
+        else:
+            dialog.get_by_role("button", name="닫기", exact=True).click()
+        expect(dialog).to_have_count(0)
+        expect(trigger).to_be_focused()
+        expect(page.locator("#title")).to_contain_text(name)
+        assert invocations[before_requests:] == [], invocations[before_requests:]
+        assert all(path.read_bytes() == content for path, content in before_files.items())
+        print(f"PASS {name} settings show only that project's read-only data without any invocation or file changes")
+
     run = page.get_by_role("button", name="프로젝트 실행", exact=True)
     start_requests = lambda: requests.count(("runWindow", "start"))
     title = page.locator("#title")
     expect(title).to_contain_text("First")
     expect(page.locator("#dock #run + #project-menu")).to_be_visible()
+    settings_only(title, "First", keyboard=True)
     check_menu_escape(page, title, "title")
     check_menu_escape(page, page.locator("#project-menu"), "dock")
     check_menu_switch(page)
@@ -229,10 +266,12 @@ def check(page, origin, first_output, second_output, second_body, second_title):
 
     page.locator(".brand").click()
     expect(page.locator(".home-grid")).to_be_visible()
+    expect(page.get_by_role("dialog", name="프로젝트 설정", exact=True)).to_have_count(0)
     page.locator("[data-enter]").filter(
         has=page.get_by_role("heading", name=second_title, exact=True),
     ).click()
     expect(title).to_contain_text("Second")
+    settings_only(page.locator("#project-menu"), "Second", keyboard=False)
     menu_only()
     assert not second_output.exists() and first_output.read_text().splitlines() == ["First"]
     run.click()
