@@ -125,9 +125,15 @@ public static class BlueprintCellRegion
         CompoundOrder(selected,CurrentRoutes(selected),true);
         return selected;
     }
-    static string RootStart(JsonObject graph)
+    static string RootStart(JsonObject graph,out bool compound)
     {
+        string entry=S(graph,"entry");
         var nodes=graph["nodes"]!.AsArray();
+        compound=nodes.Any(n=>S(n,"id")==entry&&S(n,"kind")=="graph");
+        if(compound){
+            CompoundOrder(graph,CurrentRoutes(graph));
+            return entry;
+        }
         Need(S(graph,"profile").StartsWith("sync-acyclic-",StringComparison.Ordinal)&&graph["copySource"] is null
             &&graph["executionExitMode"]?.GetValue<bool>()!=true&&nodes.Count is >0 and <64
             &&nodes.All(n=>Ordinary(n!,"")&&PlainCallContext(n!)),"A nonempty ordinary serial root is required");
@@ -136,7 +142,7 @@ public static class BlueprintCellRegion
         Need(names.Count==nodes.Count&&edges.Count==nodes.Count&&edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from"))),
             "One next route per original root cell required");
         var routes=edges.ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
-        string entry=S(graph,"entry"),at=entry;
+        string at=entry;
         var visited=new HashSet<string>(StringComparer.Ordinal);
         while(routes.TryGetValue(at,out var next)){Need(visited.Add(at),"Root chain cannot cycle");at=next;}
         Need(visited.Count==nodes.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(at[5..]),
@@ -436,7 +442,7 @@ public static class BlueprintCellRegion
         if(action=="scope-transfer")return TransferScopeBoundary(graph,edits);
         if(action=="root-start-options"){
             Need(edits.Count==0,"Read the original root start without edits");
-            return new JsonObject{["entry"]=RootStart(graph)};
+            return new JsonObject{["entry"]=RootStart(graph,out _)};
         }
         if(action=="compound-insert-options"){
             Need(edits.Count==0,"Read the original compound calls without edits");
@@ -445,11 +451,13 @@ public static class BlueprintCellRegion
         }
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(action=="root-start-create"){
-            RootStart(graph);
+            RootStart(graph,out bool compound);
             var candidate=graph.DeepClone().AsObject();
             InsertCell(candidate,edits,InsertionAnchor.RootStart);
-            RootStart(candidate);
-            return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
+            if(compound)CompoundOrder(candidate,CurrentRoutes(candidate));
+            else RootStart(candidate,out _);
+            return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone(),
+                ["rootTopology"]=compound?"compound-insert-options":"root-start-options"};
         }
         if(action=="compound-insert"){
             CompoundOrder(graph,CurrentRoutes(graph));

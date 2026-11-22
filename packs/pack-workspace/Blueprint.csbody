@@ -149,7 +149,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
       ["action"]="frame-create",["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["path"]=current["privatePath"]!.DeepClone(),["edits"]=edits.DeepClone()
      }.ToJsonString()));
      stagedPack["authorCellCreation"]=new System.Text.Json.Nodes.JsonObject{
-      ["graph"]=graphId,["rootTopology"]=ownedCompoundInsertionBatch?"compound-insert-options":ownedRootStartBatch?"root-start-options":null,["routes"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>e?["action"]?.ToString() is "route" or "entry"),e=>e!.DeepClone()))),["plan"]=plan
+      ["graph"]=graphId,["rootTopology"]=ownedCompoundInsertionBatch?"compound-insert-options":plan?["rootTopology"]?.GetValue<string>(),["routes"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>e?["action"]?.ToString() is "route" or "entry"),e=>e!.DeepClone()))),["plan"]=plan
      };
     }
     if(documentCompound&&!ownedCompoundInsertionBatch){if(current["documentCompoundOrderAvailable"]?.GetValue<bool>()!=true||current["documentCompoundOrderWritable"]?.GetValue<bool>()==false)throw new InvalidOperationException("Direct owned compound invocation required; preserve all inputs");calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]="compound-order",["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["edits"]=edits.DeepClone()}.ToJsonString());}

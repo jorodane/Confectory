@@ -4,6 +4,8 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 import v666_node_names_recovery_fixture as t
 f=t.f;x=t.x;mode=sys.argv[3]if len(sys.argv)>3 else'normal'
+at_start=mode=='insert-start'
+insertion=mode in {'insert','insert-start'}
 helper=Path(__file__).with_name('v821_function_document_ui.py')
 exec(compile(ast.Module(body=[n for n in ast.parse(helper.read_text()).body if isinstance(n,ast.FunctionDef)],type_ignores=[]),str(helper),'exec'),globals())
 def edge(a,b):return {'from':a,'port':'next','to':b}
@@ -12,9 +14,9 @@ def child(nodes,exits):return dict(schema=1,profile='sync-acyclic-nested-v1',ent
 base=copy.deepcopy(t.definition);base['profile']='sync-acyclic-nested-v1'
 body=base['nodes'][0];body.pop('implementation');body['kind']='graph';body['graph']=child([code('inner',[dict(name='amount',type='int')],'int','Pair.inner.node.json',{'amount':{'input':'amount'}}),code('tail',[],'void','Pair.tail.node.json')],{'return':{'node':'inner'}})
 other=dict(id='other',kind='graph',control='next',intent='other compound',signature=dict(args=[],**{'return':'void'}),arguments={},graph=child([code('inner',[],'void','Pair.other.node.json')],{'return':None}))
-if mode in {'dependency','insert'}:
+if mode=='dependency' or insertion:
  other['signature']['args']=[dict(name='value',type='int')];other['arguments']={'value':{'node':'body'}}
-if mode=='insert':
+if insertion:
  other['graph']['nodes'][0]['signature']['args']=[dict(name='value',type='int')]
  other['graph']['nodes'][0]['arguments']={'value':{'input':'value'}}
 base['nodes'].insert(1,other);base['edges']=[edge('body','other'),edge('other','after'),edge('after','exit:return')]
@@ -26,7 +28,7 @@ if mode=='shared':
 defs=f.metadata('blueprintDescribeOwned',project=str(f.manifest),id=f.n+'PairBody',text=(f.project/'PairBody.celem').read_text(),bodyTarget='common',graph=base,definitionsOnly=True);assert defs['state']=='node-definitions',defs
 sources={'body/inner':('Pair.inner.node.json','global::System.Console.WriteLine("body");\r\nreturn '+'checked(amount+3);'),'body/tail':('Pair.tail.node.json','global::System.Console.WriteLine("inside");'),'other/inner':('Pair.other.node.json','global::System.Console.WriteLine("other");')}
 if mode=='shared':sources['choose']=('Pair.choose.node.json','return Result.Positive;')
-if mode=='insert':sources['other/inner']=('Pair.other.node.json','global::System.Console.WriteLine("other:"+value);')
+if insertion:sources['other/inner']=('Pair.other.node.json','global::System.Console.WriteLine("other:"+value);')
 for key,(file,source)in sources.items():
  definition=next(n for n in defs['nodes']+defs['nestedNodes']if n['id']==key)
  (f.project/file).write_text(json.dumps(dict(schema=1,node=key.split('/')[-1],definitionHash=definition['definitionHash'],source=source),ensure_ascii=False))
@@ -37,64 +39,76 @@ def order():return doc().locator('[data-document-cell]').evaluate_all('(els)=>el
 def request(data,ids=['other','body','after']):return dict(action='authorBatch',documentCompound=True,id=t.graph,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='entry',node='$entry',to=ids[0])]+[dict(action='route',node=n,port='next',to=ids[i+1]if i+1<len(ids)else'exit:return')for i,n in enumerate(ids)])
 def insertion_request(data,anchor='body',successor='other'):
  node='cell_probe'
- return dict(action='authorBatch',documentCompound=True,id=t.graph,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[
+ incoming=dict(action='entry',node=anchor,to=node) if anchor=='$entry' else dict(action='route',node=anchor,port='next',to=node)
+ return dict(action='authorBatch',**({} if anchor=='$entry' else {'documentCompound':True}),id=t.graph,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[
   dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='복합 호출 뒤 동작',signature={'args':[],'return':'void'})),
   dict(action='rename',node=node,text='복합 호출 뒤 동작'),dict(action='intent',node=node,text='복합 호출 뒤 동작'),dict(action='source',node=node,text='return;'),
-  dict(action='route',node=anchor,port='next',to=node),dict(action='route',node=node,port='next',to=successor)])
+  incoming,dict(action='route',node=node,port='next',to=successor)])
 def untouched():x.original()
 def subtree():return {n['id']:copy.deepcopy(n)for n in base['nodes']}
 
 def verify_insertion(original,initial,checkpoint,before):
  assert set(original['documentCompoundInsertion']['nodes'])=={'body','other'}
- add=doc().locator('[data-document-add=body]');expect(add).to_be_enabled()
+ assert original['documentRootStart']['entry']=='body'
+ anchor='$entry' if at_start else 'body'
+ add=doc().locator('[data-document-add="'+anchor+'"]');expect(add).to_be_enabled()
  expect(doc().locator('[data-document-add=after]')).to_be_disabled()
- add.click();f.idle();created=order()[2];inserted=['$entry','body',created,*initial[2:]]
+ insert_index=1 if at_start else 2
+ add.click();f.idle();created=order()[insert_index];inserted=[*initial[:insert_index],created,*initial[insert_index:]]
  assert created.startswith('cell_') and order()==inserted and len(pending())==6
  doc().press('Control+z');assert order()==initial and not pending()
  doc().press('Control+y');assert order()==inserted
  doc().locator('[data-document-code="'+created+'"]').click()
  dialog=f.page.locator('.bp-script-dialog');source=dialog.locator('[data-code-source]');body_text=dialog.locator('[data-code-region=body]').text_content()
  source.evaluate('(el,text)=>{el.focus();const at=el.value.indexOf(text);if(at<0)throw Error("Editable body missing");el.setSelectionRange(at,at+text.length)}',body_text)
- f.page.keyboard.insert_text('global::System.Console.WriteLine("inserted-after-compound");\nreturn;')
+ marker='inserted-at-start' if at_start else 'inserted-after-compound'
+ f.page.keyboard.insert_text(f'global::System.Console.WriteLine("{marker}");\nreturn;')
  dialog.locator('[data-code-save]').click();f.idle();held=pending();assert len(held)==6
- f.invoke('blueprint',insertion_request(original,successor='after'),False)
+ f.invoke('blueprint',insertion_request(original,anchor,successor='other' if at_start else 'after'),False)
  f.invoke('blueprint',insertion_request(original,anchor='after',successor='exit:return'),False)
  ambiguous=copy.deepcopy(base);ambiguous['edges'].append(edge('body','after'))
- try:f.metadata('blueprintCellRegion',action='compound-insert',graph=ambiguous,edits=insertion_request(original)['edits'])
+ valid_plan=insertion_request(original,anchor,successor='body' if at_start else 'other')
+ try:f.metadata('blueprintCellRegion',action='root-start-create' if at_start else 'compound-insert',graph=ambiguous,edits=valid_plan['edits'])
  except (AssertionError,subprocess.CalledProcessError):pass
  else:raise AssertionError('An ambiguous compound continuation was accepted')
  assert pending()==held and checkpoint.read_bytes()==before and t.read()['edges']==original['edges'];untouched()
- f.checked('one compound continuation changes locally; Undo/Redo keeps the whole insertion and a retargeted route or noncompound anchor is refused')
+ f.checked('only the selected parent connection changes locally; Undo/Redo retains the whole insertion, and retargeted or ambiguous plans are refused')
 
  graph_path=f.project/t.graph_file;raw=graph_path.read_bytes();changed=json.loads(raw)
- next(edge for edge in changed['edges'] if edge['from']=='body')['to']='after';changed_bytes=json.dumps(changed).encode()
+ if at_start:changed['entry']='other'
+ else:next(edge for edge in changed['edges'] if edge['from']=='body')['to']='after'
+ changed_bytes=json.dumps(changed).encode()
  graph_path.write_bytes(changed_bytes)
  try:
   save();assert retained(held) and checkpoint.read_bytes()==before and graph_path.read_bytes()==changed_bytes
   assert all(p.read_bytes()==content for p,content in x.physical.items() if p!=graph_path)
  finally:graph_path.write_bytes(raw)
  restart(1);assert retained(held) and order()==inserted;untouched()
- save();assert not pending() and t.read()['entry']==original['entry'];untouched()
+ expected_entry=created if at_start else original['entry']
+ save();assert not pending() and t.read()['entry']==expected_entry;untouched()
  restart(2);assert order()==inserted and not pending()
  history=f.invoke('draftHistory',dict(action='inspect'))['result']['result']
  assert history['boundary']=='OWNERSHIP_CHANGED' and not history['undo']['available']
- f.checked('a changed parent continuation refuses Save and preserves input; atomic Save and cold restart retain the new cell and original entry')
+ f.checked('a changed parent connection refuses Save and preserves input; atomic Save and cold restart retain the exact new execution order')
 
  r=review();r.locator('[data-reject]').click();untouched()
- r=review();saved=checkpoint.read_bytes();peer=f.project/'Pair.other.node.json';peer_raw=peer.read_bytes();peer.write_bytes(peer_raw+b' ')
+ r=review();saved=checkpoint.read_bytes();peer=f.project/('Pair.inner.node.json' if at_start else 'Pair.other.node.json');peer_raw=peer.read_bytes();peer.write_bytes(peer_raw+b' ')
  try:
   r.locator('#confirm').click();f.idle();assert checkpoint.read_bytes()==saved and peer.read_bytes()==peer_raw+b' ' and graph_path.read_bytes()==raw
  finally:peer.write_bytes(peer_raw)
  if r.is_visible():r.locator('[data-reject]').click()
  r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle()
- x.build('compound-insert',10,'body\ninside\ninserted-after-compound\nother:10\nafter\n10')
- written=json.loads(graph_path.read_bytes());assert written['entry']==base['entry'];assert written['edges']==[edge('body',created),*base['edges'][1:],edge(created,'other')]
- written['edges']=base['edges'];written['nodes']=[n for n in written['nodes'] if n['id']!=created]
+ prefix=marker+'\nbody\ninside' if at_start else 'body\ninside\n'+marker
+ x.build('compound-insert',10,prefix+'\nother:10\nafter\n10')
+ written=json.loads(graph_path.read_bytes());assert written['entry']==expected_entry
+ expected_edges=[*base['edges'],edge(created,'body')] if at_start else [edge('body',created),*base['edges'][1:],edge(created,'other')]
+ assert written['edges']==expected_edges
+ written['entry']=base['entry'];written['edges']=base['edges'];written['nodes']=[n for n in written['nodes'] if n['id']!=created]
  assert written==base and all(p.read_bytes()==content for p,content in x.physical.items() if p!=graph_path)
  new_sources={p for p in f.project.rglob('*.node.json') if p not in x.physical and '.confectory' not in p.parts}
  assert len(new_sources)==1 and json.loads(new_sources.pop().read_text())['node']==created
  restart(3);assert order()==inserted and not pending()
- f.checked('Confirm refuses a late child source change; fresh Confirm runs the new cell between the compound and its value consumer with original return, bindings and sources')
+ f.checked('Confirm refuses a late child source change; fresh Confirm runs the new cell in order with original compound return, bindings and sources')
 
 try:
  f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
@@ -103,15 +117,17 @@ try:
   if mode=='shared':
    assert original['documentCompoundOrderAvailable']is False
    assert original['documentCompoundInsertion'] is None
+   assert original['documentRootStart'] is None
+   expect(doc().locator('[data-document-add="$entry"]')).to_have_count(0)
    expect(doc().locator('[data-document-add=other]')).to_be_disabled()
    f.invoke('blueprint',insertion_request(original,anchor='other',successor='return:choose'),False)
    assert checkpoint.read_bytes()==before;untouched()
    expect(doc().locator('[data-document-up=other]')).to_be_disabled()
    assert doc().locator('[data-document-branch]').all_text_contents()==['Positive','Negative']
-  elif mode!='insert':
+  elif not insertion:
    assert original['documentCompoundOrderAvailable']is True
    doc().locator('[data-document-up=other]').click();f.idle()
-  if mode=='insert':verify_insertion(original,initial,checkpoint,before)
+  if insertion:verify_insertion(original,initial,checkpoint,before)
   elif mode!='normal':
    assert order()==initial and not pending();untouched();assert checkpoint.read_bytes()==before
    doc().locator('[data-document-name=after]').fill('보존할 입력 α');doc().locator('.fd-document-title').click();held=pending();assert held

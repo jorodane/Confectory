@@ -29,7 +29,8 @@ try:
  with sync_playwright()as pw:
   expect.set_options(timeout=45000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size(dict(width=1800,height=1400));open_document()
   insert_at_start=lambda:doc().locator('[data-document-add="$entry"]')
-  expect(insert_at_start()).to_have_count(0)
+  if mode=='shared':expect(insert_at_start()).to_have_count(0)
+  else:expect(insert_at_start()).to_be_enabled()
   enter();original=read();initial=order()
   if mode=='shared':
    expect(insert_at_start()).to_have_count(0)
