@@ -271,7 +271,8 @@ function browserLocation(w){return Object.fromEntries(['catalogue','namespace','
 function switchBrowserGroup(w,group){
  if(!['concept','info','feature','module','resource'].includes(group)||w.meta.group===group||busy)return;
  if(group!=='resource'&&!w.meta.catalogue&&dirty){toast('Apply local input before changing selection');return;}
- const saved=w.meta.browserLocations?.[group],location=saved&&typeof saved==='object'&&!Array.isArray(saved)?structuredClone(saved):{catalogue:!!w.meta.catalogue,namespace:w.meta.namespace??null,parent:null,kind:null,query:'',queryInput:''};
+ // First visits start at the group's root. Returning visits restore its saved location.
+ const saved=w.meta.browserLocations?.[group],location=saved&&typeof saved==='object'&&!Array.isArray(saved)?structuredClone(saved):{catalogue:!!w.meta.catalogue,namespace:null,parent:null,kind:null,query:'',queryInput:''};
  const commit=()=>{w.browserFilterRestored=true;w.browserFilterError=false;const locations=Object.fromEntries(['concept','info','feature','module','resource'].filter(key=>w.meta.browserLocations?.[key]).map(key=>[key,w.meta.browserLocations[key]]));locations[w.meta.group]=browserLocation(w);w.meta.browserLocations=locations;w.meta.group=group;for(const key of ['catalogue','namespace','parent','kind','query','queryInput'])w.meta[key]=location[key]??(key==='query'||key==='queryInput'?'':null);browser(w.key,true);actualWorkspace.schedule();};
  if(group!=='resource'&&!location.catalogue&&dirty){toast('Apply local input before changing selection');return;}
  if(group==='resource'||location.catalogue){commit();return;}
