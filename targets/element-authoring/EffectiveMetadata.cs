@@ -74,6 +74,12 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    else foreach(var field in schemaFields)fieldSources[field.Key]=field.Value.Origin;
    string DefinitionSource(string schemaId)=>schemaId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==schemaId)?["text"]?.GetValue<string>()??Observe(registry.Get(schemaId,"schema").Loc.File);
    var schemaModel=schemaView?SchemaModel(registry,effective,schemaFields,DefinitionSource):null;
+   if(schemaModel?["validation"]?["status"]?.ToString()=="valid" && selected.Kind=="object"
+      && selected.Parent is string parentId && parentId.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))
+   {
+    var inherited = InheritedScalarValues(registry, selected, parentId, schemaFields, manifest.Namespace);
+    if(inherited.Count>0) schemaModel["inheritedScalarValues"]=inherited;
+   }
    if(schemaModel is not null)schemaModel["ownedDefinitions"]=OwnedInformationDefinitions.Project(registry,selected,schemaFields,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    if(schemaModel is not null)schemaModel["ownedArchives"]=OwnedInformationDefinitions.Archives(registry,selected,schemaFields,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    var result=new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["fieldSources"]=fieldSources,["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
@@ -88,6 +94,28 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
   catch(Exception error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]="METADATA_UNAVAILABLE",["message"]=error.Message};}
   finally{if(System.IO.Directory.Exists(temporary))System.IO.Directory.Delete(temporary,true);}
  }
+ // Read the same effective parent data that becomes visible after removing a local override.
+ static System.Text.Json.Nodes.JsonObject InheritedScalarValues(Confectory.Core.Registry registry,Confectory.Core.Element selected,
+  string parentId,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> fields,string ownerNamespace)
+ {
+  var values=new System.Text.Json.Nodes.JsonObject();
+  if(selected.Data.Count==0) return values;
+  var parent=registry.Effective(parentId);
+  var parentFields=Confectory.Core.SchemaContracts.Fields(registry,parentId);
+  try { Confectory.Core.SchemaContracts.Validate(registry,parentId); }
+  catch(Confectory.Core.BuildError) { return values; }
+  foreach(var name in selected.Data.Keys)
+  {
+   if(fields.TryGetValue(name,out var local) && local.Kind=="general" && local.Cardinality=="single"
+      && parentFields.TryGetValue(name,out var inherited) && inherited.Origin==local.Origin
+      && parent.Data.TryGetValue(name,out var datum) && datum.Kind=="general"
+      && datum.Origin.StartsWith(ownerNamespace+"::",StringComparison.Ordinal)
+      && datum.Scalar is System.Text.Json.JsonElement scalar)
+    values[name]=scalar.GetRawText();
+  }
+  return values;
+ }
+
  static System.Text.Json.Nodes.JsonObject SchemaModel(Confectory.Core.Registry registry,Confectory.Core.Element element,System.Collections.Generic.Dictionary<string,Confectory.Core.SchemaField> fields,Func<string,string> definitionSource)
  {
   var schemas=new System.Text.Json.Nodes.JsonObject();var functions=new System.Text.Json.Nodes.JsonObject();var implementations=new System.Text.Json.Nodes.JsonObject();var enums=new System.Text.Json.Nodes.JsonObject();
