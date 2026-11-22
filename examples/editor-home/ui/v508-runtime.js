@@ -486,7 +486,8 @@ function renderHomeProjects(){
  const query=homePreferences.value.projectQuery.trim().toLocaleLowerCase();
  const matchesQuery=card=>(card.title+' '+(card.description||'')).toLocaleLowerCase().includes(query);
  const order=db.favoriteProjectIds||[];
- const rank=card=>order.includes(card.id)?order.indexOf(card.id):1000;
+ const hostOrder=current.homeFavoriteOrderSupported===true;
+ const rank=card=>hostOrder?(card.homeFavoriteRank??1000):(order.includes(card.id)?order.indexOf(card.id):1000);
  const orderedFavorites=current.cards.filter(card=>card.favorite).sort((a,b)=>rank(a)-rank(b));
  const favorites=orderedFavorites.filter(matchesQuery),regular=current.cards.filter(card=>!card.favorite&&matchesQuery(card));
  const card=p=>`<article class="project-card${p.favorite?' is-favorite':''}" data-project="${esc(p.id)}" ${p.favorite?'draggable="true"':''}><button type="button" class="project-favorite" data-favorite="${esc(p.id)}" aria-pressed="${p.favorite===true}" aria-label="${esc(p.title)} 즐겨찾기" title="즐겨찾기">${p.favorite?'★':'☆'}</button><button type="button" class="card-menu" data-manage="${esc(p.id)}" aria-label="${esc(p.title)} 관리">···</button><button type="button" data-enter="${esc(p.id)}" class="project-card-main"><span class="project-icon">◈</span><span class="project-card-copy"><h2>${esc(p.title)}</h2><p>${esc(p.description||'새로운 제작을 시작할 프로젝트')}</p></span></button><div class="project-card-stats">${homeProjectStats(p)}</div></article>`;
@@ -502,7 +503,13 @@ function renderHomeProjects(){
    const target=el.dataset.project;
    if(!dragging||dragging===target||!el.classList.contains('is-favorite'))return;
    // Search changes which cards are visible, not which favorites have an order.
-   const ids=orderedFavorites.map(card=>card.id).filter(id=>id!==dragging);
+   const basis=orderedFavorites.map(card=>card.id);
+   if(hostOrder){
+    const source=dragging;
+    work(()=>view.call('moveHomeFavorite',{source,target,basis}),'',{failureMessage:'즐겨찾기 순서를 저장하지 못했습니다.'});
+    return;
+   }
+   const ids=basis.filter(id=>id!==dragging);
    ids.splice(ids.indexOf(target),0,dragging);
    db.favoriteProjectIds=ids;persist();renderHomeProjects();
   };

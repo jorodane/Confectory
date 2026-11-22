@@ -6,7 +6,6 @@ import os
 from pathlib import Path
 import shutil
 import signal
-import socket
 import subprocess
 import sys
 import tempfile
@@ -18,11 +17,12 @@ from editor_navigation import goto_editor
 
 
 @contextmanager
-def editor(command, repo, root, port, log_name):
+def editor(command, repo, root, log_name):
     env = dict(os.environ, CONFECTORY_UI="web", CONFECTORY_EDITOR_REPO=str(repo),
                CONFECTORY_HOME_STORAGE=str(root / "storage"), CONFECTORY_ENTRY_STORAGE=str(root / "storage"),
-               CONFECTORY_MCP_DIRECTORY=str(root / "instances"), CONFECTORY_WEB_PORT=str(port))
+               CONFECTORY_MCP_DIRECTORY=str(root / "instances"))
     env.pop("CONFECTORY_WEB_PROJECT", None)
+    env.pop("CONFECTORY_WEB_PORT", None)
     log = root / log_name
     with log.open("w") as output:
         host = subprocess.Popen(command, cwd=repo, env=env, stdout=output,
@@ -83,6 +83,12 @@ def drag(page, ids, src, dest, target=None):
     source.drag_to(card)
 
 
+def check_catalog(catalog, original, expected):
+    rows = json.loads(catalog.read_text())
+    ranks = {row["title"]: row.pop("homeFavoriteRank") for row in rows if "homeFavoriteRank" in row}
+    assert ranks == {title: rank for rank, title in enumerate(expected)}
+    assert rows == json.loads(original), "Only the favorite rank may change"
+
 repo = Path(sys.argv[1]).resolve()
 command = json.loads(Path(sys.argv[2]).read_text())["run"]
 with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directory:
@@ -101,13 +107,11 @@ with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directo
         source_bytes.update({path: path.read_bytes() for path in project.rglob("*") if path.is_file()})
     catalog = storage / "projects.json"
     catalog.write_text(json.dumps(cards))
-    with socket.socket() as listener:
-        listener.bind(("127.0.0.1", 0))
-        port = listener.getsockname()[1]
     alpha, bravo, charlie, delta = names
     calls, errors = [], []
     with sync_playwright() as playwright:
-        with editor(command, repo, root, port, "first.log") as url:
+        with editor(command, repo, root, "first.log") as url:
+            first_origin = url.split("/#")[0]
             browser, page = make_page(playwright.chromium, root / "chrome", url, calls, errors)
             expect(order(page)).to_have_text([alpha, bravo])
             expect(regular(page)).to_have_text([charlie, delta])
@@ -119,6 +123,8 @@ with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directo
             drag(page, ids, charlie, alpha, ".project-favorite")
             expect(order(page)).to_have_text([charlie, alpha, bravo])
             expect(page.locator(".context-menu,.work-body")).to_have_count(0)
+            check_catalog(catalog, before_drag, [charlie, alpha, bravo])
+            saved = catalog.read_bytes()
             for source, destination, target in ((charlie, delta, ".card-menu"),
                                                  (delta, alpha, ".project-card-main"),
                                                  (bravo, bravo, None)):
@@ -126,12 +132,14 @@ with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directo
                 expect(order(page)).to_have_text([charlie, alpha, bravo])
                 expect(regular(page)).to_have_text([delta])
                 expect(page.locator(".context-menu,.work-body")).to_have_count(0)
+                assert catalog.read_bytes() == saved
             print("PASS Unfiltered valid and invalid mouse drags preserve membership, menu and project scope")
 
             search = page.locator("#home-project-search")
             page.locator(f'[data-project="{ids[charlie]}"] .project-card-main').drag_to(search)
             expect(search).to_have_value("")
             expect(order(page)).to_have_text([charlie, alpha, bravo])
+            assert sum(endpoint == "moveHomeFavorite" for endpoint in calls) == 1
             search.fill("Filter")
             expect(order(page)).to_have_text([alpha, bravo])
             drag(page, ids, bravo, alpha)
@@ -139,7 +147,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directo
             search.clear()
             expect(order(page)).to_have_text([charlie, bravo, alpha])
             expect(regular(page)).to_have_text([delta])
-            assert catalog.read_bytes() == before_drag
+            check_catalog(catalog, before_drag, [charlie, bravo, alpha])
 
             toggle = page.locator(".favorite-section-toggle")
             toggle.click()
@@ -148,17 +156,58 @@ with tempfile.TemporaryDirectory(prefix="confectory-home-favorites-") as directo
             expect(order(page)).to_have_text([charlie, bravo, alpha])
             expect(order(page).first).to_be_visible()
             assert page.evaluate("() => confectoryFlushHomePreferences()")
+
+            saved = catalog.read_bytes()
+            externally_edited = json.loads(saved)
+            externally_edited[-1]["description"] = "Independent local listing edit"
+            catalog.write_text(json.dumps(externally_edited))
+            external_bytes = catalog.read_bytes()
+            drag(page, ids, alpha, charlie)
+            expect(page.locator("#toast")).to_contain_text("즐겨찾기 순서를 저장하지 못했습니다.")
+            expect(order(page)).to_have_text([charlie, bravo, alpha])
+            assert catalog.read_bytes() == external_bytes
+            assert sum(endpoint == "moveHomeFavorite" for endpoint in calls) == 3
+            catalog.write_bytes(saved)
+            print("PASS Stale catalog refuses the move and preserves the separate listing edit")
             browser.close()
 
-        # A new host and browser process use the same existing origin and private profile.
-        with editor(command, repo, root, port, "second.log") as url:
+        # Normal launches select a fresh port and reuse the same EditorHome.
+        with editor(command, repo, root, "second.log") as url:
+            assert url.split("/#")[0] != first_origin
             browser, page = make_page(playwright.chromium, root / "chrome", url, calls, errors)
             expect(order(page)).to_have_text([charlie, bravo, alpha])
             expect(regular(page)).to_have_text([delta])
-            assert catalog.read_bytes() == before_drag
+            assert catalog.read_bytes() == saved
             assert sum(endpoint == "favoriteProject" for endpoint in calls) == 1
             assert not set(calls) & {"openProject", "runProject", "runWindow", "removeListing"}
-            assert all(path.read_bytes() == content for path, content in source_bytes.items())
-            assert not errors, errors
             browser.close()
-    print("PASS Filtered reorder keeps hidden favorites and survives a cold restart at the same origin")
+        print("PASS Filtered order survives a cold restart on a different automatic port")
+
+        other = root / "other-home"
+        (other / "storage").mkdir(parents=True)
+        (other / "storage/projects.json").write_bytes(before_drag)
+        with editor(command, repo, other, "isolated.log") as url:
+            browser, page = make_page(playwright.chromium, root / "chrome", url, calls, errors)
+            expect(order(page)).to_have_text([alpha, bravo, charlie])
+            expect(regular(page)).to_have_text([delta])
+            assert (other / "storage/projects.json").read_bytes() == before_drag
+            browser.close()
+        print("PASS Another EditorHome with the same listings retains its own order")
+
+        if len(sys.argv) == 5:
+            legacy_repo = Path(sys.argv[3]).resolve()
+            legacy_command = json.loads(Path(sys.argv[4]).read_text())["run"]
+            with editor(legacy_command, legacy_repo, root, "legacy.log") as url:
+                browser, page = make_page(playwright.chromium, root / "chrome", url, calls, errors)
+                expect(order(page)).to_have_text([alpha, bravo, charlie])
+                expect(regular(page)).to_have_text([delta])
+                star = page.locator(f'[data-favorite="{ids[delta]}"]')
+                star.click()
+                expect(order(page)).to_have_text([alpha, bravo, charlie, delta])
+                star.click()
+                expect(regular(page)).to_have_text([delta])
+                check_catalog(catalog, before_drag, [charlie, bravo, alpha])
+                browser.close()
+            print("PASS Previous editor reads the listing and preserves ranks when saving a star change")
+        assert all(path.read_bytes() == content for path, content in source_bytes.items())
+        assert not errors, errors

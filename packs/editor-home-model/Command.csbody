@@ -151,6 +151,38 @@ var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.Deep
   calls.HelperPresentation.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,helper,"save",new System.Text.Json.Nodes.JsonObject{["revision"]=args["revision"]?.DeepClone(),["value"]=value.DeepClone()}.ToJsonString());model["helpers"]=HelperRows();model["status"]="Helper display saved locally; immutable template and memories retained";
  }
  else if(operation=="home-favorite"){string id=Value("id");var card=System.Linq.Enumerable.Single(cards,c=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(c!["path"]!.ToString())))[..32]==id)!;card["favorite"]=args["favorite"]?.GetValue<bool>()??throw new ArgumentException("Explicit favorite value required");Persist();model["status"]="Project favorite saved locally";}
+ else if(operation=="home-favorite-move"){
+  if(OperatingSystem.IsBrowser()||OperatingSystem.IsAndroid()||model["selected"] is not null)throw new InvalidOperationException("Home favorite order requires the desktop Home");
+  string source=args["source"]!.GetValue<string>(),target=args["target"]!.GetValue<string>();
+  var basis=args["basis"]?.AsArray()??throw new ArgumentException("Displayed favorite order is required");
+  if(basis.Count>32||source==target)throw new ArgumentException("Distinct favorite cards are required");
+  var observedOrder=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(basis,id=>id?.GetValue<string>()));
+  int Rank(System.Text.Json.Nodes.JsonNode card)=>card["homeFavoriteRank"] is System.Text.Json.Nodes.JsonValue value&&value.TryGetValue<int>(out int rank)&&rank is >=0 and <32?rank:int.MaxValue;
+  var favorites=System.Linq.Enumerable.Where(cards,card=>card?["favorite"]?.GetValue<bool>()==true);
+  var order=System.Linq.Enumerable.ToList(System.Linq.Enumerable.Select(System.Linq.Enumerable.OrderBy(favorites,card=>Rank(card!)),card=>ListingId(card!)));
+  if(new System.Collections.Generic.HashSet<string>(order,StringComparer.Ordinal).Count!=order.Count||
+     !System.Linq.Enumerable.SequenceEqual(order,observedOrder)||!order.Remove(source)||!order.Contains(target))
+   throw new InvalidOperationException("Favorites changed; the order was kept");
+  order.Insert(order.IndexOf(target),source);
+  if(!System.Linq.Enumerable.SequenceEqual(order,observedOrder)){
+   var saved=calls.FileSnapshot.Invoke((string)state[2]);
+   if(saved[0]!="exists"||!System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(saved[1]),cards))
+    throw new InvalidOperationException("Project listing changed; the order was kept");
+   void SetRanks(System.Text.Json.Nodes.JsonArray listing){
+    // Optional metadata of the local Home catalog; membership and catalog order stay as stored.
+    foreach(var card in listing){
+     if(card?["favorite"]?.GetValue<bool>()!=true)continue;
+     card["homeFavoriteRank"]=order.IndexOf(ListingId(card));
+    }
+   }
+   var candidate=cards.DeepClone().AsArray();
+   SetRanks(candidate);
+   if(calls.CommitHome.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,new[]{System.IO.Path.GetFileName((string)state[2])},new[]{saved[2]},new[]{candidate.ToJsonString()})[0]!="applied")
+    throw new InvalidOperationException("Project listing changed; the order was kept");
+   SetRanks(cards);
+  }
+  model["status"]="Project favorite order saved locally";
+ }
  else if(operation=="helper-display-list"){model["helpers"]=HelperRows();model["status"]="Local display profiles; project context and Helper selection retained";}
  else if(operation=="helper-list"){model["helpers"]=HelperRows();if(model["selected"] is not null){string context=Active();Shell(context,"menu","providers");model["helperPanel"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["mode"]="helpers"};}model["status"]="Choose explicit Helper membership and project memory scope; no model is contacted";}
  else if(operation=="helper-recruit"){string agent=Value("agent"),kind=Value("kind");if(kind is not ("global" or "project")||agent.Length==0)throw new ArgumentException("Choose a registered Agent before recruiting a Helper");if(kind=="global")calls.HelperAgents.Invoke(session,"import",new System.Text.Json.Nodes.JsonObject{["agent"]=agent}.ToJsonString());else{Active();string project=model["selected"]!["projectId"]!.ToString(),helper="project-helper-"+project;var registry=model["helperAgents"]?["agents"]?.AsArray()??new System.Text.Json.Nodes.JsonArray();if(!System.Linq.Enumerable.Any(registry,a=>a?["id"]?.ToString()==agent))throw new ArgumentException("Registered Agent required");calls.HelperRecruit.Invoke(Helpers(),"local-user",new System.Text.Json.Nodes.JsonObject{["helper"]=helper,["owner"]="local-user",["personality"]="Collaborative project development assistant",["speciality"]="Confectory pack development",["membership"]=new System.Text.Json.Nodes.JsonObject{["kind"]="project",["projectId"]=project}}.ToJsonString());calls.HelperAgents.Invoke(session,"assign",new System.Text.Json.Nodes.JsonObject{["helper"]=helper,["agent"]=agent}.ToJsonString());}model["helpers"]=HelperRows();model["status"]="Agent-owned Helper recruited";}
