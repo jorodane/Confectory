@@ -82,15 +82,18 @@ export function frameOrderCells(data,cells){
  return seen.size===region.order.length&&at===region.exit;
 }
 
-export function serialCreationCells(data,cells,{rootStart=false}={}){
+export function serialCreationCells(data,cells,placement='frame'){
  try{
-  const chain=rootStart?null:frameCellChain(data),first=rootStart?data.documentRootStart?.entry:chain?.order[0];
-  if(!first||cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;
+  const chain=placement==='frame'?frameCellChain(data):null;
+  const first=placement==='root-start'?data.documentRootStart?.entry:chain?.order[0];
+  const compounds=placement==='compound'?data.documentCompoundInsertion?.nodes:null;
+  if((!first&&!compounds?.length)||cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;
   const creation=cells.find(([,v])=>v.type==='create')[1],id=creation.node,definition=JSON.parse(creation.text);
   if(data.nodes.some(n=>n.id===id)||Object.keys(definition).length!==4||Object.keys(definition).some(k=>!['kind','control','intent','signature'].includes(k))||definition.kind!=='code'||definition.control!=='next'||!definition.intent?.trim()||Object.keys(definition.signature).length!==2||definition.signature.return!=='void'||!Array.isArray(definition.signature.args)||definition.signature.args.length)return false;
   const routes=cells.filter(([,v])=>v.type==='route'||v.type==='entry').map(([,v])=>v),out=routes.find(v=>v.type==='route'&&v.node===id),incoming=routes.find(v=>v.node!==id);
   if(routes.length!==2||!out||!incoming||incoming.text!==id||cells.some(([,v])=>!routes.includes(v)&&v.node!==id))return false;
-  if(incoming.type==='entry')return incoming.node==='$entry'&&out.text===first;
+  if(incoming.type==='entry')return !!first&&incoming.node==='$entry'&&out.text===first;
+  if(compounds)return compounds.includes(incoming.node)&&data.edges.some(edge=>edge.from===incoming.node&&edge.port==='next'&&normal(edge.to)===normal(out.text));
   if(!chain)return false;
   const index=chain.order.indexOf(incoming.node);return index>=0&&normal(out.text)===(chain.order[index+1]||chain.exit);
  }catch{return false;}

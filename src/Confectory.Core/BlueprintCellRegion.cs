@@ -103,13 +103,18 @@ public static class BlueprintCellRegion
         Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
     }
+    static JsonArray CurrentRoutes(JsonObject graph)
+    {
+        var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=graph["entry"]!.DeepClone()}};
+        foreach(var edge in graph["edges"]!.AsArray())routes.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
+        return routes;
+    }
+
     internal static JsonObject OwnedFrame(JsonObject root,string path)
     {
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
-        var unchanged=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=root["entry"]!.DeepClone()}};
-        foreach(var edge in root["edges"]!.AsArray())unchanged.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
-        CompoundOrder(root,unchanged);
+        CompoundOrder(root,CurrentRoutes(root));
         var parts=path.Split('/');Need(parts.Length is >0 and <=8 && parts.All(p=>p.Length>0),"Exact nonempty owned frame path required");
         var selected=root;
         foreach(string part in parts){
@@ -117,9 +122,7 @@ public static class BlueprintCellRegion
             Need(S(owner,"kind")=="graph","Every frame path segment must be an owned compound");
             selected=owner["graph"]!.AsObject();
         }
-        var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=selected["entry"]!.DeepClone()}};
-        foreach(var edge in selected["edges"]!.AsArray())routes.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
-        CompoundOrder(selected,routes,true);
+        CompoundOrder(selected,CurrentRoutes(selected),true);
         return selected;
     }
     static string RootStart(JsonObject graph)
@@ -145,13 +148,15 @@ public static class BlueprintCellRegion
     {
         var candidate=root.DeepClone().AsObject();
         var child=OwnedFrame(candidate,path);
-        InsertCell(child,edits,rootStart:false);
+        InsertCell(child,edits,InsertionAnchor.FrameCell);
         // Recheck the original depth/per-frame/global limits including the new cell.
         OwnedFrame(candidate,path);
         return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
     }
 
-    static void InsertCell(JsonObject selected,JsonArray edits,bool rootStart)
+    enum InsertionAnchor { FrameCell, RootStart, CompoundCall }
+
+    static void InsertCell(JsonObject selected,JsonArray edits,InsertionAnchor anchor)
     {
         Need(edits.Count==6,"Exactly one owned cell insertion required");
         var creation=edits.Single(e=>S(e,"action")=="createNode")!;
@@ -176,7 +181,12 @@ public static class BlueprintCellRegion
         var incoming=routes.Single(e=>S(e,"node")!=id)!;var outgoing=routes.Single(e=>S(e,"node")==id)!;
         bool atStart=S(incoming,"action")=="entry";
         string successor=S(outgoing,"to");
-        Need((!rootStart||atStart)&&S(outgoing,"action")=="route"&&S(incoming,"to")==id
+        Need(anchor switch {
+            InsertionAnchor.RootStart=>atStart,
+            InsertionAnchor.CompoundCall=>!atStart&&selected["nodes"]!.AsArray().Any(n=>S(n,"id")==S(incoming,"node")&&S(n,"kind")=="graph"),
+            _=>true
+        },"The insertion anchor must be the selected start or compound call");
+        Need(S(outgoing,"action")=="route"&&S(incoming,"to")==id
             &&(atStart?successor==S(selected,"entry"):selected["edges"]!.AsArray().Any(e=>S(e,"from")==S(incoming,"node")&&S(e,"port")=="next"&&S(e,"to")==successor)),
             "Insert on one observed connection without changing its continuation");
         var made=definition.DeepClone().AsObject();made["id"]=id;selected["nodes"]!.AsArray().Add(made);
@@ -428,12 +438,24 @@ public static class BlueprintCellRegion
             Need(edits.Count==0,"Read the original root start without edits");
             return new JsonObject{["entry"]=RootStart(graph)};
         }
+        if(action=="compound-insert-options"){
+            Need(edits.Count==0,"Read the original compound calls without edits");
+            CompoundOrder(graph,CurrentRoutes(graph));
+            return new JsonObject{["nodes"]=new JsonArray(graph["nodes"]!.AsArray().Where(n=>S(n,"kind")=="graph").Select(n=>n!["id"]!.DeepClone()).ToArray())};
+        }
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(action=="root-start-create"){
             RootStart(graph);
             var candidate=graph.DeepClone().AsObject();
-            InsertCell(candidate,edits,rootStart:true);
+            InsertCell(candidate,edits,InsertionAnchor.RootStart);
             RootStart(candidate);
+            return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
+        }
+        if(action=="compound-insert"){
+            CompoundOrder(graph,CurrentRoutes(graph));
+            var candidate=graph.DeepClone().AsObject();
+            InsertCell(candidate,edits,InsertionAnchor.CompoundCall);
+            CompoundOrder(candidate,CurrentRoutes(candidate));
             return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
         }
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
