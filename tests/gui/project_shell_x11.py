@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Actual project-shell acceptance. Pass --folder-only for the folder route."""
 import ctypes as c
+import hashlib
 import json
 import os
 import subprocess
 import signal
 import sys
 import time
-from project_shell_agent_fixture import AGENT, register_main_helper
+from project_shell_agent_fixture import AGENT, CODEX, prepare_agents
 lib=c.CDLL('libX11.so.6'); P=c.c_void_p; U=c.c_ulong; L=c.c_long
 
 def native(name,result,*args):
@@ -190,6 +191,38 @@ def record_local_draft(window):
     assert 'no message sent' in row['model']['shell']['notice']
     return row
 
+def helper_records():
+    registry=os.path.join(storage,'helper-agents.json')
+    with open(registry,'rb') as stream:
+        assignments=stream.read()
+    folder=os.path.join(storage,'helpers')
+    return assignments, tuple(sorted(os.listdir(folder)))
+
+def choose_agent(window, connection, error=None):
+    click(window,6)
+    state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='ai-connections','native Agent choices')
+    choices=[row['id'] for row in state['model']['connections']['connections']]
+    context=state['model']['selected']['context']
+    click(window,20+choices.index(connection))
+    state=wait(lambda t:t['operation']=='ai-bind' and not t['job'],'explicit Agent choice completed')
+    if error:
+        assert error in state['model']['status'],state['model']['status']
+    else:
+        assert state['model']['aiBindings'][context]['connection']==connection
+        assert state['model']['status'].startswith('Connection bound locally')
+
+def reject_project_helper(window):
+    click(window,8)
+    state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 24 in t['hits'][::5],'project Helper recruitment controls')
+    assert 'Choose a registered Agent in Agent connection' in state['texts']
+    expected=state['model']['helpers']
+    before=helper_records()
+    click(window,24)
+    rejected=wait(lambda t:'Choose a registered Agent before recruiting a Helper' in t['model']['status'],'project Helper recruitment refused')
+    assert rejected['model']['helpers']==expected and helper_records()==before
+    assert rejected['model']['selected']['context']==state['model']['selected']['context']
+    return rejected
+
 def open_folder_menu(window):
     click(window,33)
     wait(lambda row:row['model']['shell']['menu']=='project','folder menu')
@@ -263,7 +296,7 @@ try:
     end(a)
 
     # Provision an explicitly registered Helper through the normal local API before the native shell consumes it.
-    register_main_helper(report['run'],repo,env,storage)
+    prepare_agents(report['run'],repo,env,storage)
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro after fixture registration');click(a,1)
     state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==1 and 100 in t['hits'][::5],'reopen the fixture project')
     home=state['controls']
@@ -271,6 +304,10 @@ try:
     state=wait(lambda t:t['screen']=='project' and t['model']['shell'],'project after fixture registration')
     assert state['model']['selected']['projectId']==project_id and state['model']['selected']['path']==path
     assert not state['model']['shell']['liveProvider'] and state['model']['helperAgents']['assignments']['main-helper']==AGENT
+    choose_agent(a,CODEX)
+    state=reject_project_helper(a)
+    assert [row['id'] for row in state['model']['helperAgents']['agents']]==[AGENT]
+    print('PASS configured but unregistered Agent cannot recruit or fall back to the registered Agent')
     context=state['model']['selected']['context'];project_control=state['controls'];assert project_control!=home
     state=record_local_draft(a);buffer=state['chatBuffers'][context]
     click(a,8);wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 20 in t['hits'][::5],'registered fixture Helper selection')
@@ -329,7 +366,62 @@ try:
     # Interrupt an actual owned build/execution; final manager disposal stops only its worker tree.
     click(a,36);wait(lambda t:t['model']['execution']['state'] in ('building','running'),'active build/execution remains responsive');click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','final project close menu');click(a,52);wait(lambda t:t['model'].get('closeRequest') is not None,'final working close confirmation');click(a,65);state=wait(lambda t:t['screen']=='home' and t['model']['selected'] is None,'confirmed close retires project');assert context not in state['chatBuffers'];click(a,100);state=wait(lambda t:t['screen']=='project','reopen fully closed project');assert state['model']['selected']['context']!=context and state['model']['shell']['draft']=='A local project draft';click(a,36);wait(lambda t:t['model']['execution']['state'] in ('building','running'),'reopened execution');end(a,interrupt=True)
     # Restart does not open any project merely because a remembered project/chat exists.
-    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart');click(a,1);state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==2,'restart project catalog');assert state['model']['selected'] is None and state['model']['shell'] is None and not state['chatBuffers'];end(a)
+    prepare_agents(report['run'],repo,env,storage,register_codex=True)
+    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart');click(a,1);state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==2,'restart project catalog');assert state['model']['selected'] is None and state['model']['shell'] is None and not state['chatBuffers']
+    click(a,100)
+    wait(lambda t:t['screen']=='project' and t['model']['selected']['projectId']==project_id,'project A after restart')
+    reject_project_helper(a)
+    click(a,6)
+    state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='ai-connections' and 21 in t['hits'][::5],'two native Agent choices')
+    first,second=[row['id'] for row in state['model']['connections']['connections']]
+    assert {first,second}=={AGENT,CODEX}
+    assert {row['id'] for row in state['model']['helperAgents']['agents']}=={AGENT,CODEX}
+    choose_agent(a,second)
+
+    # Failed explicit switch must retire the previous selection even if the model still holds its AI binding.
+    key=hashlib.sha256(first.encode()).hexdigest()[:16]
+    settings=os.path.join(storage,'ai-settings',key,'project.cpack')
+    os.rename(settings,settings+'.fixture')
+    try:
+        choose_agent(a,first,error='Configure this connection first in AI management')
+        state=reject_project_helper(a)
+        assert state['model']['aiBindings'][state['model']['selected']['context']]['connection']==second
+    finally:
+        os.rename(settings+'.fixture',settings)
+
+    choose_agent(a,second)
+    before=helper_records()
+    click(a,8)
+    wait(lambda t:'Project Helper Agent: '+second in t['texts'] and 24 in t['hits'][::5],'selected second Agent displayed')
+    click(a,24)
+    state=wait(lambda t:t['model']['status']=='Agent-owned Helper recruited','project Helper recruited')
+    helper='project-helper-'+project_id
+    assert state['model']['helperAgents']['assignments']=={'main-helper':AGENT,helper:second}
+    assert helper_records()!=before and json.loads(helper_records()[0])['assignments'][helper]==second
+    assert not state['model']['helperAgents']['turns'] and state['model'].get('aiPreview') is None
+    rows=state['model']['helpers']
+    index=next(i for i,row in enumerate(rows) if row['helper']==helper)
+    assert rows[index]['membership']=={'kind':'project','projectId':project_id}
+    click(a,20+index)
+    state=wait(lambda t:(t['model'].get('helperContext') or {}).get('helper')==helper,'select the recruited Helper')
+    assert state['model']['helperContext']['projectId']==project_id
+    assert state['model']['helperAgents']['assignments'][helper]==second
+
+    leave_project(a)
+    home_state=wait(lambda t:t['screen']=='home','leave A with explicit Agent selection')
+    b_index=next(i for i,row in enumerate(home_state['model']['cards']) if row['title']=='Shell Gui B')
+    click(a,100+3*b_index)
+    wait(lambda t:t['screen']=='project' and t['model']['selected']['title']=='Shell Gui B','switch to B')
+    state=reject_project_helper(a)
+    assert state['model']['helperAgents']['assignments'][helper]==second
+    end(a)
+    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'restart after recruiting');click(a,1)
+    wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==2,'catalog after recruiting');click(a,100)
+    wait(lambda t:t['screen']=='project' and t['model']['selected']['projectId']==project_id,'A after recruiting restart')
+    state=reject_project_helper(a)
+    assert state['model']['helperAgents']['assignments'][helper]==second
+    end(a)
+    print('PASS exact second Agent owns the Helper; unselected, failed switch, other project and restart cannot recruit implicitly')
     print('Project shell actual X11 project-to-chat context, sidebar/menu/info/settings/folder, local draft/tab isolation, Run/Stop/logs, resize/cancel/modal, explicit leave/reopen, no null restart, active build/execution interruption and cleanup PASS')
     print('Private GUI evidence: '+storage)
 finally:

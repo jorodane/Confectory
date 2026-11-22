@@ -1,4 +1,4 @@
-"""Register a local Responses fixture through the existing editor API."""
+"""Configure test Agents through the existing editor API without connecting them."""
 import json
 import os
 from pathlib import Path
@@ -11,9 +11,10 @@ from uuid import uuid4
 
 
 AGENT = 'Confectory.Agent.Responses::Connection'
+CODEX = 'Confectory.Agent.Codex::Connection'
 
 
-def register_main_helper(command, repo, env, storage):
+def prepare_agents(command, repo, env, storage, *, register_codex=False):
     env = dict(env, CONFECTORY_UI='web', CONFECTORY_MCP_DIRECTORY=str(Path(storage) / 'fixture-instances'))
     env.pop('CONFECTORY_WEB_PROJECT', None)
     log_path = Path(storage) / 'fixture-agent-setup.log'
@@ -64,20 +65,35 @@ def register_main_helper(command, repo, env, storage):
                 raise AssertionError(f'Fixture request did not complete: {endpoint}')
 
             try:
-                assert not current['state']['helperAgents']['agents']
-                state = call('connectionSetup', connection=AGENT)
-                # Same uncontacted loopback endpoint used by the shell domain consumer.
-                fields = {'model': 'owned-not-contacted', 'credentialReference': '',
-                          'endpoint': 'http://127.0.0.1:1/responses'}
-                for field, value in fields.items():
-                    revision = state['connectionSetup']['schema']['revision']
-                    state = call('editConnectionSetup', connection=AGENT, path=[field], value=value, revision=revision)
-                call('saveConnectionSetup', connection=AGENT)
-                state = call('helperGlobal', action='register', connection=AGENT)
-                assert [row['id'] for row in state['helperAgents']['agents']]==[AGENT]
-                state = call('helperGlobal', action='import', agent=AGENT)
-                assert state['helperAgents']['assignments']['main-helper']==AGENT
-                assert not state['helperAgents']['turns']
+                if register_codex:
+                    assert [row['id'] for row in current['state']['helperAgents']['agents']] == [AGENT]
+                    state = call('helperGlobal', action='register', connection=CODEX)
+                    expected = {AGENT, CODEX}
+                else:
+                    assert not current['state']['helperAgents']['agents']
+                    settings = {
+                        # None of these provider destinations are contacted by the fixture.
+                        AGENT: {'model': 'owned-not-contacted', 'credentialReference': '',
+                                'endpoint': 'http://127.0.0.1:1/responses'},
+                        CODEX: {'model': 'owned-not-contacted', 'credentialReference': 'codex:managed',
+                                'connectionMethod': 'local-cli',
+                                'managedHome': str(Path(storage) / 'unused-codex-home'),
+                                'executable': str(Path(storage) / 'nonexistent-codex')},
+                    }
+                    for connection, fields in settings.items():
+                        state = call('connectionSetup', connection=connection)
+                        for field, value in fields.items():
+                            revision = state['connectionSetup']['schema']['revision']
+                            state = call('editConnectionSetup', connection=connection, path=[field], value=value, revision=revision)
+                        call('saveConnectionSetup', connection=connection)
+                    call('helperGlobal', action='register', connection=AGENT)
+                    state = call('helperGlobal', action='import', agent=AGENT)
+                    expected = {AGENT}
+                registry = state['helperAgents']
+                assert {row['id'] for row in registry['agents']} == expected
+                assert not any(row['accountVerified'] for row in registry['agents'])
+                assert registry['assignments']['main-helper'] == AGENT
+                assert not registry['turns']
             finally:
                 send({'op': 'dispose', 'view': view})
         finally:
