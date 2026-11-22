@@ -6,6 +6,8 @@ using Confectory.Core;
 
 internal static class BuildJobs
 {
+    // A whole verified file fits in the existing 2 MiB JSON transport after base64url.
+    const int ArtifactReadLimit = 1024 * 1024;
     static readonly StringComparison Paths = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
     static bool Terminal(string state) => state is "built" or "failed" or "stopped";
     static string Hash(string path) { using var stream=File.OpenRead(path);return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant(); }
@@ -54,6 +56,13 @@ internal static class BuildJobs
         foreach(string key in new[]{"job","namespace","entry","target","state","phase","startedUtc","updatedUtc","finishedUtc","error","key","artifactState","artifactCount","artifactBytes"})if(row[key] is not null)result[key]=row[key]!.DeepClone();
         if(files&&row["files"] is not null)result["files"]=row["files"]!.DeepClone();return result;
     }
+    static string ArtifactPath(string output, string name)
+    {
+        if (Path.IsPathRooted(name)) throw new ArgumentException("Relative artifact name required");
+        string path = Path.GetFullPath(Path.Combine(output, name));
+        Owned(output, path);
+        return path;
+    }
     static void Artifacts(string root,JsonObject row,JsonObject built)
     {
         string output=Path.GetFullPath(Text(built,"output")),outputs=Path.Combine(root,".confectory","outputs");Owned(outputs,output);
@@ -79,12 +88,55 @@ internal static class BuildJobs
         if(files.Count>4096||files.ToJsonString().Length>1048576)throw new ArgumentException("Artifact manifest budget");long total=0;
         foreach(var file in files)
         {
-            string relative=Text(file!,"name"),path=Path.GetFullPath(Path.Combine(output,relative));if(Path.IsPathRooted(relative))throw new ArgumentException("Relative artifact name required");Owned(output,path);
+            string path=ArtifactPath(output,Text(file!,"name"));
             var info=new FileInfo(path);if(!info.Exists)return "missing";if(info.Length!=file!["size"]!.GetValue<long>())return "changed";
             if(info.Length>536870912||total+info.Length>1073741824)throw new ArgumentException("Artifact verification budget");total+=info.Length;
             if(Hash(path)!=Text(file,"sha256"))return "changed";
         }
         return "verified";
+    }
+    static JsonObject ReadArtifact(string root, string project, string job, JsonObject record, JsonObject request)
+    {
+        if (request.Count != 7 || !OperatingSystem.IsLinux() ||
+            Text(record, "state") != "built" || Text(record, "target") != "linux" ||
+            record["artifactState"]?.ToString() != "recorded" ||
+            Text(record, "owner") != Text(request, "owner") || Text(record, "key") != Text(request, "key"))
+            throw new InvalidOperationException("No matching completed Linux build artifact");
+        var files = record["files"]?.AsArray() ?? throw new InvalidOperationException("Artifact manifest unavailable");
+        int index = request["index"]!.GetValue<int>();
+        if (files.Count > 4096 || index < 0 || index >= files.Count)
+            throw new ArgumentException("Recorded artifact index required");
+        var file = files[index]!;
+        long size = file["size"]!.GetValue<long>();
+        string name = Text(file, "name"), expected = Text(request, "sha256");
+        // The first delivery contract is for linked DLLs, excluding internal build reports and source maps.
+        if (Path.GetFileName(name) != name || !name.EndsWith(".dll", StringComparison.Ordinal) ||
+            size < 0 || size > ArtifactReadLimit || Text(file, "sha256") != expected)
+            throw new InvalidOperationException("Artifact metadata or size changed");
+
+        string output = Path.GetFullPath(Text(record, "output"));
+        Owned(Path.Combine(root, ".confectory", "outputs", "linux"), output);
+        string path = ArtifactPath(output, name);
+        if (name != Path.GetRelativePath(output, path))
+            throw new InvalidOperationException("Invalid recorded artifact name");
+        Owned(root, path);
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (stream.Length != size) throw new InvalidOperationException("Artifact size changed");
+        byte[] bytes = new byte[(int)size];
+        stream.ReadExactly(bytes);
+        if (stream.ReadByte() != -1 || Convert.ToHexStringLower(SHA256.HashData(bytes)) != expected)
+            throw new InvalidOperationException("Artifact content changed");
+        Owned(root, path);
+        if (!File.Exists(path)) throw new InvalidOperationException("Artifact removed during read");
+        if (!JsonNode.DeepEquals(record, Read(root, project, job)))
+            throw new InvalidOperationException("Build receipt changed during artifact read");
+
+        return new JsonObject
+        {
+            ["scope"] = "project-build-artifact", ["job"] = job, ["key"] = Text(record, "key"),
+            ["target"] = "linux", ["index"] = index, ["name"] = name, ["size"] = size, ["sha256"] = expected,
+            ["encoding"] = "base64url-v1", ["data"] = Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_')
+        };
     }
     public static JsonObject Execute(JsonObject request)
     {
@@ -117,6 +169,7 @@ internal static class BuildJobs
         {
             var result=Public(current,true);if(request["verify"]?.GetValue<bool>()==true&&Text(current,"state")=="built"){try{result["artifactState"]=Verify(root,current);}catch{result["artifactState"]="unavailable";}result["verifiedUtc"]=DateTime.UtcNow.ToString("O");}return result;
         }
+        if (operation == "read-artifact") return ReadArtifact(root, project, job, current, request);
         string nonce=Text(request,"owner");if(Text(current,"owner")!=nonce)throw new UnauthorizedAccessException("Build job owner changed");
         if(operation is "cancel" or "fail")return Public(Change(root,project,job,nonce,operation=="cancel"?"stopped":"failed",operation=="cancel"?"stopped":"failed",row=>{string error=request["error"]?.GetValue<string>()??"";row["error"]=error.Length>4096?error[..4096]:error;}),true);
         if(operation!="build")throw new ArgumentException("Unknown build job operation");if(Terminal(Text(current,"state")))throw new InvalidOperationException("Build job is terminal; no replay");

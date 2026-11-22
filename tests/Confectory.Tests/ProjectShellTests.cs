@@ -20,6 +20,177 @@ public sealed class ProjectShellTests : TestCase
         foreach(string key in new[]{"registeredPacks","includedPacks"})True(!Strings(built,key).Any(x=>new[]{"Confectory.EditorHome","Confectory.ProjectManager","Confectory.FileStream","Confectory.Agent","Confectory.Helper"}.Contains(x)),"model consumer cannot load a project/provider");
         foreach(string body in new[]{"Create","Command","Snapshot","Close"}){File.AppendAllText(Path.Combine(consumer,"owned project-shell",body+".csbody"),"\n// ProjectShell owning provider locality probe\n");var changed=new Builder(project,"linux").Build();PackRebuilt(changed, new[]{"Confectory.ProjectShell::"+body+"Body"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);}
     }
+    public void test_owned_linux_build_artifact_read_uses_exact_receipt_without_running()
+    {
+        if (!OperatingSystem.IsLinux()) Skip("Owned build artifact reads are scoped to Linux");
+        string consumer = Consumer("editor-home");
+        const string sentinel = "must-not-run";
+        string marker = System.Text.Json.JsonSerializer.Serialize(Path.Combine(f.Root, sentinel));
+        string source = $"System.IO.File.AppendAllText({marker}, \"A\"); return 0;";
+        f.Body("App", "main.csbody", source);
+        string twin = Path.Combine(f.Root, "Twin");
+        Fixture.CopyTree(Path.GetDirectoryName(f.Project)!, twin);
+        File.WriteAllText(Path.Combine(twin, "main.csbody"), source.Replace("\"A\"", "\"B\"", StringComparison.Ordinal));
+        File.WriteAllText(Path.Combine(consumer, "MainBody.celem"), """
+        implementation Confectory.EditorHome::MainBody for Confectory.EditorHome::Main () -> int {
+        import Confectory.EditorHome.Model::CreateSession as CreateSession (string,string) -> string;
+        import Confectory.EditorHome.Model::Command as Command (string,string,string) -> string;
+        import Confectory.EditorHome.Model::CloseSession as CloseSession (string) -> void;
+        import Confectory.EditorHome.Model::BuildJobs as BuildJobs (string,string,string) -> string;
+        body common "Main.csbody"; }
+        """);
+        File.WriteAllText(Path.Combine(consumer, "Main.csbody"), """
+        void Check(bool ok, string message) { if (!ok) throw new Exception(message); }
+        System.Text.Json.Nodes.JsonNode J(string text) => System.Text.Json.Nodes.JsonNode.Parse(text)!;
+        string Encode(object value) => System.Text.Json.JsonSerializer.Serialize(value);
+        string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+        string root = Environment.GetEnvironmentVariable("CONFECTORY_ARTIFACT_TEST_ROOT")!;
+        string session = calls.CreateSession.Invoke(repo, System.IO.Path.Combine(root, "artifact-home"));
+        var projects = new[] { System.IO.Path.Combine(root, "App/project.cpack"), System.IO.Path.Combine(root, "Twin/project.cpack") };
+        var originals = new System.Collections.Generic.Dictionary<string, byte[]>();
+        foreach (string project in projects)
+            foreach (string file in System.IO.Directory.EnumerateFiles(System.IO.Path.GetDirectoryName(project)!))
+                originals[file] = System.IO.File.ReadAllBytes(file);
+        string Context(string project, string? owner = null)
+        {
+            var opened = J(calls.Command.Invoke(owner ?? session, "open", Encode(new {path=project})));
+            Check(opened["selected"]?["path"]?.ToString() == project, "Expected explicit project selection");
+            return opened["selected"]!["context"]!.ToString();
+        }
+        System.Text.Json.Nodes.JsonNode Job(string op, object payload) => J(calls.BuildJobs.Invoke(session, op, Encode(payload)));
+        string Start(string context) => Job("start", new {context, target="linux"})["job"]!.ToString();
+        System.Text.Json.Nodes.JsonNode Finish(string context, string job, string state)
+        {
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            while (clock.Elapsed.TotalSeconds < 60)
+            {
+                var info = Job("info", new {context, job, verify=true});
+                if (info["state"]?.ToString() == state &&
+                    (state != "built" || info["ownerState"]?.ToString() == "built"))
+                    return info;
+                System.Threading.Thread.Sleep(35);
+            }
+            throw new Exception("Timed out waiting for " + state);
+        }
+        (string name, int index, string sha, string key, string path) Artifact(string project, System.Text.Json.Nodes.JsonNode info)
+        {
+            string root = System.IO.Path.GetDirectoryName(project)!;
+            var report = J(System.IO.File.ReadAllText(System.IO.Path.Combine(root, ".confectory/outputs/linux/latest.json")));
+            string name = System.IO.Path.GetFileName(report["implementationArtifacts"]!["App"]!["assembly"]!.ToString());
+            var files = info["files"]!.AsArray();
+            for (int index=0; index<files.Count; index++)
+                if (files[index]!["name"]!.ToString() == name)
+                    return (name, index, files[index]!["sha256"]!.ToString(), info["key"]!.ToString(),
+                        System.IO.Path.Combine(report["output"]!.ToString(), name));
+            throw new Exception("Expected a recorded implementation DLL");
+        }
+        System.Text.Json.Nodes.JsonNode Read(string context, string job, (string name, int index, string sha, string key, string path) chosen)
+            => Job("read-artifact", new {context, job, key=chosen.key, index=chosen.index, sha256=chosen.sha});
+        void Reject(Action attempt)
+        {
+            try { attempt(); }
+            catch (ArgumentException) { return; }
+            catch (UnauthorizedAccessException) { return; }
+            catch (InvalidOperationException) { return; }
+            throw new Exception("Rejected artifact returned data");
+        }
+        void Match(string context, string job, (string name, int index, string sha, string key, string path) chosen)
+        {
+            var result = Read(context, job, chosen);
+            string encoded = result["data"]!.ToString();
+            byte[] bytes = Convert.FromBase64String(encoded.Replace('-', '+').Replace('_', '/'));
+            Check(encoded == Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_') &&
+                result["encoding"]!.ToString() == "base64url-v1" &&
+                result["scope"]!.ToString() == "project-build-artifact" && result["target"]!.ToString() == "linux" &&
+                result["job"]!.ToString() == job && result["key"]!.ToString() == chosen.key &&
+                result["index"]!.GetValue<int>() == chosen.index && result["sha256"]!.ToString() == chosen.sha &&
+                result["name"]!.ToString() == chosen.name && result["size"]!.GetValue<long>() == bytes.Length &&
+                Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(bytes)) == chosen.sha &&
+                System.Linq.Enumerable.SequenceEqual(bytes, System.IO.File.ReadAllBytes(chosen.path)),
+                "Exact recorded artifact name, metadata, and verified bytes");
+        }
+        try
+        {
+            string a = Context(projects[0]), jobA = Start(a);
+            var infoA = Finish(a, jobA, "built");
+            var artifactA = Artifact(projects[0], infoA);
+            Match(a, jobA, artifactA);
+            Reject(() => Read(a, jobA, (artifactA.name, artifactA.index, new string('0',64), artifactA.key, artifactA.path)));
+            Reject(() => Read(a, jobA, (artifactA.name, artifactA.index, artifactA.sha, new string('0',64), artifactA.path)));
+            Reject(() => Read(a, jobA, (artifactA.name, infoA["files"]!.AsArray().Count, artifactA.sha, artifactA.key, artifactA.path)));
+            var files = infoA["files"]!.AsArray();
+            int reportIndex = System.Linq.Enumerable.Single(System.Linq.Enumerable.Where(
+                System.Linq.Enumerable.Range(0, files.Count), i => files[i]!["name"]!.ToString() == "build-report.json"));
+            Reject(() => Job("read-artifact", new {context=a, job=jobA, key=artifactA.key, index=reportIndex,
+                sha256=files[reportIndex]!["sha256"]!.ToString()}));
+            byte[] good = System.IO.File.ReadAllBytes(artifactA.path);
+            var changed = (byte[])good.Clone();
+            changed[0] ^= 1;
+            System.IO.File.WriteAllBytes(artifactA.path, changed);
+            try { Reject(() => Read(a, jobA, artifactA)); }
+            finally { System.IO.File.WriteAllBytes(artifactA.path, good); }
+            System.IO.File.Move(artifactA.path, artifactA.path + ".held");
+            try { Reject(() => Read(a, jobA, artifactA)); }
+            finally { System.IO.File.Move(artifactA.path + ".held", artifactA.path); }
+
+            string lease = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(projects[0])!, ".confectory/source-transaction.lock");
+            using (var held = new System.IO.FileStream(lease, System.IO.FileMode.OpenOrCreate, System.IO.FileAccess.ReadWrite, System.IO.FileShare.None))
+            {
+                string pending = Start(a);
+                Check(Job("info",new{context=a,job=pending})["state"]!.ToString()=="building","Actual build is in progress");
+                Reject(() => Read(a, pending, artifactA));
+                Check(Job("stop", new {context=a, job=pending})["state"]!.ToString() == "stopped", "Actual build stopped");
+                Reject(() => Read(a, pending, artifactA));
+            }
+            string body = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(projects[0])!, "main.csbody");
+            System.IO.File.AppendAllText(body, "\nthis is deliberately invalid C#;\n");
+            try
+            {
+                string failed = Start(a);
+                Finish(a, failed, "failed");
+                Reject(() => Read(a, failed, artifactA));
+            }
+            finally { System.IO.File.WriteAllBytes(body, originals[body]); }
+
+            string b = Context(projects[1]), jobB = Start(b);
+            var artifactB = Artifact(projects[1], Finish(b, jobB, "built"));
+            Check(artifactA.name == artifactB.name && artifactA.sha != artifactB.sha, "Same output name, different project bytes");
+            Reject(() => Read(a, jobA, artifactA));
+            Reject(() => Read(b, jobA, artifactA));
+            Match(b, jobB, artifactB);
+            Check(Job("history",new{context=b})["total"]!.GetValue<int>()==1,"Reads created no builds in B");
+            a = Context(projects[0]);
+            Match(a, jobA, artifactA);
+            Check(Job("history",new{context=a})["total"]!.GetValue<int>()==3,"Reads created no builds in A");
+            string other = calls.CreateSession.Invoke(repo, System.IO.Path.Combine(root, "other-artifact-home"));
+            try
+            {
+                string context = Context(projects[0], other);
+                Reject(() => calls.BuildJobs.Invoke(other, "read-artifact", Encode(new {context, job=jobA,
+                    key=artifactA.key, index=artifactA.index, sha256=artifactA.sha})));
+            }
+            finally { calls.CloseSession.Invoke(other); }
+            Check(!System.IO.File.Exists(System.IO.Path.Combine(root, "must-not-run")), "Artifact read never ran the project");
+            foreach (var pair in originals)
+                Check(System.Linq.Enumerable.SequenceEqual(pair.Value, System.IO.File.ReadAllBytes(pair.Key)), "Project sources unchanged");
+            Console.WriteLine("Owned Linux artifact read: exact bytes, scope, refused reads and no build or Run side effects PASS");
+            return 0;
+        }
+        finally { calls.CloseSession.Invoke(session); }
+        """);
+        string[] names = ["CONFECTORY_EDITOR_REPO", "CONFECTORY_ARTIFACT_TEST_ROOT", "CONFECTORY_PROJECT_EXECUTION_HOST"];
+        string?[] previous = names.Select(Environment.GetEnvironmentVariable).ToArray();
+        try
+        {
+            Environment.SetEnvironmentVariable(names[0], Fixture.Repo);
+            Environment.SetEnvironmentVariable(names[1], f.Root);
+            Environment.SetEnvironmentVariable(names[2], Path.Combine(Fixture.Repo,
+                "targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll"));
+            Output(new Builder(Path.Combine(consumer, "project.cpack"), "linux").Build(),
+                "Owned Linux artifact read: exact bytes, scope, refused reads and no build or Run side effects PASS");
+        }
+        finally { for (int i=0; i<names.Length; i++) Environment.SetEnvironmentVariable(names[i], previous[i]); }
+    }
     public void test_project_shell_domain_isolated_execution_no_null_chat_open_and_context_cleanup()
     {
         string consumer=Consumer("editor-home"),project=Path.Combine(consumer,"verify-shell.cpack");var baseline=new Builder(project,"linux");var built=baseline.Build();OptionalExcluded(built);string? previous=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO");try{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",Fixture.Repo);var run=Processes.Run(Strings(built,"run"),timeoutSeconds:300);True(run.ExitCode==0,run.Stdout+run.Stderr);True(run.Stdout.Contains("Project shell domain:"));}finally{Environment.SetEnvironmentVariable("CONFECTORY_EDITOR_REPO",previous);}

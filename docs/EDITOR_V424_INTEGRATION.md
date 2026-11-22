@@ -68,7 +68,7 @@ Codex 준비·공식 기기 코드 로그인 단계는 `114e00ffb35f6c3f4e5cdfd3
 | R03 | 실제 렌더 삽입·크기·입력·detach/close | 계약 | 자식 surface 획득/전달/수명. 예시 CSS 장면 제외 |
 | R04 | Pause/Resume/Step·실제 frame/ack | 계약 | 런타임 scheduler/control. OS 신호나 임의 카운터 대체 금지 |
 | R05 | 실행 owner 재연결·이전 프로세스 관찰/종료 | 계약 | durable launch identity/lease/시작 신원, 명시적 재연결. PID 추측 금지 |
-| R06 | 소스 팩 내보내기·타깃 빌드 다운로드·APK | 부분 | 실제 source closure/artifact, 선언된 대상/서명 상태. Android 설정 보존 |
+| R06 | 소스 팩 내보내기·타깃 빌드 다운로드·APK | 부분 | 같은 세션이 완료한 Linux 빌드의 DLL 한 개를 읽는 소유자 계약. 화면 다운로드 및 APK는 별도 |
 | P01 | Helper 모집·선택·전역/프로젝트 소속·기억 범위 | 기존 | Helper 실제 membership/소유권·curated context |
 | P02 | Helper 이름·직함·상태·소개·이미지·편집·제거 | 부분 | 소유 프로필/이미지 저장·버전/참조, 실제 존재 membership |
 | P03 | Helper 이미지 생성·수정·선택 | 계약 | 별도 image provider/content/usage 권한·실제 산출물, 개발은 소유 fixture |
@@ -227,6 +227,8 @@ Nav의 의미 편집 이력은 기존 소스 writer와 atomic EditBatch가 공�
 Run의 빌드만과 Nav의 빌드 작업을 별도 ProjectExecution.Build owner에 연결했다. 확정된 물리 원본을 기존 Builder와 source lease로 컴파일하며 산출물의 run 명령을 실행하지 않는다. 작업별 GUID·진입점·대상·실제 단계·결과를 기록한다. 실행 중인 프로젝트와 빌드 작업의 핸들과 중지를 분리한다. 창 닫기/프로젝트 숨김은 빌드를 유지하며, 완전 종료는 compiler owner를 먼저 정리해 최종 초안 Save와 lease가 충돌하지 않게 한다.
 
 성공/실패/중지 기록과 실제 파일 이름·크기·SHA는 프로젝트 private journal에 보존한다. 새 실패가 이전 성공을 현재 결과로 표시하지 않는다. 저장된 결과를 새 세션에서 읽어도 중지 권한을 복원하거나 작업을 재실행하지 않는다. 파일 검증은 현재 기록된 파일의 일치/변경/유실/조회 불가를 구분한다. 파일 목록은 별도 endpoint 결과이며 공개 State에는 한정된 메타데이터만 둔다. presentation에는 창/선택한 작업 ID/페이지만 보존한다. APK·기기 실행·산출물 배포·이전 프로세스 재연결의 완료를 뜻하지 않는다.
+
+`EditorHome.Model::BuildJobs`의 `read-artifact`는 현재 열린 프로젝트의 `context`, 완료 작업 `job`, 기록된 빌드 `key`, `files` 배열의 0부터 시작하는 `index`, 해당 파일의 `sha256`을 받는다. 같은 실행 세션이 소유한 성공한 Linux 단독 빌드에서 기록된 최상위 DLL 한 개를 최대 1 MiB까지 읽는다. 호스트는 작업 기록에서 이름과 경로를 찾아 기존 출력 경계를 검사한다. 읽은 바이트의 크기와 SHA-256 및 작업 기록이 일치할 때 메타데이터와 base64url `data`를 반환한다. 이 모델 계약은 원래 실행 세션을 요구한다. 화면의 내보내기는 기존의 새 빌드 동작을 유지한다.
 
 일반 compiler를 쓰는 실제 소비자 검사는 **1/0/0, 11.095초**로 통과했다. 앱 본문에 실행 시 파일을 쓰는 표식을 넣어 빌드만으로 실행되지 않음을 확인했고, public source lease 대기 중 취소, 다른 세션의 중지 거부, 실제 산출물 변경/삭제 검증, 실제 C# 실패와 이전 성공 보존, 새 세션의 이력 조회 및 원본 바이트 보존을 확인했다. 초기 두 실패는 시험 소비자의 direct dependency와 C# 확장 호출 문제였으며 별도 실패로 남긴다.
 

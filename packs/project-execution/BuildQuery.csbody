@@ -1,14 +1,35 @@
 if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed");
-if(string.IsNullOrWhiteSpace(project)||project.Length>4096||operation is not ("info" or "history")||payload.Length>4096)throw new ArgumentException("Bounded read-only build query required");
-project=System.IO.Path.GetFullPath(project);var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string job=operation=="info"?args["job"]!.GetValue<string>():"";if(operation=="info"&&!Guid.TryParseExact(job,"N",out _))throw new ArgumentException("Explicit build job ID required");
+if(string.IsNullOrWhiteSpace(project)||project.Length>4096||operation is not ("info" or "history" or "read-artifact")||payload.Length>4096)throw new ArgumentException("Bounded read-only build query required");
+project=System.IO.Path.GetFullPath(project);var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+bool artifact=operation=="read-artifact";string job=operation=="history"?"":args["job"]!.GetValue<string>();
+if(operation!="history"&&!Guid.TryParseExact(job,"N",out _))throw new ArgumentException("Explicit build job ID required");
 object[]? Owner(string id){if(records.TryGetValue(id,out var record)&&record.Length>4&&record[4] is System.Text.Json.Nodes.JsonObject meta&&meta["kind"]?.ToString()=="build-only"&&string.Equals(meta["project"]?.ToString(),project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return record;return null;}
 void Decorate(System.Text.Json.Nodes.JsonObject row){lock(records){string id=row["job"]!.ToString();var record=Owner(id);row["ownerAvailable"]=record is not null;row["canStop"]=false;
  if(record is null){if(row["state"]?.ToString() is "queued" or "building"){row["recordedState"]=row["state"]!.DeepClone();row["state"]="owner-unavailable";}return;}
  var status=(string[])record[0];row["ownerState"]=status[1];if(row["state"]?.ToString() is not ("built" or "failed" or "stopped")){if(status[1] is "failed" or "stopping"){row["recordedState"]=row["state"]?.DeepClone();row["state"]=status[1];row["error"]=status[6];}row["canStop"]=status[1] is "building" or "stopping";}
 }}
 lock(records){if(operation=="info"&&Owner(job) is object[] record&&record[4] is System.Text.Json.Nodes.JsonObject meta&&meta["providerAvailable"]?.GetValue<bool>()==false){var status=(string[])record[0];return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["job"]=job,["kind"]="build-only",["state"]="failed",["providerAvailable"]=false,["ownerAvailable"]=true,["canStop"]=false,["error"]=status[6]}.ToJsonString();}}
-var query=new System.Text.Json.Nodes.JsonObject{["operation"]=operation=="info"?"status":"history",["project"]=project};if(operation=="info"){query["job"]=job;query["verify"]=args["verify"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(false);}else query["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0);
+var query=new System.Text.Json.Nodes.JsonObject{["operation"]=operation=="info"?"status":operation,["project"]=project};
+if(artifact){
+ if(!OperatingSystem.IsLinux())throw new PlatformNotSupportedException("Build artifact reads require a Linux host");
+ bool Digest(System.Text.Json.Nodes.JsonNode? value)=>System.Text.RegularExpressions.Regex.IsMatch(value?.GetValue<string>()??"",@"\A[0-9a-f]{64}\z");
+ if(args.Count!=4||!Digest(args["key"])||!Digest(args["sha256"])||
+    args["index"] is not System.Text.Json.Nodes.JsonValue indexValue||!indexValue.TryGetValue<int>(out int index)||index<0||index>=4096)
+  throw new ArgumentException("Recorded build key, artifact index and digest required");
+ lock(records){
+  if(Owner(job) is not object[] owned||((string[])owned[0])[1]!="built"||((string[])owned[0])[4]!="linux")
+   throw new UnauthorizedAccessException("A completed Linux build owned by this session is required");
+  query["owner"]=((System.Text.Json.Nodes.JsonObject)owned[4])["owner"]!.DeepClone();
+ }
+ query["job"]=job;query["key"]=args["key"]!.DeepClone();query["index"]=index;query["sha256"]=args["sha256"]!.DeepClone();
+}else if(operation=="info"){query["job"]=job;query["verify"]=args["verify"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(false);}else query["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0);
 try{
  string tool=Environment.GetEnvironmentVariable("CONFECTORY_PROJECT_EXECUTION_HOST")??throw new InvalidOperationException("Build metadata provider unavailable");var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(tool);start.ArgumentList.Add("build-job");using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("Build metadata host did not start");process.StandardInput.Write(query.ToJsonString());process.StandardInput.Close();var output=process.StandardOutput.ReadToEndAsync();var errors=process.StandardError.ReadToEndAsync();if(!process.WaitForExit(10000)){process.Kill(true);throw new TimeoutException("Build query timed out");}string text=output.GetAwaiter().GetResult();if(process.ExitCode!=0)throw new InvalidOperationException(errors.GetAwaiter().GetResult());if(text.Length>2097152)throw new InvalidOperationException("Build query response budget");var result=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();
- if(operation=="info"){if(result["job"]?.ToString()!=job)throw new InvalidOperationException("Build job identity mismatch");Decorate(result);}else foreach(var row in result["rows"]!.AsArray())Decorate(row!.AsObject());return result.ToJsonString();
-}catch(Exception error){lock(records){if(operation=="info"&&Owner(job) is object[] record){var status=(string[])record[0];return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["job"]=job,["kind"]="build-only",["state"]=status[1],["ownerAvailable"]=true,["canStop"]=status[1] is "building" or "stopping",["recordState"]="unavailable",["error"]=status[6].Length>0?status[6]:"Build metadata unavailable"}.ToJsonString();}}throw new InvalidOperationException("Build metadata unavailable",error);}
+ if(artifact){
+  if(result["scope"]?.ToString()!="project-build-artifact"||result["encoding"]?.ToString()!="base64url-v1"||
+     result["target"]?.ToString()!="linux"||result["job"]?.ToString()!=job||
+     !System.Text.Json.Nodes.JsonNode.DeepEquals(result["key"],query["key"])||!System.Text.Json.Nodes.JsonNode.DeepEquals(result["index"],query["index"])||
+     !System.Text.Json.Nodes.JsonNode.DeepEquals(result["sha256"],query["sha256"]))throw new InvalidOperationException("Build artifact identity mismatch");
+  lock(records){if(Owner(job) is null)throw new UnauthorizedAccessException("Build artifact owner retired");}
+ }else if(operation=="info"){if(result["job"]?.ToString()!=job)throw new InvalidOperationException("Build job identity mismatch");Decorate(result);}else foreach(var row in result["rows"]!.AsArray())Decorate(row!.AsObject());return result.ToJsonString();
+}catch(Exception error){if(artifact)throw new InvalidOperationException("Build artifact unavailable");lock(records){if(operation=="info"&&Owner(job) is object[] record){var status=(string[])record[0];return new System.Text.Json.Nodes.JsonObject{["scope"]="project-build-job",["job"]=job,["kind"]="build-only",["state"]=status[1],["ownerAvailable"]=true,["canStop"]=status[1] is "building" or "stopping",["recordState"]="unavailable",["error"]=status[6].Length>0?status[6]:"Build metadata unavailable"}.ToJsonString();}}throw new InvalidOperationException("Build metadata unavailable",error);}

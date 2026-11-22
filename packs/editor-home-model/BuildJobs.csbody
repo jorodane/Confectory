@@ -1,13 +1,22 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
-if(payload.Length>4096||operation is not ("start" or "stop" or "info" or "history" or "poll" or "close" or "close-all"))throw new ArgumentException("Bounded explicit build operation required");
+if(payload.Length>4096||operation is not ("start" or "stop" or "info" or "history" or "poll" or "close" or "close-all" or "read-artifact"))throw new ArgumentException("Bounded explicit build operation required");
 lock(state){
  if((bool)state[6])throw new ObjectDisposedException("Entry/home session");var model=(System.Text.Json.Nodes.JsonObject)state[3];var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();var manager=(string[])state[0];var execution=calls.Executions.Invoke(manager);
+ string ActivePath(){var selected=model["selected"]??throw new InvalidOperationException("Select an explicitly open project");string context=selected["context"]!.ToString();if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new InvalidOperationException("Build project context changed");var child=calls.Context.Invoke(manager,context);if(child[5]!="open")throw new InvalidOperationException("Build project context closed");return child[1];}
+ if(operation=="read-artifact"){
+  if(args.Count!=5||System.Linq.Enumerable.Any(args,field=>field.Key is not ("context" or "job" or "key" or "index" or "sha256"))||args["context"] is null)
+   throw new ArgumentException("Explicit build artifact scope required");
+  string path=ActivePath();
+  if(!string.Equals(path,model["selected"]!["path"]!.ToString(),StringComparison.Ordinal))
+   throw new UnauthorizedAccessException("Build project manifest changed");
+  args.Remove("context");
+  return calls.Query.Invoke(execution,path,operation,args.ToJsonString());
+ }
  model["buildJobs"]??=new System.Text.Json.Nodes.JsonObject();var rows=model["buildJobs"]!.AsObject();string before=rows.ToJsonString();
  bool Active(System.Text.Json.Nodes.JsonNode? row)=>row?["summary"]?["state"]?.ToString() is "queued" or "building" or "stopping";
  System.Text.Json.Nodes.JsonObject Summary(System.Text.Json.Nodes.JsonNode source){var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"scope","job","kind","namespace","entry","target","state","phase","startedUtc","updatedUtc","finishedUtc","error","key","artifactState","artifactCount","artifactBytes","ownerAvailable","canStop","recordState"})if(source[field] is not null)result[field]=source[field]!.DeepClone();return result;}
  System.Text.Json.Nodes.JsonNode Info(string path,string job,bool verify=false)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Query.Invoke(execution,path,"info",System.Text.Json.JsonSerializer.Serialize(new{job,verify})))!;
  void Refresh(System.Text.Json.Nodes.JsonObject row){row["summary"]=Summary(Info(row["path"]!.ToString(),row["job"]!.ToString()));}
- string ActivePath(){var selected=model["selected"]??throw new InvalidOperationException("Select an explicitly open project");string context=selected["context"]!.ToString();if(args["context"] is not null&&args["context"]!.ToString()!=context)throw new InvalidOperationException("Build project context changed");var child=calls.Context.Invoke(manager,context);if(child[5]!="open")throw new InvalidOperationException("Build project context closed");return child[1];}
  System.Text.Json.Nodes.JsonNode result;
  try{
   if(operation is "poll" or "close-all"){
