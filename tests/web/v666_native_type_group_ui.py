@@ -28,7 +28,19 @@ try:
    row().locator('[data-inline-name]').fill(plan['name']);held=pending();p=detail();field=p.locator('[data-signature-kind=inputs] .feature-io-row').first;pick(field,f.n+'Payload');p.locator('[data-detail-cancel]').click();assert pending()==held
    p=detail();field=p.locator('[data-signature-kind=inputs] .feature-io-row').first;pick(field,f.n+'Payload');p.locator('button[type=submit]').click();expect(p).to_have_count(0);held=pending()
    def source_plan(id,text,cancel=False):
-    row().locator('[data-function-write-direct],[data-function-edit]').first.click();chooser=f.page.locator('[data-information-body="'+id+'"]');expect(chooser).to_be_visible();chooser.click();dialog=f.page.locator('.bp-script-dialog');expect(dialog).to_be_visible();source=dialog.locator('[data-code-source]');old=x.sources[id].replace('\r\n','\n').strip();assert old in source.input_value();source.evaluate('(el,text)=>{el.focus();const i=el.value.indexOf(text);el.setSelectionRange(i,i+text.length)}',old);f.page.keyboard.insert_text(text.replace('\r\n','\n').strip());dialog.locator('[data-code-cancel]'if cancel else'[data-code-save]').click();expect(dialog).to_have_count(0);f.idle()
+    row().locator('[data-function-write-direct],[data-function-edit]').first.click()
+    chooser=f.page.locator('[data-information-body="'+id+'"]');expect(chooser).to_be_visible();chooser.click()
+    dialog=f.page.locator('.bp-script-dialog');expect(dialog).to_be_visible()
+    source=dialog.locator('[data-code-source]')
+    intended=text.replace('\r\n','\n').strip()
+    if id==getattr(x,'resume_shared_caller',None) and fn!=x.first:
+     assert intended in source.input_value()
+    else:
+     old=x.sources[id].replace('\r\n','\n').strip()
+     assert old in source.input_value()
+     source.evaluate('(el,text)=>{el.focus();const i=el.value.indexOf(text);el.setSelectionRange(i,i+text.length)}',old)
+     f.page.keyboard.insert_text(intended)
+    dialog.locator('[data-code-cancel]'if cancel else'[data-code-save]').click();expect(dialog).to_have_count(0);f.idle()
    body=plan['mapping']['bodies'];source_plan(x.bodies[fn],body[x.bodies[fn]]['text']+'// cancelled text',True);assert pending()==held
    for id,source in body.items():source_plan(id,source['text'])
   held=pending();assert len(held)==2 and {v['id']for _,v in held}==set(x.functions);assert all(len(v['nativeTypes'])==2 and len(v['mapping']['bodies'])==2 for _,v in held);f.checked('two original type pickers and own C# choosers retain explicit nominal selections and four authored body plans without changing source')
