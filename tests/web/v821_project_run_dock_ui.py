@@ -1,4 +1,4 @@
-"""Verify the desktop project dock against the real Linux editor and disposable projects."""
+"""Verify project menus and desktop Run against the real Linux editor and disposable projects."""
 from contextlib import contextmanager
 import json
 import os
@@ -68,8 +68,7 @@ def editor(root, repo, command, manifest):
                 host.wait(timeout=20)
 
 
-def check_menu_escape(page):
-    trigger = page.locator("#project-menu")
+def check_menu_escape(page, trigger, label):
     menu = page.locator(".context-menu")
     entry = menu.get_by_role("button", name="프로젝트 정보", exact=True)
 
@@ -99,7 +98,7 @@ def check_menu_escape(page):
     page.keyboard.press("Escape")
     expect(trigger).to_be_focused()
     expect(menu).to_have_count(0)
-    print("PASS one Escape closes the dock menu, restores focus, and remains inert during IME or while closed")
+    print(f"PASS {label} menu handles immediate Escape, restores focus, and ignores IME Escape")
 
     trigger.click()
     expect(entry).to_be_visible()
@@ -112,7 +111,7 @@ def check_menu_escape(page):
     page.keyboard.press("Escape")
     expect(menu).to_have_count(0)
     expect(trigger).to_be_focused()
-    print("PASS YogiBox capture owns the first Escape; the next Escape closes the dock menu")
+    print(f"PASS YogiBox capture owns Escape before the {label} menu")
 
     trigger.click()
     expect(entry).to_be_visible()
@@ -127,7 +126,7 @@ def check_menu_escape(page):
     page.keyboard.press("Escape")
     expect(menu).to_have_count(0)
     expect(trigger).to_be_focused()
-    print("PASS the zoom popup closes before the dock menu and each restores its own focus")
+    print(f"PASS the zoom popup closes before the {label} menu and each restores its own focus")
 
     trigger.click()
     entry.click()
@@ -140,11 +139,32 @@ def check_menu_escape(page):
     expect(entry).to_be_visible()
     page.locator(".topbar .muted").click()
     expect(menu).to_have_count(0)
-    print("PASS the project dialog keeps its own Escape and pointer use resumes after dismissal")
+    print(f"PASS the project dialog opened from the {label} menu keeps its own Escape")
+
+
+def check_menu_switch(page):
+    title = page.locator("#title")
+    dock = page.locator("#project-menu")
+    menu = page.locator(".context-menu")
+    entry = menu.get_by_role("button", name="프로젝트 정보", exact=True)
+
+    for first, second, open_second in ((title, dock, dock.click), (dock, title, lambda: title.press("Enter"))):
+        first.click()
+        expect(entry).to_be_focused()
+        previous = menu.element_handle()
+        open_second()
+        expect(menu).to_have_count(1)
+        expect(entry).to_be_focused()
+        assert not previous.evaluate("element => element.isConnected")
+        page.keyboard.press("Escape")
+        expect(menu).to_have_count(0)
+        expect(second).to_be_focused()
+    print("PASS pointer and keyboard switches retire the previous menu and restore focus to the current trigger")
 
 
 def check(page, origin, first_output, second_output, second_body, second_title):
     requests = []
+    project_changes = []
     errors = []
     external = []
     page.on("pageerror", lambda error: errors.append(str(error)))
@@ -157,8 +177,12 @@ def check(page, origin, first_output, second_output, second_body, second_title):
             return
         if req.method == "POST" and req.url == origin + "/api/request":
             data = req.post_data_json
-            if data.get("op") == "invoke" and data.get("endpoint") in ("runWindow", "runProject", "startRun"):
-                requests.append((data["endpoint"], data["input"].get("operation")))
+            if data.get("op") == "invoke":
+                endpoint = data.get("endpoint")
+                if endpoint in ("runWindow", "runProject", "startRun"):
+                    requests.append((endpoint, data["input"].get("operation")))
+                if endpoint in ("openProject", "leaveProject", "closeProject"):
+                    project_changes.append(endpoint)
         request.continue_()
 
     page.route("**/*", route)
@@ -184,9 +208,11 @@ def check(page, origin, first_output, second_output, second_body, second_title):
     title = page.locator("#title")
     expect(title).to_contain_text("First")
     expect(page.locator("#dock #run + #project-menu")).to_be_visible()
-    check_menu_escape(page)
+    check_menu_escape(page, title, "title")
+    check_menu_escape(page, page.locator("#project-menu"), "dock")
+    check_menu_switch(page)
     expect(title).to_contain_text("First")
-    assert requests == [], requests
+    assert requests == [] and project_changes == [], (requests, project_changes)
     menu_only()
     assert not first_output.exists() and not second_output.exists()
     assert page.locator(".run-window").count() == 0
