@@ -73,7 +73,12 @@ export function createStandaloneBrowserData(api){
    const alive=()=>api.current.projectId===scope&&api.windows.get(w.key)===w&&w.browserDataView===view;
    view.cells=createBrowserDataCells(Object.create(api,Object.getOwnPropertyDescriptors({w,view,values:view.values,reads:view.reads,name,esc:api.esc,currentWindow:alive,alive,jobs:w.browserDataJobs,activeView:()=>w.browserDataView,fail:error=>api.toast(error.message),enqueue:run=>{const promise=browserReads.then(run,run);browserReads=promise.catch(()=>{});return promise;}})));
    view.render=()=>{if(alive())api.render(w.key);};
-   view.saved=()=>{view.values.clear();view.stamp=null;view.render();};
+   view.saved=id=>{
+    if(id===undefined)view.values.clear();
+    else if(!view.values.delete(id))return;
+    view.stamp=null;
+    view.render();
+   };
   }
   const view=w.browserDataView;view.items=items;
   const stamp=JSON.stringify([items.map(row=>[row.id,row.kind,row.owned,row.title,row.revision,row.textHash]),[...view.values],view.meta.dataInputs]);
@@ -99,7 +104,7 @@ export function createStandaloneBrowserData(api){
    }catch(error){api.toast(error.message);}finally{b.disabled=false;}
   };
  }
- return {render,saved:()=>{for(const w of api.windows.values())if(w.browserDataView?.scope===api.current.projectId)w.browserDataView.saved();}};
+ return {render,saved:id=>{for(const w of api.windows.values())if(w.browserDataView?.scope===api.current.projectId)w.browserDataView.saved(id);}};
 }
 
 // Original local picker output only: embedded canvas WebP, never a file/remote URL.
