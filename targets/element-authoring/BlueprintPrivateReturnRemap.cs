@@ -19,9 +19,11 @@ internal static class BlueprintPrivateReturnRemap
         {
             var producer = order[index];
             string id = producer["id"]!.ToString();
-            if (producer["signature"]?["return"]?.ToString() != "long") continue;
+            string? originalType = producer["signature"]?["return"]?.ToString();
+            string? returnType = originalType switch { "long" => "double", "double" => "long", _ => null };
+            if (returnType is null) continue;
             var outputs = producer["signature"]!["args"]!.AsArray()
-                .Where(arg => arg?["mode"]?.ToString() == "out" && arg["type"]?.ToString() == "long")
+                .Where(arg => arg?["mode"]?.ToString() == "out" && arg["type"]?.ToString() == originalType)
                 .ToArray();
             if (outputs.Length != 1) continue;
             var consumer = order[index + 1];
@@ -33,11 +35,11 @@ internal static class BlueprintPrivateReturnRemap
                 continue;
             string name = arguments.Single(entry => ReferenceEquals(entry.Value, uses[0])).Key;
             if (!consumer["signature"]!["args"]!.AsArray().Any(arg => arg?["name"]?.ToString() == name
-                && arg["type"]?.ToString() == "long" && arg["mode"] is null)) continue;
+                && arg["type"]?.ToString() == originalType && arg["mode"] is null)) continue;
             result[id] = new JsonObject
             {
                 ["consumer"] = consumer["id"]!.DeepClone(), ["argument"] = name,
-                ["output"] = outputs[0]!["name"]!.DeepClone()
+                ["output"] = outputs[0]!["name"]!.DeepClone(), ["returnType"] = returnType
             };
         }
         return result;

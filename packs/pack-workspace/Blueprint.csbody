@@ -167,7 +167,8 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
       ||current["privatePath"]?.ToString()==""||intent["node"]?.ToString()!=choice["consumer"]?.ToString()
       ||intent["name"]?.ToString()!=choice["argument"]?.ToString()
       ||!System.Text.Json.Nodes.JsonNode.DeepEquals(argument,new System.Text.Json.Nodes.JsonObject{["node"]=producer,["output"]=choice["output"]!.DeepClone()})
-      ||plan["returnType"]?.ToString()!="double"||!System.Text.Json.Nodes.JsonNode.DeepEquals(plan["args"],declaration["args"])
+      ||!System.Text.Json.Nodes.JsonNode.DeepEquals(plan["returnType"],choice["returnType"])
+      ||!System.Text.Json.Nodes.JsonNode.DeepEquals(plan["args"],declaration["args"])
       ||plan["remap"]!.AsObject().Count!=declaration["args"]!.AsArray().Count
       ||System.Linq.Enumerable.Any(declaration["args"]!.AsArray(),pin=>plan["remap"]?[pin!["name"]!.ToString()]?.ToString()!=pin!["name"]!.ToString()))
       throw new InvalidOperationException("Select the exact original private return consumer and its existing compatible out pin; retain all input");

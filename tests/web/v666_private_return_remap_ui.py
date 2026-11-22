@@ -4,24 +4,78 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import uuid
 
 from playwright.sync_api import expect, sync_playwright
 
+# The shared fixture needs its single direct return consumer in either direction.
+narrow = sys.argv[3:4] == ["narrow"]
+if narrow:
+    sys.argv[3] = "return-argument-original"
 import v666_private_node_out_double_fixture as fixture
+
+original_type, selected_type = ("double", "long") if narrow else ("long", "double")
+output_pin = "realOutput" if narrow else "secondNative"
+before_value, after_value = (129.25, 99.5) if narrow else (129, 99)
 
 f = fixture.f
 frame = fixture.whole_graph + "/graph:inner"
 sink_path = f.project / "private-out-void-sink.node.json"
 sink_record = json.loads(sink_path.read_text())
-sink_record["source"] = 'global::System.Console.WriteLine("consumer:"+value);'
+sink_record["source"] = 'global::System.Console.WriteLine("consumer:"+value.ToString(global::System.Globalization.CultureInfo.InvariantCulture));'
+code_args = copy.deepcopy(fixture.code_signature["args"])
+source = fixture.sources[fixture.whole_function]
+authored = source.replace("return Keep(firstNative+secondNative);", "return Keep(firstNative+secondNative)+0D;")
+
+if narrow:
+    graph_path = f.project / fixture.graph_path
+    graph = json.loads(graph_path.read_text())
+    inner = next(node["graph"] for node in graph["nodes"] if node["id"] == "inner")
+    code_args.append({"name": output_pin, "type": "double", "mode": "out"})
+    inner["nodes"][0]["signature"] = {"args": code_args, "return": "double"}
+    inner["nodes"][1]["signature"]["args"][0]["type"] = "double"
+    graph_path.write_text(json.dumps(graph))
+    definitions = f.metadata(
+        "blueprintDescribeOwned", project=str(f.manifest), id=fixture.whole_implementation, text=fixture.whole_header.decode(),
+        bodyTarget="common", graph=graph, definitionsOnly=True,
+    )
+    assert definitions["state"] == "node-definitions", definitions
+    hashes = {node["id"]: node["definitionHash"] for node in definitions["nestedNodes"]}
+    source = "secondNative=99; realOutput=99.5D; return Keep(firstNative+secondNative)+0.25D; // explicit narrowing fixture\n"
+    authored = source.replace("return Keep(firstNative+secondNative)+0.25D;",
+                              "return checked((long)(Keep(firstNative+secondNative)+0.25D));")
+    path = f.project / fixture.node_path
+    producer = json.loads(path.read_text())
+    producer.update(definitionHash=hashes["inner/body"], source=source)
+    path.write_text(json.dumps(producer))
+    sink_record["definitionHash"] = hashes["inner/sink"]
+    (f.project / "Main.csbody").write_text("""
+long value=calls.SharedCaller.Invoke(30,5);
+string? returnType=null;
+var flags=global::System.Reflection.BindingFlags.Public|global::System.Reflection.BindingFlags.NonPublic
+    |global::System.Reflection.BindingFlags.Static|global::System.Reflection.BindingFlags.DeclaredOnly;
+foreach(var type in global::System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
+    foreach(var method in type.GetMethods(flags)){
+        var pins=method.GetParameters();
+        if(pins.Length!=3||pins[2].Name!="realOutput")continue;
+        if(!pins[2].IsOut||pins[2].ParameterType!=typeof(double).MakeByRefType())
+            throw new global::System.InvalidOperationException("original double out changed");
+        var kind=method.ReturnType==typeof(double)?"double":method.ReturnType==typeof(long)?"long":"unsupported";
+        if(returnType is not null&&returnType!=kind)throw new global::System.InvalidOperationException("inconsistent private ABI");
+        returnType=kind;
+    }
+if(returnType is null)throw new global::System.InvalidOperationException("private method missing");
+global::System.Console.Error.WriteLine("private-out-return:"+returnType);
+global::System.Console.WriteLine(value);
+return checked((int)value);
+""")
+
 sink_path.write_text(json.dumps(sink_record))
 originals = {
     path: path.read_bytes() for path in f.project.rglob("*")
     if path.is_file() and ".confectory" not in path.relative_to(f.project).parts
 }
-source = fixture.sources[fixture.whole_function]
-authored = source.replace("return Keep(firstNative+secondNative);", "return Keep(firstNative+secondNative)+0D;")
 
 
 def untouched():
@@ -77,10 +131,12 @@ def open_graph():
 
 def map_output(panel):
     panel.locator('[data-bp-node="body"] .bp-pin-plug[data-side=out][data-port="field:return"]')         .locator(".bp-pin-value").click(button="right")
-    f.page.get_by_role("dialog", name="속성 타입 선택", exact=True).locator("[data-type=double]").click()
+    f.page.get_by_role("dialog", name="속성 타입 선택", exact=True).locator(f"[data-type={selected_type}]").click()
     dialog = f.page.get_by_role("dialog", name="반환 연결 갱신", exact=True)
     expect(dialog).to_be_visible()
-    expect(dialog.locator('[data-abi-output="return"]')).to_have_value("")
+    select = dialog.locator('[data-abi-output="return"]')
+    expect(select).to_have_value("")
+    assert select.locator("option").evaluate_all("(options)=>options.map(option=>option.value)") == ["", output_pin]
     return dialog
 
 
@@ -105,24 +161,29 @@ def review_in_editor(panel):
 
 
 try:
-    build("before", 129, "long")
+    build("before", before_value, original_type)
     f.start(0)
     f.invoke("select", {"id": fixture.whole_function})
     f.invoke("saveDraft", {})
     checkpoint = next(f.project.glob(".confectory/edit-workspaces/*/draft.json"))
     baseline = checkpoint.read_bytes()
     initial = read()
-    expected_choice = {"consumer": "sink", "argument": "value", "output": "secondNative"}
+    expected_choice = {"consumer": "sink", "argument": "value", "output": output_pin, "returnType": selected_type}
     assert initial["privateReturnChoices"] == {"body": expected_choice}
-    parameter_plan = {"args": fixture.code_signature["args"], "returnType": "double",
-                      "remap": {arg["name"]: arg["name"] for arg in fixture.code_signature["args"]}}
+    parameter_plan = {"args": code_args, "returnType": selected_type,
+                      "remap": {arg["name"]: arg["name"] for arg in code_args}}
+    wrong_output = "secondNative" if narrow else "return"
     edits = [
-        {"action": "argument", "node": "sink", "name": "value", "valueJson": '{"node":"body","output":"return"}'},
+        {"action": "argument", "node": "sink", "name": "value",
+         "valueJson": json.dumps({"node": "body", "output": wrong_output})},
         {"action": "parameters", "node": "body", "definition": parameter_plan},
         {"action": "source", "node": "body", "text": authored},
     ]
     proof = json.dumps([[row["id"], row["revision"], row["hash"]] for row in initial["sources"]])
-    for rejected in (edits, edits[1:]):
+    wrong_type = copy.deepcopy(edits)
+    wrong_type[0]["valueJson"] = json.dumps({"node": "body", "output": output_pin})
+    wrong_type[1]["definition"]["returnType"] = "int"
+    for rejected in (edits, edits[1:], wrong_type):
         f.invoke("blueprint", {"action": "authorBatch", "id": frame, "attempt": uuid.uuid4().hex,
                  "checkpointHash": initial["checkpointHash"], "sourceProof": proof, "edits": rejected}, False)
         assert checkpoint.read_bytes() == baseline
@@ -131,7 +192,7 @@ try:
     child = next(node["graph"] for node in with_another_use["nodes"] if node["id"] == "inner")
     child["exits"]["return"] = {"node": "body"}
     assert not f.metadata("blueprintPrivateReturnChoices", graph=with_another_use, path="inner")
-    f.checked("Wrong and missing selections fail closed; a second return use prevents eligibility.")
+    f.checked("Wrong and missing selections and an unsupported return type fail closed; a second return use prevents eligibility.")
 
     with sync_playwright() as playwright:
         expect.set_options(timeout=60000)
@@ -142,20 +203,20 @@ try:
         dialog = map_output(panel)
         dialog.locator("[data-abi-remap-accept]").click()
         expect(dialog.locator("[data-abi-error]")).to_be_visible()
-        dialog.locator('[data-abi-output="return"]').select_option("secondNative")
+        dialog.locator('[data-abi-output="return"]').select_option(output_pin)
         dialog.locator("[data-abi-remap-cancel]").click()
         assert not f.pending()["blueprint"] and checkpoint.read_bytes() == baseline
         untouched()
         f.checked("Unmapped return is blocked and Cancel retains the original candidate and sources.")
 
         dialog = map_output(panel)
-        dialog.locator('[data-abi-output="return"]').select_option("secondNative")
+        dialog.locator('[data-abi-output="return"]').select_option(output_pin)
         dialog.locator("[data-abi-remap-accept]").click()
         expect(dialog).to_have_count(0)
         panel.locator('[data-bp-node="body"] [data-internal-code]').click()
         editor = f.page.locator('[role=dialog]:has([data-code-source])')
         field = editor.locator("[data-code-source]")
-        assert field.input_value().startswith("public static double Execute(")
+        assert field.input_value().startswith(f"public static {selected_type} Execute(")
         field.evaluate("(element, text)=>{const start=element.value.indexOf(text);if(start<0)throw Error('missing original source');element.focus();element.setSelectionRange(start,start+text.length);}", source.rstrip())
         f.page.keyboard.insert_text(authored.rstrip())
         editor.locator("[data-code-save]").click()
@@ -182,8 +243,8 @@ try:
     candidate = json.loads(graph_unit["draft"])
     expected = json.loads(originals[f.project / fixture.graph_path])
     child = next(node["graph"] for node in expected["nodes"] if node["id"] == "inner")
-    child["nodes"][0]["signature"]["return"] = "double"
-    child["nodes"][1]["arguments"]["value"]["output"] = "secondNative"
+    child["nodes"][0]["signature"]["return"] = selected_type
+    child["nodes"][1]["arguments"]["value"]["output"] = output_pin
     assert candidate == expected
     assert graph_unit["propertyObservations"]["version"] == 1
     assert set(graph_unit["propertyObservations"]["sources"]) == set(initial["privateReturnSources"])
@@ -191,8 +252,8 @@ try:
 
     f.start(1)
     restored = read()
-    assert json.loads(restored["nodes"][1]["arguments"][0]["valueJson"]) == {"node": "body", "output": "secondNative"}
-    assert restored["nodes"][0]["signature"]["return"] == "double"
+    assert json.loads(restored["nodes"][1]["arguments"][0]["valueJson"]) == {"node": "body", "output": output_pin}
+    assert restored["nodes"][0]["signature"]["return"] == selected_type
     assert restored["nodes"][0]["source"] == authored
     ids = restored["reviewIds"]
     assert {fixture.whole_graph, fixture.whole_node} <= set(ids)
@@ -227,8 +288,8 @@ try:
             f.env["CONFECTORY_EDITOR_REPO"] = str(f.repo)
             f.start(2)
             backward = read()
-            assert "privateReturnChoices" not in backward
-            assert backward["nodes"][0]["signature"]["return"] == "double"
+            assert not backward.get("privateReturnChoices")
+            assert backward["nodes"][0]["signature"]["return"] == selected_type
             assert backward["nodes"][1]["arguments"] == restored["nodes"][1]["arguments"]
             f.invoke("reviewGroup", {"ids": backward["reviewIds"], "target": "portable"})
             assert f.state()["review"]["status"] == "ready"
@@ -259,7 +320,7 @@ try:
         review.locator("#confirm").click()
         expect(review).to_be_hidden(timeout=120000)
         f.idle()
-        assert read()["nodes"][0]["signature"]["return"] == "double"
+        assert read()["nodes"][0]["signature"]["return"] == selected_type
         f.page.unroute_all(behavior="wait")
         f.page.close()
         f.browser.close()
@@ -271,9 +332,9 @@ try:
     for path, data in originals.items():
         if path.name not in (fixture.graph_path, fixture.node_path):
             assert path.read_bytes() == data, path
-    build("after", 99, "double")
+    build("after", after_value, selected_type)
     assert not f.errors and not f.external, (f.errors, f.external)
-    f.checked("Cold Review and Confirm preserve siblings and old out. Actual execution routes the consumer from 129 to out=99.")
+    f.checked(f"Cold Review and Confirm preserve siblings and old out. Actual execution changes the consumer from {before_value} to {after_value}.")
 finally:
     print("Evidence:", f.case)
     f.stop()

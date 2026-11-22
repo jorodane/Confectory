@@ -377,7 +377,7 @@ function blueprintNormalizeControls(scope){
     modal:api.modal,esc,title:'반환 연결 갱신',
     targets:{consumer:{
      label:choice.consumer+' · '+choice.argument,
-     before:{args:[],return:'long'},after:{args:[{name:choice.output,type:'long',mode:'out'}],return:'void'},
+     before:{args:[],return:next.returnType},after:{args:[{name:choice.output,type:next.returnType,mode:'out'}],return:'void'},
      usedOutputs:['return']
     }},
     remember:()=>{},cancel:()=>{},
@@ -386,7 +386,7 @@ function blueprintNormalizeControls(scope){
       throw Error('기존 연결과 대체 출력을 다시 확인해 주세요. 입력은 유지됩니다.');
      structuralEdit(w,()=>{
       privateValue(w,choice.consumer,'argument:'+choice.argument,JSON.stringify({node:row.id,output:choice.output}));
-      privateValue(w,row.id,'parameters',JSON.stringify({...next,returnType:'double',returnRemap:choice}));
+      privateValue(w,row.id,'parameters',JSON.stringify({...next,returnType:choice.returnType,returnRemap:choice}));
       privateValue(w,row.id,'source',row.source??'');
      });
     }
@@ -394,7 +394,7 @@ function blueprintNormalizeControls(scope){
   }
   function replacePinType(pin,nextType){const setRow=rows.find(r=>r.id===pin.dataset.node&&r.kind==='set');if(setRow){setType(setRow,nextType);return;}const exported=rows.find(row=>row.id===pin.dataset.node&&row.kind==='export');if(exported){changeRootOutputType(exported.output,nextType);return;}if(pin.dataset.node.startsWith('$exit:')){changeRootOutputType(pin.dataset.node.slice(6),nextType);return;}const row=rows.find(n=>n.id===pin.dataset.node),name=pinArgument(pin);if(pin.dataset.node==='$entry'){rootGuard(plan=>{const arg=plan.args.find(a=>a.name===name);if(!arg)throw Error('현재 입력 계약을 확인해 주세요.');if(arg.type===nextType)return;if(rootInputUsed(name))throw Error('이 입력을 사용하는 연결을 먼저 해제한 뒤 자료형을 바꿔 주세요.');for(const key of Object.keys(plan.remap))if(plan.remap[key]===name)plan.remap[key]=null;arg.type=nextType;});return;}if(!editableContract(row))return;
    const returnChoice=data.privateReturnChoices?.[row?.id];
-   if(pin.dataset.side==='out'&&name==='return'&&nextType==='double'&&returnChoice)
+   if(pin.dataset.side==='out'&&name==='return'&&returnChoice?.returnType===nextType)
     return selectPrivateReturn(row,returnChoice);
    guardContract(row,plan=>{if(pin.dataset.side==='out'){if(name!=='return'){const arg=plan.args.find(a=>a.name===name);if(!arg||arg.mode!=='out')throw Error('현재 출력 계약을 확인해 주세요.');if(arg.type!==nextType&&outputUsed(row,name))throw Error('이 출력값을 사용하는 연결을 먼저 해제해 주세요.');if(arg.type!==nextType)for(const key of Object.keys(plan.remap))if(plan.remap[key]===name)plan.remap[key]=null;arg.type=nextType;return;}if(nextType!==plan.returnType&&outputUsed(row,'return'))throw Error('이 반환값을 사용하는 연결을 먼저 해제해 주세요.');plan.returnType=nextType;return;}
     const arg=plan.args.find(a=>a.name===name);if(!arg)throw Error('현재 핀 계약을 다시 확인해 주세요.');if(arg.type!==nextType&&readBinding(row.id,name)!=='null')throw Error('이 입력값 연결을 먼저 해제한 뒤 자료형을 바꿔 주세요.');if(arg.type!==nextType)for(const key of Object.keys(plan.remap))if(plan.remap[key]===name)plan.remap[key]=null;arg.type=nextType;
