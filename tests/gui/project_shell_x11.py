@@ -7,6 +7,7 @@ import subprocess
 import signal
 import sys
 import time
+from project_shell_agent_fixture import AGENT, register_main_helper
 lib=c.CDLL('libX11.so.6'); P=c.c_void_p; U=c.c_ulong; L=c.c_long
 
 def native(name,result,*args):
@@ -180,6 +181,15 @@ def end(window,interrupt=False):
     else:close(window)
     assert app.wait(timeout=30)==0,open(log_path).read()[-5000:];log.close()
     assert 'Entry/home jobs, controls, buffers, Owner, project contexts and native surface disposed' in open(log_path).read()
+def record_local_draft(window):
+    wait(lambda row:38 in row['hits'][::5],'project chat field')
+    click(window,38)
+    type_text(window,'A local project draft')
+    click(window,41)
+    row=wait(lambda row:row['model']['shell']['draft']=='A local project draft','local draft retained without live sending')
+    assert 'no message sent' in row['model']['shell']['notice']
+    return row
+
 def open_folder_menu(window):
     click(window,33)
     wait(lambda row:row['model']['shell']['menu']=='project','folder menu')
@@ -239,11 +249,31 @@ try:
         end(a)
         print('Private GUI evidence: '+storage)
         sys.exit(0)
-    wait(lambda t:38 in t['hits'][::5],'project chat field');click(a,38);type_text(a,'A local project draft');click(a,41);state=wait(lambda t:t['model']['shell']['draft']=='A local project draft','local draft retained without live sending');buffer=state['chatBuffers'][context];assert 'no message sent' in state['model']['shell']['notice']
+    project_id=state['model']['selected']['projectId']
+    record_local_draft(a)
     screenshot(a,'project-chat')
-    # Actual product Helper controls use public scoped memory, without a model/provider.
-    click(a,8);wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 23 in t['hits'][::5],'explicit Helper selection')
-    click(a,23);wait(lambda t:len(t['model']['helpers'])==1 and 20 in t['hits'][::5],'recruit global Main Helper')
+    click(a,8)
+    state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 23 in t['hits'][::5],'offline Helper controls')
+    assert not state['model']['helperAgents']['agents'] and not state['model']['helpers']
+    click(a,23)
+    state=wait(lambda t:'Choose a registered Agent before recruiting a Helper' in t['model']['status'],'Agent-less recruitment rejected')
+    assert not state['model']['helpers'] and not state['model']['helperAgents']['assignments']
+    assert state['model']['selected']['context']==context and state['model']['shell']['draft']=='A local project draft'
+    print('PASS Later preserves project use and local draft while Agent-less recruitment is rejected')
+    end(a)
+
+    # Provision an explicitly registered Helper through the normal local API before the native shell consumes it.
+    register_main_helper(report['run'],repo,env,storage)
+    a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro after fixture registration');click(a,1)
+    state=wait(lambda t:t['screen']=='home' and len(t['model']['cards'])==1 and 100 in t['hits'][::5],'reopen the fixture project')
+    home=state['controls']
+    click(a,100)
+    state=wait(lambda t:t['screen']=='project' and t['model']['shell'],'project after fixture registration')
+    assert state['model']['selected']['projectId']==project_id and state['model']['selected']['path']==path
+    assert not state['model']['shell']['liveProvider'] and state['model']['helperAgents']['assignments']['main-helper']==AGENT
+    context=state['model']['selected']['context'];project_control=state['controls'];assert project_control!=home
+    state=record_local_draft(a);buffer=state['chatBuffers'][context]
+    click(a,8);wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helpers' and 20 in t['hits'][::5],'registered fixture Helper selection')
     click(a,20);state=wait(lambda t:(t['model'].get('helperPanel') or {}).get('mode')=='helper' and t['model'].get('helperContext',{}).get('helper')=='main-helper','connect global Helper to current project')
     assert state['model']['helperContext']['projectId']==state['model']['selected']['projectId']
     click(a,26);wait(lambda t:len(t['model']['helperContext']['memory'])==1,'remember draft only for project')
@@ -262,7 +292,18 @@ try:
     click(a,38);chat_field=json.loads(latest()['fields']['38']);chat_handle=int(chat_field['nativeHandle']);native_controls.key(chat_handle,'a',(0xFFE3,));native_controls.key(chat_handle,'v',(0xFFE3,));wait(lambda t:json.loads(t['fields']['38'])['text']==expected_logs,'native logs copy/paste into editable chat');native_controls.text(chat_handle,'A local project draft');wait(lambda t:json.loads(t['fields']['38'])['text']=='A local project draft','restore synthetic local draft')
     click(a,33);state=wait(lambda t:t['model']['shell']['menu']=='project' and 34 in t['hits'][::5],'project name menu');assert 38 in state['hits'][::5] and 36 in state['hits'][::5]
     modal_field=json.loads(state['fields']['38']);assert modal_field['visible'] and modal_field['enabled'],'ordinary panel preserves visible native text interaction';assert modal_field['nativeHandle']==chat_field['nativeHandle']
-    click(a,34);wait(lambda t:t['model']['shell']['menu']=='info','project info');state=latest();menu_bounds=(216,58,440,290);workspace_clips=[state['textClips'][n*4:n*4+4] for n,text in enumerate(state['texts']) if text=='Workspace'];assert all(x>=menu_bounds[0]+menu_bounds[2] or x+w<=menu_bounds[0] or y>=menu_bounds[1]+menu_bounds[3] or y+h<=menu_bounds[1] for x,y,w,h in workspace_clips),'Workspace text clips exclude covered menu region';screenshot(a,'project-info');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close info')
+    menu_x,menu_y,menu_w,menu_h=next(row['bounds'] for row in state['orderFrame']['windows'] if row['id']==10)
+    workspace_clips=[state['textClips'][n*4:n*4+4] for n,text in enumerate(state['texts']) if text=='Workspace']
+    assert all(x>=menu_x+menu_w or x+w<=menu_x or y>=menu_y+menu_h or y+h<=menu_y for x,y,w,h in workspace_clips),'Workspace text clips exclude covered menu region'
+    click(a,34)
+    state=wait(lambda t:t['screen']=='information' and 430 in t['hits'][::5],'project info')
+    assert state['model']['selected']['context']==context and 'Project information' in state['texts']
+    assert 'Workspace' not in state['texts'] and json.loads(state['fields']['433'])['readonly']
+    screenshot(a,'project-info')
+    click(a,430)
+    state=wait(lambda t:t['screen']=='project' and 42 in t['hits'][::5],'return from project info')
+    assert state['model']['selected']['context']==context and state['chatBuffers'][context]==buffer
+    click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close project name menu')
     click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','menu');click(a,35);wait(lambda t:t['model']['shell']['menu']=='settings','honest read-only settings');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close settings')
     click(a,6);wait(lambda t:t['model']['shell']['menu']=='providers','provider panel remains offline');assert not latest()['model']['shell']['liveProvider'];click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close providers')
     check_folder_request(a,path)

@@ -118,7 +118,12 @@ with sync_playwright() as p:
                 dialog.locator('[data-agent-register]').click();expect(dialog.locator('[data-agent-registration-state]')).to_contain_text('Agent 등록됨')
                 actual=state(url);assert len(actual['helperAgents']['agents'])==1 and actual['helperAgents']['agents'][0]['accountVerified'] is False and actual['projectId']==''
                 expect(dialog).to_have_attribute('data-connection-mode','existing');page.screenshot(path=str(root/scenario/'registered.png'))
-                saved=(settings/'Settings.celem').read_bytes();dialog.locator('[data-connection-cancel]').click();page.reload();expect(page.locator('#add-agent')).to_be_enabled()
+                saved=(settings/'Settings.celem').read_bytes();dialog.locator('[data-connection-cancel]').click();page.reload()
+                page.locator('#later').click()
+                expect(page.locator('#add-agent')).to_be_enabled()
+                restored=state(url)
+                assert restored['projectId']=='' and len(restored['helperAgents']['agents'])==1
+                assert restored['helperAgents']['agents'][0]['accountVerified'] is False
                 page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
                 expect(dialog.locator('[data-connection-field="model"]')).to_have_value('owned-first-registration');expect(dialog).to_have_attribute('data-connection-mode','existing');assert (settings/'Settings.celem').read_bytes()==saved
                 dialog.locator('[data-connection-cancel]').click()
