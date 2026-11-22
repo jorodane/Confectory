@@ -2,6 +2,7 @@
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright
 from editor_navigation import goto_editor, open_run_window
+from run_window_observation import hold_run_read, release_run_read
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-followup-'))
 projects=[]
 for name in ['first','second']:
@@ -81,6 +82,9 @@ try:
   def observe(response):
    try:
     request=response.request.post_data_json
+    if isinstance(request,dict) and request.get('op')=='observe' and request.get('endpoint')=='runWindowRead':
+     packet=response.json();row=packet.get('result')
+     if packet.get('ok') and isinstance(row,dict) and 'lease' in row:traffic.append(row)
     if isinstance(request,dict) and request.get('op')=='update':
      for row in response.json().get('results',[]):
       if row.get('ok') and isinstance(row.get('result'),dict) and 'lease' in row['result']:traffic.append(row['result'])
@@ -92,8 +96,35 @@ try:
   def close_tab(key):page.locator('[data-window-tab-close="'+key+'"]').click()
   def project_close():
    page.locator('#title').click();page.get_by_role('button',name='프로젝트 완전 종료',exact=True).click()
-  page.evaluate("""()=>{const base=fetch;const reads=new Set(),lost=new Set();globalThis.__holdRunRead=true;globalThis.fetch=async(...args)=>{let envelope;try{envelope=JSON.parse(args[1]?.body||'{}')}catch{}if(envelope?.op==='invoke'&&envelope.endpoint==='runWindow'){if(envelope.input?.operation==='read'&&__holdRunRead)reads.add(envelope.requestId);if(envelope.input?.operation==='start'&&globalThis.__loseRunStart){lost.add(envelope.requestId);__loseRunStart=false;}}const response=await base(...args);if(envelope?.op==='update'){const result=await response.clone().json();if(__holdRunRead&&result.results?.some(r=>reads.has(r.requestId))){globalThis.__heldRunRead=true;await new Promise(resolve=>globalThis.__releaseRunRead=()=>{__holdRunRead=false;resolve()});}let modified=false;for(const row of result.results||[])if(lost.delete(row.requestId)){row.ok=false;row.error={code:'request_failed'};delete row.result;modified=true;globalThis.__lostRunResult=true;}if(modified)return new Response(JSON.stringify(result),{status:200,headers:{'Content-Type':'application/json'}});}return response;};}""")
-  page.wait_for_function('()=>globalThis.__heldRunRead===true');assert page.locator('#title').is_enabled(), 'Passive Run status read disabled normal project controls';page.locator('#chat-input').fill('상태 조회 중에도 보존할 새 입력');w.locator('[data-run-pause]').click();page.evaluate('()=>__releaseRunRead()');expect(w.locator('.caption strong')).to_have_text('일시 정지');expect(w.locator('[data-run-step]')).to_be_enabled();expect(page.locator('#chat-input')).to_have_value('상태 조회 중에도 보존할 새 입력');checked('대기 중인 상태조회가 일반 버튼/입력을 비활성화하지 않고 그 뒤 실제 Pause 명령을 잃지 않는다')
+  # Keep the start delivery fault on the mutation result channel.
+  page.evaluate("""() => {
+    const receive = globalThis.fetch;
+    const starts = new Set();
+    globalThis.fetch = async (...args) => {
+      let request;
+      try { request = JSON.parse(args[1]?.body || '{}'); }
+      catch { return receive(...args); }
+      if (globalThis.__loseRunStart && request.op === 'invoke' &&
+          request.endpoint === 'runWindow' && request.input?.operation === 'start') {
+        starts.add(request.requestId);
+        globalThis.__loseRunStart = false;
+      }
+      const response = await receive(...args);
+      if (request.op !== 'update' || !starts.size) return response;
+      const packet = await response.clone().json();
+      const start = packet.results?.find(row => starts.has(row.requestId));
+      if (!start) return response;
+      starts.delete(start.requestId);
+      start.ok = false;
+      start.error = {code: 'request_failed'};
+      delete start.result;
+      return new Response(JSON.stringify(packet), {
+        status: 200, headers: {'Content-Type': 'application/json'}
+      });
+    };
+  }""")
+  hold_run_read(page, key)
+  assert page.locator('#title').is_enabled(), 'Passive Run status read disabled normal project controls';page.locator('#chat-input').fill('상태 조회 중에도 보존할 새 입력');w.locator('[data-run-pause]').click();release_run_read(page);expect(w.locator('.caption strong')).to_have_text('일시 정지');expect(w.locator('[data-run-step]')).to_be_enabled();expect(page.locator('#chat-input')).to_have_value('상태 조회 중에도 보존할 새 입력');checked('대기 중인 상태조회가 일반 버튼/입력을 비활성화하지 않고 그 뒤 실제 Pause 명령을 잃지 않는다')
   owner=data(key);project_close();expect(page.locator('[data-keep-project]')).to_be_visible();assert run('read',owner)['state']=='running';page.locator('[data-keep-project]').click();expect(page.locator('.modal')).to_have_count(0);assert run('read',owner)['state']=='running';expect(page.locator('#chat-input')).to_have_value('상태 조회 중에도 보존할 새 입력');checked('새 실행창도 전체 종료 확인에 포함하며 취소는 실제 프로세스와 입력을 그대로 유지한다')
   deny_close=True;close_tab(key);expect(w.locator('[data-run-retry]')).to_be_visible();assert run('read',owner)['state']=='running';expect(w).to_be_visible();deny_close=False;w.locator('[data-run-retry]').click();expect(w.locator('[data-run-retry]')).to_be_hidden();close_tab(key);expect(w).to_be_hidden();assert run('read',owner)['closed'];checked('실제 서버가 닫기 권한을 거절하면 창/프로세스를 유지하고 다시 확인 후 명시적 닫기로 정상 정리한다')
   w,key=open_run();page.evaluate('()=>globalThis.__loseRunStart=true');n=len([r for r in requests if r['endpoint']=='runWindow' and r['input']['operation']=='start']);w.locator('[data-run-play]').click();expect(w.locator('[data-run-retry]')).to_be_visible();owner=data(key);assert owner['handle'];w.locator('[data-run-retry]').click();expect(w.locator('[data-run-retry]')).to_be_hidden();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);assert data(key)['handle']==owner['handle'];assert len([r for r in requests if r['endpoint']=='runWindow' and r['input']['operation']=='start'])==n+1;close_tab(key);expect(w).to_be_hidden();checked('실제로 시작된 뒤 결과 전달이 실패해도 다시 확인은 기존 handle을 복구하고 실행을 재전송하지 않는다')
@@ -108,7 +139,7 @@ try:
 except Exception:
  print('FAILURE '+str(root)+' '+json.dumps({'errors':errors,'traffic':traffic[-3:]},ensure_ascii=False),flush=True)
  if page:
-  try:page.evaluate('()=>globalThis.__releaseRunRead?.()')
+  try:release_run_read(page)
   except Exception:pass
  raise
 finally:stop()
