@@ -144,10 +144,12 @@ def check_compile_cancellation(page):
 
 def main():
     seed()
-    # FrameControl's .NET named pipe uses a Unix socket under TMPDIR.
-    # A long suite temp path can exceed the socket address limit.
+    # The separate Run must also work when the inherited TMPDIR would make
+    # FrameControl's legacy relative pipe name exceed the Linux socket limit.
     with TemporaryDirectory(prefix="cf-cc-", dir="/tmp") as runtime_tmp:
-        fixture.env["TMPDIR"] = runtime_tmp
+        long_tmp = Path(runtime_tmp) / "editor-runtime-under-a-longer-temporary-directory"
+        long_tmp.mkdir()
+        fixture.env["TMPDIR"] = str(long_tmp)
         try:
             fixture.start(0)
             with sync_playwright() as playwright:

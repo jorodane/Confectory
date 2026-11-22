@@ -1,3 +1,6 @@
+[System.Runtime.InteropServices.DllImport("libc",EntryPoint="mkdtemp",SetLastError=true)]
+static extern IntPtr CreatePrivateDirectory([System.Runtime.InteropServices.In, System.Runtime.InteropServices.Out] byte[] template);
+
 if(session.Length!=2||session[1]!="active"||AppDomain.CurrentDomain.GetData(session[0]) is not System.Collections.Generic.Dictionary<string,object[]> records)throw new InvalidOperationException("Execution session is disposed.");
 if(string.IsNullOrWhiteSpace(project)||string.IsNullOrWhiteSpace(entry)||string.IsNullOrWhiteSpace(target))throw new ArgumentException("Explicit project, entry and target required.");
 if(names.Length!=values.Length)throw new ArgumentException("Configuration names and values must pair.");
@@ -8,7 +11,7 @@ project=System.IO.Path.GetFullPath(project);string handle=Guid.NewGuid().ToStrin
 string pipe="confectory-frame-"+Guid.NewGuid().ToString("N"),secret=Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
 object controlGate=new();string runtime="";int sent=0;long observedFrame=0;int observedAck=0;string sentAction="";long requestedFrame=0;bool attached=true;System.Text.Json.Nodes.JsonObject? latest=null;
 
-var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!,new object[]{"run-history-v1",new object(),new System.Text.Json.Nodes.JsonObject()},new object[]{new object(),pipe,secret,"",0L,"",0,0,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),"",null!,new object[]{"",0L,0L,0L,0L,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<long,long>()},null!,null!,null!}};
+var record=new object[]{new string[]{handle,"building",project,entry,target,"",""},null!,false,new System.Collections.Generic.Queue<string>(),null!,new object[]{"run-history-v1",new object(),new System.Text.Json.Nodes.JsonObject()},new object[]{new object(),pipe,secret,"",0L,"",0,0,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),"",null!,new object[]{"",0L,0L,0L,0L,new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<long,long>()},null!,null!,null!},null!};
 lock(records)records.Add(handle,record);
 void Checkpoint(){try{calls.RunHistory.Invoke(session,project,"checkpoint",new System.Text.Json.Nodes.JsonObject{["execution"]=handle}.ToJsonString());}catch{}}
 Checkpoint();
@@ -48,9 +51,37 @@ try
  var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true};
  foreach(string arg in new[]{tool,"run",project,entry,target,calls.LeasePath.Invoke(System.IO.Path.GetDirectoryName(project)!)})start.ArgumentList.Add(arg);
  foreach(var setting in configuration)start.Environment[setting.Key]=setting.Value;
+ // Linux pathname sockets leave one byte for the terminator in sockaddr_un.
+ // A rooted pipe name is used verbatim by both .NET named-pipe endpoints.
+ if(OperatingSystem.IsLinux()&&System.Text.Encoding.UTF8.GetByteCount(System.IO.Path.Combine(System.IO.Path.GetTempPath(),"CoreFxPipe_"+pipe))>107)
+ {
+  const string shortRoot="/tmp";
+  var root=new System.IO.DirectoryInfo(shortRoot);
+  var mode=System.IO.File.GetUnixFileMode(shortRoot);
+  const System.IO.UnixFileMode sharedWrite=System.IO.UnixFileMode.GroupWrite|System.IO.UnixFileMode.OtherWrite;
+  if(root.LinkTarget is not null||((mode&sharedWrite)!=0&&(mode&System.IO.UnixFileMode.StickyBit)==0))
+   throw new System.IO.IOException("The short FrameControl IPC directory is unavailable.");
+  // mkdtemp exclusively creates a user-only directory. Keep the random pipe
+  // identity in its name and give each Run its own directory and cleanup.
+  var template=System.Text.Encoding.UTF8.GetBytes(shortRoot+"/"+pipe+"-XXXXXX\0");
+  if(CreatePrivateDirectory(template)==IntPtr.Zero)
+   throw new System.IO.IOException("Could not create a private FrameControl IPC directory.");
+  string directory=System.Text.Encoding.UTF8.GetString(template,0,template.Length-1);
+  string socket=System.IO.Path.Combine(directory,"control");
+  record[7]=(Action)(()=>{
+   if(new System.IO.DirectoryInfo(directory).LinkTarget is not null)
+    throw new System.IO.IOException("The private FrameControl IPC directory changed.");
+   try{System.IO.File.Delete(socket);System.IO.Directory.Delete(directory);}
+   catch(System.IO.DirectoryNotFoundException){}
+   record[7]=null!;
+  });
+  pipe=socket;
+  ((object[])record[6])[1]=pipe;
+ }
  start.Environment["CONFECTORY_FRAME_PIPE"]=pipe;start.Environment["CONFECTORY_FRAME_SECRET"]=secret;start.Environment["CONFECTORY_FRAME_HANDLE"]=handle;
- var process=new System.Diagnostics.Process{StartInfo=start};lock(records)record[1]=process;
- process.Start();
+ var process=new System.Diagnostics.Process{StartInfo=start};
+ try{process.Start();}catch{process.Dispose();throw;}
+ lock(records)record[1]=process;
  _=System.Threading.Tasks.Task.Run(async()=>
  {
   string error="";var errors=System.Threading.Tasks.Task.Run(async()=>{string? line;while((line=await process.StandardError.ReadLineAsync())is not null){lock(records){var lines=(System.Collections.Generic.Queue<string>)record[3];if(lines.Count==256)lines.Dequeue();lines.Enqueue(line.Length>4096?line[..4096]:line);}
@@ -60,10 +91,31 @@ if(error.Length<4096){string addition=line+"\n";error+=addition.Substring(0,Math
    string? first=await process.StandardOutput.ReadLineAsync();
    if(first is not null){using var reply=System.Text.Json.JsonDocument.Parse(first);if(reply.RootElement.GetProperty("state").GetString()=="running")lock(records){var status=(string[])record[0];if(status[1]=="building")status[1]="running";}Checkpoint();}
    await process.StandardOutput.ReadToEndAsync();await process.WaitForExitAsync();await errors;
-   lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]=process.ExitCode==0?"exited":"failed";status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);status[6]=error;}}Checkpoint();
+   lock(records){
+    if(record[7] is Action cleanup)cleanup();
+    var status=(string[])record[0];
+    if(status[1]!="stopped"){
+     status[1]=process.ExitCode==0?"exited":"failed";
+     status[5]=process.ExitCode.ToString(System.Globalization.CultureInfo.InvariantCulture);
+     status[6]=error;
+    }
+   }
+   Checkpoint();
   }
   catch(Exception ex){lock(records){var status=(string[])record[0];if(status[1]!="stopped"){status[1]="failed";status[6]=ex.Message;}}Checkpoint();}
  });
 }
-catch(Exception ex){lock(records){var status=(string[])record[0];status[1]="failed";status[6]=ex.Message;}}
+catch(Exception ex){
+ lock(records){
+  var status=(string[])record[0];
+  status[1]="failed";
+  status[6]=ex.Message;
+  if(record[1] is null&&record[7] is Action cleanup){
+   try{cleanup();}
+   catch(Exception error) when(error is System.IO.IOException or UnauthorizedAccessException){
+    status[6]+=" FrameControl IPC cleanup is pending.";
+   }
+  }
+ }
+}
 Checkpoint();return handle;
