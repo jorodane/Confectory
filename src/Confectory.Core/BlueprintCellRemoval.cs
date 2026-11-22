@@ -23,12 +23,24 @@ public static class BlueprintCellRemoval
         ? BlueprintTree.Select(graph, id)["nodes"]!.AsArray().Select(node => id + "/" + Value(node, "id")).ToArray()
         : [id];
 
+    public static bool IsChildCase(JsonObject graph, string id)
+    {
+        int separator = id.LastIndexOf('/');
+        return separator > 0 && Value(BlueprintTree.Select(graph, id[..separator]), "profile") == FeatureBlueprint.SwitchProfile;
+    }
+
+    static JsonObject RemovalFrame(JsonObject root, string frame) =>
+        Value(BlueprintTree.Select(root, frame), "profile") == FeatureBlueprint.SwitchProfile
+            ? BlueprintCellRegion.OwnedSwitchFrame(root, frame) : BlueprintCellRegion.OwnedFrame(root, frame);
+
     public static string[] Options(JsonObject graph, string frame)
     {
         if (frame.Length == 0) return Options(graph);
         if (frame.Contains('/')) return [];
         try {
-            return Options(BlueprintCellRegion.OwnedFrame(graph, frame));
+            var selected = RemovalFrame(graph, frame);
+            return Value(selected, "profile") == FeatureBlueprint.SwitchProfile
+                ? BlueprintCellRegion.RemovableCaseCells(selected, terminalOnly: true) : Options(selected);
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException) {
             return [];
@@ -106,7 +118,7 @@ public static class BlueprintCellRemoval
         if ((separator >= 0 && frame.Length == 0) || !Options(graph, frame).Contains(local, StringComparer.Ordinal))
             throw new ArgumentException("Only one unconnected void action in a supported owned serial flow can be removed");
         var result = graph.DeepClone().AsObject();
-        var selected = frame.Length == 0 ? result : BlueprintCellRegion.OwnedFrame(result, frame);
+        var selected = frame.Length == 0 ? result : RemovalFrame(result, frame);
         var nodes = selected["nodes"]!.AsArray();
         nodes.Remove(nodes.Single(node => Value(node, "id") == local));
         var edges = selected["edges"]!.AsArray();
@@ -115,7 +127,7 @@ public static class BlueprintCellRemoval
         if (Value(selected, "entry") == local) selected["entry"] = successor;
         else edges.Single(edge => Value(edge, "to") == local)!["to"] = successor;
         edges.Remove(outgoing);
-        if (frame.Length > 0) BlueprintCellRegion.OwnedFrame(result, frame);
+        if (frame.Length > 0) RemovalFrame(result, frame);
         return result;
     }
 }

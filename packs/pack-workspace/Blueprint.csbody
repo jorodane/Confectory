@@ -151,7 +151,8 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(ownedBranchOrderBatch){if(current["privatePath"]?.ToString()!=""||current["slotContext"] is not null||candidate["units"]?[physicalGraphId]?["copySource"] is not null||ownedBranchTransferBatch&&current["documentBranchTransfer"] is null)throw new InvalidOperationException("Owned standalone branch required; preserve inputs");calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]=ownedBranchTransferBatch?"transfer":"order",["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["edits"]=edits.DeepClone()}.ToJsonString());}
     if(ownedFrameCreationBatch&&System.Linq.Enumerable.Any(current["sources"]!.AsArray(),source=>candidate["units"]?[source!["id"]!.ToString()] is not System.Text.Json.Nodes.JsonNode unit||unit["baseline"]?.ToString()=="missing"||unit["draft"]?.ToString()!=unit["original"]?.ToString()))throw new InvalidOperationException("Confirm or discard existing child source edits before adding a new owned body; preserve inputs");
     if(documentFrame){
-     if(current[frameOrderBindingKey] is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(current[frameOrderBindingKey],request["documentFrame"]))throw new InvalidOperationException("Observed physical root and exact full child frame binding required; preserve inputs");
+     var binding=current[frameOrderBindingKey]??(ownedCellRemovalBatch?current["documentFrameCaseOrderBinding"]:null);
+     if(binding is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,request["documentFrame"]))throw new InvalidOperationException("Observed physical root and exact full child frame binding required; preserve inputs");
      if(!ownedFrameCreationBatch&&!ownedCellRemovalBatch)calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
       ["action"]=frameOrderAction,["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["path"]=current["privatePath"]!.DeepClone(),["edits"]=edits.DeepClone()
      }.ToJsonString());
@@ -1502,7 +1503,7 @@ lock(state){
   frameCaseOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  }catch{frameCaseOrderBinding=null;}
  var removableCells=new System.Text.Json.Nodes.JsonArray();
- if((privatePath.Length==0||frameOrderBinding is not null&&!privatePath.Contains('/'))&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
+ if((privatePath.Length==0||(frameOrderBinding is not null||frameCaseOrderBinding is not null)&&!privatePath.Contains('/'))&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
   &&owned.Contains(implementationMetadata["function"]!.ToString())&&string.IsNullOrEmpty(input["uiSurface"]?.ToString())
   &&savedBodyReads is null&&diagnostics["state"]?.ToString() is "source-ready" or "source-assembled")try{
   RequireExclusiveWritableGraph();

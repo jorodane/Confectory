@@ -25,12 +25,13 @@ export function createFeatureAuthoring(api){
  // saved owned copy participate. Editing/rendering and Undo stay frame-local.
  const savedFrameBase=w=>w.authorData?.slotContext?.checkpointPlain&&w.authorData.slotContext.copySource&&!w.meta.copyDraft&&!w.authorData.privateCopy?w.authorScope+'|v508-author|'+(w.meta.authorView?'view:'+w.meta.authorView+'|':'')+w.meta.id+'|slot:'+w.meta.slotOwner+':'+w.meta.slotImplementation+'|private:':null;
  const cellRemovalInput=cells=>cells.length===1&&cells[0][1].type==='document-cell-remove';
+ const frameRemovalBinding=data=>data.documentFrameOrderBinding??data.documentFrameCaseOrderBinding;
  const frameBindingFor=(w,data,cells)=>{
   if(w.meta.copyDraft||!cells.length||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
   if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&(branchOrderCells(data,cells)||branchCreationCells(data,cells,true))?data.documentFrameCaseOrderBinding:null;
-  return frameOrderCells(data,cells)||serialCreationCells(data,cells)||frameRemovalInput(data,cells)?data.documentFrameOrderBinding:null;
+  if(cellRemovalInput(cells)&&data.privatePath&&!data.privatePath.includes('/'))return frameRemovalBinding(data);
+  return frameOrderCells(data,cells)||serialCreationCells(data,cells)?data.documentFrameOrderBinding:null;
  };
- const frameRemovalInput=(data,cells)=>!!data.privatePath&&!data.privatePath.includes('/')&&!!data.documentFrameOrderBinding&&cellRemovalInput(cells);
  function cellFrame(w,key){const base=savedFrameBase(w);if(!base||!key.startsWith(base))return null;const path=key.slice(base.length).split('|')[0];return path?w.authorData.rootId+'/graph:'+path.split('/').join('/graph:'):null;}
  function saveEntries(w){const held=new Map(entries(w)),base=savedFrameBase(w);if(base){for(const [key,value] of inputs)if(key.startsWith(base))held.set(key,value);if([...held.values()].some(v=>v.type==='wrapper')){const root=base.slice(0,-'private:'.length);for(const [key,value] of inputs)if(key.startsWith(root)&&!key.startsWith(base))held.set(key,value);}}return [...held];}
  function copyInputFrame(w,key){const frame=cellFrame(w,key),base=savedFrameBase(w);return frame||base&&key.startsWith(base.slice(0,-'private:'.length))&&!key.startsWith(base)&&w.authorData.rootId||null;}
@@ -740,7 +741,7 @@ function blueprintNormalizeControls(scope){
   };
   mobile=mountMobileBlueprint(root,surface);
   applySidebar();
-  const canRemoveDocumentCell=id=>canvasOwns()&&!api.busy&&!data.privateCopy&&!data.slotContext&&(!data.privatePath||!!data.documentFrameOrderBinding)&&
+  const canRemoveDocumentCell=id=>canvasOwns()&&!api.busy&&!data.privateCopy&&!data.slotContext&&(!data.privatePath||!!frameRemovalBinding(data))&&
    !w.meta.copyDraft&&!document.body.classList.contains('is-mobile-editor')&&!saveEntries(w).length&&frameInputsClear()&&
    (data.documentRemovableCells||[]).includes(id);
   const documentModel=()=>{
@@ -807,7 +808,7 @@ function blueprintNormalizeControls(scope){
    undo:redo=>{
     if(!canvasOwns()||api.busy||data.privateConversion)return;
     if((redo?w.authorRedo:w.authorUndo)?.length){undoStructure(w,redo);return;}
-    if(data.privatePath&&!data.documentFrameOrderBinding||data.slotContext||data.privateCopy||w.meta.copyDraft||saveEntries(w).length||!frameInputsClear())return;
+    if(data.privatePath&&!frameRemovalBinding(data)||data.slotContext||data.privateCopy||w.meta.copyDraft||saveEntries(w).length||!frameInputsClear())return;
     const direction=redo?'redo':'undo';
     api.work(async()=>{
      const history=await transport(w,'draftHistory',{action:'inspect'}),step=history[direction];
