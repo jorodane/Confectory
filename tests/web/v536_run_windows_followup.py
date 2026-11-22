@@ -1,7 +1,7 @@
 """Actual per-view process/control fixture. No account, grant, paid inference or user project."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright
-from editor_navigation import goto_editor
+from editor_navigation import goto_editor, open_run_window
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-followup-'))
 projects=[]
 for name in ['first','second']:
@@ -85,10 +85,10 @@ try:
      for row in response.json().get('results',[]):
       if row.get('ok') and isinstance(row.get('result'),dict) and 'lease' in row['result']:traffic.append(row['result'])
    except Exception:pass
-  page.route('**/*',route);page.on('response',observe);goto_editor(page,url);page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');w.locator('[data-run-play]').click();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);expect(w.locator('[data-run-pause]')).to_be_enabled()
+  page.route('**/*',route);page.on('response',observe);goto_editor(page,url);open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');w.locator('[data-run-play]').click();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);expect(w.locator('[data-run-pause]')).to_be_enabled()
   def data(key):return [row for row in traffic if row['view']==key[13:]][-1]
   def open_run():
-   page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();value=page.locator('.run-window:visible');expect(value.locator('[data-run-play]')).to_be_enabled();return value,value.get_attribute('data-key')
+   page.get_by_role('tab',name='Workspace',exact=True).click();open_run_window(page);value=page.locator('.run-window:visible');expect(value.locator('[data-run-play]')).to_be_enabled();return value,value.get_attribute('data-key')
   def close_tab(key):page.locator('[data-window-tab-close="'+key+'"]').click()
   def project_close():
    page.locator('#title').click();page.get_by_role('button',name='프로젝트 완전 종료',exact=True).click()

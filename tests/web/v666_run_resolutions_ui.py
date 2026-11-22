@@ -10,7 +10,7 @@ for manifest in f.projects:
 f.before={str(p):p.read_bytes()for m in f.projects for p in m.parent.rglob('*')if p.is_file()}
 choices=[('PC · 가로',[('640x360','640 × 360'),('1280x720','HD · 1280 × 720'),('1920x1080','FHD · 1920 × 1080'),('2560x1440','QHD / 2K · 2560 × 1440'),('3840x2160','4K UHD · 3840 × 2160'),('1024x768','4:3 · 1024 × 768')]),('시네마',[('2048x1080','DCI 2K · 2048 × 1080'),('4096x2160','DCI 4K · 4096 × 2160')]),('휴대폰 · 세로',[('720x1280','HD · 720 × 1280'),('1080x1920','FHD · 1080 × 1920'),('1080x2340','FHD+ · 1080 × 2340'),('1080x2400','FHD+ · 1080 × 2400'),('1179x2556','1179 × 2556'),('1290x2796','1290 × 2796'),('1440x3200','QHD+ · 1440 × 3200')])]
 def open_run():
- page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+ page.get_by_role('tab',name='Workspace',exact=True).click();f.open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
 def menu(w):
  w.locator('[data-run-developer]').click();m=page.get_by_role('dialog',name='실행 개발 메뉴',exact=True);expect(m).to_be_visible();expect(m.locator('[data-run-preset-refresh]')).to_be_enabled();return m
 def start(w,key):

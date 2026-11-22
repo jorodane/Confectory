@@ -1,7 +1,7 @@
 """Actual per-view process/control fixture. No account, grant, paid inference or user project."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright
-from editor_navigation import goto_editor
+from editor_navigation import goto_editor, open_run_window
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-windows-ui-'))
 projects=[]
 for name in ['first','second']:

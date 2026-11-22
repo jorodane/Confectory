@@ -6,7 +6,7 @@ import v666_run_fullscreen_fixture as f
 mode=sys.argv[3];page=None
 
 def open_run():
- page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+ page.get_by_role('tab',name='Workspace',exact=True).click();f.open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
 
 def pixels(w):return w.locator('[data-run-pixels]')
 def snapshot(w):return pixels(w).evaluate('(c)=>({width:c.width,height:c.height,cursor:c.dataset.surfaceCursor,first:[...c.getContext("2d").getImageData(0,0,1,1).data],last:[...c.getContext("2d").getImageData(63,35,1,1).data]})')

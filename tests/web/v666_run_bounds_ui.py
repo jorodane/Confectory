@@ -5,7 +5,7 @@ sys.argv.append('--bounds-output')
 import v666_run_fullscreen_fixture as f
 mode=sys.argv[3];page=None
 def open_run():
- page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+ page.get_by_role('tab',name='Workspace',exact=True).click();f.open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
 def menu(w):w.locator('[data-run-developer]').click();return page.get_by_role('dialog',name='실행 개발 메뉴',exact=True)
 def geometry(w):
  page.wait_for_function('''key=>{const w=document.querySelector(`.window[data-key="${key}"]`),s=w.querySelector('.run-screen'),b=w.querySelector('[data-run-bounds]');if(!b||b.hidden||b.children.length!==2)return false;const box=b.getBoundingClientRect(),origin=s.getBoundingClientRect(),scale=Math.min(s.clientWidth/64,s.clientHeight/36),rects=[[4,4,16,12],[32,8,24,20]];if(Math.abs(box.width-64*scale)>1||Math.abs(box.height-36*scale)>1||Math.abs(box.left-origin.left-s.clientLeft-(s.clientWidth-64*scale)/2)>1||Math.abs(box.top-origin.top-s.clientTop-(s.clientHeight-36*scale)/2)>1)return false;return [...b.children].every((child,i)=>{const r=child.getBoundingClientRect(),p=rects[i];return Math.abs(r.left-box.left-p[0]*scale)<1&&Math.abs(r.top-box.top-p[1]*scale)<1&&Math.abs(r.width-p[2]*scale)<1&&Math.abs(r.height-p[3]*scale)<1&&getComputedStyle(child).outlineStyle==='dashed'&&getComputedStyle(b).pointerEvents==='none'});}''',arg=w.get_attribute('data-key'))

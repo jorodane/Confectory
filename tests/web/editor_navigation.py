@@ -16,6 +16,12 @@ def goto_editor(page, url):
     page.wait_for_function("() => !!document.querySelector('.home-grid,.work-body') && !document.querySelector('#app')?.inert")
 
 
+def open_run_window(page):
+    """Open the existing Run controls without starting a project."""
+    page.locator("#title").click()
+    page.locator(".context-menu").get_by_role("button", name="실행 화면 열기", exact=True).click()
+
+
 def open_project_tools(page):
     """Open the real project menu; the v508 toolbar has no legacy browse button."""
     page.locator('#title').click()

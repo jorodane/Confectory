@@ -1,7 +1,7 @@
 """Actual per-view process/control fixture. No account, grant, paid inference or user project."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright
-from editor_navigation import goto_editor
+from editor_navigation import goto_editor, open_run_window
 repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-run-read-error-'))
 projects=[]
 for name in ['first','second']:
@@ -68,7 +68,7 @@ try:
  start(0)
  with sync_playwright() as p:
   from playwright.sync_api import expect
-  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',lambda r:r.continue_() if r.request.url.startswith(origin+'/') else r.abort());goto_editor(page,url);page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();w.locator('[data-run-play]').click();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);expect(w.locator('[data-run-pause]')).to_be_enabled()
+  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);page=browser.new_page();page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',lambda r:r.continue_() if r.request.url.startswith(origin+'/') else r.abort());goto_editor(page,url);open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();w.locator('[data-run-play]').click();expect(w.locator('.caption strong')).to_have_text('실행 중',timeout=180000);expect(w.locator('[data-run-pause]')).to_be_enabled()
   page.evaluate("""()=>{const base=fetch,ids=new Set();let hold=true;globalThis.fetch=async(...args)=>{let env;try{env=JSON.parse(args[1]?.body||'{}')}catch{}if(hold&&env?.op==='invoke'&&env.endpoint==='runWindow'&&env.input?.operation==='read')ids.add(env.requestId);const response=await base(...args);if(hold&&env?.op==='update'){const data=await response.clone().json();const rows=data.results?.filter(r=>ids.has(r.requestId))||[];if(rows.length){globalThis.__readHeld=true;await new Promise(resolve=>globalThis.__releaseReadError=resolve);hold=false;for(const row of rows){row.ok=false;row.error={code:'consumer_error'};delete row.result;}return new Response(JSON.stringify(data),{status:200,headers:{'Content-Type':'application/json'}});}}return response;};}""")
   page.wait_for_function('()=>globalThis.__readHeld===true');page.locator('#chat-input').fill('읽기 오류 뒤에도 유지할 입력');page.locator('#title').click();page.get_by_role('button',name='프로젝트 정보',exact=True).click();page.evaluate('()=>__releaseReadError()');expect(page.locator('[data-project-information]')).to_be_visible(timeout=60000);expect(page.locator('#chat-input')).to_have_value('읽기 오류 뒤에도 유지할 입력');assert w.locator('[data-run-retry]').is_visible();assert not errors,errors;checked('실행 상태 읽기 실패는 해당 실행창에 남기고 대기 중인 별도 프로젝트 정보 동작·새 입력을 취소하지 않는다');print(json.dumps({'root':str(root),'checks':checks,'errors':errors,'actualEngine':True,'nativeWindows':False},ensure_ascii=False),flush=True);page.close();browser.close()
 except Exception:

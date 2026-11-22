@@ -13,7 +13,7 @@ AudioContext.prototype.createBufferSource=function(...a){const n=source.apply(th
 const base=fetch;fetch=async(...args)=>{let body;try{body=JSON.parse(args[1]?.body||'{}')}catch{}if(body?.op==='invoke'&&body.endpoint==='runWindow'&&body.input.operation==='close'&&c.denyClose){body.input.lease='f'.repeat(32);args[1]={...args[1],body:JSON.stringify(body)};}const response=await base(...args);if(body?.op==='observe'&&body.endpoint==='runAudio'){const p=await response.clone().json();if(p.ok&&p.result?.available){for(const q of p.result.chunks)c.chunks.push({sha:q.sha256,n:q.samples,start:q.start});if(c.breakAudio){c.breakAudio=false;p.result.rate=48000;return new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}});}if(c.hold&&p.result.chunks.length){c.hold=false;c.held++;await new Promise(r=>c.release=r);return new Response(JSON.stringify(p),{status:200,headers:{'Content-Type':'application/json'}});}}}return response;};})();'''
 
 def open_run():
- page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+ page.get_by_role('tab',name='Workspace',exact=True).click();f.open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled();key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
 
 def menu(w):
  w.locator('[data-run-developer]').click();m=page.get_by_role('dialog',name='실행 개발 메뉴',exact=True);expect(m).to_be_visible();return m

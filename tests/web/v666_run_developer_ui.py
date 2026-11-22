@@ -5,7 +5,7 @@ import v666_run_fullscreen_fixture as f
 mode=sys.argv[3];page=None
 
 def open_run():
- page.get_by_role('tab',name='Workspace',exact=True).click();page.locator('#run').click();w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled(timeout=60000);key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
+ page.get_by_role('tab',name='Workspace',exact=True).click();f.open_run_window(page);w=page.locator('.run-window:visible');expect(w.locator('[data-run-play]')).to_be_enabled(timeout=60000);key=w.get_attribute('data-key');return page.locator('.window[data-key="'+key+'"]'),key
 
 def menu(w):
  w.locator('[data-run-developer]').click();m=page.get_by_role('dialog',name='실행 개발 메뉴',exact=True);expect(m).to_be_visible();return m
