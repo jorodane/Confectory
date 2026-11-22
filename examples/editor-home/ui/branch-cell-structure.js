@@ -18,7 +18,7 @@ export function branchCellRegion(data,edges,owner,port,allowFrame=false){
   const from=i?order[i-1]:owner,p=i?'next':port,id=order[i];
   if(data.entry===id||edges.some(e=>normal(e.to)===id&&(e.from!==from||e.port!==p))||edges.some(e=>e.from===id&&e.port!=='next'))return null;
  }
- if(frame&&order.length<2)return null;
+ if(frame&&!order.length)return null;
  return {owner,port,order,exit:at,frame};
 }
 
@@ -26,13 +26,13 @@ export function branchOrderCells(data,cells){
  const routes=cells.map(([,v])=>v),anchors=routes.filter(v=>v.type.startsWith('route:case:'));
  if(anchors.length!==1||routes.some(v=>typeof v.text!=='string'||v.type!=='route'&&!v.type.startsWith('route:case:'))||new Set(routes.map(v=>v.node)).size!==routes.length)return false;
  const anchor=anchors[0],region=branchCellRegion(data,data.edges,anchor.node,anchor.type.slice(6),true);
- if(!region||routes.length!==region.order.length+1||routes.some(v=>v!==anchor&&!region.order.includes(v.node)))return false;
+ if(!region||region.frame&&region.order.length<2||routes.length!==region.order.length+1||routes.some(v=>v!==anchor&&!region.order.includes(v.node)))return false;
  const byId=new Map(routes.map(v=>[v.node,v])),seen=new Set();let at=normal(anchor.text);
  while(region.order.includes(at)){if(seen.has(at))return false;seen.add(at);at=normal(byId.get(at)?.text);}
  return seen.size===region.order.length&&at===region.exit;
 }
 
-export function branchCreationCells(data,cells){
+export function branchCreationCells(data,cells,allowFrame=false){
  try{
   if(cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;
   const creation=cells.find(([,v])=>v.type==='create')[1],definition=JSON.parse(creation.text),created=creation.node,owner=definition.branchOwner;
@@ -40,7 +40,7 @@ export function branchCreationCells(data,cells){
   const routes=cells.filter(([,v])=>v.type==='route'||v.type.startsWith('route:case:')).map(([,v])=>v),out=routes.find(v=>v.node===created),incoming=routes.find(v=>v.node!==created);
   if(routes.length!==2||!out||out.type!=='route'||!incoming||incoming.text!==created||cells.some(([,v])=>!routes.includes(v)&&v.node!==created))return false;
   for(const member of data.nodes.find(n=>n.id===owner)?.executionEnum?.members||[]){
-   const region=branchCellRegion(data,data.edges,owner,'case:'+member.id);if(!region)continue;
+   const region=branchCellRegion(data,data.edges,owner,'case:'+member.id,allowFrame);if(!region||region.frame&&data.documentFrameCaseCreationAvailable!==true)continue;
    const i=region.order.indexOf(incoming.node),valid=incoming.node===owner&&incoming.type==='route:'+region.port||i>=0&&incoming.type==='route';
    if(valid&&normal(out.text)===(i<0?region.order[0]||region.exit:region.order[i+1]||region.exit))return true;
   }

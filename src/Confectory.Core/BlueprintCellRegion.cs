@@ -457,13 +457,65 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
     }
 
+    static JsonObject OwnedSwitchFrame(JsonObject root, string path)
+    {
+        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true);
+        Need(path.Length > 0 && !path.Contains('/'), "One directly owned switch child required");
+        var child = BlueprintTree.Select(root, path);
+        Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Direct switch child required");
+        return child;
+    }
+
+    static JsonObject CreateBranchCell(JsonObject graph, JsonArray edits, bool frame = false)
+    {
+        Need(edits.Count==6,"One ordinary branch insertion required");
+        var creation=edits.Single(e=>S(e,"action")=="createNode")!;string created=S(creation,"node");var definition=creation["definition"]!.AsObject();string owner=S(definition,"branchOwner");
+        Need(creation.AsObject().Count==3 && definition.Count==5 && definition.All(p=>p.Key is "kind" or "control" or "intent" or "signature" or "branchOwner")
+            && Ordinary(definition,owner) && owner.Length>0
+            && (!frame || (!string.IsNullOrWhiteSpace(S(definition, "intent"))
+                && System.Text.RegularExpressions.Regex.IsMatch(created, @"\A[A-Za-z_][A-Za-z_0-9.-]{0,127}\z"))) && !graph["nodes"]!.AsArray().Any(n=>S(n,"id")==created)
+            && definition["signature"] is JsonObject sig && sig.Count==2 && sig["args"] is JsonArray{Count:0} && S(sig,"return")=="void",
+            "New no-argument void cell with the original branch owner required");
+        Need(edits.Where(e=>S(e,"action")!="route").All(e=>S(e,"node")==created&&(ReferenceEquals(e,creation)
+            ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"&&e["text"] is JsonValue text&&text.TryGetValue<string>(out _)))
+            &&new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1),"Exact new cell source and name required");
+        var routesForCreation=edits.Where(e=>S(e,"action")=="route").ToArray();
+        Need(routesForCreation.Length==2&&routesForCreation.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
+            &&(!frame || row["to"] is JsonValue value&&value.TryGetValue<string>(out _))),"Exact insertion routes required");
+        var outgoing=routesForCreation.Single(e=>S(e,"node")==created)!;var incoming=routesForCreation.Single(e=>S(e,"node")!=created)!;
+        Need(S(outgoing,"port")=="next"&&S(incoming,"to")==created,"One new serial cell required");
+        var parent=graph["nodes"]!.AsArray().Single(n=>S(n,"id")==owner)!;
+        var possibilities=parent["executionEnum"]!["members"]!.AsArray().Where(m=>S(m,"id")!=S(parent["executionEnum"],"primary"));
+        bool accepted=false;
+        foreach(var member in possibilities){
+            string port="case:"+S(member,"id");
+            if(S(incoming,"node")==owner&&S(incoming,"port")!=port)continue;
+            Region region;try{region=Read(graph,owner,port);}catch(ArgumentException){continue;}
+            if (frame && region.Nodes.Count == 0) continue;
+            int index=region.Nodes.IndexOf(S(incoming,"node"));
+            if(!(S(incoming,"node")==owner&&S(incoming,"port")==port||index>=0&&S(incoming,"port")=="next"))continue;
+            string next=index<0?(region.Nodes.FirstOrDefault()??region.End):index+1<region.Nodes.Count?region.Nodes[index+1]:region.End;
+            if(S(outgoing,"to")==next){accepted=true;break;}
+        }
+        Need(accepted,"Insert inside one exclusive original branch without changing its continuation");
+        if (!frame) return new JsonObject{["accepted"]=true};
+
+        var newNode = definition.DeepClone().AsObject();
+        newNode["id"] = created;
+        graph["nodes"]!.AsArray().Add(newNode);
+        var edges = graph["edges"]!.AsArray();
+        edges.Single(e => S(e, "from") == S(incoming, "node") && S(e, "port") == S(incoming, "port"))!["to"] = created;
+        edges.Add(new JsonObject { ["from"] = created, ["port"] = "next", ["to"] = S(outgoing, "to") });
+        return new JsonObject { ["entry"] = graph["entry"]!.DeepClone(), ["edges"] = edges.DeepClone() };
+    }
+
     public static JsonObject Query(JsonObject request) => Query(request, allowDesktopFrames: false);
 
     public static JsonObject Query(JsonObject request, bool allowDesktopFrames)
     {
         string action = S(request, "action");
         bool preview = allowDesktopFrames && action == "frame-preview";
-        bool frameCase = allowDesktopFrames && action == "frame-case-order";
+        bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create";
         bool frame=action is "frame-order" or "frame-create" || preview || frameCase;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
@@ -475,11 +527,15 @@ public static class BlueprintCellRegion
         }
         if (frameCase)
         {
-            CompoundOrder(graph, CurrentRoutes(graph), allowSwitchChild: true);
             string path = S(request, "path");
-            Need(path.Length > 0 && !path.Contains('/'), "One directly owned switch child required");
-            var child = BlueprintTree.Select(graph, path);
-            Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Direct switch child required");
+            if (action == "frame-case-create")
+            {
+                var candidate = graph.DeepClone().AsObject();
+                var plan = CreateBranchCell(OwnedSwitchFrame(candidate, path), edits, frame: true);
+                OwnedSwitchFrame(candidate, path);
+                return plan;
+            }
+            var child = OwnedSwitchFrame(graph, path);
             if (edits.Count == 0) return new JsonObject();
             Need(edits.Count <= 64, "Bounded branch order required");
             ExactBranchRoutes(edits);
@@ -527,32 +583,7 @@ public static class BlueprintCellRegion
             if(action=="transfer")return TransferOrder(graph,edits,ReadTransferScope(graph));
             return OrderBranch(graph, edits);
         }
-        Need(action=="create"&&edits.Count==6,"One ordinary branch insertion required");
-        var creation=edits.Single(e=>S(e,"action")=="createNode")!;string created=S(creation,"node");var definition=creation["definition"]!.AsObject();string owner=S(definition,"branchOwner");
-        Need(creation.AsObject().Count==3 && definition.Count==5 && definition.All(p=>p.Key is "kind" or "control" or "intent" or "signature" or "branchOwner")
-            && Ordinary(definition,owner) && owner.Length>0 && !graph["nodes"]!.AsArray().Any(n=>S(n,"id")==created)
-            && definition["signature"] is JsonObject sig && sig.Count==2 && sig["args"] is JsonArray{Count:0} && S(sig,"return")=="void",
-            "New no-argument void cell with the original branch owner required");
-        Need(edits.Where(e=>S(e,"action")!="route").All(e=>S(e,"node")==created&&(ReferenceEquals(e,creation)
-            ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"&&e["text"] is JsonValue text&&text.TryGetValue<string>(out _)))
-            &&new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1),"Exact new cell source and name required");
-        var routesForCreation=edits.Where(e=>S(e,"action")=="route").ToArray();
-        Need(routesForCreation.Length==2&&routesForCreation.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")),"Exact insertion routes required");
-        var outgoing=routesForCreation.Single(e=>S(e,"node")==created)!;var incoming=routesForCreation.Single(e=>S(e,"node")!=created)!;
-        Need(S(outgoing,"port")=="next"&&S(incoming,"to")==created,"One new serial cell required");
-        var parent=graph["nodes"]!.AsArray().Single(n=>S(n,"id")==owner)!;
-        var possibilities=parent["executionEnum"]!["members"]!.AsArray().Where(m=>S(m,"id")!=S(parent["executionEnum"],"primary"));
-        bool accepted=false;
-        foreach(var member in possibilities){
-            string port="case:"+S(member,"id");
-            if(S(incoming,"node")==owner&&S(incoming,"port")!=port)continue;
-            Region region;try{region=Read(graph,owner,port);}catch(ArgumentException){continue;}
-            int index=region.Nodes.IndexOf(S(incoming,"node"));
-            if(!(S(incoming,"node")==owner&&S(incoming,"port")==port||index>=0&&S(incoming,"port")=="next"))continue;
-            string next=index<0?(region.Nodes.FirstOrDefault()??region.End):index+1<region.Nodes.Count?region.Nodes[index+1]:region.End;
-            if(S(outgoing,"to")==next){accepted=true;break;}
-        }
-        Need(accepted,"Insert inside one exclusive original branch without changing its continuation");
-        return new JsonObject{["accepted"]=true};
+        Need(action=="create","One ordinary branch insertion required");
+        return CreateBranchCell(graph, edits);
     }
 }

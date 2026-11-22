@@ -27,7 +27,7 @@ export function createFeatureAuthoring(api){
  const cellRemovalInput=cells=>cells.length===1&&cells[0][1].type==='document-cell-remove';
  const frameBindingFor=(w,data,cells)=>{
   if(w.meta.copyDraft||!cells.length||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
-  if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&cells.every(([,value])=>value.frameCaseOrder===true)&&branchOrderCells(data,cells)?data.documentFrameCaseOrderBinding:null;
+  if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&(branchOrderCells(data,cells)||branchCreationCells(data,cells,true))?data.documentFrameCaseOrderBinding:null;
   return frameOrderCells(data,cells)||serialCreationCells(data,cells)||frameRemovalInput(data,cells)?data.documentFrameOrderBinding:null;
  };
  const frameRemovalInput=(data,cells)=>!!data.privatePath&&!data.privatePath.includes('/')&&!!data.documentFrameOrderBinding&&cellRemovalInput(cells);
@@ -620,7 +620,7 @@ function blueprintNormalizeControls(scope){
    const from=!held.length&&engineScope?.movable.includes(id)?engineScope.lanes.find(lane=>lane.order.includes(id)):null;
    const cross=from?{owner:engineScope.owner,lanes:engineScope.lanes.filter(lane=>caseLane(lane.id)!==caseLane(from.id))}:null;
    const chain=linearCells(id);
-   if(!cross&&(!chain||!chain.order.includes(id))||(data.locals||[]).length||!canContinueOrder(chain,held))return null;
+   if(!cross&&(!chain||!chain.order.includes(id)||chain.frame&&chain.owner&&chain.order.length<2)||(data.locals||[]).length||!canContinueOrder(chain,held))return null;
    if(chain?.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||!(n.kind==='code'||chain.compound&&n.kind==='graph')||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
    const destination=chain&&transferTarget(id,chain),order=chain?.order||[];
    return {scope:JSON.stringify([surface.context,chain?.owner||'',chain?.port||'',from?.id||'']),order:[...order],exit:chain?.exit,cross,
@@ -639,11 +639,19 @@ function blueprintNormalizeControls(scope){
    const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;
    return cellOrderPlan(id,slot-(slot>from?1:0));
   };
+  const caseInsertionAvailable=chain=>!!chain&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
   const insertCell=(chain,from,port,next)=>{
-   if(!chain||chain.frame&&chain.owner||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
+   if(!caseInsertionAvailable(chain)||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
    if(!next)throw Error('다음 연결을 확인하지 못했습니다. 기존 흐름은 유지됩니다.');
    const created='cell_'+crypto.randomUUID().replaceAll('-','').slice(0,16),name='새 동작',definition={kind:'code',control:'next',intent:name,signature:{args:[],return:'void'},...(chain.owner?{branchOwner:chain.owner}:{})};
-   structuralEdit(w,()=>{privateValue(w,created,'create',JSON.stringify(definition));privateValue(w,created,'rename',name);privateValue(w,created,'intent',name);privateValue(w,created,'source','return;');privateValue(w,from,from==='$entry'?'entry':port==='next'?'route':'route:'+port,created);privateValue(w,created,'route',next.startsWith('$exit:')?next.slice(1):next);});
+   structuralEdit(w,()=>{
+    const frameCase=!!(chain.frame&&chain.owner);
+    const put=(node,type,text)=>privateValue(w,node,type,text,false,frameCase);
+    put(created,'create',JSON.stringify(definition));put(created,'rename',name);
+    put(created,'intent',name);put(created,'source','return;');
+    put(from,from==='$entry'?'entry':port==='next'?'route':'route:'+port,created);
+    put(created,'route',next.startsWith('$exit:')?next.slice(1):next);
+   });
   };
   const canInsertAfterCompound=(id,chain)=>!!chain?.compound&&data.documentCompoundInsertion?.nodes.includes(id);
   const addCell=id=>{
@@ -659,7 +667,7 @@ function blueprintNormalizeControls(scope){
    if(chain.frame||chain.compound)guardOtherInputs(w,data);
    insertCell(chain,id,'next',chain.order[index+1]||chain.exit);
   };
-  const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchChain(owner,port);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
+  const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchChain(owner,port,true);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
   const mobileModel=()=>({name:data.privatePath?.split('/').at(-1)||displayName(w.authorInfo||{id:w.meta.id}),parent:!!data.privatePath,description:q('[data-bp-description]').value,descriptionReadonly:q('[data-bp-description]').readOnly,nodes:nodes.map(n=>{const row=rows.find(r=>r.id===n.id);return {...n,name:n.id==='$entry'?'시작':n.kind==='export'?(outputField(n)?.name||n.name)+' 내보내기':row?.kind==='call'?short(row.calledFeature):get(w,n.id,'rename',row?.displayName||n.name),description:n.id==='$entry'?'시작':row?get(w,n.id,'intent',row.intent||''):n.kind==='export'?bindingLabel(binding(port(n.id,'in','data','value'))):'',kind:row?.kind==='call'?'call':n.kind,inputs:row?rowFields(w,row,'inputs'):[],outputs:row?rowFields(w,row,'outputs'):[],codeEditable:row?.kind==='code'||!!row?.postCall,builtin:row?.kind==='property-set',internal:row?.kind==='graph'&&(!data.slotContext||data.privateCopy||data.slotContext.copySource)||canInternalCode(w,row),readonly:!row||!['code','graph'].includes(row.kind)||row.renameable===false||!!data.privateConversion,output:n.kind==='export'?(outputField(n)?.id||row?.output):null,outputName:n.kind==='export'?get(w,n.id,'contract-draft:export-name',outputField(n)?.name||''):null,outputDefinitionName:n.kind==='export'?outputField(n)?.name||'':null,outputType:n.kind==='export'?type(outputField(n)):'',outputReadonly:!outputEditable||!!data.privateConversion,terminal:n.id.startsWith('$exit:'),wrapper:!!row?.postCall,branches:[...(nodeAsync(w,row||{})?[{id:'completion',name:'완료 시'}]:[]),...(row?.executionEnum?.members||[]).filter(m=>m.id!==row.executionEnum.primary).map(m=>({id:branchPort(row,m),name:branchLabel(row,m)}))]};}),links:links(),outputs:outputFields.map(f=>({id:f.id,name:f.name,type:type(f)}))});
   const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;if(api.busy&&!(kind==='rename'&&w.authorSavePending&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage))return;privateValue(w,id,kind,text);const source=kind==='intent'?element(id)?.querySelector('[data-inline-description]'):element(id)?.querySelector('[data-bp-node-name]');if(source){if('value' in source)source.value=text;else source.textContent=text;}if(kind==='rename'){const node=nodeById(id);if(node)node.name=text;}status(w);mobile?.refresh();documentView?.refresh();};
   const outputPin=name=>{const existing=port('$exit:'+name,'in','data','value');if(existing)return existing;const pin=document.createElement('button');Object.assign(pin.dataset,{node:'$exit:'+name,side:'in',kind:'data',port:'value'});return pin;};
@@ -771,7 +779,7 @@ function blueprintNormalizeControls(scope){
      return {showAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
     }
     const chain=linearCells(id),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
-    return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!(chain.frame&&chain.owner)&&(!chain.compound||canInsertAfterCompound(id,chain))&&!held.length&&data.nodes.length<63&&(!(chain.frame||chain.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
+    return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&caseInsertionAvailable(chain)&&(!chain.compound||canInsertAfterCompound(id,chain))&&!held.length&&data.nodes.length<63&&(!(chain.frame||chain.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
    },
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},
    dropCell:(id,slot,expected,transfer)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>{
@@ -789,7 +797,7 @@ function blueprintNormalizeControls(scope){
      }
     });
    },'');},
-   branchActions:(owner,port)=>({add:!!branchChain(owner,port)&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
+   branchActions:(owner,port)=>({add:caseInsertionAvailable(branchChain(owner,port,true))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
    moveCell:(id,offset)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>moveCell(id,offset),'');},addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
    nativeVersion:()=>JSON.stringify([w.authorData.id,w.authorData.rootId,w.authorData.privatePath,w.authorData.documentFramePreviewBinding??w.authorData.documentFrameOrderBinding,w.authorData.checkpointHash,proof(w.authorData),saveEntries(w),api.otherPending?.((w.authorData.sources||[]).map(row=>row.id)),api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]]),
    nativeScope:()=>data.privatePath?'선택한 자식 흐름의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전':'선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전',

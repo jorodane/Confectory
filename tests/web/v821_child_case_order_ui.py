@@ -146,8 +146,12 @@ try:
         enter_body()
         branch = order(initial)
         assert doc().locator("[data-document-branch]").all_text_contents() == ["Positive", "Negative"]
-        expect(branch.locator("[data-document-add=positive]")).to_be_disabled()
-        expect(branch.locator("[data-document-branch-add]")).to_be_disabled()
+        for selector in ("[data-document-add=positive]", "[data-document-branch-add]"):
+            button = expect(branch.locator(selector))
+            if test_mode == "shared":
+                button.to_be_disabled()
+            else:
+                button.to_be_enabled()
         move_up = branch.locator("[data-document-up=tail]")
         binding = baseline.get(key)
         if test_mode == "shared":
