@@ -42,4 +42,11 @@ if(action!="status"){
  // No final source writes occur here. Confirm still needs the existing reviewed token/compiler path.
  return new System.Text.Json.Nodes.JsonObject{["state"]="applied",["action"]=action}.ToJsonString();
 }
-return new System.Text.Json.Nodes.JsonObject{["state"]="ready",["ownerHash"]=ownerHash,["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(ids),["rows"]=rows,["checkpointHash"]=Hash(saved),["dirty"]=anyDirty,["unsaved"]=anyUnsaved,["canDiscard"]=canDiscard||recovery,["canRecover"]=recovery}.ToJsonString();
+// Changed rows start a review, and every member of their required group must
+// be reviewed with them even when its contents have not changed.
+var reviewIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+foreach(var unit in units){
+ string id=unit[0];
+ if(unit[6]=="dirty"&&reviewIds.Add(id)&&rootGroups.Contains(id))reviewIds.UnionWith(calls.CreationGroup.Invoke(draft,id));
+}
+return new System.Text.Json.Nodes.JsonObject{["state"]="ready",["ownerHash"]=ownerHash,["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(ids),["reviewIds"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.Where(ids,reviewIds.Contains)),["rows"]=rows,["checkpointHash"]=Hash(saved),["dirty"]=anyDirty,["unsaved"]=anyUnsaved,["canDiscard"]=canDiscard||recovery,["canRecover"]=recovery}.ToJsonString();
