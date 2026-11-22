@@ -338,7 +338,12 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==14){Change("home");return;}
  if(id==52){Start("close-project",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}
  if(model["closeRequest"] is not null&&id is 65 or 66){if(id==65)Start("close-project",new{context=Context(),confirmed=true});else Start("cancel-close",new{});return;}
- if(id==15){Start("leave",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}if(id==16){OpenFolder(model["selected"]!["path"]!.ToString());return;}
+ if(id==15){Start("leave",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}
+ if(id==16){
+  string? manifest=model["selected"]?["path"]?.ToString();
+  if(manifest is null||!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(manifest))){message="Unable to open folder: The active project folder is no longer available.";return;}
+  OpenFolder(manifest);return;
+ }
  if(id==33){ShellAction("menu",model["shell"]!["menu"]!.ToString()=="project"?"":"project");return;}
  if(id==34){OpenInformation(ListingId(model["selected"]!),"project");return;}if(id==35){ShellAction("menu","settings");return;}
  if(id==36){Start("run",new{context=Context()});return;}if(id==37){Start("stop",new{context=Context()});return;}

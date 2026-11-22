@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Actual project-shell acceptance; private evidence only."""
+"""Actual project-shell acceptance. Pass --folder-only for the folder route."""
 import ctypes as c
 import json
 import os
@@ -93,7 +93,7 @@ for n in range(10):os.mkdir(os.path.join(storage,f'Folder{n:02d}'))
 log_path=os.path.join(storage,'native.log')
 env=os.environ.copy();env.update(CONFECTORY_EDITOR_REPO=repo,CONFECTORY_HOME_STORAGE=storage,CONFECTORY_ENTRY_STORAGE=os.path.join(storage,'entry'),CONFECTORY_HOME_TRACE='1',CONFECTORY_ELEMENT_AUTHORING_HOST=os.path.join(repo,'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'))
 folder_request=os.path.join(storage,'folder-request.txt');os_helper=os.path.join(storage,'os-helper');os.mkdir(os_helper)
-with open(os.path.join(os_helper,'xdg-open'),'w') as stream:stream.write('#!/bin/sh\nprintf "%s\\n" "$1" > '+shlex.quote(folder_request)+'\n')
+with open(os.path.join(os_helper,'xdg-open'),'w') as stream:stream.write('#!/bin/sh\nprintf "%s\\n" "$@" > '+shlex.quote(folder_request)+'\n')
 os.chmod(os.path.join(os_helper,'xdg-open'),0o700);env['PATH']=os_helper+os.pathsep+env.get('PATH','')
 stall=os.path.join(storage,'stall-description')
 wrapper=os.path.join(storage,'existing-dotnet-test-wrapper.sh')
@@ -180,10 +180,65 @@ def end(window,interrupt=False):
     else:close(window)
     assert app.wait(timeout=30)==0,open(log_path).read()[-5000:];log.close()
     assert 'Entry/home jobs, controls, buffers, Owner, project contexts and native surface disposed' in open(log_path).read()
+def open_folder_menu(window):
+    click(window,33)
+    wait(lambda row:row['model']['shell']['menu']=='project','folder menu')
+
+def check_folder_request(window, manifest):
+    if os.path.isfile(folder_request):os.unlink(folder_request)
+    open_folder_menu(window)
+    click(window,16)
+    wait(lambda row:os.path.isfile(folder_request),'native folder request')
+    with open(folder_request,encoding='utf-8') as receipt:
+        assert receipt.read().splitlines()==[os.path.dirname(manifest)]
+    assert latest()['model']['selected']['path']==manifest
+    click(window,42)
+    wait(lambda row:row['model']['shell']['menu']=='','close folder menu')
+
+def check_folder_route(window, first_context, first_manifest):
+    check_folder_request(window,first_manifest)
+    print('PASS active project sends its exact root as one argument')
+    os.unlink(folder_request)
+    folder=os.path.dirname(first_manifest)
+    assert os.path.commonpath([storage,folder])==storage
+    moved=folder+'.moved'
+    os.rename(folder,moved)
+    try:
+        open_folder_menu(window)
+        click(window,16)
+        state=wait(lambda row:'active project folder is no longer available' in row['message'],'missing project folder feedback')
+        assert state['model']['selected']['context']==first_context
+        assert not os.path.exists(folder_request)
+    finally:
+        os.rename(moved,folder)
+    click(window,42)
+    wait(lambda row:row['model']['shell']['menu']=='','close unavailable folder menu')
+    print('PASS missing active root reports failure without dispatch or project change')
+    check_folder_request(window,first_manifest)
+    print('PASS restored root opens on explicit retry')
+
+    leave_project(window)
+    wait(lambda row:row['screen']=='home' and row['model']['selected'] is None,'leave first project')
+    click(window,2)
+    wait(lambda row:row['screen']=='create','new folder fixture project')
+    click(window,10)
+    type_text(window,'Shell Gui B')
+    click(window,13)
+    state=wait(lambda row:row['screen']=='project' and (row['model']['selected'] or {}).get('title')=='Shell Gui B','second folder context')
+    second=state['model']['selected']
+    assert second['context']!=first_context and os.path.dirname(second['path'])!=folder
+    check_folder_request(window,second['path'])
+    print('PASS after project switch only the new active root is dispatched')
+
 try:
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');click(a,1);wait(lambda t:t['screen']=='home','offline home');home=latest()['controls']
     click(a,2);wait(lambda t:t['screen']=='create','new');click(a,10);type_text(a,'Shell Gui A');click(a,11);type_text(a,'A project workspace');click(a,13)
     state=wait(lambda t:t['screen']=='project' and t['model']['shell'],'project owns shell');context=state['model']['selected']['context'];path=state['model']['selected']['path'];assert state['model']['shell']['project']['context']==context and not state['model']['shell']['liveProvider'];project_control=state['controls'];assert project_control!=home
+    if '--folder-only' in sys.argv[2:]:
+        check_folder_route(a,context,path)
+        end(a)
+        print('Private GUI evidence: '+storage)
+        sys.exit(0)
     wait(lambda t:38 in t['hits'][::5],'project chat field');click(a,38);type_text(a,'A local project draft');click(a,41);state=wait(lambda t:t['model']['shell']['draft']=='A local project draft','local draft retained without live sending');buffer=state['chatBuffers'][context];assert 'no message sent' in state['model']['shell']['notice']
     screenshot(a,'project-chat')
     # Actual product Helper controls use public scoped memory, without a model/provider.
@@ -210,7 +265,7 @@ try:
     click(a,34);wait(lambda t:t['model']['shell']['menu']=='info','project info');state=latest();menu_bounds=(216,58,440,290);workspace_clips=[state['textClips'][n*4:n*4+4] for n,text in enumerate(state['texts']) if text=='Workspace'];assert all(x>=menu_bounds[0]+menu_bounds[2] or x+w<=menu_bounds[0] or y>=menu_bounds[1]+menu_bounds[3] or y+h<=menu_bounds[1] for x,y,w,h in workspace_clips),'Workspace text clips exclude covered menu region';screenshot(a,'project-info');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close info')
     click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','menu');click(a,35);wait(lambda t:t['model']['shell']['menu']=='settings','honest read-only settings');click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close settings')
     click(a,6);wait(lambda t:t['model']['shell']['menu']=='providers','provider panel remains offline');assert not latest()['model']['shell']['liveProvider'];click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close providers')
-    click(a,33);wait(lambda t:t['model']['shell']['menu']=='project','folder menu');click(a,16);assert open(folder_request).read().strip()==os.path.dirname(path);click(a,42);wait(lambda t:t['model']['shell']['menu']=='','close folder menu')
+    check_folder_request(a,path)
     # Execute only this ProjectPack's declared entry, not the editor, and drain meaningful bounded output.
     with open(os.path.join(os.path.dirname(path),'main.csbody'),'w') as stream:stream.write('Console.WriteLine("GUI shell child A");while(true)System.Threading.Thread.Sleep(20);\n')
     click(a,36);state=wait(lambda t:t['model']['execution']['state']=='running','owned child running',seconds=90);assert state['model']['selected']['context']==context
