@@ -13,6 +13,39 @@ function functionArgumentNames(value){if(value.argumentNames===undefined)return 
 const sameDefinitionIcon=(value,change)=>value.icon===undefined?change.icon===undefined:value.icon===change.icon;
 const ownedAcceptedTree=tree=>({fields:tree.fields.map(f=>({...f,name:f.name.trim(),...(f.children?{children:ownedAcceptedTree(f.children)}:{})}))});
 const ownedSame=(a,b)=>{const canonical=v=>Array.isArray(v)?v.map(canonical):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,canonical(v[k])])):v;return same(canonical(a),canonical(b));};
+// Two body-only edits can use the existing single type proof when every
+// source and type is identical. Both authored plans stay in the local journal.
+export function ownerSaveDeclaration(declaration){
+ const changes=declaration.changes;
+ if(declaration.raw||!Array.isArray(changes)||changes.length!==2)return declaration;
+ const ownedPrefix=declaration.id+'_Function_';
+ const namespace=declaration.id.split('::')[0];
+ function scope(row){
+  if(row?.type!=='function-edit'||!row.id?.startsWith(ownedPrefix)||!row.nativeTypes||!row.mapping||
+     !ownedSame(row.signature,row.mapping.before))return null;
+  const {args,return:result}=row.signature;
+  if(args.some(pin=>pin.mode)||Object.keys(row.mapping.args||{}).length!==args.length||
+     args.some(pin=>row.mapping.args[pin.name]!==pin.name))return null;
+  const bodies=Object.entries(row.mapping.bodies||{});
+  if(bodies.length!==1)return null;
+  const [source,body]=bodies[0];
+  if(!source.startsWith(namespace+'::')||!source.includes('/body:')||
+     !ownedSame(body.contract,row.signature)||!ownedSame(body.beforeSignature,body.signature)||
+     Object.keys(body).some(key=>!['path','hash','beforeSignature','signature','contract','text'].includes(key)))return null;
+  const {['$function:'+row.id]:proof,...types}=row.nativeTypes;
+  const selected=[...new Set([...args.map(pin=>pin.type),result].filter(type=>type.startsWith('Confectory.')))];
+  if(!proof||!Object.keys(proof.sources||{}).length||!selected.length||Object.keys(types).length!==selected.length||
+     selected.some(type=>!/^Confectory\.Information\.E[0-9a-f]{24}\.E[0-9a-f]{24}$/.test(type)||
+       !types[type]||!Object.keys(types[type].sources||{}).length||
+       Object.keys(types[type].sources).some(id=>!id.startsWith(namespace+'::')&&id!=='$manifest:'+namespace)))return null;
+  return {source,path:body.path,sources:proof.sources,types};
+ }
+ const [first,second]=changes,[left,right]=changes.map(scope);
+ if(!left||!right||first.id===second.id||left.source===right.source||left.path===right.path||
+    !ownedSame(left.sources,right.sources)||!ownedSame(left.types,right.types))return declaration;
+ const {nativeTypes,...bodyOnly}=second;
+ return {...declaration,changes:[first,bodyOnly]};
+}
 // JSON string spelling may change across the native serializer (e.g. surrogate
 // escapes). Compare strings by value while preserving every numeric source token.
 const ownedValueSame=(a,b)=>{const typed=n=>n.kind==='string'?{kind:n.kind,value:n.value}:n.kind==='object'?{kind:n.kind,fields:Object.fromEntries(n.entries.map(([k,v])=>[k,typed(v)]))}:n.kind==='array'?{kind:n.kind,items:n.items.map(typed)}:{kind:n.kind,raw:n.raw};return ownedSame(typed(parseTypedJson(a)),typed(parseTypedJson(b)));};
