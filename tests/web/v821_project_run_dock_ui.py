@@ -68,6 +68,81 @@ def editor(root, repo, command, manifest):
                 host.wait(timeout=20)
 
 
+def check_menu_escape(page):
+    trigger = page.locator("#project-menu")
+    menu = page.locator(".context-menu")
+    entry = menu.get_by_role("button", name="프로젝트 정보", exact=True)
+
+    trigger.click()
+    expect(entry).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(menu).to_have_count(0)
+    expect(trigger).to_be_focused()
+
+    # Exercise the gap between the click handler and the next timer task.
+    trigger.evaluate("""button => button.addEventListener('click', () => {
+      document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Escape', bubbles: true, cancelable: true
+      }));
+    }, {once: true})""")
+    trigger.click()
+    expect(menu).to_have_count(0)
+    expect(trigger).to_be_focused()
+
+    page.keyboard.press("Enter")
+    expect(entry).to_be_focused()
+    entry.dispatch_event("keydown", {"key": "Escape", "isComposing": True, "bubbles": True})
+    expect(entry).to_be_visible()
+    entry.press("Escape")
+    expect(menu).to_have_count(0)
+    expect(trigger).to_be_focused()
+    page.keyboard.press("Escape")
+    expect(trigger).to_be_focused()
+    expect(menu).to_have_count(0)
+    print("PASS one Escape closes the dock menu, restores focus, and remains inert during IME or while closed")
+
+    trigger.click()
+    expect(entry).to_be_visible()
+    page.keyboard.press("Control+y")
+    capturing = page.locator("body.yogi-capturing")
+    expect(capturing).to_have_count(1)
+    page.keyboard.press("Escape")
+    expect(capturing).to_have_count(0)
+    expect(entry).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(menu).to_have_count(0)
+    expect(trigger).to_be_focused()
+    print("PASS YogiBox capture owns the first Escape; the next Escape closes the dock menu")
+
+    trigger.click()
+    expect(entry).to_be_visible()
+    zoom = page.locator("#workspace [data-workspace-zoom]")
+    zoom.press("Enter")
+    zoom_popup = page.locator(".workspace-zoom-menu")
+    expect(zoom_popup).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(zoom_popup).to_have_count(0)
+    expect(zoom).to_be_focused()
+    expect(entry).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(menu).to_have_count(0)
+    expect(trigger).to_be_focused()
+    print("PASS the zoom popup closes before the dock menu and each restores its own focus")
+
+    trigger.click()
+    entry.click()
+    information = page.locator("[data-project-information]")
+    expect(information).to_be_visible()
+    expect(menu).to_have_count(0)
+    page.keyboard.press("Escape")
+    expect(information).to_have_count(0)
+    trigger.click()
+    expect(entry).to_be_visible()
+    page.locator(".topbar .muted").click()
+    expect(menu).to_have_count(0)
+    print("PASS the project dialog keeps its own Escape and pointer use resumes after dismissal")
+
+
 def check(page, origin, first_output, second_output, second_body, second_title):
     requests = []
     errors = []
@@ -109,6 +184,9 @@ def check(page, origin, first_output, second_output, second_body, second_title):
     title = page.locator("#title")
     expect(title).to_contain_text("First")
     expect(page.locator("#dock #run + #project-menu")).to_be_visible()
+    check_menu_escape(page)
+    expect(title).to_contain_text("First")
+    assert requests == [], requests
     menu_only()
     assert not first_output.exists() and not second_output.exists()
     assert page.locator(".run-window").count() == 0
