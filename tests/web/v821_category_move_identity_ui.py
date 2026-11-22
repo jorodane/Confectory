@@ -237,21 +237,22 @@ def check_category_move(page):
     fixture.checked("The second project retains its own category, value and assignments for the same qualified ID")
 
 
-seed_projects()
-try:
-    fixture.start(0)
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"])
-        page = fixture.setup(browser)
-        page.set_viewport_size({"width": 1850, "height": 1180})
-        try:
-            check_category_move(page)
-        except Exception:
-            page.screenshot(path=str(fixture.root / "failure.png"))
-            print("CATEGORY_MOVE_FIXTURE", fixture.root)
-            raise
-        finally:
-            browser.close()
-finally:
-    fixture.save_evidence()
-    fixture.stop()
+if __name__ == "__main__":
+    seed_projects()
+    try:
+        fixture.start(0)
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"])
+            page = fixture.setup(browser)
+            page.set_viewport_size({"width": 1850, "height": 1180})
+            try:
+                check_category_move(page)
+            except Exception:
+                page.screenshot(path=str(fixture.root / "failure.png"))
+                print("CATEGORY_MOVE_FIXTURE", fixture.root)
+                raise
+            finally:
+                browser.close()
+    finally:
+        fixture.save_evidence()
+        fixture.stop()
