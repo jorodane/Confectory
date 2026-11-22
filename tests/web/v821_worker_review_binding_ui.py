@@ -175,18 +175,19 @@ def exercise(owned):
     fixture.checked("명시적 채택은 새로 검토한 두 번째 Worker 소스와 기록만 확정한다")
 
 
-add_second_source()
-owned = OwnedResponses(FIRST, FIRST_SOURCE)
-try:
-    with sync_playwright() as playwright:
-        with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
-            fixture.browser = browser
-            exercise(owned)
-finally:
-    fixture.stop()
-    owned.close()
-    (fixture.case / "worker-review-evidence.json").write_text(json.dumps({
-        "checks": fixture.checks, "errors": fixture.errors,
-        "loopbackRequests": len(owned.requests), "loopbackErrors": owned.errors,
-    }, ensure_ascii=False, indent=2))
-    print("evidence:", fixture.case)
+if __name__ == "__main__":
+    add_second_source()
+    owned = OwnedResponses(FIRST, FIRST_SOURCE)
+    try:
+        with sync_playwright() as playwright:
+            with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
+                fixture.browser = browser
+                exercise(owned)
+    finally:
+        fixture.stop()
+        owned.close()
+        (fixture.case / "worker-review-evidence.json").write_text(json.dumps({
+            "checks": fixture.checks, "errors": fixture.errors,
+            "loopbackRequests": len(owned.requests), "loopbackErrors": owned.errors,
+        }, ensure_ascii=False, indent=2))
+        print("evidence:", fixture.case)
