@@ -45,8 +45,12 @@ public static partial class FeatureBlueprint
             string owner=request["implementationContext"]?["implementation"]?.ToString()??S(request["graph"],"feature");
             request["sourceOwner"]=owner+(request["bodyTarget"] is null?"":"/body:"+S(request,"bodyTarget"));
         }
+        string? prefix = request["sourcePath"]?.ToString();
+        bool selected = prefix is not null && request["assemblyPath"]?.ToString() == prefix;
+        List<(string Id, string Text)>? switchMembers = selected && request["graph"]?["profile"]?.ToString() == SwitchProfile
+            ? [] : null;
         JsonObject result;
-        try { result = ProcessCore(request); }
+        try { result = ProcessCore(request, switchMembers); }
         catch (Refusal refusal)
         {
             string? path = request["sourcePath"]?.ToString();
@@ -56,7 +60,6 @@ public static partial class FeatureBlueprint
         result["usesImplementationContext"] = request["graph"]!["nodes"]!.AsArray().Any(node => node?["implementationContext"] is JsonObject) || request["privateChildren"]!.AsObject().Any(child => child.Value?["usesImplementationContext"]?.GetValue<bool>() == true);
         // A qualified independent leaf probe already carries its complete path.
         if (S(request, "operation") == "featureBlueprintNodeProbe" && request["node"]!.ToString().Contains('/')) return result;
-        string? prefix = request["sourcePath"]?.ToString();
         if (prefix is not null)
         {
             if (result["node"] is not null) result["node"] = prefix + "/" + result["node"];
@@ -91,7 +94,7 @@ public static partial class FeatureBlueprint
         if(result["body"] is not null && result["members"] is not null) result["bodyHash"] = Hash(result["body"]!.GetValue<string>() + result["members"]!.GetValue<string>());
         // Capture this instance after collecting its own descendants, before
         // an ancestor adds any siblings and removes source from child summaries.
-        if (prefix is not null && request["assemblyPath"]?.ToString() == prefix && S(result, "state") == "source-assembled")
+        if (selected && prefix is not null && S(result, "state") == "source-assembled")
         {
             Need(selectedAssembly is null, "GRAPH_ASSEMBLY_PATH_DUPLICATE", prefix);
             var included = BlueprintTree.Nodes(request["graph"]!.AsObject()).ToArray();
@@ -101,10 +104,17 @@ public static partial class FeatureBlueprint
                 var rows = result[collection]!.AsArray();
                 return rows.Count == paths.Count && paths.SetEquals(rows.Select(row => S(row, key)));
             }
-            // The plain nested profile emits local functions for code and graph
-            // calls. Standalone members and completion adapters are outside it.
-            Need(S(result, "members").Length == 0 && ExactPaths("sourceMap", "node", included)
-                && ExactPaths("nodeSources", "id", included.Where(entry => S(entry.Node, "kind") == "code")),
+            var code = included.Where(entry => S(entry.Node, "kind") == "code").ToArray();
+            string members = S(result, "members");
+            // Switch helpers are separate class members. Match the entire
+            // member buffer to contributions captured at its regular emit site.
+            bool exactMembers = switchMembers is null ? members.Length == 0
+                : code.Length == included.Length && switchMembers.Count == code.Length
+                    && code.Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal)
+                        .SetEquals(switchMembers.Select(member => member.Id))
+                    && members == string.Concat(switchMembers.Select(member => member.Text));
+            Need(exactMembers && ExactPaths("sourceMap", "node", included)
+                && ExactPaths("nodeSources", "id", code),
                 "GRAPH_ASSEMBLY_SCOPE", prefix);
             selectedAssembly = new JsonObject { ["path"] = prefix, ["body"] = result["body"]!.DeepClone(),
                 ["members"] = result["members"]!.DeepClone(), ["bodyHash"] = result["bodyHash"]!.DeepClone() };

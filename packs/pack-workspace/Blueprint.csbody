@@ -1406,6 +1406,28 @@ lock(state){
     if(status[1]=="blueprint"&&SamePath(status[2]))throw new InvalidOperationException("Exclusive physical Blueprint graph required");
    }
  }
+ void RequireExclusiveSwitchPreviewSources(){
+  var comparison=OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal;
+  var paths=new System.Collections.Generic.Dictionary<string,string>(comparison);
+  string FullPath(string relative)=>System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],relative));
+  void Add(string id,string relative){
+   if(calls.Status.Invoke(draft,id)[5]=="missing"||!paths.TryAdd(FullPath(relative),id))
+    throw new InvalidOperationException("Existing exclusive switch preview sources required");
+  }
+  Add(graphId,graphSource[2]);
+  foreach(var node in graph["nodes"]!.AsArray()){
+   string id=graphId+"/node:"+privatePath+"/node:"+node!["id"]!.ToString();
+   if(sources[id] is not System.Text.Json.Nodes.JsonObject source||source["kind"]?.ToString()!="blueprint-node")
+    throw new InvalidOperationException("Observed switch code source required");
+   Add(id,source["path"]!.ToString());
+  }
+  void Check(string id,string relative){
+   if(paths.TryGetValue(FullPath(relative),out string? owner)&&owner!=id)
+    throw new InvalidOperationException("Shared source is outside switch preview scope");
+  }
+  foreach(var locator in locators["units"]!.AsArray())Check(locator!["id"]!.ToString(),locator["path"]!.ToString());
+  foreach(string id in owned)Check(id,calls.Status.Invoke(draft,id)[2]);
+ }
  // Keep the complete-order classifier available for a pending read-only draft.
  if(compoundOrderAvailable&&System.Linq.Enumerable.Any(rootGraph["nodes"]!.AsArray(),n=>n?["graph"]?["profile"]?.ToString()=="sync-acyclic-switch-v1"))try{
   RequireExclusiveWritableGraph();
@@ -1488,6 +1510,7 @@ lock(state){
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
    ["action"]="frame-preview",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
   }.ToJsonString());
+  if(graph["profile"]?.ToString()=="sync-acyclic-switch-v1")RequireExclusiveSwitchPreviewSources();
   framePreviewBinding=ChildFrameBinding();
  }catch{framePreviewBinding=null;}
  System.Text.Json.Nodes.JsonObject? frameCaseOrderBinding=null;

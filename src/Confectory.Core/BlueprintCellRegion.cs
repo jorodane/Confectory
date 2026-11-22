@@ -112,16 +112,27 @@ public static class BlueprintCellRegion
 
     internal static JsonObject OwnedPreviewFrame(JsonObject root, string path)
     {
+        Need(path.Split('/').All(part => part.Length > 0), "Exact nonempty owned frame path required");
+        var selected = BlueprintTree.Select(root, path);
+        if (!path.Contains('/') && S(selected, "profile") == FeatureBlueprint.SwitchProfile)
+        {
+            OwnedSwitchFrame(root, path);
+            Need(selected["nodes"]!.AsArray().All(node => node!["sourceIdentity"] is null
+                && node["completionBranch"] is null && node[BlueprintCompletionAdapter.Metadata] is null),
+                "Ordinary synchronous switch preview required");
+            return selected;
+        }
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
         CompoundOrder(root,CurrentRoutes(root));
-        Need(path.Split('/').All(part => part.Length > 0), "Exact nonempty owned frame path required");
-        return BlueprintTree.Select(root, path);
+        return selected;
     }
 
     internal static JsonObject OwnedFrame(JsonObject root,string path)
     {
-        var selected = OwnedPreviewFrame(root, path);
+        CompoundOrder(root,CurrentRoutes(root));
+        Need(path.Split('/').All(part => part.Length > 0), "Exact nonempty owned frame path required");
+        var selected = BlueprintTree.Select(root, path);
         CompoundOrder(selected,CurrentRoutes(selected),true);
         return selected;
     }
