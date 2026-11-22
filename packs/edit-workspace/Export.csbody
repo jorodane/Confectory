@@ -1,7 +1,15 @@
 bool NativeTypeCheckpoint(System.Text.Json.Nodes.JsonNode document){var pending=new System.Collections.Generic.Stack<System.Text.Json.Nodes.JsonNode>();pending.Push(document);while(pending.Count>0){var node=pending.Pop();if(node is System.Text.Json.Nodes.JsonObject row){if(row["nativeTypeProofs"] is System.Text.Json.Nodes.JsonObject proof&&proof.Count>0||row["nativeTypeReads"] is System.Text.Json.Nodes.JsonArray reads&&reads.Count>0||row["type"]?.ToString()=="function-add"&&row["nativeTypes"] is System.Text.Json.Nodes.JsonObject selected&&selected.Count>0)return true;foreach(var child in row)if(child.Value is not null)pending.Push(child.Value);}else if(node is System.Text.Json.Nodes.JsonArray array)foreach(var child in array)if(child is not null)pending.Push(child);}return false;}
-string Checkpoint(System.Text.Json.Nodes.JsonObject document){bool native=NativeTypeCheckpoint(document);bool cell=System.Linq.Enumerable.Any(document["changes"]!.AsArray(),row=>row?["cellRemovalPending"] is not null)||
- System.Linq.Enumerable.Any(System.Linq.Enumerable.Concat(document["history"]?["undo"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),document["history"]?["redo"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()),entry=>entry?["cellRemoval"] is not null);
- document["version"]=cell?3:native?2:1;if(cell)document["cellHistoryProfile"]="retained-blueprint-cell-v1";if(native)document["nativeTypeProfile"]="native-type-source-guards-v1";else document.Remove("nativeTypeProfile");return document.ToJsonString();}
+string Checkpoint(System.Text.Json.Nodes.JsonObject document){
+ bool native=NativeTypeCheckpoint(document);
+ var history=System.Linq.Enumerable.Concat(document["history"]?["undo"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),document["history"]?["redo"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());
+ var receipts=System.Linq.Enumerable.Concat(System.Linq.Enumerable.Select(document["changes"]!.AsArray(),row=>row?["cellRemovalPending"]?["receipt"]),System.Linq.Enumerable.Select(history,entry=>entry?["cellRemoval"]));
+ bool cell=System.Linq.Enumerable.Any(receipts,receipt=>receipt is not null);
+ bool compound=System.Linq.Enumerable.Any(receipts,receipt=>receipt?["version"]?.GetValue<int>()==2);
+ document["version"]=cell?3:native?2:1;
+ if(cell)document["cellHistoryProfile"]=compound?"retained-blueprint-cell-group-v1":"retained-blueprint-cell-v1";
+ if(native)document["nativeTypeProfile"]="native-type-source-guards-v1";else document.Remove("nativeTypeProfile");
+ return document.ToJsonString();
+}
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
 lock(state)
 {

@@ -728,8 +728,19 @@ function blueprintNormalizeControls(scope){
    return {...model,nodes:model.nodes.filter(node=>node.id!==removal),links};
   };
   documentView=mountFunctionDocument(root,{...surface,context:w.authorScope+'|function-document|'+(w.meta.authorView||'primary')+'|'+(w.meta.slotOwner||'')+'|'+String(data.id||data.rootId||w.meta.id)+'|'+(data.privatePath||''),nativeDefinition:!!data.privateConversion,model:documentModel,
-   removeCell:id=>{if(canRemoveDocumentCell(id)&&surface.closeValues('preserve')!==false)structuralEdit(w,()=>privateValue(w,id,'document-cell-remove',''));},
-   cellActions:id=>{const chain=linearCells(id),held=saveEntries(w),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear());const drag=cellDrag(id);return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀은 같은 상위 흐름에서 이동만 지원합니다. 내부·슬롯 구조는 유지됩니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};},
+   removeCell:id=>{
+    if(!canRemoveDocumentCell(id)||surface.closeValues('preserve')===false)return;
+    const remove=()=>{if(canRemoveDocumentCell(id))structuralEdit(w,()=>privateValue(w,id,'document-cell-remove',''));};
+    const node=rows.find(row=>row.id===id);
+    if(node?.kind!=='graph'){remove();return;}
+    api.modal('복합 셀 삭제','<p><strong>'+esc(node.displayName||node.id)+'</strong>과 안에 있는 자식 셀을 함께 삭제할까요?</p>'+
+     '<div class="actions"><button type="button" class="secondary" data-compound-delete-cancel>취소</button>'+
+     '<button type="button" class="danger" data-compound-delete-confirm>복합 셀 삭제</button></div>',(root,close)=>{
+      $('[data-compound-delete-cancel]',root).onclick=close;
+      $('[data-compound-delete-confirm]',root).onclick=()=>{close();remove();};
+     });
+   },
+   cellActions:id=>{const chain=linearCells(id),held=saveEntries(w),index=chain?.order.indexOf(id)??-1,orderable=(!held.length||ownedCellOrder(w,held))&&(!chain?.frame||frameInputsClear());const drag=cellDrag(id);return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:index>=0&&!chain.compound&&!held.length&&data.nodes.length<63&&(!chain.frame||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':chain?.compound?'복합 셀 이동은 같은 상위 흐름에서 지원합니다.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};},
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},
    dropCell:(id,slot,expected,transfer)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>{
     const plan=cellDropPlan(id,slot,expected,transfer);

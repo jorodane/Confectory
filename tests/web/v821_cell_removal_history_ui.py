@@ -2,6 +2,7 @@
 
 import ast
 import copy
+import hashlib
 import json
 import stat
 import sys
@@ -15,20 +16,27 @@ import v666_node_names_recovery_fixture as t
 f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
-                "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly"}
+                "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly",
+                "compound", "compound-readonly"}
 case = mode.startswith("case")
 child_case = mode.startswith("child")
+compound_case = mode.startswith("compound")
 frame_path = "other" if mode == "child-first" else "body"
 sibling_path = "body" if frame_path == "other" else "other"
-positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last"}
+positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound"}
 helper = Path(__file__).with_name("v821_function_document_ui.py")
 functions = [node for node in ast.parse(helper.read_text()).body if isinstance(node, ast.FunctionDef)]
 exec(compile(ast.Module(body=functions, type_ignores=[]), str(helper), "exec"), globals())
 
 graph = f.project / t.graph_file
-cell_id = {"case": "move", "case-exit": "right", "child-first": "inner",
+cell_id = "other" if compound_case else {"case": "move", "case-exit": "right", "child-first": "inner",
            "child-last": "tail", "child-readonly": "tail"}.get(mode, "left" if case else "after")
-source_name = f"Pair.{frame_path}.{cell_id}.node.json" if child_case else f"Pair.{cell_id}.node.json"
+source_name = "Pair.other.inner.node.json" if compound_case else (
+    f"Pair.{frame_path}.{cell_id}.node.json" if child_case else f"Pair.{cell_id}.node.json")
+retained_sources = {f"{t.graph}/node:other/node:{name}": f"Pair.other.{name}.node.json"
+                    for name in ("inner", "tail")} if compound_case else {}
+sibling_sources = {f"{t.graph}/node:body/node:{name}": f"Pair.body.{name}.node.json"
+                   for name in ("inner", "tail")} if compound_case else {}
 leaf = f.project / source_name
 case_port = "case:negative" if mode == "case-exit" else "case:positive"
 
@@ -75,6 +83,9 @@ def expect_cell(present):
     if case:
         cells = original_case if present else [cell for cell in original_case if cell != cell_id]
         expect_case_order(case_port, cells)
+    elif compound_case:
+        cells = ["$entry", "body", *(["other"] if present else []), "after", "$exit:return"]
+        assert order() == cells, order()
     elif child_case:
         selected_nodes = ["inner", "tail"] if present else [node for node in ["inner", "tail"] if node != cell_id]
         exit_cell = ["$exit:return"] if frame_path == "body" else []
@@ -83,6 +94,23 @@ def expect_cell(present):
             expect(doc().locator("[data-document-remove]")).to_have_count(0)
     else:
         assert order() == (["$entry", "body", "after", "$exit:return"] if present else ["$entry", "body", "$exit:return"])
+
+
+def assert_compound_sources(present):
+    if not compound_case:
+        return
+    sources = {source["id"]: source["path"] for source in read_graph()["sources"]}
+    for identities, visible in [(retained_sources, present), (sibling_sources, True)]:
+        for node, path in identities.items():
+            assert sources.get(node) == (path if visible else None), sources
+
+
+def click_remove(remove, cancel=False):
+    remove.click()
+    if compound_case:
+        confirm = f.page.locator("[data-compound-delete-confirm]")
+        expect(confirm).to_be_visible()
+        f.page.locator("[data-compound-delete-cancel]" if cancel else "[data-compound-delete-confirm]").click()
 
 
 def real_files_unchanged():
@@ -101,6 +129,7 @@ def undo_or_redo(direction, expected):
     expected = select_graph(expected, frame_path) if child_case else expected
     assert current["entry"] == expected["entry"] and current["edges"] == expected["edges"]
     assert current["diagnostics"]["state"] in {"source-ready", "source-assembled"}
+    assert_compound_sources(direction == "undo")
 
 
 def confirm():
@@ -179,7 +208,7 @@ def prepare_child(root):
 
 
 definition = copy.deepcopy(t.definition)
-if child_case:
+if child_case or compound_case:
     prepare_child(definition)
 if case:
     load_functions("v821_case_transfer_ui.py", {"code", "edge"})
@@ -212,7 +241,7 @@ if case:
     other_case = ["left"] if mode == "case-exit" else ["right"]
     x.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
 
-if mode in {"readonly", "child-readonly"}:
+if mode in {"readonly", "child-readonly", "compound-readonly"}:
     leaf.chmod(stat.S_IMODE(leaf.stat().st_mode) & ~0o222)
 elif mode == "shared":
     manifest = f.project / "project.cproj"
@@ -253,10 +282,13 @@ if mode in positive_modes:
         output_before = output_after.copy()
         output_after.remove({"case": "moved", "case-empty": "left", "case-exit": "right"}[mode])
         exit_code = 51
-    elif child_case:
+    elif child_case or compound_case:
         output_before, exit_code = ["body", "inside", "peer-inner", "peer-tail", "after", "10"], 10
-        output_after = output_before.copy()
-        output_after.remove("peer-inner" if mode == "child-first" else "inside")
+        if compound_case:
+            output_after = ["body", "inside", "after", "10"]
+        else:
+            output_after = output_before.copy()
+            output_after.remove("peer-inner" if mode == "child-first" else "inside")
     else:
         output_before, output_after, exit_code = ["body", "after", "10"], ["body", "10"], 10
 
@@ -273,7 +305,7 @@ try:
         f.page.set_viewport_size({"width": 1800, "height": 1400})
         open_document()
         if child_case:
-            expect(doc().locator("[data-document-remove]")).to_have_count(0)
+            expect(doc().locator("[data-document-remove=body],[data-document-remove=after]")).to_have_count(0)
             select_frame(frame_path)
             if frame_path == "body":
                 expect(doc().locator("[data-document-remove=inner]")).to_have_count(0)
@@ -292,7 +324,13 @@ try:
             f.checked(mode + " prevents document deletion, without changing the isolated original")
         else:
             expect(remove).to_be_enabled()
-            remove.click()
+            if compound_case:
+                click_remove(remove, cancel=True)
+                expect_cell(True)
+                assert not pending() and checkpoint.read_bytes() == baseline_checkpoint
+                assert_compound_sources(True)
+                f.checked("compound deletion confirmation can be cancelled without staging an edit")
+            click_remove(remove)
             expect_cell(False)
             doc().locator(".fd-document-title").click()
             doc().press("Control+z")
@@ -301,17 +339,27 @@ try:
             real_files_unchanged()
 
             x.build("original", exit_code, "\n".join(output_before))
-            remove.click()
+            click_remove(remove)
             save()
             assert not pending(), panel().locator(".bp-status").inner_text()
             saved = json.loads(checkpoint.read_bytes())
-            assert saved["version"] == 3 and saved["cellHistoryProfile"] == "retained-blueprint-cell-v1"
-            assert saved["history"]["undo"][-1]["cellRemoval"]["node"] == (f"{frame_path}/{cell_id}" if child_case else cell_id)
+            want_profile = "retained-blueprint-cell-group-v1" if compound_case else "retained-blueprint-cell-v1"
+            assert saved["version"] == 3 and saved["cellHistoryProfile"] == want_profile
+            receipt = saved["history"]["undo"][-1]["cellRemoval"]
+            assert receipt["node"] == (f"{frame_path}/{cell_id}" if child_case else cell_id)
+            if compound_case:
+                assert len(saved["history"]["undo"]) == 1 and receipt["version"] == 2
+                assert {row["id"]: row["path"] for row in receipt["sources"]} == retained_sources
+                assert all(receipt["proof"][path] == hashlib.sha256((f.project / path).read_bytes()).hexdigest()
+                           for path in retained_sources.values())
+                (f.case / "compound-checkpoint.json").write_bytes(checkpoint.read_bytes())
+                assert_compound_sources(False)
             assert [row["id"] for row in saved["changes"]] == [t.graph]
             assert graph.read_bytes() == initial
             real_files_unchanged()
             restart(1)
             expect_cell(False)
+            assert_compound_sources(False)
             if case:
                 expect_case_order(other_port, other_case)
             if child_case:
@@ -339,12 +387,18 @@ try:
             x.build("confirmed-removed", exit_code, "\n".join(output_after))
             restart(2)
             undo_or_redo("undo", definition)
+            if compound_case:
+                history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]
+                assert history["undoCount"] == 0 and history["redoCount"] == 1
             assert json.loads(graph.read_bytes()) == removed, "Undo silently wrote the committed graph"
             real_files_unchanged()
             panel().locator("[data-bp-save]").click()
             f.idle()
             restart(5)
             expect_cell(True)
+            assert_compound_sources(True)
+            if compound_case:
+                assert json.loads(graph.read_bytes()) == removed
             assert read_graph()["diagnostics"]["state"] in {"source-ready", "source-assembled"}
             confirm()
             assert graph.read_bytes() == initial
@@ -374,19 +428,77 @@ try:
             real_files_unchanged()
             f.checked("Confirm refuses a checkpoint change made after Review without publishing the graph")
             confirm()
-            changed = json.loads(leaf_bytes)
-            changed["source"] += '\r\n// independently edited C# source'
-            leaf.write_text(json.dumps(changed, ensure_ascii=False))
-            peer_bytes = leaf.read_bytes()
-            restart(4)
-            history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]["undo"]
-            assert history["kind"] == "cell-removal" and history["code"] == "SOURCE_CHANGED" and not history["available"]
-            doc().locator(".fd-document-title").click()
-            doc().press("Control+z")
-            expect_cell(False)
-            f.idle()
-            assert leaf.read_bytes() == peer_bytes and json.loads(graph.read_bytes()) == removed
-            assert read_graph()["edges"] == (select_graph(removed, frame_path) if child_case else removed)["edges"]
-            f.checked("an independent C# source edit prevents cold Undo and is never overwritten")
+            paths = [f.project / path for path in retained_sources.values()] if compound_case else [leaf]
+            for index, source in enumerate(paths):
+                source_bytes = source.read_bytes()
+                changed = json.loads(source_bytes)
+                changed["source"] += '\r\n// independently edited C# source'
+                source.write_text(json.dumps(changed, ensure_ascii=False))
+                peer_bytes = source.read_bytes()
+                restart(10 + index)
+                snapshot = checkpoint.read_bytes()
+                history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]
+                step = history["undo"]
+                assert step["kind"] == "cell-removal" and step["code"] == "SOURCE_CHANGED" and not step["available"]
+                press_history_shortcut("undo")
+                expect_cell(False)
+                assert source.read_bytes() == peer_bytes and json.loads(graph.read_bytes()) == removed
+                assert checkpoint.read_bytes() == snapshot
+                assert read_graph()["edges"] == (select_graph(removed, frame_path) if child_case else removed)["edges"]
+                after = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]
+                assert all(after[key] == history[key] for key in ["revision", "undoCount", "redoCount"])
+                assert not pending()
+                assert_compound_sources(False)
+                if compound_case:
+                    source.write_bytes(source_bytes)
+                    real_files_unchanged()
+                f.checked(f"changing only {source.name} prevents cold Undo with no draft, history move or overwrite")
+
+            if compound_case:
+                available = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]["undo"]
+                assert available["available"]
+                source = paths[-1]
+                hidden = source.with_suffix(".fixture-held")
+                source.rename(hidden)
+                try:
+                    snapshot = checkpoint.read_bytes()
+                    press_history_shortcut("undo")
+                    expect_cell(False)
+                    assert_compound_sources(False)
+                    blocked = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]["undo"]
+                    assert not blocked["available"] and blocked["id"] == available["id"]
+                    assert not source.exists() and checkpoint.read_bytes() == snapshot and not pending()
+                finally:
+                    hidden.rename(source)
+                real_files_unchanged()
+                f.checked("a missing retained child refuses the entire Undo without creating a file")
+
+                select_frame("body")
+                doc().locator("[data-document-up=tail]").click()
+                save()
+                confirm()
+                edited = copy.deepcopy(removed)
+                sibling = select_graph(edited, "body")
+                sibling["entry"] = "tail"
+                sibling["edges"] = [{"from": "tail", "port": "next", "to": "inner"},
+                                    {"from": "inner", "port": "next", "to": "exit:return"}]
+                expect_written = json.loads(graph.read_bytes())
+                written_sibling = select_graph(expect_written, "body")
+                assert written_sibling["entry"] == sibling["entry"]
+                assert {row["from"]: row for row in written_sibling["edges"]} == {row["from"]: row for row in sibling["edges"]}
+                written_sibling["edges"] = sibling["edges"]
+                assert expect_written == edited
+                panel().locator(".bp-breadcrumbs button").first.click()
+                f.idle()
+                snapshot = checkpoint.read_bytes()
+                history = f.invoke("draftHistory", {"action": "undo", "token": available["token"]})["result"]["result"]
+                assert not history["accepted"] and not history["changed"]
+                expect_cell(False)
+                assert_compound_sources(False)
+                assert checkpoint.read_bytes() == snapshot
+                assert select_graph(json.loads(graph.read_bytes()), "body")["entry"] == "tail"
+                real_files_unchanged()
+                x.build("edited-sibling", exit_code, "\n".join(["inside", "body", "after", "10"]))
+                f.checked("a normal sibling order edit survives an attempt using the previous compound Undo observation")
 finally:
     f.stop()

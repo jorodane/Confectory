@@ -142,7 +142,6 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(ownedCellRemovalBatch){
      string node=edits[0]!["node"]!.ToString(),frame=current["privatePath"]!.ToString();
      string cell=frame.Length==0?node:frame+"/"+node;
-     string leafId=physicalGraphId+"/node:"+cell.Replace("/","/node:",StringComparison.Ordinal);
      if(surface.Length!=0||candidate["units"]?[physicalGraphId]?["cellRemovalPending"] is not null||
         current["documentRemovableCells"] is not System.Text.Json.Nodes.JsonArray removable||
         !System.Linq.Enumerable.Any(removable,cell=>cell!.ToString()==node)||
@@ -162,9 +161,12 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
      undo.Add(entry);while(undo.Count>32||undo.ToJsonString().Length>2097152)undo.RemoveAt(0);
      history["revision"]=history["revision"]!.GetValue<long>()+1;
      history["redo"]=new System.Text.Json.Nodes.JsonArray();history["boundary"]=null;
-     var leaf=candidate["units"]![leafId]!;
-     candidate["retiredNodeRevision"]=Math.Max(candidate["retiredNodeRevision"]?.GetValue<long>()??0L,leaf["revision"]!.GetValue<long>());
-     candidate["units"]!.AsObject().Remove(leafId);
+     foreach(var locator in prepared["locators"]!.AsArray()){
+      string leafId=locator!["id"]!.ToString();
+      var leaf=candidate["units"]![leafId]!;
+      candidate["retiredNodeRevision"]=Math.Max(candidate["retiredNodeRevision"]?.GetValue<long>()??0L,leaf["revision"]!.GetValue<long>());
+      candidate["units"]!.AsObject().Remove(leafId);
+     }
      current=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",BatchRead().ToJsonString()))!;
      if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
       throw new InvalidOperationException("The remaining Blueprint could not be assembled; retain all inputs");
@@ -1409,16 +1411,20 @@ lock(state){
   if(graphSource[6]!="clean")throw new InvalidOperationException("Confirm the current graph before removing a cell");
   var options=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRemovalHistory",new System.Text.Json.Nodes.JsonObject{
    ["action"]="options",["graph"]=rootGraph.DeepClone(),["path"]=privatePath
-  }.ToJsonString()))!["nodes"]!.AsArray();
-  foreach(var id in options){
-   string sourceId=nodeOwnerId+"/node:"+id!.ToString();var body=sources[sourceId];
-   if(body is null||calls.Status.Invoke(draft,sourceId)[6]!="clean")continue;
+  }.ToJsonString()))!;
+  bool WritableCellSource(System.Text.Json.Nodes.JsonNode? key){
+   string sourceId=graphId+"/node:"+key!.ToString().Replace("/","/node:",StringComparison.Ordinal);
+   var body=sources[sourceId];
+   if(body is null||calls.Status.Invoke(draft,sourceId)[6]!="clean")return false;
    string path;
-   try{path=RequireWritableFile(body["path"]!.ToString());}catch{continue;}
+   try{path=RequireWritableFile(body["path"]!.ToString());}catch{return false;}
    var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
-   if(System.Linq.Enumerable.Any(locators["units"]!.AsArray(),row=>row!["id"]!.ToString()!=sourceId&&
-       string.Equals(path,System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],row["path"]!.ToString())),comparison)))continue;
-   removableCells.Add(id.DeepClone());
+   return !System.Linq.Enumerable.Any(locators["units"]!.AsArray(),row=>row!["id"]!.ToString()!=sourceId&&
+       string.Equals(path,System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],row["path"]!.ToString())),comparison));
+  }
+  foreach(var id in options["nodes"]!.AsArray()){
+   var members=options["sources"]![id!.ToString()]!.AsArray();
+   if(members.Count>0&&System.Linq.Enumerable.All(members,WritableCellSource))removableCells.Add(id.DeepClone());
   }
  }catch{removableCells.Clear();}
  if(nativePreview&&privatePath.Length>0){

@@ -13,11 +13,28 @@ internal static class BlueprintCellRemovalHistory
         if (!valid) throw new InvalidOperationException(message);
     }
 
-    static JsonObject Transition(JsonNode entry)
+    sealed record RetainedSource(string Id, string Path);
+
+    static RetainedSource[] RetainedSources(JsonNode receipt)
+    {
+        if (receipt["version"]?.GetValue<int>() == 1)
+            return [new(BlueprintTree.SourceId(S(receipt, "graph"), S(receipt, "node")), S(receipt, "source"))];
+
+        Need(receipt["version"]?.GetValue<int>() == 2 &&
+            receipt["sources"] is JsonArray { Count: > 0 and < 64 },
+            "Exact compound source membership required");
+        return receipt["sources"]!.AsArray().Select(row => {
+            Need(row is JsonObject { Count: 2 }, "Qualified cell source identity and path required");
+            return new RetainedSource(S(row!, "id"), S(row!, "path"));
+        }).ToArray();
+    }
+
+    static void Transition(JsonNode entry)
     {
         var receipt = entry["cellRemoval"]!.AsObject();
-        Need(receipt.Count == 7 && receipt["version"]?.GetValue<int>() == 1 &&
-            entry["units"] is JsonArray { Count: 1 }, "Exact retained cell history required");
+        Need(receipt.Count == 7 && entry["units"] is JsonArray { Count: 1 },
+            "Exact retained cell history required");
+        var retained = RetainedSources(receipt);
         var graph = entry["units"]![0]!.AsObject();
         Need(S(graph, "kind") == "blueprint" && S(graph, "id") == S(receipt, "graph") &&
             !S(graph, "id").Contains("/graph:", StringComparison.Ordinal) && graph["hierarchyVersion"] is null,
@@ -29,14 +46,19 @@ internal static class BlueprintCellRemovalHistory
         var after = JsonNode.Parse(next)!.AsObject();
         BlueprintDocuments.Validate(S(graph, "id"), "blueprint", S(graph, "before"));
         BlueprintDocuments.Validate(S(graph, "id"), "blueprint", S(graph, "after"));
-        Need(JsonNode.DeepEquals(after, BlueprintCellRemoval.Remove(before, S(receipt, "node"))),
+        string id = S(receipt, "node");
+        Need(JsonNode.DeepEquals(after, BlueprintCellRemoval.Remove(before, id)),
             "Cell history may only restore its exact original nodes and connections");
+        var keys = BlueprintCellRemoval.SourceKeys(before, id);
+        Need((keys[0] == id ? 1 : 2) == receipt["version"]!.GetValue<int>() &&
+            retained.Select(source => source.Id).SequenceEqual(keys.Select(key => BlueprintTree.SourceId(S(receipt, "graph"), key)),
+                StringComparer.Ordinal), "Exact retained source membership required");
         var guards = receipt["proof"]!.AsObject();
-        Need(guards.Count == 4 && guards.All(pair => pair.Value is JsonValue hash &&
+        Need(guards.Count == 3 + retained.Length && retained.All(source => guards.ContainsKey(source.Path)) &&
+            guards.All(pair => pair.Value is JsonValue hash &&
             hash.TryGetValue<string>(out string? value) && value is { Length: 64 } &&
             value.All(character => char.IsAsciiHexDigitLower(character))),
             "Bounded source ownership hashes required");
-        return graph;
     }
 
     sealed class Observation(string project)
@@ -92,12 +114,12 @@ internal static class BlueprintCellRemovalHistory
         public IEnumerable<KeyValuePair<string, (string Hash, string Text)>> Reads => observed;
     }
 
-    static JsonArray Observe(JsonObject request, JsonNode entry, bool prepare, out JsonObject verifiedLocator)
+    static JsonArray Observe(JsonObject request, JsonNode entry, bool prepare, out JsonArray verifiedLocators)
     {
         var receipt = entry["cellRemoval"]!.AsObject();
         var edited = entry["units"]![0]!;
-        string graphId = S(receipt, "graph"), node = S(receipt, "node");
-        string graphPath = S(edited, "path"), leafPath = S(receipt, "source");
+        string graphId = S(receipt, "graph"), graphPath = S(edited, "path");
+        var retained = RetainedSources(receipt);
         string project = S(request, "project");
         var files = new Observation(project);
         var manifestPath = Path.GetFileName(project);
@@ -137,16 +159,21 @@ internal static class BlueprintCellRemovalHistory
             body.Origin == implementation && files.Same(body.Path, graphPath),
             "The original direct root ownership changed");
         var prior = BlueprintDocuments.NodeUnits(Path.GetDirectoryName(project)!, files.Full(graphPath), graphId, S(edited, "before"));
-        string leafId = BlueprintTree.SourceId(graphId, node);
-        var originalLocator = prior.SingleOrDefault(row => S(row!, "id") == leafId);
-        Need(originalLocator is not null && files.Same(S(originalLocator, "path"), leafPath) &&
-            !files.Same(graphPath, leafPath), "The original cell source locator changed");
+        var byId = retained.ToDictionary(source => source.Id, StringComparer.Ordinal);
+        bool Retains(string path) => retained.Any(source => files.Same(source.Path, path));
         files.Writable(graphPath);
-        files.Writable(leafPath);
-        string leafText = files.Read(leafPath);
-        BlueprintDocuments.Validate(leafId, "blueprint-node", leafText);
         var proof = new JsonObject();
-        foreach (string path in new[] { manifestPath, functionPath, implementationPath, leafPath }) proof.Add(path, files.Hash(path));
+        foreach (string path in new[] { manifestPath, functionPath, implementationPath }) proof.Add(path, files.Hash(path));
+        var resolved = new JsonArray();
+        foreach (var source in retained) {
+            var locator = prior.SingleOrDefault(row => S(row!, "id") == source.Id);
+            Need(locator is not null && files.Same(S(locator, "path"), source.Path) &&
+                !files.Same(graphPath, source.Path), "An original cell source locator changed");
+            files.Writable(source.Path);
+            BlueprintDocuments.Validate(source.Id, "blueprint-node", files.Read(source.Path));
+            proof.Add(source.Path, files.Hash(source.Path));
+            resolved.Add(locator!.DeepClone());
+        }
         if (prepare) receipt["proof"] = proof;
         else Need(JsonNode.DeepEquals(proof, receipt["proof"]), "The retained C# source or its owner changed; no changes applied");
 
@@ -154,13 +181,15 @@ internal static class BlueprintCellRemovalHistory
         // inspected registrations and graphs enter the same final CAS lease.
         foreach (var registration in manifest.Registry.Values) {
             string pack = PackPaths.Resolve(Path.Combine(Path.GetDirectoryName(project)!, registration.Path));
-            string relative = Path.GetRelativePath(Path.GetDirectoryName(pack)!, files.Full(leafPath));
-            Need(Path.IsPathRooted(relative) || relative == ".." ||
-                relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal),
-                "Cell source overlaps another registered pack's ownership");
+            foreach (var source in retained) {
+                string relative = Path.GetRelativePath(Path.GetDirectoryName(pack)!, files.Full(source.Path));
+                Need(Path.IsPathRooted(relative) || relative == ".." ||
+                    relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal),
+                    "Cell source overlaps another registered pack's ownership");
+            }
         }
         foreach (var declaration in manifest.Elements.Values) {
-            Need(!files.Same(declaration.Path, graphPath) && !files.Same(declaration.Path, leafPath),
+            Need(!files.Same(declaration.Path, graphPath) && !Retains(declaration.Path),
                 "The graph or retained source aliases a declaration");
             if (declaration.Kind != "implementation") continue;
             string headerPath = declaration.Path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
@@ -171,27 +200,34 @@ internal static class BlueprintCellRemovalHistory
                 bool sameBody = header.Id == implementation && candidate.Key == target;
                 string path = candidate.Value.Path;
                 Need(sameBody || !files.Same(graphPath, path), "Shared root is outside cell removal scope");
-                Need(!files.Same(leafPath, path), "Shared cell source is outside cell removal scope");
+                Need(!Retains(path), "Shared cell source is outside cell removal scope");
                 if (sameBody || candidate.Value.SourceKind != "blueprint") continue;
                 string relativeGraph = path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
                 foreach (var locator in BlueprintDocuments.NodeUnits(Path.GetDirectoryName(project)!, files.Full(relativeGraph),
                              header.Id + "/body:" + candidate.Key, files.Read(relativeGraph)))
-                    Need(!files.Same(leafPath, S(locator!, "path")) && !files.Same(graphPath, S(locator!, "path")),
+                    Need(!Retains(S(locator!, "path")) && !files.Same(graphPath, S(locator!, "path")),
                         "Another Blueprint claims the original graph or cell source");
             }
         }
         var physical = BlueprintDocuments.NodeUnits(Path.GetDirectoryName(project)!, files.Full(graphPath), graphId, onDisk);
         Need(physical.All(row => !files.Same(S(row!, "path"), graphPath) &&
-            (!files.Same(S(row!, "path"), leafPath) || S(row!, "id") == leafId)), "Cell source paths must be distinct");
+            (!Retains(S(row!, "path")) || byId.TryGetValue(S(row!, "id"), out var source) &&
+                files.Same(source.Path, S(row!, "path")))), "Cell source paths must be distinct");
         foreach (var row in prior) files.Read(S(row!, "path"));
 
         foreach (var member in units) {
             var unit = member.Value!;
+            string path = S(unit, "path");
+            if (byId.TryGetValue(member.Key, out var source))
+                Need(S(unit, "kind") == "blueprint-node" && files.Same(source.Path, path),
+                    "A retained cell identity now belongs to another locator");
+            else if (receipt["version"]?.GetValue<int>() == 2)
+                Need(!Retains(path), "A retained cell path now belongs to another locator");
             if (member.Key == graphId || unit["draft"] is null || JsonNode.DeepEquals(unit["draft"], unit["original"])) continue;
             Need(!files.Reads.Any(read => files.Same(read.Key, S(unit, "path"))),
                 "Resolve other pending ownership or source changes before applying the cell edit");
         }
-        verifiedLocator = originalLocator!.DeepClone().AsObject();
+        verifiedLocators = resolved;
         return new JsonArray(files.Reads.Select(row => (JsonNode)new JsonObject {
             ["path"] = row.Key, ["hash"] = row.Value.Hash
         }).ToArray());
@@ -200,17 +236,24 @@ internal static class BlueprintCellRemovalHistory
     public static JsonObject Query(JsonObject request)
     {
         string action = S(request, "action");
-        if (action == "options") return new() {
-            ["nodes"] = new JsonArray(BlueprintCellRemoval.Options(
-                request["graph"]!.AsObject(), request["path"]?.GetValue<string>() ?? "")
-                .Select(id => (JsonNode)JsonValue.Create(id)!).ToArray())
-        };
+        if (action == "options") {
+            var graph = request["graph"]!.AsObject();
+            string frame = request["path"]?.GetValue<string>() ?? "";
+            var nodes = BlueprintCellRemoval.Options(graph, frame);
+            var sources = new JsonObject();
+            foreach (string id in nodes) {
+                string qualified = frame.Length == 0 ? id : frame + "/" + id;
+                sources[id] = System.Text.Json.JsonSerializer.SerializeToNode(BlueprintCellRemoval.SourceKeys(graph, qualified));
+            }
+            return new() { ["nodes"] = System.Text.Json.JsonSerializer.SerializeToNode(nodes), ["sources"] = sources };
+        }
         if (action == "validate") { Transition(request["entry"]!); return new(); }
         if (action == "entry") {
             var entry = request["entry"]!;
             Transition(entry);
-            var checks = Observe(request, entry, false, out var locator);
-            return new() { ["checks"] = checks, ["locator"] = locator };
+            var checks = Observe(request, entry, false, out var locators);
+            return new() { ["checks"] = checks, ["locators"] = locators,
+                ["locator"] = entry["cellRemoval"]!["version"]!.GetValue<int>() == 1 ? locators[0]!.DeepClone() : null };
         }
         var units = request["units"]!.AsObject();
         if (action == "prepare") {
@@ -221,25 +264,36 @@ internal static class BlueprintCellRemovalHistory
                 new[] { "propertyObservations", "atomicEditGroup", "rootContractGroup", "nodeFlowOrigin",
                     "hierarchyGroup", "retirementGroup", "conversionOrigin" }.All(field => graph[field] is null),
                 "Confirm pending source changes before removing a cell");
-            string leafId = BlueprintTree.SourceId(id, node);
-            var leaf = units[leafId]!;
-            Need(leaf?["kind"]?.ToString() == "blueprint-node" && leaf["baseline"]?.ToString() != "missing" &&
-                JsonNode.DeepEquals(leaf["draft"], leaf["original"]), "An existing clean cell source is required");
-            string after = BlueprintCellRemoval.Remove(JsonNode.Parse(before)!.AsObject(), node).ToJsonString();
+            var original = JsonNode.Parse(before)!.AsObject();
+            string after = BlueprintCellRemoval.Remove(original, node).ToJsonString();
+            var keys = BlueprintCellRemoval.SourceKeys(original, node);
+            bool compound = keys[0] != node;
+            var retained = new JsonArray();
+            foreach (string key in keys) {
+                string leafId = BlueprintTree.SourceId(id, key);
+                var leaf = units[leafId];
+                Need(leaf?["kind"]?.ToString() == "blueprint-node" && leaf["baseline"]?.ToString() != "missing" &&
+                    JsonNode.DeepEquals(leaf["draft"], leaf["original"]), "An existing clean cell source is required");
+                retained.Add(new JsonObject { ["id"] = leafId, ["path"] = S(leaf!, "path") });
+            }
             var entry = new JsonObject {
                 ["id"] = Guid.NewGuid().ToString("N"), ["label"] = "source-edit",
                 ["units"] = new JsonArray(new JsonObject {
                     ["id"] = id, ["kind"] = "blueprint", ["path"] = S(graph, "path"), ["before"] = before, ["after"] = after
                 }),
                 ["cellRemoval"] = new JsonObject {
-                    ["version"] = 1, ["graph"] = id, ["node"] = node, ["source"] = S(leaf!, "path"),
+                    ["version"] = compound ? 2 : 1, ["graph"] = id, ["node"] = node,
                     ["beforeHash"] = Digest(before), ["afterHash"] = Digest(after)
                 }
             };
-            Observe(request, entry, true, out _);
+            var receipt = entry["cellRemoval"]!.AsObject();
+            if (compound) receipt["sources"] = retained;
+            else receipt["source"] = retained[0]!["path"]!.DeepClone();
+            Observe(request, entry, true, out var locators);
             Transition(entry);
-            Need(S(leaf!, "baseline") == S(entry["cellRemoval"]!["proof"]!, S(leaf!, "path")), "Cell observation changed");
-            return new() { ["entry"] = entry };
+            foreach (var source in RetainedSources(receipt))
+                Need(S(units[source.Id]!, "baseline") == S(receipt["proof"]!, source.Path), "Cell observation changed");
+            return new() { ["entry"] = entry, ["locators"] = locators };
         }
         Need(action is "pending" or "restore", "Explicit cell history action required");
         var selected = request["selected"]?.AsArray().Select(id => id!.ToString()).ToHashSet(StringComparer.Ordinal);
@@ -259,21 +313,27 @@ internal static class BlueprintCellRemovalHistory
                 ["cellRemoval"] = receipt.DeepClone()
             };
             Transition(entry);
-            string leaf = BlueprintTree.SourceId(row.Key, S(receipt, "node"));
+            var retained = RetainedSources(receipt);
+            bool compound = receipt["version"]?.GetValue<int>() == 2;
             if (action == "restore") {
-                if (!restoring) detached.Add(new JsonObject { ["id"] = leaf, ["path"] = S(receipt, "source") });
+                if (!restoring)
+                    foreach (var source in retained)
+                        detached.Add(new JsonObject { ["id"] = source.Id, ["path"] = source.Path });
                 else {
-                    // Preserve a conflicting draft for inspection. Only a currently
-                    // valid observation may reintroduce its normal body locator.
-                    try { Observe(request, entry, false, out var locator); restored.Add(locator); }
-                    catch (Exception e) when (e is IOException or ArgumentException or InvalidOperationException or BuildError) { }
+                    // A compound recovery is staged only if every locator still verifies.
+                    // Single-cell histories retain their existing conflict inspection behavior.
+                    try {
+                        Observe(request, entry, false, out var locators);
+                        foreach (var locator in locators) restored.Add(locator!.DeepClone());
+                    }
+                    catch (Exception e) when (!compound && e is (IOException or ArgumentException or InvalidOperationException or BuildError)) { }
                 }
                 continue;
             }
             if (selected is not null && !selected.Contains(row.Key)) {
                 var comparison = OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
                 Need(!selected.Any(id => units[id]?["path"]?.ToString() is string path &&
-                    string.Equals(path, S(receipt, "source"), comparison)),
+                    retained.Any(source => string.Equals(path, source.Path, comparison))),
                     "The retained C# source cannot be written while its cell edit is pending");
                 continue;
             }

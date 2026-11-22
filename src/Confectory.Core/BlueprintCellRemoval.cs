@@ -5,6 +5,23 @@ namespace Confectory.Core;
 public static class BlueprintCellRemoval
 {
     static string Value(JsonNode? row, string key) => row?[key]?.GetValue<string>() ?? "";
+    static bool PlainAction(JsonNode node) =>
+        Value(node, "control") == "next" &&
+        new[] { "branchOwner", "executionEnum", "implementationContext", "contextBoundary", "retainedCode",
+            "sourceIdentity", "postCall", "executionSource" }.All(field => node[field] is null) &&
+        node["async"]?.GetValue<bool>() != true && node["forwardCallerStorage"]?.GetValue<bool>() != true;
+
+    static bool NoValuePins(JsonNode node) =>
+        node["signature"] is JsonObject signature && Value(signature, "return") == "void" &&
+        signature["args"] is JsonArray { Count: 0 } && node["arguments"] is null or JsonObject { Count: 0 };
+
+    internal static bool IsCompound(JsonObject graph, string id) =>
+        !id.Contains('/') && graph["nodes"]!.AsArray().Any(node => Value(node, "id") == id && Value(node, "kind") == "graph");
+
+    // The graph before the change is the authority for complete qualified membership.
+    public static string[] SourceKeys(JsonObject graph, string id) => IsCompound(graph, id)
+        ? BlueprintTree.Select(graph, id)["nodes"]!.AsArray().Select(node => id + "/" + Value(node, "id")).ToArray()
+        : [id];
 
     public static string[] Options(JsonObject graph, string frame)
     {
@@ -34,10 +51,11 @@ public static class BlueprintCellRemoval
             nodes.Any(node => Value(node, "control") == "switch"))
             return BlueprintCellRegion.RemovableCaseCells(graph);
 
-        if (edges.Count != nodes.Count || nodes.Any(node => Value(node, "kind") != "code" || Value(node, "control") != "next" ||
-            new[] { "branchOwner", "executionEnum", "implementationContext", "contextBoundary", "retainedCode",
-                "sourceIdentity", "postCall", "executionSource", "graph" }.Any(field => node?[field] is not null) ||
-            node?["async"]?.GetValue<bool>() == true || node?["forwardCallerStorage"]?.GetValue<bool>() == true))
+        bool compound = Value(graph, "profile") == FeatureBlueprint.NestedProfile &&
+            nodes.Any(node => Value(node, "kind") == "graph");
+        if (edges.Count != nodes.Count || nodes.Any(node => node is not JsonObject || !PlainAction(node) ||
+            (Value(node, "kind") != "code" || node["graph"] is not null) &&
+            (!compound || Value(node, "kind") != "graph")))
             return [];
         var ids = nodes.Select(node => Value(node, "id")).ToHashSet(StringComparer.Ordinal);
         if (ids.Count != nodes.Count || edges.Any(edge => Value(edge, "port") != "next" || !ids.Contains(Value(edge, "from"))) ||
@@ -61,9 +79,23 @@ public static class BlueprintCellRemoval
         }
         foreach (var node in nodes) VisitValues(node!["arguments"]);
         VisitValues(exits);
-        return nodes.Where(node => node!["signature"] is JsonObject signature && Value(signature, "return") == "void" &&
-            signature["args"] is JsonArray { Count: 0 } && node["arguments"] is null or JsonObject { Count: 0 } &&
-            !referenced.Contains(Value(node, "id"))).Select(node => Value(node, "id")).ToArray();
+        return nodes.Where(node => NoValuePins(node!) && !referenced.Contains(Value(node, "id")) &&
+            (compound ? Value(node, "kind") == "graph" && PlainCompound(graph, Value(node, "id")) : true))
+            .Select(node => Value(node, "id")).ToArray();
+    }
+
+    static bool PlainCompound(JsonObject root, string id)
+    {
+        try {
+            var child = BlueprintCellRegion.OwnedFrame(root, id);
+            return child["schema"]?.GetValue<int>() == 1 && child["locals"] is null or JsonArray { Count: 0 } &&
+                child["exits"] is JsonObject exits && exits.All(exit => exit.Value is null) &&
+                child["nodes"]!.AsArray().All(node => PlainAction(node!) && NoValuePins(node!) &&
+                    node!["implementation"] is JsonValue && node["graph"] is null);
+        }
+        catch (Exception error) when (error is ArgumentException or InvalidOperationException) {
+            return false;
+        }
     }
 
     public static JsonObject Remove(JsonObject graph, string id)
