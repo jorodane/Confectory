@@ -150,7 +150,7 @@ def check(browser, zoom, dpr):
 
         page.locator("#yogi").click()
         expect(package).to_be_visible()
-        package.click()
+        package.dblclick()
         reopened, historical = read_image(box)
         assert reopened == item and historical.tobytes() == image.tobytes()
         capture_requests = [req["input"]["image"] for req in fixture.requests
