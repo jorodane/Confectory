@@ -20,7 +20,7 @@ try
         case "blueprintEnumPreview":reply=BlueprintEnumContract.Preview(request["contract"]!.AsObject(),request["binding"]!.AsObject());break;
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
-        case "blueprintCellRegion":reply=BlueprintCellRegion.Query(request, allowFramePreview: true);break;
+        case "blueprintCellRegion":reply=BlueprintCellRegion.Query(request, allowDesktopFrames: true);break;
         case "blueprintCellRemovalHistory":reply=BlueprintCellRemovalHistory.Query(request);break;
         case "slotAssignment":reply=SlotAssignment.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;

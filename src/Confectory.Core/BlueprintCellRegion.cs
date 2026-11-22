@@ -426,13 +426,45 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges};
     }
 
-    public static JsonObject Query(JsonObject request) => Query(request, allowFramePreview: false);
+    static void ExactBranchRoutes(JsonArray edits)
+    {
+        Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
+            &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");
+    }
 
-    public static JsonObject Query(JsonObject request, bool allowFramePreview)
+    static JsonObject OrderBranch(JsonObject graph, JsonArray edits, bool frame = false)
+    {
+        var anchor=edits.Single(e=>S(e,"port").StartsWith("case:",StringComparison.Ordinal))!;
+        var region=Read(graph,S(anchor,"node"),S(anchor,"port"));
+        Need(!frame || region.Nodes.Count >= 2, "At least two existing case cells required");
+        var routes=edits.ToDictionary(e=>S(e,"node"),e=>e!,StringComparer.Ordinal);
+        Need(routes.Count==region.Nodes.Count+1 && region.Nodes.All(routes.ContainsKey)
+            &&edits.Where(e=>!ReferenceEquals(e,anchor)).All(e=>S(e,"port")=="next"&&region.Nodes.Contains(S(e,"node"))),
+            "One complete original branch chain required");
+        var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(anchor,"to");
+        while(region.Nodes.Contains(at)){Need(seen.Add(at),"Branch order cannot contain a cycle");at=S(routes[at],"to");}
+        Need(seen.Count==region.Nodes.Count&&at==region.End,"Branch order cannot drop nodes or change its exit");
+        var edges=graph["edges"]!.DeepClone().AsArray();
+        foreach(var row in edits){
+            if (frame)
+            {
+                edges.Single(e => S(e, "from") == S(row, "node") && S(e, "port") == S(row, "port"))!["to"] = S(row, "to");
+                continue;
+            }
+            foreach(var edge in edges.Where(e=>S(e,"from")==S(row,"node")&&S(e,"port")==S(row,"port")).ToArray())edges.Remove(edge);
+            edges.Add(new JsonObject{["from"]=S(row,"node"),["port"]=S(row,"port"),["to"]=S(row,"to")});
+        }
+        return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
+    }
+
+    public static JsonObject Query(JsonObject request) => Query(request, allowDesktopFrames: false);
+
+    public static JsonObject Query(JsonObject request, bool allowDesktopFrames)
     {
         string action = S(request, "action");
-        bool preview = allowFramePreview && action == "frame-preview";
-        bool frame=action is "frame-order" or "frame-create" || preview;
+        bool preview = allowDesktopFrames && action == "frame-preview";
+        bool frameCase = allowDesktopFrames && action == "frame-case-order";
+        bool frame=action is "frame-order" or "frame-create" || preview || frameCase;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
         if (preview)
@@ -440,6 +472,18 @@ public static class BlueprintCellRegion
             Need(edits.Count == 0, "Observe a preview frame without edits");
             OwnedPreviewFrame(graph, S(request, "path"));
             return new JsonObject();
+        }
+        if (frameCase)
+        {
+            CompoundOrder(graph, CurrentRoutes(graph), allowSwitchChild: true);
+            string path = S(request, "path");
+            Need(path.Length > 0 && !path.Contains('/'), "One directly owned switch child required");
+            var child = BlueprintTree.Select(graph, path);
+            Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Direct switch child required");
+            if (edits.Count == 0) return new JsonObject();
+            Need(edits.Count <= 64, "Bounded branch order required");
+            ExactBranchRoutes(edits);
+            return OrderBranch(child, edits, frame: true);
         }
         if(action=="transfer-options"){
             Need(edits.Count==0,"Read transfer options without edits");
@@ -479,24 +523,9 @@ public static class BlueprintCellRegion
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
         if(action is "order" or "transfer"){
-            Need(edits.All(e=>e is JsonObject row&&row.Count==4&&row.All(p=>p.Key is "action" or "node" or "port" or "to")
-                &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");
+            ExactBranchRoutes(edits);
             if(action=="transfer")return TransferOrder(graph,edits,ReadTransferScope(graph));
-            var anchor=edits.Single(e=>S(e,"port").StartsWith("case:",StringComparison.Ordinal))!;
-            var region=Read(graph,S(anchor,"node"),S(anchor,"port"));
-            var routes=edits.ToDictionary(e=>S(e,"node"),e=>e!,StringComparer.Ordinal);
-            Need(routes.Count==region.Nodes.Count+1 && region.Nodes.All(routes.ContainsKey)
-                &&edits.Where(e=>!ReferenceEquals(e,anchor)).All(e=>S(e,"port")=="next"&&region.Nodes.Contains(S(e,"node"))),
-                "One complete original branch chain required");
-            var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(anchor,"to");
-            while(region.Nodes.Contains(at)){Need(seen.Add(at),"Branch order cannot contain a cycle");at=S(routes[at],"to");}
-            Need(seen.Count==region.Nodes.Count&&at==region.End,"Branch order cannot drop nodes or change its exit");
-            var edges=graph["edges"]!.DeepClone().AsArray();
-            foreach(var row in edits){
-                foreach(var edge in edges.Where(e=>S(e,"from")==S(row,"node")&&S(e,"port")==S(row,"port")).ToArray())edges.Remove(edge);
-                edges.Add(new JsonObject{["from"]=S(row,"node"),["port"]=S(row,"port"),["to"]=S(row,"to")});
-            }
-            return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
+            return OrderBranch(graph, edits);
         }
         Need(action=="create"&&edits.Count==6,"One ordinary branch insertion required");
         var creation=edits.Single(e=>S(e,"action")=="createNode")!;string created=S(creation,"node");var definition=creation["definition"]!.AsObject();string owner=S(definition,"branchOwner");
