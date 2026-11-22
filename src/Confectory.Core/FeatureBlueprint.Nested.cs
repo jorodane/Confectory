@@ -64,13 +64,7 @@ public static partial class FeatureBlueprint
             foreach (var map in result["sourceMap"]?.AsArray() ?? new JsonArray()) map!["node"] = prefix + "/" + map["node"];
             foreach (var node in result["nodeSources"]?.AsArray() ?? new JsonArray()) node!["id"] = prefix + "/" + node["id"];
         }
-        // Capture the actual child emitter result before parent aggregation strips
-        // its source. No slicing, alternate emitter, or persisted graph metadata.
         JsonObject? selectedAssembly = null;
-        if (prefix is not null && request["assemblyPath"]?.ToString()==prefix
-            && result["state"]?.ToString()=="source-assembled")
-            selectedAssembly=new JsonObject{["path"]=prefix,["body"]=result["body"]!.DeepClone(),
-                ["members"]=result["members"]!.DeepClone(),["bodyHash"]=result["bodyHash"]!.DeepClone()};
         var descendants = new JsonArray();
         var summaries = new JsonObject();
         var nestedWarnings = new JsonArray();
@@ -95,6 +89,26 @@ public static partial class FeatureBlueprint
             summaries[child.Key] = summary;
         }
         if(result["body"] is not null && result["members"] is not null) result["bodyHash"] = Hash(result["body"]!.GetValue<string>() + result["members"]!.GetValue<string>());
+        // Capture this instance after collecting its own descendants, before
+        // an ancestor adds any siblings and removes source from child summaries.
+        if (prefix is not null && request["assemblyPath"]?.ToString() == prefix && S(result, "state") == "source-assembled")
+        {
+            Need(selectedAssembly is null, "GRAPH_ASSEMBLY_PATH_DUPLICATE", prefix);
+            var included = BlueprintTree.Nodes(request["graph"]!.AsObject()).ToArray();
+            bool ExactPaths(string collection, string key, IEnumerable<BlueprintTree.Entry> expected)
+            {
+                var paths = expected.Select(entry => prefix + "/" + entry.Key).ToHashSet(StringComparer.Ordinal);
+                var rows = result[collection]!.AsArray();
+                return rows.Count == paths.Count && paths.SetEquals(rows.Select(row => S(row, key)));
+            }
+            // The plain nested profile emits local functions for code and graph
+            // calls. Standalone members and completion adapters are outside it.
+            Need(S(result, "members").Length == 0 && ExactPaths("sourceMap", "node", included)
+                && ExactPaths("nodeSources", "id", included.Where(entry => S(entry.Node, "kind") == "code")),
+                "GRAPH_ASSEMBLY_SCOPE", prefix);
+            selectedAssembly = new JsonObject { ["path"] = prefix, ["body"] = result["body"]!.DeepClone(),
+                ["members"] = result["members"]!.DeepClone(), ["bodyHash"] = result["bodyHash"]!.DeepClone() };
+        }
         if (summaries.Count > 0) { result["children"] = summaries; result["nestedNodes"] = descendants; }
         if(nestedWarnings.Count>0)result["nestedWarnings"]=nestedWarnings;
         if(selectedAssembly is not null)result["selectedAssembly"]=selectedAssembly;

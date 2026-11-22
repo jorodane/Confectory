@@ -110,18 +110,18 @@ public static class BlueprintCellRegion
         return routes;
     }
 
-    internal static JsonObject OwnedFrame(JsonObject root,string path)
+    internal static JsonObject OwnedPreviewFrame(JsonObject root, string path)
     {
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
         CompoundOrder(root,CurrentRoutes(root));
-        var parts=path.Split('/');Need(parts.Length is >0 and <=8 && parts.All(p=>p.Length>0),"Exact nonempty owned frame path required");
-        var selected=root;
-        foreach(string part in parts){
-            var owner=selected["nodes"]!.AsArray().Single(n=>S(n,"id")==part)!;
-            Need(S(owner,"kind")=="graph","Every frame path segment must be an owned compound");
-            selected=owner["graph"]!.AsObject();
-        }
+        Need(path.Split('/').All(part => part.Length > 0), "Exact nonempty owned frame path required");
+        return BlueprintTree.Select(root, path);
+    }
+
+    internal static JsonObject OwnedFrame(JsonObject root,string path)
+    {
+        var selected = OwnedPreviewFrame(root, path);
         CompoundOrder(selected,CurrentRoutes(selected),true);
         return selected;
     }
@@ -426,11 +426,21 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges};
     }
 
-    public static JsonObject Query(JsonObject request)
+    public static JsonObject Query(JsonObject request) => Query(request, allowFramePreview: false);
+
+    public static JsonObject Query(JsonObject request, bool allowFramePreview)
     {
-        bool frame=S(request,"action") is "frame-order" or "frame-create";
+        string action = S(request, "action");
+        bool preview = allowFramePreview && action == "frame-preview";
+        bool frame=action is "frame-order" or "frame-create" || preview;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
-        var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();string action=S(request,"action");
+        var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
+        if (preview)
+        {
+            Need(edits.Count == 0, "Observe a preview frame without edits");
+            OwnedPreviewFrame(graph, S(request, "path"));
+            return new JsonObject();
+        }
         if(action=="transfer-options"){
             Need(edits.Count==0,"Read transfer options without edits");
             return TransferOptions(ReadTransferScope(graph));

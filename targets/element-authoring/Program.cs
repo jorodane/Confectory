@@ -16,11 +16,11 @@ try
         case "packSource": case "packManifest": case "packUsage":
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
         case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
-        case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request);break;
+        case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request, allowCompoundPreview: true);break;
         case "blueprintEnumPreview":reply=BlueprintEnumContract.Preview(request["contract"]!.AsObject(),request["binding"]!.AsObject());break;
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;
-        case "blueprintCellRegion":reply=BlueprintCellRegion.Query(request);break;
+        case "blueprintCellRegion":reply=BlueprintCellRegion.Query(request, allowFramePreview: true);break;
         case "blueprintCellRemovalHistory":reply=BlueprintCellRemovalHistory.Query(request);break;
         case "slotAssignment":reply=SlotAssignment.Prepare(request);break;
         case "blueprintPrepareFeature":reply=BlueprintCreation.Prepare(request,Format);break;

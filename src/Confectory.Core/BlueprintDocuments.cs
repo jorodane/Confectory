@@ -40,7 +40,9 @@ public static class BlueprintDocuments
         return new JsonObject { ["id"] = id, ["kind"] = kind, ["validSourceDocument"] = true, ["compiled"] = false };
     }
 
-    public static JsonObject DescribeOwned(JsonObject request)
+    public static JsonObject DescribeOwned(JsonObject request) => DescribeOwned(request, allowCompoundPreview: false);
+
+    public static JsonObject DescribeOwned(JsonObject request, bool allowCompoundPreview)
     {
         string project = Path.GetFullPath(request["project"]!.GetValue<string>());
         var registry = new Registry(project, new Documents(Path.Combine(Path.GetDirectoryName(project)!, ".confectory", "document-cache"), new BuildStatistics()), new BuildStatistics());
@@ -49,10 +51,9 @@ public static class BlueprintDocuments
         string assemblyPath=request["assemblePreview"]?.GetValue<bool>()==true?request["privatePath"]?.GetValue<string>()??"":"";
         if(assemblyPath.Length>0){
             Require(implementation.Parent is null&&PackPaths.Namespace(implementation.Function!)==registry.Project.Namespace,"Direct owned child preview required");
-            var root=request["graph"]!.AsObject();var frame=BlueprintTree.Select(root,assemblyPath);
-            var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=frame["entry"]!.DeepClone()}};
-            foreach(var edge in frame["edges"]!.AsArray())routes.Add(new JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
-            BlueprintCellRegion.Query(new JsonObject{["action"]="frame-order",["graph"]=root.DeepClone(),["path"]=assemblyPath,["edits"]=routes});
+            var root = request["graph"]!.AsObject();
+            if (allowCompoundPreview) BlueprintCellRegion.OwnedPreviewFrame(root, assemblyPath);
+            else BlueprintCellRegion.OwnedFrame(root, assemblyPath);
         }
         if (implementation.Parent is not null)
         {
