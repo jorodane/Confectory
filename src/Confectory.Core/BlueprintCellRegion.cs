@@ -122,10 +122,38 @@ public static class BlueprintCellRegion
         CompoundOrder(selected,routes,true);
         return selected;
     }
+    static string RootStart(JsonObject graph)
+    {
+        var nodes=graph["nodes"]!.AsArray();
+        Need(S(graph,"profile").StartsWith("sync-acyclic-",StringComparison.Ordinal)&&graph["copySource"] is null
+            &&graph["executionExitMode"]?.GetValue<bool>()!=true&&nodes.Count is >0 and <64
+            &&nodes.All(n=>Ordinary(n!,"")&&PlainCallContext(n!)),"A nonempty ordinary serial root is required");
+        var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
+        var edges=graph["edges"]!.AsArray();
+        Need(names.Count==nodes.Count&&edges.Count==nodes.Count&&edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from"))),
+            "One next route per original root cell required");
+        var routes=edges.ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
+        string entry=S(graph,"entry"),at=entry;
+        var visited=new HashSet<string>(StringComparer.Ordinal);
+        while(routes.TryGetValue(at,out var next)){Need(visited.Add(at),"Root chain cannot cycle");at=next;}
+        Need(visited.Count==nodes.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(at[5..]),
+            "The current root entry, complete chain and explicit exit are required");
+        return entry;
+    }
+
     static JsonObject FrameCreate(JsonObject root,string path,JsonArray edits)
     {
-        var selected=OwnedFrame(root,path);
-        Need(edits.Count==6,"Exactly one owned child insertion required");
+        var candidate=root.DeepClone().AsObject();
+        var child=OwnedFrame(candidate,path);
+        InsertCell(child,edits,rootStart:false);
+        // Recheck the original depth/per-frame/global limits including the new cell.
+        OwnedFrame(candidate,path);
+        return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
+    }
+
+    static void InsertCell(JsonObject selected,JsonArray edits,bool rootStart)
+    {
+        Need(edits.Count==6,"Exactly one owned cell insertion required");
         var creation=edits.Single(e=>S(e,"action")=="createNode")!;
         string id=S(creation,"node");var definition=creation["definition"]!.AsObject();
         Need(creation.AsObject().Count==3 && definition.Count==4
@@ -139,7 +167,7 @@ public static class BlueprintCellRegion
         Need(new[]{"rename","intent","source"}.All(a=>edits.Count(e=>S(e,"action")==a)==1)
             && edits.Where(e=>S(e,"action") is not ("route" or "entry")).All(e=>S(e,"node")==id&&(ReferenceEquals(e,creation)
                 ||e is JsonObject row&&row.Count==3&&S(e,"action") is "rename" or "intent" or "source"
-                &&e["text"] is JsonValue value&&value.TryGetValue<string>(out _))),"Only the new child body/name may be edited");
+                &&e["text"] is JsonValue value&&value.TryGetValue<string>(out _))),"Only the new cell body/name may be edited");
         var routes=edits.Where(e=>S(e,"action") is "route" or "entry").ToArray();
         Need(routes.Length==2&&routes.All(e=>e is JsonObject row&&row["to"] is JsonValue value&&value.TryGetValue<string>(out _)
             &&(S(row,"action")=="entry"&&row.Count==3&&S(row,"node")=="$entry"
@@ -148,17 +176,13 @@ public static class BlueprintCellRegion
         var incoming=routes.Single(e=>S(e,"node")!=id)!;var outgoing=routes.Single(e=>S(e,"node")==id)!;
         bool atStart=S(incoming,"action")=="entry";
         string successor=S(outgoing,"to");
-        Need(S(outgoing,"action")=="route"&&S(incoming,"to")==id
+        Need((!rootStart||atStart)&&S(outgoing,"action")=="route"&&S(incoming,"to")==id
             &&(atStart?successor==S(selected,"entry"):selected["edges"]!.AsArray().Any(e=>S(e,"from")==S(incoming,"node")&&S(e,"port")=="next"&&S(e,"to")==successor)),
             "Insert on one observed connection without changing its continuation");
-        var candidate=root.DeepClone().AsObject();var child=OwnedFrame(candidate,path);
-        var made=definition.DeepClone().AsObject();made["id"]=id;child["nodes"]!.AsArray().Add(made);
-        if(atStart)child["entry"]=id;
-        else child["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!["to"]=id;
-        child["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=successor});
-        // Recheck the original depth/per-frame/global limits including the new cell.
-        OwnedFrame(candidate,path);
-        return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
+        var made=definition.DeepClone().AsObject();made["id"]=id;selected["nodes"]!.AsArray().Add(made);
+        if(atStart)selected["entry"]=id;
+        else selected["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!["to"]=id;
+        selected["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=successor});
     }
     static Region Read(JsonObject graph, string owner, string port)
     {
@@ -400,7 +424,18 @@ public static class BlueprintCellRegion
             return ScopeTransferOptions(ReadScopeTransfer(graph));
         }
         if(action=="scope-transfer")return TransferScopeBoundary(graph,edits);
+        if(action=="root-start-options"){
+            Need(edits.Count==0,"Read the original root start without edits");
+            return new JsonObject{["entry"]=RootStart(graph)};
+        }
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
+        if(action=="root-start-create"){
+            RootStart(graph);
+            var candidate=graph.DeepClone().AsObject();
+            InsertCell(candidate,edits,rootStart:true);
+            RootStart(candidate);
+            return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
+        }
         if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
         if(action is "order" or "transfer"){
