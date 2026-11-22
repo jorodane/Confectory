@@ -643,14 +643,22 @@ function contextMenu(x,y,items,{escapeAnchor}={}){
   if(!escapeAnchor)document.addEventListener('keydown',keydown,listeners);
  },0);
 }
-async function showProjectInformation(id){
- const info=await view.call('projectInformation',{id}),scope=current.projectId;
+async function showProjectInformation(id,{focusTitle=false}={}){
+ const scope=current.projectId;
+ if(focusTitle&&scope)return false;
+ const info=await view.call('projectInformation',{id});
+ if(current.projectId!==scope)return false;
  const input=projectInformationInputs.get(id)||{title:info.title,description:info.description,revision:info.revision};projectInformationInputs.set(id,input);
  modal('프로젝트 정보',`<section data-project-information="${esc(id)}"><p>${esc(info.namespace||'manifest 조회 불가')} · <span data-project-kind>${esc(info.kind||'유형 확인 불가')}</span>${info.standalone?' · 독립 실행 가능':''}</p><p class="small">확인된 파일 기준 · 조회는 프로젝트를 열거나 실행하지 않습니다.</p><h3>요구 팩</h3><ul data-project-requirements>${(info.requirements||[]).map(p=>`<li>${esc(p.namespace)} · ${esc(p.version)}</li>`).join('')||'<li>확인된 요구 팩 없음 또는 조회 불가</li>'}</ul><h3>타깃별 포함 팩</h3>${(info.targets||[]).map(t=>`<details><summary>${esc(t.target)} · ${t.count}개</summary><p>${(t.included||[]).map(esc).join(', ')}</p></details>`).join('')||'<p>도달성 조회 미지원 또는 조회 불가</p>'}<p data-information-helper>선택 Helper: ${esc(info.selectedHelper?.id||'미지정')} ${esc(info.selectedHelper?.membership||'')} · 공통 기억 ${info.selectedHelper?.allowCommon?'허용':'제외'}</p><form data-project-information-form><label>목록 표시 제목<input data-information-title maxlength="80" required value="${esc(input.title)}"></label><label>목록 표시 설명<textarea data-information-description maxlength="2048">${esc(input.description)}</textarea></label><p class="small">표시 정보만 저장합니다. namespace·요구 팩·소스와 Helper 선택은 바뀌지 않습니다. 닫으면 미적용 입력을 보관합니다.</p><div class="actions"><button class="primary" type="submit" data-operation>표시 정보 저장</button><button type="button" data-information-cancel>닫기 · 입력 보관</button><button type="button" data-information-discard>입력 버리기</button></div></form></section>`,(r,close)=>{
   const title=$('[data-information-title]',r),description=$('[data-information-description]',r);title.oninput=()=>input.title=title.value;description.oninput=()=>input.description=description.value;
   $('[data-information-cancel]',r).onclick=close;$('[data-information-discard]',r).onclick=()=>{projectInformationInputs.delete(id);close();};
   $('form',r).onsubmit=e=>{e.preventDefault();work(async()=>{if(current.projectId!==scope)throw Error('프로젝트 범위가 바뀌었습니다. 입력은 유지됩니다.');await view.call('saveProjectInformation',{id,...input});projectInformationInputs.delete(id);close();},'프로젝트 목록 표시 정보 저장됨',{failureMessage:'프로젝트 정보를 저장하지 못했습니다. 입력은 유지됩니다. 목록 저장본과 범위를 다시 확인하세요.'});};
  });
+ if(focusTitle){
+  const title=$('#overlays [data-information-title]');
+  title?.focus({preventScroll:true});
+  title?.select();
+ }
 }
 function showProjectSettings(id,trigger){
  if(!current.projectId||current.listingId!==id)return;
@@ -675,7 +683,7 @@ async function saveHelperGlobalDraft(h){
  if(result.conflict){const error=Error('helper_draft_changed');error.saved=result;throw error;}draft.revision=result.revision;draft.draftRevision=result.draftRevision;if(draft.value.globalDraft===text){draft.dirty=false;draft.value=result.value;}return result;
 }
 function renderGlobalHelperDraft(root,h){helperAgentsUI.renderGlobal(root,h);}
-function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
+function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[['이름 변경',()=>work(()=>showProjectInformation(p.id,{focusTitle:true}))]]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
 
 async function leaveActiveProject(){
  const scope=current.projectId;if(!scope)return;

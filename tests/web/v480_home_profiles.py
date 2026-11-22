@@ -66,10 +66,16 @@ def invoke(endpoint,data,accepted=True):
    time.sleep(.02)
   raise AssertionError('invoke stayed pending')
  finally:assert send(dict(envelope,op='dispose'))['ok']
-def info(index=0):
+def info(index=0, *, rename=False):
  if page.locator('#title').count():page.locator('#title').click()
  else:page.locator('[data-manage="'+ids[index]+'"]').click()
- page.locator('.context-menu').get_by_role('button',name='프로젝트 정보',exact=True).click();expect(page.locator('[data-project-information]')).to_be_visible();return page.get_by_role('dialog',name='프로젝트 정보',exact=True)
+ item=page.locator('.context-menu').get_by_role('button',name='이름 변경' if rename else '프로젝트 정보',exact=True)
+ expect(item).to_be_visible(timeout=5000)
+ item.click()
+ expect(page.locator('[data-project-information]')).to_have_attribute('data-project-information',ids[index])
+ dialog=page.get_by_role('dialog',name='프로젝트 정보',exact=True)
+ if rename:expect(dialog.locator('[data-information-title]')).to_be_focused()
+ return dialog
 def close():page.locator('#overlays .modal [data-close]').click()
 def enter(index=0):page.locator('[data-enter="'+ids[index]+'"]').click();expect(page.locator('#nav')).to_be_enabled()
 def helper_card():
@@ -86,11 +92,35 @@ def invariant(project=None):
 with sync_playwright() as p:
  browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox'])
  try:
-  start();r=info();expect(r.locator('[data-project-kind]')).to_have_text('project');expect(r.locator('[data-project-requirements]')).to_contain_text('Confectory.BaseUI');assert not any((project/'.confectory').exists() for project in projects)
-  r.locator('[data-information-title]').fill('Edited local title');r.locator('[data-information-description]').fill('Unapplied listing description');close();r=info();expect(r.locator('[data-information-title]')).to_have_value('Edited local title');assert json.loads(catalog.read_text())[0]['title']=='Profile Project 1'
+  start();r=info(rename=True);expect(r.locator('[data-project-kind]')).to_have_text('project');expect(r.locator('[data-project-requirements]')).to_contain_text('Confectory.BaseUI');assert not any((project/'.confectory').exists() for project in projects)
+  title=r.locator('[data-information-title]')
+  title.fill('');r.locator('button[type=submit]').click();expect(r).to_be_visible()
+  assert not title.evaluate('field=>field.validity.valid') and 'saveProjectInformation' not in endpoints
+  title.fill('Edited local title');r.locator('[data-information-description]').fill('Unapplied listing description');close()
+  assert json.loads(catalog.read_text())==cards
+  r=info(1,rename=True);expect(r.locator('[data-information-title]')).to_have_value(cards[1]['title']);close()
+  r=info(rename=True);expect(r.locator('[data-information-title]')).to_have_value('Edited local title')
   r.locator('button[type=submit]').click();expect(r).to_have_count(0);expect(page.locator('[data-enter="'+ids[0]+'"]')).to_contain_text('Edited local title');assert json.loads(catalog.read_text())[0]['description']=='Unapplied listing description'
-  r=info();r.locator('[data-information-description]').fill('CAS retained listing input');catalog_bytes=catalog.read_bytes();external_bytes=catalog_bytes+b'\n';catalog.write_bytes(external_bytes);r.locator('button[type=submit]').click();expect(page.locator('#status')).to_contain_text('입력은 유지');expect(r.locator('[data-information-description]')).to_have_value('CAS retained listing input');assert catalog.read_bytes()==external_bytes;catalog.write_bytes(catalog_bytes);r.locator('[data-information-discard]').click()
+  assert json.loads(catalog.read_text())[1:]==cards[1:]
+  r=info(rename=True)
+  r.locator('[data-information-title]').fill('CAS retained title')
+  r.locator('[data-information-description]').fill('CAS retained listing input')
+  catalog_bytes=catalog.read_bytes();external_bytes=catalog_bytes+b'\n';catalog.write_bytes(external_bytes)
+  r.locator('button[type=submit]').click()
+  expect(page.locator('#status')).to_contain_text('입력은 유지')
+  expect(r.locator('[data-information-title]')).to_have_value('CAS retained title')
+  expect(r.locator('[data-information-description]')).to_have_value('CAS retained listing input')
+  assert catalog.read_bytes()==external_bytes
+  catalog.write_bytes(catalog_bytes);r.locator('[data-information-discard]').click()
   r=info(2);expect(r.locator('[data-project-kind]')).to_have_text('유형 확인 불가');close();assert not (root/'missing.cpack').exists();invariant('')
+  if '--tile-rename-only' in sys.argv:
+   start()
+   expect(page.locator('[data-enter="'+ids[0]+'"] h2')).to_have_text('Edited local title')
+   expect(page.locator('[data-enter="'+ids[1]+'"] h2')).to_have_text(cards[1]['title'])
+   assert not set(endpoints)&{'openProject','removeListing','runProject','runWindow'}
+   invariant('')
+   print('PASS Home tile rename opens the title field, isolates drafts and CAS, preserves other listings and source bytes, and survives a cold restart')
+   raise SystemExit(0)
   # Home profile edit and global draft have no project context at all.
   page.locator('#add-helper').click();page.locator('[data-recruit="global"]').click();expect(page.locator('#global-helper-list')).to_contain_text('main-helper');close();helper_store=storage/'helpers/helpers.json';immutable_helper=helper_store.read_bytes();imported_profile=next((storage/'helper-presentations').glob('*.json')).read_bytes();r=settings();r.locator('#participant-name').fill('Local Chief');r.locator('#participant-short-description').fill('Display role');r.locator('#participant-description').fill('Display biography');close();r=settings();expect(r.locator('#participant-name')).to_have_value('Local Chief');assert next((storage/'helper-presentations').glob('*.json')).read_bytes()==imported_profile;r.locator('[data-profile-save]').click();expect(r).to_have_count(0)
   c=helper_card();expect(c.locator('.helper-profile-identity>strong')).to_have_text('Local Chief');c.locator('textarea').fill('GLOBAL ONLY unsent draft');c.locator('textarea').fill('GLOBAL second saved draft');page.evaluate('()=>globalThis.confectoryFlushPresentation()');expect(c.locator('textarea')).to_have_value('GLOBAL second saved draft');expect(page.locator('#add-helper')).to_be_enabled();assert json.loads(next((storage/'helper-presentations').glob('*.json')).read_text())['globalDraft']=='GLOBAL second saved draft';c.locator('[data-close]').click();invariant('');assert helper_store.read_bytes()==immutable_helper
