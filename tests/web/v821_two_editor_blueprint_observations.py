@@ -1,4 +1,4 @@
-"""Two local EditorHome processes, one project, real delayed previews and Review."""
+"""Two local EditorHome processes sharing a project, with real Save and Review."""
 import ast
 from contextlib import contextmanager
 import copy
@@ -11,6 +11,7 @@ from playwright.sync_api import expect, sync_playwright
 
 from editor_navigation import choose_project_tool, goto_editor
 
+save_loss = sys.argv[3:4] == ["save-loss"]
 sys.argv[3:4] = ["method-compound-order"]
 fixture = Path(__file__).with_name("v821_frame_structure_ui.py")
 statements = ast.parse(fixture.read_text()).body
@@ -308,19 +309,128 @@ def run_pair(publisher, late):
     assert not stale_displayed, "The late completed preview published superseded C# in the still-selected parent"
 
 
+def run_save_loss(browser):
+    checkpoint_dir = f.project / ".confectory" / "edit-workspaces"
+    accepted_name = "저장 응답을 받지 못한 이름"
+    later_name = "다른 창에서 확정한 이후 이름"
+    private_name = "첫 창의 아직 저장하지 않은 이름"
+    first = Editor(0, browser)
+    try:
+        with first.active():
+            open_document()
+            root_name = doc().locator('[data-document-name="after"]')
+            root_name.fill(accepted_name)
+            held = pending()
+            assert len(held) == 1 and held[0][1]["text"] == accepted_name, held
+            writes, queries, responses = {}, set(), {}
+
+            def lose_save_replies(route):
+                body = route.request.post_data_json
+                if body.get("op") == "invoke" and body.get("endpoint") == "blueprint":
+                    action = body.get("input", {}).get("action")
+                    if action == "authorBatch":
+                        writes[body["requestId"]] = body["input"]
+                    if writes and action == "settledAuthorBatch":
+                        queries.add(body["requestId"])
+                response = route.fetch()
+                payload = response.json()
+                for row in payload.get("results", []):
+                    request_id = row["requestId"]
+                    if request_id in writes or request_id in queries:
+                        responses[request_id] = copy.deepcopy(row)
+                        row.clear()
+                        row.update(requestId=request_id, ok=False, error={"code": "transport-interrupted"})
+                route.fulfill(response=response, json=payload)
+
+            f.page.route("**/api/request", lose_save_replies)
+            try:
+                save()
+                assert len(writes) == 1 and queries.intersection(responses), (writes, queries)
+                request_id, attempt = next(iter(writes.items()))
+                assert responses[request_id]["ok"], responses[request_id]
+                saved = next(checkpoint_dir.glob("*/draft.json"))
+                accepted = json.loads(saved.read_bytes())
+                unit = next(unit for unit in accepted["changes"] if unit["id"] == t.graph)
+                assert unit["authorSaveReceipt"]["attempt"] == attempt["attempt"]
+                assert next(node for node in json.loads(unit["draft"])["nodes"] if node["id"] == "after")["displayName"] == accepted_name
+                assert all(dict(pending()).get(key) == value for key, value in held)
+                x.original()
+            finally:
+                f.page.unroute("**/api/request", lose_save_replies)
+            root_name.fill(private_name)
+            private = pending()
+            assert any(row.get("text") == private_name for _, row in private)
+        f.checked("The real Save checkpoints exactly one attempt; only the browser's Save and settlement replies are lost.")
+
+        second = Editor(1, browser)
+        try:
+            with second.active():
+                open_document()
+                expect(doc().locator('[data-document-name="after"]')).to_have_value(accepted_name)
+                doc().locator('[data-document-name="after"]').fill(later_name)
+                saved_in_second = save()
+                assert any(row.get("result", {}).get("ok") for row in saved_in_second)
+                assert not pending()
+                window = review()
+                reviewed = f.state()["review"]
+                assert {row["id"] for row in reviewed["units"] if row["before"] != row["after"]} == {t.graph}
+                approve(window)
+                window.locator("#confirm").click()
+                expect(window).to_be_hidden(timeout=120000)
+                f.idle()
+                published = json.loads(GRAPH.read_text())
+                assert next(node for node in published["nodes"] if node["id"] == "after")["displayName"] == later_name
+                checkpoint = saved.read_bytes()
+                previous_undo = accepted["history"]["undo"]
+                confirmed_undo = json.loads(checkpoint)["history"]["undo"]
+                assert previous_undo and confirmed_undo[:-1] == previous_undo
+        finally:
+            second.close()
+
+        with first.active():
+            traffic = save()
+            retried = [row["invoke"]["input"] for row in traffic
+                       if row.get("invoke", {}).get("endpoint") == "blueprint"]
+            assert any(row["action"] == "settledAuthorBatch" and row["attempt"] == attempt["attempt"]
+                       for row in retried), retried
+            assert not any(row["action"] == "authorBatch" for row in retried), retried
+            if panel().locator(".bp-status").text_content() == "저장됨":
+                raise AssertionError("The first editor reported saving its still-pending name.")
+            assert pending() == private
+        assert saved.read_bytes() == checkpoint and json.loads(GRAPH.read_text()) == published
+        f.checked("The earlier Save retry preserves the second editor's Confirm and checkpoint bytes and the first editor's private inputs.")
+
+        first.restart(2)
+        with first.active():
+            open_document()
+            expect(doc().locator('[data-document-name="after"]')).to_have_value(private_name)
+            assert pending() == private
+        expected = json.loads(x.physical[GRAPH])
+        next(node for node in expected["nodes"] if node["id"] == "after")["displayName"] = later_name
+        assert published == expected and saved.read_bytes() == checkpoint
+        assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != GRAPH)
+        assert not f.errors and not f.external, (f.errors, f.external)
+        f.checked("Cold reopen preserves the exact unconfirmed input, nested graph, sibling and C#.")
+    finally:
+        first.close()
+
+
 try:
     with sync_playwright() as playwright:
         expect.set_options(timeout=60000)
         with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
-            late = Editor(1, browser)
-            try:
-                publisher = Editor(0, browser)
+            if save_loss:
+                run_save_loss(browser)
+            else:
+                late = Editor(1, browser)
                 try:
-                    run_pair(publisher, late)
+                    publisher = Editor(0, browser)
+                    try:
+                        run_pair(publisher, late)
+                    finally:
+                        publisher.close()
                 finally:
-                    publisher.close()
-            finally:
-                late.close()
+                    late.close()
 finally:
     (f.case / "two-editor-blueprint-traffic.json").write_text(json.dumps(f.traffic, ensure_ascii=False))
     print("Evidence:", f.case)
