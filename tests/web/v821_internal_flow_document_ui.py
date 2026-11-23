@@ -18,7 +18,7 @@ def tab(name):
     return panel().get_by_role('tab', name=name, exact=True)
 
 
-def open_feature():
+def open_feature(first_cell='calculate'):
     f.page.locator('#workspace').click(button='right', position={'x': 1300, 'y': 300})
     f.page.get_by_role('button', name='프로젝트 브라우저', exact=True).click()
     browser = f.page.locator('.window[data-key^="browser:project:"]')
@@ -29,7 +29,7 @@ def open_feature():
     browser.locator('[data-close]').first.click()
     f.idle()
     f.page.locator('[data-operation="feature-author-open"]').first.click()
-    expect(document().locator('[data-document-cell="calculate"]')).to_be_visible()
+    expect(document().locator(f'[data-document-cell="{first_cell}"]')).to_be_visible()
 
 
 def edit_child(text, cancel=False):
@@ -89,11 +89,19 @@ def run():
         panel().locator('[data-bp-node="calculate"] [data-internal-flow]').click()
         expect(panel().locator('[data-bp-node="body"] [data-internal-code]')).to_be_visible()
         expect(panel().locator('.bp-status')).to_contain_text('내부 흐름 미리보기')
+        panel().locator('.bp-breadcrumbs button').first.click()
+        expect(panel().locator('.bp-viewport [data-bp-node="calculate"]')).to_be_visible()
+        expect(tab('블루프린트 보기')).to_have_attribute('aria-selected', 'true')
+        panel().locator('[data-bp-node="calculate"] [data-internal-flow]').click()
+        expect(panel().locator('[data-bp-node="body"] [data-internal-code]')).to_be_visible()
         panel().locator('.bp-viewport').press('Control+z')
         expect(panel().locator('[data-bp-node="calculate"]')).to_be_visible()
         tab('논리 코드').click()
         document().locator('[data-document-internal="calculate"]').click()
-        expect(document().locator('[data-document-cell="body"]')).to_be_visible(timeout=6000)
+        expect(panel().locator('.bp-viewport [data-bp-node="body"]')).to_be_visible()
+        expect(tab('블루프린트 보기')).to_have_attribute('aria-selected', 'true')
+        tab('논리 코드').click()
+        expect(document().locator('[data-document-cell="body"]')).to_be_visible()
         expect(tab('논리 코드')).to_have_attribute('aria-selected', 'true')
         expect(document().locator('[data-document-add],[data-document-value],[data-document-name]')).to_have_count(0)
         expect(document().locator('[data-document-drag]:enabled')).to_have_count(0)
@@ -113,6 +121,13 @@ def run():
         expect(preview.locator('[data-native-body]')).to_have_text('')
         tab('논리 코드').click()
         assert f.pending()['blueprint'] == held and fixture.checkpoint() == before
+        panel().locator('.bp-breadcrumbs button').first.click()
+        expect(document().locator('[data-document-internal="calculate"]')).to_be_visible()
+        expect(tab('논리 코드')).to_have_attribute('aria-selected', 'true')
+        assert f.pending()['blueprint'] == held and fixture.checkpoint() == before
+        document().locator('[data-document-internal="calculate"]').click()
+        expect(document().locator('[data-document-code="body"]')).to_be_visible()
+        assert f.pending()['blueprint'] == held
         fixture.original()
         f.checked('선택된 내부 흐름만 논리 코드로 열리고 보호된 C# 편집·취소 및 보기 왕복에서 입력과 원본을 보존한다')
 

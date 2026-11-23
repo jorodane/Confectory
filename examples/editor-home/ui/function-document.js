@@ -202,7 +202,11 @@ export function mountFunctionDocument(root,api){
  },{signal:events.signal});
  root.addEventListener('input',()=>{if(owns()&&state.mode==='native'&&preview.querySelector('[data-native-body]')&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}},{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},focusDocument(){
+ return {get mode(){return state.mode;},remember(){
+  if(!owns())return;
+  if(state.mode==='logic')state.scroll=host.scrollTop;
+  persist();
+ },focusDocument(){
   if(owns()&&state.mode==='logic')host.focus({preventScroll:true});
  },focusGrip(id){
   if(!owns()||state.mode!=='logic')return;
