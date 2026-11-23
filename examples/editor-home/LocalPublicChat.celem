@@ -1,0 +1,11 @@
+function Confectory.EditorHome::LocalPublicChat (string session, string activation, string operation, string messageId, string attachmentId, string text) -> string {
+provide Confectory.EditorHome::LocalPublicChat with Confectory.EditorHome::LocalPublicChatBody;
+provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::IdentityBody;
+provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
+provide Confectory.SemanticCatalog::Query with Confectory.SemanticCatalog::QueryBody;
+provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
+description "Route an in-process editor operation to the verified local creator's current project chat.";
+}

@@ -5,6 +5,11 @@ string profile = System.IO.Path.Combine(data, "profile");
 string emptyProfile = System.IO.Path.Combine(data, "empty-profile");
 System.IO.Directory.CreateDirectory(projects);
 var records = new System.Text.Json.Nodes.JsonObject();
+static void Check(bool condition, string failure)
+{
+    if (!condition) throw new InvalidOperationException(failure);
+}
+
 void Create(string storage, string name, bool seed, bool attachment = false)
 {
     string session = calls.CreateSession.Invoke(repo, storage);
@@ -19,41 +24,93 @@ void Create(string storage, string name, bool seed, bool attachment = false)
             ["manifest"] = manifest, ["id"] = id
         };
         if (!seed) return;
-        var (_, send, _, close, sendAttachment, _) =
+        if (!attachment)
+        {
+            string activation = project["activation"]!.ToString();
+            string messageId = Guid.NewGuid().ToString("N");
+            string payload = name + " public message";
+            string journal = System.IO.Path.Combine(storage, "project-chat", id + ".json");
+            string Send(string text, string scope) => calls.LocalChat.Invoke(session, scope, "send-text", messageId, "", text);
+            const string Committed = "{\"status\":\"committed\"}";
+            const string Unavailable = "{\"status\":\"unavailable\"}";
+            Check(calls.ChatHistory.Invoke(session, activation, "send-text", messageId, "") == Unavailable &&
+                Send("", activation) == Unavailable && !System.IO.File.Exists(journal),
+                "Read-only route or invalid input created a journal");
+
+            string receipt = System.IO.Path.Combine(storage, "project-creators", id + ".json");
+            string withdrawn = receipt + ".withdrawn";
+            System.IO.File.Move(receipt, withdrawn);
+            try { Check(Send(payload, activation) == Unavailable && !System.IO.File.Exists(journal), "Withdrawn proof allowed a send"); }
+            finally { System.IO.File.Move(withdrawn, receipt); }
+
+            Check(Send(payload, activation) == Committed, "The verified creator could not commit");
+            byte[] original = System.IO.File.ReadAllBytes(journal);
+            Check(Send(payload, activation) == Committed && Send("different payload", activation) == Unavailable &&
+                System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(original), "Retry changed the committed message");
+
+            string otherManifest = records["AuthorA"]!["manifest"]!.ToString();
+            var switched = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session, "open",
+                System.Text.Json.JsonSerializer.Serialize(new { path = otherManifest })))!;
+            Check(switched["selected"]?["path"]?.ToString() == otherManifest &&
+                switched["selected"]?["activation"]?.ToString() != activation &&
+                Send("stale project activation", activation) == Unavailable, "An older activation survived a project switch");
+            var reopened = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session, "open",
+                System.Text.Json.JsonSerializer.Serialize(new { path = manifest })))!;
+            string newActivation = reopened["selected"]!["activation"]!.ToString();
+            Check(newActivation != activation && Send(payload, activation) == Unavailable &&
+                Send(payload, newActivation) == Committed, "A previous activation survived reopening the same project");
+
+            string other = calls.CreateSession.Invoke(repo, System.IO.Path.Combine(data, "unverified-profile"));
+            try
+            {
+                var opened = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(other, "open",
+                    System.Text.Json.JsonSerializer.Serialize(new { path = manifest })))!;
+                Check(opened["selected"]?["path"]?.ToString() == manifest &&
+                    calls.LocalChat.Invoke(other, opened["selected"]!["activation"]!.ToString(), "send-text",
+                        Guid.NewGuid().ToString("N"), "", "same original, different profile") == Unavailable &&
+                    !System.IO.Directory.Exists(System.IO.Path.Combine(data, "unverified-profile", "project-chat")),
+                    "Another profile acquired a send capability");
+            }
+            finally { calls.CloseSession.Invoke(other); }
+
+            calls.CloseSession.Invoke(session);
+            Check(Send(payload, newActivation) == Unavailable &&
+                System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(original),
+                "Closed editor or stale request changed the host journal");
+            Console.WriteLine("PASS internal creator send, idempotent retry, scope switch, proof withdrawal and session closure");
+            return;
+        }
+        var (_, _, _, close, sendAttachment, _) =
             ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
               Func<string, string, string, bool>, Func<string, string>))
             calls.OpenHost.Invoke(storage, id, "local-user", manifest);
         try
         {
             string messageId = Guid.NewGuid().ToString("N");
-            if (attachment)
+            string workspace = calls.OpenWorkspace.Invoke(manifest, "local-user", "chat-seed");
+            string box = calls.OpenBox.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,
+                ".confectory", "yogi"), id, "local-user", workspace);
+            calls.Text.Invoke(box, "independent private Yogi draft");
+            calls.SaveBox.Invoke(box);
+            calls.Text.Invoke(box, "전송 당시 설명\nOriginal sealed description");
+            calls.Exactly.Invoke(box, workspace, new[] { "Project.AuthorA::Main", "Project.AuthorA::MainBody" }, Array.Empty<string>());
+            for (int index = 0; index < 2; index++)
             {
-                string workspace = calls.OpenWorkspace.Invoke(manifest, "local-user", "chat-seed");
-                string box = calls.OpenBox.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,
-                    ".confectory", "yogi"), id, "local-user", workspace);
-                calls.Text.Invoke(box, "independent private Yogi draft");
-                calls.SaveBox.Invoke(box);
-                calls.Text.Invoke(box, "전송 당시 설명\nOriginal sealed description");
-                calls.Exactly.Invoke(box, workspace, new[] { "Project.AuthorA::Main", "Project.AuthorA::MainBody" }, Array.Empty<string>());
-                for (int index = 0; index < 2; index++)
+                string source = new string('a', 64);
+                string ticket = calls.Reserve.Invoke(box, source, 0, 4, 5, 512, 512);
+                byte[] pixels = new byte[512 * 512 * 3];
+                Array.Fill(pixels, (byte)(23 + index));
+                string capture = System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    string source = new string('a', 64);
-                    string ticket = calls.Reserve.Invoke(box, source, 0, 4, 5, 512, 512);
-                    byte[] pixels = new byte[512 * 512 * 3];
-                    Array.Fill(pixels, (byte)(23 + index));
-                    string capture = System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        source, view = 0, x = 4, y = 5, width = 512, height = 512,
-                        encoding = "rgb24-base64", scope = "selected-owned-client-region",
-                        pixels = Convert.ToBase64String(pixels),
-                        hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
-                    });
-                    if (!calls.Complete.Invoke(box, ticket, capture)) throw new InvalidOperationException("Fixture capture rejected");
-                }
-                calls.Seal.Invoke(box, true);
-                sendAttachment(messageId, name + " public message", box);
+                    source, view = 0, x = 4, y = 5, width = 512, height = 512,
+                    encoding = "rgb24-base64", scope = "selected-owned-client-region",
+                    pixels = Convert.ToBase64String(pixels),
+                    hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
+                });
+                if (!calls.Complete.Invoke(box, ticket, capture)) throw new InvalidOperationException("Fixture capture rejected");
             }
-            else send(messageId, name + " public message");
+            calls.Seal.Invoke(box, true);
+            Check(sendAttachment(messageId, name + " public message", box), "Could not seed the existing attachment path");
         }
         finally { close(); }
     }

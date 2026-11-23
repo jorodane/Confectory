@@ -171,6 +171,8 @@ with tempfile.TemporaryDirectory(prefix="confectory-editor-public-chat-") as dir
     body = home / "VerifyShellBody.celem"
     body.write_text(body.read_text().replace('body common "VerifyShell.csbody";', '''\
 import Confectory.ProjectChat::OpenHostWithAttachments as OpenHost (string,string,string,string) -> object;
+import Confectory.EditorHome::LocalPublicChat as LocalChat (string,string,string,string,string,string) -> string;
+import Confectory.EditorHome::PublicChatHistory as ChatHistory (string,string,string,string,string) -> string;
 import Confectory.EditWorkspace::Open as OpenWorkspace (string,string,string) -> string;
 import Confectory.YogiBox::Open as OpenBox (string,string,string,string) -> string;
 import Confectory.YogiBox::Text as Text (string,string) -> void;
@@ -181,9 +183,16 @@ import Confectory.YogiBox::ReserveCapture as Reserve (string,string,int,int,int,
 import Confectory.YogiBox::CompleteCapture as Complete (string,string,string) -> bool;
 body common "PublicChatFixture.csbody";'''))
     shutil.copyfile(repo / "tests/fixtures/editor-public-chat/Main.csbody", home / "PublicChatFixture.csbody")
+    private = root / "profile/helper-conversations/fixture.json"
+    private.parent.mkdir(parents=True)
+    private_bytes = b'{"unchanged":"personal Helper data"}\n'
+    private.write_bytes(private_bytes)
+    private_before = set(private.parent.iterdir())
     seed = subprocess.run(build(manifest), capture_output=True, text=True, timeout=90,
                           env=dict(env, CONFECTORY_EDITOR_REPO=str(checkout), CONFECTORY_CHAT_TEST_ROOT=str(root)))
     assert seed.returncode == 0, seed.stdout + seed.stderr
+    assert private.read_bytes() == private_bytes and set(private.parent.iterdir()) == private_before
+    print(seed.stdout, end="", flush=True)
     manifest.write_text(original)
     command = build(manifest)
     fixtures = json.loads((root / "fixtures.json").read_text())
@@ -202,9 +211,6 @@ body common "PublicChatFixture.csbody";'''))
     catalog.write_text(json.dumps(json.loads(catalog.read_text()) +
                                  [{"path": str(replica_manifest), "title": "AuthorA", "description": ""}]))
 
-    private = profile / "helper-conversations/fixture.json"
-    private.parent.mkdir(exist_ok=True)
-    private.write_text('{"unchanged":"personal Helper data"}\n')
     a_journal = profile / "project-chat" / (a["id"] + ".json")
     message = json.loads(a_journal.read_text())["messages"][0]["id"]
     pair = {"messageId": message, "attachmentId": message}
@@ -243,7 +249,7 @@ body common "PublicChatFixture.csbody";'''))
             assert pixels == bytes([23 + index]) * (512 * 512 * 3)
             assert hashlib.sha256(pixels).hexdigest() == capture["hash"]
 
-        for key in ("role", "projectId", "path", "user"):
+        for key in ("role", "projectId", "path", "user", "operation"):
             assert not editor.observe(first, {key: "forged"})["ok"]
             assert not attachment(editor, first, dict(pair, **{key: "forged"}))["ok"]
         assert attachment(editor, first, dict(pair, attachmentId=uuid.uuid4().hex))["result"] == unavailable
@@ -337,6 +343,10 @@ body common "PublicChatFixture.csbody";'''))
             }""")
             assert result["update"] == "scope_changed" and result["held"] == {"error": "view_closed"}, result
             assert_message({"ok": True, "result": result["current"]}, second, "AuthorB")
+            page.goto(editor.url)
+            expect(rows).to_contain_text("AuthorB public message", timeout=20000)
+            expect(rows).not_to_contain_text("AuthorA public message")
+            expect(page.locator("#chat-output")).not_to_contain_text("AuthorB public message")
             browser.close()
         assert_message(editor.observe(second), second, "AuthorB")
         assert editor.observe(again)["error"]["code"] == "scope_changed"

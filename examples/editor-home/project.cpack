@@ -57,5 +57,7 @@ element WebStateBody implementation "WebStateBody.celem";
 element WebInvokeBody implementation "WebInvokeBody.celem";
 element PublicChatHistory function "PublicChatHistory.celem";
 element PublicChatHistoryBody implementation "PublicChatHistoryBody.celem";
+element LocalPublicChat function "LocalPublicChat.celem";
+element LocalPublicChatBody implementation "LocalPublicChatBody.celem";
 element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
 }
