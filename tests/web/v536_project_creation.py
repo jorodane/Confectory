@@ -6,7 +6,9 @@ import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
 native_close="--native-close" in sys.argv[2:]
-offline_only=native_close or "--offline" in sys.argv[2:]
+registered_offline="--registered-offline" in sys.argv[2:]
+offline_only=native_close or registered_offline or "--offline" in sys.argv[2:]
+codex="Confectory.Agent.Codex::Connection"
 project_chat=False;chat_provider=None
 if project_chat:
  from project_chat_contract import OwnedChat
@@ -47,7 +49,19 @@ if native_close:
   response.ContentType="application/json";
  }else """+branch
 p.write_text(source.replace(second,branch+second));(root/'projects').mkdir()
+if registered_offline:
+ profile=root/'profile'
+ profile.mkdir()
+ agent_registry=profile/'helper-agents.json'
+ agent_registry.write_text(json.dumps({'version':1,'agents':{codex:{'connection':codex,'offline':True,'config':{
+  'connectionMethod':'local-cli','executable':str(root/'missing-codex'),'managedHome':str(root/'owned-codex-home'),
+  'credentialReference':'codex:managed','model':'owned-offline'}}},'assignments':{}}))
+ original_registry=agent_registry.read_bytes()
+
 env=os.environ.copy();env.pop('CONFECTORY_WEB_PROJECT',None);env.pop('CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK',None);env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_UI_TRACE='1',CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
+if registered_offline:
+ env.update(CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),
+            CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 with (root/'build.json').open('w') as output,(root/'build.err').open('w') as error:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=output,stderr=error,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
 log_path=root/'host.log';log=log_path.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True);errors=[];evidence={}
@@ -74,7 +88,8 @@ try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)))
   # Browser transport stays production. This emulates only the native API that is absent on Linux.
-  page.add_init_script('''globalThis.__creationReply='normal';globalThis.confectoryWebUI={async chooseProjectParent(){if(globalThis.__parentCancel)return {ok:true,cancelled:true};return {ok:true,parent:'owned-parent',label:'Owned fixture projects'};},async createProject(title,description,parent,proposalId){if(globalThis.__creationReply==='cancel')return {ok:true,cancelled:true};if(globalThis.__creationReply==='fail')return {ok:false,error:{code:'owned-create-failure'}};if(globalThis.__holdNative){globalThis.__nativeWaiting=true;await new Promise(resolve=>globalThis.__releaseNative=resolve);globalThis.__holdNative=false;}const token=sessionStorage.getItem('confectory.webui.session');return (await fetch('/fixture/native-create',{method:'POST',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify({title,description,...(proposalId?{proposalId}:{})})})).json();}};''')
+  native_create_bridge='''globalThis.__creationReply='normal';globalThis.confectoryWebUI={async chooseProjectParent(){if(globalThis.__parentCancel)return {ok:true,cancelled:true};return {ok:true,parent:'owned-parent',label:'Owned fixture projects'};},async createProject(title,description,parent,proposalId){if(globalThis.__creationReply==='cancel')return {ok:true,cancelled:true};if(globalThis.__creationReply==='fail')return {ok:false,error:{code:'owned-create-failure'}};if(globalThis.__holdNative){globalThis.__nativeWaiting=true;await new Promise(resolve=>globalThis.__releaseNative=resolve);globalThis.__holdNative=false;}const token=sessionStorage.getItem('confectory.webui.session');return (await fetch('/fixture/native-create',{method:'POST',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify({title,description,...(proposalId?{proposalId}:{})})})).json();}};'''
+  page.add_init_script(native_create_bridge)
   if offline_only:
    external=[];invocations=[]
    def watch(route):
@@ -83,25 +98,65 @@ try:
      external.append(request.url);route.abort();return
     if request.method=='POST' and request.url==origin+'/api/request':
      body=request.post_data_json
-     if body.get('op')=='invoke':invocations.append(body.get('endpoint'))
+     if body.get('op') in ('invoke','transient'):invocations.append(body.get('endpoint'))
     route.continue_()
    page.route('**/*',watch)
    goto_editor(page,url)
-   assert not state()['helperAgents']['agents'] and not state()['helpers'] and not state()['projectId']
+   initial=state()
+   assert not initial['relayChat'] and not initial['developmentLocalChat']
+   agents=initial['helperAgents']['agents']
+   assert not initial['helpers'] and not initial['projectId']
+   if registered_offline:
+    assert [row['id'] for row in agents]==[codex] and agents[0]['state']=='offline' and not agents[0]['accountVerified']
+   else:assert not agents
+
    page.locator('#new-project').click()
    dialog=page.get_by_role('dialog',name='새 프로젝트 만들기',exact=True)
    dialog.locator('#project-name').fill('Offline First Project')
    dialog.locator('#project-desc').fill('Ordinary local project without AI')
+   offline=dialog.get_by_role('checkbox',name='AI 없이 만들기',exact=True)
+   if registered_offline:
+    expect(offline).to_be_checked()
+    offline.uncheck()
+    expect(dialog.locator('#project-helper-roster')).to_contain_text('자동 생성')
+    offline.check()
+    expect(dialog.locator('#project-helper-roster')).to_contain_text('미배치')
+   else:expect(offline).to_have_count(0)
    dialog.locator('button[type=submit]').click()
    expect(page.locator('.work-body')).to_be_visible()
    expect(dialog).to_have_count(0)
    created=state(check_creator=True);project=created['projectId']
-   assert project and not created['helperAgents']['agents'] and not created['helpers'] and not created['projectHelperIds']
+   assert project and created['helperAgents']['agents']==agents and not created['helpers'] and not created['projectHelperIds']
    manifest=root/'projects/Offline First Project/project.cproj'
    receipt=root/'profile/project-creators'/(project+'.json')
    assert manifest.is_file() and receipt.is_file()
    original,proof=manifest.read_bytes(),receipt.read_bytes()
-   print('PASS Later and new local project; creator recognized without Agent or Helper',flush=True)
+   print('PASS Later and native local creation with no AI calls; exact original creator and no Helper',flush=True)
+   if registered_offline:
+    body_file=manifest.parent/'main.csbody'
+    original_body=body_file.read_bytes()
+    body_id=created['namespace']+'::MainBody/body:common'
+    marker=root/'offline-run.txt'
+    edited='System.IO.File.WriteAllText('+json.dumps(str(marker))+', "Offline created project ran");\nreturn 0;\n'
+
+    def open_body(query):
+     page.locator('#worker-finder-bubble').click()
+     finder=page.locator('#workspace-find-panel')
+     finder.locator('[data-find-mode="text"]').click()
+     finder.get_by_role('searchbox').fill(query)
+     finder.locator('[data-find-key="body:'+body_id+'"]').click(timeout=30000)
+     source=page.locator('.window[data-key="source"] #source')
+     expect(source).to_be_visible()
+     return source
+
+    source=open_body('return 0;')
+    expect(source).to_have_value(original_body.decode())
+    source.fill(edited)
+    page.locator('.window[data-key="source"] #save').click()
+    expect(page.locator('#status')).to_contain_text('Draft saved; final sources unchanged')
+    assert body_file.read_bytes()==original_body and state()['draft']['text']==edited
+    assert agent_registry.read_bytes()==original_registry
+
    if native_close:
     def close_request(confirmed):
      body={'confirmed':confirmed}
@@ -136,12 +191,34 @@ try:
     time.sleep(.05)
    else:raise AssertionError('restart startup timeout')
    page=browser.new_page(viewport={'width':1440,'height':1000})
+   if registered_offline:page.add_init_script(native_create_bridge)
    page.on('pageerror',lambda error:errors.append(str(error)));page.route('**/*',watch)
    goto_editor(page,url)
    page.locator('.project-card').filter(has=page.get_by_role('heading',name='Offline First Project',exact=True)).locator('[data-enter]').click()
    expect(page.locator('.work-body')).to_be_visible()
    reopened=state(check_creator=True)
-   assert reopened['projectId']==project and not reopened['helpers'] and not reopened['helperAgents']['agents']
+   assert reopened['projectId']==project and not reopened['helpers'] and reopened['helperAgents']['agents']==agents
+   if registered_offline:
+    assert reopened['draft']['id']==body_id and reopened['draft']['text']==edited
+    source=page.locator('.window[data-key="source"] #source')
+    if not source.is_visible():source=open_body('Offline created project ran')
+    expect(source).to_have_value(edited)
+    assert body_file.read_bytes()==original_body
+    page.locator('.window[data-key="source"] #review').click()
+    review=page.locator('.window[data-key="review"]')
+    expect(review).to_be_visible(timeout=90000)
+    review.locator('[data-review-advanced]').click()
+    expect(review.locator('[data-source-after]')).to_contain_text('Offline created project ran')
+    ack=review.locator('[data-advanced-reviewed]')
+    if ack.count():ack.check()
+    review.locator('#confirm').click()
+    expect(review).to_be_hidden(timeout=90000)
+    assert body_file.read_text()==edited and not marker.exists()
+    page.get_by_role('button',name='프로젝트 실행',exact=True).click()
+    expect(page.locator('.run-window:visible [data-run-frame]')).to_have_text('종료 코드 0',timeout=120000)
+    assert marker.read_text()=='Offline created project ran'
+    assert agent_registry.read_bytes()==original_registry
+    print('PASS C# Save, cold reopen, explicit Confirm and execution with the original offline Agent intact',flush=True)
    if native_close:
     draft=page.locator('#chat-input')
     expect(draft).to_have_value('Unsent private browser draft')
@@ -156,8 +233,33 @@ try:
    assert manifest.read_bytes()==original and receipt.read_bytes()==proof
    assert len((root/'native-calls.jsonl').read_text().splitlines())==1
    assert not (root/'profile/project-chat').exists() and not (root/'profile/helper-presentations').exists()
-   assert not external and not errors and not {'helperGlobal','projectHelpers','chatUse','codexOnboarding'}&set(invocations),(external,errors,invocations)
-   print('PASS cold reopen keeps creator proof and creates no chat journal, Helper record or second project',flush=True)
+   assert not external and not errors and not {'helperGlobal','projectHelpers','chatUse','codexOnboarding','prepareAI','startAI','localProjectChat','localChatDevelopment'}&set(invocations),(external,errors,invocations)
+   print('PASS cold reopen keeps creator proof and makes no AI, Helper, LAN or relay request',flush=True)
+   if registered_offline:
+    page.locator('.brand').click()
+    expect(page.locator('.home-grid')).to_be_visible()
+    page.locator('#add-helper').click()
+    helper_form=page.locator('[data-v508-helper]')
+    helper_form.locator('#participant-name').fill('Owned offline Helper')
+    helper_form.locator('button[type=submit]').click()
+    expect(helper_form).to_have_count(0)
+    helper,=state()['helpers']
+    assert state()['helperAgents']['assignments'][helper['id']]==codex
+    page.locator('#new-project').click()
+    dialog=page.get_by_role('dialog',name='새 프로젝트 만들기',exact=True)
+    dialog.locator('#project-name').fill('Explicit Offline Helper')
+    dialog.locator('#project-helper-available [data-project-helper="'+helper['id']+'"]').click()
+    offline=dialog.get_by_role('checkbox',name='AI 없이 만들기',exact=True)
+    expect(offline).not_to_be_checked()
+    expect(offline).to_be_disabled()
+    dialog.locator('button[type=submit]').click()
+    expect(page.locator('#toast')).to_contain_text('chat-use-agent-offline')
+    expect(dialog).to_be_visible()
+    expect(dialog.locator('#project-helper-roster [data-project-helper="'+helper['id']+'"]')).to_have_count(1)
+    assert not state()['projectId'] and not (root/'projects/Explicit Offline Helper').exists()
+    assert len((root/'native-calls.jsonl').read_text().splitlines())==1 and 'chatUse' in invocations
+    assert not external and not errors and not {'prepareAI','startAI','localProjectChat','localChatDevelopment'}&set(invocations)
+    print('PASS explicitly selected offline Codex Helper blocks before native create, with no local fallback',flush=True)
    browser.close()
    sys.exit(0)
   goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()

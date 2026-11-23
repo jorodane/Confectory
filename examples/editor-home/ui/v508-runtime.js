@@ -190,7 +190,7 @@ const v508=createV508Views({$, $$,esc,ready:v508Ready,toast,enterHome:()=>{start
   if(input.created&&input.created.binding!==binding)delete input.created;
   if(!active())return false;
   const agents=current.helperAgents?.agents??[];
-  const localOnly=!request.proposalId&&!request.helpers.length&&!agents.length;
+  const localOnly=!request.proposalId&&!request.helpers.length&&(input.withoutAI||!agents.length);
   if(!localOnly){
     const owners=new Set(request.helpers.length?request.helpers.map(id=>{
       const helper=helpers.find(row=>row.id===id);
