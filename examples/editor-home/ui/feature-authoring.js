@@ -881,9 +881,31 @@ function blueprintNormalizeControls(scope){
    (data.documentRemovableCells||[]).includes(id);
   const flowDocument=documentFlowPreview(w,data),flowChild=flowDocument==='child';
   const callsNeedingReview=new Map(rows.filter(row=>row.kind==='call'&&row.postCallStale===true).map(row=>[row.id,row]));
-  const documentCallRefresh=id=>!flowDocument&&data.id===data.rootId&&!data.privatePath&&
-   !data.privateConversion&&!data.privateCopy&&!data.slotContext&&!data.requiresCoupledCopy&&!w.meta.copyDraft&&
+  const documentCallContract=()=>!flowDocument&&data.id===data.rootId&&!data.privatePath&&
+   !data.privateConversion&&!data.privateCopy&&!data.slotContext&&!data.requiresCoupledCopy&&!w.meta.copyDraft;
+  const documentCallRefresh=id=>documentCallContract()&&
    callsNeedingReview.get(id)?.postCallSignatureMatches===true&&canRefreshAfter(w,callsNeedingReview.get(id));
+  const documentCallComparison=id=>{
+   const call=callsNeedingReview.get(id);
+   return documentCallContract()&&call?.postCallSignatureMatches===false&&call.currentCallSignature?call:null;
+  };
+  function compareDocumentCall(id){
+   const call=documentCallComparison(id);
+   if(!canvasOwns()||api.busy||documentView?.mode!=='logic'||!call||closeMenu('preserve')===false)return;
+   const before=signature(call.signature),after=signature(call.currentCallSignature);
+   const format=value=>'('+value.args.map(pin=>[pin.mode,pin.type,pin.name].filter(Boolean).join(' ')).join(', ')+') → '+value.return;
+   const changedInputs=before.args.filter(pin=>pin.mode!=='out'&&
+    call.arguments?.some(arg=>arg.name===pin.name&&arg.valueJson&&arg.valueJson!=='null')&&
+    !after.args.some(arg=>arg.name===pin.name&&arg.type===pin.type&&arg.mode===pin.mode));
+   api.modal('원본 계약 비교','<p><strong>'+esc(call.calledFeature)+'</strong></p><dl>'+
+    '<dt>기존 호출</dt><dd><code data-call-contract-before>'+esc(format(before))+'</code></dd>'+
+    '<dt>현재 원본</dt><dd><code data-call-contract-after>'+esc(format(after))+'</code></dd></dl>'+
+    (changedInputs.length?'<p data-call-contract-bound>확인이 필요한 기존 입력 연결 · '+esc(changedInputs.map(pin=>pin.name).join(', '))+'</p>':'')+
+    (canRefreshAfter(w,call)?'<p>입출력 연결은 블루프린트 보기의 원본 계약 갱신에서 직접 선택할 수 있습니다.</p>':'')+
+    '<div class="actions"><button type="button" data-call-contract-close>닫기</button></div>',(dialog,close)=>{
+     $('[data-call-contract-close]',dialog).onclick=close;
+    });
+  }
   const propertyWrites=new Map((data.nodes||[]).filter(row=>row.kind==='property-set').map(row=>[row.id,row]));
   const documentBranchExit=id=>!api.busy&&data.privatePath&&data.executionExitMode===true&&
    !data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&branchExitSupported(w)&&
@@ -1006,6 +1028,7 @@ function blueprintNormalizeControls(scope){
     if(canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallRefresh(id)&&closeMenu('preserve')!==false)
      refreshAfter(w,callsNeedingReview.get(id));
    },
+   hasCallComparison:id=>!!documentCallComparison(id),compareCall:compareDocumentCall,
    pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
    hasSetTarget:id=>!!documentSetTarget(id),
    mountSetTarget:(id,control)=>{
