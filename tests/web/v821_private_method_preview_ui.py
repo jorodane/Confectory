@@ -16,8 +16,9 @@ root_id = fixture.graph
 frames = ('first', 'second')
 names = ('AlphaOnly', 'BetaOnly')
 mode = sys.argv[3] if len(sys.argv) > 3 else 'direct'
-assert mode in {'direct', 'alias', 'nested', 'nested-alias'}
-nested = mode.startswith('nested')
+assert mode in {'direct', 'alias', 'nested', 'nested-alias', 'parent', 'parent-shared-leaf'}
+parent = mode.startswith('parent')
+nested = parent or mode.startswith('nested')
 alias = mode.endswith('alias')
 
 
@@ -67,6 +68,20 @@ def prepare_project():
                                {'from': 'trace', 'port': 'next', 'to': 'exit:return'}],
                      'exits': {'return': {'node': 'methods'}}}
             sources[f'{name}/trace'] = (ancestor, f'System.Console.WriteLine("AncestorOnly_{name}");', '')
+            if parent:
+                extra_file = f'{name}.extra.node.json'
+                extra = dict(leaf, implementation=extra_file)
+                extra_graph = {'schema': 1, 'profile': 'sync-acyclic-methods-v1', 'entry': 'calculate',
+                               'nodes': [extra], 'edges': [{'from': 'calculate', 'port': 'next', 'to': 'exit:return'}],
+                               'exits': {'return': {'node': 'calculate'}}}
+                child['nodes'].insert(1, {'id': 'extra', 'kind': 'graph', 'control': 'next', 'intent': 'Extra method',
+                                          'signature': signature, 'arguments': {'amount': {'node': 'methods'}},
+                                          'graph': extra_graph})
+                child['edges'][0]['to'] = 'extra'
+                child['edges'].insert(1, {'from': 'extra', 'port': 'next', 'to': 'trace'})
+                child['exits'] = {'return': {'node': 'extra'}}
+                sources[f'{name}/extra/calculate'] = (extra_file, f'return {marker}Extra(amount);',
+                                                     f'private static long {marker}Extra(long value) => value;')
         graph['nodes'].append({'id': name, 'intent': name, 'kind': 'graph', 'control': 'next',
                                'graph': child, 'signature': signature,
                                'arguments': {'amount': {'input': 'amount'} if index == 0 else {'node': frames[0]}}})
@@ -84,6 +99,12 @@ def prepare_project():
         impl = f.project / 'FlowBody.celem'
         impl.write_text(impl.read_text().replace('blueprint common "Flow.graph.json";',
                                                  'blueprint common "Flow.graph.json"; blueprint windows "Flow.graph.json";'))
+    if mode == 'parent-shared-leaf':
+        # Give another registered body a distinct graph and the same code files.
+        (f.project / 'Alternate.graph.json').write_text(json.dumps(graph))
+        impl = f.project / 'FlowBody.celem'
+        impl.write_text(impl.read_text().replace('blueprint common "Flow.graph.json";',
+                                                 'blueprint common "Flow.graph.json"; blueprint windows "Alternate.graph.json";'))
     fixture.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
 
 
@@ -146,6 +167,103 @@ def history():
     return f.invoke('draftHistory', {'action': 'inspect'})['result']['result']
 
 
+def enter_parent(frame):
+    document().locator(f'[data-document-internal="{frame}"]').click()
+    expect(document().locator('[data-document-cell="methods"]')).to_be_visible()
+
+
+def parent_request(frame):
+    identity = f'{root_id}/graph:{frame}'
+    return dict(request(frame, fixture.read(identity)), id=identity)
+
+
+def check_parent(copy_project, other_files, checkpoint_before, history_before):
+    enter_parent('first')
+    view = native()
+    if mode == 'parent-shared-leaf':
+        assert not fixture.read(f'{root_id}/graph:first').get('documentFramePreviewBinding')
+        assert_empty(view, '지원하지')
+        assert fixture.checkpoint() == checkpoint_before and history() == history_before
+        fixture.original()
+        f.checked('A separate graph registered with the same code files cannot supply a parent preview')
+        return
+
+    expect(view.locator('[role=status]')).to_contain_text('생성됨', timeout=12000)
+    first_options = parent_request('first')
+    first, second = (preview(parent_request(frame)) for frame in frames)
+    full = preview({'action': 'nativePreview', 'id': root_id})['diagnostics']
+    for index, result in enumerate((first, second)):
+        frame, sibling = frames[index], frames[1 - index]
+        code = result['diagnostics']
+        child = preview(request(frame, fixture.read(frame_id(frame))))['diagnostics']
+        extra_id = f'{root_id}/graph:{frame}/graph:extra'
+        extra = preview(dict(request(frame, fixture.read(extra_id)), id=extra_id))['diagnostics']
+        assert code['body'] in full['body'] and child['body'] in code['body'] and extra['body'] in code['body']
+        assert code['members'] == child['members'] + extra['members'] and code['members'] in full['members']
+        assert names[index] + 'Extra' not in child['members']
+        assert f'AncestorOnly_{frame}' in code['body']
+        assert f'AncestorOnly_{sibling}' not in json.dumps(result) and names[1 - index] not in json.dumps(result)
+        for member in (names[index], names[index] + 'Finish', names[index] + 'Extra'):
+            assert f'return {member}(amount);' in code['members'] and f'private static long {member}(' in code['members']
+        assert hashlib.sha256((code['body'] + code['members']).encode()).hexdigest() == code['bodyHash']
+        assert not result['sourceWritten'] and not result['compiled']
+    shown(view, 'first', first)
+    assert preview(dict(first_options, id=f'{root_id}/graph:second'), False) is None
+    assert preview(dict(first_options, id=frame_id('first')), False) is None
+    assert preview(dict(first_options, sourceProof='[]'), False) is None
+    assert preview(dict(first_options, checkpointHash='0' * 64), False) is None
+
+    tab('논리 코드').click()
+    tab('블루프린트 보기').click()
+    panel().locator('[data-bp-node="methods"] [data-internal-flow]').click()
+    expect(document().locator('[data-document-cell="calculate"]')).to_be_visible()
+    child = preview(request('first', fixture.read(frame_id('first'))))
+    shown(native(), frame_path('first'), child)
+    panel().locator('.bp-breadcrumbs button').nth(1).click()
+    expect(tab('블루프린트 보기')).to_have_attribute('aria-selected', 'true')
+    shown(native(), 'first', first)
+    f.checked('Parent and child previews match exact emitter scopes through both views and breadcrumb return')
+
+    changed = f.project / 'first.finish.node.json'
+    original = changed.read_bytes()
+    changed.write_bytes(original + b' ')
+    try:
+        panel().locator('[data-native-refresh]').click()
+        assert_empty(panel().locator('.function-native-preview'), '실패')
+    finally:
+        changed.write_bytes(original)
+    tab('논리 코드').click()
+    go_root()
+    enter_parent('second')
+    shown(native(), 'second', second)
+    assert fixture.checkpoint() == checkpoint_before and history() == history_before
+    fixture.original()
+    f.checked('Stale descendant sources clear both panes; the same-ID sibling has an independent result')
+
+    f.env['CONFECTORY_WEB_PROJECT'] = str(copy_project / 'project.cproj')
+    restart(1)
+    f.invoke('select', {'id': fixture.feature})
+    assert preview(first_options, False) is None
+    fresh = parent_request('first')
+    old_binding, new_binding = first_options['documentFrame'], fresh['documentFrame']
+    assert old_binding['workspace'] != new_binding['workspace']
+    assert dict(old_binding, workspace=new_binding['workspace']) == new_binding
+    assert preview(dict(fresh, documentFrame=old_binding), False) is None
+    open_feature('first')
+    enter_parent('first')
+    shown(native(), 'first', preview(fresh))
+    assert all(path.read_bytes() == raw for path, raw in other_files.items())
+    f.env['CONFECTORY_WEB_PROJECT'] = str(fixture.manifest)
+    restart(2)
+    shown(panel().locator('.function-native-preview'), 'second', second)
+    assert not f.pending()['blueprint']
+    assert fixture.checkpoint() == checkpoint_before and history() == history_before
+    fixture.original()
+    fixture.build('parent-method-preview-unchanged', 24)
+    assert not f.errors and not f.external, (f.errors, f.external)
+    f.checked('Project switching keeps the bound scope and existing originals, checkpoint, history and return value 24')
+
+
 def run():
     prepare_project()
     copy_project = f.case / 'same graph different project'
@@ -156,7 +274,6 @@ def run():
     f.invoke('saveDraft', {})
     checkpoint_before = fixture.checkpoint()
     history_before = history()
-    selected = fixture.read(frame_id('first'))
 
     with sync_playwright() as playwright:
         expect.set_options(timeout=60000)
@@ -164,6 +281,11 @@ def run():
         f.page = f.setup()
         f.page.set_viewport_size({'width': 1800, 'height': 1400})
         open_feature('first')
+        if parent:
+            check_parent(copy_project, other_files, checkpoint_before, history_before)
+            f.browser.close()
+            return
+        selected = fixture.read(frame_id('first'))
         enter('first')
         open_original_and_cancel()
         view = native()

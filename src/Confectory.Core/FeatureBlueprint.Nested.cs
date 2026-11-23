@@ -35,7 +35,7 @@ public static partial class FeatureBlueprint
         };
     }
 
-    static JsonObject Process(JsonObject original)
+    static JsonObject Process(JsonObject original, List<(string Id, string Text)>? parentMethodMembers = null)
     {
         var request = original.DeepClone().AsObject();
         request["privateChildren"] = new JsonObject();
@@ -47,10 +47,13 @@ public static partial class FeatureBlueprint
         }
         string? prefix = request["sourcePath"]?.ToString();
         bool selected = prefix is not null && request["assemblyPath"]?.ToString() == prefix;
-        List<(string Id, string Text)>? methodMembers = selected && request["graph"]?["profile"]?.ToString() is (MethodsProfile or SwitchProfile)
-            ? [] : null;
+        // Collect only within the selected preview subtree. Local members are
+        // emitted before child members are appended in private-child order.
+        bool captureMembers = selected || parentMethodMembers is not null;
+        List<(string Id, string Text)>? methodMembers = captureMembers ? [] : null;
+        List<(string Id, string Text)>? childMethodMembers = captureMembers ? [] : null;
         JsonObject result;
-        try { result = ProcessCore(request, methodMembers); }
+        try { result = ProcessCore(request, methodMembers, childMethodMembers); }
         catch (Refusal refusal)
         {
             string? path = request["sourcePath"]?.ToString();
@@ -92,12 +95,18 @@ public static partial class FeatureBlueprint
             summaries[child.Key] = summary;
         }
         if(result["body"] is not null && result["members"] is not null) result["bodyHash"] = Hash(result["body"]!.GetValue<string>() + result["members"]!.GetValue<string>());
+        if (methodMembers is not null)
+        {
+            methodMembers.AddRange(childMethodMembers!);
+            parentMethodMembers?.AddRange(methodMembers);
+        }
         // Capture this instance after collecting its own descendants, before
         // an ancestor adds any siblings and removes source from child summaries.
         if (selected && prefix is not null && S(result, "state") == "source-assembled")
         {
             Need(selectedAssembly is null, "GRAPH_ASSEMBLY_PATH_DUPLICATE", prefix);
-            var included = BlueprintTree.Nodes(request["graph"]!.AsObject()).ToArray();
+            var graph = request["graph"]!.AsObject();
+            var included = BlueprintTree.Nodes(graph).ToArray();
             bool ExactPaths(string collection, string key, IEnumerable<BlueprintTree.Entry> expected)
             {
                 var paths = expected.Select(entry => prefix + "/" + entry.Key).ToHashSet(StringComparer.Ordinal);
@@ -105,14 +114,20 @@ public static partial class FeatureBlueprint
                 return rows.Count == paths.Count && paths.SetEquals(rows.Select(row => S(row, key)));
             }
             var code = included.Where(entry => S(entry.Node, "kind") == "code").ToArray();
+            var methodPaths = code.Where(entry =>
+            {
+                int separator = entry.Key.LastIndexOf('/');
+                var owner = separator < 0 ? graph : BlueprintTree.Select(graph, entry.Key[..separator]);
+                return S(owner, "profile") is MethodsProfile or SwitchProfile;
+            }).Select(entry => RecordKey(request, entry.Key)).ToHashSet(StringComparer.Ordinal);
             string members = S(result, "members");
             // Method helpers are separate class members. Match the entire
             // member buffer to contributions captured at its regular emit site.
-            bool exactMembers = methodMembers is null ? members.Length == 0
-                : code.Length == included.Length && methodMembers.Count == code.Length
-                    && code.Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal)
-                        .SetEquals(methodMembers.Select(member => member.Id))
-                    && members == string.Concat(methodMembers.Select(member => member.Text));
+            bool leafMethods = S(graph, "profile") is MethodsProfile or SwitchProfile;
+            bool exactMembers = (!leafMethods || code.Length == included.Length)
+                && methodMembers!.Count == methodPaths.Count
+                && methodPaths.SetEquals(methodMembers.Select(member => member.Id))
+                && members == string.Concat(methodMembers.Select(member => member.Text));
             Need(exactMembers && ExactPaths("sourceMap", "node", included)
                 && ExactPaths("nodeSources", "id", code),
                 "GRAPH_ASSEMBLY_SCOPE", prefix);

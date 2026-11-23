@@ -144,6 +144,10 @@ public static class BlueprintCellRegion
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
         int methodDepth = S(selected, "profile") == FeatureBlueprint.MethodsProfile ? segments.Length : 0;
+        if (segments.Length == 1 && S(selected, "profile") == FeatureBlueprint.NestedProfile &&
+            selected["nodes"]!.AsArray().Any(node => S(node, "kind") == "graph" &&
+                S(node?["graph"], "profile") == FeatureBlueprint.MethodsProfile))
+            methodDepth = 2;
         Need(methodDepth <= 2, "Method preview requires an owned frame at depth one or two");
         CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth);
         return selected;

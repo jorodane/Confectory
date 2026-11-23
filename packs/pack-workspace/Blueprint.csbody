@@ -1334,9 +1334,11 @@ lock(state){
   ["root"]=graphId,["graph"]=viewGraphId,["path"]=privatePath,["rootHash"]=Hash(rootGraph.ToJsonString()),["frameHash"]=Hash(graph.ToJsonString())
  };
  bool methodChild=privatePath.Length>0&&graph["profile"]?.ToString()=="sync-acyclic-methods-v1";
+ bool methodParent=privatePath.Length>0&&!privatePath.Contains('/')&&graph["profile"]?.ToString()=="sync-acyclic-nested-v1"&&
+  System.Linq.Enumerable.Any(graph["nodes"]!.AsArray(),node=>node?["kind"]?.ToString()=="graph"&&node["graph"]?["profile"]?.ToString()=="sync-acyclic-methods-v1");
  System.Text.Json.Nodes.JsonObject ChildPreviewBinding(){
   var binding=ChildFrameBinding();
-  if(methodChild)binding["workspace"]=Hash(draft);
+  if(methodChild||methodParent)binding["workspace"]=Hash(draft);
   return binding;
  }
  var check=(System.Text.Json.Nodes.JsonObject)request.DeepClone();check["definitionsOnly"]=false;check["implementations"]=records;if(nativePreview){if(privatePath.Length>0){
@@ -1448,7 +1450,7 @@ lock(state){
     if(status[1]=="blueprint"&&SamePath(status[2]))throw new InvalidOperationException("Exclusive physical Blueprint graph required");
    }
  }
- void RequireExclusivePreviewSources(){
+ void RequireExclusivePreviewSources(bool includeDescendants=false){
   var comparison=OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal;
   var paths=new System.Collections.Generic.Dictionary<string,string>(comparison);
   string FullPath(string relative)=>System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],relative));
@@ -1456,13 +1458,20 @@ lock(state){
    if(calls.Status.Invoke(draft,id)[5]=="missing"||!paths.TryAdd(FullPath(relative),id))
     throw new InvalidOperationException("Existing exclusive child preview sources required");
   }
-  Add(graphId,graphSource[2]);
-  foreach(var node in graph["nodes"]!.AsArray()){
-   string id=nodeOwnerId+"/node:"+node!["id"]!.ToString();
-   if(sources[id] is not System.Text.Json.Nodes.JsonObject source||source["kind"]?.ToString()!="blueprint-node")
-    throw new InvalidOperationException("Observed child code source required");
-   Add(id,source["path"]!.ToString());
+  void ObserveFrame(System.Text.Json.Nodes.JsonNode frame,string owner){
+   foreach(var node in frame["nodes"]!.AsArray()){
+    string id=owner+"/node:"+node!["id"]!.ToString();
+    if(includeDescendants&&node["kind"]?.ToString()=="graph"){
+     ObserveFrame(node["graph"]!,id);
+     continue;
+    }
+    if(sources[id] is not System.Text.Json.Nodes.JsonObject source||source["kind"]?.ToString()!="blueprint-node")
+     throw new InvalidOperationException("Observed child code source required");
+    Add(id,source["path"]!.ToString());
+   }
   }
+  Add(graphId,graphSource[2]);
+  ObserveFrame(graph,nodeOwnerId);
   void Check(string id,string relative){
    if(paths.TryGetValue(FullPath(relative),out string? owner)&&owner!=id)
     throw new InvalidOperationException("Shared source is outside child preview scope");
@@ -1552,7 +1561,7 @@ lock(state){
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
    ["action"]="frame-preview",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
   }.ToJsonString());
-  if(methodChild||graph["profile"]?.ToString()=="sync-acyclic-switch-v1")RequireExclusivePreviewSources();
+  if(methodChild||methodParent||graph["profile"]?.ToString()=="sync-acyclic-switch-v1")RequireExclusivePreviewSources(methodParent);
   framePreviewBinding=ChildPreviewBinding();
  }catch{framePreviewBinding=null;}
  System.Text.Json.Nodes.JsonObject? frameCaseOrderBinding=null;
