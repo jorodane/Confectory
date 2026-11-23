@@ -1,5 +1,40 @@
 string path=calls.Location.Invoke(handle);var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]=="missing")return;
 var saved=System.Text.Json.Nodes.JsonNode.Parse(snapshot[1])!.AsObject();var changes=saved["changes"]!.AsArray();bool changed=false;
+var workspaceState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
+// Undo can retain a clean graph for history. When a subsequent Confirm
+// accepts one of its former read dependencies, carry Accept's retirement of
+// that read receipt into this exact saved checkpoint as well.
+if(workspaceState is not null)lock(workspaceState){
+ if(workspaceState["checkpointVersion"]?.ToString()==snapshot[2]){
+  var acceptedRows=System.Linq.Enumerable.ToDictionary(
+   System.Linq.Enumerable.Where(changes,row=>Array.IndexOf(selected,row?["id"]?.ToString())>=0),
+   row=>row!["id"]!.ToString(),StringComparer.Ordinal);
+  foreach(var row in changes){
+   if(row?["kind"]?.ToString()!="blueprint"||row["draft"]?.ToString()!=row["original"]?.ToString()||
+     row["propertyObservations"]?["sources"] is not System.Text.Json.Nodes.JsonObject reads)continue;
+   var graph=workspaceState["units"]?[row["id"]!.ToString()];
+   if(graph is null||graph["propertyObservations"] is not null||graph["path"]?.ToString()!=row["path"]?.ToString()||
+     graph["baseline"]?.ToString()!=row["baseline"]?.ToString()||graph["draft"]?.ToString()!=row["draft"]?.ToString()||
+     graph["draft"]?.ToString()!=graph["original"]?.ToString())continue;
+   bool advanced=false,exact=true;
+   foreach(var read in reads){
+    var unit=workspaceState["units"]?[read.Key];
+    var oldHash=read.Value?["hash"]?.ToString();
+    if(unit is null||unit["draft"] is null||unit["draft"]!.ToString()!=unit["original"]?.ToString()||
+      unit["path"]?.ToString()!=read.Value?["path"]?.ToString()||unit["kind"]?.ToString()!=read.Value?["kind"]?.ToString()){
+     exact=false;break;
+    }
+    if(unit["baseline"]?.ToString()==oldHash)continue;
+    if(!acceptedRows.TryGetValue(read.Key,out var accepted)||accepted!["baseline"]?.ToString()!=oldHash||
+      accepted["draft"]?.ToString()!=unit["draft"]!.ToString()){
+     exact=false;break;
+    }
+    advanced=true;
+   }
+   if(exact&&advanced){row.AsObject().Remove("propertyObservations");changed=true;}
+  }
+ }
+}
 // Root Save checkpoints include unchanged function/implementation support rows.
 // Confirm commits only actual changes. Retire a fully clean, byte-identical
 // saved group together; never leave its support rows pointing at a removed graph.
@@ -30,7 +65,7 @@ for(int i=changes.Count-1;i>=0;i--)
  var unit=changes[i]!;string id=unit["id"]!.GetValue<string>();if(grouped.Contains(id)?!settled.Contains(id):Array.IndexOf(selected,id)<0)continue;
  var current=calls.Read.Invoke(handle,id);if(current[6]=="clean"&&current[3]==unit["draft"]!.GetValue<string>()){changes.RemoveAt(i);changed=true;}
 }
-var workspaceState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(saved["retirements"] is System.Text.Json.Nodes.JsonObject archivedRows&&workspaceState is not null)lock(workspaceState){foreach(var operation in System.Linq.Enumerable.ToArray(archivedRows)){if(Array.IndexOf(selected,operation.Value!["manifest"]!.ToString())<0)continue;var actual=workspaceState["retirements"]?[operation.Key];if(actual is null)archivedRows.Remove(operation.Key);else archivedRows[operation.Key]=actual.DeepClone();changed=true;}}
+if(saved["retirements"] is System.Text.Json.Nodes.JsonObject archivedRows&&workspaceState is not null)lock(workspaceState){foreach(var operation in System.Linq.Enumerable.ToArray(archivedRows)){if(Array.IndexOf(selected,operation.Value!["manifest"]!.ToString())<0)continue;var actual=workspaceState["retirements"]?[operation.Key];if(actual is null)archivedRows.Remove(operation.Key);else archivedRows[operation.Key]=actual.DeepClone();changed=true;}}
 if(!changed)return;var identity=calls.Identity.Invoke(handle);var result=calls.Commit.Invoke(identity[3],new[]{System.IO.Path.GetRelativePath(identity[3],path)},new[]{snapshot[2]},new[]{saved.ToJsonString()});if(result[0]!="applied")throw new InvalidOperationException("Concurrent saved-draft change; final source already confirmed, saved bookkeeping needs review.");
 
 string confirmedSaved=saved.ToJsonString();var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;if(state is not null)lock(state){

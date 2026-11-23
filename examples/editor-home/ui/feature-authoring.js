@@ -908,7 +908,25 @@ function blueprintNormalizeControls(scope){
    },addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
    nativeVersion:()=>JSON.stringify([w.authorData.id,w.authorData.rootId,w.authorData.privatePath,w.authorData.documentFramePreviewBinding??w.authorData.documentFrameOrderBinding,w.authorData.checkpointHash,proof(w.authorData),saveEntries(w),api.otherPending?.((w.authorData.sources||[]).map(row=>row.id)),api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]]),
    nativeScope:()=>data.privatePath?'선택한 자식 흐름의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전':'선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전',
-   previewNative:async()=>{if(!canvasOwns())throw Error('편집 대상이 바뀌었어요.');guardOtherInputs(w,data);const frame=data.privatePath?(data.documentFramePreviewBinding??data.documentFrameOrderBinding):null;if(!data.id||data.privatePath&&!frame||data.privateCopy||data.privateConversion||w.meta.copyDraft||w.meta.nodeFlowDraft||frame&&(data.slotContext||w.meta.authorView))throw Error('이 문맥의 네이티브 미리보기는 아직 지원하지 않습니다.');if(saveEntries(w).length||api.ownerInputs&&[...api.ownerInputs].some(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')))throw Error('저장하지 않은 입력이 있습니다. 저장한 뒤 미리보기를 갱신해 주세요.');const expected=proof(data),identity=JSON.stringify([data.id,data.rootId,data.privatePath,frame,data.checkpointHash]),result=await call(w,{action:'nativePreview',id:data.id,...(frame?{documentFrame:structuredClone(frame),sourceProof:expected,checkpointHash:data.checkpointHash}:{}),...(data.slotContext?{owner:data.slotContext.owner,ownerHash:w.meta.slotHash,ownerRevision:w.meta.slotRevision}:{})});if(!canvasOwns()||proof(w.authorData)!==expected||proof(result)!==expected||JSON.stringify([result.id,result.rootId,result.privatePath,result.documentFramePreviewBinding??result.documentFrameOrderBinding,result.checkpointHash])!==identity&&frame||saveEntries(w).length)throw Error('소스나 자식 경로가 바뀌어 결과가 오래됐습니다. 입력을 보존하고 다시 열어 갱신해 주세요.');guardOtherInputs(w,data);if(result.diagnostics?.state!=='source-assembled'||typeof result.diagnostics.body!=='string'||frame&&result.diagnostics.assembledPath!==data.privatePath)throw Error('네이티브 생성 불가: '+(result.diagnostics?.diagnostics?.map(d=>d.message||d.code).join(' · ')||result.diagnostics?.state||'진단을 확인해 주세요.'));return {body:result.diagnostics.body,members:result.diagnostics.members||'',bodyHash:result.diagnostics.bodyHash};},
+   previewNative:async()=>{
+    if(!canvasOwns())throw Error('편집 대상이 바뀌었어요.');
+    guardOtherInputs(w,data);
+    const frame=data.privatePath?(data.documentFramePreviewBinding??data.documentFrameOrderBinding):null;
+    if(!data.id||data.privatePath&&!frame||data.privateCopy||data.privateConversion||w.meta.copyDraft||w.meta.nodeFlowDraft||frame&&(data.slotContext||w.meta.authorView))throw Error('이 문맥의 네이티브 미리보기는 아직 지원하지 않습니다.');
+    if(saveEntries(w).length||api.ownerInputs&&[...api.ownerInputs].some(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')))throw Error('저장하지 않은 입력이 있습니다. 저장한 뒤 미리보기를 갱신해 주세요.');
+    const expected=proof(data),identity=JSON.stringify([data.id,data.rootId,data.privatePath,frame,data.checkpointHash]);
+    const result=await call(w,{action:'nativePreview',id:data.id,...(frame?{documentFrame:structuredClone(frame),sourceProof:expected,checkpointHash:data.checkpointHash}:{}),...(data.slotContext?{owner:data.slotContext.owner,ownerHash:w.meta.slotHash,ownerRevision:w.meta.slotRevision}:{})});
+    const localCurrent=()=>canvasOwns()&&proof(w.authorData)===expected&&!saveEntries(w).length;
+    if(!localCurrent()||proof(result)!==expected||frame&&JSON.stringify([result.id,result.rootId,result.privatePath,result.documentFramePreviewBinding??result.documentFrameOrderBinding,result.checkpointHash])!==identity)
+     throw Error('소스나 자식 경로가 바뀌어 결과가 오래됐습니다. 입력을 보존하고 다시 열어 갱신해 주세요.');
+    if(frame){
+     const verified=await call(w,{action:'verifyNativePreview',id:data.id,receipt:result.receipt},localCurrent);
+     if(verified.current!==true||!localCurrent())throw Error('미리보기 요청 중 원본 또는 저장된 초안이 바뀌었습니다. 입력을 보존하고 다시 열어 갱신해 주세요.');
+    }
+    guardOtherInputs(w,data);
+    if(result.diagnostics?.state!=='source-assembled'||typeof result.diagnostics.body!=='string'||frame&&result.diagnostics.assembledPath!==data.privatePath)throw Error('네이티브 생성 불가: '+(result.diagnostics?.diagnostics?.map(d=>d.message||d.code).join(' · ')||result.diagnostics?.state||'진단을 확인해 주세요.'));
+    return {body:result.diagnostics.body,members:result.diagnostics.members||'',bodyHash:result.diagnostics.bodyHash};
+   },
    editValue:(...args)=>{surface.editValue(...args);document.querySelector('.bp-value-menu input[type=search]')?.focus({preventScroll:true});},
    switchView:mode=>{if(mode==='blueprint')mobile?.graph();else mobile?.suspend();},
    undo:redo=>{
