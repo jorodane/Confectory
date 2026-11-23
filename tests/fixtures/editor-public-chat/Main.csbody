@@ -80,44 +80,174 @@ void Create(string storage, string name, bool seed, bool attachment = false)
             Console.WriteLine("PASS internal creator send, idempotent retry, scope switch, proof withdrawal and session closure");
             return;
         }
-        var (_, _, _, close, sendAttachment, _) =
-            ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
-              Func<string, string, string, bool>, Func<string, string>))
-            calls.OpenHost.Invoke(storage, id, "local-user", manifest);
-        try
-        {
-            string messageId = Guid.NewGuid().ToString("N");
-            string workspace = calls.OpenWorkspace.Invoke(manifest, "local-user", "chat-seed");
-            string box = calls.OpenBox.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,
-                ".confectory", "yogi"), id, "local-user", workspace);
-            calls.Text.Invoke(box, "independent private Yogi draft");
-            calls.SaveBox.Invoke(box);
-            calls.Text.Invoke(box, "전송 당시 설명\nOriginal sealed description");
-            calls.Exactly.Invoke(box, workspace, new[] { "Project.AuthorA::Main", "Project.AuthorA::MainBody" }, Array.Empty<string>());
-            for (int index = 0; index < 2; index++)
-            {
-                string source = new string('a', 64);
-                string ticket = calls.Reserve.Invoke(box, source, 0, 4, 5, 512, 512);
-                byte[] pixels = new byte[512 * 512 * 3];
-                Array.Fill(pixels, (byte)(23 + index));
-                string capture = System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    source, view = 0, x = 4, y = 5, width = 512, height = 512,
-                    encoding = "rgb24-base64", scope = "selected-owned-client-region",
-                    pixels = Convert.ToBase64String(pixels),
-                    hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
-                });
-                if (!calls.Complete.Invoke(box, ticket, capture)) throw new InvalidOperationException("Fixture capture rejected");
-            }
-            calls.Seal.Invoke(box, true);
-            Check(sendAttachment(messageId, name + " public message", box), "Could not seed the existing attachment path");
-        }
-        finally { close(); }
+        CommitSealedYogi(session, project, storage, name);
     }
     finally { calls.CloseSession.Invoke(session); }
 }
+void CommitSealedYogi(string session, System.Text.Json.Nodes.JsonNode project, string storage, string name)
+{
+    const string Unavailable = "{\"status\":\"unavailable\"}";
+    const string Committed = "{\"status\":\"committed\"}";
+    string id = project["projectId"]!.ToString(), manifest = project["path"]!.ToString();
+    string activation = project["activation"]!.ToString();
+    string message = Guid.NewGuid().ToString("N"), text = name + " public message";
+    string journalFolder = System.IO.Path.Combine(storage, "project-chat");
+    string journal = System.IO.Path.Combine(journalFolder, id + ".json");
+
+    System.Text.Json.Nodes.JsonNode Command(string owner, string op, object request)
+    {
+        var model = System.Text.Json.Nodes.JsonNode.Parse(
+            calls.Command.Invoke(owner, op, System.Text.Json.JsonSerializer.Serialize(request)))!;
+        Check(!model["status"]!.ToString().StartsWith("Error:", StringComparison.Ordinal),
+            op + " failed: " + model["status"]);
+        return model;
+    }
+    System.Text.Json.Nodes.JsonNode Open(string owner, string path) => Command(owner, "open", new { path })["selected"]!;
+    void Yogi(string owner, object request) => Command(owner, "yogi", request);
+    string Prepare(string owner, string scope) => calls.LocalChat.Invoke(owner, scope, "prepare-attachment", message, "", "");
+    string SelectSeal() => System.Text.Json.Nodes.JsonNode.Parse(Prepare(session, activation))!["selection"]?.ToString()
+        ?? throw new InvalidOperationException("Active seal was not available for selection");
+    string Send(string owner, string scope, string selection, string content) =>
+        calls.LocalChat.Invoke(owner, scope, "send-attachment", message, selection, content);
+    void NoPublicJournal() =>
+        Check(!System.IO.Directory.Exists(journalFolder), "Preparing or declining a box wrote a public journal");
+
+    Check(Prepare(session, activation) == Unavailable, "Preparing opened a Yogi box implicitly");
+    Command(session, "workspace", new { action = "open" });
+    foreach (string item in new[] { "Project.AuthorA::Main", "Project.AuthorA::MainBody" })
+    {
+        Command(session, "workspace", new { action = "select", id = item });
+        Yogi(session, new { action = "exactly", id = item });
+    }
+    for (int index = 0; index < 2; index++)
+    {
+        byte[] pixels = new byte[512 * 512 * 3];
+        Array.Fill(pixels, (byte)(23 + index));
+        Yogi(session, new
+        {
+            action = "capture", id = "Project.AuthorA::MainBody", view = "",
+            image = new
+            {
+                width = 512, height = 512, encoding = "rgb24-base64", pixels = Convert.ToBase64String(pixels),
+                hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
+            }
+        });
+    }
+    Yogi(session, new { action = "text", text = "Earlier description before the explicit send" });
+    Check(Prepare(session, activation) == Unavailable, "An unsealed box was available for attachment");
+    Yogi(session, new { action = "seal", @sealed = true });
+    NoPublicJournal();
+
+    string cancelled = SelectSeal();
+    Check(calls.LocalChat.Invoke(session, activation, "cancel-attachment", message, cancelled, "") ==
+        "{\"status\":\"cancelled\"}" && Send(session, activation, cancelled, text) == Unavailable,
+        "A cancelled selection still permitted an explicit send");
+    NoPublicJournal();
+
+    string changed = SelectSeal();
+    Yogi(session, new { action = "seal", @sealed = false });
+    Check(Send(session, activation, changed, text) == Unavailable, "Unsealing left the old selection sendable");
+    Yogi(session, new { action = "text", text = "전송 당시 설명\nOriginal sealed description" });
+    Yogi(session, new { action = "seal", @sealed = true });
+    Check(Send(session, activation, changed, text) == Unavailable, "A changed seal replaced the selected snapshot");
+
+    string oldProjectSelection = SelectSeal();
+    var otherProject = Open(session, records["Empty"]!["manifest"]!.ToString());
+    string otherActivation = otherProject["activation"]!.ToString();
+    Check(Send(session, activation, oldProjectSelection, text) == Unavailable &&
+        Send(session, otherActivation, oldProjectSelection, text) == Unavailable, "A selection survived a project switch");
+    activation = Open(session, manifest)["activation"]!.ToString();
+    Check(Send(session, activation, oldProjectSelection, text) == Unavailable,
+        "Reopening the project restored the old selection");
+
+    string selection = SelectSeal();
+    string otherWindow = calls.CreateSession.Invoke(repo, storage);
+    try
+    {
+        string scope = Open(otherWindow, manifest)["activation"]!.ToString();
+        Yogi(otherWindow, new { action = "show" });
+        Check(System.Text.Json.Nodes.JsonNode.Parse(Prepare(otherWindow, scope))!["status"]?.ToString() == "ready" &&
+            Send(otherWindow, scope, selection, text) == Unavailable, "A second window could use the first window's selection");
+    }
+    finally { calls.CloseSession.Invoke(otherWindow); }
+
+    string otherStorage = System.IO.Path.Combine(data, "other-attachment-profile");
+    string otherProfile = calls.CreateSession.Invoke(repo, otherStorage);
+    try
+    {
+        string scope = Open(otherProfile, manifest)["activation"]!.ToString();
+        Yogi(otherProfile, new { action = "show" });
+        Check(Prepare(otherProfile, scope) == Unavailable && Send(otherProfile, scope, selection, text) == Unavailable &&
+            !System.IO.Directory.Exists(System.IO.Path.Combine(otherStorage, "project-chat")),
+            "A separate profile could use the original project's box");
+    }
+    finally { calls.CloseSession.Invoke(otherProfile); }
+
+    string projectRoot = System.IO.Path.GetDirectoryName(manifest)!;
+    string copy = System.IO.Path.Combine(data, "copied-send-project");
+    foreach (string file in System.IO.Directory.EnumerateFiles(projectRoot, "*", System.IO.SearchOption.AllDirectories))
+    {
+        string target = System.IO.Path.Combine(copy, System.IO.Path.GetRelativePath(projectRoot, file));
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(target)!);
+        System.IO.File.Copy(file, target);
+    }
+    string copyManifest = System.IO.Path.Combine(copy, System.IO.Path.GetFileName(manifest));
+    string copyIdentity = System.IO.Path.Combine(copy, ".confectory", "project-identity.json");
+    var proof = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(copyIdentity))!;
+    proof["manifest"] = copyManifest;
+    System.IO.File.WriteAllText(copyIdentity, proof.ToJsonString());
+    string copyWindow = calls.CreateSession.Invoke(repo, storage);
+    try
+    {
+        var viewed = Open(copyWindow, copyManifest);
+        string scope = viewed["activation"]!.ToString();
+        Yogi(copyWindow, new { action = "text", text = "Sealed in the copied project" });
+        Yogi(copyWindow, new { action = "seal", @sealed = true });
+        Check(viewed["projectId"]!.ToString() == id && Prepare(copyWindow, scope) == Unavailable &&
+            Send(copyWindow, scope, selection, text) == Unavailable, "A copy with the original project ID could send");
+    }
+    finally { calls.CloseSession.Invoke(copyWindow); }
+    NoPublicJournal();
+
+    string receipt = System.IO.Path.Combine(storage, "project-creators", id + ".json");
+    string withdrawn = receipt + ".withdrawn";
+    System.IO.File.Move(receipt, withdrawn);
+    try { Check(Send(session, activation, selection, text) == Unavailable, "Withdrawn creator proof allowed a send"); }
+    finally { System.IO.File.Move(withdrawn, receipt); }
+    Check(Send(session, activation, selection, text) == Unavailable &&
+        calls.ChatHistory.Invoke(session, activation, "send-attachment", message, selection) == Unavailable,
+        "An old selection or the read-only route allowed a send");
+    NoPublicJournal();
+
+    selection = SelectSeal();
+    string privateYogi = System.Linq.Enumerable.Single(
+        System.IO.Directory.GetFiles(System.IO.Path.Combine(projectRoot, ".confectory", "yogi"), "package-*.json"));
+    byte[] privateBytes = System.IO.File.ReadAllBytes(privateYogi);
+    System.IO.File.WriteAllText(journalFolder, "fixture blocks public storage");
+    try
+    {
+        Check(Send(session, activation, selection, text) == Unavailable && !System.IO.File.Exists(journal) &&
+            System.IO.File.ReadAllText(journalFolder) == "fixture blocks public storage",
+            "Failed public storage left a message or changed the blocker");
+    }
+    finally { System.IO.File.Delete(journalFolder); }
+
+    Check(Send(session, activation, selection, text) == Committed, "Retry did not commit the selected attachment");
+    byte[] saved = System.IO.File.ReadAllBytes(journal);
+    Check(Send(session, activation, selection, text) == Committed &&
+        Send(session, activation, selection, "different message") == Unavailable &&
+        System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(saved), "Retry changed the original committed message");
+    Check(System.IO.File.ReadAllBytes(privateYogi).AsSpan().SequenceEqual(privateBytes) &&
+        System.IO.Directory.GetFiles(journalFolder, "*.json").Length == 1, "Send rewrote private Yogi or created an orphan attachment");
+
+    Yogi(session, new { action = "seal", @sealed = false });
+    Yogi(session, new { action = "text", text = "Private description edited after public send" });
+    Check(System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(saved), "A private edit changed the public snapshot");
+    Console.WriteLine("PASS editor-owned sealed Yogi: cancel, stale box, other scope, failed write, retry and one frozen public attachment");
+}
+
+Create(emptyProfile, "Empty", false);
 Create(profile, "AuthorA", true, true);
 Create(profile, "AuthorB", true);
-Create(emptyProfile, "Empty", false);
 System.IO.File.WriteAllText(System.IO.Path.Combine(data, "fixtures.json"), records.ToJsonString());
 return 0;

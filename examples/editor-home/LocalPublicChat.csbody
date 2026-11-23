@@ -2,13 +2,20 @@ static bool StableId(string value) =>
     Guid.TryParseExact(value, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == value;
 
 const string Unavailable = "{\"status\":\"unavailable\"}";
+const string Committed = "{\"status\":\"committed\"}";
+const int PendingAttachment = 14; // One selection owned by this EditorHome session.
 bool history = operation == "history";
 bool sendText = operation == "send-text";
 bool attachment = operation is "attachment" or "first-image" or "second-image";
+bool prepare = operation == "prepare-attachment";
+bool cancel = operation == "cancel-attachment";
+bool sendAttachment = operation == "send-attachment";
 // This journal uses the owning message UUID as its attachment UUID.
-if ((!history && !sendText && !attachment) ||
+if ((!history && !sendText && !attachment && !prepare && !cancel && !sendAttachment) ||
     (attachment && (!StableId(messageId) || messageId != attachmentId)) ||
-    (sendText && (!StableId(messageId) || attachmentId.Length != 0)) || activation.Length == 0 ||
+    ((sendText || prepare) && (!StableId(messageId) || attachmentId.Length != 0)) ||
+    ((cancel || sendAttachment) && (!StableId(messageId) || !StableId(attachmentId))) ||
+    ((prepare || cancel) && text.Length != 0) || activation.Length == 0 ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
     return Unavailable;
 
@@ -18,6 +25,21 @@ lock (owner)
     var model = (System.Text.Json.Nodes.JsonObject)owner[3];
     var selected = model["selected"];
     if (selected?["activation"]?.GetValue<string>() != activation) return Unavailable;
+    var pending = owner[PendingAttachment] as (string Activation, string Message, string Selection, string Box, string Digest)?;
+    if (pending is { } prior && prior.Activation != activation)
+    {
+        owner[PendingAttachment] = null!;
+        pending = null;
+    }
+    if (cancel || sendAttachment)
+    {
+        if (pending is not { } chosen || chosen.Message != messageId || chosen.Selection != attachmentId) return Unavailable;
+        if (cancel)
+        {
+            owner[PendingAttachment] = null!;
+            return "{\"status\":\"cancelled\"}";
+        }
+    }
     string project = selected["projectId"]!.GetValue<string>();
     string context = selected["context"]!.GetValue<string>();
     string manifest = selected["path"]!.GetValue<string>();
@@ -29,24 +51,53 @@ lock (owner)
         bool Authorized() => ReferenceEquals(model["selected"], selected) &&
             calls.CreatorHost.Invoke(session) && calls.ReadIdentity.Invoke(manager, context) == project;
 
-        if (!Authorized()) return Unavailable;
+        if (!Authorized())
+        {
+            owner[PendingAttachment] = null!;
+            return Unavailable;
+        }
         string manifestOrigin = calls.Origin.Invoke(manifest, false, false);
         if (manifestOrigin.Length == 0) return Unavailable;
+        bool StillAuthorized() => Authorized() && calls.Origin.Invoke(manifest, false, false) == manifestOrigin;
+
+        string? box = null;
+        if (prepare || sendAttachment)
+        {
+            var boxes = (System.Collections.Generic.Dictionary<string, string>)owner[12];
+            if (!boxes.TryGetValue(context, out box) || (sendAttachment && pending!.Value.Box != box))
+                return Unavailable;
+
+            // Yogi commands and the handoff both hold the owning editor lock. The
+            // digest pins the exact live sealed package without retaining its content.
+            string snapshot = calls.Handoff.Invoke(box, project, "local-user", manifest);
+            string digest = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                System.Text.Encoding.UTF8.GetBytes(snapshot)));
+            if (prepare)
+            {
+                if (!StillAuthorized()) return Unavailable;
+                string selection = Guid.NewGuid().ToString("N");
+                owner[PendingAttachment] = (activation, messageId, selection, box, digest);
+                return System.Text.Json.JsonSerializer.Serialize(new { status = "ready", selection });
+            }
+            if (pending!.Value.Digest != digest) return Unavailable;
+        }
+
         string journal = System.IO.Path.Combine(storage, "project-chat", project + ".json");
         if (System.IO.File.Exists(journal) && calls.Origin.Invoke(journal, false, false).Length == 0)
             return Unavailable;
 
         // Keep the host handle inside this operation. Each call starts from the durable
         // journal and the current editor activation, and exposes no participant capability.
-        var (_, send, read, close, _, readAttachment) =
+        var (_, send, read, close, sendBox, readAttachment) =
             ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
               Func<string, string, string, bool>, Func<string, string>))
             calls.OpenHost.Invoke(storage, project, "local-user", manifest);
         try
         {
-            bool StillAuthorized() => Authorized() && calls.Origin.Invoke(manifest, false, false) == manifestOrigin;
             if (sendText)
-                return StillAuthorized() && send(messageId, text) ? "{\"status\":\"committed\"}" : Unavailable;
+                return StillAuthorized() && send(messageId, text) ? Committed : Unavailable;
+            if (sendAttachment)
+                return StillAuthorized() && sendBox(messageId, text, box!) ? Committed : Unavailable;
 
             var result = new System.Text.Json.Nodes.JsonObject
             {

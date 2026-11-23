@@ -7,5 +7,5 @@ provide Confectory.EditWorkspace::Identity with Confectory.EditWorkspace::Identi
 provide Confectory.EditWorkspace::Status with Confectory.EditWorkspace::StatusBody;
 provide Confectory.SemanticCatalog::Query with Confectory.SemanticCatalog::QueryBody;
 provide Confectory.SchemaEditing::Call with Confectory.SchemaEditing::CallBody;
-description "Route an in-process editor operation to the verified local creator's current project chat.";
+description "Read the verified creator's local journal or explicitly commit text and a selected sealed Yogi from the owning editor.";
 }

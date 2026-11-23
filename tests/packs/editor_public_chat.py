@@ -170,17 +170,8 @@ with tempfile.TemporaryDirectory(prefix="confectory-editor-public-chat-") as dir
     manifest.write_text(original.replace("entry Confectory.EditorHome::Main;", "entry Confectory.EditorHome::VerifyShell;"))
     body = home / "VerifyShellBody.celem"
     body.write_text(body.read_text().replace('body common "VerifyShell.csbody";', '''\
-import Confectory.ProjectChat::OpenHostWithAttachments as OpenHost (string,string,string,string) -> object;
 import Confectory.EditorHome::LocalPublicChat as LocalChat (string,string,string,string,string,string) -> string;
 import Confectory.EditorHome::PublicChatHistory as ChatHistory (string,string,string,string,string) -> string;
-import Confectory.EditWorkspace::Open as OpenWorkspace (string,string,string) -> string;
-import Confectory.YogiBox::Open as OpenBox (string,string,string,string) -> string;
-import Confectory.YogiBox::Text as Text (string,string) -> void;
-import Confectory.YogiBox::Save as SaveBox (string) -> void;
-import Confectory.YogiBox::Seal as Seal (string,bool) -> void;
-import Confectory.YogiBox::Exactly as Exactly (string,string,string[],string[]) -> void;
-import Confectory.YogiBox::ReserveCapture as Reserve (string,string,int,int,int,int,int) -> string;
-import Confectory.YogiBox::CompleteCapture as Complete (string,string,string) -> bool;
 body common "PublicChatFixture.csbody";'''))
     shutil.copyfile(repo / "tests/fixtures/editor-public-chat/Main.csbody", home / "PublicChatFixture.csbody")
     private = root / "profile/helper-conversations/fixture.json"
@@ -215,6 +206,7 @@ body common "PublicChatFixture.csbody";'''))
     message = json.loads(a_journal.read_text())["messages"][0]["id"]
     pair = {"messageId": message, "attachmentId": message}
     private_yogi, = Path(a["manifest"]).parent.glob(".confectory/yogi/package-*.json")
+    assert json.loads(private_yogi.read_text())["package"]["text"] == "Private description edited after public send"
     protected = {path: path.read_bytes() for path in [private, private_yogi, *profile.glob("project-chat/*.json")]}
     unavailable = {"status": "unavailable"}
 
