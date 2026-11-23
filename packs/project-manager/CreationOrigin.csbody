@@ -5,6 +5,7 @@ static extern int Statx(int fd,
 [System.Runtime.InteropServices.DllImport("libc", EntryPoint = "geteuid")]
 static extern uint EffectiveUser();
 
+if (OperatingSystem.IsWindows()) return WindowsOrigin();
 if (!OperatingSystem.IsLinux() || !System.IO.Path.IsPathFullyQualified(path)) return "";
 path = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(path));
 var buffer = System.Runtime.InteropServices.Marshal.AllocHGlobal(256);
@@ -35,4 +36,144 @@ catch (Exception error) when (error is System.IO.IOException or UnauthorizedAcce
 finally
 {
     System.Runtime.InteropServices.Marshal.FreeHGlobal(buffer);
+}
+
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+string WindowsOrigin()
+{
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern Microsoft.Win32.SafeHandles.SafeFileHandle CreateFileW(string name, uint access, uint share,
+        IntPtr attributes, uint disposition, uint flags, IntPtr template);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern uint GetDriveTypeW(string root);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern bool GetVolumeNameForVolumeMountPointW(string root, System.Text.StringBuilder volume, int size);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern uint GetFinalPathNameByHandleW(Microsoft.Win32.SafeHandles.SafeFileHandle handle,
+        System.Text.StringBuilder name, int size, uint flags);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern bool GetVolumeInformationByHandleW(Microsoft.Win32.SafeHandles.SafeFileHandle handle,
+        IntPtr label, int labelSize, IntPtr serial, IntPtr maxComponent, out uint flags,
+        System.Text.StringBuilder filesystem, int filesystemSize);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true)]
+    static extern bool GetFileInformationByHandleEx(Microsoft.Win32.SafeHandles.SafeFileHandle handle, int infoClass,
+        [System.Runtime.InteropServices.Out] byte[] data, int size);
+    [System.Runtime.InteropServices.DllImport("advapi32.dll", ExactSpelling = true)]
+    static extern uint GetSecurityInfo(Microsoft.Win32.SafeHandles.SafeFileHandle handle, uint objectType,
+        uint flags, out IntPtr owner, IntPtr group, out IntPtr dacl, IntPtr sacl, out IntPtr descriptor);
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true)]
+    static extern IntPtr LocalFree(IntPtr memory);
+
+    const int fileBasicInfo = 0, fileStandardInfo = 1, fileIdInfo = 18;
+    const uint readAttributes = 0x80, readControl = 0x20000;
+    const uint shareReadWrite = 3, openExisting = 3, openReparsePoint = 0x00200000, backupSemantics = 0x02000000;
+    const uint driveFixed = 3, volumeNameGuid = 1, persistentAcls = 8, openByFileId = 0x01000000;
+    const uint directoryAttribute = 0x10, excludedAttributes = 0x40 | 0x400 | 0x1000; // device, reparse point, offline
+
+    var handles = new System.Collections.Generic.List<Microsoft.Win32.SafeHandles.SafeFileHandle>();
+    try
+    {
+        // Accept ordinary drive-letter paths only, before looking up a drive or opening a handle.
+        if (!System.IO.Path.IsPathFullyQualified(path) || path.Length < 3 ||
+            !char.IsAsciiLetter(path[0]) || path[1] != ':' || path.AsSpan(2).Contains(':')) return "";
+        string full = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(path));
+        string root = System.IO.Path.GetPathRoot(full)!;
+        if (root.Length != 3 || root[2] != '\\' || GetDriveTypeW(root) != driveFixed) return "";
+
+        var volume = new System.Text.StringBuilder(64);
+        if (!GetVolumeNameForVolumeMountPointW(root, volume, volume.Capacity)) return "";
+        string volumeRoot = volume.ToString();
+        const string volumePrefix = @"\\?\Volume{";
+        if (!volumeRoot.StartsWith(volumePrefix, StringComparison.OrdinalIgnoreCase) ||
+            !volumeRoot.EndsWith("}\\", StringComparison.Ordinal) ||
+            !Guid.TryParseExact(volumeRoot[volumePrefix.Length..^2], "D", out var volumeId) || volumeId == Guid.Empty)
+            return "";
+
+        using var token = System.Security.Principal.WindowsIdentity.GetCurrent();
+        var user = token.User;
+        if (user is null) return "";
+
+        string current = root;
+        string[] parts = full[root.Length..].Split('\\', StringSplitOptions.RemoveEmptyEntries);
+        var name = new System.Text.StringBuilder(Math.Max(128, full.Length + 64));
+        var basic = new byte[40]; // FILE_BASIC_INFO: four LARGE_INTEGER times and a DWORD attribute field
+        for (int i = -1; i < parts.Length; i++)
+        {
+            if (i >= 0) current = System.IO.Path.Combine(current, parts[i]);
+            bool leaf = i == parts.Length - 1;
+            var handle = CreateFileW(@"\\?\" + current, readAttributes | (leaf ? readControl : 0), shareReadWrite,
+                IntPtr.Zero, openExisting, openReparsePoint | backupSemantics, IntPtr.Zero);
+            handles.Add(handle);
+            if (handle.IsInvalid || !GetFileInformationByHandleEx(handle, fileBasicInfo, basic, basic.Length)) return "";
+            uint attributes = System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(basic.AsSpan(32));
+            if ((attributes & excludedAttributes) != 0 ||
+                ((attributes & directoryAttribute) != 0) != (!leaf || directory)) return "";
+
+            // Keep the observed ancestors open without delete sharing while traversing the path.
+            // The final normalized handle name must also resolve on the original local volume.
+            name.Clear();
+            uint length = GetFinalPathNameByHandleW(handle, name, name.Capacity, volumeNameGuid);
+            if (length == 0 || length >= name.Capacity) return "";
+            string actual = name.ToString(), expected = volumeRoot + current[root.Length..];
+            if (i < 0)
+            {
+                actual = actual.TrimEnd('\\');
+                expected = expected.TrimEnd('\\');
+            }
+            if (!string.Equals(actual, expected, StringComparison.OrdinalIgnoreCase)) return "";
+        }
+
+        var file = handles[^1];
+        var filesystem = new System.Text.StringBuilder(32);
+        if (!GetVolumeInformationByHandleW(file, IntPtr.Zero, 0, IntPtr.Zero, IntPtr.Zero, out uint volumeFlags,
+                filesystem, filesystem.Capacity) || filesystem.ToString() != "NTFS" ||
+            (volumeFlags & (persistentAcls | openByFileId)) != (persistentAcls | openByFileId)) return "";
+
+        var standard = new byte[24]; // FILE_STANDARD_INFO: sizes, link count, delete-pending and directory flags
+        var id = new byte[24]; // FILE_ID_INFO: 64-bit volume serial plus 128-bit file ID
+        if (!GetFileInformationByHandleEx(file, fileStandardInfo, standard, standard.Length) || standard[20] != 0 ||
+            (!directory && System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(standard.AsSpan(16)) != 1) ||
+            !GetFileInformationByHandleEx(file, fileIdInfo, id, id.Length)) return "";
+
+        ulong serial = System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(id);
+        var fileId = new Guid(id.AsSpan(8));
+        long created = System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(basic);
+        if (serial == 0 || fileId == Guid.Empty || created <= 0 || !OwnedAcl(file)) return "";
+        return FormattableString.Invariant($"windows:{user.Value}:{volumeId:N}:{serial:x16}:{fileId:N}:{created}");
+
+        bool OwnedAcl(Microsoft.Win32.SafeHandles.SafeFileHandle handle)
+        {
+            const uint fileObject = 1, ownerInfo = 1, daclInfo = 4;
+            uint code = GetSecurityInfo(handle, fileObject, ownerInfo | (privateOnly ? daclInfo : 0),
+                out var ownerSid, IntPtr.Zero, out var acl, IntPtr.Zero, out var descriptor);
+            try
+            {
+                if (code != 0 || ownerSid == IntPtr.Zero ||
+                    !user.Equals(new System.Security.Principal.SecurityIdentifier(ownerSid))) return false;
+                if (!privateOnly) return true;
+                if (acl == IntPtr.Zero) return false; // A null DACL grants access to everyone.
+                int size = (ushort)System.Runtime.InteropServices.Marshal.ReadInt16(acl, 2);
+                if (size < 8) return false;
+                var bytes = new byte[size];
+                System.Runtime.InteropServices.Marshal.Copy(acl, bytes, 0, size);
+                var rules = new System.Security.AccessControl.RawAcl(bytes, 0);
+                if (rules.Count == 0) return false;
+                foreach (System.Security.AccessControl.GenericAce rule in rules)
+                    if (rule is not System.Security.AccessControl.CommonAce ace ||
+                        ace.AceType != System.Security.AccessControl.AceType.AccessAllowed ||
+                        !user.Equals(ace.SecurityIdentifier)) return false;
+                return true;
+            }
+            finally { if (descriptor != IntPtr.Zero) LocalFree(descriptor); }
+        }
+    }
+    catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or ArgumentException or
+        System.Security.SecurityException or NotSupportedException or EntryPointNotFoundException or DllNotFoundException)
+    {
+        return "";
+    }
+    finally
+    {
+        foreach (var handle in handles) handle.Dispose();
+    }
 }

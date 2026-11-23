@@ -1,10 +1,10 @@
-if (!OperatingSystem.IsLinux() || string.IsNullOrEmpty(context)) return false;
+if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) || string.IsNullOrEmpty(context)) return false;
 
 static bool Contains(string directory, string child)
 {
     string relative = System.IO.Path.GetRelativePath(directory, child);
     return !System.IO.Path.IsPathRooted(relative) && relative != ".." &&
-        !relative.StartsWith("../", StringComparison.Ordinal);
+        !relative.StartsWith(".." + System.IO.Path.DirectorySeparatorChar, StringComparison.Ordinal);
 }
 
 try
@@ -38,14 +38,45 @@ try
     string project = calls.ReadIdentity.Invoke(manager, context);
     if (!Guid.TryParseExact(project, "N", out var id) || id == Guid.Empty || id.ToString("N") != project)
         return false;
-    string machine = calls.Snapshot.Invoke("/etc/machine-id", 128)[1].Trim();
-    if (!Guid.TryParseExact(machine, "N", out var machineId) || machineId == Guid.Empty) return false;
+    string machine;
+    if (OperatingSystem.IsWindows())
+    {
+        using var registry = Microsoft.Win32.RegistryKey.OpenBaseKey(Microsoft.Win32.RegistryHive.LocalMachine,
+            Environment.Is64BitOperatingSystem ? Microsoft.Win32.RegistryView.Registry64 : Microsoft.Win32.RegistryView.Registry32);
+        using var key = registry.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography", writable: false);
+        if (key?.GetValue("MachineGuid") is not string value ||
+            !Guid.TryParse(value, out var installation) || installation == Guid.Empty) return false;
+        machine = "windows:" + installation.ToString("N");
+    }
+    else
+    {
+        machine = calls.Snapshot.Invoke("/etc/machine-id", 128)[1].Trim();
+        if (!Guid.TryParseExact(machine, "N", out var machineId) || machineId == Guid.Empty) return false;
+    }
 
     string directory = System.IO.Path.Combine(profile, "project-creators");
     if (record && !System.IO.Directory.Exists(directory))
-        System.IO.Directory.CreateDirectory(directory, System.IO.UnixFileMode.UserRead |
-            System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
-    if (calls.Origin.Invoke(directory, true, true).Length == 0) return false;
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            using var token = System.Security.Principal.WindowsIdentity.GetCurrent();
+            var user = token.User;
+            if (user is null) return false;
+            var security = new System.Security.AccessControl.DirectorySecurity();
+            security.SetOwner(user);
+            security.SetAccessRuleProtection(true, false);
+            security.AddAccessRule(new System.Security.AccessControl.FileSystemAccessRule(user,
+                System.Security.AccessControl.FileSystemRights.FullControl,
+                System.Security.AccessControl.InheritanceFlags.ContainerInherit | System.Security.AccessControl.InheritanceFlags.ObjectInherit,
+                System.Security.AccessControl.PropagationFlags.None, System.Security.AccessControl.AccessControlType.Allow));
+            System.IO.FileSystemAclExtensions.CreateDirectory(security, directory);
+        }
+        else if (OperatingSystem.IsLinux())
+            System.IO.Directory.CreateDirectory(directory, System.IO.UnixFileMode.UserRead |
+                System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
+    }
+    string storeOrigin = calls.Origin.Invoke(directory, true, true);
+    if (storeOrigin.Length == 0) return false;
 
     string filename = project + ".json";
     string path = System.IO.Path.Combine(directory, filename);
@@ -58,24 +89,32 @@ try
         version = 1,
         binding = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(binding))
     });
-    string receiptOrigin = calls.Origin.Invoke(path, false, false);
+    bool privateReceipt = OperatingSystem.IsWindows();
+    string receiptOrigin = calls.Origin.Invoke(path, false, privateReceipt);
     bool SameObjects() => calls.Origin.Invoke(root, true, false) == projectOrigin &&
         calls.Origin.Invoke(identityFile, false, false) == identityOrigin &&
-        calls.Origin.Invoke(profile, true, false) == profileOrigin;
+        calls.Origin.Invoke(profile, true, false) == profileOrigin &&
+        calls.Origin.Invoke(directory, true, true) == storeOrigin;
     if (receiptOrigin.Length > 0)
     {
         var saved = calls.Snapshot.Invoke(path, 512);
         return saved[0] == "exists" && saved[1] == receipt &&
-            calls.Origin.Invoke(path, false, false) == receiptOrigin && SameObjects();
+            calls.Origin.Invoke(path, false, privateReceipt) == receiptOrigin && SameObjects();
     }
     if (System.IO.File.Exists(path) || System.IO.Directory.Exists(path)) return false;
     if (!record) return false;
     // An existing receipt, including one for a replaced project, cannot be overwritten.
     if (!SameObjects()) return false;
-    return calls.Commit.Invoke(directory, new[] { filename }, new[] { "missing" }, new[] { receipt })[0] == "applied";
+    if (calls.Commit.Invoke(directory, new[] { filename }, new[] { "missing" }, new[] { receipt })[0] != "applied")
+        return false;
+    if (!privateReceipt) return true;
+    string committedOrigin = calls.Origin.Invoke(path, false, true);
+    return committedOrigin.Length != 0 && calls.Snapshot.Invoke(path, 512)[1] == receipt &&
+        calls.Origin.Invoke(path, false, true) == committedOrigin && SameObjects();
 }
 catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or
-    ArgumentException or InvalidOperationException or System.Text.Json.JsonException or NotSupportedException)
+    ArgumentException or InvalidOperationException or System.Text.Json.JsonException or NotSupportedException or
+    System.Security.SecurityException or TimeoutException or AggregateException)
 {
     return false;
 }

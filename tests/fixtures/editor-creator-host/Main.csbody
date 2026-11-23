@@ -51,14 +51,23 @@ try
         {
             Check(Open(other, a) == id && !Host(other), "Opening the same original granted guest authority");
             string copiedRecords = System.IO.Path.Combine(guestProfile, "project-creators");
-            System.IO.Directory.CreateDirectory(copiedRecords,
-                System.IO.UnixFileMode.UserRead | System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
-            System.IO.File.Copy(System.IO.Path.Combine(recordDirectory, id + ".json"),
-                System.IO.Path.Combine(copiedRecords, id + ".json"));
+            if (OperatingSystem.IsWindows())
+                System.IO.FileSystemAclExtensions.CreateDirectory(
+                    System.IO.FileSystemAclExtensions.GetAccessControl(new System.IO.DirectoryInfo(recordDirectory)), copiedRecords);
+            else if (OperatingSystem.IsLinux())
+                System.IO.Directory.CreateDirectory(copiedRecords,
+                    System.IO.UnixFileMode.UserRead | System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
+            Check(calls.CreationOrigin.Invoke(copiedRecords, true, true).Length > 0, "Copied receipt fixture was not private");
+            string copiedReceipt = System.IO.Path.Combine(copiedRecords, id + ".json");
+            System.IO.File.Copy(System.IO.Path.Combine(recordDirectory, id + ".json"), copiedReceipt);
+            Check(calls.CreationOrigin.Invoke(copiedReceipt, false, OperatingSystem.IsWindows()).Length > 0,
+                "Copied receipt fixture could not be verified as a local file");
             Check(!Host(other), "A copied receipt granted authority to another profile");
         }
         finally { calls.CloseSession.Invoke(other); }
 
+        Open(selected, a);
+        if (OperatingSystem.IsWindows()) WindowsEvidence(a);
         // Replace the directory at the original path with exact copied project files and identity.
         string original = System.IO.Path.GetDirectoryName(a)!;
         string moved = System.IO.Path.Combine(retryParent, "MovedOriginal");
@@ -113,10 +122,67 @@ try
     var second = Command(selected, "create", new { title = "AuthoredB", directory = parent, role = "guest" });
     Check(second["selected"]?["path"]?.ToString() == b && Host(selected), "B lacked its own creator receipt");
     Check(System.IO.Directory.GetFiles(recordDirectory, "*.json").Length == 2, "Expected just the two genuine creation receipts");
-    Check((System.IO.File.GetUnixFileMode(recordDirectory) &
-        (System.IO.UnixFileMode.GroupRead | System.IO.UnixFileMode.OtherRead)) == 0, "Creator receipts were readable outside the profile owner");
+    Check(calls.CreationOrigin.Invoke(recordDirectory, true, true).Length > 0,
+        "Creator receipt directory is not private");
     Check(System.IO.File.ReadAllText(privateHelper) == Private, "Creator changes wrote private history");
     Console.WriteLine("PASS genuine editor create, failed create/retry, existing open, copy and metadata refusal");
     return 0;
 }
 finally { calls.CloseSession.Invoke(selected); }
+
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+void WindowsEvidence(string manifest)
+{
+    [System.Runtime.InteropServices.DllImport("kernel32.dll", ExactSpelling = true, CharSet = System.Runtime.InteropServices.CharSet.Unicode)]
+    static extern bool CreateHardLinkW(string newName, string existingName, IntPtr reserved);
+
+    string projectRoot = System.IO.Path.GetDirectoryName(manifest)!;
+    string identity = System.IO.Path.Combine(projectRoot, ".confectory", "project-identity.json");
+    string origin = calls.CreationOrigin.Invoke(identity, false, false);
+    Check(origin.StartsWith("windows:", StringComparison.Ordinal), "NTFS identity evidence was unavailable");
+    Check(calls.CreationOrigin.Invoke(identity + ":receipt", false, false) == "", "Named stream was accepted");
+    Check(calls.CreationOrigin.Invoke(@"\\fixture.invalid\share\project.cproj", false, false) == "", "UNC path was accepted");
+
+    string hardlink = System.IO.Path.Combine(projectRoot, ".confectory", "fixture-hard-link.json");
+    Check(CreateHardLinkW(hardlink, identity, IntPtr.Zero), "Could not create NTFS hard-link fixture");
+    try { Check(!Host(selected), "Linked identity file retained creator authority"); }
+    finally { System.IO.File.Delete(hardlink); }
+    Check(Host(selected), "Original, single-link identity was no longer recognized");
+
+    string junction = System.IO.Path.Combine(parent, "FixtureJunction");
+    // mklink /J can create this disposable local reparse point without a symlink privilege.
+    char[] unsafeShellCharacters = { '%', '!', '"', '\r', '\n' };
+    Check(junction.IndexOfAny(unsafeShellCharacters) < 0 && projectRoot.IndexOfAny(unsafeShellCharacters) < 0,
+        "Use a regular local TEMP path for the junction fixture");
+    using var junctionProcess = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("cmd.exe")
+    {
+        Arguments = $"/d /v:off /c mklink /J \"{junction}\" \"{projectRoot}\"",
+        UseShellExecute = false,
+        CreateNoWindow = true
+    }) ?? throw new InvalidOperationException("Could not start mklink fixture");
+    Check(junctionProcess.WaitForExit(10000) && junctionProcess.ExitCode == 0, "Could not create the junction fixture");
+    try
+    {
+        Check(calls.CreationOrigin.Invoke(junction, true, false) == "", "A junction was treated as an origin");
+        Check(calls.CreationOrigin.Invoke(System.IO.Path.Combine(junction, "project.cproj"), false, false) == "",
+            "A file underneath a junction was treated as an origin");
+    }
+    finally { System.IO.Directory.Delete(junction, recursive: false); }
+
+    var directory = new System.IO.DirectoryInfo(recordDirectory);
+    var broader = System.IO.FileSystemAclExtensions.GetAccessControl(directory);
+    var extraRead = new System.Security.AccessControl.FileSystemAccessRule(
+        new System.Security.Principal.SecurityIdentifier(System.Security.Principal.WellKnownSidType.WorldSid, null),
+        System.Security.AccessControl.FileSystemRights.ReadAndExecute,
+        System.Security.AccessControl.AccessControlType.Allow);
+    broader.AddAccessRule(extraRead);
+    System.IO.FileSystemAclExtensions.SetAccessControl(directory, broader);
+    try { Check(!Host(selected), "Non-private receipt directory retained authority"); }
+    finally
+    {
+        broader.RemoveAccessRuleSpecific(extraRead);
+        System.IO.FileSystemAclExtensions.SetAccessControl(directory, broader);
+    }
+    Check(Host(selected), "Restoring the original ACL did not restore valid creator authority");
+    Console.WriteLine("PASS Windows handle evidence, UNC/ADS, hard-link, junction and receipt ACL gates");
+}

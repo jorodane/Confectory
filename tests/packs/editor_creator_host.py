@@ -1,4 +1,5 @@
-"""Run real EditorHome create/open commands with separate Linux processes and profiles."""
+"""Run real EditorHome create/open commands with separate desktop processes and profiles."""
+import argparse
 import json
 import os
 from pathlib import Path
@@ -8,10 +9,17 @@ import sys
 import tempfile
 
 repo = Path(__file__).resolve().parents[2]
-tool_repo = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else repo
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("tool_checkout", nargs="?", type=Path, default=repo)
+parser.add_argument("--target", choices=("windows", "linux"), default="windows" if sys.platform == "win32" else "linux")
+parser.add_argument("--compile-only", action="store_true")
+args = parser.parse_args()
+tool_repo = args.tool_checkout.resolve()
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
 cli = tool_repo / "src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll"
-assert sys.platform == "linux", "This test requires the Linux creator provider"
+if not args.compile_only:
+    runtime_platform = {"windows": "win32", "linux": "linux"}[args.target]
+    assert sys.platform == runtime_platform, "Run on the selected OS or use --compile-only"
 assert dotnet and cli.is_file(), "Build the Release CLI and targets or pass their checkout"
 env = dict(os.environ, CONFECTORY_DOTNET=dotnet,
            PATH=str(Path(dotnet).resolve().parent) + os.pathsep + os.environ["PATH"])
@@ -27,19 +35,26 @@ with tempfile.TemporaryDirectory(prefix="confectory-creator-host-") as directory
     shutil.copytree(repo / "packs", checkout / "packs", ignore=shutil.ignore_patterns(".confectory"))
     home = checkout / "examples/editor-home"
     shutil.copytree(repo / "examples/editor-home", home, ignore=shutil.ignore_patterns(".confectory"))
-    (checkout / "targets").symlink_to(tool_repo / "targets", target_is_directory=True)
+    if sys.platform == "win32":
+        shutil.copytree(tool_repo / "targets", checkout / "targets", ignore=shutil.ignore_patterns("obj", ".confectory"))
+    else:
+        (checkout / "targets").symlink_to(tool_repo / "targets", target_is_directory=True)
     manifest = home / "project.cpack"
     manifest.write_text(manifest.read_text().replace(
         "entry Confectory.EditorHome::Main;", "entry Confectory.EditorHome::VerifyShell;"))
     body = home / "VerifyShellBody.celem"
     body.write_text(body.read_text().replace('body common "VerifyShell.csbody";', '''import Confectory.EditorHome.Model::CreatorHost as CreatorHost (string) -> bool;
 import Confectory.ProjectManager::PlanCreation as PlanCreation (string,string) -> string[];
+import Confectory.ProjectManager::CreationOrigin as CreationOrigin (string,bool,bool) -> string;
 body common "CreatorHostFixture.csbody";'''))
     shutil.copyfile(repo / "tests/fixtures/editor-creator-host/Main.csbody", home / "CreatorHostFixture.csbody")
-    built = run([dotnet, str(cli), "build", str(manifest), "linux"])
+    built = run([dotnet, str(cli), "build", str(manifest), args.target])
     assert built.returncode == 0, built.stdout[-8000:] + built.stderr[-5000:]
     report = json.loads(built.stdout)
     assert "Confectory.ProjectChat" not in report["includedPacks"]
+    if args.compile_only:
+        print(f"PASS {args.target} creator fixture compiled; no target runtime executed")
+        sys.exit(0)
     for phase in ("create", "restart"):
         result = run(report["run"], CONFECTORY_EDITOR_REPO=str(checkout),
                      CONFECTORY_CREATOR_TEST_ROOT=str(root), CONFECTORY_CREATOR_TEST_PHASE=phase)
