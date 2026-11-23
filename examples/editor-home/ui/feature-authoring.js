@@ -1135,8 +1135,52 @@ function blueprintNormalizeControls(scope){
    return data.nodes.filter(row=>ownedCode(row)&&!visited.has(row.id)&&!routes.some(link=>link.to===row.id)&&
     (current?next(row.id)===current:(id!=='$entry'||!signature(row.signature).args.length)&&leadsToExit(row.id)));
   }
+  const documentAsyncScope=()=>!!data.asyncTransition&&!flowDocument&&data.id===data.rootId&&
+   !data.privatePath&&!data.slotContext&&!data.privateCopy&&!data.privateConversion&&
+   !data.requiresCoupledCopy&&!data.executionExitMode&&!w.meta.copyDraft;
+  function documentAsyncMode(id){
+   if(!documentAsyncScope())return null;
+   if(id==='$entry')return asyncPlan(w).enabled;
+   const row=rows.find(node=>node.id===id);
+   return row?.kind==='code'&&row.sourceId&&row.definitionHash&&!row.implementationContext&&
+    !row.forwardCallerStorage&&data.asyncTransition.nodes.some(node=>node.id===id)?nodeAsync(w,row):null;
+  }
+  function pickDocumentAsyncMode(id,anchor){
+   if(!canvasOwns()||api.busy||documentView?.mode!=='logic'||closeMenu('preserve')===false)return;
+   const mode=documentAsyncMode(id);
+   if(mode===null)return;
+   const label=mode?'동기 함수로 전환':'비동기 함수로 전환';
+   api.modal('기능 실행 방식','<p>'+esc(label)+' · 저장 전에는 초안입니다.</p>'+
+    '<div class="actions"><button type="button" data-document-async-cancel>취소</button>'+
+    '<button type="button" data-document-async-apply>'+esc(label)+'</button></div>',(dialog,close)=>{
+     $('[data-document-async-cancel]',dialog).onclick=close;
+     $('[data-document-async-apply]',dialog).onclick=()=>{
+      if(!canvasOwns()||api.busy||!anchor.isConnected||documentView?.mode!=='logic'||documentAsyncMode(id)!==mode)return;
+      close();
+      try{guardOtherInputs(w,data);changeAsync(w,id==='$entry'?'$root':id);w.authorDocumentView?.focusDocument();}
+      catch(error){api.toast(error.message);}
+     };
+    });
+  }
+  function documentCompletionTargets(owner){
+   // The existing route command accepts a declared completion port. Offer a
+   // detached action from that region whose next edge already returns to it.
+   if(!documentAsyncScope()||data.profile!=='async-acyclic-switch-v1'||
+      !['source-ready','source-assembled'].includes(data.diagnostics?.state)||documentAsyncMode(owner)!==true||
+      !data.nodes.some(row=>row.id===owner&&row.async===true))return [];
+   const continuation='return:'+owner;
+   if(data.edges.some(edge=>edge.from===owner&&edge.port==='completion'&&edge.to!==continuation))return [];
+   return data.nodes.filter(row=>{
+    if(row.kind!=='code'||row.control!=='next'||row.branchOwner!==owner||row.async||!row.sourceId||
+       !row.definitionHash||row.implementationContext||row.forwardCallerStorage||row.id===data.entry||
+       data.edges.some(edge=>edge.to===row.id))return false;
+    const next=data.edges.filter(edge=>edge.from===row.id);
+    return next.length===1&&next[0].port==='next'&&next[0].to===continuation;
+   });
+  }
   function documentBranchTargets(owner,port){
    if(!canvasOwns()||api.busy||flowDocument||w.meta.copyDraft||saveEntries(w).length||!frameInputsClear())return [];
+   if(port==='completion')return documentCompletionTargets(owner);
    const options=data.documentBranchReconnectTargets?.[owner]?.[port]||[];
    return data.nodes.filter(row=>options.includes(row.id));
   }
@@ -1145,7 +1189,7 @@ function blueprintNormalizeControls(scope){
    const eligible=()=>port?documentBranchTargets(id,port):documentExecutionTargets(id);
    const targets=eligible();
    if(!targets.length)return;
-   const entry=id==='$entry',label=port?'분기 실행 대상 선택':entry?'시작 대상 선택':'다음 실행 대상 선택';
+   const entry=id==='$entry',label=port==='completion'?'완료 시 실행 대상 선택':port?'분기 실행 대상 선택':entry?'시작 대상 선택':'다음 실행 대상 선택';
    api.modal(label,'<label>'+label+'<select data-document-route-choice><option value="">기존 셀 선택</option>'+
     targets.map(row=>'<option value="'+esc(row.id)+'">'+esc(row.displayName&&row.displayName!==row.id?
      row.displayName+' ('+row.id+')':row.id)+'</option>').join('')+'</select></label>'+
@@ -1161,7 +1205,7 @@ function blueprintNormalizeControls(scope){
       structuralEdit(w,()=>{
        const type=port?'route:'+port:entry?'entry':'route';
        privateValue(w,id,type,target);
-       if(port){
+       if(port?.startsWith('case:')){
         const key=prefix(w)+id+'|'+type;
         inputs.set(key,{...inputs.get(key),branchReconnect:true});
        }
@@ -1236,6 +1280,7 @@ function blueprintNormalizeControls(scope){
    hasDocumentContract:documentContract,
    mountDocumentContract,
    hasCallFirstBranch:id=>!!documentCallFirstBranch(id),pickCallFirstBranch:pickDocumentCallFirstBranch,
+   asyncMode:documentAsyncMode,pickAsyncMode:pickDocumentAsyncMode,
    hasCallRefresh:documentCallRefresh,refreshCall:id=>{
     if(canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallRefresh(id)&&closeMenu('preserve')!==false)
      refreshAfter(w,callsNeedingReview.get(id));
