@@ -158,14 +158,17 @@ public static class BlueprintCellRegion
         }
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
-        int methodDepth = S(selected, "profile") == FeatureBlueprint.MethodsProfile ? segments.Length : 0;
-        if (segments.Length == 1 && S(selected, "profile") == FeatureBlueprint.NestedProfile &&
-            selected["nodes"]!.AsArray().Any(node => S(node, "kind") == "graph" &&
-                S(node?["graph"], "profile") == FeatureBlueprint.MethodsProfile))
-            methodDepth = 2;
+        bool methodFrame = S(selected, "profile") == FeatureBlueprint.MethodsProfile;
+        JsonObject[] methodChildren = segments.Length == 1 && IsCompoundFrame(selected)
+            ? selected["nodes"]!.AsArray().Where(node => S(node, "kind") == "graph")
+                .Select(node => node?["graph"]).OfType<JsonObject>()
+                .Where(child => S(child, "profile") == FeatureBlueprint.MethodsProfile).ToArray()
+            : [];
+        int methodDepth = methodFrame ? segments.Length : methodChildren.Length > 0 ? 2 : 0;
         Need(methodDepth <= 2, "Method preview requires an owned frame at depth one or two");
-        bool selectedOutFrame = previewOutParameters && S(selected, "profile") == FeatureBlueprint.MethodsProfile &&
-            selected["nodes"]!.AsArray().Any(HasOutParameter);
+        bool selectedOutFrame = previewOutParameters && (methodFrame
+            ? selected["nodes"]!.AsArray().Any(HasOutParameter)
+            : methodChildren.Any(child => child["nodes"]!.AsArray().Any(HasOutParameter)));
         CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth, previewOutParameters: selectedOutFrame);
         return selected;
     }

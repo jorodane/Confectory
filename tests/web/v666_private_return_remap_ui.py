@@ -6,13 +6,15 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import uuid
 
 from playwright.sync_api import expect, sync_playwright
 
 # The shared fixture needs its single direct return consumer in either direction.
 mode = sys.argv[3] if len(sys.argv) > 3 else "return-argument-original"
-nested = mode in ("nested", "nested-narrow")
+parent_preview = mode == "nested-parent-preview"
+nested = mode in ("nested", "nested-narrow") or parent_preview
 narrow = mode in ("narrow", "nested-narrow")
 sys.argv[3:4] = ["return-argument-original"]
 import v666_private_node_out_double_fixture as fixture
@@ -99,6 +101,8 @@ def add_nested_frames():
     }
     peer = copy.deepcopy(outer)
     peer.update(id="peer", intent="Sibling ancestor")
+    if parent_preview:
+        outer["displayName"] = peer["displayName"] = "같은 상위 흐름"
     body, sink = child_graph(peer["graph"], ("inner",))["nodes"]
     body["implementation"] = "peer-body.node.json"
     sink["implementation"] = peer_path.name
@@ -117,7 +121,11 @@ def add_nested_frames():
     assert definitions["state"] == "node-definitions", definitions
     hashes = {node["id"]: node["definitionHash"] for node in definitions["nestedNodes"]}
     producer = json.loads((f.project / fixture.node_path).read_text())
-    peer_producer = dict(producer, source=source.replace("firstNative", "peerNative"))
+    peer_source = source.replace("firstNative", "peerNative")
+    peer_producer = dict(producer, source=peer_source)
+    if parent_preview:
+        peer_producer.update(source=peer_source.replace("Keep(", "KeepPeer("),
+                             helpers=producer["helpers"].replace("Keep(", "KeepPeer("))
     peer_sink = dict(sink_record, source=f'if(value!={before_value})throw new System.InvalidOperationException("Sibling link changed");')
     for path, record, relative in (
         (f.project / fixture.node_path, producer, "outer/inner/body"),
@@ -192,6 +200,107 @@ def check_preview(panel, expected_return):
     assert f.pending()["blueprint"] == inputs
     f.checked(f"Read-only native preview at {'/'.join(frame_path)} shows exact generated {expected_return} and out {original_type} C#.")
     return options
+
+
+def check_parent_preview(panel, expected_return, delay=False):
+    before = checkpoint.read_bytes() if checkpoint.exists() else None
+    previous_history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]
+    previous_inputs = f.pending()["blueprint"]
+    files = {path: path.read_bytes() for path in originals}
+    root = fixture.whole_graph
+    parents = {cell: root + "/graph:" + cell for cell in ("outer", "peer")}
+    logic = panel.get_by_role("tab", name="논리 코드", exact=True)
+    native = panel.get_by_role("tab", name="네이티브 미리보기", exact=True)
+    document = panel.locator(".function-document")
+    view = panel.locator(".function-native-preview")
+
+    def enter(cell):
+        panel.locator(".bp-breadcrumbs button").first.click()
+        logic.click()
+        expect(document.locator(f'[data-document-name="{cell}"]')).to_have_value("같은 상위 흐름")
+        document.locator(f'[data-document-internal="{cell}"]').click()
+        f.idle()
+        logic.click()
+        expect(document.locator('[data-document-cell="inner"]')).to_be_visible()
+
+    def assemble(options):
+        result = f.invoke("blueprint", options)["result"]["result"]
+        assert not result["sourceWritten"] and not result["compiled"]
+        return result["diagnostics"]
+
+    def shown(code):
+        expect(view.locator("[role=status]")).to_contain_text("생성됨")
+        for key in ("body", "members"):
+            assert view.locator(f"[data-native-{key}]").text_content() == code[key]
+        assert view.locator("textarea,input,[contenteditable=true]").count() == 0
+        assert hashlib.sha256((code["body"] + code["members"]).encode()).hexdigest() == code["bodyHash"]
+
+    enter("outer")
+    selected = preview_request(read(parents["outer"]), parents["outer"])
+    outer = assemble(selected)
+    child = assemble(preview_request(read()))
+    whole = assemble({"action": "nativePreview", "id": root})
+    assert outer["assembledPath"] == "outer"
+    assert outer["body"] in whole["body"] and outer["members"] in whole["members"]
+    assert child["body"] in outer["body"] and child["members"] == outer["members"]
+    assert f"public static {expected_return} Execute(" in outer["members"]
+    assert f"out {original_type} {output_pin}" in outer["members"]
+    assert "static long Keep(" in outer["members"] and "KeepPeer" not in outer["members"]
+    native.click()
+    shown(outer)
+
+    if delay:
+        requests = set()
+        held = {}
+
+        def hold_preview(route):
+            body = route.request.post_data_json
+            if body.get("op") == "invoke" and body.get("endpoint") == "blueprint" and body["input"].get("action") == "nativePreview":
+                requests.add(body["requestId"])
+            response = route.fetch()
+            rows = response.json().get("results", [])
+            if not held and any(row.get("requestId") in requests for row in rows):
+                held.update(route=route, response=response)
+            else:
+                route.fulfill(response=response)
+
+        f.page.route("**/api/request", hold_preview)
+        view.locator("[data-native-refresh]").click()
+        deadline = time.monotonic() + 60
+        while not held and time.monotonic() < deadline:
+            f.page.wait_for_timeout(30)
+        assert held, "The real parent preview response never arrived"
+        logic.click()
+        held["route"].fulfill(response=held["response"])
+        f.page.unroute("**/api/request", hold_preview)
+        f.idle()
+        expect(view).to_be_hidden()
+        for key in ("body", "members"):
+            assert not view.locator(f"[data-native-{key}]").text_content()
+
+    enter("peer")
+    f.invoke("blueprint", dict(selected, id=parents["peer"]), False)
+    peer = assemble(preview_request(read(parents["peer"]), parents["peer"]))
+    assert peer["assembledPath"] == "peer" and peer["body"] != outer["body"]
+    assert "static long KeepPeer(" in peer["members"] and "firstNative" not in peer["members"]
+    assert peer["body"] in whole["body"] and peer["body"] not in outer["body"]
+    assert peer["members"] in whole["members"] and peer["members"] not in outer["members"]
+    native.click()
+    shown(peer)
+    enter("outer")
+    native.click()
+    shown(outer)
+    logic.click()
+    document.locator('[data-document-internal="inner"]').click()
+    f.idle()
+    panel.get_by_role("tab", name="블루프린트 보기", exact=True).click()
+    expect(panel.locator('[data-bp-node="body"]')).to_be_visible()
+    assert (checkpoint.read_bytes() if checkpoint.exists() else None) == before
+    assert f.invoke("draftHistory", {"action": "inspect"})["result"]["result"] == previous_history
+    assert f.pending()["blueprint"] == previous_inputs
+    assert all(path.read_bytes() == raw for path, raw in files.items())
+    f.checked("The parent preview displays exact emitted C# and helpers for the selected same-named tree without writing sources, draft or history.")
+    return selected
 
 
 def build(name, expected_consumer, expected_return):
@@ -350,6 +459,8 @@ try:
         f.page.set_viewport_size({"width": 2200, "height": 1500})
         panel = open_graph()
         original_preview = check_preview(panel, original_type)
+        if parent_preview:
+            original_parent_preview = check_parent_preview(panel, original_type)
         untouched()
         dialog = map_output(panel)
         dialog.locator("[data-abi-remap-accept]").click()
@@ -461,6 +572,9 @@ try:
         panel = open_graph()
         check_preview(panel, selected_type)
         f.invoke("blueprint", original_preview, False)
+        if parent_preview:
+            f.invoke("blueprint", original_parent_preview, False)
+            check_parent_preview(panel, selected_type, delay=True)
         untouched()
         review = review_in_editor(panel)
         reviewed = checkpoint.read_bytes()
@@ -478,6 +592,8 @@ try:
         f.idle()
         assert read()["nodes"][0]["signature"]["return"] == selected_type
         check_preview(panel, selected_type)
+        if parent_preview:
+            check_parent_preview(panel, selected_type)
         f.page.unroute_all(behavior="wait")
         f.page.close()
         f.browser.close()
