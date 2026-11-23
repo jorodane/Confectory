@@ -87,7 +87,7 @@ export function frameOrderCells(data,cells){
 
 export function serialCreationCells(data,cells,placement='frame'){
  try{
-  const chain=placement==='frame'&&data.profile==='sync-acyclic-nested-v1'?frameCellChain(data):null;
+  const chain=placement==='frame'&&(data.profile==='sync-acyclic-nested-v1'||data.documentMethodFrameCreationAvailable===true)?frameCellChain(data):null;
   const first=placement==='root-start'?data.documentRootStart?.entry:chain?.order[0];
   const compounds=placement==='compound'?data.documentCompoundInsertion?.nodes:null;
   if((!first&&!compounds?.length)||cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;

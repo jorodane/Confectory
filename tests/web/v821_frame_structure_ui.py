@@ -120,9 +120,9 @@ try:
    assert binding['root']==t.graph and binding['graph']==frame and binding['path']==frame_path
    if method:
     for cell in ('inner', 'tail'):
-     expect(doc().locator(f'[data-document-add={cell}]')).to_be_disabled()
+     expect(doc().locator(f'[data-document-add={cell}]')).to_be_enabled()
      expect(doc().locator(f'[data-document-drag={cell}]')).to_be_disabled()
-    expect(doc().locator('[data-document-add="$entry"]')).to_have_count(0)
+    expect(doc().locator('[data-document-add="$entry"]')).to_be_enabled()
     if success:
      members = method_members(original)
      original_tail = 'peer-inner\npeer-tail\nafter\n10' if direct else 'parent-tail\npeer-inner\npeer-tail\nafter\n10'

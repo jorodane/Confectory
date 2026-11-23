@@ -163,15 +163,21 @@ public static class BlueprintCellRegion
         return selected;
     }
 
-    static JsonObject FrameOrder(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
+    static JsonObject EditableFrame(JsonObject root, string path, bool allowDesktopFrames)
     {
         var selected = BlueprintTree.Select(root, path);
         if (S(selected, "profile") != FeatureBlueprint.MethodsProfile)
-            return CompoundOrder(OwnedFrame(root, path), edits, ordinaryFrame: true);
+            return OwnedFrame(root, path);
 
-        Need(allowDesktopFrames, "Owned method frame order requires desktop authoring");
-        OwnedPreviewFrame(root, path);
-        return CompoundOrder(selected, edits, ordinaryFrame: true, methodFrameOrder: true);
+        Need(allowDesktopFrames, "Owned method frame editing requires desktop authoring");
+        return OwnedPreviewFrame(root, path);
+    }
+
+    static JsonObject FrameOrder(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
+    {
+        var selected = EditableFrame(root, path, allowDesktopFrames);
+        return CompoundOrder(selected, edits, ordinaryFrame: true,
+            methodFrameOrder: S(selected, "profile") == FeatureBlueprint.MethodsProfile);
     }
     static string RootStart(JsonObject graph,out bool compound)
     {
@@ -198,13 +204,13 @@ public static class BlueprintCellRegion
         return entry;
     }
 
-    static JsonObject FrameCreate(JsonObject root,string path,JsonArray edits)
+    static JsonObject FrameCreate(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
     {
         var candidate=root.DeepClone().AsObject();
-        var child=OwnedFrame(candidate,path);
+        var child=EditableFrame(candidate,path,allowDesktopFrames);
         InsertCell(child,edits,InsertionAnchor.FrameCell);
         // Recheck the original depth/per-frame/global limits including the new cell.
-        OwnedFrame(candidate,path);
+        EditableFrame(candidate,path,allowDesktopFrames);
         return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
     }
 
@@ -626,7 +632,7 @@ public static class BlueprintCellRegion
             CompoundOrder(candidate,CurrentRoutes(candidate));
             return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
         }
-        if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):FrameOrder(graph,S(request,"path"),edits,allowDesktopFrames);
+        if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits,allowDesktopFrames):FrameOrder(graph,S(request,"path"),edits,allowDesktopFrames);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
         if(action is "order" or "transfer"){
             ExactBranchRoutes(edits);
