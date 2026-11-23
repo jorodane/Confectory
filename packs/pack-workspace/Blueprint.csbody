@@ -358,6 +358,9 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(connections.Count>0){if(!nestedBodyEdits&&!ownedCellOrderBatch&&!ownedBranchOrderBatch&&!ownedFrameOrderBatch&&!serialInsertionBatch)throw new InvalidOperationException("Exact owned serial plan required");Process(temp,"serialRoutes",new System.Text.Json.Nodes.JsonObject{["id"]=graphId,["basis"]=current["basis"]!.DeepClone(),["routes"]=connections}.ToJsonString());current=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",BatchRead().ToJsonString()))!;}
     if((nestedBodyEdits||ownedCellOrderBatch||ownedBranchOrderBatch||ownedBranchCreationBatch||ownedFrameOrderBatch||serialInsertionBatch)&&current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Private value/type/frame validation failed; no candidate saved");
     }
+    if(codeParametersBatch&&current["diagnostics"]?["state"]?.ToString()=="invalid"&&
+       System.Linq.Enumerable.Any(edits,edit=>edit?["action"]?.ToString()=="argument"&&edit["valueJson"]?.ToString()!="null"))
+     throw new InvalidOperationException("Invalid owned parameter value or connection; no candidate saved");
     if(privateReturnRemapBatch){
      if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
       throw new InvalidOperationException("Private return candidate failed to assemble; no source or checkpoint saved");
