@@ -1,4 +1,4 @@
-function Confectory.EditorHome::LocalChatExchange (string session, string payload, object binding, bool nativeLan) -> string {
+function Confectory.EditorHome::LocalChatExchange (string session, string payload, object binding, bool nativeGtk) -> string {
 provide Confectory.EditorHome::LocalChatExchange with Confectory.EditorHome::LocalChatExchangeBody;
 provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
 provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;

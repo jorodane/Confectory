@@ -1,5 +1,7 @@
-if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
-    Environment.GetEnvironmentVariable("CONFECTORY_UI") is not ("embedded" or "web") ||
+bool web = Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
+bool supported = nativeGtk ? OperatingSystem.IsLinux() && !web
+    : web && (OperatingSystem.IsLinux() || OperatingSystem.IsWindows());
+if (!supported ||
     Environment.GetEnvironmentVariable("CONFECTORY_TEST_PUBLIC_CHAT_RELAY") != "1" ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome.IsolatedChatRelay") is not
         (string role, Func<string, object?> describe, Func<string, string?> take) || role is not ("host" or "guest"))

@@ -3,10 +3,10 @@ const string Unavailable = "{\"status\":\"unavailable\"}";
 const string Denied = "{\"status\":\"denied\"}";
 const string Committed = "{\"status\":\"committed\"}";
 static bool StableId(string id) => Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
-bool development = !nativeLan && Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") == "1";
-bool lan = nativeLan || Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
-var isolatedRelay = nativeLan ? null : calls.IsolatedRelay.Invoke() as (string Role, Func<string, object?> Describe, Func<string, string?> Take)?;
-if ((nativeLan ? !OperatingSystem.IsLinux() : !OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
+bool development = !nativeGtk && Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") == "1";
+bool lan = nativeGtk || Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
+var isolatedRelay = calls.IsolatedRelay.Invoke(nativeGtk) as (string Role, Func<string, object?> Describe, Func<string, string?> Take)?;
+if ((nativeGtk ? !OperatingSystem.IsLinux() : !OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
     (!development && !lan && isolatedRelay is null) ||
     binding is not (string view, System.Threading.CancellationToken life, string activation) || view.Length == 0 ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
@@ -23,7 +23,7 @@ lock (owner)
     {
         var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
         string? action = args["action"]?.GetValue<string>();
-        if (nativeLan && action is not ("issue-lan" or "inspect-lan" or "join-lan" or "read" or "status" or "send"))
+        if (nativeGtk && action is not ("issue-lan" or "inspect-lan" or "join-lan" or "issue-relay" or "inspect-relay" or "join-relay" or "read" or "status" or "send"))
             return Unavailable;
         if (action is "read" or "status" or "send" or "send-attachment" or "prepare-attachment" or "cancel-attachment" or
             "attachment" or "first-image" or "second-image")
