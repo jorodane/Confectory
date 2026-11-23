@@ -579,6 +579,55 @@ public static class BlueprintCellRegion
             &&S(e,"action")=="route"&&e["to"] is JsonValue v&&v.TryGetValue<string>(out _)),"Exact branch routes required");
     }
 
+    static JsonObject BranchReconnect(JsonObject graph, JsonArray edits)
+    {
+        Need(edits.Count <= 1, "Reconnect exactly one declared branch");
+        Need(S(graph, "profile") == FeatureBlueprint.SwitchProfile && graph["executionExitMode"]?.GetValue<bool>() != true
+            && graph["copySource"] is null && graph["schema"]?.GetValue<int>() == 1,
+            "An existing owned synchronous switch is required");
+        var nodes = graph["nodes"]!.AsArray();
+        var edges = graph["edges"]!.AsArray();
+        Need(nodes.Count is > 0 and < 64 && edges.GroupBy(e => (S(e, "from"), S(e, "port"))).All(g => g.Count() == 1),
+            "A bounded switch with distinct routes is required");
+
+        var choices = new JsonObject();
+        foreach (var selector in nodes.Where(n => S(n, "kind") == "code" && S(n, "control") == "switch"
+            && n!["branchOwner"] is null && n[BlueprintCompletionBranch.Metadata] is null && PlainCallContext(n)))
+        {
+            string owner = S(selector, "id"), continuation = "return:" + owner;
+            var outgoing = edges.Where(e => S(e, "from") == owner).ToDictionary(e => S(e, "port"), e => S(e, "to"));
+            var detached = nodes.Where(n => Ordinary(n!, owner) && PlainCallContext(n!))
+                .Select(n => S(n, "id"))
+                .Where(id => S(graph, "entry") != id && !edges.Any(e => S(e, "to") == id)
+                    && edges.Any(e => S(e, "from") == id && S(e, "port") == "next" && S(e, "to") == continuation))
+                .ToArray();
+            if (detached.Length == 0) continue;
+
+            var contract = selector!["executionEnum"]!;
+            var ports = new JsonObject();
+            foreach (var member in contract["members"]!.AsArray().Where(m => S(m, "id") != S(contract, "primary")))
+            {
+                string port = "case:" + S(member, "id");
+                // An unconnected member uses the switch fallback. Preserve that continuation.
+                if (outgoing.GetValueOrDefault(port, outgoing.GetValueOrDefault("default", continuation)) == continuation)
+                    ports[port] = new JsonArray(detached.Select(id => (JsonNode?)JsonValue.Create(id)).ToArray());
+            }
+            if (ports.Count > 0) choices[owner] = ports;
+        }
+        if (edits.Count == 0) return choices;
+
+        ExactBranchRoutes(edits);
+        var edit = edits[0]!;
+        string from = S(edit, "node"), selected = S(edit, "port"), target = S(edit, "to");
+        Need(choices[from]?[selected] is JsonArray targets && targets.Any(id => id!.GetValue<string>() == target),
+            "Select a detached cell in the same switch that keeps the original continuation");
+        var result = edges.DeepClone().AsArray();
+        var previous = result.SingleOrDefault(e => S(e, "from") == from && S(e, "port") == selected);
+        if (previous is null) result.Add(new JsonObject { ["from"] = from, ["port"] = selected, ["to"] = target });
+        else previous["to"] = target;
+        return new JsonObject { ["edges"] = result };
+    }
+
     static JsonObject OrderBranch(JsonObject graph, JsonArray edits, bool frame = false)
     {
         var anchor=edits.Single(e=>S(e,"port").StartsWith("case:",StringComparison.Ordinal))!;
@@ -725,6 +774,7 @@ public static class BlueprintCellRegion
             CompoundOrder(graph,CurrentRoutes(graph));
             return new JsonObject{["nodes"]=new JsonArray(graph["nodes"]!.AsArray().Where(n=>S(n,"kind")=="graph").Select(n=>n!["id"]!.DeepClone()).ToArray())};
         }
+        if(action=="branch-reconnect")return BranchReconnect(graph,edits);
         Need(edits.Count is >0 and <=64,"Bounded branch edits required");
         if(action=="root-start-create"){
             RootStart(graph,out bool compound);
