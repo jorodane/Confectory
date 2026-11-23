@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import select
+import secrets
 import shutil
 import socket
 import ssl
@@ -23,8 +24,10 @@ parser.add_argument("--target", choices=("linux", "windows"), default="linux")
 parser.add_argument("--compile-only", action="store_true")
 parser.add_argument("--isolated-docker-image", metavar="LOCAL_IMAGE",
                     help="also test two containers on a private Docker network using a locally built .NET runtime image")
+parser.add_argument("--relay-docker-image", metavar="LOCAL_IMAGE",
+                    help="verify the outbound relay across two non-routed internal networks")
 args = parser.parse_args()
-if args.isolated_docker_image and (args.compile_only or args.target != "linux"):
+if (args.isolated_docker_image or args.relay_docker_image) and (args.compile_only or args.target != "linux"):
     parser.error("the isolated network fixture requires Linux execution")
 tool_repo = args.tool_checkout.resolve()
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
@@ -42,6 +45,9 @@ import Confectory.EditorHome::PublicChatInvitations as Invitations (string,strin
 import Confectory.EditorHome.Model::CreatorHost as CreatorHost (string) -> bool;
 import Confectory.ProjectChat::OpenProtectedLoopback as Listen (object) -> object;
 import Confectory.ProjectChat::ConnectProtectedLoopback as Connect (int,object,string,string,string) -> object;
+import Confectory.EditorHome::StartPublicChatRelay as StartRelay (string,string,object,object) -> object;
+import Confectory.ProjectChat::OpenOpaqueChatRelay as Relay (object) -> object;
+import Confectory.ProjectChat::ConnectRelayedProtectedChat as ConnectRelay (object,object,string,string,string,object) -> object;
 body common "ProtectedPublicChatFixture.csbody";"""
 
 
@@ -381,6 +387,185 @@ def transport_flow(command, checkout, directory, docker_launch=None):
     print(f"PASS supplied {route_name} transport: pinned TLS identity, project-bound single use, text, LaY, and empty rejoin")
 
 
+@contextmanager
+def separated_relay_networks(image):
+    docker = ["docker", "--host=unix:///var/run/docker.sock"]
+    prefix = "confectory-relay-" + uuid.uuid4().hex[:12]
+    networks = [(prefix + "-host", "192.0.2.0/29"), (prefix + "-guest", "198.51.100.0/29")]
+    placed = []
+    image_id = subprocess.check_output([*docker, "image", "inspect", "--format", "{{.Id}}", image],
+                                       text=True).strip()
+    try:
+        for network, subnet in networks:
+            subprocess.run([*docker, "network", "create", "--internal", "--subnet", subnet, "--opt",
+                            "com.docker.network.bridge.inhibit_ipv4=true", network],
+                           stdout=subprocess.DEVNULL, check=True)
+            placed.append(network)
+            inspected, = json.loads(subprocess.check_output([*docker, "network", "inspect", network]))
+            assert inspected["Internal"] and inspected["Options"]["com.docker.network.bridge.inhibit_ipv4"] == "true"
+
+        def launch(command, checkout, directory, fixture_env):
+            mode = fixture_env["CONFECTORY_TLS_TEST_MODE"]
+            name = prefix + "-" + mode
+            machine_id = directory / "fixture-machine-id"
+            machine_id.write_text(uuid.uuid4().hex + "\n")
+            first, second = placed
+            interfaces = {
+                "relayed-host": [(first, "192.0.2.3")],
+                "relayed-guest": [(second, "198.51.100.3")],
+                "relay": [(first, "192.0.2.2"), (second, "198.51.100.2")],
+            }[mode]
+            run = [*docker, "run", "--pull=never", "--rm", "--interactive", "--name", name,
+                   "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--user", f"{os.getuid()}:{os.getgid()}",
+                   "--sysctl", "net.ipv4.ip_forward=0", "--workdir", str(checkout)]
+            for network, address in interfaces:
+                run += ["--network", f"name={network},ip={address}"]
+            for source in (checkout, (checkout / "targets").resolve(), Path(dotnet).parent):
+                run += ["--mount", f"type=bind,src={source},dst={source},readonly"]
+            run += ["--mount", f"type=bind,src={directory},dst={directory}",
+                    "--mount", f"type=bind,src={machine_id},dst=/etc/machine-id,readonly"]
+            for key, value in dict(fixture_env, CONFECTORY_RELAY_TEST_ISOLATED="1", CONFECTORY_DOTNET=dotnet).items():
+                run += ["--env", f"{key}={value}"]
+
+            def cleanup():
+                subprocess.run([*docker, "rm", "--force", name], stdout=subprocess.DEVNULL,
+                               stderr=subprocess.DEVNULL, check=False)
+
+            return [*run, image_id, *command], cleanup
+
+        yield launch
+    finally:
+        for network in reversed(placed):
+            subprocess.run([*docker, "network", "rm", network], stdout=subprocess.DEVNULL, check=True)
+
+
+def relay_flow(command, checkout, directory, launch):
+    host_dir, guest_dir, relay_dir = (directory / side for side in ("host", "guest", "relay"))
+    for side in (host_dir, guest_dir):
+        make_profiles(side)
+    relay_dir.mkdir(parents=True)
+    sensitive = []
+
+    with process(command, checkout, relay_dir, "relay", launch) as relay, \
+         process(command, checkout, host_dir, "relayed-host", launch) as host, \
+         process(command, checkout, guest_dir, "relayed-guest", launch) as guest:
+        assert relay("ready") == {"status": "ok"}
+        assert guest("probe-direct") == host("probe-direct") == {"route": "NetworkUnreachable"}
+        assert host("history")["messages"] == []
+        for side in (host_dir, guest_dir):
+            shutil.copyfile(relay_dir / "relay.der", side / "relay.der")
+        for name in ("trusted.der", "wrong.der"):
+            shutil.copyfile(host_dir / name, guest_dir / name)
+        shutil.copyfile(host_dir / "trusted.der", guest_dir / "wrong-relay.der")
+
+        def routes(**limits):
+            grants = [secrets.token_hex(32) for _ in range(2)]
+            for grant in grants:
+                sensitive.extend([grant.encode(), bytes.fromhex(grant)])
+            reservation = relay("start", hostHash=hashlib.sha256(bytes.fromhex(grants[0])).hexdigest(),
+                                guestHash=hashlib.sha256(bytes.fromhex(grants[1])).hexdigest(), **limits)
+            assert isinstance(reservation.get("port"), int), reservation
+            port = reservation["port"]
+            return (dict(relayAddress="192.0.2.2", relayPort=port, relayGrant=grants[0]),
+                    dict(relayAddress="198.51.100.2", relayPort=port, relayGrant=grants[1]))
+
+        def start(host_route, guest_route):
+            opened = host("start", **host_route)
+            assert opened.get("port") == 0 and opened.get("project"), opened
+            code = host("issue")["invitation"]
+            sensitive.extend([opened["project"].encode(), code.encode(), bytes.fromhex(code)])
+            return dict(guest_route, port=0, project=opened["project"], code=code)
+
+        def finish():
+            assert host("wait") == {"status": "ok"}
+            assert relay("wait") == {"status": "ok"}
+
+        host_route, guest_route = routes()
+        assert host("withdraw") == {"status": "ok"}
+        assert host("start", **host_route).get("error") == "UnauthorizedAccessException"
+        assert host("restore") == {"status": "ok"}
+        admitted = start(host_route, guest_route)
+        historical = "relay fixture: private pre-admission history"
+        text = "relay fixture: plaintext chat attached to original project"
+        title = "relay fixture: LaY private description"
+        sensitive.extend([historical.encode(), text.encode(), title.encode()])
+        assert host("send", id=message(1), text=historical) == {"status": "ok"}
+        assert guest("connect", name="wrong-relay", **admitted, relayPin="wrong").get("error") == "AuthenticationException"
+        wrong_grant = dict(admitted, relayGrant=secrets.token_hex(32))
+        assert "error" in guest("connect", name="wrong-grant", **wrong_grant)
+        assert guest("connect", name="active", **admitted) == {"status": "ok"}
+        seen(guest, "active")
+        assert "error" in guest("connect", name="replay-grant", **admitted)
+        assert host("send", id=message(2), text=text) == {"status": "ok"}
+        rgb = bytes((19, 77, 212)) * (64 * 64)
+        pixels = base64.b64encode(rgb).decode()
+        sensitive.extend([rgb, pixels.encode(), b"Fixture Guest"])
+        image = {"kind": "image", "width": 64, "height": 64, "encoding": "rgb24-base64",
+                 "hash": hashlib.sha256(rgb).hexdigest(), "pixels": pixels}
+        attachment = {"description": title, "items": [image]}
+        payload = dict(id=message(3), text="relay fixture: guest upload", attachment=attachment)
+        sensitive.append(payload["text"].encode())
+        assert request(guest, "active", "send-attachment", **payload) == {"status": "committed"}
+        assert request(guest, "active", "send-attachment", **payload) == {"status": "committed"}
+        assert request(guest, "active", "attachment", id=message(3)) == {"status": "ok", **attachment}
+        seen(guest, "active", 2, 3)
+
+        journal, = (host_dir / "host-profile/project-chat").glob("*.json")
+        saved = journal.read_bytes()
+        assert [row["id"] for row in json.loads(saved)["messages"]] == list(map(message, (1, 2, 3)))
+        assert host("withdraw") == {"status": "ok"}
+        finish()
+        assert "error" in request(guest, "active", "read")
+        assert host("restore") == {"status": "ok"}
+
+        bad_pin = start(*routes())
+        assert guest("connect", name="wrong-host", **bad_pin, pin="wrong").get("error") == "AuthenticationException"
+        finish()
+        wrong_project = start(*routes())
+        wrong_project["project"] = message(999)
+        assert guest("connect", name="wrong-project", **wrong_project).get("error") == "UnauthorizedAccessException"
+        finish()
+
+        wrong_invite = start(*routes())
+        wrong_invite["code"] = admitted["code"]
+        assert guest("connect", name="replay-invite", **wrong_invite).get("error") == "UnauthorizedAccessException"
+        finish()
+        new = start(*routes())
+        assert guest("connect", name="fresh", **new) == {"status": "ok"}
+        seen(guest, "fresh")
+        assert request(guest, "fresh", "attachment", id=message(3)) == {"status": "denied"}
+        assert relay("stop") == {"status": "ok"}
+        assert "error" in request(guest, "fresh", "read")
+        finish()
+        assert journal.read_bytes() == saved
+
+        idle_host, _ = routes(seconds=3)
+        assert host("start", **idle_host).get("project")
+        assert host("stop") == {"status": "ok"}
+        assert relay("wait") == {"status": "ok"}
+        ended = host("wait")
+        assert ended == {"status": "ok"} or ended.get("error") in {
+            "EndOfStreamException", "IOException", "OperationCanceledException"
+        }
+
+        # Fail during inner TLS when a deliberately tiny relay byte cap is reached.
+        limited = start(*routes(byteLimit=128))
+        assert "error" in guest("connect", name="bounded", **limited)
+        assert relay("wait") == {"status": "ok"}
+        assert journal.read_bytes() == saved
+
+    transcript = (relay_dir / "fixture-opaque.bin").read_bytes()
+    assert b"chat-host.confectory.invalid" in transcript and len(transcript) > len(pixels)
+    assert not any(value in transcript for value in sensitive)
+    assert {path.name for path in relay_dir.iterdir()} == {"fixture-machine-id", "relay.der", "fixture-opaque.bin"}
+    verify_private(host_dir)
+    verify_private(guest_dir)
+    assert not (guest_dir / "guest-profile/project-chat").exists()
+    print("PASS separate non-routed networks: outbound-only creator and guest, both TLS pins, one-use pairing and project admission")
+    print("PASS text/LaY and host-only journal; wrong pair/project/cert, revocation, empty rejoin and one-shot termination")
+    print("PASS observed relay plaintext boundary contains only opaque inner TLS; relay expiry/stop and byte cap, no project or invite records")
+
+
 with tempfile.TemporaryDirectory(prefix="confectory-protected-chat-") as directory:
     root = Path(directory)
     checkout = root / "checkout"
@@ -388,6 +573,24 @@ with tempfile.TemporaryDirectory(prefix="confectory-protected-chat-") as directo
     shutil.copytree(repo / "packs", checkout / "packs", ignore=shutil.ignore_patterns(".confectory"))
     shutil.copytree(repo / "examples/editor-home", home, ignore=shutil.ignore_patterns(".confectory"))
     (checkout / "targets").symlink_to(tool_repo / "targets", target_is_directory=True)
+    if args.relay_docker_image:
+        relay_body = checkout / "packs/project-chat/OpenOpaqueChatRelay.csbody"
+        source = relay_body.read_text()
+        write = "        await destination.WriteAsync(buffer.AsMemory(0, count), cancelled).ConfigureAwait(false);"
+        assert source.count(write) == 1
+        observe = """
+        if (Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_MODE") == "relay")
+        {
+            lock (gate)
+            {
+                string directory = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_ROOT")!;
+                using var audit = System.IO.File.Open(System.IO.Path.Combine(directory, "fixture-opaque.bin"),
+                    System.IO.FileMode.Append, System.IO.FileAccess.Write);
+                audit.Write(buffer, 0, count);
+            }
+        }
+"""
+        relay_body.write_text(source.replace(write, observe + write))
     manifest = home / "project.cpack"
     manifest.write_text(manifest.read_text().replace("entry Confectory.EditorHome::Main;", "entry Confectory.EditorHome::VerifyShell;"))
     body = home / "VerifyShellBody.celem"
@@ -408,3 +611,6 @@ with tempfile.TemporaryDirectory(prefix="confectory-protected-chat-") as directo
         if args.isolated_docker_image:
             with isolated_docker(args.isolated_docker_image) as launch:
                 transport_flow(report["run"], checkout, root / "isolated", launch)
+        if args.relay_docker_image:
+            with separated_relay_networks(args.relay_docker_image) as launch:
+                relay_flow(report["run"], checkout, root / "relay-fixture", launch)

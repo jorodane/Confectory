@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::OpenOpaqueChatRelay (object options) -> object {
+provide Confectory.ProjectChat::OpenOpaqueChatRelay with Confectory.ProjectChat::OpenOpaqueChatRelayBody;
+description "Pair and forward opaque TLS bytes for one provisioned connection.";
+}

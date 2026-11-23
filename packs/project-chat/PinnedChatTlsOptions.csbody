@@ -1,0 +1,34 @@
+if (trustedCertificate is not System.Security.Cryptography.X509Certificates.X509Certificate2 expected ||
+    expected.HasPrivateKey || !IsDnsName(tlsName))
+    throw new ArgumentException("A native transport, explicit TLS DNS identity and independently trusted public certificate are required.");
+
+static bool IsDnsName(string name)
+{
+    if (name.Length is < 1 or > 253 || !System.Linq.Enumerable.Any(name, char.IsAsciiLetter)) return false;
+    foreach (string label in name.Split('.'))
+        if (label.Length is < 1 or > 63 || !char.IsAsciiLetterOrDigit(label[0]) || !char.IsAsciiLetterOrDigit(label[^1]) ||
+            System.Linq.Enumerable.Any(label, c => !char.IsAsciiLetterOrDigit(c) && c != '-'))
+            return false;
+    return true;
+}
+
+var chainPolicy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
+{
+    TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
+    // This explicit, per-connection trust anchor has no external revocation service.
+    RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+    DisableCertificateDownloads = true
+};
+chainPolicy.CustomTrustStore.Add(expected);
+byte[] pinned = expected.GetRawCertData();
+return new System.Net.Security.SslClientAuthenticationOptions
+{
+    TargetHost = tlsName,
+    CertificateChainPolicy = chainPolicy,
+    EnabledSslProtocols = tls13Only ? System.Security.Authentication.SslProtocols.Tls13 :
+        System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+    AllowRenegotiation = false,
+    RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
+        errors == System.Net.Security.SslPolicyErrors.None && certificate is not null &&
+        System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(certificate.GetRawCertData(), pinned)
+};

@@ -1,0 +1,15 @@
+if (cancellation is not System.Threading.CancellationToken lifetime)
+    throw new ArgumentException("An owned connection lifetime is required.");
+System.IO.Stream Open(System.Threading.CancellationToken token) => (System.IO.Stream)calls.Dial.Invoke(route, token);
+// The relay can see the inner TLS ClientHello. Keep project identity out of SNI.
+var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
+    calls.Connect.Invoke("chat-host.confectory.invalid", hostCertificate,
+        ((Func<System.Threading.CancellationToken, System.IO.Stream>)Open, lifetime, true), project, invitation, displayName);
+var registration = lifetime.UnsafeRegister(_ => close(), null);
+void Close()
+{
+    registration.Unregister();
+    close();
+}
+try { lifetime.ThrowIfCancellationRequested(); return (request, (Action)Close); }
+catch { Close(); throw; }

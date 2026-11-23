@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::ConnectRelayedProtectedChat (object route, object hostCertificate, string project, string invitation, string displayName, object cancellation) -> object {
+provide Confectory.ProjectChat::ConnectRelayedProtectedChat with Confectory.ProjectChat::ConnectRelayedProtectedChatBody;
+description "Join protected chat through a provisioned relay with independent host TLS.";
+}

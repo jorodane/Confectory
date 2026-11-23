@@ -1,0 +1,3 @@
+implementation Confectory.ProjectChat::PinnedChatTlsOptionsBody for Confectory.ProjectChat::PinnedChatTlsOptions (string tlsName, object trustedCertificate, bool tls13Only) -> object {
+body common "PinnedChatTlsOptions.csbody";
+}

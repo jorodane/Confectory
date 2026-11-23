@@ -20,4 +20,12 @@ element ConnectProtectedChat function "ConnectProtectedChat.celem";
 element ConnectProtectedChatBody implementation "ConnectProtectedChatBody.celem";
 element PrivateLanRoute function "PrivateLanRoute.celem";
 element PrivateLanRouteBody implementation "PrivateLanRouteBody.celem";
+element PinnedChatTlsOptions function "PinnedChatTlsOptions.celem";
+element PinnedChatTlsOptionsBody implementation "PinnedChatTlsOptionsBody.celem";
+element DialChatRelay function "DialChatRelay.celem";
+element DialChatRelayBody implementation "DialChatRelayBody.celem";
+element ConnectRelayedProtectedChat function "ConnectRelayedProtectedChat.celem";
+element ConnectRelayedProtectedChatBody implementation "ConnectRelayedProtectedChatBody.celem";
+element OpenOpaqueChatRelay function "OpenOpaqueChatRelay.celem";
+element OpenOpaqueChatRelayBody implementation "OpenOpaqueChatRelayBody.celem";
 }

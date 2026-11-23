@@ -1,0 +1,158 @@
+const int MaxNegotiating = 8;
+const int BufferSize = 16 * 1024;
+const int MaxPairSeconds = 300;
+const long MaxDirectionBytes = 64 * 1024 * 1024;
+
+var (certificate, openTransport, hostDigest, guestDigest, seconds, byteLimit, lifetime) =
+    ((System.Security.Cryptography.X509Certificates.X509Certificate2,
+      Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>,
+      string, string, int, long, System.Threading.CancellationToken))options;
+if (!certificate.HasPrivateKey || hostDigest.Length != 64 || guestDigest.Length != 64 ||
+    seconds is < 1 or > MaxPairSeconds || byteLimit is < 1 or > MaxDirectionBytes)
+    throw new ArgumentException("One bounded relay pair and a TLS certificate are required.");
+byte[] host = Convert.FromHexString(hostDigest), guest = Convert.FromHexString(guestDigest);
+if (System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(host, guest))
+    throw new ArgumentException("The two relay capabilities must be distinct.");
+lifetime.ThrowIfCancellationRequested();
+
+var (accept, closeListener) = openTransport(MaxNegotiating);
+var stop = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+stop.CancelAfter(TimeSpan.FromSeconds(seconds));
+var cancelled = stop.Token;
+var tls = new System.Net.Security.SslServerAuthenticationOptions
+{
+    ServerCertificate = certificate,
+    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls13,
+    AllowRenegotiation = false
+};
+var gate = new object();
+var slots = new (System.Net.Security.SslStream Stream, byte[] First, System.Threading.Tasks.Task<int> Read)?[2];
+var paired = new System.Threading.Tasks.TaskCompletionSource(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously);
+byte[] ready = new byte[] { 1 };
+
+void Stop()
+{
+    try { stop.Cancel(); }
+    catch (ObjectDisposedException) { }
+}
+
+async System.Threading.Tasks.Task Screen(System.IO.Stream channel)
+{
+    var stream = new System.Net.Security.SslStream(channel, leaveInnerStreamOpen: false);
+    byte[] token = new byte[32];
+    bool reserved = false;
+    try
+    {
+        using var deadline = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        await stream.AuthenticateAsServerAsync(tls, deadline.Token).ConfigureAwait(false);
+        await stream.ReadExactlyAsync(token, deadline.Token).ConfigureAwait(false);
+        byte[] digest = System.Security.Cryptography.SHA256.HashData(token);
+        System.Security.Cryptography.CryptographicOperations.ZeroMemory(token);
+        bool isHost = System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(host, digest);
+        bool isGuest = System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(guest, digest);
+        if (!isHost && !isGuest) return;
+        System.Threading.Tasks.Task<int> firstRead;
+        lock (gate)
+        {
+            int slot = isHost ? 0 : 1;
+            if (slots[slot] is not null || cancelled.IsCancellationRequested) return;
+            byte[] first = new byte[BufferSize];
+            firstRead = stream.ReadAsync(first.AsMemory(), cancelled).AsTask();
+            slots[slot] = (stream, first, firstRead);
+            reserved = true;
+            if (slots[1 - slot] is not null) paired.TrySetResult();
+        }
+        // Detect a vanished endpoint while its peer has not yet arrived. This
+        // read is carried into the bridge so no TLS bytes are lost to a probe.
+        await System.Threading.Tasks.Task.WhenAny(paired.Task, firstRead).ConfigureAwait(false);
+        if (!paired.Task.IsCompleted) Stop();
+    }
+    catch (Exception error) when (error is System.IO.IOException or System.Security.Authentication.AuthenticationException or
+        OperationCanceledException or ObjectDisposedException)
+    {
+        if (reserved) Stop();
+    }
+    finally
+    {
+        System.Security.Cryptography.CryptographicOperations.ZeroMemory(token);
+        if (!reserved) stream.Dispose();
+    }
+}
+
+async System.Threading.Tasks.Task Forward(System.Net.Security.SslStream source, System.Net.Security.SslStream destination,
+    byte[] buffer, System.Threading.Tasks.Task<int> firstRead)
+{
+    long remaining = byteLimit;
+    int count = await firstRead.ConfigureAwait(false);
+    while (count > 0 && count <= remaining)
+    {
+        await destination.WriteAsync(buffer.AsMemory(0, count), cancelled).ConfigureAwait(false);
+        remaining -= count;
+        if (remaining == 0) return;
+        count = await source.ReadAsync(buffer.AsMemory(), cancelled).ConfigureAwait(false);
+    }
+}
+
+async System.Threading.Tasks.Task Bridge()
+{
+    try
+    {
+        await paired.Task.WaitAsync(cancelled).ConfigureAwait(false);
+        var left = slots[0]!.Value;
+        var right = slots[1]!.Value;
+        await System.Threading.Tasks.Task.WhenAll(
+            left.Stream.WriteAsync(ready.AsMemory(), cancelled).AsTask(),
+            right.Stream.WriteAsync(ready.AsMemory(), cancelled).AsTask()).ConfigureAwait(false);
+        var send = Forward(left.Stream, right.Stream, left.First, left.Read);
+        var receive = Forward(right.Stream, left.Stream, right.First, right.Read);
+        await System.Threading.Tasks.Task.WhenAny(send, receive).ConfigureAwait(false);
+        Stop();
+        await System.Threading.Tasks.Task.WhenAll(send, receive).ConfigureAwait(false);
+    }
+    catch (Exception error) when (error is System.IO.IOException or OperationCanceledException or ObjectDisposedException) { }
+    finally { Stop(); }
+}
+
+async System.Threading.Tasks.Task Run()
+{
+    var bridge = Bridge();
+    var negotiations = new System.Collections.Generic.List<System.Threading.Tasks.Task>(MaxNegotiating);
+    try
+    {
+        while (!cancelled.IsCancellationRequested)
+        {
+            var channel = await accept(cancelled).ConfigureAwait(false);
+            negotiations.RemoveAll(task => task.IsCompletedSuccessfully);
+            if (negotiations.Count >= MaxNegotiating) { channel.Dispose(); continue; }
+            negotiations.Add(Screen(channel));
+        }
+    }
+    catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+    finally
+    {
+        Stop();
+        try { closeListener(); }
+        finally
+        {
+            try
+            {
+                await System.Threading.Tasks.Task.WhenAll(System.Linq.Enumerable.Append(negotiations, bridge)).ConfigureAwait(false);
+            }
+            finally
+            {
+                foreach (var slot in slots)
+                    if (slot is { } peer)
+                    {
+                        peer.Stream.Dispose();
+                        try { await peer.Read.ConfigureAwait(false); }
+                        catch (Exception error) when (error is System.IO.IOException or OperationCanceledException or ObjectDisposedException) { }
+                    }
+                stop.Dispose();
+            }
+        }
+    }
+}
+
+// No project identifiers, room logs, or application messages leave the trusted endpoints.
+return ((Action)Stop, Run());

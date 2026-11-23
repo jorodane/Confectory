@@ -3,10 +3,18 @@ const int MaxRequest = 16 * 1024;
 const int MaxUpload = 2 * 1024 * 1024 + 32 * 1024;
 const int MaxResponse = 4 * 1024 * 1024 + 4096;
 
-var (certificate, accept, active, lifetime, openTransport) =
-    ((System.Security.Cryptography.X509Certificates.X509Certificate2, Func<string, string, string, object>,
-      Func<bool>, System.Threading.CancellationToken,
-      Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>))options;
+var (certificate, accept, active, lifetime, openTransport, relayed) = options switch
+{
+    (System.Security.Cryptography.X509Certificates.X509Certificate2 cert, Func<string, string, string, object> admit,
+        Func<bool> current, System.Threading.CancellationToken life,
+        Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)> open,
+        bool single) => (cert, admit, current, life, open, single),
+    (System.Security.Cryptography.X509Certificates.X509Certificate2 cert, Func<string, string, string, object> admit,
+        Func<bool> current, System.Threading.CancellationToken life,
+        Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)> open)
+        => (cert, admit, current, life, open, false),
+    _ => throw new ArgumentException("A native chat listener is required.")
+};
 if (!certificate.HasPrivateKey || lifetime.IsCancellationRequested || !active())
     throw new InvalidOperationException("An active host and TLS server certificate are required.");
 
@@ -17,7 +25,8 @@ var (read, write) = ((Func<System.IO.Stream, int, System.Threading.CancellationT
 var tlsOptions = new System.Net.Security.SslServerAuthenticationOptions
 {
     ServerCertificate = certificate,
-    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+    EnabledSslProtocols = relayed ? System.Security.Authentication.SslProtocols.Tls13 :
+        System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
     AllowRenegotiation = false
 };
 var (acceptTransport, closeTransport) = openTransport(MaxConnections);
@@ -186,6 +195,11 @@ async System.Threading.Tasks.Task Run()
         while (!cancelled.IsCancellationRequested)
         {
             var transport = await acceptTransport(cancelled).ConfigureAwait(false);
+            if (relayed)
+            {
+                await Serve(transport).ConfigureAwait(false);
+                break;
+            }
             workers.RemoveAll(task => task.IsCompletedSuccessfully);
             if (workers.Count >= MaxConnections) { transport.Dispose(); continue; }
             workers.Add(Serve(transport));

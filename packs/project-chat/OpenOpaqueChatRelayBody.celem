@@ -1,0 +1,3 @@
+implementation Confectory.ProjectChat::OpenOpaqueChatRelayBody for Confectory.ProjectChat::OpenOpaqueChatRelay (object options) -> object {
+body common "OpenOpaqueChatRelay.csbody";
+}

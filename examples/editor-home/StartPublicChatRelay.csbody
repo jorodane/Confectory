@@ -1,0 +1,20 @@
+object Listen(object options)
+{
+    var (identity, admit, active, lifetime) = ((System.Security.Cryptography.X509Certificates.X509Certificate2,
+        Func<string, string, string, object>, Func<bool>, System.Threading.CancellationToken))options;
+    (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action) Open(int _)
+    {
+        System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken token) =>
+            System.Threading.Tasks.Task.Run(() => (System.IO.Stream)calls.Dial.Invoke(route, token), token);
+        return (Accept, () => {});
+    }
+    var (stop, completion) = ((Action, System.Threading.Tasks.Task))calls.Protect.Invoke(
+        (identity, admit, active, lifetime,
+         (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)Open, true));
+    return (0, stop, completion);
+}
+
+// Start verifies the active original creator before invoking the outbound factory.
+var (_, close, completion) = ((int, Action, System.Threading.Tasks.Task))
+    calls.Start.Invoke(session, activation, certificate, (Func<object, object>)Listen);
+return (close, completion);

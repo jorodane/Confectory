@@ -1,0 +1,5 @@
+implementation Confectory.ProjectChat::ConnectRelayedProtectedChatBody for Confectory.ProjectChat::ConnectRelayedProtectedChat (object route, object hostCertificate, string project, string invitation, string displayName, object cancellation) -> object {
+import Confectory.ProjectChat::DialChatRelay as Dial (object,object) -> object;
+import Confectory.ProjectChat::ConnectProtectedChat as Connect (string,object,object,string,string,string) -> object;
+body common "ConnectRelayedProtectedChat.csbody";
+}

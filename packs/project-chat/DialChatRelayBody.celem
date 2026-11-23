@@ -1,0 +1,4 @@
+implementation Confectory.ProjectChat::DialChatRelayBody for Confectory.ProjectChat::DialChatRelay (object route, object cancellation) -> object {
+import Confectory.ProjectChat::PinnedChatTlsOptions as PinTls (string,object,bool) -> object;
+body common "DialChatRelay.csbody";
+}

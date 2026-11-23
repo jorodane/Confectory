@@ -1,4 +1,5 @@
 implementation Confectory.ProjectChat::ConnectProtectedChatBody for Confectory.ProjectChat::ConnectProtectedChat (string tlsName, object trustedCertificate, object transport, string project, string invitation, string displayName) -> object {
 import Confectory.ProjectChat::LoopbackChatFrames as Frames () -> object;
+import Confectory.ProjectChat::PinnedChatTlsOptions as PinTls (string,object,bool) -> object;
 body common "ConnectProtectedChat.csbody";
 }

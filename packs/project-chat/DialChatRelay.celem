@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::DialChatRelay (object route, object cancellation) -> object {
+provide Confectory.ProjectChat::DialChatRelay with Confectory.ProjectChat::DialChatRelayBody;
+description "Dial an explicitly provisioned, pinned one-use chat relay.";
+}

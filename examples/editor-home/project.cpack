@@ -68,4 +68,6 @@ element StartPublicChatBody implementation "StartPublicChatBody.celem";
 element LocalChatDevelopment function "LocalChatDevelopment.celem";
 element LocalChatDevelopmentBody implementation "LocalChatDevelopmentBody.celem";
 element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
+element StartPublicChatRelay function "StartPublicChatRelay.celem";
+element StartPublicChatRelayBody implementation "StartPublicChatRelayBody.celem";
 }

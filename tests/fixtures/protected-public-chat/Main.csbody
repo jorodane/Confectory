@@ -4,6 +4,9 @@ string data = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_ROOT")!;
 string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
 const string FixtureName = "chat-host.confectory.test";
 bool transportFixture = mode.StartsWith("transport-", StringComparison.Ordinal);
+bool relayed = mode.StartsWith("relayed-", StringComparison.Ordinal);
+const string RelayName = "relay.confectory.invalid";
+const string RelayedHostName = "chat-host.confectory.invalid";
 const string Committed = "{\"status\":\"committed\"}";
 void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
 static System.Text.Json.Nodes.JsonObject Ok() => new() { ["status"] = "ok" };
@@ -17,6 +20,89 @@ void Talk(Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObj
         Console.WriteLine(reply.ToJsonString());
     }
 }
+
+System.Security.Cryptography.X509Certificates.X509Certificate2 CreateCertificate(string name)
+{
+    using var rsa = System.Security.Cryptography.RSA.Create(2048);
+    var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=" + name, rsa,
+        System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+    var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+    san.AddDnsName(name);
+    request.CertificateExtensions.Add(san.Build());
+    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
+    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
+    return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+}
+
+System.Security.Cryptography.X509Certificates.X509Certificate2 RelayPin(System.Text.Json.Nodes.JsonObject input) =>
+    System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(
+        System.IO.Path.Combine(data, input["relayPin"]?.ToString() == "wrong" ? "wrong-relay.der" : "relay.der"));
+
+object RelayRoute(System.Text.Json.Nodes.JsonObject input, System.Security.Cryptography.X509Certificates.X509Certificate2 pin) =>
+    (new System.Net.IPEndPoint(System.Net.IPAddress.Parse(input["relayAddress"]!.ToString()), input["relayPort"]!.GetValue<int>()),
+        RelayName, pin, input["relayGrant"]!.GetValue<string>());
+
+static string DirectRoute(string address)
+{
+    using var socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+        System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+    using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(1));
+    try
+    {
+        socket.ConnectAsync(new System.Net.IPEndPoint(System.Net.IPAddress.Parse(address), 12345),
+            timeout.Token).AsTask().GetAwaiter().GetResult();
+        return "reachable";
+    }
+    catch (System.Net.Sockets.SocketException error) { return error.SocketErrorCode.ToString(); }
+}
+
+if (mode == "relay")
+{
+    using var certificate = CreateCertificate(RelayName);
+    System.IO.File.WriteAllBytes(System.IO.Path.Combine(data, "relay.der"), certificate.RawData);
+    (Action Stop, System.Threading.Tasks.Task Completion)? relay = null;
+    try
+    {
+        Talk(input =>
+        {
+            string action = input["op"]!.ToString();
+            if (action == "start")
+            {
+                Check(relay is null || relay.Value.Completion.IsCompleted, "The previous fixture relay pair is active.");
+                int port = 0;
+                (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action) Open(int limit)
+                {
+                    // This fixture is attached only to two private, internal test bridges.
+                    Check(isolatedFixtureForRelay(), "Only the isolated relay fixture can listen.");
+                    var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, 0);
+                    listener.Start(limit);
+                    port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+                    async System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken token) =>
+                        new System.Net.Sockets.NetworkStream(await listener.AcceptSocketAsync(token), ownsSocket: true);
+                    return (Accept, listener.Stop);
+                }
+                relay = ((Action, System.Threading.Tasks.Task))calls.Relay.Invoke((certificate,
+                    (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)Open,
+                    input["hostHash"]!.ToString(), input["guestHash"]!.ToString(),
+                    input["seconds"]?.GetValue<int>() ?? 30, input["byteLimit"]?.GetValue<long>() ?? 8388608L, cancellation.Token));
+                return new() { ["port"] = port };
+            }
+            if (action == "stop") relay!.Value.Stop();
+            if (action is "stop" or "wait") relay!.Value.Completion.WaitAsync(TimeSpan.FromSeconds(8)).GetAwaiter().GetResult();
+            return Ok();
+        });
+    }
+    finally
+    {
+        relay?.Stop();
+        relay?.Completion.WaitAsync(TimeSpan.FromSeconds(8)).GetAwaiter().GetResult();
+    }
+    return 0;
+}
+
+static bool isolatedFixtureForRelay() => Environment.GetEnvironmentVariable("CONFECTORY_RELAY_TEST_ISOLATED") == "1";
 
 // Only the test harness selects these synthetic endpoints. The editor entry
 // continues to own its fixed loopback transport and localhost TLS identity.
@@ -47,7 +133,7 @@ object ListenFixture(object options)
     return (port, close, completion);
 }
 
-if (mode is "guest" or "transport-guest")
+if (mode is "guest" or "transport-guest" or "relayed-guest")
 {
     var connections = new System.Collections.Generic.Dictionary<string,
         (Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject> Request, Action Close)>();
@@ -61,6 +147,12 @@ if (mode is "guest" or "transport-guest")
         string projectId = input["project"]!.ToString(), invitation = input["code"]!.ToString();
         object Open()
         {
+            if (relayed)
+            {
+                using var outer = RelayPin(input);
+                return calls.ConnectRelay.Invoke(RelayRoute(input, outer), cert, projectId, invitation,
+                    "Fixture Guest", cancellation.Token);
+            }
             if (!transportFixture) return calls.Connect.Invoke(port, cert, projectId, invitation, "Fixture Guest");
             System.IO.Stream Dial(System.Threading.CancellationToken token)
             {
@@ -88,6 +180,7 @@ if (mode is "guest" or "transport-guest")
         {
             string op = input["op"]!.ToString();
             string name = input["name"]?.ToString() ?? "one";
+            if (op == "probe-direct") return new() { ["route"] = DirectRoute("192.0.2.3") };
             if (op == "connect") { connections.Add(name, Connect(input)); return Ok(); }
             if (op == "race")
             {
@@ -113,24 +206,9 @@ if (mode is "guest" or "transport-guest")
     return 0;
 }
 
-using var key = System.Security.Cryptography.RSA.Create(2048);
-using var wrongKey = System.Security.Cryptography.RSA.Create(2048);
-System.Security.Cryptography.X509Certificates.X509Certificate2 NewCertificate(System.Security.Cryptography.RSA rsa)
-{
-    string certificateName = transportFixture ? FixtureName : "localhost";
-    var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=" + certificateName, rsa,
-        System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
-    var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
-    san.AddDnsName(certificateName);
-    request.CertificateExtensions.Add(san.Build());
-    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
-    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
-        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
-        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
-    return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
-}
-using var serverCertificate = NewCertificate(key);
-using var wrongCertificate = NewCertificate(wrongKey);
+string certificateName = relayed ? RelayedHostName : transportFixture ? FixtureName : "localhost";
+using var serverCertificate = CreateCertificate(certificateName);
+using var wrongCertificate = CreateCertificate(certificateName);
 System.IO.File.WriteAllBytes(System.IO.Path.Combine(data, "trusted.der"), serverCertificate.RawData);
 System.IO.File.WriteAllBytes(System.IO.Path.Combine(data, "wrong.der"), wrongCertificate.RawData);
 
@@ -151,6 +229,7 @@ string project = selected["projectId"]!.ToString(), activation = selected["activ
 string manifest = selected["path"]!.ToString();
 (int Port, Action Close, System.Threading.Tasks.Task Completion)? server = null;
 int pauseAdmission = 0;
+System.Security.Cryptography.X509Certificates.X509Certificate2? relayPin = null;
 var markers = System.IO.Path.Combine(data, "fault-fixture");
 System.IO.Directory.CreateDirectory(markers);
 string Marker(string name) => System.IO.Path.Combine(markers, name);
@@ -165,6 +244,7 @@ try
         string Chat(string operation, string id = "", string attachment = "", string text = "") =>
             calls.LocalChat.Invoke(session, activation, operation, id, attachment, text);
 
+        if (op == "probe-direct" && relayed) return new() { ["route"] = DirectRoute("198.51.100.3") };
         if (op == "start-disabled")
         {
             const string flag = "CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK";
@@ -175,7 +255,15 @@ try
         }
         if (op == "start")
         {
-            if (mode != "loss")
+            if (relayed)
+            {
+                relayPin?.Dispose();
+                relayPin = RelayPin(input);
+                var (close, completion) = ((Action, System.Threading.Tasks.Task))calls.StartRelay.Invoke(
+                    session, activation, serverCertificate, RelayRoute(input, relayPin));
+                server = (0, close, completion);
+            }
+            else if (mode != "loss")
             {
                 object opened = transportFixture
                     ? calls.StartTransport.Invoke(session, activation, serverCertificate, (Func<object, object>)ListenFixture)
@@ -261,5 +349,6 @@ finally
     server?.Close();
     calls.CloseSession.Invoke(session);
     server?.Completion.WaitAsync(TimeSpan.FromSeconds(8)).GetAwaiter().GetResult();
+    relayPin?.Dispose();
 }
 return 0;

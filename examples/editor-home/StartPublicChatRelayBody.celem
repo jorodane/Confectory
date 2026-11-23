@@ -1,0 +1,6 @@
+implementation Confectory.EditorHome::StartPublicChatRelayBody for Confectory.EditorHome::StartPublicChatRelay (string session, string activation, object certificate, object route) -> object {
+import Confectory.EditorHome::StartPublicChat as Start (string,string,object,object) -> object;
+import Confectory.ProjectChat::DialChatRelay as Dial (object,object) -> object;
+import Confectory.ProjectChat::OpenProtectedChat as Protect (object) -> object;
+body common "StartPublicChatRelay.csbody";
+}

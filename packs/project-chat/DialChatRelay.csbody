@@ -1,0 +1,44 @@
+// The trusted native caller provisions the relay route independently of the project invite.
+if (route is not (System.Net.IPEndPoint endpoint, string dnsName,
+    System.Security.Cryptography.X509Certificates.X509Certificate2 pin, string capability) ||
+    cancellation is not System.Threading.CancellationToken lifetime || endpoint.Port == 0 ||
+    endpoint.Address.Equals(System.Net.IPAddress.Any) || endpoint.Address.Equals(System.Net.IPAddress.IPv6Any) ||
+    capability.Length != 64)
+    throw new ArgumentException("A provisioned relay route and one-use capability are required.");
+
+var tlsOptions = (System.Net.Security.SslClientAuthenticationOptions)calls.PinTls.Invoke(dnsName, pin, true);
+byte[] credential = Convert.FromHexString(capability);
+System.Net.Sockets.Socket? socket = null;
+System.IO.Stream? transport = null;
+System.Net.Security.SslStream? stream = null;
+try
+{
+    using var opening = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+    opening.CancelAfter(TimeSpan.FromSeconds(10));
+    socket = new System.Net.Sockets.Socket(endpoint.AddressFamily, System.Net.Sockets.SocketType.Stream,
+        System.Net.Sockets.ProtocolType.Tcp);
+    socket.ConnectAsync(endpoint, opening.Token).AsTask().GetAwaiter().GetResult();
+    transport = new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+    socket = null;
+    stream = new System.Net.Security.SslStream(transport, leaveInnerStreamOpen: false);
+    stream.AuthenticateAsClientAsync(tlsOptions, opening.Token).GetAwaiter().GetResult();
+    opening.Token.ThrowIfCancellationRequested();
+    stream.WriteAsync(credential.AsMemory(), opening.Token).AsTask().GetAwaiter().GetResult();
+    System.Security.Cryptography.CryptographicOperations.ZeroMemory(credential);
+
+    // The host can wait for the approved guest without listening on its own network.
+    using var pairing = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+    pairing.CancelAfter(TimeSpan.FromMinutes(5));
+    var response = new byte[1];
+    stream.ReadExactlyAsync(response, pairing.Token).AsTask().GetAwaiter().GetResult();
+    if (response[0] != 1) throw new UnauthorizedAccessException("The relay pairing was refused.");
+    return stream;
+}
+catch
+{
+    stream?.Dispose();
+    transport?.Dispose();
+    socket?.Dispose();
+    throw;
+}
+finally { System.Security.Cryptography.CryptographicOperations.ZeroMemory(credential); }

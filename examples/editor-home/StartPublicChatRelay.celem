@@ -1,0 +1,4 @@
+function Confectory.EditorHome::StartPublicChatRelay (string session, string activation, object certificate, object route) -> object {
+provide Confectory.EditorHome::StartPublicChatRelay with Confectory.EditorHome::StartPublicChatRelayBody;
+description "Open one outbound relay room for the verified original creator.";
+}

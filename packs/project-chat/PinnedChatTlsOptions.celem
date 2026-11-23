@@ -1,0 +1,3 @@
+function Confectory.ProjectChat::PinnedChatTlsOptions (string tlsName, object trustedCertificate, bool tls13Only) -> object {
+provide Confectory.ProjectChat::PinnedChatTlsOptions with Confectory.ProjectChat::PinnedChatTlsOptionsBody;
+}
