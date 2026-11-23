@@ -78,13 +78,16 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
   &&edits[2] is System.Text.Json.Nodes.JsonObject sourceEdit&&sourceEdit.Count==3&&sourceEdit["action"]?.ToString()=="source"
   &&sourceEdit["node"]?.ToString()==remapContract["node"]!.ToString()&&sourceEdit["text"] is not null;
  bool nestedReturnRemap=privateReturnRemapBatch&&graphId.IndexOf("/graph:",physicalGraphId.Length+7,StringComparison.Ordinal)>=0;
- var boundPrivateNode=privateEnum?edits[0]?["node"]:nestedReturnRemap?edits[1]?["node"]:null;
+ bool privatePropertyReadBatch=graphId!=physicalGraphId&&edits.Count==1&&edits[0]?["action"]?.ToString()=="propertyPlan";
+ var boundPrivateNode=privateEnum?edits[0]?["node"]:nestedReturnRemap?edits[1]?["node"]:
+  privatePropertyReadBatch&&edits[0]?["definition"]?["changes"] is System.Text.Json.Nodes.JsonArray{Count:3} propertyChanges
+   ?System.Linq.Enumerable.SingleOrDefault(propertyChanges,edit=>edit?["action"]?.ToString()=="argument")?["node"]:null;
  if(boundPrivateNode is not null){
   if(request["privateBinding"] is not System.Text.Json.Nodes.JsonObject binding||binding.Count!=6
    ||System.Linq.Enumerable.Any(binding,p=>p.Key is not ("graph" or "root" or "node" or "source" or "definitionHash" or "sourceHash"))
    ||binding["graph"]?.ToString()!=graphId||binding["root"]?.ToString()!=physicalGraphId||binding["node"]?.ToString()!=boundPrivateNode.ToString())
    throw new InvalidOperationException("Original qualified private source binding required; retain input");
- }else if(privateEnum||nestedReturnRemap||request["privateBinding"] is not null)throw new ArgumentException("One observed private source binding required");
+ }else if(privateEnum||nestedReturnRemap||privatePropertyReadBatch||request["privateBinding"] is not null)throw new ArgumentException("One observed private source binding required");
  // Existing owned nested-copy batches retain their original classifier and protections.
  bool codeParametersBatch=privateReturnRemapBatch||(request["owner"] is null||physicalGraphId==graphId)&&edits.Count is >=1 and <=64&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="parameters")==1&&System.Linq.Enumerable.All(edits,e=>e?["frame"] is null&&(e?["action"]?.ToString() is "parameters" or "source" or "argument" or "intent" or "rename" or "icon"))&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?["node"]?.ToString()),StringComparer.Ordinal))==1;
  bool propertySourceBatch=request["owner"] is null&&graphId==physicalGraphId&&System.Linq.Enumerable.All(edits,e=>e?["frame"] is null)&&System.Linq.Enumerable.Any(edits,e=>e?["action"]?.ToString()=="source")&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString() is "source" or "intent" or "rename" or "argument" or "route");
@@ -219,7 +222,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(rootExecutionBatch&&request["dependencyHash"]?.ToString()!=current["rootExecutionDependencyHash"]?.ToString())throw new InvalidOperationException("Registered execution observations changed; retain all input");
     if(publicCopyExits&&(current["publicBodyReturnsAvailable"]?.GetValue<bool>()==true||current["publicCopyReturnsAvailable"]?.GetValue<bool>()==true)&&request["dependencyHash"]?.ToString()!=current["nodeFlowDependencyHash"]?.ToString())throw new InvalidOperationException("Observed parent dependency changed; preserve the original input and receipt");
     if(plainSlot&&current["slotContext"]?["checkpointPlain"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Exclusive owned information body required; retain input");
-    if(current["slotContext"] is not null&&(slotRequest.Count==0||(current["slotContext"]?["copySource"] is not null&&!plainSlot&&!(edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi")))||current["privatePath"]?.ToString()!=""&&!ownedFrameOrderBatch&&!ownedFrameCreationBatch&&!ownedCellRemovalBatch&&!codeParametersBatch&&!asyncBatch&&!nodeFlowBatch&&!privateEnum&&!privateBranchExits&&!privateCopyAbi&&!(presentationBatch&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString()=="icon"))&&!(plainSlot&&current["slotContext"]?["copySource"] is not null&&System.Linq.Enumerable.All(edits,e=>e!["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename" or "icon" or "enumCode"))||current["rootId"]?.ToString()!=physicalGraphId||candidate["units"]?[physicalGraphId]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Observed owned ordinary root creation batch required");
+    if(current["slotContext"] is not null&&(slotRequest.Count==0||(current["slotContext"]?["copySource"] is not null&&!plainSlot&&!(edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi")))||current["privatePath"]?.ToString()!=""&&!ownedFrameOrderBatch&&!ownedFrameCreationBatch&&!ownedCellRemovalBatch&&!codeParametersBatch&&!asyncBatch&&!nodeFlowBatch&&!privateEnum&&!privateBranchExits&&!privateCopyAbi&&!privatePropertyReadBatch&&!(presentationBatch&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString()=="icon"))&&!(plainSlot&&current["slotContext"]?["copySource"] is not null&&System.Linq.Enumerable.All(edits,e=>e!["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename" or "icon" or "enumCode"))||current["rootId"]?.ToString()!=physicalGraphId||candidate["units"]?[physicalGraphId]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Observed owned ordinary root creation batch required");
     var expected=System.Text.Json.Nodes.JsonNode.Parse(request["sourceProof"]!.GetValue<string>())!.AsArray();var actual=current["sources"]!.AsArray();if(expected.Count!=actual.Count||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(expected,r=>r![0]!.ToString()),StringComparer.Ordinal))!=expected.Count||System.Linq.Enumerable.Any(expected,r=>r is not System.Text.Json.Nodes.JsonArray row||row.Count!=3||!System.Linq.Enumerable.Any(actual,a=>a!["id"]!.ToString()==row[0]!.ToString()&&a["hash"]!.ToString()==row[2]!.ToString())))throw new InvalidOperationException("Original creation source closure changed; preserve all input");
     if(boundPrivateNode is not null){
      var node=System.Linq.Enumerable.Single(current["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==boundPrivateNode.ToString())!;
@@ -383,7 +386,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(publicCopyExits&&plainSlot)candidate["units"]![physicalGraphId]!["authorSaveReceipt"]!["publicCopyReturns"]=true;
     if(current["publicCopyReturnsAvailable"]?.GetValue<bool>()==true&&candidate["units"]![physicalGraphId[..physicalGraphId.IndexOf("/body:",StringComparison.Ordinal)] ]?["baseline"]?.ToString()!="missing"){var returnSource=stagedPack["blueprintBases"]?[current["basis"]!.ToString()]?["registeredFunction"];if(returnSource is null)throw new InvalidOperationException("Retain the registered copy contract binding");candidate["units"]![physicalGraphId]!["authorSaveReceipt"]!["registeredFunction"]=returnSource.DeepClone();}
     PlainSourcesUnchanged(current["sources"]!.AsArray(),candidate);
-    if(documentFrame||guardedBranchTransfer||rootInsertionBatch)candidate["checkpointSourceChecks"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(current["sources"]!.AsArray(),source=>source!["id"]!.ToString())));
+    if(documentFrame||guardedBranchTransfer||rootInsertionBatch||privatePropertyReadBatch)candidate["checkpointSourceChecks"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(current["sources"]!.AsArray(),source=>source!["id"]!.ToString())));
     if(ownedScopeTransferBatch&&(candidate["history"]?["boundary"] is not null
     ||candidate["history"]?["undo"] is not System.Text.Json.Nodes.JsonArray scopeUndo||scopeUndo.Count==0
     ||scopeUndo[scopeUndo.Count-1]?["units"] is not System.Text.Json.Nodes.JsonArray {Count:2}))
@@ -404,18 +407,72 @@ if(targetOperation=="propertyPlan"){
  var pack=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+targetHandle) as System.Text.Json.Nodes.JsonObject;
  if(pack?["authorBatchActive"]?.GetValue<bool>()!=true||!targetHandle.StartsWith("author-batch-",StringComparison.Ordinal)||targetPayload.Length>2097152)throw new InvalidOperationException("Checkpoint-bound owned property value plan required");
  var propertyRequest=System.Text.Json.Nodes.JsonNode.Parse(targetPayload)!.AsObject();string id=propertyRequest["id"]!.ToString();var plan=propertyRequest["definition"]!.AsObject();if(System.Linq.Enumerable.Any(plan,p=>p.Key is not ("reads" or "sets" or "changes")))throw new ArgumentException("Explicit property value plan fields required");
- var current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=id}.ToJsonString()))!;var workspace=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+pack["draft"]!.ToString()) as System.Text.Json.Nodes.JsonObject;int marker=id.IndexOf("/body:",StringComparison.Ordinal);
- if(marker<1||current["slotContext"] is not null||current["privatePath"]?.ToString()!=""||workspace?["units"]?[id[..marker]]?["copySource"] is not null||System.Text.Json.Nodes.JsonNode.Parse(workspace!["units"]![id]!["draft"]!.ToString())?["copySource"] is not null)throw new InvalidOperationException("Owned ordinary property root required; preserve copy/slot inputs");
+ var current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=id}.ToJsonString()))!;
+ var workspace=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+pack["draft"]!.ToString()) as System.Text.Json.Nodes.JsonObject;
+ string rootId=current["rootId"]!.ToString(),path=current["privatePath"]!.ToString();
+ int marker=rootId.IndexOf("/body:",StringComparison.Ordinal);
+ if(marker<1||current["slotContext"] is not null||current["requiresCoupledCopy"]?.GetValue<bool>()==true||
+    workspace?["units"]?[rootId[..marker]]?["copySource"] is not null||workspace?["units"]?[rootId]?["copySource"] is not null)
+  throw new InvalidOperationException("Owned ordinary property body required; preserve copy/slot inputs");
+ var root=System.Text.Json.Nodes.JsonNode.Parse(workspace!["units"]![rootId]!["draft"]!.ToString())!;
+ if(root["copySource"] is not null)throw new InvalidOperationException("Owned ordinary property graph required; preserve copy inputs");
  var reads=plan["reads"]?.AsArray()??new System.Text.Json.Nodes.JsonArray();var changes=plan["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray();if(reads.Count>16||changes.Count>128||reads.Count==0&&changes.Count==0&&plan["sets"] is null)throw new ArgumentException("Bounded property value plan required");var nodes=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+ string? consumerType=null;
+ if(path.Length>0){
+  bool SyncPropertyProfile(System.Text.Json.Nodes.JsonNode graph)=>graph["profile"]?.ToString() is
+   "sync-acyclic-property-v1" or "sync-acyclic-methods-v1" or "sync-acyclic-switch-v1" or "sync-acyclic-property-set-v1" or "sync-acyclic-property-ref-v1";
+  bool Ordinary(System.Text.Json.Nodes.JsonNode node)=>node["control"]?.ToString()=="next"&&node["branchOwner"] is null&&
+   node["implementationContext"] is null&&node["contextBoundary"]?.GetValue<bool>()!=true&&
+   node["forwardCallerStorage"]?.GetValue<bool>()!=true&&node["executionForwarded"]?.GetValue<bool>()!=true&&node["async"] is null;
+  void Require(bool valid){if(!valid)throw new InvalidOperationException("One owned synchronous property read and its original serial consumer are required; retain all input");}
+  Require(!path.Contains('/')&&reads.Count==1&&changes.Count==3&&plan["sets"] is null&&SyncPropertyProfile(root)&&SyncPropertyProfile(current)&&
+   current["privateCopy"]?.GetValue<bool>()!=true&&current["executionExitMode"]?.GetValue<bool>()!=true&&
+   current["diagnostics"]?["state"]?.ToString() is ("source-ready" or "source-assembled"));
+  var boundary=System.Linq.Enumerable.Single(root["nodes"]!.AsArray(),node=>node?["id"]?.ToString()==path)!;
+  Require(boundary["kind"]?.ToString()=="graph"&&Ordinary(boundary)&&boundary["graph"]?["copySource"] is null);
+  var originalNodes=current["nodes"]!.AsArray();
+  Require(System.Linq.Enumerable.All(originalNodes,node=>node!["kind"]?.ToString() is ("code" or "property")&&Ordinary(node)));
+  var read=reads[0]!;
+  string newNode=read["node"]!.GetValue<string>();
+  var receiver=System.Text.Json.Nodes.JsonNode.Parse(read["targetJson"]!.GetValue<string>());
+  Require(receiver is System.Text.Json.Nodes.JsonObject{Count:1}&&receiver["input"] is not null&&
+   System.Linq.Enumerable.Any(current["signature"]!["args"]!.AsArray(),arg=>arg?["name"]?.ToString()==receiver["input"]!.ToString()&&
+    arg?["type"]?.ToString()=="object"&&arg["mode"] is null));
+  var argument=System.Linq.Enumerable.Single(changes,step=>step?["action"]?.ToString()=="argument")!;
+  string consumerId=argument["node"]!.GetValue<string>(),argumentName=argument["name"]!.GetValue<string>();
+  var consumer=System.Linq.Enumerable.Single(originalNodes,node=>node?["id"]?.ToString()==consumerId)!;
+  var parameter=System.Linq.Enumerable.Single(consumer["signature"]!["args"]!.AsArray(),arg=>arg?["name"]?.ToString()==argumentName)!;
+  Require(consumer["kind"]?.ToString()=="code"&&parameter["mode"] is null&&argument.AsObject().Count==4&&
+   System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(argument["valueJson"]!.GetValue<string>()),
+    new System.Text.Json.Nodes.JsonObject{["node"]=newNode,["output"]="return"}));
+  consumerType=parameter["type"]!.GetValue<string>();
+  var incoming=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(current["edges"]!.AsArray(),edge=>edge?["to"]?.ToString()==consumerId));
+  bool atEntry=current["entry"]?.ToString()==consumerId;
+  Require(atEntry?incoming.Length==0:incoming.Length==1&&incoming[0]?["port"]?.ToString()=="next");
+  var predecessor=atEntry?new System.Text.Json.Nodes.JsonObject{["action"]="entry",["node"]=newNode}:
+   new System.Text.Json.Nodes.JsonObject{["action"]="route",["node"]=incoming[0]!["from"]!.DeepClone(),["port"]="next",["to"]=newNode};
+  var followUp=new System.Text.Json.Nodes.JsonObject{["action"]="route",["node"]=newNode,["port"]="next",["to"]=consumerId};
+  Require(System.Linq.Enumerable.Any(changes,step=>System.Text.Json.Nodes.JsonNode.DeepEquals(step,predecessor))&&
+   System.Linq.Enumerable.Any(changes,step=>System.Text.Json.Nodes.JsonNode.DeepEquals(step,followUp)));
+ }
  foreach(var read in reads){var row=read!.AsObject();if(row.Count!=5||System.Linq.Enumerable.Any(row,p=>p.Key is not ("node" or "owner" or "field" or "targetJson" or "descriptor"))||!nodes.Add(row["node"]!.ToString()))throw new ArgumentException("Unique explicit property read required");
   var prepared=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"readProperty",new System.Text.Json.Nodes.JsonObject{["id"]=id,["node"]=row["node"]!.DeepClone(),["owner"]=row["owner"]!.DeepClone(),["field"]=row["field"]!.DeepClone(),["targetJson"]=row["targetJson"]!.DeepClone(),["access"]="read"}.ToJsonString()))!;
   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(prepared["descriptor"],row["descriptor"])||prepared["node"]?["kind"]?.ToString()!="property")throw new InvalidOperationException("Property contract changed since explicit selection; retain all input");
+  if(consumerType is not null&&prepared["node"]?["signature"]?["return"]?.ToString()!=consumerType)
+   throw new InvalidOperationException("The property value must match the explicit consumer input type; retain all input");
   Process(targetHandle,"createProperty",new System.Text.Json.Nodes.JsonObject{["id"]=id,["basis"]=prepared["basis"]!.DeepClone()}.ToJsonString());
  }
  if(plan["sets"] is not null){current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=id}.ToJsonString()))!;Process(targetHandle,"setPlan",new System.Text.Json.Nodes.JsonObject{["id"]=id,["basis"]=current["basis"]!.DeepClone(),["definition"]=plan["sets"]!.DeepClone()}.ToJsonString());}
  foreach(var change in changes){var next=change!.DeepClone().AsObject();string action=next["action"]!.ToString();if(action is not ("argument" or "route" or "entry" or "exit")||System.Linq.Enumerable.Any(next,p=>p.Key is not ("action" or "node" or "port" or "to" or "name" or "valueJson")))throw new ArgumentException("Explicit owned property binding/route required");next.Remove("action");current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=id}.ToJsonString()))!;next["id"]=id;next["basis"]=current["basis"]!.DeepClone();Process(targetHandle,action,next.ToJsonString());}
  current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=id}.ToJsonString()))!;foreach(var read in reads){string node=read!["node"]!.ToString();if(current["entry"]?.ToString()!=node&&!System.Linq.Enumerable.Any(current["edges"]!.AsArray(),e=>e!["to"]!.ToString()==node))throw new InvalidOperationException("Explicit read execution attachment required; retain unconnected property input");}
- if(current["diagnostics"]?["state"]?.ToString()=="invalid")throw new InvalidOperationException("Property receiver/type/availability/route validation failed; retain all input");return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["sourceWritten"]=false,["compiled"]=false}.ToJsonString();
+ if(current["diagnostics"]?["state"]?.ToString()=="invalid")throw new InvalidOperationException("Property receiver/type/availability/route validation failed; retain all input");
+ if(path.Length>0){
+  var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=rootId}.ToJsonString()))!;
+  if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled")||
+     parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
+   throw new InvalidOperationException("Owned property child or parent did not assemble; no candidate saved");
+ }
+ return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["sourceWritten"]=false,["compiled"]=false}.ToJsonString();
 }
 
 // The original enum C# editor changes one code contract and its body as a single
