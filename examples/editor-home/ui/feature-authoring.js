@@ -869,6 +869,9 @@ function blueprintNormalizeControls(scope){
   const documentBranchExit=id=>!api.busy&&data.privatePath&&data.executionExitMode===true&&
    !data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&branchExitSupported(w)&&
    data.exits.some(exit=>'$exit:'+exit.name===id);
+  const documentSetTarget=id=>!flowDocument&&data.id===data.rootId&&data.profile?.startsWith('sync-')&&sets.supported(w)
+   ?data.nodes.find(row=>row.id===id&&row.kind==='set'&&row.outputLocal)
+   :null;
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
    if(privatePropertyFrame())model.links=model.links.flatMap(link=>{
@@ -910,6 +913,11 @@ function blueprintNormalizeControls(scope){
   documentView=mountFunctionDocument(root,{...surface,context:functionDocumentContext(w,data),nativeDefinition:!!data.privateConversion&&!flowDocument,
    initialMode:flowChild?'blueprint':undefined,model:documentModel,
    pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
+   hasSetTarget:id=>!!documentSetTarget(id),
+   mountSetTarget:(id,control)=>{
+    const row=documentSetTarget(id);
+    if(row)sets.mountTarget(w,row,control,()=>canvasOwns()&&documentView?.mode==='logic'&&control.isConnected);
+   },
    values:flowDocument?()=>[]:surface.values,
    removeCell:(id,button)=>{
     if(!canRemoveDocumentCell(id)||surface.closeValues('preserve')===false)return;
