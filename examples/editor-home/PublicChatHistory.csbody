@@ -1,0 +1,55 @@
+const string Unavailable = "{\"status\":\"unavailable\"}";
+if (activation.Length == 0 ||
+    AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
+    return Unavailable;
+
+lock (owner)
+{
+    if ((bool)owner[6]) return Unavailable;
+    var model = (System.Text.Json.Nodes.JsonObject)owner[3];
+    var selected = model["selected"];
+    if (selected?["activation"]?.GetValue<string>() != activation) return Unavailable;
+    string project = selected["projectId"]!.GetValue<string>();
+    string context = selected["context"]!.GetValue<string>();
+    string manifest = selected["path"]!.GetValue<string>();
+    string storage = System.IO.Path.GetDirectoryName((string)owner[2])!;
+    var manager = (string[])owner[0];
+
+    try
+    {
+        bool Authorized() => ReferenceEquals(model["selected"], selected) &&
+            calls.CreatorHost.Invoke(session) && calls.ReadIdentity.Invoke(manager, context) == project;
+
+        if (!Authorized()) return Unavailable;
+        string manifestOrigin = calls.Origin.Invoke(manifest, false, false);
+        if (manifestOrigin.Length == 0) return Unavailable;
+        string journal = System.IO.Path.Combine(storage, "project-chat", project + ".json");
+        if (System.IO.File.Exists(journal) && calls.Origin.Invoke(journal, false, false).Length == 0)
+            return Unavailable;
+
+        // Use the same bounded parser and manifest checks as the host. This observation
+        // neither retains the mutable host handle nor calls its send or attachment delegates.
+        var (_, _, read, close, _, _) =
+            ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
+              Func<string, string, string, bool>, Func<string, string>))
+            calls.OpenHost.Invoke(storage, project, "local-user", manifest);
+        try
+        {
+            string messages = read();
+            if (messages.Length > 2000000 || !Authorized() ||
+                calls.Origin.Invoke(manifest, false, false) != manifestOrigin) return Unavailable;
+            return new System.Text.Json.Nodes.JsonObject
+            {
+                ["status"] = "available",
+                ["projectActivation"] = activation,
+                ["messages"] = System.Text.Json.Nodes.JsonNode.Parse(messages)
+            }.ToJsonString();
+        }
+        finally { close(); }
+    }
+    catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+        UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException)
+    {
+        return Unavailable;
+    }
+}

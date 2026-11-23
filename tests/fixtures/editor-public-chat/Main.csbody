@@ -1,0 +1,48 @@
+string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+string data = Environment.GetEnvironmentVariable("CONFECTORY_CHAT_TEST_ROOT")!;
+string projects = System.IO.Path.Combine(data, "projects");
+string profile = System.IO.Path.Combine(data, "profile");
+string emptyProfile = System.IO.Path.Combine(data, "empty-profile");
+System.IO.Directory.CreateDirectory(projects);
+var records = new System.Text.Json.Nodes.JsonObject();
+void Create(string storage, string name, bool seed, bool attachment = false)
+{
+    string session = calls.CreateSession.Invoke(repo, storage);
+    try
+    {
+        var created = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session, "create",
+            System.Text.Json.JsonSerializer.Serialize(new { title = name, directory = projects })))!;
+        var project = created["selected"] ?? throw new InvalidOperationException(created["status"]!.ToString());
+        string id = project["projectId"]!.ToString(), manifest = project["path"]!.ToString();
+        records[name] = new System.Text.Json.Nodes.JsonObject
+        {
+            ["manifest"] = manifest, ["id"] = id
+        };
+        if (!seed) return;
+        var (_, send, _, close, sendAttachment, _) =
+            ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
+              Func<string, string, string, bool>, Func<string, string>))
+            calls.OpenHost.Invoke(storage, id, "local-user", manifest);
+        try
+        {
+            string messageId = Guid.NewGuid().ToString("N");
+            if (attachment)
+            {
+                string workspace = calls.OpenWorkspace.Invoke(manifest, "local-user", "chat-seed");
+                string box = calls.OpenBox.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,
+                    ".confectory", "yogi"), id, "local-user", workspace);
+                calls.Text.Invoke(box, "sealed attachment fixture must stay out of the observation");
+                calls.Seal.Invoke(box, true);
+                sendAttachment(messageId, name + " public message", box);
+            }
+            else send(messageId, name + " public message");
+        }
+        finally { close(); }
+    }
+    finally { calls.CloseSession.Invoke(session); }
+}
+Create(profile, "AuthorA", true, true);
+Create(profile, "AuthorB", true);
+Create(emptyProfile, "Empty", false);
+System.IO.File.WriteAllText(System.IO.Path.Combine(data, "fixtures.json"), records.ToJsonString());
+return 0;

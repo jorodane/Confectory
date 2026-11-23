@@ -4,6 +4,7 @@ registry Confectory.ProjectResources "../../packs/project-resources/pack.cpack";
 registry Confectory.InstantTable "../../packs/instant-table/pack.cpack";dependency Confectory.InstantTable version "0.1.0";
 registry Confectory.WorkerTasks "../../packs/worker-tasks/pack.cpack"; dependency Confectory.WorkerTasks version "0.1.0";
 registry Confectory.Augment "../../packs/augment/pack.cpack"; dependency Confectory.Augment version "0.1.0";
+registry Confectory.ProjectChat "../../packs/project-chat/pack.cpack"; dependency Confectory.ProjectChat version "0.1.0";
 registry Confectory.YogiBox "../../packs/yogi-box/pack.cpack"; dependency Confectory.YogiBox version "0.1.0";
 
 registry Confectory.ProjectAI "../../packs/project-ai/pack.cpack"; dependency Confectory.ProjectAI version "0.1.0";
@@ -54,5 +55,7 @@ registry Confectory.BrowserHost "../../packs/browser-host/pack.cpack"; dependenc
 element WebStart function "WebStart.celem"; element WebStartBody implementation "WebStartBody.celem";
 element WebStateBody implementation "WebStateBody.celem";
 element WebInvokeBody implementation "WebInvokeBody.celem";
+element PublicChatHistory function "PublicChatHistory.celem";
+element PublicChatHistoryBody implementation "PublicChatHistoryBody.celem";
 element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
 }

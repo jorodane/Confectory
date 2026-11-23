@@ -1,0 +1,7 @@
+function Confectory.EditorHome::PublicChatHistory (string session, string activation) -> string {
+provide Confectory.EditorHome::PublicChatHistory with Confectory.EditorHome::PublicChatHistoryBody;
+provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+description "Read only the verified local creator's current project chat journal without retaining a host handle.";
+}

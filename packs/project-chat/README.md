@@ -1,6 +1,6 @@
 # Project Chat
 
-`Confectory.ProjectChat::OpenHost(hostStorage, projectId, hostParticipant)` is an optional local text model. The trusted composer supplies a private, machine-local storage directory, the existing durable project UUID, and the host identity. It holds one active owner per project and storage directory and closes that owner when the host stops. The model has no editor or network adapter and does not authenticate caller-supplied identities.
+`Confectory.ProjectChat::OpenHost(hostStorage, projectId, hostParticipant)` is an optional local text model. The trusted composer supplies a private, machine-local storage directory, the existing durable project UUID, and the host identity. It holds one active owner per project and storage directory and closes that owner when the host stops. The model does not authenticate caller-supplied identities.
 
 The returned native handle is a tuple of `Join`, `Send`, `Read`, and `Close`. Only the composer holds that handle. After admitting a participant, it gives the connection only the tuple of `Send`, `Read`, and `Leave` returned by `Join`. The connection uses the admitted identity for every send and can read only messages committed after it joined, including its own messages. `Leave` revokes that connection. `Close` revokes all connections. Each `Read` returns ordered JSON rows containing `id`, `sender`, and `text`.
 
@@ -10,4 +10,8 @@ The host commits to `project-chat/<projectId>.json` inside its local storage bef
 
 The existing text handle and v1 text-only journals still work. The first attachment upgrades the same journal to v2 and binds attachment access to a hash of the canonical manifest path. Readers predating v2 refuse that journal. No separate attachment file is created.
 
+The desktop EditorHome bridge declares the read-only `readPublicChatHistory` observation. It accepts an empty input and uses the active session's verified Linux creator, original manifest, and profile storage. It reads the journal bound to the local editor participant `local-user`. It returns ordered message rows and attachment IDs with the current `projectActivation`. Home, revoked authority, and an unreadable journal return an unavailable status without message data. An authorized view with no journal returns an empty list without creating a file. A new activation invalidates older mounted scopes, including after reopening the same project. A consumer must use the mounted WebView lifetime and ignore any reply from a retired activation. The bridge does not open an attachment, retain a host handle, or send a message. The existing Chat surface still displays Helper output.
+
 Build the Release CLI, .NET target, and element-authoring tool, then run `python3 tests/packs/project_chat_model.py`. The script accepts a checkout containing prebuilt tools as its optional argument. It uses disposable projects and starts a second .NET process to check recovery and connection scope.
+
+Run `python3 tests/packs/editor_public_chat.py` with Linux Chromium and Playwright to verify the actual editor bridge against those storage and activation boundaries.
