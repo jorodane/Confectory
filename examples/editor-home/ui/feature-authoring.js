@@ -932,6 +932,21 @@ function blueprintNormalizeControls(scope){
   }
   const documentCallContract=()=>!flowDocument&&data.id===data.rootId&&!data.privatePath&&
    !data.privateConversion&&!data.privateCopy&&!data.slotContext&&!data.requiresCoupledCopy&&!w.meta.copyDraft;
+  const documentCallFirstBranch=id=>{
+   if(!documentCallContract()||data.executionExitMode||data.asyncTransition?.enabled||
+      !['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
+   const row=rows.find(node=>node.id===id);
+   return row?.kind==='call'&&row.control==='next'&&!row.postCall&&!row.publicExecution&&!row.implementationContext&&
+    !row.forwardCallerStorage&&!nodeAsync(w,row)&&row.wrapperEditor?row:null;
+  };
+  function pickDocumentCallFirstBranch(id){
+   const row=documentCallFirstBranch(id);
+   const current=()=>canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallFirstBranch(id)===row;
+   if(!row||!current()||closeMenu('preserve')===false||!current())return;
+   const clean=()=>!saveEntries(w).length&&frameInputsClear();
+   if(!clean())return api.toast('기존 편집을 먼저 저장하거나 취소해 주세요.');
+   afterEditor(w,row,{plan:initialWrapper(row),current:()=>current()&&clean()});
+  }
   const documentCallRefresh=id=>documentCallContract()&&
    callsNeedingReview.get(id)?.postCallSignatureMatches===true&&canRefreshAfter(w,callsNeedingReview.get(id));
   const documentCallComparison=id=>{
@@ -1166,6 +1181,7 @@ function blueprintNormalizeControls(scope){
    hasBranchTarget:(owner,port)=>documentBranchTargets(owner,port).length>0,
    hasDocumentContract:documentContract,
    mountDocumentContract,
+   hasCallFirstBranch:id=>!!documentCallFirstBranch(id),pickCallFirstBranch:pickDocumentCallFirstBranch,
    hasCallRefresh:documentCallRefresh,refreshCall:id=>{
     if(canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallRefresh(id)&&closeMenu('preserve')!==false)
      refreshAfter(w,callsNeedingReview.get(id));
@@ -1365,14 +1381,56 @@ function blueprintNormalizeControls(scope){
  function wrapperSaved(w,row){const v=inputs.get(prefix(w)+row.id+'|wrapper');return v?JSON.parse(v.text):{executionEnum:structuredClone(row.executionEnum),source:row.postCall.source,helpers:row.postCall.helpers??'',contractHash:row.postCall.contractHash,...(row.postCall.originalExecution?{originalExecution:row.postCall.originalExecution}:{}),...(row.postCall.returnMapping?{returnMapping:row.postCall.returnMapping}:{})};}
  function checkWrapperPorts(w,row,value){const allowed=new Set(value.members.map(m=>'case:'+m.id));if(row.completionBranch&&!value.members.some(m=>m.id===row.completionBranch.id)&&(w.authorData.edges||[]).some(e=>e.from===row.id&&e.port==='completion'))throw Error('연결된 완료 줄을 먼저 명시적으로 해제해 주세요. 기존 입력은 유지됩니다.');for(const edge of w.authorData.edges||[])if(edge.from===row.id&&edge.port.startsWith('case:')&&!allowed.has(edge.port))throw Error('연결된 실행 줄을 먼저 해제해 주십시오. 기존 입력은 유지됩니다.');}
  function changeWrapper(w,row,mutate){if(row.kind==='code')return changeEnumCode(w,row,mutate);const value=wrapperSaved(w,row);mutate(value);checkWrapperPorts(w,row,value.executionEnum);structuralEdit(w,()=>privateValue(w,row.id,'wrapper',JSON.stringify(value)));}
- function createWrapper(w,row){if(!row.wrapperEditor)return api.toast('원본의 래퍼 계약을 확인하지 못했어요. 원본과 연결은 유지됩니다.');const prepared=row.wrapperEditor,value={executionEnum:structuredClone(prepared.executionEnum),source:prepared.source,helpers:prepared.helpers,contractHash:prepared.contractHash,...(prepared.originalExecution?{originalExecution:prepared.originalExecution}:{}),...(prepared.returnMapping?{returnMapping:prepared.returnMapping}:{})};if(value.executionEnum.members.length<32){let n=1,v=1;while(value.executionEnum.members.some(m=>m.name==='분기'+n))n++;while(value.executionEnum.members.some(m=>m.value===v))v++;value.executionEnum.members.push({id:'branch_'+crypto.randomUUID().replaceAll('-',''),name:'분기'+n,value:v});}structuralEdit(w,()=>privateValue(w,row.id,'wrapper',JSON.stringify(value)));}
+ function initialWrapper(row){
+  const prepared=row.wrapperEditor;
+  const value={executionEnum:structuredClone(prepared.executionEnum),source:prepared.source,helpers:prepared.helpers,
+   contractHash:prepared.contractHash,...(prepared.originalExecution?{originalExecution:prepared.originalExecution}:{}),
+   ...(prepared.returnMapping?{returnMapping:prepared.returnMapping}:{})};
+  const {members}=value.executionEnum;
+  if(members.length<32){
+   let n=1,v=1;
+   while(members.some(m=>m.name==='분기'+n))n++;
+   while(members.some(m=>m.value===v))v++;
+   members.push({id:'branch_'+crypto.randomUUID().replaceAll('-',''),name:'분기'+n,value:v});
+  }
+  return value;
+ }
+ function createWrapper(w,row){
+  if(!row.wrapperEditor)return api.toast('원본의 래퍼 계약을 확인하지 못했어요. 원본과 연결은 유지됩니다.');
+  structuralEdit(w,()=>privateValue(w,row.id,'wrapper',JSON.stringify(initialWrapper(row))));
+ }
 
- function afterEditor(w,row){
-  if(!row.postCall||!row.postCallEditor)return;const enumMode=row.postCall.mode==='execution-enum',type=enumMode?'wrapper':'post-call',data=w.authorData,scope=w.authorScope,generation=w.authorGeneration,id=w.meta.id,key=prefix(w)+row.id+'|'+type,previous=inputs.get(key),prepared=row.postCallEditor,parts=structuredClone(prepared.parts),saved=previous?JSON.parse(previous.text):{source:row.postCall.source,helpers:row.postCall.helpers??'',contractHash:row.postCall.contractHash};saved.helpers??=row.postCall.helpers??'';saved.originalExecution??=row.postCall.originalExecution;if(enumMode){saved.returnMapping??=row.postCall.returnMapping;saved.executionEnum??=structuredClone(row.executionEnum);parts.find(p=>p.id==='enum').text=wrapperMembers(saved.executionEnum);}if(saved.contractHash!==prepared.contractHash)return api.toast('원본의 공개 출력 계약이 바뀌었습니다. 기존 입력은 유지됩니다.');parts.find(part=>part.id==='body').text=saved.source;parts.find(part=>part.id==='helpers').text=saved.helpers;
-  const alive=()=>owns(w,scope)&&w.authorGeneration===generation&&w.meta.id===id&&w.authorData===data,bindings=prepared.snapshot.fields.map(f=>'<span>'+esc(prepared.snapshot.contextVariable+'.@'+f.member)+' · '+esc(f.type)+'</span>').join('');
+ function afterEditor(w,row,creation=null){
+  if(!creation&&(!row.postCall||!row.postCallEditor))return;
+  const enumMode=!!creation||row.postCall.mode==='execution-enum',type=enumMode?'wrapper':'post-call';
+  const data=w.authorData,scope=w.authorScope,generation=w.authorGeneration,id=w.meta.id;
+  const key=prefix(w)+row.id+'|'+type,previous=inputs.get(key);
+  const prepared=creation?row.wrapperEditor:row.postCallEditor,parts=structuredClone(prepared.parts);
+  const saved=creation?.plan??(previous?JSON.parse(previous.text):{
+   source:row.postCall.source,helpers:row.postCall.helpers??'',contractHash:row.postCall.contractHash
+  });
+  saved.helpers??=row.postCall?.helpers??'';
+  saved.originalExecution??=row.postCall?.originalExecution;
+  if(enumMode){
+   saved.returnMapping??=row.postCall?.returnMapping;
+   saved.executionEnum??=structuredClone(row.executionEnum);
+   parts.find(part=>part.id==='enum').text=wrapperMembers(saved.executionEnum);
+  }
+  if(saved.contractHash!==prepared.contractHash)return api.toast('원본의 공개 출력 계약이 바뀌었습니다. 기존 입력은 유지됩니다.');
+  parts.find(part=>part.id==='body').text=saved.source;
+  parts.find(part=>part.id==='helpers').text=saved.helpers;
+  const alive=()=>owns(w,scope)&&w.authorGeneration===generation&&w.meta.id===id&&w.authorData===data&&(!creation||creation.current()),bindings=prepared.snapshot.fields.map(f=>'<span>'+esc(prepared.snapshot.contextVariable+'.@'+f.member)+' · '+esc(f.type)+'</span>').join('');
   api.modal('분기 기능 편집 · '+short(row.calledFeature),'<p class="small bp-script-guide" id="bp-wrapper-code-guide">원본 호출과 입출력·공개 출력 선언은 고정됩니다. 밝은 영역의 후속 코드·보조 함수를 편집하십시오.</p><div class="bp-wrapper-bindings"><strong>고정 원본 · '+esc(short(row.calledFeature))+'</strong><span>원본 호출 후 반환값과 공개 출력을 읽습니다.</span>'+bindings+(!bindings?'<span>공개 출력 없음 · 원본 기능의 출력 옆 눈 아이콘으로 공개하십시오.</span>':'')+'</div><div class="bp-script-editor"><div class="bp-script-backdrop"><pre data-code-highlight aria-hidden="true"></pre></div><textarea data-code-source aria-label="래퍼 C# 코드" aria-describedby="bp-wrapper-code-guide" spellcheck="false" autocapitalize="off" wrap="off"></textarea></div><p class="bp-script-status" role="status" data-code-status></p><p class="bp-script-error" role="alert" data-code-error hidden></p><p class="small">초안을 보관합니다. 실제 컴파일과 최종 반영은 기능 완성 후 변경 검토에서 확인합니다.</p><div class="actions"><button type="button" data-code-cancel>취소</button><button type="button" data-code-save>코드 저장</button><button type="button" class="primary" data-wrapper-complete>분기 기능 완성</button></div>',(root,close)=>{
-   root.classList.add('bp-script-dialog');const editor=mountBlueprintScriptEditor(root,parts),finish=()=>{if(w.authorCloseDialog===forced)w.authorCloseDialog=null;removed.disconnect();close();},retained=()=>({text:JSON.stringify({source:editor.sections().body,helpers:editor.sections().helpers,contractHash:prepared.contractHash,...(saved.originalExecution?{originalExecution:saved.originalExecution}:{}),...(enumMode?{executionEnum:parseWrapperEnum(editor.sections().enum,saved.executionEnum),...(saved.returnMapping?{returnMapping:saved.returnMapping}:{})}:{}),...(saved.refreshFrom?{refreshFrom:saved.refreshFrom}:{}),...(saved.abi?{abi:structuredClone(saved.abi)}:{})}),basis:previous?.basis??data.basis,proof:previous?.proof??proof(data),node:row.id,type}),forced=preserve=>{if(preserve&&root.isConnected&&(editor.sections().body!==saved.source||editor.sections().helpers!==saved.helpers||enumMode&&editor.sections().enum!==wrapperMembers(saved.executionEnum))){let value;try{value=retained();}catch{value={text:JSON.stringify({sections:editor.sections(),previous:saved}),basis:previous?.basis??data.basis,proof:previous?.proof??proof(data),node:row.id,type:'retained-conflict'};}if(inputs.get(key)===previous)inputs.set(key,value);else if(inputs.get(key)?.text!==value.text)inputs.set(key+'|retained:'+crypto.randomUUID(),{...value,type:'retained-conflict'});api.persist();}finish();},removed=new MutationObserver(()=>{if(!root.isConnected){if(w.authorCloseDialog===forced)w.authorCloseDialog=null;removed.disconnect();}});removed.observe(document.body,{subtree:true,childList:true});w.authorCloseDialog=forced;
-   $('[data-code-cancel]',root).onclick=finish;const save=complete=>{if(!alive()||inputs.get(key)!==previous){const error=$('[data-code-error]',root);error.hidden=false;error.textContent='편집 기준이 바뀌었습니다. 기존 입력을 보존하고 다시 확인해 주십시오.';return;}try{const value=retained();if(enumMode)checkWrapperPorts(w,row,JSON.parse(value.text).executionEnum);privateValue(w,row.id,type,value.text);finish();if(enumMode)refreshLocal(w);else status(w);if(complete)saveAction(w,true,scope,generation,id);}catch(error){$('[data-code-error]',root).hidden=false;$('[data-code-error]',root).textContent=error.message;}};$('[data-code-save]',root).onclick=()=>save(false);$('[data-wrapper-complete]',root).onclick=()=>save(true);queueMicrotask(()=>editor.focus());
+   root.classList.add('bp-script-dialog');const editor=mountBlueprintScriptEditor(root,parts),finish=()=>{if(w.authorCloseDialog===forced)w.authorCloseDialog=null;removed.disconnect();close();},retained=()=>({text:JSON.stringify({source:editor.sections().body,helpers:editor.sections().helpers,contractHash:prepared.contractHash,...(saved.originalExecution?{originalExecution:saved.originalExecution}:{}),...(enumMode?{executionEnum:parseWrapperEnum(editor.sections().enum,saved.executionEnum),...(saved.returnMapping?{returnMapping:saved.returnMapping}:{})}:{}),...(saved.refreshFrom?{refreshFrom:saved.refreshFrom}:{}),...(saved.abi?{abi:structuredClone(saved.abi)}:{})}),basis:previous?.basis??data.basis,proof:previous?.proof??proof(data),node:row.id,type}),forced=preserve=>{if(!creation&&preserve&&root.isConnected&&(editor.sections().body!==saved.source||editor.sections().helpers!==saved.helpers||enumMode&&editor.sections().enum!==wrapperMembers(saved.executionEnum))){let value;try{value=retained();}catch{value={text:JSON.stringify({sections:editor.sections(),previous:saved}),basis:previous?.basis??data.basis,proof:previous?.proof??proof(data),node:row.id,type:'retained-conflict'};}if(inputs.get(key)===previous)inputs.set(key,value);else if(inputs.get(key)?.text!==value.text)inputs.set(key+'|retained:'+crypto.randomUUID(),{...value,type:'retained-conflict'});api.persist();}finish();},removed=new MutationObserver(()=>{if(!root.isConnected){if(w.authorCloseDialog===forced)w.authorCloseDialog=null;removed.disconnect();}});removed.observe(document.body,{subtree:true,childList:true});w.authorCloseDialog=forced;
+   $('[data-code-cancel]',root).onclick=finish;const save=complete=>{if(!alive()||inputs.get(key)!==previous){const error=$('[data-code-error]',root);error.hidden=false;error.textContent='편집 기준이 바뀌었습니다. 기존 입력을 보존하고 다시 확인해 주십시오.';return;}try{const value=retained();if(enumMode)checkWrapperPorts(w,row,JSON.parse(value.text).executionEnum);if(creation){
+     finish();
+     structuralEdit(w,()=>privateValue(w,row.id,type,value.text));
+     if(complete)saveAction(w,true,scope,w.authorGeneration,id);
+    }else{
+     privateValue(w,row.id,type,value.text);finish();
+     if(enumMode)refreshLocal(w);else status(w);
+     if(complete)saveAction(w,true,scope,generation,id);
+    }}catch(error){$('[data-code-error]',root).hidden=false;$('[data-code-error]',root).textContent=error.message;}};$('[data-code-save]',root).onclick=()=>save(false);$('[data-wrapper-complete]',root).onclick=()=>save(true);queueMicrotask(()=>editor.focus());
   });
  }
  function rootContract(w){const adaptation=entries(w).find(([,v])=>v.type==='output-adaptation')?.[1];if(adaptation){const selected=JSON.parse(adaptation.text),sig=signature(w.authorData.signature),args=structuredClone(sig.args);if(selected.name!=='return')args.find(a=>a.name===selected.name&&a.mode==='out').type=selected.type;return {args,returnType:selected.name==='return'?selected.type:sig.return,remap:Object.fromEntries(sig.args.map(a=>[a.name,a.name])),adaptOutput:selected};}const value=inputs.get(prefix(w)+'$root|root-parameters');if(value)return JSON.parse(value.text);const sig=signature(w.authorData.signature||w.authorInfo.signature);return {args:structuredClone(sig.args),returnType:sig.return,remap:Object.fromEntries(sig.args.map(a=>[a.name,a.name])),...(w.authorData.outputOrder?{outputOrder:structuredClone(w.authorData.outputOrder)}:{}),...(w.authorData.featureDefinition?.values?.blueprintPublishedOutputs!==undefined?{publicOutputs:JSON.parse(w.authorData.featureDefinition.values.blueprintPublishedOutputs)}:{})};}
