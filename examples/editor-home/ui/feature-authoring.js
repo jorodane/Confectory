@@ -811,7 +811,7 @@ function blueprintNormalizeControls(scope){
    const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;
    return cellOrderPlan(id,slot-(slot>from?1:0));
   };
-  const caseInsertionAvailable=chain=>!!chain&&(!chain.frame||data.profile!=='sync-acyclic-methods-v1'||data.documentMethodFrameCreationAvailable===true)&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
+  const caseInsertionAvailable=chain=>!!chain&&(!chain.wrappedCall||frameInputsClear())&&(!chain.frame||data.profile!=='sync-acyclic-methods-v1'||data.documentMethodFrameCreationAvailable===true)&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
   const insertCell=(chain,from,port,next)=>{
    if(!caseInsertionAvailable(chain)||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
    if(!next)throw Error('다음 연결을 확인하지 못했습니다. 기존 흐름은 유지됩니다.');
@@ -860,7 +860,8 @@ function blueprintNormalizeControls(scope){
    option('속성 읽기',()=>{anchor.focus();pickDocumentPropertyRead(id,anchor);});
    showBranchMenu(picker,anchor);
   }
-  const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchChain(owner,port,true);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
+  const branchInsertion=(owner,port)=>w.meta.copyDraft?null:branchCellRegion(data,branchEdges(),owner,port,true,true);
+  const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchInsertion(owner,port);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
   const mobileModel=()=>({name:data.privatePath?.split('/').at(-1)||displayName(w.authorInfo||{id:w.meta.id}),parent:!!data.privatePath,description:q('[data-bp-description]').value,descriptionReadonly:q('[data-bp-description]').readOnly,nodes:nodes.map(n=>{const row=rows.find(r=>r.id===n.id);return {...n,name:n.id==='$entry'?'시작':n.kind==='export'?(outputField(n)?.name||n.name)+' 내보내기':row?.kind==='call'?short(row.calledFeature):get(w,n.id,'rename',row?.displayName||n.name),description:n.id==='$entry'?'시작':row?get(w,n.id,'intent',row.intent||''):n.kind==='export'?bindingLabel(binding(port(n.id,'in','data','value'))):'',kind:row?.kind==='call'?'call':n.kind,inputs:row?rowFields(w,row,'inputs'):[],outputs:row?rowFields(w,row,'outputs'):[],codeEditable:row?.kind==='code'||!!row?.postCall,builtin:row?.kind==='property-set',internal:row?.kind==='graph'&&(!data.slotContext||data.privateCopy||data.slotContext.copySource)||canInternalCode(w,row),readonly:!row||!['code','graph'].includes(row.kind)||row.renameable===false||!!data.privateConversion,output:n.kind==='export'?(outputField(n)?.id||row?.output):null,outputName:n.kind==='export'?get(w,n.id,'contract-draft:export-name',outputField(n)?.name||''):null,outputDefinitionName:n.kind==='export'?outputField(n)?.name||'':null,outputType:n.kind==='export'?type(outputField(n)):'',outputReadonly:!outputEditable||!!data.privateConversion,terminal:n.id.startsWith('$exit:'),wrapper:!!row?.postCall,branches:[...(nodeAsync(w,row||{})?[{id:'completion',name:'완료 시'}]:[]),...(row?.executionEnum?.members||[]).filter(m=>m.id!==row.executionEnum.primary).map(m=>({id:branchPort(row,m),name:branchLabel(row,m)}))]};}),links:links(),outputs:outputFields.map(f=>({id:f.id,name:f.name,type:type(f)}))});
   const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;if(api.busy&&!(kind==='rename'&&w.authorSavePending&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage))return;privateValue(w,id,kind,text);const source=kind==='intent'?element(id)?.querySelector('[data-inline-description]'):element(id)?.querySelector('[data-bp-node-name]');if(source){if('value' in source)source.value=text;else source.textContent=text;}if(kind==='rename'){const node=nodeById(id);if(node)node.name=text;}status(w);mobile?.refresh();documentView?.refresh();};
   const outputPin=name=>{const existing=port('$exit:'+name,'in','data','value');if(existing)return existing;const pin=document.createElement('button');Object.assign(pin.dataset,{node:'$exit:'+name,side:'in',kind:'data',port:'value'});return pin;};
@@ -1328,7 +1329,7 @@ function blueprintNormalizeControls(scope){
      }
     });
    },'');},
-   branchActions:(owner,port)=>({add:!flowDocument&&caseInsertionAvailable(branchChain(owner,port,true))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
+   branchActions:(owner,port)=>({add:!flowDocument&&caseInsertionAvailable(branchInsertion(owner,port))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
    moveCell:async(id,offset,grip)=>{
     if(!canvasOwns()||api.busy||surface.closeValues('preserve')===false)return;
     const generation=await api.work(()=>{

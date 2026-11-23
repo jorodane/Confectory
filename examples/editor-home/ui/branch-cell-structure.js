@@ -1,11 +1,22 @@
 // Editor projection only. The engine independently checks the original region,
 // complete plan, value dominance, source closure and checkpoint CAS.
 const normal=to=>to?.startsWith('$exit:')?to.slice(1):to;
-export function branchCellRegion(data,edges,owner,port,allowFrame=false){
+export function branchCellRegion(data,edges,owner,port,allowFrame=false,firstWrappedCase=false){
  const binding=allowFrame?data.documentFrameCaseOrderBinding:null;
  const frame=!!(data.privatePath&&binding&&binding.root===data.rootId&&binding.graph===data.id&&binding.path===data.privatePath);
  if(!data.id||(!frame&&(data.id!==data.rootId||data.privatePath))||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.profile!=='sync-acyclic-switch-v1'||data.nodes.length>=64)return null;
  const byId=new Map(data.nodes.map(n=>[n.id,n])),parent=byId.get(owner);
+ if(firstWrappedCase&&!frame&&parent?.kind==='call'){
+  const wrapper=parent.postCall,en=parent.executionEnum,routes=edges.filter(e=>e.from===owner);
+  if(data.requiresCoupledCopy||data.asyncTransition?.enabled||data.nodes.length>=63||
+     !['source-ready','source-assembled'].includes(data.diagnostics?.state)||parent.control!=='switch'||
+     parent.branchOwner||parent.publicExecution||parent.implementationContext||parent.executionSource||parent.contextBoundary||
+     parent.completionBranch||parent.async||parent.forwardCallerStorage||parent.postCallStale!==false||
+     wrapper?.mode!=='execution-enum'||wrapper.originalExecution||
+     en?.members.length!==2||!en.members.some(m=>m.id!==en.primary&&port==='case:'+m.id)||
+     routes.length!==1||routes[0].port!=='next')return null;
+  return {owner,port,order:[],exit:'return:'+owner,frame,wrappedCall:true};
+ }
  if(!parent||parent.kind!=='code'||parent.control!=='switch'||parent.branchOwner||parent.postCall||parent.implementationContext||parent.executionSource||parent.async||parent.forwardCallerStorage||!parent.executionEnum?.members.some(m=>m.id!==parent.executionEnum.primary&&port==='case:'+m.id))return null;
  if(new Set(edges.map(e=>e.from+'|'+e.port)).size!==edges.length||!edges.some(e=>e.from===owner&&e.port===port))return null;
  const next=(id,p)=>normal(edges.find(e=>e.from===id&&e.port===p)?.to)||'return:'+owner,order=[],seen=new Set();let at=next(owner,port);
@@ -40,7 +51,7 @@ export function branchCreationCells(data,cells,allowFrame=false){
   const routes=cells.filter(([,v])=>v.type==='route'||v.type.startsWith('route:case:')).map(([,v])=>v),out=routes.find(v=>v.node===created),incoming=routes.find(v=>v.node!==created);
   if(routes.length!==2||!out||out.type!=='route'||!incoming||incoming.text!==created||cells.some(([,v])=>!routes.includes(v)&&v.node!==created))return false;
   for(const member of data.nodes.find(n=>n.id===owner)?.executionEnum?.members||[]){
-   const region=branchCellRegion(data,data.edges,owner,'case:'+member.id,allowFrame);if(!region||region.frame&&data.documentFrameCaseCreationAvailable!==true)continue;
+   const region=branchCellRegion(data,data.edges,owner,'case:'+member.id,allowFrame,!allowFrame);if(!region||region.frame&&data.documentFrameCaseCreationAvailable!==true)continue;
    const i=region.order.indexOf(incoming.node),valid=incoming.node===owner&&incoming.type==='route:'+region.port||i>=0&&incoming.type==='route';
    if(valid&&normal(out.text)===(i<0?region.order[0]||region.exit:region.order[i+1]||region.exit))return true;
   }

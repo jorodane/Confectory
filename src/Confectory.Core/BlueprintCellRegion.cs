@@ -345,13 +345,31 @@ public static class BlueprintCellRegion
         else selected["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!["to"]=id;
         selected["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=successor});
     }
-    static Region Read(JsonObject graph, string owner, string port)
+    static Region Read(JsonObject graph, string owner, string port, bool firstWrappedCase = false)
     {
         Need(S(graph,"profile")==FeatureBlueprint.SwitchProfile && graph["executionExitMode"]?.GetValue<bool>()!=true
             && graph["copySource"] is null, "Only an existing synchronous owned switch region is supported");
         var nodes=graph["nodes"]!.AsArray().ToDictionary(n=>S(n,"id"),n=>n!,StringComparer.Ordinal);
         Need(nodes.Count is >0 and <64 && nodes.TryGetValue(owner,out var parent),"Existing bounded branch owner required");
         parent=nodes[owner];
+        if(firstWrappedCase && S(parent,"kind")=="call"){
+            var wrapper=parent["postCall"];
+            var enumeration=parent["executionEnum"];
+            var routes=graph["edges"]!.AsArray().Where(edge=>S(edge,"from")==owner).ToArray();
+            Need(graph["schema"]?.GetValue<int>()==1 && S(parent,"control")=="switch"
+                && parent["branchOwner"] is null && parent["publicExecution"] is null
+                && parent["implementationContext"] is null && parent["executionSource"] is null
+                && parent["contextBoundary"] is null && parent["completionBranch"] is null
+                && parent["async"]?.GetValue<bool>()!=true && parent["forwardCallerStorage"]?.GetValue<bool>()!=true
+                && S(wrapper,"mode")=="execution-enum" && wrapper!["originalExecution"] is null
+                && enumeration?["members"] is JsonArray {Count:2} firstMembers
+                && firstMembers.Any(member=>"case:"+S(member,"id")==port && S(member,"id")!=S(enumeration,"primary"))
+                && routes.Length==1 && S(routes[0],"port")=="next",
+                "Select the first empty wrapped-call case with its existing next continuation");
+            // An unmatched local enum result already continues on next. A new
+            // case action must rejoin that same continuation through its owner.
+            return new(owner,port,[],"return:"+owner);
+        }
         Need(S(parent,"kind")=="code" && S(parent,"control")=="switch" && parent["branchOwner"] is null
             && parent["postCall"] is null && parent["implementationContext"] is null && parent["executionSource"] is null
             && parent["async"]?.GetValue<bool>()!=true && parent["forwardCallerStorage"]?.GetValue<bool>()!=true,
@@ -686,7 +704,7 @@ public static class BlueprintCellRegion
         foreach(var member in possibilities){
             string port="case:"+S(member,"id");
             if(S(incoming,"node")==owner&&S(incoming,"port")!=port)continue;
-            Region region;try{region=Read(graph,owner,port);}catch(ArgumentException){continue;}
+            Region region;try{region=Read(graph,owner,port,firstWrappedCase: !frame);}catch(ArgumentException){continue;}
             if (frame && region.Nodes.Count == 0) continue;
             int index=region.Nodes.IndexOf(S(incoming,"node"));
             if(!(S(incoming,"node")==owner&&S(incoming,"port")==port||index>=0&&S(incoming,"port")=="next"))continue;

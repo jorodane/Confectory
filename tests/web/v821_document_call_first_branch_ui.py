@@ -1,8 +1,10 @@
-"""Create a typed call's first branch in Logic Code and execute its existing case rail."""
+"""Create, refresh and connect a typed call branch entirely in Logic Code."""
 import ast
+import copy
 import json
 from pathlib import Path
 import sys
+import uuid
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -64,17 +66,22 @@ def seed():
                 'schema': 1, 'profile': 'sync-acyclic-methods-v1', 'entry': 'native',
                 'nodes': [code('native', 'Peer.node.json')],
                 'edges': [edge('native', 'exit:return')], 'exits': {'return': None}}}
-    consumer = code('consume', 'Consume.node.json', [integer('result'), integer('audit')], {
-        'result': {'node': 'native', 'output': 'return'}, 'audit': {'node': 'native', 'output': 'audit'}})
-    graph.update(entry='peer', nodes=[peer, call, consumer],
-                 edges=[edge('peer', 'native'), edge('native', 'consume'), edge('consume', 'exit:return')],
+    plain = copy.deepcopy(call)
+    plain.update(id='plain', intent='Independent native call', arguments={'input': {'constant': 41}})
+    consumer = code('consume', 'Consume.node.json',
+                    [integer('result'), integer('audit'), integer('otherResult'), integer('otherAudit')], {
+        'result': {'node': 'native', 'output': 'return'}, 'audit': {'node': 'native', 'output': 'audit'},
+        'otherResult': {'node': 'plain', 'output': 'return'}, 'otherAudit': {'node': 'plain', 'output': 'audit'}})
+    graph.update(entry='peer', nodes=[peer, call, plain, consumer],
+                 edges=[edge('peer', 'native'), edge('native', 'plain'), edge('plain', 'consume'),
+                        edge('consume', 'exit:return')],
                  exits={'return': {'node': 'native', 'output': 'return'}})
     defs = f.metadata('blueprintDescribeOwned', project=str(project), id=impl_id,
                       text=implementation.read_text(), graph=graph, bodyTarget='common', definitionsOnly=True)
     assert defs['state'] == 'node-definitions', defs
     for qualified, name, source in [
         ('peer/native', 'Peer.node.json', 'System.Console.WriteLine("peer");'),
-        ('consume', 'Consume.node.json', 'System.Console.WriteLine("consume:"+result+":"+audit);'),
+        ('consume', 'Consume.node.json', 'System.Console.WriteLine("consume:"+result+":"+audit+":"+otherResult+":"+otherAudit);'),
     ]:
         definition = next(node for node in defs['nodes'] + defs['nestedNodes'] if node['id'] == qualified)
         (f.project/name).write_text(json.dumps(dict(schema=1, node=qualified.split('/')[-1],
@@ -124,7 +131,8 @@ def confirm():
 
 try:
     root = seed()
-    before_run = 'peer\noriginal:5\nconsume:8:50\nresult:8\npeer\noriginal:8\nconsume:11:80\nresult:11'
+    before_run = ('peer\noriginal:5\noriginal:41\nconsume:8:50:44:410\nresult:8\n'
+                  'peer\noriginal:8\noriginal:41\nconsume:11:80:44:410\nresult:11')
     x.build('first-branch-before', 7, before_run)
     f.start(0)
     f.invoke('select', {'id': t.feature})
@@ -188,49 +196,119 @@ try:
         wrapped = json.loads(graph_file.read_text())
         assert wrapped['schema'] == root['schema'] == 1
         assert wrapped['edges'] == root['edges'] and wrapped['exits'] == root['exits']
-        assert wrapped['nodes'][0] == root['nodes'][0] and wrapped['nodes'][2] == root['nodes'][2]
+        assert wrapped['nodes'][:1] == root['nodes'][:1] and wrapped['nodes'][2:] == root['nodes'][2:]
         assert wrapped['nodes'][1]['signature'] == root['nodes'][1]['signature']
         assert wrapped['nodes'][1]['arguments'] == root['nodes'][1]['arguments']
         assert wrapped['nodes'][1]['executionEnum'] == plan['executionEnum']
         assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != graph_file)
         f.checked('Logic Code creates exactly one protected first branch; Cancel, Undo/Redo, cold Save and Confirm keep the caller inputs and outputs.')
 
-        # The legacy case rail builds the probe, so the test can exercise real branch dispatch.
-        panel().get_by_role('tab', name='블루프린트 보기', exact=True).click()
-        panel().locator('[data-bp-overview-node=native]').click()
-        rail = panel().locator(f'[data-bp-node=native] [data-port="case:{branch["id"]}"]')
-        # The overview centers the header. Pan to bring the output rail into view.
-        overview = panel().locator('[data-bp-overview]')
-        for _ in range(5):
-            overview.press('ArrowRight')
-        for _ in range(2):
-            overview.press('ArrowDown')
-        rail.click()
-        panel().locator('.bp-viewport').click(button='right', position={'x': 415, 'y': 255})
-        resources = f.page.get_by_role('dialog', name='블루프린트 노드 검색', exact=True)
-        resources.get_by_role('button', name='동작 만들기', exact=True).click()
-        cell = panel().locator('[data-bp-node^=action_]')
-        expect(cell).to_have_count(1)
-        created = cell.get_attribute('data-bp-node')
-        panel().locator(f'[data-bp-overview-node="{created}"]').click()
-        cell.locator('[data-inline-description]').fill('branch probe')
-        cell.locator('[data-internal-code]').click()
+        # Stage a same-signature publication change through the existing owner
+        # endpoint, as though the imported declaration had another editor.
+        callee_path = f.project/'NativeChoice.celem'
+        f.invoke('select', {'id': callee_id})
+        f.invoke('inspectDeclaration', {'id': callee_id})
+        declaration = f.state()['declaration']
+        f.invoke('editMetadata', {'id': callee_id, 'revision': declaration['revision'],
+                                  'hash': declaration['textHash'], 'field': 'blueprintPublishedOutputs',
+                                  'value': '["return"]'})
+        f.invoke('saveDraft', {})
+        restart(2)
+        card = doc().locator('[data-document-cell=native]')
+        branch_port = 'case:' + branch['id']
+        tab = card.locator(f'[data-document-branch="{branch_port}"]')
+        tab.click()
+        branch_panel = card.locator(f'[data-document-panel="{branch_port}"]')
+        add = branch_panel.get_by_role('button', name='이 분기에 동작 추가', exact=True)
+        refresh = card.locator('[data-document-call-refresh]')
+        expect(refresh).to_be_visible()
+        expect(add).to_be_disabled()
+        staged = checkpoint.read_bytes()
+        published = next(row['draft'] for row in json.loads(staged)['changes'] if row['id'] == callee_id)
+        stale = next(row for row in read()['nodes'] if row['id'] == 'native')
+        assert stale['postCallStale'] and stale['postCallSignatureMatches']
+        assert stale['postCall']['contractHash'] != stale['postCallEditor']['contractHash']
+        refresh.click()
+        expect(refresh).to_have_count(0)
+        assert checkpoint.read_bytes() == staged
+        doc().press('Control+z')
+        expect(refresh).to_be_visible()
+        expect(add).to_be_disabled()
+        doc().press('Control+y')
+        save()
+        observed = read()
+        now = next(row for row in observed['nodes'] if row['id'] == 'native')
+        assert not now['postCallStale'] and now['postCall']['contractHash'] == stale['postCallEditor']['contractHash']
+        assert observed['edges'] == root['edges'] and now['executionEnum'] == wrapped['nodes'][1]['executionEnum']
+        assert callee_path.read_bytes() == x.physical[callee_path]
+        f.checked('Explicit same-signature refresh unblocks the selected Logic Code case and keeps its identity, I/O and wiring.')
+
+        expect(add).to_be_enabled()
+        staged = checkpoint.read_bytes()
+        add.click()
+        pending_case = pending()
+        created, = [row['node'] for _, row in pending_case if row['type'] == 'create']
+        assert len(pending_case) == 6
+        cell = branch_panel.locator(f'[data-document-cell="{created}"]')
+        expect(cell).to_be_visible()
+        doc().press('Control+z')
+        expect(cell).to_have_count(0)
+        assert not pending() and checkpoint.read_bytes() == staged
+        doc().press('Control+y')
+        expect(cell).to_be_visible()
+        assert pending() == pending_case and checkpoint.read_bytes() == staged
+
+        # A forged branch insertion may not redirect the old continuation.
+        denied = [
+            {'action': 'createNode', 'node': 'fabricated', 'definition': {
+                'kind': 'code', 'control': 'next', 'intent': 'fabricated',
+                'signature': signature([]), 'branchOwner': 'native'}},
+            *[{'action': action, 'node': 'fabricated', 'text': text}
+              for action, text in [('rename', 'fabricated'), ('intent', 'fabricated'), ('source', 'return;')]],
+            {'action': 'route', 'node': 'native', 'port': branch_port, 'to': 'fabricated'},
+            {'action': 'route', 'node': 'fabricated', 'port': 'next', 'to': 'exit:return'},
+        ]
+        f.invoke('blueprint', {'action': 'authorBatch', 'id': graph_id, 'attempt': uuid.uuid4().hex,
+                               'checkpointHash': observed['checkpointHash'], 'sourceProof': x.proof(observed),
+                               'documentBranch': True, 'edits': denied}, False)
+        assert checkpoint.read_bytes() == staged
+
+        header = cell.locator('[data-document-name]')
+        header.fill('branch probe')
+        header.press('Tab')
+        cell.locator('[data-document-code]').click()
         probe = f.page.locator('.bp-script-dialog')
+        edit_body(probe, 'System.Console.WriteLine("cancelled");')
+        probe.locator('[data-code-cancel]').click()
+        cell.locator('[data-document-code]').click()
         edit_body(probe, 'System.Console.WriteLine("selected branch");')
         probe.locator('[data-code-save]').click()
         save()
+        assert json.loads(checkpoint.read_bytes())['version'] == 1
+        assert {path for path in f.project.iterdir() if path.is_file()} == x.physical.keys()
+        assert json.loads(graph_file.read_text()) == wrapped
+        restart(3)
+        expect(doc().locator(f'[data-document-panel="{branch_port}"] [data-document-cell="{created}"]')).to_be_visible()
+        review().locator('[data-reject]').click()
+        assert json.loads(graph_file.read_text()) == wrapped
+        assert callee_path.read_bytes() == x.physical[callee_path]
         confirm()
-        panel().get_by_role('tab', name='논리 코드', exact=True).click()
-        restart(2)
-        expect(doc().locator(f'[data-document-cell="{created}"]')).to_be_visible()
+        restart(4)
+        expect(doc().locator(f'[data-document-panel="{branch_port}"] [data-document-cell="{created}"]')).to_be_visible()
+        expect(panel().get_by_role('tab', name='논리 코드', exact=True)).to_have_attribute('aria-selected', 'true')
         output = before_run.replace('original:8\n', 'original:8\nselected branch\n')
         x.build('first-branch-executed', 7, output)
         final = json.loads(graph_file.read_text())
-        assert final['exits'] == root['exits'] and final['nodes'][0] == root['nodes'][0]
-        assert edge('native', created, 'case:'+branch['id']) in final['edges']
-        assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != graph_file)
+        assert final['schema'] == root['schema'] == 1 and final['exits'] == root['exits']
+        assert final['nodes'][:1] == root['nodes'][:1] and final['nodes'][2:4] == root['nodes'][2:]
+        assert final['nodes'][1]['signature'] == root['nodes'][1]['signature']
+        assert final['nodes'][1]['arguments'] == root['nodes'][1]['arguments']
+        assert final['nodes'][1]['executionEnum'] == wrapped['nodes'][1]['executionEnum']
+        assert final['edges'] == root['edges'] + [edge('native', created, branch_port), edge(created, 'return:native')]
+        assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path not in {graph_file, callee_path})
+        assert callee_path.read_bytes() == published.encode('utf-8')
         assert not f.errors and not f.external, (f.errors, f.external)
-        f.checked('Existing case rail executes only the matched branch; return/out values, sibling and callee bytes remain intact.')
+        f.checked("The Logic Code case executes only for the matched input. The default path, both calls' return/out values, sibling and callee implementation remain intact.")
         f.browser.close()
 finally:
     (f.case/'call-first-branch-checks.json').write_text(json.dumps(f.checks, ensure_ascii=False))
