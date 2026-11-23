@@ -2,6 +2,7 @@ const int DevelopmentView = 17;
 const string Unavailable = "{\"status\":\"unavailable\"}";
 const string Denied = "{\"status\":\"denied\"}";
 const string Committed = "{\"status\":\"committed\"}";
+static bool StableId(string id) => Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
 if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
     Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" ||
     AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient." + cancellation) is not (string view, System.Threading.CancellationToken life, string mountedScope) ||
@@ -20,18 +21,23 @@ lock (owner)
     {
         var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
         string? action = args["action"]?.GetValue<string>();
-        if (action is "read" or "status" or "send")
+        if (action is "read" or "status" or "send" or "send-attachment" or "prepare-attachment" or "cancel-attachment" or
+            "attachment" or "first-image" or "second-image")
         {
             if (active is not { } bound || bound.View != view || bound.Activation != activation)
                 return Unavailable;
             string id = "", text = "";
-            if (action == "send")
+            if (action is "send" or "send-attachment")
             {
                 id = args["id"]?.GetValue<string>() ?? "";
                 text = args["text"]?.GetValue<string>() ?? "";
-                if (args.Count != 3 || !Guid.TryParseExact(id, "N", out var parsed) || parsed == Guid.Empty ||
-                    parsed.ToString("N") != id || string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
+                if (args.Count != 3 || !StableId(id) || string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
                     return Denied;
+            }
+            else if (action is not ("read" or "status"))
+            {
+                id = args["id"]?.GetValue<string>() ?? "";
+                if (args.Count != 2 || !StableId(id)) return Denied;
             }
             else if (args.Count != 1) return Unavailable;
             life.ThrowIfCancellationRequested();
@@ -57,16 +63,48 @@ lock (owner)
             try { listener = ((int, Action, System.Threading.Tasks.Task))calls.Start.Invoke(session, activation, certificate); }
             catch { certificate.Dispose(); throw; }
             _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
+            (string Message, string Selection)? prepared = null;
             Bind((op, id, text) =>
             {
-                if (op is not ("status" or "send")) return Unavailable;
+                if (op is not ("status" or "send" or "prepare-attachment" or "cancel-attachment" or "send-attachment"))
+                    return Unavailable;
                 if (listener.Completion.IsCompleted || !ReferenceEquals(owner[16], listener.Completion) ||
                     owner[15] is not (string scope, object _, object _, Func<bool> isActive, Action _, System.Threading.CancellationToken _) ||
                     scope != activation || !isActive())
                     throw new ObjectDisposedException("Local public chat host");
                 if (op == "status") return "{\"status\":\"hosting\"}";
+                if (op == "prepare-attachment")
+                {
+                    var result = System.Text.Json.Nodes.JsonNode.Parse(
+                        calls.Chat.Invoke(session, activation, op, id, "", ""));
+                    if (result?["selection"]?.GetValue<string>() is not string selection) return Denied;
+                    prepared = (id, selection);
+                    return "{\"status\":\"ready\"}";
+                }
+                if (op is "cancel-attachment" or "send-attachment")
+                {
+                    if (prepared is not { } chosen || chosen.Message != id) return Denied;
+                    string result = calls.Chat.Invoke(session, activation, op, id, chosen.Selection, text);
+                    if (op == "cancel-attachment" && result == "{\"status\":\"cancelled\"}")
+                    {
+                        prepared = null;
+                        return result;
+                    }
+                    // Keep the selection on acknowledgement loss so the same submission
+                    // can be retried by message ID through the existing journal CAS.
+                    return result == Committed ? Committed : Denied;
+                }
+                if (prepared is { } pinned && pinned.Message == id) return Denied;
                 return calls.Chat.Invoke(session, activation, "send-text", id, "", text) == Committed ? Committed : Denied;
-            }, listener.Stop);
+            }, () =>
+            {
+                try
+                {
+                    if (prepared is { } chosen)
+                        calls.Chat.Invoke(session, activation, "cancel-attachment", chosen.Message, chosen.Selection, "");
+                }
+                finally { listener.Stop(); }
+            });
             try
             {
                 life.ThrowIfCancellationRequested();
@@ -115,6 +153,38 @@ lock (owner)
                         "denied" => Denied,
                         _ => throw new InvalidOperationException()
                     };
+                }
+                if (op is "attachment" or "first-image" or "second-image")
+                {
+                    // The TLS peer resolves IDs against this exact admitted inbox.
+                    // Split captures to fit the WebUI result budget. EY identities
+                    // remain absent until a recipient workspace can authorize them.
+                    var reply = request(new() { ["op"] = "attachment", ["id"] = id });
+                    if (reply["status"]?.ToString() != "ok" || reply["items"] is not System.Text.Json.Nodes.JsonArray items)
+                        return Denied;
+                    if (op == "attachment")
+                    {
+                        var metadata = new System.Text.Json.Nodes.JsonArray();
+                        int nextImage = 0;
+                        foreach (var item in items)
+                        {
+                            if (item!["kind"]?.ToString() == "image")
+                                metadata.Add(new System.Text.Json.Nodes.JsonObject { ["kind"] = "image", ["image"] = nextImage++ });
+                            else
+                                metadata.Add(new System.Text.Json.Nodes.JsonObject { ["kind"] = "semantic", ["availability"] = "unavailable" });
+                        }
+                        return new System.Text.Json.Nodes.JsonObject
+                        {
+                            ["status"] = "available", ["description"] = reply["description"]!.DeepClone(), ["items"] = metadata
+                        }.ToJsonString();
+                    }
+                    int index = op == "first-image" ? 0 : 1;
+                    var image = System.Linq.Enumerable.ElementAtOrDefault(
+                        System.Linq.Enumerable.Where(items, item => item?["kind"]?.ToString() == "image"), index);
+                    return image is null ? Denied : new System.Text.Json.Nodes.JsonObject
+                    {
+                        ["status"] = "available", ["capture"] = image.DeepClone()
+                    }.ToJsonString();
                 }
                 if (op != "read") return Unavailable;
                 var response = request(new() { ["op"] = "read" });
