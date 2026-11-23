@@ -17,13 +17,13 @@ f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
                 "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly",
-                "compound", "compound-readonly"}
+                "compound", "compound-readonly", "compound-views", "compound-deep-guard"}
 case = mode.startswith("case")
 child_case = mode.startswith("child")
 compound_case = mode.startswith("compound")
 frame_path = "other" if mode == "child-first" else "body"
 sibling_path = "body" if frame_path == "other" else "other"
-positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound"}
+positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound", "compound-views"}
 helper = Path(__file__).with_name("v821_function_document_ui.py")
 functions = [node for node in ast.parse(helper.read_text()).body if isinstance(node, ast.FunctionDef)]
 exec(compile(ast.Module(body=functions, type_ignores=[]), str(helper), "exec"), globals())
@@ -37,6 +37,9 @@ retained_sources = {f"{t.graph}/node:other/node:{name}": f"Pair.other.{name}.nod
                     for name in ("inner", "tail")} if compound_case else {}
 sibling_sources = {f"{t.graph}/node:body/node:{name}": f"Pair.body.{name}.node.json"
                    for name in ("inner", "tail")} if compound_case else {}
+if mode == "compound-views":
+    sibling_sources = {f"{t.graph}/node:body/node:nest/node:{name}": f"Pair.body.{name}.node.json"
+                       for name in ("inner", "tail")}
 leaf = f.project / source_name
 case_port = "case:negative" if mode == "case-exit" else "case:positive"
 
@@ -119,6 +122,99 @@ def real_files_unchanged():
             assert path.read_bytes() == content, path
 
 
+def graph_view(blueprint):
+    tab = panel().get_by_role("tab", name="블루프린트 보기" if blueprint else "논리 코드", exact=True)
+    if tab.get_attribute("aria-selected") != "true":
+        tab.click()
+    expect(tab).to_have_attribute("aria-selected", "true")
+    expect(panel().locator(".bp-viewport") if blueprint else doc()).to_be_visible()
+
+
+def expect_canvas_cell(present):
+    viewport = panel().locator(".bp-viewport")
+    expect(viewport.locator("[data-bp-node=other]")).to_have_count(int(present))
+    expect(viewport.locator("[data-bp-node=body]")).to_be_visible()
+    expect(viewport.locator("[data-bp-node=after]")).to_be_visible()
+    expect(viewport.locator('[data-bp-link="route:body"]')).to_have_count(1)
+    expect(viewport.locator('[data-bp-link="route:other"]')).to_have_count(int(present))
+    expect(viewport.locator('.bp-exec-header-in[data-node=after].is-connected')).to_have_count(1)
+
+
+def compound_view_roundtrip(remove, checkpoint, baseline_checkpoint):
+    click_remove(remove)
+    expect_cell(False)
+    graph_view(True)
+    expect_canvas_cell(False)
+    assert checkpoint.read_bytes() == baseline_checkpoint and graph.read_bytes() == initial
+    real_files_unchanged()
+    viewport = panel().locator(".bp-viewport")
+    viewport.press("Control+z")
+    expect_canvas_cell(True)
+    f.page.keyboard.press("Control+y")
+    expect_canvas_cell(False)
+    graph_view(False)
+    expect_cell(False)
+    save()
+    assert_compound_sources(False)
+    history = json.loads(checkpoint.read_bytes())["history"]
+    assert len(history["undo"]) == 1 and not history["redo"]
+    receipt = history["undo"][0]["cellRemoval"]
+    assert {row["id"]: row["path"] for row in receipt["sources"]} == retained_sources
+    assert graph.read_bytes() == initial
+    confirm()
+    assert json.loads(graph.read_bytes()) == removed
+    real_files_unchanged()
+    x.build("views-removed", exit_code, "\n".join(output_after))
+    f.checked("Both views reflect the same one-step private compound deletion and Confirm removes exactly its execution")
+
+    restart(1)
+    graph_view(True)
+    expect_canvas_cell(False)
+    viewport = panel().locator(".bp-viewport")
+    viewport.press("Control+z")
+    expect_canvas_cell(True)
+    expect(viewport).to_be_focused()
+    f.page.keyboard.press("Control+y")
+    expect_canvas_cell(False)
+    f.page.keyboard.press("Control+z")
+    expect_canvas_cell(True)
+    assert json.loads(graph.read_bytes()) == removed
+    graph_view(False)
+    expect_cell(True)
+    assert_compound_sources(True)
+    panel().locator("[data-bp-save]").click()
+    f.idle()
+    window = review()
+    window.locator("[data-reject]").click()
+    real_files_unchanged()
+    assert json.loads(graph.read_bytes()) == removed
+    restart(2)
+    expect_cell(True)
+    confirm()
+    assert graph.read_bytes() == initial
+    real_files_unchanged()
+    x.build("views-restored", exit_code, "\n".join(output_before))
+    f.checked("Canvas cold Undo and Redo have one group; Review cancel leaves the original removed until explicit Confirm")
+
+    graph_view(True)
+    panel().locator("[data-bp-node=body] [data-internal-flow]").click()
+    f.idle()
+    graph_view(False)
+    doc().locator("[data-document-internal=nest]").click()
+    f.idle()
+    doc().locator("[data-document-up=tail]").click()
+    expect(doc().locator("[data-document-cell]").nth(1)).to_have_attribute("data-document-cell", "tail")
+    save()
+    confirm()
+    written = json.loads(graph.read_bytes())
+    assert select_graph(written, "other") == select_graph(definition, "other")
+    assert select_graph(select_graph(written, "body"), "nest")["entry"] == "tail"
+    real_files_unchanged()
+    x.build("views-edit-sibling", exit_code, "\n".join(["inside", "body", "peer-inner", "peer-tail", "after", "10"]))
+    assert not f.errors and not f.external, (f.errors, f.external)
+    f.checked("Entering a nested sibling from Blueprint and reordering its same-ID children leaves the restored compound and all C# unchanged")
+
+
 def undo_or_redo(direction, expected):
     history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"][direction]
     assert history["available"] and history["kind"] == "cell-removal"
@@ -191,6 +287,11 @@ def prepare_child(root):
     ], {"return": {"node": "inner"}})
     peer = child([code("inner", "Pair.other.inner.node.json"), code("tail", "Pair.other.tail.node.json")],
                  {"return": None})
+    if mode == "compound-views":
+        owned = child([compound("nest", owned, signature(amount, "int"), {"amount": {"input": "amount"}})],
+                      {"return": {"node": "nest"}})
+    if mode == "compound-deep-guard":
+        peer = child([compound("nest", peer)], {"return": None})
     root["profile"] = "sync-acyclic-nested-v1"
     root["nodes"][0].pop("implementation")
     root["nodes"][0].update(kind="graph", graph=owned)
@@ -209,8 +310,13 @@ def prepare_child(root):
         "after": 'global::System.Console.WriteLine("after");',
     }
     for node, source in bodies.items():
+        path = node
+        if mode == "compound-views" and node.startswith("body/"):
+            node = node.replace("body/", "body/nest/")
+        if mode == "compound-deep-guard" and node.startswith("other/"):
+            node = node.replace("other/", "other/nest/")
         row = next(row for row in definitions["nodes"] + definitions["nestedNodes"] if row["id"] == node)
-        file = f.project / f"Pair.{node.replace('/', '.')}.node.json"
+        file = f.project / f"Pair.{path.replace('/', '.')}.node.json"
         record = dict(schema=1, node=node.split("/")[-1], definitionHash=row["definitionHash"], source=source)
         file.write_bytes((json.dumps(record, indent=2, ensure_ascii=False).replace("\n", "\r\n") + "\r\n").encode())
     x.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
@@ -327,10 +433,20 @@ try:
             expect(remove).to_have_count(0)
             if mode in {"case-shared", "case-implicit"}:
                 expect(doc().locator("[data-document-remove]")).to_have_count(0)
+            if mode == "compound-deep-guard":
+                select_frame("other")
+                doc().locator("[data-document-internal=nest]").click()
+                f.idle()
+                expect(doc().locator("[data-document-cell=inner]")).to_be_visible()
+                expect(doc().locator("[data-document-cell=tail]")).to_be_visible()
+                x.build("protected-deep-compound", 10, "body\ninside\npeer-inner\npeer-tail\nafter\n10")
+                assert not pending()
             assert checkpoint.read_bytes() == baseline_checkpoint
             assert graph.read_bytes() == initial
             real_files_unchanged()
             f.checked(mode + " prevents document deletion, without changing the isolated original")
+        elif mode == "compound-views":
+            compound_view_roundtrip(remove, checkpoint, baseline_checkpoint)
         else:
             expect(remove).to_be_enabled()
             if compound_case:
