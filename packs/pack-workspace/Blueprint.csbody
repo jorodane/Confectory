@@ -49,8 +49,10 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
   System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")?["definition"]?["branchOwner"] is System.Text.Json.Nodes.JsonValue frameCaseOwner
   &&frameCaseOwner.TryGetValue<string>(out _);
  bool ownedFrameCaseBatch=ownedFrameCaseOrderBatch||ownedFrameCaseCreationBatch;
- string frameOrderBindingKey=ownedFrameCaseBatch?"documentFrameCaseOrderBinding":"documentFrameOrderBinding";
- string frameCreationAction=ownedFrameCaseCreationBatch?"frame-case-create":"frame-create";
+ bool ownedFrameCompoundCreationBatch=ownedFrameCreationBatch&&!ownedFrameCaseCreationBatch&&surface.Length==0
+  &&request["documentFrame"]?["nodes"] is System.Text.Json.Nodes.JsonArray;
+ string frameOrderBindingKey=ownedFrameCaseBatch?"documentFrameCaseOrderBinding":ownedFrameCompoundCreationBatch?"documentFrameCompoundInsertion":"documentFrameOrderBinding";
+ string frameCreationAction=ownedFrameCaseCreationBatch?"frame-case-create":ownedFrameCompoundCreationBatch?"frame-compound-insert":"frame-create";
  bool ownedRootStartBatch=!documentFrame&&!documentBranch&&!documentCompound&&request["owner"] is null&&graphId==physicalGraphId&&edits.Count==6
   &&System.Linq.Enumerable.All(new[]{"createNode","entry","route","rename","intent","source"},action=>System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()==action)==1);
  bool rootInsertionBatch=ownedRootStartBatch||ownedCompoundInsertionBatch;
@@ -156,7 +158,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     var scopeSources=ownedScopeTransferBatch?current["documentScopeTransfer"]?["sources"]?.DeepClone().AsArray():null;
     bool methodFrame=current["profile"]?.ToString()=="sync-acyclic-methods-v1";
     bool methodFrameOrder=ownedFrameOrderBatch&&methodFrame,methodFrameCreation=ownedFrameCreationBatch&&methodFrame;
-    var frameSources=(ownedFrameCaseBatch||methodFrameOrder||methodFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
+    var frameSources=(ownedFrameCaseBatch||ownedFrameCompoundCreationBatch||methodFrameOrder||methodFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
     if(ownedScopeTransferBatch&&scopeSources is null)throw new InvalidOperationException("Observed directly owned root and case required; preserve inputs");
     if((methodFrameOrder||methodFrameCreation)&&frameSources is null)throw new InvalidOperationException("Observed owned method sources required; preserve inputs");
     if(methodFrameCreation&&current["documentMethodFrameCreationAvailable"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Clean bounded method sources required before inserting one body; preserve inputs");
@@ -202,7 +204,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
       ["action"]=frameCreationAction,["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["path"]=current["privatePath"]!.DeepClone(),["edits"]=edits.DeepClone()
      }.ToJsonString()));
      stagedPack["authorCellCreation"]=new System.Text.Json.Nodes.JsonObject{
-      ["graph"]=graphId,["frameCase"]=ownedFrameCaseCreationBatch,["rootTopology"]=ownedCompoundInsertionBatch?"compound-insert-options":plan?["rootTopology"]?.GetValue<string>(),["routes"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>e?["action"]?.ToString() is "route" or "entry"),e=>e!.DeepClone()))),["plan"]=plan
+      ["graph"]=graphId,["frameCase"]=ownedFrameCaseCreationBatch,["frameCompound"]=ownedFrameCompoundCreationBatch,["rootTopology"]=ownedCompoundInsertionBatch?"compound-insert-options":plan?["rootTopology"]?.GetValue<string>(),["routes"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(edits,e=>e?["action"]?.ToString() is "route" or "entry"),e=>e!.DeepClone()))),["plan"]=plan
      };
     }
     if(documentCompound&&!ownedCompoundInsertionBatch){if(current["documentCompoundOrderAvailable"]?.GetValue<bool>()!=true||current["documentCompoundOrderWritable"]?.GetValue<bool>()==false)throw new InvalidOperationException("Direct owned compound invocation required; preserve all inputs");calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]="compound-order",["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["edits"]=edits.DeepClone()}.ToJsonString());}
@@ -367,7 +369,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
      // actions. Only the exact observed body closure belongs in this route Review.
      // The accepted graph carries the exact retargeted link. Keep the existing source lease for its original closure.
      var readIds=privateReturnRemapBatch?System.Linq.Enumerable.Select(remapSources!,id=>id!.ToString()):rootInsertionBatch?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(rootInsertionSources!,id=>id!.ToString()),physicalGraphId+"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
-      (ownedFrameCaseCreationBatch||methodFrameCreation)?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()),
+      (ownedFrameCaseCreationBatch||ownedFrameCompoundCreationBatch||methodFrameCreation)?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()),
        physicalGraphId+"/node:"+current["privatePath"]!.ToString().Replace("/","/node:",StringComparison.Ordinal)
         +"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
       (ownedFrameCaseOrderBatch||methodFrameOrder)?System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()):
@@ -1122,6 +1124,9 @@ lock(state){
     else if(insertion["frameCase"]?.GetValue<bool>()==true)calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
      ["action"]="frame-case-order",["graph"]=candidateRoot.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
     }.ToJsonString());
+    else if(insertion["frameCompound"]?.GetValue<bool>()==true)calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
+     ["action"]="frame-compound-insert-options",["graph"]=candidateRoot.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
+    }.ToJsonString());
     else{
      var complete=new System.Text.Json.Nodes.JsonArray{new System.Text.Json.Nodes.JsonObject{["action"]="entry",["node"]="$entry",["to"]=candidate["entry"]!.DeepClone()}};foreach(var edge in candidate["edges"]!.AsArray())complete.Add(new System.Text.Json.Nodes.JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]="frame-order",["graph"]=candidateRoot.DeepClone(),["path"]=privatePath,["edits"]=complete}.ToJsonString());
     }
@@ -1670,6 +1675,20 @@ lock(state){
   if(sources.Count<64&&System.Linq.Enumerable.All(sources,source=>calls.Status.Invoke(draft,source.Key)[6]=="clean"))
    readResult["documentFrameCaseCreationAvailable"]=true;
  }
+ if(ownedSerialChild&&!privatePath.Contains('/')&&graph["profile"]?.ToString()=="sync-acyclic-nested-v1"
+  &&string.IsNullOrEmpty(input["uiSurface"]?.ToString())&&sources.Count<64
+  &&System.Linq.Enumerable.Any(graph["nodes"]!.AsArray(),node=>node?["kind"]?.ToString()=="graph")
+  &&System.Linq.Enumerable.All(sources,source=>calls.Status.Invoke(draft,source.Key)[6]=="clean"))try{
+  RequireExclusiveWritableGraph();
+  RequireExclusiveChildSources(includeDescendants:true);
+  var options=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
+   ["action"]="frame-compound-insert-options",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
+  }.ToJsonString()))!;
+  var binding=ChildFrameBinding();
+  binding["nodes"]=options["nodes"]!.DeepClone();
+  binding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
+  readResult["documentFrameCompoundInsertion"]=binding;
+ }catch{ }
  return readResult.ToJsonString();
 }
 

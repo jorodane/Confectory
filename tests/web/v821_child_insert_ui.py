@@ -8,7 +8,13 @@ fixture=Path(__file__).with_name('v821_frame_structure_ui.py');nodes=ast.parse(f
 exec(compile(ast.Module(body=nodes[:next(i for i,n in enumerate(nodes)if isinstance(n,ast.Try))],type_ignores=[]),str(fixture),'exec'),globals())
 at_start=mode in ('start', 'method-direct')
 anchor='$entry' if at_start else 'inner'
+if compound_parent:
+ anchor = 'nest'
+insertion_binding = 'documentFrameCompoundInsertion' if compound_parent else 'documentFrameOrderBinding'
+insertion_action = 'frame-compound-insert' if compound_parent else 'frame-create'
 def inserted_order(created):
+ if compound_parent:
+  return ['$entry', 'nest', created, 'finish', '$exit:return']
  return ['$entry',created,'inner','tail','$exit:return'] if at_start else ['$entry','inner',created,'tail','$exit:return']
 def show_child():
  if panel().locator('.bp-breadcrumbs button').count():root_view()
@@ -25,8 +31,8 @@ def reconnect(i):
  show_child()
 def proposal(data,node='cell_probe',after=anchor,to=None):
  incoming=dict(action='entry',node='$entry',to=node) if after=='$entry' else dict(action='route',node=after,port='next',to=node)
- successor=to or ('inner' if after=='$entry' else 'tail')
- return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get('documentFrameOrderBinding')or dict(root=t.graph,graph=frame,path=frame_path,rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='새 동작',signature=signature())),dict(action='rename',node=node,text='자식 추가 α'),dict(action='intent',node=node,text='자식 추가 α'),dict(action='source',node=node,text='global::System.Console.WriteLine("inserted-child");\nreturn;'),incoming,dict(action='route',node=node,port='next',to=successor)])
+ successor=to or ('finish' if compound_parent else 'inner' if after=='$entry' else 'tail')
+ return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get(insertion_binding)or dict(root=t.graph,graph=frame,path=frame_path,rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='새 동작',signature=signature())),dict(action='rename',node=node,text='자식 추가 α'),dict(action='intent',node=node,text='자식 추가 α'),dict(action='source',node=node,text='global::System.Console.WriteLine("inserted-child");\nreturn;'),incoming,dict(action='route',node=node,port='next',to=successor)])
 
 def check_other_project(original, checkpoint, held):
  duplicate = f.case / 'same IDs other project'
@@ -45,7 +51,7 @@ def check_other_project(original, checkpoint, held):
   duplicate_checkpoint = next(duplicate.glob('.confectory/edit-workspaces/*/draft.json'))
   duplicate_before = duplicate_checkpoint.read_bytes()
   same_ids = read()
-  assert same_ids['documentFrameOrderBinding'] == original['documentFrameOrderBinding']
+  assert same_ids[insertion_binding] == original[insertion_binding]
   assert same_ids['checkpointHash'] != original['checkpointHash']
   f.invoke('blueprint', proposal(original), False)
   assert duplicate_checkpoint.read_bytes() == duplicate_before and len(read()['nodes']) == 2
@@ -178,9 +184,36 @@ def verify_compiler_recovery(checkpoint):
  assert order() == inserted_order(created) and len(read(other)['nodes'])==2 and not pending()
  f.checked('after cold recovery the same cell can be corrected, saved and explicitly confirmed; actual order, return, sibling and original sources are preserved')
 def pure_denied(graph,path,edits):
- try:f.metadata('blueprintCellRegion',action='frame-create',graph=graph,path=path,edits=edits)
+ try:f.metadata('blueprintCellRegion',action=insertion_action,graph=graph,path=path,edits=edits)
  except (AssertionError,subprocess.CalledProcessError):return
  raise AssertionError('Unsupported pure insertion accepted')
+
+def check_confirmed_compound_workflow():
+ originals = {path: path.read_bytes() for path in f.project.rglob('*')
+              if path.is_file() and '.confectory' not in path.parts and path.name != t.graph_file}
+ panel().get_by_role('tab', name='네이티브 미리보기', exact=True).click()
+ preview = panel().locator('.function-native-preview')
+ expect(preview.locator('[role=status]')).to_contain_text('생성됨')
+ expect(preview.locator('[data-native-body]')).to_contain_text('inserted-child')
+ expect(preview.locator('[data-native-body]')).not_to_contain_text('peer-inner')
+ expect(preview.locator('textarea,input,[contenteditable=true]')).to_have_count(0)
+ panel().get_by_role('tab', name='논리 코드', exact=True).click()
+ doc().locator('[data-document-internal=nest]').click()
+ f.idle()
+ doc().locator('[data-document-up=tail]').click()
+ f.idle()
+ assert order() == ['$entry', 'tail', 'inner', '$exit:return']
+ save()
+ assert not pending()
+ restart(10)
+ assert order() == ['$entry', 'tail', 'inner', '$exit:return']
+ r = review()
+ r.locator('#confirm').click()
+ expect(r).to_be_hidden(timeout=120000)
+ f.idle()
+ x.build('compound-insert-then-child-order', 10, 'inside\nbody\ninserted-child\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
+ assert all(path.read_bytes() == raw for path, raw in originals.items())
+ f.checked('After confirming insertion, the selected parent preview and a separate child reorder retain the actual insertion and sibling execution.')
 try:
  f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:
@@ -193,9 +226,9 @@ try:
    assert original['diagnostics']['state'] in ('source-ready', 'source-assembled')
   if unavailable:
    expect(insert_at_start()).to_have_count(0)
-   assert original['documentFrameOrderBinding'] is None
-   expect(doc().locator('[data-document-add=inner]')).to_be_disabled()
-   title = doc().locator('[data-document-name=inner]')
+   assert original.get(insertion_binding) is None
+   expect(doc().locator(f'[data-document-add="{anchor}"]')).to_be_disabled()
+   title = doc().locator(f'[data-document-name="{anchor}"]')
    title.fill('자식 입력 보존')
    doc().locator('.fd-document-title').click()
    held = pending()
@@ -204,18 +237,24 @@ try:
    untouched()
    resume(1)
    assert pending() == held
-   expect(doc().locator('[data-document-name=inner]')).to_have_value('자식 입력 보존')
+   expect(doc().locator(f'[data-document-name="{anchor}"]')).to_have_value('자식 입력 보존')
    x.build('child-insert-blocked-unchanged', 10, 'body\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
    untouched()
    f.checked(f'{mode} refuses insertion in the UI and engine while preserving local inputs and the original execution.')
   elif mode=='compile-recovery':
    verify_compiler_recovery(checkpoint)
   else:
-   assert original['documentFrameOrderBinding']['path']==frame_path
+   assert original[insertion_binding]['path']==frame_path
    add=doc().locator('[data-document-add="'+anchor+'"]');expect(add).to_be_enabled()
    # Pure compiler plan limits include the new cell; metadata reads grant no writes.
-   q=proposal(original);f.metadata('blueprintCellRegion',action='frame-create',graph=base,path=frame_path,edits=q['edits'])
-   qparent=proposal(original,node='finish');f.metadata('blueprintCellRegion',action='frame-create',graph=base,path=frame_path,edits=qparent['edits'])
+   q=proposal(original);f.metadata('blueprintCellRegion',action=insertion_action,graph=base,path=frame_path,edits=q['edits'])
+   if compound_parent:
+    expect(insert_at_start()).to_have_count(0)
+    expect(doc().locator('[data-document-add=finish]')).to_be_disabled()
+    expect(doc().locator('[data-document-up=finish]')).to_be_disabled()
+    pure_denied(base, frame_path, proposal(original, after='finish', to='exit:return')['edits'])
+   else:
+    qparent=proposal(original,node='finish');f.metadata('blueprintCellRegion',action=insertion_action,graph=base,path=frame_path,edits=qparent['edits'])
    huge=copy.deepcopy(base);c=chosen(huge)
    while len(c['nodes'])<63:c['nodes'].append(code('n'+str(len(c['nodes'])),'unused.node.json'))
    c['edges']=[edge(n['id'],c['nodes'][i+1]['id']if i+1<len(c['nodes'])else'exit:return')for i,n in enumerate(c['nodes'])];pure_denied(huge,frame_path,q['edits'])
@@ -227,7 +266,7 @@ try:
    doc().locator('.fd-document-title').click();doc().press('Control+z');assert order()==initial;doc().press('Control+y');assert order()==inserted_order(created)
    if at_start:expect(insert_at_start()).to_be_disabled()
    edit_body(created);held=pending();assert len(held)==6;untouched();assert checkpoint.read_bytes()==before
-   root_view();enter(peer_path);expect(add).to_be_disabled();assert read(other)['entry']=='inner';root_view();enter();assert pending()==held
+   root_view();enter(peer_path);expect(add).to_be_disabled();assert read(other)['entry']==('nest' if compound_parent else 'inner');root_view();enter();assert pending()==held
    panel().get_by_role('tab',name='블루프린트 보기',exact=True).click()
    expect(panel().locator(f'[data-bp-node="{created}"]')).to_be_visible()
    if method:
@@ -264,7 +303,7 @@ try:
     else:q['documentCompound']=True
     f.invoke('blueprint',q,False);assert checkpoint.read_bytes()==before and pending()==held and len(read()['nodes'])==2;untouched()
    f.checked('The negative request matrix preserves the same checkpoint, graph, sources and local inputs.')
-   if mode == 'method-nested':
+   if mode == 'method-nested' or compound_parent:
     check_other_project(original, checkpoint, held)
    peer_file=f.project/'Pair.peer.inner.node.json';raw=peer_file.read_bytes();peer_file.write_bytes(raw+b' ')
    try:save();assert retained(held)and checkpoint.read_bytes()==before and len(read()['nodes'])==2;assert peer_file.read_bytes()==raw+b' '
@@ -278,10 +317,10 @@ try:
     units = {row['id']: row for row in draft['changes']}
     sources = units[t.graph]['propertyObservations']['sources']
     assert draft['version'] == units[t.graph]['propertyObservations']['version'] == 1
-    assert set(sources) == {*original['documentFrameOrderBinding']['sources'], made['sourceId']}
+    assert set(sources) == {*original[insertion_binding]['sources'], made['sourceId']}
     assert sources[made['sourceId']]['hash'] == 'missing'
     assert not (f.project / units[made['sourceId']]['path']).exists()
-    expect(doc().locator('[data-document-add=inner]')).to_be_disabled()
+    expect(doc().locator(f'[data-document-add="{anchor}"]')).to_be_disabled()
    history=f.invoke('draftHistory',dict(action='inspect'))['result']['result'];assert history['boundary']=='OWNERSHIP_CHANGED'and not history['undo']['available']and not history['redo']['available'];saved=checkpoint.read_bytes()
    for direction in ['undo','redo']:
     result=f.invoke('draftHistory',dict(action=direction,token='stale-child-token'))['result']['result'];assert not result['accepted']and not result['changed'];assert checkpoint.read_bytes()==saved
@@ -299,12 +338,15 @@ try:
    r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle()
    first_two='inserted-child\nbody' if at_start else 'body\ninserted-child'
    continuation = '\npeer-inner\npeer-tail\nafter\n10' if direct else '\nparent-tail\npeer-inner\npeer-tail\nafter\n10'
-   x.build('owned-child-insert',10,first_two+'\ninside'+continuation);assert all(p.read_bytes()==v for p,v in x.physical.items()if p.name!=t.graph_file);assert all(stat.S_IMODE(p.stat().st_mode)==m for p,m in source_modes.items());written=json.loads((f.project/t.graph_file).read_text());c=chosen(written);new=next(n for n in c['nodes']if n['id']==created)
+   expected = 'body\ninside\ninserted-child' + continuation if compound_parent else first_two+'\ninside'+continuation
+   x.build('owned-child-insert',10,expected);assert all(p.read_bytes()==v for p,v in x.physical.items()if p.name!=t.graph_file);assert all(stat.S_IMODE(p.stat().st_mode)==m for p,m in source_modes.items());written=json.loads((f.project/t.graph_file).read_text());c=chosen(written);new=next(n for n in c['nodes']if n['id']==created)
    if at_start:
     assert c['entry']==created
     assert c['edges']==target['edges']+[edge(created,target['entry'])]
     c['entry']=target['entry']
-   c['nodes'].remove(new);c['edges']=copy.deepcopy(target['edges']);assert written==base;new_sources=[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts];assert len(new_sources)==1 and json.loads(new_sources[0].read_text())['node']==created;resume(4);assert order()==inserted_order(created) and len(read(other)['nodes'])==2;f.checked('Review cancel/final sibling CAS and read-only graph preserve originals and missing new body; Confirm writes one graph insertion and one new local body, real execution returns 10 with parent/sibling continuation intact, and reopens')
+   c['nodes'].remove(new);c['edges']=copy.deepcopy(chosen(base)['edges']);assert written==base;new_sources=[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts];assert len(new_sources)==1 and json.loads(new_sources[0].read_text())['node']==created;resume(4);assert order()==inserted_order(created) and len(read(other)['nodes'])==2;f.checked('Review cancel/final sibling CAS and read-only graph preserve originals and missing new body; Confirm writes one graph insertion and one new local body, real execution returns 10 with parent/sibling continuation intact, and reopens')
+   if compound_parent:
+    check_confirmed_compound_workflow()
   doc().scroll_into_view_if_needed();f.page.screenshot(path=str(f.case/('child-insert-'+mode+'.png')),full_page=True);assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except BaseException:
  if getattr(f,'page',None):

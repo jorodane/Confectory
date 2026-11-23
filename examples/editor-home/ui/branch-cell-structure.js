@@ -48,16 +48,18 @@ export function branchCreationCells(data,cells,allowFrame=false){
  return false;
 }
 
-// Whole compound invocations stay in the same physical root frame. Descendant
-// eligibility is projected by the engine from the observed original graph.
-export function compoundCellChain(data,edges=data.edges){
- if(data.documentCompoundOrderAvailable!==true||!data.id||data.id!==data.rootId||data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||data.profile!=='sync-acyclic-nested-v1'||!data.nodes.some(n=>n.kind==='graph')||data.nodes.length>=64)return null;
+// The engine observes the physical root and full child path before offering insertion.
+export function compoundCellChain(data,edges=data.edges,forFrameInsertion=false){
+ const binding=data.documentFrameCompoundInsertion;
+ const eligible=forFrameInsertion?binding&&binding.root===data.rootId&&binding.graph===data.id&&binding.path===data.privatePath
+  :data.documentCompoundOrderAvailable===true&&data.id===data.rootId&&!data.privatePath;
+ if(!eligible||!data.id||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||data.profile!=='sync-acyclic-nested-v1'||!data.nodes.some(n=>n.kind==='graph')||data.nodes.length>=64)return null;
  if(data.nodes.some(n=>!['code','graph'].includes(n.kind)||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
  const names=new Set(data.nodes.map(n=>n.id)),routes=edges.filter(e=>e.from!=='$entry'),start=edges.find(e=>e.from==='$entry'&&e.port==='next')?.to||data.entry;
  if(routes.length!==names.size||routes.some(e=>e.port!=='next'||!names.has(e.from))||new Set(routes.map(e=>e.from)).size!==names.size)return null;
  const order=[],seen=new Set();let at=start;
  while(names.has(at)){if(seen.has(at))return null;seen.add(at);order.push(at);at=normal(routes.find(e=>e.from===at).to);}
- return order.length===names.size&&at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5))?{order,exit:at,compound:true}:null;
+ return order.length===names.size&&at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5))?{order,exit:at,compound:true,frame:forFrameInsertion}:null;
 }
 export function compoundOrderCells(data,cells){
  const region=compoundCellChain(data),rows=cells.map(([,v])=>v);
@@ -89,7 +91,8 @@ export function serialCreationCells(data,cells,placement='frame'){
  try{
   const chain=placement==='frame'&&(data.profile==='sync-acyclic-nested-v1'||data.documentMethodFrameCreationAvailable===true)?frameCellChain(data):null;
   const first=placement==='root-start'?data.documentRootStart?.entry:chain?.order[0];
-  const compounds=placement==='compound'?data.documentCompoundInsertion?.nodes:null;
+  const compounds=placement==='compound'?data.documentCompoundInsertion?.nodes
+   :placement==='compound-frame'&&compoundCellChain(data,data.edges,true)?data.documentFrameCompoundInsertion.nodes:null;
   if((!first&&!compounds?.length)||cells.length!==6||!['create','rename','intent','source'].every(type=>cells.filter(([,v])=>v.type===type).length===1))return false;
   const creation=cells.find(([,v])=>v.type==='create')[1],id=creation.node,definition=JSON.parse(creation.text);
   if(data.nodes.some(n=>n.id===id)||Object.keys(definition).length!==4||Object.keys(definition).some(k=>!['kind','control','intent','signature'].includes(k))||definition.kind!=='code'||definition.control!=='next'||!definition.intent?.trim()||Object.keys(definition.signature).length!==2||definition.signature.return!=='void'||!Array.isArray(definition.signature.args)||definition.signature.args.length)return false;

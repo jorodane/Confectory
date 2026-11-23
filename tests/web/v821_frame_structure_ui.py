@@ -5,11 +5,12 @@ from playwright.sync_api import sync_playwright,expect
 import v666_node_names_recovery_fixture as t
 f=t.f;x=t.x;mode=sys.argv[3]if len(sys.argv)>3 else'normal'
 method = mode.startswith('method-')
+compound_parent = mode in ('method-compound-parent', 'method-compound-shared')
 direct = mode == 'method-direct'
 too_deep = mode == 'method-deep'
 success = mode in ('normal', 'method-direct', 'method-nested')
 dependency = mode in ('dependency', 'method-dependency')
-unavailable = mode in ('shared', 'method-shared', 'method-deep')
+unavailable = mode in ('shared', 'method-shared', 'method-deep', 'method-compound-shared')
 helper=Path(__file__).with_name('v821_function_document_ui.py')
 exec(compile(ast.Module(body=[n for n in ast.parse(helper.read_text()).body if isinstance(n,ast.FunctionDef)],type_ignores=[]),str(helper),'exec'),globals())
 def edge(a,b):return {'from':a,'port':'next','to':b}
@@ -23,6 +24,11 @@ peer=child([code('inner','Pair.peer.inner.node.json'),code('tail','Pair.peer.tai
 base=copy.deepcopy(t.definition);base['profile']='sync-acyclic-nested-v1';body=base['nodes'][0];body.pop('implementation');body['kind']='graph';body['graph']=child([compound('nest',target,signature(amount,'int'),{'amount':{'input':'amount'}}),code('finish','Pair.finish.node.json')],{'return':{'node':'nest'}})
 base['nodes'].insert(1,compound('other',child([compound('nest',peer)],{'return':None})));base['edges']=[edge('body','other'),edge('other','after'),edge('after','exit:return')]
 sources={'body/nest/inner':('Pair.body.inner.node.json','global::System.Console.WriteLine("body");\r\nreturn checked(amount+3);'),'body/nest/tail':('Pair.body.tail.node.json','global::System.Console.WriteLine("inside");'),'body/finish':('Pair.finish.node.json','global::System.Console.WriteLine("parent-tail");'),'other/nest/inner':('Pair.peer.inner.node.json','global::System.Console.WriteLine("peer-inner");'),'other/nest/tail':('Pair.peer.tail.node.json','global::System.Console.WriteLine("peer-tail");')}
+if compound_parent:
+ sibling = base['nodes'][1]['graph']
+ sibling['nodes'].append(code('finish', 'Pair.peer.finish.node.json'))
+ sibling['edges'] = [edge('nest', 'finish'), edge('finish', 'exit:return')]
+ sources['other/finish'] = ('Pair.peer.finish.node.json', 'return;')
 if method:
  target['profile'] = peer['profile'] = 'sync-acyclic-methods-v1'
 if direct:
@@ -40,7 +46,7 @@ if mode=='shared':
 for key,(file,source)in sources.items():
  row=next(n for n in defs['nodes']+defs['nestedNodes']if n['id']==key);(f.project/file).write_text(json.dumps(dict(schema=1,node=key.split('/')[-1],definitionHash=row['definitionHash'],source=source),ensure_ascii=False))
 after=f.project/'Pair.after.node.json';record=json.loads(after.read_text());record['definitionHash']=next(n['definitionHash']for n in defs['nodes']if n['id']=='after');after.write_text(json.dumps(record,ensure_ascii=False));x.physical={p:p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.parts}
-if mode == 'method-shared':
+if mode in ('method-shared', 'method-compound-shared'):
  declaration = f.project / 'PairBody.celem'
  original = declaration.read_text()
  binding = f'blueprint common "{t.graph_file}";'
@@ -51,7 +57,7 @@ if mode == 'method-shared':
  x.physical[alternate] = alternate.read_bytes()
  x.physical[declaration] = declaration.read_bytes()
 source_modes={p:stat.S_IMODE(p.stat().st_mode)for p in x.physical}
-frame_path = 'body/middle/nest' if too_deep else 'body' if direct else 'body/nest'
+frame_path = 'body/middle/nest' if too_deep else 'body' if direct or compound_parent else 'body/nest'
 peer_path = frame_path.replace('body', 'other')
 frame = t.graph + '/graph:' + frame_path.replace('/', '/graph:')
 other = t.graph + '/graph:' + peer_path.replace('/', '/graph:')
@@ -60,7 +66,8 @@ def order():return doc().locator('[data-document-cell]').evaluate_all('(els)=>el
 def enter(path=frame_path):
  for name in path.split('/'):
   doc().locator('[data-document-internal="'+name+'"]').click();f.idle()
- expect(panel().locator('.bp-breadcrumbs')).to_be_visible();expect(doc().locator('[data-document-cell=inner]')).to_be_visible()
+ expect(panel().locator('.bp-breadcrumbs')).to_be_visible()
+ expect(doc().locator('[data-document-cell=nest]' if compound_parent else '[data-document-cell=inner]')).to_be_visible()
 def root_view():panel().locator('.bp-breadcrumbs button').first.click();f.idle()
 def request(data):return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get('documentFrameOrderBinding')or dict(root=t.graph,graph=frame,path=frame_path,rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='entry',node='$entry',to='tail'),dict(action='route',node='tail',port='next',to='inner'),dict(action='route',node='inner',port='next',to='exit:return')])
 def chosen(root):

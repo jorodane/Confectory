@@ -214,6 +214,16 @@ public static class BlueprintCellRegion
         return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
     }
 
+    static JsonObject CompoundInsertionFrame(JsonObject root, string path)
+    {
+        Need(path.Length > 0 && !path.Contains('/'), "One directly owned compound parent required");
+        var selected = OwnedPreviewFrame(root, path);
+        Need(S(selected, "profile") == FeatureBlueprint.NestedProfile
+            && selected["nodes"]!.AsArray().Any(node => S(node, "kind") == "graph"),
+            "An existing compound invocation in the selected serial frame is required");
+        return selected;
+    }
+
     enum InsertionAnchor { FrameCell, RootStart, CompoundCall }
 
     static void InsertCell(JsonObject selected,JsonArray edits,InsertionAnchor anchor)
@@ -572,7 +582,8 @@ public static class BlueprintCellRegion
         string action = S(request, "action");
         bool preview = allowDesktopFrames && action == "frame-preview";
         bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create";
-        bool frame=action is "frame-order" or "frame-create" || preview || frameCase;
+        bool frameCompound = allowDesktopFrames && action is "frame-compound-insert-options" or "frame-compound-insert";
+        bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
         if (preview)
@@ -580,6 +591,22 @@ public static class BlueprintCellRegion
             Need(edits.Count == 0, "Observe a preview frame without edits");
             OwnedPreviewFrame(graph, S(request, "path"));
             return new JsonObject();
+        }
+        if (frameCompound)
+        {
+            string path = S(request, "path");
+            if (action == "frame-compound-insert-options")
+            {
+                Need(edits.Count == 0, "Observe the selected compound frame without edits");
+                var selected = CompoundInsertionFrame(graph, path);
+                return new JsonObject { ["nodes"] = new JsonArray(selected["nodes"]!.AsArray()
+                    .Where(node => S(node, "kind") == "graph").Select(node => node!["id"]!.DeepClone()).ToArray()) };
+            }
+            var candidate = graph.DeepClone().AsObject();
+            var frameGraph = CompoundInsertionFrame(candidate, path);
+            InsertCell(frameGraph, edits, InsertionAnchor.CompoundCall);
+            CompoundInsertionFrame(candidate, path);
+            return new JsonObject { ["entry"] = frameGraph["entry"]!.DeepClone(), ["edges"] = frameGraph["edges"]!.DeepClone() };
         }
         if (frameCase)
         {
