@@ -355,11 +355,11 @@ function blueprintNormalizeControls(scope){
    !data.requiresCoupledCopy&&!data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&!data.executionExitMode&&propertyProfile();
   const rootPropertyFrame=()=>data.id===data.rootId&&!data.privateConversion&&!w.meta.nodeFlowDraft&&
    !data.executionExitMode&&propertyProfile()&&properties.supported(w);
-  function propertyConsumer(pin){
+  function propertyConsumer(nodeId,inputName){
    if(!canvasOwns()||documentView?.mode!=='logic'||!(privatePropertyFrame()||rootPropertyFrame())||saveEntries(w).length||!frameInputsClear()||
       !['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
-   const node=data.nodes.find(row=>row.id===pin.dataset.node);
-   const argument=signature(node?.signature).args.find(arg=>arg.name===pinArgument(pin)&&!arg.mode);
+   const node=data.nodes.find(row=>row.id===nodeId);
+   const argument=signature(node?.signature).args.find(arg=>arg.name===inputName&&!arg.mode);
    const receivers=signature(data.signature).args.filter(arg=>arg.type==='object'&&!arg.mode).map(arg=>arg.name);
    const ordinary=row=>['code','property'].includes(row.kind)&&row.control==='next'&&!row.branchOwner&&!row.implementationContext&&
     !row.contextBoundary&&!row.forwardCallerStorage&&!row.executionForwarded;
@@ -378,12 +378,37 @@ function blueprintNormalizeControls(scope){
    }
    return {node,argument,receivers};
   }
+  function addPropertyRead(ready,selection){
+   structuralEdit(w,()=>properties.createAttached(w,ready,selection.node,rawLinks(),
+    ()=>privateValue(w,selection.node.id,'argument:'+selection.argument.name,
+     JSON.stringify({node:ready.node.id,output:'return'}))));
+  }
   function pickPropertyRead(pin){
-   const selected=propertyConsumer(pin);if(!selected)return;
-   selectPropertyRead({api,esc,request:(input,alive)=>call(w,{id:data.id,...input},alive),current:()=>!!propertyConsumer(pin),
-    receivers:selected.receivers,type:selected.argument.type,stage:ready=>structuralEdit(w,()=>properties.createAttached(w,ready,
-     selected.node,rawLinks(),()=>privateValue(w,selected.node.id,'argument:'+selected.argument.name,
-      JSON.stringify({node:ready.node.id,output:'return'}))))});
+   const eligible=()=>propertyConsumer(pin.dataset.node,pinArgument(pin)),selected=eligible();
+   if(!selected)return;
+   selectPropertyRead({api,esc,request:(input,alive)=>call(w,{id:data.id,...input},alive),current:()=>!!eligible(),
+    receivers:selected.receivers,type:selected.argument.type,stage:ready=>addPropertyRead(ready,selected)});
+  }
+  function documentPropertyInputs(id){
+   const outgoing=rawLinks().filter(link=>link.from===id);
+   if(outgoing.length!==1||outgoing[0].port!=='next')return [];
+   const node=data.nodes.find(row=>row.id===outgoing[0].to);
+   return signature(node?.signature).args.map(arg=>propertyConsumer(node.id,arg.name)).filter(Boolean);
+  }
+  function pickDocumentPropertyRead(id,anchor){
+   const eligible=()=>anchor.isConnected?documentPropertyInputs(id):[],choices=eligible();
+   if(!choices.length)return;
+   const {node,receivers}=choices[0];
+   selectPropertyRead({api,esc,request:(input,alive)=>call(w,{id:data.id,...input},alive),
+    current:()=>eligible().some(candidate=>candidate.node===node),receivers,
+    consumers:choices.map(({argument})=>({name:argument.name,type:argument.type,
+     label:(node.displayName||node.id)+' · '+argument.name})),
+    stage:(ready,name)=>{
+     const target=eligible().find(candidate=>candidate.node===node&&candidate.argument.name===name&&
+      candidate.argument.type===ready.node.signature.return);
+     if(!target)throw Error('읽을 위치나 입력 계약이 바뀌었습니다. 기존 입력은 유지됩니다.');
+     addPropertyRead(ready,target);
+    }});
   }
   function applyBinding(pin,text,path=[]){const adapt=inputs.get(prefix(w)+pin.dataset.node+'|input-adaptation')||inputs.get(prefix(w)+pin.dataset.node+'|output-adaptation');if(adapt){const plan=JSON.parse(adapt.text);if(adapt.type==='output-adaptation'||plan.name===pinArgument(pin)){text=expressionReplace(binding(pin),path,typedNumericLiterals(text,expressionField(pin,path).nativeType));plan.valueJson=text;structuralEdit(w,()=>{privateValue(w,pin.dataset.node,adapt.type,JSON.stringify(plan));const key=prefix(w)+pin.dataset.node+'|'+draftType(pin)+(path.length?'|'+path.join('.'):'');inputs.delete(key);});refreshLocal(w);return;}}text=expressionReplace(binding(pin),path,text);if(!canvasOwns())return;if(rows.find(row=>row.id===pin.dataset.node)?.forwardCallerStorage)return api.toast('이 구현은 호출자의 입출력 저장소를 그대로 전달합니다. 기존 연결은 유지됩니다.');const key=prefix(w)+pin.dataset.node+'|'+draftType(pin)+(path.length?'|'+path.join('.') :''),previous=inputs.get(key);if(rootPlan.outputCreates?.some(row=>row.node===pin.dataset.node)){try{changeRootContract(w,plan=>{plan.outputCreates.find(row=>row.node===pin.dataset.node).valueJson=text;},[[key,previous]]);}catch(error){api.toast(error.message);}return;}const apply=()=>{stage(pin.dataset.node,pin.dataset.node.startsWith('$exit:')?'exit':'argument:'+pinArgument(pin),text);if(inputs.get(key)===previous)inputs.delete(key);api.persist();status(w);};if(binaryBinding(text)||binaryBinding(binding(pin))||data.privatePath&&(data.privateCopy||data.slotContext?.copySource))structuralEdit(w,apply);else apply();}
   function inputMenu(pin,inline=null,path=[]){if(rows.find(row=>row.id===pin.dataset.node)?.forwardCallerStorage)return;if(rows.some(row=>row.id===pin.dataset.node&&row.kind==='set')&&!sets.supported(w))return api.toast('이 구현의 중간저장 편집은 아직 연결되지 않았어요. 기존 입력은 유지됩니다.');
@@ -401,7 +426,7 @@ function blueprintNormalizeControls(scope){
    for(const alias of localAliases(w).filter(v=>acceptsPinType(pin,v.type,field?.nativeType,path)&&(!v.sourceJson||JSON.parse(v.sourceJson).node!==pin.dataset.node)))add('지역변수 · '+alias.name,()=>selectTypedValue(pin,sets.binding(w,alias),alias.type,path));
    for(const source of $$('.bp-port[data-kind=data][data-side=out]',plane)){const a=pinField(source);if(source.dataset.node!==pin.dataset.node&&a&&field&&acceptsPinType(pin,a.nativeType,field.nativeType,path))add((source.dataset.node==='$entry'?'입력':nodeById(source.dataset.node)?.name||source.dataset.node)+' · '+a.name,()=>{if(!path.length)connect(source,pin);else selectTypedValue(pin,JSON.stringify(source.dataset.node==='$entry'?{input:a.id}:{node:source.dataset.node,output:a.id}),a.nativeType,path);});}
    if(!refInput&&field?.nativeType==='bool')for(const [label,value] of [['참','true'],['거짓','false']])add(label,()=>applyBinding(pin,'{"constant":'+value+'}',path));
-   if(!path.length&&inline?.hasAttribute('data-document-value')&&propertyConsumer(pin)){
+   if(!path.length&&inline?.hasAttribute('data-document-value')&&propertyConsumer(pin.dataset.node,pinArgument(pin))){
     const button=add('속성 읽기 연결…',()=>{});
     button.onclick=()=>{if(alive()&&closeMenu('cancel')!==false){inline.focus();pickPropertyRead(pin);}};
    }
@@ -817,6 +842,24 @@ function blueprintNormalizeControls(scope){
    if(chain.frame||chain.compound)guardOtherInputs(w,data);
    insertCell(chain,id,'next',chain.order[index+1]||chain.exit);
   };
+  function pickDocumentCell(id,anchor,canAddAction){
+   if(!canvasOwns()||api.busy||documentView?.mode!=='logic'||closeMenu('preserve')===false)return;
+   const canRead=()=>anchor.isConnected&&documentPropertyInputs(id).length>0;
+   const addAction=()=>api.work(()=>addCell(id),'');
+   if(!canRead()){if(canAddAction)addAction();return;}
+   const picker=document.createElement('div');menu=picker;picker._branchControl=anchor;
+   picker.className='workspace-search-menu bp-search-menu';
+   picker.setAttribute('role','dialog');picker.setAttribute('aria-label','다음 세부기능 추가');
+   const option=(label,apply)=>{
+    const button=document.createElement('button');button.type='button';
+    button.className='workspace-search-entry';button.textContent=label;
+    button.onclick=()=>{if(menu===picker&&canRead()){closeMenu();apply();}};
+    picker.append(button);
+   };
+   if(canAddAction)option('동작 추가',addAction);
+   option('속성 읽기',()=>{anchor.focus();pickDocumentPropertyRead(id,anchor);});
+   showBranchMenu(picker,anchor);
+  }
   const addBranch=(owner,port)=>{if(canvasOwns()){const chain=branchChain(owner,port,true);insertCell(chain,owner,port,chain?.order[0]||chain?.exit);}};
   const mobileModel=()=>({name:data.privatePath?.split('/').at(-1)||displayName(w.authorInfo||{id:w.meta.id}),parent:!!data.privatePath,description:q('[data-bp-description]').value,descriptionReadonly:q('[data-bp-description]').readOnly,nodes:nodes.map(n=>{const row=rows.find(r=>r.id===n.id);return {...n,name:n.id==='$entry'?'시작':n.kind==='export'?(outputField(n)?.name||n.name)+' 내보내기':row?.kind==='call'?short(row.calledFeature):get(w,n.id,'rename',row?.displayName||n.name),description:n.id==='$entry'?'시작':row?get(w,n.id,'intent',row.intent||''):n.kind==='export'?bindingLabel(binding(port(n.id,'in','data','value'))):'',kind:row?.kind==='call'?'call':n.kind,inputs:row?rowFields(w,row,'inputs'):[],outputs:row?rowFields(w,row,'outputs'):[],codeEditable:row?.kind==='code'||!!row?.postCall,builtin:row?.kind==='property-set',internal:row?.kind==='graph'&&(!data.slotContext||data.privateCopy||data.slotContext.copySource)||canInternalCode(w,row),readonly:!row||!['code','graph'].includes(row.kind)||row.renameable===false||!!data.privateConversion,output:n.kind==='export'?(outputField(n)?.id||row?.output):null,outputName:n.kind==='export'?get(w,n.id,'contract-draft:export-name',outputField(n)?.name||''):null,outputDefinitionName:n.kind==='export'?outputField(n)?.name||'':null,outputType:n.kind==='export'?type(outputField(n)):'',outputReadonly:!outputEditable||!!data.privateConversion,terminal:n.id.startsWith('$exit:'),wrapper:!!row?.postCall,branches:[...(nodeAsync(w,row||{})?[{id:'completion',name:'완료 시'}]:[]),...(row?.executionEnum?.members||[]).filter(m=>m.id!==row.executionEnum.primary).map(m=>({id:branchPort(row,m),name:branchLabel(row,m)}))]};}),links:links(),outputs:outputFields.map(f=>({id:f.id,name:f.name,type:type(f)}))});
   const mobileWrite=(id,kind,text)=>{if(!canvasOwns()||data.privateConversion)return;const row=rows.find(r=>r.id===id);if(!row||!['code','graph'].includes(row.kind)||row.renameable===false)return;if(api.busy&&!(kind==='rename'&&w.authorSavePending&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.copyDraft&&row.kind==='code'&&!row.implementationContext&&!row.forwardCallerStorage))return;privateValue(w,id,kind,text);const source=kind==='intent'?element(id)?.querySelector('[data-inline-description]'):element(id)?.querySelector('[data-bp-node-name]');if(source){if('value' in source)source.value=text;else source.textContent=text;}if(kind==='rename'){const node=nodeById(id);if(node)node.name=text;}status(w);mobile?.refresh();documentView?.refresh();};
@@ -1157,6 +1200,17 @@ function blueprintNormalizeControls(scope){
     ?{...node,contractReviewRequired:true}:node);
    return model;
   };
+  const documentCellActions=id=>{
+    if(flowDocument)return null;
+    const held=saveEntries(w),propertyAdd=documentPropertyInputs(id).length>0;
+    if(id==='$entry'){
+     const showAdd=!w.meta.copyDraft&&!!(data.documentRootStart?.entry||(data.profile==='sync-acyclic-nested-v1'||data.documentMethodFrameCreationAvailable===true)&&frameCellChain(data));
+     return {propertyAdd,showAdd:showAdd||propertyAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
+    }
+    const serial=linearCells(id),chain=buttonOrderCells(id,serial),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
+    const insertion=insertionCells(id,serial);
+    return {propertyAdd,remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:insertion?.order.includes(id)&&caseInsertionAvailable(insertion)&&(!insertion.compound||canInsertAfterCompound(id,insertion))&&!held.length&&data.nodes.length<63&&(!(insertion.frame||insertion.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':insertion?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
+  };
   function undoSavedCellRemoval(redo){
    if(!canvasOwns()||api.busy||data.privateConversion||data.privatePath&&!frameRemovalBinding(data)||
       data.slotContext||data.privateCopy||w.meta.copyDraft||saveEntries(w).length||!frameInputsClear())return;
@@ -1212,17 +1266,7 @@ function blueprintNormalizeControls(scope){
       $('[data-compound-delete-confirm]',root).onclick=()=>{close();remove();};
      });
    },
-   cellActions:id=>{
-    if(flowDocument)return null;
-    const held=saveEntries(w);
-    if(id==='$entry'){
-     const showAdd=!w.meta.copyDraft&&!!(data.documentRootStart?.entry||(data.profile==='sync-acyclic-nested-v1'||data.documentMethodFrameCreationAvailable===true)&&frameCellChain(data));
-     return {showAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
-    }
-    const serial=linearCells(id),chain=buttonOrderCells(id,serial),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
-    const insertion=insertionCells(id,serial);
-    return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:insertion?.order.includes(id)&&caseInsertionAvailable(insertion)&&(!insertion.compound||canInsertAfterCompound(id,insertion))&&!held.length&&data.nodes.length<63&&(!(insertion.frame||insertion.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':insertion?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
-   },
+   cellActions:documentCellActions,
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},
    dropCell:(id,slot,expected,transfer)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>{
     const plan=cellDropPlan(id,slot,expected,transfer);
@@ -1250,7 +1294,7 @@ function blueprintNormalizeControls(scope){
     // Only the keyboard action may restore focus after its own canvas rebuild.
     if(generation&&owns(w,canvasScope)&&w.authorGeneration===generation&&w.authorData===data&&document.activeElement===document.body)
      w.authorDocumentView?.focusGrip(id);
-   },addCell:id=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addCell(id),'');},
+   },addCell:(id,anchor)=>pickDocumentCell(id,anchor,documentCellActions(id)?.add),
    nativeVersion:()=>JSON.stringify([w.authorData.id,w.authorData.rootId,w.authorData.privatePath,w.authorData.documentFramePreviewBinding??w.authorData.documentFrameOrderBinding,w.authorData.checkpointHash,proof(w.authorData),saveEntries(w),api.otherPending?.((w.authorData.sources||[]).map(row=>row.id)),api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]]),
    nativeScope:()=>data.privatePath?'선택한 자식 흐름의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전':'선택한 함수의 C# 본문·멤버 스냅샷 · 읽기 전용 · 컴파일·실행 검증 전',
    previewNative:async()=>{

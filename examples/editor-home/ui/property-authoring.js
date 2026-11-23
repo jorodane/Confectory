@@ -14,49 +14,65 @@ export function createPropertyAuthoring({api,esc,field,entries,get,inputs,prefix
  return {supported,ensure,create,createAttached,overlay,fields,markup,attach,projectLinks};
 }
 
-export function selectPropertyRead({api,esc,request,current,receivers,type,stage}){
+export function selectPropertyRead({api,esc,request,current,receivers,type,consumers=null,stage}){
  api.modal('속성 읽기 연결',
   '<label>대상 입력 <select data-property-receiver><option value="">선택</option>'+
   receivers.map(name=>'<option value="'+esc(name)+'">'+esc(name)+'</option>').join('')+'</select></label>'+
   '<label>객체 정의 <select data-property-owner disabled><option value="">선택</option></select></label>'+
   '<label>속성 <select data-property-field disabled><option value="">선택</option></select></label>'+
+  (consumers?'<label>값을 받을 입력 <select data-property-consumer disabled><option value="">선택</option></select></label>':'')+
   '<p role="status" data-property-status></p><div class="actions"><button type="button" data-property-cancel>취소</button>'+
   '<button type="button" data-property-connect disabled>연결</button></div>',(dialog,close)=>{
    const target=dialog.querySelector('[data-property-receiver]'),owner=dialog.querySelector('[data-property-owner]');
    const field=dialog.querySelector('[data-property-field]'),status=dialog.querySelector('[data-property-status]');
-   const apply=dialog.querySelector('[data-property-connect]');
+   const apply=dialog.querySelector('[data-property-connect]'),consumer=dialog.querySelector('[data-property-consumer]');
+   const supportedTypes=new Set(consumers?consumers.map(row=>row.type):[type]),fieldTypes=new Map();
    const alive=()=>dialog.isConnected&&current();
-   const update=()=>{apply.disabled=owner.disabled||field.disabled||!target.value||!owner.value||!field.value;};
+   const update=()=>{apply.disabled=owner.disabled||field.disabled||!target.value||!owner.value||!field.value||
+    !!(consumer&&(consumer.disabled||!consumer.value));};
+   function updateConsumers(){
+    if(!consumer)return;
+    consumer.length=1;
+    for(const row of consumers)if(row.type===fieldTypes.get(field.value))
+     consumer.add(new Option(row.label,row.name));
+    consumer.disabled=consumer.length===1;
+   }
    const remote=(operation,fields={})=>request({action:operation,...fields},alive);
    dialog.querySelector('[data-property-cancel]').onclick=close;
-   target.onchange=field.onchange=update;
+   target.onchange=update;
+   field.onchange=()=>{updateConsumers();update();};
+   if(consumer)consumer.onchange=update;
    owner.onchange=()=>api.work(async()=>{
     const selected=owner.value;
-    field.length=1;field.disabled=true;update();status.textContent='';
+    field.length=1;fieldTypes.clear();field.disabled=true;updateConsumers();update();status.textContent='';
     if(!selected||!alive())return;
     owner.disabled=true;
     try{
      const details=await remote('propertyCatalog',{owner:selected});
      if(!alive()||owner.value!==selected)return;
-     for(const property of details.descriptor.fields.filter(property=>property.supported&&property.clrType===type))
+     for(const property of details.descriptor.fields.filter(property=>property.supported&&supportedTypes.has(property.clrType))){
+      fieldTypes.set(property.name,property.clrType);
       field.add(new Option(property.name,property.name));
+     }
      field.disabled=field.length===1;
-     if(field.disabled)status.textContent='이 입력과 자료형이 같은 속성이 없습니다.';
+     if(field.disabled)status.textContent=consumers?'다음 셀의 입력과 자료형이 같은 속성이 없습니다.':'이 입력과 자료형이 같은 속성이 없습니다.';
     }finally{if(alive()){owner.disabled=false;update();}}
    },'');
    apply.onclick=()=>api.work(async()=>{
     if(!alive()||apply.disabled)return;
     const receiver=target.value,definition=owner.value,name=field.value;
-    if(!receivers.includes(receiver))return;
-    for(const control of [apply,target,owner,field])control.disabled=true;
+    const input=consumer?.value,expectedType=consumer?consumers.find(row=>row.name===input)?.type:type;
+    if(!receivers.includes(receiver)||expectedType!==fieldTypes.get(name))return;
+    const controls=[target,owner,field,...(consumer?[consumer]:[])];
+    for(const control of [apply,...controls])control.disabled=true;
     try{
      const ready=await remote('readProperty',{node:'property_'+crypto.randomUUID().replaceAll('-',''),
       owner:definition,field:name,targetJson:JSON.stringify({input:receiver}),access:'read'});
      if(!alive())return;
-     if(ready.node.propertyOwner!==definition||ready.node.field!==name||ready.node.signature.return!==type||
+     if(ready.node.propertyOwner!==definition||ready.node.field!==name||ready.node.signature.return!==expectedType||
         ready.node.arguments.target?.input!==receiver)throw Error('선택한 대상과 속성 계약이 바뀌었습니다. 입력은 유지됩니다.');
-     close();stage(ready);
-    }finally{if(alive()){target.disabled=owner.disabled=field.disabled=false;update();}}
+     close();stage(ready,input);
+    }finally{if(alive()){for(const control of controls)control.disabled=false;update();}}
    },'');
    // Use the same registered project catalog as the Blueprint property picker.
    api.work(async()=>{

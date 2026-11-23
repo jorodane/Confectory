@@ -17,7 +17,8 @@ feature = f.n + 'Calc'
 root_id = f.n + 'CalcBody/body:common'
 frame = root_id + '/graph:work'
 sibling = root_id + '/graph:peer'
-root = 'root' in sys.argv[3:]
+menu = 'menu' in sys.argv[3:]
+root = menu or 'root' in sys.argv[3:]
 shared = 'shared' in sys.argv[3:]
 graph_path = f.project / 'Calc.graph.json'
 profile = 'sync-acyclic-methods-v1'
@@ -68,7 +69,17 @@ def setup_project():
         graph['nodes'].insert(1, code('other', 'Other.node.json', sig(), {}))
         graph['edges'] = [edge('mark', 'other'), edge('other', 'consume'), edge('consume', 'exit:return')]
     graph.pop('locals')
-    definitions = f.metadata('featureBlueprintNodes', featureSource=f.items['Calc'][1], graph=graph,
+    definition_source = f.items['Calc'][1]
+    if menu:
+        for name in ['Calc', 'CalcBody', 'MainBody']:
+            path = f.project / (name + '.celem')
+            path.write_text(path.read_text().replace('object target,long replacement','object target,object alternate,long replacement')
+                            .replace('as Calc (object,long)', 'as Calc (object,object,long)'))
+        definition_source = (f.project / 'Calc.celem').read_text()
+        prepared = f.metadata('blueprintPrepareFeature', id=feature, text='function '+feature+' (object target,object alternate,long replacement) -> long {}',
+                              implementation=f.n+'CalcBody', graphPath='Calc.graph.json', nodePath='Work.node.json')
+        graph['contractHash'] = prepared['graph']['contractHash']
+    definitions = f.metadata('featureBlueprintNodes', featureSource=definition_source, graph=graph,
                              implementationContext={'implementation': f.n + 'CalcBody'}, bodyTarget='common')
     assert definitions['state'] == 'node-definitions', definitions
     rows = definitions['nodes' if root else 'nestedNodes']
@@ -91,7 +102,14 @@ def setup_project():
     main = f.project / 'Main.csbody'
     create = f'calls.Create.Invoke({json.dumps(json.dumps(f.descriptor, separators=(",", ":")))},' \
              f'new[]{{{json.dumps(f.field["id"])}}},new object[]{{25L}})'
-    main.write_text(main.read_text().replace('calls.Calc.Invoke(target,30)', 'calls.Calc.Invoke('+create+',30)'))
+    if menu:
+        def create_with(value):
+            return create.replace('25L', f'{value}L')
+        main.write_text(f'object preferred = {create_with(10)};'
+                        f'Console.WriteLine(calls.Calc.Invoke(preferred,{create_with(70)},20));'
+                        f'Console.WriteLine(calls.Calc.Invoke(preferred,{create_with(85)},30));return 0;')
+    else:
+        main.write_text(main.read_text().replace('calls.Calc.Invoke(target,30)', 'calls.Calc.Invoke('+create+',30)'))
     return graph
 
 
@@ -192,9 +210,9 @@ def run(browser, graph, original_checkpoint):
     if shared:
         assert blueprint('read', root_id)['requiresCoupledCopy']
         pin().click()
-        menu = f.page.get_by_role('dialog', name='핀 값 선택')
-        expect(menu).to_be_visible()
-        expect(menu.get_by_role('button', name='속성 읽기 연결…')).to_have_count(0)
+        pin_menu = f.page.get_by_role('dialog', name='핀 값 선택')
+        expect(pin_menu).to_be_visible()
+        expect(pin_menu.get_by_role('button', name='속성 읽기 연결…')).to_have_count(0)
         f.page.keyboard.press('Escape')
         assert not pending() and checkpoint.read_bytes() == original_checkpoint
         f.unchanged()
@@ -206,13 +224,47 @@ def run(browser, graph, original_checkpoint):
     dialog.locator('[data-property-cancel]').click()
     expect(pin('flag')).to_be_focused()
     assert not pending() and checkpoint.read_bytes() == original_checkpoint
-    dialog = pick()
-    dialog.locator('[data-property-field]').select_option('health')
+    if menu:
+        button = doc().locator('[data-document-add="other"]')
+        def from_edge():
+            expect(button).to_have_text('다음 세부기능 추가')
+            button.click()
+            f.page.get_by_role('dialog', name='다음 세부기능 추가').get_by_role('button', name='속성 읽기', exact=True).click()
+            chooser = f.page.get_by_role('dialog', name='속성 읽기 연결')
+            expect(chooser.locator('[data-property-receiver]')).to_have_value('')
+            expect(chooser.locator('[data-property-consumer]')).to_be_disabled()
+            chooser.locator('[data-property-receiver]').select_option('alternate')
+            chooser.locator('[data-property-owner]').select_option(f.n+'Monster')
+            chooser.locator('[data-property-field]').select_option('health')
+            recipient = chooser.locator('[data-property-consumer]')
+            expect(recipient).to_have_value('')
+            expect(recipient.locator('option')).to_have_text(['선택','consume · value'])
+            expect(chooser.locator('[data-property-connect]')).to_be_disabled()
+            return chooser
+        abandoned = from_edge()
+        abandoned.locator('[data-property-consumer]').select_option('value')
+        abandoned.locator('[data-property-cancel]').click()
+        expect(button).to_be_focused()
+        assert not pending() and checkpoint.read_bytes() == original_checkpoint
+        dialog = from_edge()
+        dialog.locator('[data-property-consumer]').select_option('value')
+    else:
+        dialog = pick()
+        dialog.locator('[data-property-field]').select_option('health')
     dialog.locator('[data-property-connect]').click()
     expect(dialog).to_be_hidden()
     expect(pin()).to_contain_text('health')
     assert checkpoint.read_bytes() == original_checkpoint
     assert len(pending()) == 4
+    if menu:
+        held = pending()
+        doc().press('Control+z')
+        expect(pin()).not_to_contain_text('health')
+        assert not pending()
+        doc().press('Control+y')
+        expect(pin()).to_contain_text('health')
+        assert pending() == held and checkpoint.read_bytes() == original_checkpoint
+        f.checked('Menu starts without a consumer. Cancel preserves the draft and one Undo/Redo removes and restores the explicit read and input.')
     f.checked('The Logic Code picker filters by consumer type and stages the selected receiver, read and link together.')
 
     conflict = graph_path if root else f.project / 'Vitals.celem'
@@ -251,7 +303,8 @@ def run(browser, graph, original_checkpoint):
     before_read = ['$entry', 'mark', 'other'] if root else ['$entry', 'mark']
     read_id = cards[len(before_read)]
     assert read_id.startswith('property_') and cards == before_read + [read_id, 'consume', '$exit:return'], cards
-    expect(doc().locator(f'[data-document-value="{read_id}"][data-document-port="field:target"]')).to_have_text('target')
+    receiver = 'alternate' if menu else 'target'
+    expect(doc().locator(f'[data-document-value="{read_id}"][data-document-port="field:target"]')).to_have_text(receiver)
     review().locator('[data-reject]').click()
     retained = json.loads(checkpoint.read_bytes())
     # Reopening and then saving rebases the live revision, while the saved
@@ -272,7 +325,7 @@ def run(browser, graph, original_checkpoint):
     actual_scope = actual if root else actual['nodes'][0]['graph']
     added = next(node for node in actual_scope['nodes'] if node['id'] == read_id)
     assert added['kind'] == 'property' and added['field'] == 'health' and added['propertyOwner'] == f.n+'Monster'
-    assert added['arguments'] == {'target': {'input': 'target'}}
+    assert added['arguments'] == {'target': {'input': receiver}}
     scope['nodes'].append(added)
     next(node for node in scope['nodes'] if node['id'] == 'consume')['arguments']['value'] = {'node': read_id, 'output': 'return'}
     previous = 'other' if root else 'mark'
@@ -281,7 +334,7 @@ def run(browser, graph, original_checkpoint):
     assert actual == expected
     assert all((f.project / name).read_bytes() == raw for name, raw in f.original.items() if name != graph_path.name)
     assert not errors, errors
-    execute('confirmed', [10, 25])
+    execute('confirmed', [70, 85] if menu else [10, 25])
     f.checked('Cold Save, Review cancellation and Confirm preserve unrelated sources. The compiled consumer receives the actual property value.')
 
 
