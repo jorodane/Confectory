@@ -5,6 +5,7 @@ from editor_navigation import goto_editor
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
+offline_only="--offline" in sys.argv[2:]
 project_chat=False;chat_provider=None
 if project_chat:
  from project_chat_contract import OwnedChat
@@ -20,14 +21,24 @@ if project_chat:
  failure=root/'fail-once';failure.write_text('owned')
  p=tools/'Open.csbody';p.write_text('if(System.IO.File.Exists('+json.dumps(str(failure))+')){System.IO.File.Delete('+json.dumps(str(failure))+');throw new InvalidOperationException("owned-secret-must-not-leak");}\n'+p.read_text())
 p=pack/'ServeBody.celem';p.write_text(p.read_text().replace('body common','import Confectory.WebUI::NativeRequest as NativeRequest (string,string,string) -> string;\nbody common'))
-p=pack/'Serve.csbody';s=p.read_text();needle='if(request.Url.AbsolutePath=="/api/request")';assert needle in s
-branch='''if(request.Url.AbsolutePath=="/fixture/native-create"){
-   if(request.Headers["X-Confectory-Session"]!=session||request.HttpMethod!="POST"||request.ContentLength64<0||request.ContentLength64>8192)throw new UnauthorizedAccessException();
-   using var read=new System.IO.StreamReader(request.InputStream);var value=System.Text.Json.Nodes.JsonNode.Parse(read.ReadToEnd())!.AsObject();foreach(var field in value)if(field.Key is not ("title" or "description" or "proposalId"))throw new ArgumentException("Fixture native selection only");value["directory"]=PARENT;
-   var watch=System.Diagnostics.Stopwatch.StartNew();string reply=calls.NativeRequest.Invoke(owner,"create-project",value.ToJsonString());System.IO.File.AppendAllText(LOG,new System.Text.Json.Nodes.JsonObject{["title"]=value["title"]!.DeepClone(),["milliseconds"]=watch.ElapsedMilliseconds,["ok"]=System.Text.Json.Nodes.JsonNode.Parse(reply)!["ok"]!.DeepClone()}.ToJsonString()+"\\n");bytes=System.Text.Encoding.UTF8.GetBytes(reply);response.ContentType="application/json";
-  }else '''.replace('PARENT',json.dumps(str(root/'projects'))).replace('LOG',json.dumps(str(root/'native-calls.jsonl')))
-p.write_text(s.replace(needle,branch+needle,1));(root/'projects').mkdir()
-env=os.environ.copy();env.pop('CONFECTORY_WEB_PROJECT',None);env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_UI_TRACE='1',CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
+p=pack/'Serve.csbody'
+source=p.read_text()
+first='if(request.Url.AbsolutePath=="/api/request")'
+second='if(context.Request.Url!.AbsolutePath=="/api/request")'
+assert source.count(first)==source.count(second)==1
+source=source.replace(first,'if(request.Url.AbsolutePath is "/api/request" or "/fixture/native-create")')
+branch="""if(context.Request.Url!.AbsolutePath=="/fixture/native-create"){
+   var value=System.Text.Json.Nodes.JsonNode.Parse(envelope)!.AsObject();
+   foreach(var field in value)
+    if(field.Key is not ("title" or "description" or "proposalId"))throw new ArgumentException("Fixture native selection only");
+   value["directory"]=PARENT;
+   var watch=System.Diagnostics.Stopwatch.StartNew();
+   string reply=calls.NativeRequest.Invoke(owner,"create-project",value.ToJsonString());
+   System.IO.File.AppendAllText(LOG,new System.Text.Json.Nodes.JsonObject{["title"]=value["title"]!.DeepClone(),["milliseconds"]=watch.ElapsedMilliseconds,["ok"]=System.Text.Json.Nodes.JsonNode.Parse(reply)!["ok"]!.DeepClone()}.ToJsonString()+Environment.NewLine);
+   bytes=System.Text.Encoding.UTF8.GetBytes(reply);response.ContentType="application/json";
+  }else """.replace('PARENT',json.dumps(str(root/'projects'))).replace('LOG',json.dumps(str(root/'native-calls.jsonl')))
+p.write_text(source.replace(second,branch+second));(root/'projects').mkdir()
+env=os.environ.copy();env.pop('CONFECTORY_WEB_PROJECT',None);env.pop('CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK',None);env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_UI_TRACE='1',CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
 with (root/'build.json').open('w') as output,(root/'build.err').open('w') as error:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=output,stderr=error,timeout=180)
 report=json.loads((root/'build.json').read_text());assert built.returncode==0 and report.get('tool',{}).get('ok'),report.get('diagnostics')
 log_path=root/'host.log';log=log_path.open('w');host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True);errors=[];evidence={}
@@ -38,19 +49,73 @@ try:
   assert host.poll() is None,log_path.read_text()[-1000:];time.sleep(.05)
  else:raise AssertionError('startup timeout')
  origin,token=url.split('/#')
- def state():
+ def state(check_creator=False):
   def send(body):return json.load(urllib.request.urlopen(urllib.request.Request(origin+'/api/request',data=json.dumps(body).encode(),headers={'Content-Type':'application/json','X-Confectory-Session':token}),timeout=20))
   for _ in range(400):
    m=send({'op':'mount'})
    if m.get('error',{}).get('code')=='busy':time.sleep(.01);continue
    assert m['ok'],m;break
   else:raise AssertionError('mount busy')
-  try:return m['state']
+  try:
+   if check_creator:
+    history=send({'op':'observe','view':m['view'],'scope':m['scope'],'endpoint':'readPublicChatHistory','input':{}})
+    assert history['ok'] and history['result']['status']=='available' and history['result']['messages']==[],history
+   return m['state']
   finally:assert send({'op':'dispose','view':m['view']})['ok']
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox','--disable-gpu']);page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)))
   # Browser transport stays production. This emulates only the native API that is absent on Linux.
   page.add_init_script('''globalThis.__creationReply='normal';globalThis.confectoryWebUI={async chooseProjectParent(){if(globalThis.__parentCancel)return {ok:true,cancelled:true};return {ok:true,parent:'owned-parent',label:'Owned fixture projects'};},async createProject(title,description,parent,proposalId){if(globalThis.__creationReply==='cancel')return {ok:true,cancelled:true};if(globalThis.__creationReply==='fail')return {ok:false,error:{code:'owned-create-failure'}};if(globalThis.__holdNative){globalThis.__nativeWaiting=true;await new Promise(resolve=>globalThis.__releaseNative=resolve);globalThis.__holdNative=false;}const token=sessionStorage.getItem('confectory.webui.session');return (await fetch('/fixture/native-create',{method:'POST',headers:{'Content-Type':'application/json','X-Confectory-Session':token},body:JSON.stringify({title,description,...(proposalId?{proposalId}:{})})})).json();}};''')
+  if offline_only:
+   external=[];invocations=[]
+   def watch(route):
+    request=route.request
+    if not request.url.startswith(origin+'/'):
+     external.append(request.url);route.abort();return
+    if request.method=='POST' and request.url==origin+'/api/request':
+     body=request.post_data_json
+     if body.get('op')=='invoke':invocations.append(body.get('endpoint'))
+    route.continue_()
+   page.route('**/*',watch)
+   goto_editor(page,url)
+   assert not state()['helperAgents']['agents'] and not state()['helpers'] and not state()['projectId']
+   page.locator('#new-project').click()
+   dialog=page.get_by_role('dialog',name='새 프로젝트 만들기',exact=True)
+   dialog.locator('#project-name').fill('Offline First Project')
+   dialog.locator('#project-desc').fill('Ordinary local project without AI')
+   dialog.locator('button[type=submit]').click()
+   expect(page.locator('.work-body')).to_be_visible()
+   expect(dialog).to_have_count(0)
+   created=state(check_creator=True);project=created['projectId']
+   assert project and not created['helperAgents']['agents'] and not created['helpers'] and not created['projectHelperIds']
+   manifest=root/'projects/Offline First Project/project.cproj'
+   receipt=root/'profile/project-creators'/(project+'.json')
+   assert manifest.is_file() and receipt.is_file()
+   original,proof=manifest.read_bytes(),receipt.read_bytes()
+   print('PASS Later and new local project; creator recognized without Agent or Helper',flush=True)
+   page.close();os.killpg(host.pid,signal.SIGTERM);host.wait(timeout=20);log.close()
+   log_path=root/'host-restart.log';log=log_path.open('w')
+   host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+   for _ in range(600):
+    urls=[line.split(' ',1)[1] for line in log_path.read_text().splitlines() if line.startswith('CONFECTORY_WEB_UI ')]
+    if urls:url=urls[-1];origin,token=url.split('/#');break
+    assert host.poll() is None,log_path.read_text()[-1000:]
+    time.sleep(.05)
+   else:raise AssertionError('restart startup timeout')
+   page=browser.new_page(viewport={'width':1440,'height':1000})
+   page.on('pageerror',lambda error:errors.append(str(error)));page.route('**/*',watch)
+   goto_editor(page,url)
+   page.locator('.project-card').filter(has=page.get_by_role('heading',name='Offline First Project',exact=True)).locator('[data-enter]').click()
+   expect(page.locator('.work-body')).to_be_visible()
+   reopened=state(check_creator=True)
+   assert reopened['projectId']==project and not reopened['helpers'] and not reopened['helperAgents']['agents']
+   assert manifest.read_bytes()==original and receipt.read_bytes()==proof
+   assert len((root/'native-calls.jsonl').read_text().splitlines())==1
+   assert not (root/'profile/project-chat').exists() and not (root/'profile/helper-presentations').exists()
+   assert not external and not errors and not {'helperGlobal','projectHelpers','chatUse','codexOnboarding'}&set(invocations),(external,errors,invocations)
+   print('PASS cold reopen keeps creator proof and creates no chat journal, Helper record or second project',flush=True)
+   browser.close()
+   sys.exit(0)
   goto_editor(page,url);page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
   for name,value in [('model','owned-no-inference'),('endpoint',chat_provider.endpoint if chat_provider else 'http://127.0.0.1:9/responses'),('credentialReference','')]:dialog.locator('[data-connection-field="'+name+'"]').fill(value)
   dialog.locator('[data-agent-register]').click();expect(dialog.locator('[data-agent-registration-state]')).to_contain_text('Agent 등록됨');dialog.locator('[data-connection-cancel]').click();assert state()['helpers']==[]
@@ -106,7 +171,7 @@ try:
   page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)));page.route('**/*',route);goto_editor(page,url);expect(page.locator('[data-enter]')).to_have_count(2);page.locator('.project-card').filter(has=page.get_by_role('heading',name='Owned Selected',exact=True)).locator('[data-enter]').click();expect(page.locator('.work-body')).to_be_visible();expect(page.locator('.home-side [data-helper="'+helper+'"]')).to_have_count(1);expect(page.locator('.home-side [data-helper="'+other+'"]')).to_have_count(0);assert state()['projectId']==second_project and state()['projectHelperIds']==[helper] and len(state()['helpers'])==2;assert json.loads(profile.read_text())['globalDraft']=='다른 프로젝트로 가져가지 않을 전역 입력 한글';assert len(calls())==2;unblocked();checked('실제 재시작 뒤 두 프로젝트·전역 Helper/Agent 소속·프로젝트별 배치·전역 초안을 복원하고 자동 생성/중복 생성하지 않는다')
   assert not errors and not external,(errors,external);assert '/fixture/native-create' not in (repo/'packs/browser-host/Serve.csbody').read_text();evidence={'checks':checks,'actualEngine':True,'nativeBoundaryFixture':True,'actualWindowsExecuted':False,'actualAccountOrInference':False,'nativeCalls':calls(),'errors':errors,'external':external,'evidence':str(root)};(root/'evidence.json').write_text(json.dumps(evidence,ensure_ascii=False,indent=2));page.screenshot(path=str(root/'v536-restarted-selected-project.png'));print(json.dumps(evidence,ensure_ascii=False,indent=2))
   browser.close()
-except BaseException:
+except (Exception, KeyboardInterrupt):
  print('FAILED '+str(root),flush=True)
  try:(root/'failure-state.json').write_text(json.dumps(state(),ensure_ascii=False,indent=2))
  except Exception:pass
