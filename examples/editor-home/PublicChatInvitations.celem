@@ -1,0 +1,7 @@
+function Confectory.EditorHome::PublicChatInvitations (string session, string activation) -> object {
+provide Confectory.EditorHome::PublicChatInvitations with Confectory.EditorHome::PublicChatInvitationsBody;
+provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+description "Open native single-use chat admission for the verified creator's active project.";
+}

@@ -4,18 +4,21 @@ static bool StableId(string value) =>
 const string Unavailable = "{\"status\":\"unavailable\"}";
 const string Committed = "{\"status\":\"committed\"}";
 const int PendingAttachment = 14; // One selection owned by this EditorHome session.
+const int RoomSlot = 15;
 bool history = operation == "history";
 bool sendText = operation == "send-text";
 bool attachment = operation is "attachment" or "first-image" or "second-image";
 bool prepare = operation == "prepare-attachment";
 bool cancel = operation == "cancel-attachment";
 bool sendAttachment = operation == "send-attachment";
+bool issue = operation == "issue-invitation";
 // This journal uses the owning message UUID as its attachment UUID.
-if ((!history && !sendText && !attachment && !prepare && !cancel && !sendAttachment) ||
+if ((!history && !sendText && !attachment && !prepare && !cancel && !sendAttachment && !issue) ||
     (attachment && (!StableId(messageId) || messageId != attachmentId)) ||
     ((sendText || prepare) && (!StableId(messageId) || attachmentId.Length != 0)) ||
     ((cancel || sendAttachment) && (!StableId(messageId) || !StableId(attachmentId))) ||
-    ((prepare || cancel) && text.Length != 0) || activation.Length == 0 ||
+    ((prepare || cancel) && text.Length != 0) ||
+    (issue && (messageId.Length != 0 || attachmentId.Length != 0 || text.Length != 0)) || activation.Length == 0 ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
     return Unavailable;
 
@@ -25,6 +28,7 @@ lock (owner)
     var model = (System.Text.Json.Nodes.JsonObject)owner[3];
     var selected = model["selected"];
     if (selected?["activation"]?.GetValue<string>() != activation) return Unavailable;
+    var room = owner[RoomSlot] as (string Activation, object Host, object Admission, Func<bool> Active, Action Close)?;
     var pending = owner[PendingAttachment] as (string Activation, string Message, string Selection, string Box, string Digest)?;
     if (pending is { } prior && prior.Activation != activation)
     {
@@ -45,6 +49,8 @@ lock (owner)
     string manifest = selected["path"]!.GetValue<string>();
     string storage = System.IO.Path.GetDirectoryName((string)owner[2])!;
     var manager = (string[])owner[0];
+    var domain = AppDomain.CurrentDomain;
+    string? writeLease = null;
 
     try
     {
@@ -54,11 +60,18 @@ lock (owner)
         if (!Authorized())
         {
             owner[PendingAttachment] = null!;
+            if (room is { } inactive) inactive.Close();
             return Unavailable;
         }
         string manifestOrigin = calls.Origin.Invoke(manifest, false, false);
         if (manifestOrigin.Length == 0) return Unavailable;
         bool StillAuthorized() => Authorized() && calls.Origin.Invoke(manifest, false, false) == manifestOrigin;
+        if (issue)
+        {
+            var (invite, _, _) = ((Func<int, string>, Func<string, string, string, object>, Action))
+                calls.Invitations.Invoke(session, activation);
+            return System.Text.Json.JsonSerializer.Serialize(new { status = "issued", invitation = invite(300) });
+        }
 
         string? box = null;
         if (prepare || sendAttachment)
@@ -86,12 +99,37 @@ lock (owner)
         if (System.IO.File.Exists(journal) && calls.Origin.Invoke(journal, false, false).Length == 0)
             return Unavailable;
 
-        // Keep the host handle inside this operation. Each call starts from the durable
-        // journal and the current editor activation, and exposes no participant capability.
+        // The live host must deliver its own commits to the admitted inboxes. Reads
+        // continue to use the durable journal, including from other editor windows.
+        object? liveHost = null;
+        if (sendText || sendAttachment)
+        {
+            if (room is { } live)
+            {
+                if (live.Activation != activation || !live.Active())
+                {
+                    live.Close();
+                    return Unavailable;
+                }
+                liveHost = live.Host;
+            }
+            else
+            {
+                string path = OperatingSystem.IsWindows() ? journal.ToUpperInvariant() : journal;
+                string key = "Confectory.EditorHome.PublicChatOwner." + Convert.ToHexString(
+                    System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(path)));
+                lock (domain)
+                {
+                    if (domain.GetData(key) is not null) return Unavailable;
+                    domain.SetData(key, owner);
+                    writeLease = key;
+                }
+            }
+        }
         var (_, send, read, close, sendBox, readAttachment) =
             ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
               Func<string, string, string, bool>, Func<string, string>))
-            calls.OpenHost.Invoke(storage, project, "local-user", manifest);
+            (liveHost ?? calls.OpenHost.Invoke(storage, project, "local-user", manifest));
         try
         {
             if (sendText)
@@ -198,12 +236,17 @@ lock (owner)
                 }
             }
         }
-        finally { close(); }
+        finally { if (liveHost is null) close(); }
     }
     catch (Exception error) when (error is ArgumentException or InvalidOperationException or
         UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException or
         TimeoutException or AggregateException)
     {
         return Unavailable;
+    }
+    finally
+    {
+        if (writeLease is not null)
+            lock (domain) domain.SetData(writeLease, null);
     }
 }

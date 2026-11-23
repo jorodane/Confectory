@@ -246,8 +246,188 @@ void CommitSealedYogi(string session, System.Text.Json.Nodes.JsonNode project, s
     Console.WriteLine("PASS editor-owned sealed Yogi: cancel, stale box, other scope, failed write, retry and one frozen public attachment");
 }
 
+void CheckInvitations(string storage, System.Text.Json.Nodes.JsonNode project)
+{
+    const string Unavailable = "{\"status\":\"unavailable\"}";
+    const string Committed = "{\"status\":\"committed\"}";
+    string manifest = project["manifest"]!.ToString(), id = project["id"]!.ToString();
+    string journal = System.IO.Path.Combine(storage, "project-chat", id + ".json");
+    string session = calls.CreateSession.Invoke(repo, storage);
+    string Message(int index) => index.ToString("x32");
+
+    System.Text.Json.Nodes.JsonNode Run(string owner, string command, object payload)
+    {
+        var result = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(
+            owner, command, System.Text.Json.JsonSerializer.Serialize(payload)))!;
+        Check(!result["status"]!.ToString().StartsWith("Error:", StringComparison.Ordinal), result["status"]!.ToString());
+        return result;
+    }
+    string Open(string owner, string path) => Run(owner, "open", new { path })["selected"]!["activation"]!.ToString();
+    string Chat(string activation, string operation, string message = "", string selection = "", string text = "") =>
+        calls.LocalChat.Invoke(session, activation, operation, message, selection, text);
+    (Func<int, string> Issue, Func<string, string, string, object> Accept, Action Close) Room(string activation) =>
+        ((Func<int, string>, Func<string, string, string, object>, Action))calls.Invitations.Invoke(session, activation);
+    static (Func<string, string, bool> Send, Func<string> Read, Action Leave,
+        Func<string, string, string, bool> SendBox, Func<string, string> ReadBox, string Actor) Guest(object connected) =>
+        ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>, Func<string, string>, string))connected;
+    static void Reject<T>(Action request) where T : Exception
+    {
+        try { request(); }
+        catch (T) { return; }
+        throw new InvalidOperationException("Expected " + typeof(T).Name);
+    }
+    void Received(Func<string> read, params int[] rows)
+    {
+        var messages = System.Text.Json.Nodes.JsonNode.Parse(read())!.AsArray();
+        var ids = System.Linq.Enumerable.Select(messages, row => row!["id"]!.ToString());
+        Check(System.Linq.Enumerable.SequenceEqual(ids, System.Linq.Enumerable.Select(rows, Message)),
+            "The invited connection received the wrong message IDs");
+    }
+
+    try
+    {
+        string activation = Open(session, manifest);
+        string invite = System.Text.Json.Nodes.JsonNode.Parse(Chat(activation, "issue-invitation"))!["invitation"]!.ToString();
+        var room = Room(activation);
+        Check(invite.Length == 64 && !System.IO.File.Exists(journal), "Issuing an invitation wrote the journal");
+        Reject<ArgumentOutOfRangeException>(() => room.Issue(301));
+        string expiry = room.Issue(1);
+
+        string guestStorage = System.IO.Path.Combine(data, "invitation-guest-profile");
+        string other = calls.CreateSession.Invoke(repo, guestStorage);
+        try
+        {
+            string otherScope = Open(other, manifest);
+            Reject<UnauthorizedAccessException>(() => calls.Invitations.Invoke(other, otherScope));
+            Check(!System.IO.Directory.Exists(System.IO.Path.Combine(guestStorage, "project-chat")), "Guest profile gained a journal");
+        }
+        finally { calls.CloseSession.Invoke(other); }
+
+        string secondWindow = calls.CreateSession.Invoke(repo, storage);
+        try
+        {
+            string secondScope = Open(secondWindow, manifest);
+            Reject<InvalidOperationException>(() => calls.Invitations.Invoke(secondWindow, secondScope));
+            Check(calls.LocalChat.Invoke(secondWindow, secondScope, "send-text", Message(99), "", "Second window") == Unavailable,
+                "A second window bypassed the active chat owner");
+        }
+        finally { calls.CloseSession.Invoke(secondWindow); }
+
+        Check(Chat(activation, "send-text", Message(1), "", "History before admission") == Committed,
+            "Host's direct send failed while an admission room was active");
+        Run(session, "yogi", new { action = "text", text = "Old sealed attachment" });
+        Run(session, "yogi", new { action = "seal", @sealed = true });
+        string selection = System.Text.Json.Nodes.JsonNode.Parse(Chat(activation, "prepare-attachment", Message(2)))!["selection"]!.ToString();
+        Check(Chat(activation, "send-attachment", Message(2), selection, "Before admission") == Committed,
+            "Host attachment did not share the live room journal");
+
+        Reject<UnauthorizedAccessException>(() => room.Accept(Message(500), invite, "local-user"));
+        Reject<UnauthorizedAccessException>(() => room.Accept(id, invite, "\n"));
+        using var launch = new System.Threading.ManualResetEventSlim(false);
+        object? Contender()
+        {
+            launch.Wait();
+            try { return room.Accept(id, invite, "local-user"); }
+            catch (UnauthorizedAccessException) { return null; }
+        }
+        var first = System.Threading.Tasks.Task.Run(Contender);
+        var second = System.Threading.Tasks.Task.Run(Contender);
+        launch.Set();
+        System.Threading.Tasks.Task.WaitAll(first, second);
+        Check((first.Result is null) != (second.Result is null), "Concurrent redemption did not accept exactly one connection");
+        var guest = Guest((first.Result ?? second.Result)!);
+        Check(guest.Actor != "local-user" && guest.Actor.StartsWith("local-user (guest ", StringComparison.Ordinal),
+            "An invited display name changed the assigned identity");
+        Received(guest.Read);
+        Reject<UnauthorizedAccessException>(() => guest.ReadBox(Message(2)));
+        Reject<UnauthorizedAccessException>(() => room.Accept(id, invite, "local-user"));
+        System.Threading.Thread.Sleep(1100);
+        Reject<UnauthorizedAccessException>(() => room.Accept(id, expiry, "Expired"));
+
+        Check(Chat(activation, "send-text", Message(3), "", "Live host text") == Committed &&
+            guest.Send(Message(4), "Guest text") && guest.Send(Message(4), "Guest text"), "Live explicit sends failed");
+        Received(guest.Read, 3, 4);
+        string workspace = calls.OpenWorkspace.Invoke(manifest, guest.Actor, "invited-chat-fixture");
+        string yogiFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!, ".confectory", "yogi");
+        string box = calls.OpenBox.Invoke(yogiFolder, id, guest.Actor, workspace);
+        try
+        {
+            calls.BoxText.Invoke(box, "Guest frozen attachment");
+            calls.SealBox.Invoke(box, true);
+            // Save the separate local draft explicitly. Sending and closing the already
+            // saved box should add no private record or change its existing bytes.
+            calls.SaveBox.Invoke(box);
+            var beforeSend = System.Linq.Enumerable.ToDictionary(
+                System.IO.Directory.GetFiles(yogiFolder, "package-*.json"), path => path, System.IO.File.ReadAllBytes);
+            Check(guest.SendBox(Message(5), "Guest attached text", box), "Guest could not send an owned sealed box");
+            Check(System.Text.Json.Nodes.JsonNode.Parse(guest.ReadBox(Message(5)))!["package"]!["text"]!.ToString() ==
+                "Guest frozen attachment", "Guest attachment did not arrive on its connection");
+            calls.CloseBox.Invoke(box);
+            string[] afterSend = System.IO.Directory.GetFiles(yogiFolder, "package-*.json");
+            Check(beforeSend.Count == afterSend.Length && System.Linq.Enumerable.All(afterSend, path =>
+                beforeSend.TryGetValue(path, out var bytes) && System.IO.File.ReadAllBytes(path).AsSpan().SequenceEqual(bytes)),
+                "Guest send duplicated or changed a private Yogi file");
+        }
+        finally
+        {
+            calls.CloseBox.Invoke(box);
+            calls.CloseWorkspace.Invoke(workspace);
+        }
+        Check(!System.IO.Directory.Exists(System.IO.Path.Combine(guestStorage, "project-chat")), "Guest send wrote a guest journal");
+        Received(guest.Read, 3, 4, 5);
+        guest.Leave();
+        Reject<ObjectDisposedException>(() => guest.Read());
+        Reject<ObjectDisposedException>(() => guest.ReadBox(Message(5)));
+
+        var newcomer = Guest(room.Accept(id, room.Issue(300), "local-user"));
+        Check(newcomer.Actor != guest.Actor, "The label reused the first connection identity");
+        Received(newcomer.Read);
+        Reject<UnauthorizedAccessException>(() => newcomer.ReadBox(Message(5)));
+        Reject<InvalidOperationException>(() => newcomer.Send(Message(4), "Guest text"));
+        string outstanding = room.Issue(300);
+        Open(session, records["Empty"]!["manifest"]!.ToString());
+        Reject<ObjectDisposedException>(() => room.Accept(id, outstanding, "After switch"));
+        Reject<ObjectDisposedException>(() => newcomer.Read());
+
+        activation = Open(session, manifest);
+        room = Room(activation);
+        Reject<UnauthorizedAccessException>(() => room.Accept(id, outstanding, "In the new activation"));
+        var revokedGuest = Guest(room.Accept(id, room.Issue(300), "Guest"));
+        string beforeWithdrawal = room.Issue(300);
+        for (int pending = 1; pending < 16; pending++) room.Issue(300);
+        Reject<InvalidOperationException>(() => room.Issue(300));
+        string proof = System.IO.Path.Combine(storage, "project-creators", id + ".json");
+        System.IO.File.Move(proof, proof + ".withheld");
+        try
+        {
+            Reject<ObjectDisposedException>(() => room.Accept(id, beforeWithdrawal, "Withdrawn"));
+            Reject<ObjectDisposedException>(() => revokedGuest.Read());
+        }
+        finally { System.IO.File.Move(proof + ".withheld", proof); }
+        room = Room(activation);
+        Reject<UnauthorizedAccessException>(() => room.Accept(id, beforeWithdrawal, "Restored proof"));
+        var finalGuest = Guest(room.Accept(id, room.Issue(300), "New guest"));
+        Received(finalGuest.Read);
+        outstanding = room.Issue(300);
+        calls.CloseSession.Invoke(session);
+        Reject<ObjectDisposedException>(() => finalGuest.Read());
+        Reject<ObjectDisposedException>(() => room.Accept(id, outstanding, "Closed host"));
+
+        string saved = System.IO.File.ReadAllText(journal);
+        var journalEntries = System.Text.Json.Nodes.JsonNode.Parse(saved)!["messages"]!.AsArray();
+        Check(journalEntries.Count == 5 && journalEntries[3]!["sender"]!.ToString() == guest.Actor &&
+            journalEntries[4]!["attachment"] is not null && !saved.Contains(invite) && !saved.Contains(outstanding),
+            "The journal contained duplicate messages, missing attachments or an invitation");
+        Console.WriteLine("PASS one-use invite race, expiry, project, host proof and close; live guests, attachments and no prior history");
+    }
+    finally { calls.CloseSession.Invoke(session); }
+}
+
 Create(emptyProfile, "Empty", false);
 Create(profile, "AuthorA", true, true);
 Create(profile, "AuthorB", true);
+string invitationProfile = System.IO.Path.Combine(data, "invitation-profile");
+Create(invitationProfile, "Invitations", false);
+CheckInvitations(invitationProfile, records["Invitations"]!);
 System.IO.File.WriteAllText(System.IO.Path.Combine(data, "fixtures.json"), records.ToJsonString());
 return 0;

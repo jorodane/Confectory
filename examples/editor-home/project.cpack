@@ -59,5 +59,7 @@ element PublicChatHistory function "PublicChatHistory.celem";
 element PublicChatHistoryBody implementation "PublicChatHistoryBody.celem";
 element LocalPublicChat function "LocalPublicChat.celem";
 element LocalPublicChatBody implementation "LocalPublicChatBody.celem";
+element PublicChatInvitations function "PublicChatInvitations.celem";
+element PublicChatInvitationsBody implementation "PublicChatInvitationsBody.celem";
 element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
 }

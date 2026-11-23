@@ -172,6 +172,14 @@ with tempfile.TemporaryDirectory(prefix="confectory-editor-public-chat-") as dir
     body.write_text(body.read_text().replace('body common "VerifyShell.csbody";', '''\
 import Confectory.EditorHome::LocalPublicChat as LocalChat (string,string,string,string,string,string) -> string;
 import Confectory.EditorHome::PublicChatHistory as ChatHistory (string,string,string,string,string) -> string;
+import Confectory.EditorHome::PublicChatInvitations as Invitations (string,string) -> object;
+import Confectory.EditWorkspace::Open as OpenWorkspace (string,string,string) -> string;
+import Confectory.EditWorkspace::Close as CloseWorkspace (string) -> void;
+import Confectory.YogiBox::Open as OpenBox (string,string,string,string) -> string;
+import Confectory.YogiBox::Text as BoxText (string,string) -> void;
+import Confectory.YogiBox::Seal as SealBox (string,bool) -> void;
+import Confectory.YogiBox::Save as SaveBox (string) -> void;
+import Confectory.YogiBox::Close as CloseBox (string) -> void;
 body common "PublicChatFixture.csbody";'''))
     shutil.copyfile(repo / "tests/fixtures/editor-public-chat/Main.csbody", home / "PublicChatFixture.csbody")
     private = root / "profile/helper-conversations/fixture.json"
