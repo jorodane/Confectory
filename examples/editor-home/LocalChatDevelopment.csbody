@@ -1,0 +1,129 @@
+const int DevelopmentView = 17;
+const string Unavailable = "{\"status\":\"unavailable\"}";
+if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
+    Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" ||
+    AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient." + cancellation) is not (string view, System.Threading.CancellationToken life, string mountedScope) ||
+    AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
+    return Unavailable;
+
+lock (owner)
+{
+    if ((bool)owner[6] || life.IsCancellationRequested) return Unavailable;
+    var selected = ((System.Text.Json.Nodes.JsonObject)owner[3])["selected"];
+    string activation = selected?["activation"]?.ToString() ?? "";
+    if (System.Text.Json.Nodes.JsonNode.Parse(mountedScope)?["projectActivation"]?.ToString() != activation) return Unavailable;
+    var active = owner[DevelopmentView] as (string Activation, string View, Func<string>? Read, Action Stop)?;
+
+    try
+    {
+        var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+        string? action = args["action"]?.GetValue<string>();
+        if (action == "read" && args.Count == 1)
+        {
+            if (active is not { } guest || guest.View != view || guest.Activation != activation || guest.Read is null)
+                return Unavailable;
+            try { return guest.Read(); }
+            catch { guest.Stop(); throw; }
+        }
+        if (active is not null) return Unavailable;
+
+        if (action == "issue" && args.Count == 1 && selected is not null && calls.CreatorHost.Invoke(session))
+        {
+            using var key = System.Security.Cryptography.RSA.Create(2048);
+            var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=localhost", key,
+                System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+            var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+            san.AddDnsName("localhost");
+            request.CertificateExtensions.Add(san.Build());
+            request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
+            request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
+            var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(15));
+            (int Port, Action Stop, System.Threading.Tasks.Task Completion) listener;
+            try { listener = ((int, Action, System.Threading.Tasks.Task))calls.Start.Invoke(session, activation, certificate); }
+            catch { certificate.Dispose(); throw; }
+            _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
+            Bind(null, listener.Stop);
+            try
+            {
+                life.ThrowIfCancellationRequested();
+                var issued = System.Text.Json.Nodes.JsonNode.Parse(
+                    calls.Chat.Invoke(session, activation, "issue-invitation", "", "", ""));
+                if (issued?["invitation"]?.GetValue<string>() is not string code) throw new InvalidOperationException();
+                return System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    status = "issued",
+                    card = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        version = 1, port = listener.Port, project = selected["projectId"]!.ToString(),
+                        certificate = Convert.ToBase64String(certificate.RawData), code
+                    })
+                });
+            }
+            catch
+            {
+                if (owner[DevelopmentView] is ValueTuple<string, string, Func<string>?, Action> bound) bound.Item4();
+                throw;
+            }
+        }
+
+        if (action == "join" && args.Count == 3 && args["name"]?.GetValue<string>() is string name &&
+            name.Length is > 0 and <= 64 && args["card"]?.GetValue<string>() is string card && card.Length is > 0 and <= 4096)
+        {
+            var invitation = System.Text.Json.Nodes.JsonNode.Parse(card)!.AsObject();
+            if (invitation.Count != 5 || invitation["version"]?.GetValue<int>() != 1 ||
+                invitation["port"]?.GetValue<int>() is not int port || port is < 1 or > 65535 ||
+                invitation["project"]?.GetValue<string>() is not string project || !Guid.TryParseExact(project, "N", out _) ||
+                invitation["code"]?.GetValue<string>() is not string code || code.Length != 64 ||
+                invitation["certificate"]?.GetValue<string>() is not string encoded || encoded.Length > 3500)
+                return Unavailable;
+
+            using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
+            var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
+                calls.Connect.Invoke(port, pin, project, code, name);
+            Bind(() =>
+            {
+                var response = request(new() { ["op"] = "read" });
+                if (response["status"]?.ToString() != "ok" || response["messages"] is not System.Text.Json.Nodes.JsonArray rows)
+                    throw new InvalidOperationException();
+                // Leave headroom under the WebUI response limit, even with escaped text.
+                int omitted = Math.Max(0, rows.Count - 128);
+                var messages = new System.Text.Json.Nodes.JsonArray();
+                for (int i = omitted; i < rows.Count; i++) messages.Add(rows[i]!.DeepClone());
+                return new System.Text.Json.Nodes.JsonObject
+                {
+                    ["status"] = "joined", ["messages"] = messages, ["omitted"] = omitted
+                }.ToJsonString();
+            }, close);
+            return life.IsCancellationRequested ? Unavailable : "{\"status\":\"joined\"}";
+        }
+    }
+    catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+        UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException or FormatException or
+        OperationCanceledException or System.Net.Sockets.SocketException or System.Security.Authentication.AuthenticationException or
+        System.Security.Cryptography.CryptographicException)
+    {
+        return Unavailable;
+    }
+    return Unavailable;
+
+    void Bind(Func<string>? read, Action release)
+    {
+        bool closed = false;
+        System.Threading.CancellationTokenRegistration registration = default;
+        void Stop()
+        {
+            lock (owner)
+            {
+                if (closed) return;
+                closed = true;
+                owner[DevelopmentView] = null!;
+                registration.Unregister();
+                release();
+            }
+        }
+        owner[DevelopmentView] = (activation, view, read, (Action)Stop);
+        registration = life.UnsafeRegister(_ => Stop(), null);
+    }
+}

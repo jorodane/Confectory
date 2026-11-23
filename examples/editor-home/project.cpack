@@ -63,5 +63,7 @@ element PublicChatInvitations function "PublicChatInvitations.celem";
 element PublicChatInvitationsBody implementation "PublicChatInvitationsBody.celem";
 element StartPublicChatLoopback function "StartPublicChatLoopback.celem";
 element StartPublicChatLoopbackBody implementation "StartPublicChatLoopbackBody.celem";
+element LocalChatDevelopment function "LocalChatDevelopment.celem";
+element LocalChatDevelopmentBody implementation "LocalChatDevelopmentBody.celem";
 element WebBundle function "WebBundle.celem"; element WebBundleBody implementation "WebBundleBody.celem";
 }

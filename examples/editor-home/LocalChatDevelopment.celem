@@ -1,0 +1,4 @@
+function Confectory.EditorHome::LocalChatDevelopment (string session, string payload, string cancellation) -> string {
+provide Confectory.EditorHome::LocalChatDevelopment with Confectory.EditorHome::LocalChatDevelopmentBody;
+description "Use a disposable desktop development view to issue or read a protected local chat invitation.";
+}
