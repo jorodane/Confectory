@@ -1,4 +1,4 @@
-"""V536 Set target and stored output from the real vertical Logic Code view."""
+"""Property card scope and real read-to-Set-to-write editing in Logic Code."""
 import ast
 import copy
 import json
@@ -17,6 +17,8 @@ root_id = f.n + 'CalcBody/body:common'
 graph_path = f.project / 'Calc.graph.json'
 schema_path = f.project / 'Vitals.celem'
 stored = {'node': 'first', 'output': 'stored'}
+read_value = {'node': 'read', 'output': 'return'}
+second_project = f.case / 'second project'
 t = SimpleNamespace(feature=feature)
 helper = Path(__file__).with_name('v821_function_document_ui.py')
 names = {'panel', 'doc', 'open_document', 'review'}
@@ -45,10 +47,21 @@ def edges(cells, tail=None):
             for left, right in zip(ids, ids[1:] + ([tail] if tail else []))]
 
 
-def setup_project():
-    schema_path.write_text('schema '+f.n+'Vitals {field health single general long;field shield single general long;}')
-    descriptor = f.metadata('blueprintPropertyCatalog', project=str(f.project/'project.cproj'),
-                            sourceId=f.n+'CalcBody', owner=f.n+'Monster')['descriptor']
+def setup_project(project, object_name, write_field, read_field):
+    owner_id = f.n+object_name
+    if project != f.project:
+        project.mkdir()
+        for file, content in f.sources.items():
+            if file != 'Monster.celem':
+                (project/file).write_text(content)
+        (project/(object_name+'.celem')).write_text(f'object {owner_id} {{use schema {f.n}Vitals;}}')
+        manifest = project/'project.cproj'
+        manifest.write_text(manifest.read_text().replace(
+            'element Monster object "Monster.celem"', f'element {object_name} object "{object_name}.celem"'))
+    (project/'Vitals.celem').write_text(
+        f'schema {f.n}Vitals {{field {write_field} single general long;field {read_field} single general long;}}')
+    descriptor = f.metadata('blueprintPropertyCatalog', project=str(project/'project.cproj'),
+                            sourceId=f.n+'CalcBody', owner=owner_id)['descriptor']
     fields = {field['name']: field for field in descriptor['fields']}
     profile = 'sync-acyclic-property-set-v1'
     peer_cells = [set_node('first', 'counter', 'firstValue', {'constant': 77}),
@@ -58,22 +71,25 @@ def setup_project():
         schema=1, profile=profile, entry='first', nodes=peer_cells, edges=edges(peer_cells, 'exit:return'),
         locals=[local('counter', '현재 값'), local('firstValue', '첫 저장값')], exits={'return': None}))
     cells = [
+        node('read', 'property', [('target', 'object')], result='long', propertyOwner=owner_id,
+             field=read_field, fieldContractHash=fields[read_field]['hash'],
+             arguments={'target': {'input': 'target'}}),
         set_node('first', 'spare', 'firstValue', {'input': 'replacement'}),
         node('observe', args=[('counter', 'long'), ('spare', 'long')], implementation='Observe.node.json',
              arguments={'counter': {'local': 'counter'}, 'spare': {'local': 'spare'}}),
         set_node('second', 'counter', 'secondValue', {'constant': 999}),
-        node('write', 'property-set', [('target', 'object'), ('value', 'long')], propertyOwner=f.n+'Monster',
-             field='health', fieldContractHash=fields['health']['hash'],
+        node('write', 'property-set', [('target', 'object'), ('value', 'long')], propertyOwner=owner_id,
+             field=write_field, fieldContractHash=fields[write_field]['hash'],
              arguments={'target': {'input': 'target'}, 'value': {'constant': -3}}),
         peer,
         node('finish', 'export', [('value', 'long')], output='return', arguments={'value': stored}),
     ]
-    graph = {**f.g, 'nodes': cells, 'entry': 'first', 'edges': edges(cells), 'exits': {},
+    graph = {**f.g, 'nodes': cells, 'entry': 'read', 'edges': edges(cells), 'exits': {},
              'locals': [local('counter', '현재 값'), local('spare', '이전 대상', -7),
                         local('firstValue', '첫 저장값'), local('secondValue', '다음 저장값'),
                         local('flag', '조건 저장소', False, 'bool')]}
     definitions = f.metadata('featureBlueprintNodes', featureSource=f.items['Calc'][1], graph=graph,
-                             propertyContracts={f.n+'Monster': descriptor}, featureContracts=f.contracts,
+                             propertyContracts={owner_id: descriptor}, featureContracts=f.contracts,
                              implementationContext={'implementation': f.n+'CalcBody'}, bodyTarget='common')
     assert definitions['state'] == 'node-definitions', definitions
     records = [
@@ -82,18 +98,18 @@ def setup_project():
     ]
     for qualified, file, source in records:
         definition = next(item for item in definitions['nodes'] + definitions['nestedNodes'] if item['id'] == qualified)
-        (f.project/file).write_text(json.dumps(dict(schema=1, node=qualified.split('/')[-1],
-                                                   definitionHash=definition['definitionHash'], source=source)))
-    graph_path.write_text(json.dumps(graph))
-    main = f.project/'MainBody.celem'
+        (project/file).write_text(json.dumps(dict(schema=1, node=qualified.split('/')[-1],
+                                                 definitionHash=definition['definitionHash'], source=source)))
+    (project/'Calc.graph.json').write_text(json.dumps(graph))
+    main = project/'MainBody.celem'
     main.write_text(main.read_text().replace('body common',
                     'import '+f.model+'::Read as Inspect (object,string,string,string) -> object;body common'))
-    owner = json.dumps(f.n+'Monster')
+    owner = json.dumps(owner_id)
     create = ('calls.Create.Invoke('+json.dumps(json.dumps(descriptor, separators=(',', ':')))+
-              ',new[]{'+','.join(json.dumps(fields[name]['id']) for name in ['health', 'shield'])+'},')
+              ',new[]{'+','.join(json.dumps(fields[name]['id']) for name in [write_field, read_field])+'},')
     reads = [','.join([owner, json.dumps(fields[name]['id']), json.dumps(fields[name]['hash'])])
-             for name in ['health', 'shield']]
-    (f.project/'Main.csbody').write_text(
+             for name in [write_field, read_field]]
+    (project/'Main.csbody').write_text(
         'object target='+create+'new object[]{10L,17L}); object other='+create+'new object[]{11L,18L});'
         'System.Console.WriteLine("result:"+calls.Calc.Invoke(target,42));'+
         'System.Console.WriteLine("target:"+calls.Inspect.Invoke(target,'+reads[0]+')+","+calls.Inspect.Invoke(target,'+reads[1]+'));'+
@@ -156,9 +172,27 @@ def stable_draft(path):
     return {row['id']: {key: value for key, value in row.items() if key != 'revision'} for row in data['changes']}
 
 
+def property_card(field, owner):
+    card = doc().locator('[data-document-cell="write"]')
+    expect(card.locator('.fd-cell-title')).to_have_text(field)
+    expect(card.locator('.fd-cell-state')).to_have_text('속성 쓰기')
+    expect(card.locator('[data-document-property-owner]')).to_have_text(f.n+owner)
+
+
+def enter_project(name):
+    f.page.evaluate("() => globalThis.confectoryFlushPresentation()")
+    f.page.locator('.brand').click()
+    expect(f.page.locator('.home-grid')).to_be_visible()
+    f.page.locator('.project-card').filter(
+        has=f.page.get_by_role('heading', name=name, exact=True)).locator('[data-enter]').click()
+    expect(f.page.locator('#title')).to_contain_text(name)
+    open_document()
+
+
 def run(browser, graph, checkpoint, before):
     open_page(browser)
     open_document()
+    property_card('health', 'Monster')
     target = doc().locator('[data-document-set-target="first"]')
     write = doc().locator('[data-document-value="write"][data-document-port="field:value"]')
     expect(target).to_have_value('spare')
@@ -172,17 +206,21 @@ def run(browser, graph, checkpoint, before):
     panel().get_by_role('tab', name='블루프린트 보기', exact=True).click()
     expect(panel().locator('[data-bp-node="first"] [data-set-target]')).to_have_value('counter')
     panel().get_by_role('tab', name='논리 코드', exact=True).click()
+    set_input = doc().locator('[data-document-value="first"][data-document-port="field:value"]')
+    set_input.click()
+    f.page.get_by_role('dialog', name='핀 값 선택').get_by_role('button', name='속성 · shield · shield', exact=True).click()
+    expect(set_input).to_contain_text('shield')
     write.click()
     values = f.page.get_by_role('dialog', name='핀 값 선택')
     values.get_by_role('button', name='중간저장 · 첫 저장값', exact=True).click()
     expect(write).to_contain_text('중간저장')
     held = pending()
     assert {row['type'] for _, row in held} == {'set-plan', 'property-plan', 'argument:value'}
-    binding = next(row for _, row in held if row['type'] == 'argument:value')
-    assert binding['node'] == 'write' and json.loads(binding['text']) == stored
+    bindings = {row['node']: json.loads(row['text']) for _, row in held if row['type'] == 'argument:value'}
+    assert bindings == {'first': read_value, 'write': stored}
     assert checkpoint.read_bytes() == before
     f.unchanged()
-    f.checked('Logic Code reuses the Set selector. Undo cancels the target edit; the explicit property value uses stored rather than a live local.')
+    f.checked('Logic Code shows the verified write field and stages the existing read, Set target and stored-output link.')
 
     schema = schema_path.read_bytes()
     schema_path.write_bytes(schema.replace(b'health single general long', b'health single general bool'))
@@ -209,6 +247,7 @@ def run(browser, graph, checkpoint, before):
     f.stop()
     f.start(1)
     open_page(browser)
+    property_card('health', 'Monster')
     target = doc().locator('[data-document-set-target="first"]')
     write = doc().locator('[data-document-value="write"][data-document-port="field:value"]')
     expect(target).to_have_value('counter')
@@ -224,21 +263,38 @@ def run(browser, graph, checkpoint, before):
     expect(window).to_be_hidden(timeout=120000)
     f.idle()
     expected = copy.deepcopy(graph)
-    expected['nodes'][0]['local'] = 'counter'
+    first = next(row for row in expected['nodes'] if row['id'] == 'first')
+    first.update(local='counter', arguments={'value': read_value})
     next(row for row in expected['nodes'] if row['id'] == 'write')['arguments']['value'] = stored
     assert json.loads(graph_path.read_text()) == expected
     assert all((f.project/name).read_bytes() == raw for name, raw in f.original.items() if name != graph_path.name)
-    execute('confirmed', ['locals:42,-7', 'peer:77', 'result:42', 'target:42,17', 'other:11,18'])
-    assert not errors, errors
+    execute('confirmed', ['locals:17,-7', 'peer:77', 'result:17', 'target:17,17', 'other:11,18'])
     f.checked('Cold reopen, Review cancellation and Confirm preserve the exact draft, sibling and sources. CLR writes only target.health from the first Set snapshot.')
+    enter_project('Property Second')
+    property_card('energy', 'Robot')
+    expect(doc().get_by_text(f.n+'Monster', exact=True)).to_have_count(0)
+    enter_project('Property First')
+    property_card('health', 'Monster')
+    expect(doc().get_by_text(f.n+'Robot', exact=True)).to_have_count(0)
+    assert all((second_project/name).read_bytes() == raw for name, raw in second_original.items())
+    assert not errors, errors
+    f.checked('The same local write ID follows its verified owner and field on a project switch and return.')
 
 
 f.author = lambda: f.page.locator('.window[data-key=blueprint]')
 f.idle = lambda: expect(f.page.locator('.brand')).to_be_enabled(timeout=60000)
 errors = []
 try:
-    graph = setup_project()
+    graph = setup_project(f.project, 'Monster', 'health', 'shield')
+    setup_project(second_project, 'Robot', 'energy', 'capacity')
     f.original = {path.name: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
+    second_original = {path.name: path.read_bytes() for path in second_project.iterdir() if path.is_file()}
+    profile = Path(f.env['CONFECTORY_ENTRY_STORAGE'])
+    profile.mkdir(exist_ok=True)
+    (profile/'projects.json').write_text(json.dumps([
+        {'path': str(project/'project.cproj'), 'title': title, 'description': ''}
+        for project, title in [(f.project, 'Property First'), (second_project, 'Property Second')]
+    ]))
     execute('before', ['locals:0,42', 'peer:77', 'result:42', 'target:-3,17', 'other:11,18'])
     f.start(0)
     f.call('select', {'id': feature})

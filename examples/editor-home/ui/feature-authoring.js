@@ -866,6 +866,7 @@ function blueprintNormalizeControls(scope){
   const flowDocument=documentFlowPreview(w,data),flowChild=flowDocument==='child';
   const callsNeedingReview=new Set((data.nodes||[]).filter(row=>
    row.kind==='call'&&row.postCallStale===true&&row.postCallSignatureMatches===false).map(row=>row.id));
+  const propertyWrites=new Map((data.nodes||[]).filter(row=>row.kind==='property-set').map(row=>[row.id,row]));
   const documentBranchExit=id=>!api.busy&&data.privatePath&&data.executionExitMode===true&&
    !data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&branchExitSupported(w)&&
    data.exits.some(exit=>'$exit:'+exit.name===id);
@@ -878,9 +879,19 @@ function blueprintNormalizeControls(scope){
     const path=[link.from,...(link.readChain||[]),link.to];
     return path.slice(1).map((to,index)=>({from:path[index],port:index===0?link.port:'next',to}));
    });
-   model.nodes=model.nodes.map(node=>documentBranchExit(node.id)
-    ?{...node,branchExitChoice:branchExitMembers(w).find(member=>member.id===node.branchId)?.name||'선택 필요'}
-    :node);
+   model.nodes=model.nodes.map(node=>{
+    const write=propertyWrites.get(node.id);
+    if(write){
+     const property=write.property;
+     const verified=!!property?.owner&&!!property.name&&write.sourceStatus==='property-write'&&!write.propertyError&&
+      property?.owner===write.propertyOwner&&property?.name===write.field;
+     return {...node,kind:'property-set',name:verified?property.name:'속성 쓰기',
+      propertyOwner:verified?property.owner:null,contractReviewRequired:!verified};
+    }
+    return documentBranchExit(node.id)
+     ?{...node,branchExitChoice:branchExitMembers(w).find(member=>member.id===node.branchId)?.name||'선택 필요'}
+     :node;
+   });
    if(flowDocument){
     const child=flowChildFrame(w.meta.nodeFlowDraft);
     model.nodes=model.nodes.map(node=>node.kind==='branch-exit'

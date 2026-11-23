@@ -17,6 +17,7 @@
 .fd-outputs{text-align:right}
 .fd-pin{display:flex;flex-direction:column;gap:5px;min-width:0;margin:3px 0 12px;font-size:12px}
 .fd-pin small{color:#aaa;font-size:10px;margin-left:5px}
+.fd-property-owner{margin:0 0 8px;color:#aaa;font-size:12px;overflow-wrap:anywhere}
 .fd-pin>button{min-height:32px;padding:6px 9px;border:1px solid #4a4a4a;border-left:3px solid #7baa91;border-radius:4px;background:#191919;color:#e0e0e0;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}
 .fd-outputs .fd-pin{border-right:3px solid #7baa91;padding-right:7px}
 .fd-empty{color:#858585;font-size:11px}
