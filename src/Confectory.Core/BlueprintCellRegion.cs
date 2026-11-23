@@ -61,7 +61,7 @@ public static class BlueprintCellRegion
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
-        int methodPreviewDepth=0, bool methodFrameOrder=false)
+        int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
@@ -85,9 +85,13 @@ public static class BlueprintCellRegion
                 Need(nodes.All(node=>node!["sourceIdentity"] is null && node["completionBranch"] is null
                     && node[BlueprintCompletionAdapter.Metadata] is null), "Ordinary synchronous method frame required");
             if(methodLeaf)
-                Need(g["locals"] is null or JsonArray {Count:0}
-                    && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!)),
-                    "Method frame requires ordinary value-parameter code leaves");
+            {
+                bool previewOutLeaf=previewOutParameters && nodes.Any(HasOutParameter);
+                Need((g["locals"] is null or JsonArray {Count:0} ||
+                        previewOutLeaf && NumericConstantLocals(g["locals"]))
+                    && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!, previewOutLeaf)),
+                    "Method frame requires ordinary code leaves and supported parameter storage");
+            }
             var edges=g["edges"]!.AsArray();
             Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
                 &&edges.Select(e=>S(e,"from")).Distinct(StringComparer.Ordinal).Count()==nodes.Count,"One exclusive next route per cell required");
@@ -119,8 +123,18 @@ public static class BlueprintCellRegion
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
     }
 
-    static bool ValueParameters(JsonNode node) => node["signature"]?["args"] is JsonArray args
-        && args.All(arg=>S(arg,"mode")=="");
+    static bool ValueParameters(JsonNode node, bool previewOutParameters=false) => node["signature"]?["args"] is JsonArray args
+        && args.All(arg=>S(arg,"mode")=="" ||
+            previewOutParameters && S(arg,"mode")=="out" && S(arg,"type") is "long" or "double");
+
+    static bool HasOutParameter(JsonNode? node) => node?["signature"]?["args"] is JsonArray args &&
+        args.Any(arg=>S(arg,"mode")=="out");
+
+    static bool NumericConstantLocals(JsonNode? value) => value is JsonArray {Count: <=64} locals
+        && locals.All(local=>local is JsonObject {Count:4} declaration
+            && declaration.ContainsKey("id") && declaration.ContainsKey("name")
+            && S(declaration,"type") is "long" or "double"
+            && declaration["initial"] is JsonObject {Count:1} initial && initial.ContainsKey("constant"));
 
     static JsonArray CurrentRoutes(JsonObject graph)
     {
@@ -129,7 +143,7 @@ public static class BlueprintCellRegion
         return routes;
     }
 
-    internal static JsonObject OwnedPreviewFrame(JsonObject root, string path)
+    internal static JsonObject OwnedPreviewFrame(JsonObject root, string path, bool previewOutParameters=false)
     {
         var segments = path.Split('/');
         Need(segments.All(part => part.Length > 0), "Exact nonempty owned frame path required");
@@ -150,7 +164,9 @@ public static class BlueprintCellRegion
                 S(node?["graph"], "profile") == FeatureBlueprint.MethodsProfile))
             methodDepth = 2;
         Need(methodDepth <= 2, "Method preview requires an owned frame at depth one or two");
-        CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth);
+        bool selectedOutFrame = previewOutParameters && S(selected, "profile") == FeatureBlueprint.MethodsProfile &&
+            selected["nodes"]!.AsArray().Any(HasOutParameter);
+        CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth, previewOutParameters: selectedOutFrame);
         return selected;
     }
 
@@ -589,7 +605,7 @@ public static class BlueprintCellRegion
         if (preview)
         {
             Need(edits.Count == 0, "Observe a preview frame without edits");
-            OwnedPreviewFrame(graph, S(request, "path"));
+            OwnedPreviewFrame(graph, S(request, "path"), previewOutParameters: true);
             return new JsonObject();
         }
         if (frameCompound)

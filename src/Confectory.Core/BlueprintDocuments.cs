@@ -52,7 +52,7 @@ public static class BlueprintDocuments
         if(assemblyPath.Length>0){
             Require(implementation.Parent is null&&PackPaths.Namespace(implementation.Function!)==registry.Project.Namespace,"Direct owned child preview required");
             var root = request["graph"]!.AsObject();
-            if (allowCompoundPreview) BlueprintCellRegion.OwnedPreviewFrame(root, assemblyPath);
+            if (allowCompoundPreview) BlueprintCellRegion.OwnedPreviewFrame(root, assemblyPath, previewOutParameters: true);
             else BlueprintCellRegion.OwnedFrame(root, assemblyPath);
         }
         if (implementation.Parent is not null)

@@ -1,5 +1,6 @@
 """Explicit private return retarget through the real Linux Blueprint editor."""
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -145,6 +146,52 @@ def read(graph_id=frame):
 
 def source_proof(data):
     return json.dumps([[row["id"], row["revision"], row["hash"]] for row in data["sources"]])
+
+
+def preview_request(data, graph_id=frame):
+    assert data["documentFrameOrderBinding"] is None
+    assert not data.get("documentMethodFrameCreationAvailable")
+    return {
+        "action": "nativePreview", "id": graph_id,
+        "documentFrame": data["documentFramePreviewBinding"],
+        "sourceProof": source_proof(data), "checkpointHash": data["checkpointHash"],
+    }
+
+
+def check_preview(panel, expected_return):
+    data = read()
+    options = preview_request(data)
+    before = checkpoint.read_bytes() if checkpoint.exists() else None
+    inputs = f.pending()["blueprint"]
+    panel.get_by_role("tab", name="네이티브 미리보기", exact=True).click()
+    view = panel.locator(".function-native-preview")
+    expect(view.locator("[role=status]")).to_contain_text("생성됨")
+    result = f.invoke("blueprint", options)["result"]["result"]
+    code = result["diagnostics"]
+    assert code["assembledPath"] == "/".join(frame_path)
+    for key in ("body", "members"):
+        assert view.locator(f"[data-native-{key}]").text_content() == code[key]
+    assert view.locator("textarea,input,[contenteditable=true]").count() == 0
+    assert hashlib.sha256((code["body"] + code["members"]).encode()).hexdigest() == code["bodyHash"]
+    assert f"public static {expected_return} Execute(" in code["members"]
+    assert f"out {original_type} {output_pin}" in code["members"]
+    assert (authored if expected_return == selected_type else source).strip() in code["members"]
+    assert "static long Keep(" in code["members"]
+    assert "peerNative" not in code["members"]
+    assert not result["sourceWritten"] and not result["compiled"]
+    whole = f.invoke("blueprint", {"action": "nativePreview", "id": fixture.whole_graph})["result"]["result"]["diagnostics"]
+    assert code["body"] in whole["body"] and code["members"] in whole["members"]
+    if nested:
+        peer_frame = fixture.whole_graph + "/graph:peer/graph:inner"
+        f.invoke("blueprint", dict(options, id=peer_frame), False)
+        peer = f.invoke("blueprint", preview_request(read(peer_frame), peer_frame))["result"]["result"]["diagnostics"]
+        assert peer["assembledPath"] == "peer/inner"
+        assert "peerNative" in peer["members"] and "firstNative" not in peer["members"]
+    panel.get_by_role("tab", name="블루프린트 보기", exact=True).click()
+    assert (checkpoint.read_bytes() if checkpoint.exists() else None) == before
+    assert f.pending()["blueprint"] == inputs
+    f.checked(f"Read-only native preview at {'/'.join(frame_path)} shows exact generated {expected_return} and out {original_type} C#.")
+    return options
 
 
 def build(name, expected_consumer, expected_return):
@@ -302,6 +349,8 @@ try:
         f.page = f.setup()
         f.page.set_viewport_size({"width": 2200, "height": 1500})
         panel = open_graph()
+        original_preview = check_preview(panel, original_type)
+        untouched()
         dialog = map_output(panel)
         dialog.locator("[data-abi-remap-accept]").click()
         expect(dialog.locator("[data-abi-error]")).to_be_visible()
@@ -410,6 +459,9 @@ try:
         f.page = f.setup()
         f.page.set_viewport_size({"width": 2200, "height": 1500})
         panel = open_graph()
+        check_preview(panel, selected_type)
+        f.invoke("blueprint", original_preview, False)
+        untouched()
         review = review_in_editor(panel)
         reviewed = checkpoint.read_bytes()
         def pending_sources(raw):
@@ -425,6 +477,7 @@ try:
         expect(review).to_be_hidden(timeout=120000)
         f.idle()
         assert read()["nodes"][0]["signature"]["return"] == selected_type
+        check_preview(panel, selected_type)
         f.page.unroute_all(behavior="wait")
         f.page.close()
         f.browser.close()
