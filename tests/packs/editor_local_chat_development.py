@@ -29,29 +29,29 @@ string repo=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
 var result=new System.Text.Json.Nodes.JsonObject();
 string projects=System.IO.Path.Combine(root,"projects");
 System.IO.Directory.CreateDirectory(projects);
-foreach(string title in new[]{"HostOwner","GuestWorkspace"}){
+foreach(string title in new[]{"HostOwner","GuestWorkspace","EySameProject"}){
  string session=calls.CreateSession.Invoke(repo,System.IO.Path.Combine(root,title));
  try{
   var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"create",
    System.Text.Json.JsonSerializer.Serialize(new{title,directory=projects})))!;
   result[title]=opened["selected"]?["path"]?.DeepClone()??throw new InvalidOperationException("Fixture create failed");
-  bool host=title=="HostOwner";
+  bool host=title=="HostOwner", shared=title=="EySameProject";
   {
    void Run(string operation,object input){
     var response=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,operation,System.Text.Json.JsonSerializer.Serialize(input)))!;
     if(response["status"]!.ToString().StartsWith("Error:",StringComparison.Ordinal))throw new InvalidOperationException(response["status"]!.ToString());
    }
-   string id="Project."+title+"::Main";
+   string id="Project."+title+(shared?"::MainBody":"::Main");
    Run("workspace",new{action="open"});
    Run("workspace",new{action="select",id});
    Run("yogi",new{action="exactly",id});
    for(int i=0;i<(host?2:1);i++){
     byte[] pixels=new byte[512*512*3];
-    Array.Fill(pixels,host?(byte)(59+i):(byte)65);
+    Array.Fill(pixels,host?(byte)(59+i):shared?(byte)67:(byte)65);
     Run("yogi",new{action="capture",id,view="",image=new{width=512,height=512,encoding="rgb24-base64",
      pixels=Convert.ToBase64String(pixels),hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()}});
    }
-   Run("yogi",new{action="text",text=host?"첨부 시점의 봉인 설명":"게스트의 봉인 설명"});
+   Run("yogi",new{action="text",text=host?"첨부 시점의 봉인 설명":shared?"같은 원본의 봉인 설명":"게스트의 봉인 설명"});
    Run("yogi",new{action="seal",@sealed=true});
   }
  }finally{calls.CloseSession.Invoke(session);}
@@ -227,13 +227,13 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     calls = []
     send_attempts = []
     drop_ack = set()
-    host_storage, guest_storage = [root / name for name in ("HostOwner", "GuestWorkspace")]
+    host_storage, guest_storage, shared_storage = [root / name for name in ("HostOwner", "GuestWorkspace", "EySameProject")]
     local_yogi, = (Path(projects["HostOwner"]).parent / ".confectory/yogi").glob("package-*.json")
     saved_yogi = local_yogi.read_bytes()
     guest_yogi_file, = (Path(projects["GuestWorkspace"]).parent / ".confectory/yogi").glob("package-*.json")
     original_guest_box = guest_yogi_file.read_bytes()
     sentinels = {}
-    for storage in (host_storage, guest_storage):
+    for storage in (host_storage, guest_storage, shared_storage):
         private = storage / "helper-conversations/fixture.json"
         private.parent.mkdir(exist_ok=True)
         private.write_bytes(b'{"private":"fixture"}\n')
@@ -478,16 +478,64 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     hc.close()
                     gc.close()
 
-            with editor(command, checkout, guest_storage, projects["HostOwner"], True) as (other_url, other_log):
-                context, page = route_page(browser, other_url, calls, send_attempts)
+            # Both editors explicitly open the same original file. Only its creator
+            # profile can host, and the chat invitation has no declaration-read grant.
+            shared_project = Path(projects["EySameProject"])
+            shared_yogi_file, = shared_project.parent.glob(".confectory/yogi/package-*.json")
+            shared_originals = {path: path.read_bytes() for path in (shared_project, shared_yogi_file)}
+            shared_reference = "Project.EySameProject::MainBody"
+            with (
+                editor(command, checkout, shared_storage, str(shared_project), True) as (shared_host_url, shared_host_log),
+                editor(command, checkout, guest_storage, str(shared_project), True) as (other_url, other_log),
+            ):
+                hc, host_page = route_page(browser, shared_host_url, calls, send_attempts)
+                gc, guest_page = route_page(browser, other_url, calls, send_attempts)
                 try:
-                    menu(page, "로컬 채팅 초대")
-                    panel = page.get_by_role("dialog", name="로컬 채팅 초대", exact=True)
-                    panel.get_by_role("button", name="일회용 초대 발급", exact=True).click()
-                    expect(panel.locator("[data-local-chat-status]")).to_contain_text("원본 프로젝트를 만든 호스트만")
-                    expect(panel.get_by_label("일회용 초대")).to_have_value("")
+                    for page in (host_page, guest_page):
+                        expect(page.locator("#title")).to_contain_text("EySameProject")
+                        page.locator("#chat").click()
+
+                    menu(guest_page, "로컬 채팅 초대")
+                    refused = guest_page.get_by_role("dialog", name="로컬 채팅 초대", exact=True)
+                    refused.get_by_role("button", name="일회용 초대 발급", exact=True).click()
+                    expect(refused.locator("[data-local-chat-status]")).to_contain_text("원본 프로젝트를 만든 호스트만")
+                    expect(refused.get_by_label("일회용 초대")).to_have_value("")
+                    refused.get_by_role("button", name="닫기", exact=True).click()
+
+                    shared_host_panel, shared_card = issue(host_page)
+                    known_codes.append(json.loads(shared_card)["code"])
+                    guest_panel = open_join(guest_page)
+                    join(guest_panel, shared_card)
+                    expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+
+                    host_page.locator("#yogi").click()
+                    sealed = host_page.get_by_role("dialog", name="YogiBox", exact=True).locator(".yogi-package")
+                    sealed.get_by_role("button", name="YogiBox 닫기", exact=True).click()
+                    host_form = composer(host_page, "호스트 공용 채팅")
+                    host_form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True).click()
+                    expect(host_form.get_by_role("button", name="YogiBox 첨부 취소", exact=True)).to_be_visible()
+                    send(host_form, "같은 원본의 EY와 LaY")
+
+                    host_history = host_page.locator("[data-public-chat-rows]")
+                    host_history.get_by_role("button", name="YogiBox 보기", exact=True).click()
+                    host_viewer = host_page.get_by_role("region", name="YogiBox 보기", exact=True)
+                    expect(host_viewer.get_by_role("button", name=shared_reference, exact=True)).to_be_visible()
+
+                    guest_history = guest_panel.locator("[data-local-chat-messages]")
+                    guest_history.get_by_role("button", name="YogiBox 보기", exact=True).click()
+                    guest_viewer = guest_panel.get_by_role("region", name="YogiBox 보기", exact=True)
+                    expect(guest_viewer).to_contain_text("같은 원본의 봉인 설명")
+                    expect(guest_viewer.get_by_text("현재 열 수 없는 EY", exact=True)).to_have_count(1)
+                    expect(guest_viewer).not_to_contain_text(shared_reference)
+                    verify_captures(guest_viewer, (67,))
+
+                    shared_host_panel.get_by_role("button", name="닫기", exact=True).click()
+                    expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
+                    expect(guest_viewer).to_have_count(0)
+                    assert all(path.read_bytes() == original for path, original in shared_originals.items())
                 finally:
-                    context.close()
+                    hc.close()
+                    gc.close()
 
             with editor(command, checkout, guest_storage, projects["GuestWorkspace"], False) as (disabled_url, disabled_log):
                 context, page = route_page(browser, disabled_url, calls, send_attempts)
@@ -508,9 +556,10 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                 "저장 실패 뒤 다시 보낸 글", "응답을 받기 전에 끊긴 공용 글", "봉인 요기박스 공용 첨부",
                 "게스트가 보낸 봉인 LaY", "재참가 뒤 공용 글",
             ]
-            for path in [journal, host_log, guest_log, other_log, disabled_log, *sentinels]:
+            for path in [journal, host_log, guest_log, shared_host_log, other_log, disabled_log, *sentinels]:
                 assert all(code.encode() not in path.read_bytes() for code in known_codes)
             assert all(path.read_bytes() == before for path, before in sentinels.items())
         finally:
             browser.close()
+    print("PASS same original in separate profiles: host-only EY, guest LaY hash, viewer cleared on disconnect")
     print("PASS two Chromium editors: explicit host/guest attachment, mixed EY refusal, frozen RGB, failed and lost acknowledgement retry, rejoin and private isolation")
