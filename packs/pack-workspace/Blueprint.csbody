@@ -236,6 +236,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(current["slotContext"] is not null&&(slotRequest.Count==0||(current["slotContext"]?["copySource"] is not null&&!plainSlot&&!(edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi")))||current["privatePath"]?.ToString()!=""&&!ownedFrameOrderBatch&&!ownedFrameCreationBatch&&!ownedCellRemovalBatch&&!codeParametersBatch&&!asyncBatch&&!nodeFlowBatch&&!privateEnum&&!privateBranchExits&&!privateCopyAbi&&!privatePropertyReadBatch&&!(presentationBatch&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString()=="icon"))&&!(plainSlot&&current["slotContext"]?["copySource"] is not null&&System.Linq.Enumerable.All(edits,e=>e!["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename" or "icon" or "enumCode"))||current["rootId"]?.ToString()!=physicalGraphId||candidate["units"]?[physicalGraphId]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Observed owned ordinary root creation batch required");
     var expected=System.Text.Json.Nodes.JsonNode.Parse(request["sourceProof"]!.GetValue<string>())!.AsArray();var actual=current["sources"]!.AsArray();if(expected.Count!=actual.Count||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(expected,r=>r![0]!.ToString()),StringComparer.Ordinal))!=expected.Count||System.Linq.Enumerable.Any(expected,r=>r is not System.Text.Json.Nodes.JsonArray row||row.Count!=3||!System.Linq.Enumerable.Any(actual,a=>a!["id"]!.ToString()==row[0]!.ToString()&&a["hash"]!.ToString()==row[2]!.ToString())))throw new InvalidOperationException("Original creation source closure changed; preserve all input");
     bool setContractGuard=SetObservesPropertyContracts(actual);
+    var setReviewSources=setContractGuard?current["setPlanSources"]!.AsArray():null;
     if(boundPrivateNode is not null){
      var node=System.Linq.Enumerable.Single(current["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==boundPrivateNode.ToString())!;
      var source=System.Linq.Enumerable.Single(actual,r=>r!["id"]!.ToString()==node["sourceId"]!.ToString())!;
@@ -384,7 +385,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     // cold restore, Review and the final file commit lease, including siblings.
     if(privateReturnRemapBatch||observedFrameOrder||ownedFrameCaseOrderBatch||guardedBranchRoute||serialInsertionBatch||propertyBatch||setContractGuard||live["units"]?[physicalGraphId]?["propertyObservations"] is not null){
      var priorReads=live["units"]?[physicalGraphId]?["propertyObservations"]?["sources"] as System.Text.Json.Nodes.JsonObject;
-     var reads=(ownedFrameCaseBatch||observedFrameOrder||ownedBranchOrderBatch||ownedScopeTransferBatch)&&priorReads is not null?priorReads.DeepClone().AsObject():new System.Text.Json.Nodes.JsonObject();
+     var reads=(ownedFrameCaseBatch||observedFrameOrder||ownedBranchOrderBatch||ownedScopeTransferBatch||setContractGuard)&&priorReads is not null?priorReads.DeepClone().AsObject():new System.Text.Json.Nodes.JsonObject();
      // The view also probes every project unit for optional async/public-contract
      // actions. Only the exact observed body closure belongs in this route Review.
      // The accepted graph carries the exact retargeted link. Keep the existing source lease for its original closure.
@@ -393,6 +394,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
        physicalGraphId+"/node:"+current["privatePath"]!.ToString().Replace("/","/node:",StringComparison.Ordinal)
         +"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
       (ownedFrameCaseOrderBatch||observedFrameOrder)?System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()):
+      setContractGuard?System.Linq.Enumerable.Select(setReviewSources!,id=>id!.ToString()):
       ownedBranchReconnectBatch?System.Linq.Enumerable.Select(branchReconnectSources!,id=>id!.ToString()):
       ownedScopeTransferBatch?System.Linq.Enumerable.Select(scopeSources!,id=>id!.ToString()):ownedBranchTransferBatch?System.Linq.Enumerable.Select(current["documentBranchTransfer"]!["sources"]!.AsArray(),id=>id!.ToString()):
       ownedBranchOrderBatch&&priorReads is not null?System.Linq.Enumerable.Empty<string>():System.Linq.Enumerable.Select(proof,member=>member.Key);
@@ -1806,6 +1808,8 @@ lock(state){
    readResult["documentBranchReconnectSources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
   }
  }catch{/* Read still succeeds when this route is outside the owned scope. */}
+ if(targetOperation=="read"&&privatePath.Length==0&&slotContext is null)
+  readResult["setPlanSources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  if(framePreviewBinding is not null)readResult["documentFramePreviewBinding"]=framePreviewBinding;
  if(ownedSerialChild&&frameOrderBinding is null&&string.IsNullOrEmpty(input["uiSurface"]?.ToString())
   &&privatePath.Split('/').Length<=2&&bodySourceIds.Length<=64)try{

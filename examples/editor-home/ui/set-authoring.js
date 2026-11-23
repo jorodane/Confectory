@@ -24,14 +24,19 @@ export function createSetAuthoring({api,recordIcon,esc,entries,get,inputs,prefix
  function typeMarkup(w,row){const p=plan(w,row),name=get(w,row.id,'set-name-draft',p.name),readonly=!supported(w);return '<div class="feature-io-card" data-signature-kind="outputs" aria-label="출력"><div class="feature-io-heading"><strong>출력</strong></div><div class="feature-io-fields"><div class="feature-io-row property-content-box bp-signature-row" data-signature-id="stored" style="--pin-color:'+color(p.type)+'"><button type="button" class="property-type-select" data-signature-type aria-label="'+esc(p.name)+' 타입 선택" aria-haspopup="dialog" aria-expanded="false" '+(!canType(w,row)?'disabled':'')+'>'+esc(label(p.type))+'</button><button type="button" class="property-icon-edit" data-signature-icon aria-label="'+esc(p.name)+' 아이콘 편집" '+(!canIcon(w,row)?'disabled':'')+'>'+browserIconMarkup({kind:'schema',icon:iconValue(w,row)||'◇'},esc)+'</button><input type="text" data-signature-name aria-label="출력 이름" maxlength="60" value="'+esc(name)+'" '+(readonly?'readonly':'')+'><button type="button" class="bp-output-visibility" data-output-exposed="stored" aria-label="비공개 출력" aria-pressed="false" disabled><svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1.5 8s3-5 8.5-5 8.5 5 8.5 5-3 5-8.5 5S1.5 8 1.5 8Z"/><circle cx="10" cy="8" r="2.2"/><path d="m3 1 14 14"/></svg></button></div></div></div>';}
  function targets(w,row){const p=plan(w,row);return '<option value="">새 지역변수</option>'+locals(w).filter(v=>!v.sourceJson&&v.id!==p.outputLocal).map(v=>'<option value="'+esc(v.id)+'" '+(p.local===v.id?'selected':'')+(v.type!==p.type?' disabled':'')+'>'+esc(v.name)+'</option>').join('');}
  function markup(w,row,index){const p=plan(w,row),x=w.meta.blueprintPositions?.[row.id]?.x??172+index*430,y=w.meta.blueprintPositions?.[row.id]?.y??0,id=esc(row.id);return '<article class="bp-node bp-kind-set" data-bp-node="'+id+'" style="left:'+x+'px;top:'+y+'px;width:260px"><header class="bp-node-header"><strong>중간저장</strong><button type="button" data-bp-remove aria-label="중간저장 노드 삭제" '+(!supported(w)?'disabled':'')+'>×</button><button type="button" class="bp-port bp-port-in bp-exec-line bp-exec-header-in" data-node="'+id+'" data-side="in" aria-label="중간저장 실행 입력"><span class="bp-execution-segment"></span></button><button type="button" class="bp-port bp-port-out bp-exec-line bp-exec-line-out" data-node="'+id+'" data-side="out" data-port="next" aria-label="중간저장 다음 줄 연결" style="top:calc(50% - 22.5px)"><span class="bp-execution-segment"></span></button></header><div class="bp-node-body"><label class="bp-set-target">저장 대상<select data-set-target aria-label="저장 대상" '+(!supported(w)?'disabled':'')+'>'+targets(w,row)+'</select></label><div class="bp-set-type" data-set-type-editor>'+typeMarkup(w,row)+'</div><div class="bp-set-value"><span>값</span><button type="button" class="bp-port bp-port-in bp-data-port" data-node="'+id+'" data-side="in" data-kind="data" data-port="field:value" style="--pin-color:'+color(p.type)+'" aria-label="저장할 값 입력 핀"><span></span></button></div><div class="bp-set-value is-output"><span>저장한 값</span>'+(p.outputLocal?'<button type="button" class="bp-port bp-port-out bp-data-port" data-node="'+id+'" data-side="out" data-kind="data" data-port="field:stored" style="--pin-color:'+color(p.type)+'" aria-label="저장한 값 출력 핀"><span></span></button>':'')+'</div></div></article>';}
- function mountTarget(w,row,target,alive){
+ function mountTarget(w,row,target,alive,{existingOnly=false}={}){
   const p=plan(w,row);
   target.innerHTML=targets(w,row);
+  if(existingOnly){
+   const own=target.options[0];
+   if(p.local===p.outputLocal){own.textContent=p.name;own.disabled=true;own.selected=true;}
+   else own.remove();
+  }
   target.disabled=!supported(w);
   target.onchange=()=>{
    if(!alive()||api.busy||!supported(w))return;
    const next=explicit(w,row),chosen=locals(w).find(v=>v.id===target.value);
-   if(target.value&&(!chosen||chosen.sourceJson||chosen.type!==p.type)){
+   if((existingOnly||target.value)&&(!chosen||chosen.sourceJson||chosen.type!==p.type)){
     target.value=p.local===p.outputLocal?'':p.local;
     api.toast('같은 자료형의 저장 대상을 선택해 주세요. 입력은 유지됩니다.');
     return;

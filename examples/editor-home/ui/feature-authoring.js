@@ -893,6 +893,39 @@ function blueprintNormalizeControls(scope){
   const callsNeedingReview=new Map(rows.filter(row=>row.kind==='call'&&row.postCallStale===true).map(row=>[row.id,row]));
   const documentContract=id=>!flowDocument&&!data.slotContext&&!data.requiresCoupledCopy&&!data.privateConversion&&
    codeParameterScope(w,data,data.nodes.find(row=>row.id===id));
+  function documentOutputStorage(id,output){
+   if(!documentContract(id)||!frameInputsClear()||data.id!==data.rootId||data.privatePath||
+      !['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
+   const producer=data.nodes.find(row=>row.id===id);
+   const produced=fields(producer.signature,'outputs').find(field=>field.id===output);
+   if(!produced)return null;
+   const edge=data.edges.find(link=>link.from===id&&link.port==='next');
+   const target=edge&&documentSetTarget(edge.to);
+   if(!target||target.privateNew||target.branchOwner||
+      !saveEntries(w).every(([key,value])=>key.startsWith(prefix(w))&&value.node===target.id&&value.type==='set-plan')||
+      !rawLinks().some(link=>link.from===id&&link.port==='next'&&link.to===target.id)||
+      data.edges.filter(link=>link.to===target.id).length!==1||
+      signature(target.signature).args.find(arg=>arg.name==='value')?.type!==produced.nativeType)return null;
+   // A regular C# output owns generated storage. The existing Set remains the writer.
+   let binding;
+   try{binding=JSON.parse(readBinding(target.id,'value'));}catch{return null;}
+   if(binding?.node!==id||(binding.output??'return')!==output||
+      Object.keys(binding).some(key=>key!=='node'&&key!=='output'))return null;
+   return target;
+  }
+  function mountDocumentContract(container,id,side){
+   if(!canvasOwns()||!documentContract(id))return;
+   mountMobileContracts(container,id,side);
+   if(side!=='outputs')return;
+   for(const field of container.querySelectorAll('[data-mobile-contract-field]')){
+    const output=field.dataset.mobileContractField,target=documentOutputStorage(id,output);
+    if(!target)continue;
+    field.insertAdjacentHTML('afterend','<label class="bp-set-target">출력 저장 대상<select data-document-output-storage="'+esc(output)+'" aria-label="출력 저장 대상"></select></label>');
+    const control=field.nextElementSibling.querySelector('select');
+    sets.mountTarget(w,target,control,()=>canvasOwns()&&documentView?.mode==='logic'&&control.isConnected&&
+     documentOutputStorage(id,output)?.id===target.id,{existingOnly:true});
+   }
+  }
   const documentCallContract=()=>!flowDocument&&data.id===data.rootId&&!data.privatePath&&
    !data.privateConversion&&!data.privateCopy&&!data.slotContext&&!data.requiresCoupledCopy&&!w.meta.copyDraft;
   const documentCallRefresh=id=>documentCallContract()&&
@@ -1112,9 +1145,7 @@ function blueprintNormalizeControls(scope){
    hasExecutionTarget:id=>documentExecutionTargets(id).length>0,pickExecutionTarget:pickDocumentExecutionTarget,
    hasBranchTarget:(owner,port)=>documentBranchTargets(owner,port).length>0,
    hasDocumentContract:documentContract,
-   mountDocumentContract:(container,id,side)=>{
-    if(canvasOwns()&&documentContract(id))mountMobileContracts(container,id,side);
-   },
+   mountDocumentContract,
    hasCallRefresh:documentCallRefresh,refreshCall:id=>{
     if(canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallRefresh(id)&&closeMenu('preserve')!==false)
      refreshAfter(w,callsNeedingReview.get(id));
