@@ -514,7 +514,7 @@ if(chatOperation){
 if(operation=="yogi")model["yogiError"]=new System.Text.Json.Nodes.JsonObject{["project"]=model["selected"]?["projectId"]?.DeepClone(),["code"]="yogi_storage_or_scope_error"};
  if(operation=="workspace"&&Value("view").Length==0&&model["selected"] is System.Text.Json.Nodes.JsonNode active&&(args["context"] is null||Value("context")==active["context"]!.ToString())&&workspaces.TryGetValue(active["context"]!.ToString(),out string? failedWorkspace)){try{model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(failedWorkspace));}catch(Exception projection){model["status"]="Error: "+error.Message+"; workspace projection: "+projection.Message;}}
 }
-if(state[15] is (string chatActivation,object _,object _,Func<bool> _,Action stopPublicChat)&&
+if(state[15] is (string chatActivation,object _,object _,Func<bool> _,Action stopPublicChat,System.Threading.CancellationToken _)&&
  model["selected"]?["activation"]?.ToString()!=chatActivation)stopPublicChat();
 // Passive detail refresh must not reacquire a draft lock held by admitted tool I/O.
 // Adoption and explicit editing keep their original synchronous validation.

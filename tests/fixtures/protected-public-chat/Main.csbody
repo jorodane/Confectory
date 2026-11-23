@@ -1,0 +1,212 @@
+using var cancellation = new System.Threading.CancellationTokenSource();
+string mode = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_MODE")!;
+string data = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_ROOT")!;
+string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+const string Committed = "{\"status\":\"committed\"}";
+void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
+static System.Text.Json.Nodes.JsonObject Ok() => new() { ["status"] = "ok" };
+void Talk(Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject> invoke)
+{
+    while (Console.ReadLine() is string line)
+    {
+        System.Text.Json.Nodes.JsonObject reply;
+        try { reply = invoke(System.Text.Json.Nodes.JsonNode.Parse(line)!.AsObject()); }
+        catch (Exception error) { reply = new() { ["error"] = error.GetType().Name }; }
+        Console.WriteLine(reply.ToJsonString());
+    }
+}
+
+if (mode == "guest")
+{
+    var connections = new System.Collections.Generic.Dictionary<string,
+        (Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject> Request, Action Close)>();
+    (Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action)
+        Connect(System.Text.Json.Nodes.JsonObject input)
+    {
+        string pin = input["pin"]?.ToString() == "wrong" ? "wrong.der" : "trusted.der";
+        using var cert = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(
+            System.IO.Path.Combine(data, pin));
+        return ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
+            calls.Connect.Invoke(input["port"]!.GetValue<int>(), cert, input["project"]!.ToString(),
+                input["code"]!.ToString(), "Fixture Guest");
+    }
+
+    try
+    {
+        Talk(input =>
+        {
+            string op = input["op"]!.ToString();
+            string name = input["name"]?.ToString() ?? "one";
+            if (op == "connect") { connections.Add(name, Connect(input)); return Ok(); }
+            if (op == "race")
+            {
+                object? Attempt()
+                {
+                    try { return Connect(input); }
+                    catch (UnauthorizedAccessException) { return null; }
+                }
+                var first = System.Threading.Tasks.Task.Run(Attempt);
+                var second = System.Threading.Tasks.Task.Run(Attempt);
+                System.Threading.Tasks.Task.WaitAll(first, second);
+                Check((first.Result is null) != (second.Result is null), "One TLS admission must win");
+                connections.Add(name, ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
+                    (first.Result ?? second.Result)!);
+                return Ok();
+            }
+            var connection = connections[name];
+            if (op == "close") { connection.Close(); return Ok(); }
+            return connection.Request(input["request"]!.AsObject());
+        });
+    }
+    finally { foreach (var connection in connections.Values) connection.Close(); }
+    return 0;
+}
+
+using var key = System.Security.Cryptography.RSA.Create(2048);
+using var wrongKey = System.Security.Cryptography.RSA.Create(2048);
+System.Security.Cryptography.X509Certificates.X509Certificate2 NewCertificate(System.Security.Cryptography.RSA rsa)
+{
+    var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=localhost", rsa,
+        System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+    var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+    san.AddDnsName("localhost");
+    request.CertificateExtensions.Add(san.Build());
+    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
+    request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+        System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
+    return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+}
+using var serverCertificate = NewCertificate(key);
+using var wrongCertificate = NewCertificate(wrongKey);
+System.IO.File.WriteAllBytes(System.IO.Path.Combine(data, "trusted.der"), serverCertificate.RawData);
+System.IO.File.WriteAllBytes(System.IO.Path.Combine(data, "wrong.der"), wrongCertificate.RawData);
+
+string storage = System.IO.Path.Combine(data, "host-profile");
+string projects = System.IO.Path.Combine(data, "projects");
+System.IO.Directory.CreateDirectory(projects);
+string session = calls.CreateSession.Invoke(repo, storage);
+System.Text.Json.Nodes.JsonNode Run(string op, object input)
+{
+    var state = System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session, op,
+        System.Text.Json.JsonSerializer.Serialize(input)))!;
+    Check(!state["status"]!.ToString().StartsWith("Error:", StringComparison.Ordinal), "Editor model action failed.");
+    return state;
+}
+
+var selected = Run("create", new { title = "Wire", directory = projects })["selected"]!;
+string project = selected["projectId"]!.ToString(), activation = selected["activation"]!.ToString();
+string manifest = selected["path"]!.ToString();
+(int Port, Action Close, System.Threading.Tasks.Task Completion)? server = null;
+int pauseAdmission = 0;
+var markers = System.IO.Path.Combine(data, "fault-fixture");
+System.IO.Directory.CreateDirectory(markers);
+string Marker(string name) => System.IO.Path.Combine(markers, name);
+
+try
+{
+    Talk(input =>
+    {
+        string op = input["op"]!.ToString();
+        string Id() => input["id"]!.ToString();
+        string Text() => input["text"]!.ToString();
+        string Chat(string operation, string id = "", string attachment = "", string text = "") =>
+            calls.LocalChat.Invoke(session, activation, operation, id, attachment, text);
+
+        if (op == "start-disabled")
+        {
+            const string flag = "CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK";
+            string? prior = Environment.GetEnvironmentVariable(flag);
+            Environment.SetEnvironmentVariable(flag, null);
+            try { calls.Start.Invoke(session, activation, serverCertificate); return Ok(); }
+            finally { Environment.SetEnvironmentVariable(flag, prior); }
+        }
+        if (op == "start")
+        {
+            if (mode != "loss")
+            {
+                var (port, close, completion) = ((int, Action, System.Threading.Tasks.Task))
+                    calls.Start.Invoke(session, activation, serverCertificate);
+                server = (port, close, completion);
+            }
+            else
+            {
+                var (_, accept, roomClose) = ((Func<int, string>, Func<string, string, string, object>, Action))
+                    calls.Invitations.Invoke(session, activation);
+                object PauseAfterAdmission(string scope, string code, string display)
+                {
+                    var connected = accept(scope, code, display);
+                    if (System.Threading.Interlocked.Exchange(ref pauseAdmission, 0) == 0) return connected;
+                    var (send, read, leave, sendBox, readBox, actor) =
+                        ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
+                          Func<string, string>, string))connected;
+                    System.IO.File.WriteAllText(Marker("accepted"), "accepted");
+                    if (!System.Threading.SpinWait.SpinUntil(() => System.IO.File.Exists(Marker("release")), TimeSpan.FromSeconds(8)))
+                    {
+                        leave();
+                        throw new TimeoutException("Fixture did not release admission.");
+                    }
+                    return (send, read, (Action)(() =>
+                    {
+                        leave();
+                        System.IO.File.WriteAllText(Marker("left"), "left");
+                    }), sendBox, readBox, actor);
+                }
+                var (port, stop, completion) = ((int, Action, System.Threading.Tasks.Task))
+                    calls.Listen.Invoke((serverCertificate, (Func<string, string, string, object>)PauseAfterAdmission,
+                        (Func<bool>)(() => calls.CreatorHost.Invoke(session)), cancellation.Token));
+                server = (port, () => { roomClose(); stop(); }, completion);
+            }
+            return new() { ["port"] = server!.Value.Port, ["project"] = project };
+        }
+        if (op == "arm-loss") { System.Threading.Interlocked.Exchange(ref pauseAdmission, 1); return Ok(); }
+        if (op == "issue") return System.Text.Json.Nodes.JsonNode.Parse(Chat("issue-invitation"))!.AsObject();
+        if (op == "send") { Check(Chat("send-text", Id(), "", Text()) == Committed, "Host send refused."); return Ok(); }
+        if (op == "attachment")
+        {
+            if (input["capture"]?.GetValue<bool>() == true)
+            {
+                const string target = "Project.Wire::Main";
+                Run("workspace", new { action = "open" });
+                Run("workspace", new { action = "select", id = target });
+                Run("yogi", new { action = "seal", @sealed = false });
+                Run("yogi", new { action = "exactly", id = target });
+                var pixels = new byte[] { 23, 61, 201 };
+                Run("yogi", new
+                {
+                    action = "capture", id = target, view = "",
+                    image = new
+                    {
+                        width = 1, height = 1, encoding = "rgb24-base64", pixels = Convert.ToBase64String(pixels),
+                        hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
+                    }
+                });
+            }
+            Run("yogi", new { action = "text", text = "Fixture seal" });
+            Run("yogi", new { action = "seal", @sealed = true });
+            string choice = System.Text.Json.Nodes.JsonNode.Parse(Chat("prepare-attachment", Id()))!["selection"]!.ToString();
+            Check(Chat("send-attachment", Id(), choice, Text()) == Committed, "Host attachment refused.");
+            return Ok();
+        }
+        if (op == "leave") { Run("leave", new { }); return Ok(); }
+        if (op == "reopen") { activation = Run("open", new { path = manifest })["selected"]!["activation"]!.ToString(); return Ok(); }
+        if (op is "withdraw" or "restore")
+        {
+            string proof = System.IO.Path.Combine(storage, "project-creators", project + ".json");
+            if (op == "withdraw") System.IO.File.Move(proof, proof + ".withheld");
+            else System.IO.File.Move(proof + ".withheld", proof);
+            return Ok();
+        }
+        if (op == "stop") { server!.Value.Close(); return Ok(); }
+        if (op == "wait") { server!.Value.Completion.WaitAsync(TimeSpan.FromSeconds(8)).GetAwaiter().GetResult(); return Ok(); }
+        if (op == "history") return System.Text.Json.Nodes.JsonNode.Parse(Chat("history"))!.AsObject();
+        throw new ArgumentException("Unknown fixture operation.");
+    });
+}
+finally
+{
+    server?.Close();
+    calls.CloseSession.Invoke(session);
+    server?.Completion.WaitAsync(TimeSpan.FromSeconds(8)).GetAwaiter().GetResult();
+}
+return 0;

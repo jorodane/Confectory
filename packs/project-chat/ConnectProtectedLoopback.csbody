@@ -1,0 +1,80 @@
+const int MaxRequest = 16 * 1024;
+const int MaxResponse = 4 * 1024 * 1024 + 4096;
+if (Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" || port is < 1 or > 65535)
+    throw new InvalidOperationException("Protected chat loopback is disabled or no port was supplied.");
+if (trustedCertificate is not System.Security.Cryptography.X509Certificates.X509Certificate2 expected ||
+    expected.HasPrivateKey)
+    throw new ArgumentException("An independently trusted public loopback certificate is required.");
+
+var (read, write) = ((Func<System.IO.Stream, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>>,
+    Func<System.IO.Stream, System.Text.Json.Nodes.JsonObject, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task>))calls.Frames.Invoke();
+var chainPolicy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
+{
+    TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
+    // This explicit, pinned development trust anchor has no external revocation service.
+    RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+    DisableCertificateDownloads = true
+};
+chainPolicy.CustomTrustStore.Add(expected);
+byte[] pinned = expected.GetRawCertData();
+var options = new System.Net.Security.SslClientAuthenticationOptions
+{
+    TargetHost = "localhost",
+    CertificateChainPolicy = chainPolicy,
+    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+    AllowRenegotiation = false,
+    RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
+        errors == System.Net.Security.SslPolicyErrors.None && certificate is not null &&
+        System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(certificate.GetRawCertData(), pinned)
+};
+
+var socket = new System.Net.Sockets.TcpClient(System.Net.Sockets.AddressFamily.InterNetwork);
+System.Net.Security.SslStream? stream = null;
+var gate = new object();
+try
+{
+    using var opening = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+    socket.ConnectAsync(System.Net.IPAddress.Loopback, port, opening.Token).GetAwaiter().GetResult();
+    stream = new System.Net.Security.SslStream(socket.GetStream());
+    stream.AuthenticateAsClientAsync(options, opening.Token).GetAwaiter().GetResult();
+    // No application bytes containing the invitation are written before TLS authenticates.
+    write(stream, new() { ["op"] = "join", ["project"] = project, ["invitation"] = invitation, ["display"] = displayName },
+        MaxRequest, opening.Token).GetAwaiter().GetResult();
+    if (read(stream, MaxResponse, opening.Token).GetAwaiter().GetResult()["status"]?.GetValue<string>() != "joined")
+        throw new UnauthorizedAccessException("The loopback invitation was refused.");
+
+    System.Text.Json.Nodes.JsonObject Request(System.Text.Json.Nodes.JsonObject input)
+    {
+        lock (gate)
+        {
+            if (stream is null) throw new ObjectDisposedException("Protected chat connection");
+            using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
+            {
+                write(stream, input, MaxRequest, deadline.Token).GetAwaiter().GetResult();
+                return read(stream, MaxResponse, deadline.Token).GetAwaiter().GetResult();
+            }
+            catch { Close(); throw; }
+        }
+    }
+
+    void Close()
+    {
+        socket.Dispose();
+        lock (gate)
+        {
+            stream?.Dispose();
+            stream = null;
+        }
+    }
+
+    return ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>)Request, (Action)Close);
+}
+catch
+{
+    socket.Dispose();
+    stream?.Dispose();
+    throw;
+}

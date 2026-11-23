@@ -25,7 +25,8 @@ lock (owner)
         (System.IO.File.Exists(journal) && calls.Origin.Invoke(journal, false, false).Length == 0))
         throw new UnauthorizedAccessException("The original project or host journal is unavailable.");
 
-    if (owner[RoomSlot] is (string scope, object _, object existing, Func<bool> isActive, Action stop) && scope == activation)
+    if (owner[RoomSlot] is (string scope, object _, object existing, Func<bool> isActive, Action stop,
+        System.Threading.CancellationToken _) && scope == activation)
     {
         if (isActive()) return existing;
         stop();
@@ -58,6 +59,7 @@ lock (owner)
         ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
           Func<string, string, string, bool>, Func<string, string>))host;
     var invitations = new System.Collections.Generic.Dictionary<string, long>(StringComparer.Ordinal);
+    var lifetime = new System.Threading.CancellationTokenSource();
     bool closed = false;
 
     bool Active()
@@ -88,6 +90,8 @@ lock (owner)
             invitations.Clear();
             closeHost(); // Releases every guest inbox, including attachment snapshots.
             owner[RoomSlot] = null!;
+            lifetime.Cancel();
+            lifetime.Dispose();
             Release();
         }
     }
@@ -153,7 +157,7 @@ lock (owner)
     }
 
     object admission = ((Func<int, string>)Issue, (Func<string, string, string, object>)Accept, (Action)Close);
-    owner[RoomSlot] = (activation, host, admission, (Func<bool>)Active, (Action)Close);
+    owner[RoomSlot] = (activation, host, admission, (Func<bool>)Active, (Action)Close, lifetime.Token);
     return admission;
 }
 

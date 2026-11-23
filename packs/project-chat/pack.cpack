@@ -6,4 +6,10 @@ element OpenHost function "OpenHost.celem";
 element OpenHostBody implementation "OpenHostBody.celem";
 element OpenHostWithAttachments function "OpenHostWithAttachments.celem";
 element OpenHostWithAttachmentsBody implementation "OpenHostWithAttachmentsBody.celem";
+element LoopbackChatFrames function "LoopbackChatFrames.celem";
+element LoopbackChatFramesBody implementation "LoopbackChatFramesBody.celem";
+element OpenProtectedLoopback function "OpenProtectedLoopback.celem";
+element OpenProtectedLoopbackBody implementation "OpenProtectedLoopbackBody.celem";
+element ConnectProtectedLoopback function "ConnectProtectedLoopback.celem";
+element ConnectProtectedLoopbackBody implementation "ConnectProtectedLoopbackBody.celem";
 }

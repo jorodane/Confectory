@@ -1,0 +1,4 @@
+function Confectory.EditorHome::StartPublicChatLoopback (string session, string activation, object certificate) -> object {
+provide Confectory.EditorHome::StartPublicChatLoopback with Confectory.EditorHome::StartPublicChatLoopbackBody;
+description "Explicitly enable a verified local creator's development TLS chat listener.";
+}

@@ -28,7 +28,8 @@ lock (owner)
     var model = (System.Text.Json.Nodes.JsonObject)owner[3];
     var selected = model["selected"];
     if (selected?["activation"]?.GetValue<string>() != activation) return Unavailable;
-    var room = owner[RoomSlot] as (string Activation, object Host, object Admission, Func<bool> Active, Action Close)?;
+    var room = owner[RoomSlot] as (string Activation, object Host, object Admission, Func<bool> Active, Action Close,
+        System.Threading.CancellationToken Lifetime)?;
     var pending = owner[PendingAttachment] as (string Activation, string Message, string Selection, string Box, string Digest)?;
     if (pending is { } prior && prior.Activation != activation)
     {

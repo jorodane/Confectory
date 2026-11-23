@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::OpenProtectedLoopback (object options) -> object {
+provide Confectory.ProjectChat::OpenProtectedLoopback with Confectory.ProjectChat::OpenProtectedLoopbackBody;
+description "Start an explicitly enabled TLS listener on an ephemeral IPv4 loopback port.";
+}

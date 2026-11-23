@@ -1,0 +1,31 @@
+var utf8 = new System.Text.UTF8Encoding(false, true);
+
+async System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject> Read(
+    System.IO.Stream stream, int limit, System.Threading.CancellationToken cancel)
+{
+    var header = new byte[4];
+    await stream.ReadExactlyAsync(header, cancel).ConfigureAwait(false);
+    int length = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(header);
+    if (length <= 0 || length > limit) throw new System.IO.InvalidDataException("Invalid chat frame length.");
+    var bytes = new byte[length];
+    await stream.ReadExactlyAsync(bytes, cancel).ConfigureAwait(false);
+    return System.Text.Json.Nodes.JsonNode.Parse(utf8.GetString(bytes), null,
+        new System.Text.Json.JsonDocumentOptions { MaxDepth = 12 }) as System.Text.Json.Nodes.JsonObject
+        ?? throw new System.IO.InvalidDataException("Chat frames must be JSON objects.");
+}
+
+async System.Threading.Tasks.Task Write(System.IO.Stream stream, System.Text.Json.Nodes.JsonObject value,
+    int limit, System.Threading.CancellationToken cancel)
+{
+    byte[] bytes = utf8.GetBytes(value.ToJsonString());
+    if (bytes.Length == 0 || bytes.Length > limit) throw new System.IO.InvalidDataException("Invalid chat frame length.");
+    var header = new byte[4];
+    System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header, bytes.Length);
+    await stream.WriteAsync(header, cancel).ConfigureAwait(false);
+    await stream.WriteAsync(bytes, cancel).ConfigureAwait(false);
+}
+
+return ((Func<System.IO.Stream, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>>)Read,
+    (Func<System.IO.Stream, System.Text.Json.Nodes.JsonObject, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task>)Write);

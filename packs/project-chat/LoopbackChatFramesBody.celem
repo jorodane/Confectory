@@ -1,0 +1,3 @@
+implementation Confectory.ProjectChat::LoopbackChatFramesBody for Confectory.ProjectChat::LoopbackChatFrames () -> object {
+body common "LoopbackChatFrames.csbody";
+}

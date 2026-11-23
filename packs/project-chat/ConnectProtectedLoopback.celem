@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::ConnectProtectedLoopback (int port, object trustedCertificate, string project, string invitation, string displayName) -> object {
+provide Confectory.ProjectChat::ConnectProtectedLoopback with Confectory.ProjectChat::ConnectProtectedLoopbackBody;
+description "Authenticate a loopback host using the independently supplied certificate before redeeming an invitation.";
+}
