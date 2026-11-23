@@ -2,6 +2,8 @@ using var cancellation = new System.Threading.CancellationTokenSource();
 string mode = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_MODE")!;
 string data = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_ROOT")!;
 string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+const string FixtureName = "chat-host.confectory.test";
+bool transportFixture = mode.StartsWith("transport-", StringComparison.Ordinal);
 const string Committed = "{\"status\":\"committed\"}";
 void Check(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
 static System.Text.Json.Nodes.JsonObject Ok() => new() { ["status"] = "ok" };
@@ -16,7 +18,36 @@ void Talk(Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObj
     }
 }
 
-if (mode == "guest")
+// Only the test harness selects these synthetic endpoints. The editor entry
+// continues to own its fixed loopback transport and localhost TLS identity.
+static System.Net.IPAddress FixtureAddress(bool isolated) =>
+    isolated ? System.Net.IPAddress.Parse("192.0.2.2") : System.Net.IPAddress.Loopback;
+
+bool isolatedFixture = Environment.GetEnvironmentVariable("CONFECTORY_TLS_TEST_ISOLATED") == "1";
+
+object ListenFixture(object options)
+{
+    var (certificate, accept, active, lifetime) =
+        ((System.Security.Cryptography.X509Certificates.X509Certificate2, Func<string, string, string, object>,
+          Func<bool>, System.Threading.CancellationToken))options;
+    int port = 0;
+    (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)
+        OpenTransport(int backlog)
+    {
+        var listener = new System.Net.Sockets.TcpListener(FixtureAddress(isolatedFixture), 0);
+        listener.Start(backlog);
+        port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+        async System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken token) =>
+            new System.Net.Sockets.NetworkStream(await listener.AcceptSocketAsync(token), ownsSocket: true);
+        return (Accept, listener.Stop);
+    }
+    var (close, completion) = ((Action, System.Threading.Tasks.Task))calls.ListenTransport.Invoke(
+        (certificate, accept, active, lifetime,
+         (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)OpenTransport));
+    return (port, close, completion);
+}
+
+if (mode is "guest" or "transport-guest")
 {
     var connections = new System.Collections.Generic.Dictionary<string,
         (Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject> Request, Action Close)>();
@@ -26,9 +57,29 @@ if (mode == "guest")
         string pin = input["pin"]?.ToString() == "wrong" ? "wrong.der" : "trusted.der";
         using var cert = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificateFromFile(
             System.IO.Path.Combine(data, pin));
-        return ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
-            calls.Connect.Invoke(input["port"]!.GetValue<int>(), cert, input["project"]!.ToString(),
-                input["code"]!.ToString(), "Fixture Guest");
+        int port = input["port"]!.GetValue<int>();
+        string projectId = input["project"]!.ToString(), invitation = input["code"]!.ToString();
+        object Open()
+        {
+            if (!transportFixture) return calls.Connect.Invoke(port, cert, projectId, invitation, "Fixture Guest");
+            System.IO.Stream Dial(System.Threading.CancellationToken token)
+            {
+                var socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+                    System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+                try
+                {
+                    socket.ConnectAsync(FixtureAddress(isolatedFixture), port, token).AsTask().GetAwaiter().GetResult();
+                    if (isolatedFixture && ((System.Net.IPEndPoint)socket.LocalEndPoint!).Address.ToString() != "192.0.2.3")
+                        throw new InvalidOperationException("Fixture connected from outside its expected isolated address.");
+                    return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                }
+                catch { socket.Dispose(); throw; }
+            }
+            string tlsName = input["authority"]?.ToString() ?? FixtureName;
+            return calls.ConnectTransport.Invoke(tlsName, cert,
+                (Func<System.Threading.CancellationToken, System.IO.Stream>)Dial, projectId, invitation, "Fixture Guest");
+        }
+        return ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))Open();
     }
 
     try
@@ -66,10 +117,11 @@ using var key = System.Security.Cryptography.RSA.Create(2048);
 using var wrongKey = System.Security.Cryptography.RSA.Create(2048);
 System.Security.Cryptography.X509Certificates.X509Certificate2 NewCertificate(System.Security.Cryptography.RSA rsa)
 {
-    var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=localhost", rsa,
+    string certificateName = transportFixture ? FixtureName : "localhost";
+    var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=" + certificateName, rsa,
         System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
     var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
-    san.AddDnsName("localhost");
+    san.AddDnsName(certificateName);
     request.CertificateExtensions.Add(san.Build());
     request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
     request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
@@ -125,9 +177,10 @@ try
         {
             if (mode != "loss")
             {
-                var (port, close, completion) = ((int, Action, System.Threading.Tasks.Task))
-                    calls.Start.Invoke(session, activation, serverCertificate);
-                server = (port, close, completion);
+                object opened = transportFixture
+                    ? calls.StartTransport.Invoke(session, activation, serverCertificate, (Func<object, object>)ListenFixture)
+                    : calls.Start.Invoke(session, activation, serverCertificate);
+                server = ((int, Action, System.Threading.Tasks.Task))opened;
             }
             else
             {

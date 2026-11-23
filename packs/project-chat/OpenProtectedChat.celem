@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::OpenProtectedChat (object options) -> object {
+provide Confectory.ProjectChat::OpenProtectedChat with Confectory.ProjectChat::OpenProtectedChatBody;
+description "Serve authenticated project chat over an owned native transport capability.";
+}

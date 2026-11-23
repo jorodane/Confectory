@@ -1,0 +1,4 @@
+function Confectory.EditorHome::StartPublicChat (string session, string activation, object certificate, object listener) -> object {
+provide Confectory.EditorHome::StartPublicChat with Confectory.EditorHome::StartPublicChatBody;
+description "Bind the active original creator's public chat room to a supplied native listener.";
+}

@@ -14,4 +14,8 @@ element OpenProtectedLoopback function "OpenProtectedLoopback.celem";
 element OpenProtectedLoopbackBody implementation "OpenProtectedLoopbackBody.celem";
 element ConnectProtectedLoopback function "ConnectProtectedLoopback.celem";
 element ConnectProtectedLoopbackBody implementation "ConnectProtectedLoopbackBody.celem";
+element OpenProtectedChat function "OpenProtectedChat.celem";
+element OpenProtectedChatBody implementation "OpenProtectedChatBody.celem";
+element ConnectProtectedChat function "ConnectProtectedChat.celem";
+element ConnectProtectedChatBody implementation "ConnectProtectedChatBody.celem";
 }

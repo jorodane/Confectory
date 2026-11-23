@@ -1,0 +1,204 @@
+const int MaxConnections = 16;
+const int MaxRequest = 16 * 1024;
+const int MaxUpload = 2 * 1024 * 1024 + 32 * 1024;
+const int MaxResponse = 4 * 1024 * 1024 + 4096;
+
+var (certificate, accept, active, lifetime, openTransport) =
+    ((System.Security.Cryptography.X509Certificates.X509Certificate2, Func<string, string, string, object>,
+      Func<bool>, System.Threading.CancellationToken,
+      Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>))options;
+if (!certificate.HasPrivateKey || lifetime.IsCancellationRequested || !active())
+    throw new InvalidOperationException("An active host and TLS server certificate are required.");
+
+var (read, write) = ((Func<System.IO.Stream, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>>,
+    Func<System.IO.Stream, System.Text.Json.Nodes.JsonObject, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task>))calls.Frames.Invoke();
+var tlsOptions = new System.Net.Security.SslServerAuthenticationOptions
+{
+    ServerCertificate = certificate,
+    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+    AllowRenegotiation = false
+};
+var (acceptTransport, closeTransport) = openTransport(MaxConnections);
+var stop = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+var cancelled = stop.Token;
+
+void Stop()
+{
+    try { stop.Cancel(); }
+    catch (ObjectDisposedException) { }
+}
+
+async System.Threading.Tasks.Task Serve(System.IO.Stream transport)
+{
+    using var ownedTransport = transport;
+    using var tls = new System.Net.Security.SslStream(transport, leaveInnerStreamOpen: true);
+    Action? leave = null;
+    try
+    {
+        using var opening = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+        opening.CancelAfter(TimeSpan.FromSeconds(10));
+        await tls.AuthenticateAsServerAsync(tlsOptions, opening.Token).ConfigureAwait(false);
+        var hello = await read(tls, MaxRequest, opening.Token).ConfigureAwait(false);
+        if (hello.Count != 4 || hello["op"]?.GetValue<string>() != "join" ||
+            hello["project"]?.GetValue<string>() is not string project ||
+            hello["invitation"]?.GetValue<string>() is not string invitation ||
+            hello["display"]?.GetValue<string>() is not string display)
+        {
+            await Reply(new() { ["status"] = "denied" }).ConfigureAwait(false);
+            return;
+        }
+
+        // Admission is a capability of this worker only. No actor, session token,
+        // or other reusable authorization is communicated to the client.
+        opening.Token.ThrowIfCancellationRequested();
+        object admission = accept(project, invitation, display);
+        Func<string, string, bool> send;
+        Func<string> inbox;
+        Func<string, string> attachment;
+        Func<string, string, System.Text.Json.Nodes.JsonObject, bool>? upload = null;
+        if (admission is (Func<string, string, bool> sendLive, Func<string> liveInbox, Action releaseLive,
+            Func<string, string, string, bool> _, Func<string, string> readLive, string _,
+            Func<string, string, System.Text.Json.Nodes.JsonObject, bool> sendLaY))
+        {
+            (send, inbox, leave, attachment, upload) = (sendLive, liveInbox, releaseLive, readLive, sendLaY);
+        }
+        else
+        {
+            (send, inbox, leave, _, attachment, _) =
+                ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
+                  Func<string, string>, string))admission;
+        }
+        opening.Token.ThrowIfCancellationRequested();
+        await Reply(new() { ["status"] = "joined" }).ConfigureAwait(false);
+        while (!cancelled.IsCancellationRequested)
+        {
+            using var idle = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+            idle.CancelAfter(TimeSpan.FromMinutes(1));
+            var request = await read(tls, MaxRequest, idle.Token).ConfigureAwait(false);
+            cancelled.ThrowIfCancellationRequested();
+            System.Text.Json.Nodes.JsonObject response;
+            try
+            {
+                if (upload is not null && request.Count == 3 && request["op"]?.GetValue<string>() == "send-attachment" &&
+                    request["id"]?.GetValue<string>() is string id && request["text"]?.GetValue<string>() is string text)
+                {
+                    // Only an admitted upload consumes a second, separately bounded frame.
+                    using var deadline = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+                    deadline.CancelAfter(TimeSpan.FromSeconds(10));
+                    var box = await read(tls, MaxUpload, deadline.Token).ConfigureAwait(false);
+                    deadline.Token.ThrowIfCancellationRequested();
+                    response = new() { ["status"] = upload(id, text, box) ? "committed" : "denied" };
+                }
+                else response = Dispatch(request, send, inbox, attachment);
+            }
+            catch (Exception error) when (error is ArgumentException or FormatException or
+                UnauthorizedAccessException or System.Text.Json.JsonException ||
+                error is InvalidOperationException and not ObjectDisposedException)
+            {
+                response = new() { ["status"] = "denied" };
+            }
+            await Reply(response).ConfigureAwait(false);
+        }
+    }
+    catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+        UnauthorizedAccessException or System.Text.Json.JsonException)
+    {
+        // Uniform refusal. Never emit the payload or an exception containing it.
+        try { await Reply(new() { ["status"] = "denied" }).ConfigureAwait(false); }
+        catch (Exception failure) when (failure is System.IO.IOException or System.Net.Sockets.SocketException or
+            OperationCanceledException or ObjectDisposedException or System.Security.Authentication.AuthenticationException) { }
+    }
+    catch (Exception error) when (error is System.IO.IOException or System.IO.InvalidDataException or System.Net.Sockets.SocketException or
+        OperationCanceledException or System.Security.Authentication.AuthenticationException or AggregateException or TimeoutException) { }
+    finally { leave?.Invoke(); }
+
+    async System.Threading.Tasks.Task Reply(System.Text.Json.Nodes.JsonObject value)
+    {
+        using var deadline = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        await write(tls, value, MaxResponse, deadline.Token).ConfigureAwait(false);
+    }
+}
+
+static System.Text.Json.Nodes.JsonObject Dispatch(System.Text.Json.Nodes.JsonObject request,
+    Func<string, string, bool> send, Func<string> inbox, Func<string, string> attachment)
+{
+    string? operation = request["op"]?.GetValue<string>();
+    if (operation == "read" && request.Count == 1)
+    {
+        var messages = System.Text.Json.Nodes.JsonNode.Parse(inbox())!.AsArray();
+        foreach (var row in messages)
+        {
+            string sender = row!["sender"]!.GetValue<string>();
+            const string guest = " (guest ";
+            int suffix = sender.Length - guest.Length - 33;
+            if (suffix > 0 && sender.AsSpan(suffix, guest.Length).SequenceEqual(guest) &&
+                sender.EndsWith(')') && Guid.TryParseExact(sender.AsSpan(suffix + guest.Length, 32), "N", out _))
+                row["sender"] = sender[..suffix] + " (guest)";
+        }
+        return new() { ["status"] = "ok", ["messages"] = messages };
+    }
+    if (operation == "send" && request.Count == 3 && request["id"]?.GetValue<string>() is string id &&
+        request["text"]?.GetValue<string>() is string text)
+        return new() { ["status"] = send(id, text) ? "committed" : "denied" };
+    if (operation == "attachment" && request.Count == 2 && request["id"]?.GetValue<string>() is string message)
+    {
+        var package = System.Text.Json.Nodes.JsonNode.Parse(attachment(message))!["package"]!;
+        var items = new System.Text.Json.Nodes.JsonArray();
+        foreach (var item in package["items"]!.AsArray())
+        {
+            if (item!["kind"]!.GetValue<string>() != "image")
+            {
+                items.Add(new System.Text.Json.Nodes.JsonObject { ["kind"] = "semantic", ["availability"] = "unavailable" });
+                continue;
+            }
+            var capture = item["capture"]!;
+            var image = new System.Text.Json.Nodes.JsonObject { ["kind"] = "image" };
+            foreach (string field in new[] { "width", "height", "encoding", "hash", "pixels" })
+                image[field] = capture[field]!.DeepClone();
+            items.Add(image);
+        }
+        return new() { ["status"] = "ok", ["description"] = package["text"]!.DeepClone(), ["items"] = items };
+    }
+    throw new System.IO.InvalidDataException("Unsupported chat operation.");
+}
+
+async System.Threading.Tasks.Task ObserveHost()
+{
+    using var timer = new System.Threading.PeriodicTimer(TimeSpan.FromSeconds(1));
+    try
+    {
+        while (await timer.WaitForNextTickAsync(cancelled).ConfigureAwait(false))
+            if (!active()) { Stop(); return; }
+    }
+    catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+    finally { Stop(); }
+}
+
+async System.Threading.Tasks.Task Run()
+{
+    var workers = new System.Collections.Generic.List<System.Threading.Tasks.Task>(MaxConnections);
+    var monitor = ObserveHost();
+    try
+    {
+        while (!cancelled.IsCancellationRequested)
+        {
+            var transport = await acceptTransport(cancelled).ConfigureAwait(false);
+            workers.RemoveAll(task => task.IsCompletedSuccessfully);
+            if (workers.Count >= MaxConnections) { transport.Dispose(); continue; }
+            workers.Add(Serve(transport));
+        }
+    }
+    catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+    finally
+    {
+        Stop();
+        closeTransport();
+        try { await System.Threading.Tasks.Task.WhenAll(System.Linq.Enumerable.Append(workers, monitor)).ConfigureAwait(false); }
+        finally { stop.Dispose(); }
+    }
+}
+
+return ((Action)Stop, Run());

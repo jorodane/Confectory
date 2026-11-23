@@ -1,0 +1,4 @@
+implementation Confectory.ProjectChat::OpenProtectedChatBody for Confectory.ProjectChat::OpenProtectedChat (object options) -> object {
+import Confectory.ProjectChat::LoopbackChatFrames as Frames () -> object;
+body common "OpenProtectedChat.csbody";
+}

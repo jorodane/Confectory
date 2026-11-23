@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::ConnectProtectedChat (string tlsName, object trustedCertificate, object transport, string project, string invitation, string displayName) -> object {
+provide Confectory.ProjectChat::ConnectProtectedChat with Confectory.ProjectChat::ConnectProtectedChatBody;
+description "Authenticate a named and pinned project chat host over a supplied native transport before redeeming an invitation.";
+}

@@ -14,13 +14,18 @@ import struct
 import subprocess
 import tempfile
 import time
+import uuid
 
 repo = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("tool_checkout", nargs="?", type=Path, default=repo)
 parser.add_argument("--target", choices=("linux", "windows"), default="linux")
 parser.add_argument("--compile-only", action="store_true")
+parser.add_argument("--isolated-docker-image", metavar="LOCAL_IMAGE",
+                    help="also test two containers on a private Docker network using a locally built .NET runtime image")
 args = parser.parse_args()
+if args.isolated_docker_image and (args.compile_only or args.target != "linux"):
+    parser.error("the isolated network fixture requires Linux execution")
 tool_repo = args.tool_checkout.resolve()
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
 cli = tool_repo / "src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll"
@@ -29,6 +34,9 @@ env = dict(os.environ, CONFECTORY_DOTNET=dotnet, CONFECTORY_DEV_PUBLIC_CHAT_LOOP
            PATH=str(Path(dotnet).parent) + os.pathsep + os.environ["PATH"])
 
 imports = """import Confectory.EditorHome::StartPublicChatLoopback as Start (string,string,object) -> object;
+import Confectory.EditorHome::StartPublicChat as StartTransport (string,string,object,object) -> object;
+import Confectory.ProjectChat::OpenProtectedChat as ListenTransport (object) -> object;
+import Confectory.ProjectChat::ConnectProtectedChat as ConnectTransport (string,object,object,string,string,string) -> object;
 import Confectory.EditorHome::LocalPublicChat as LocalChat (string,string,string,string,string,string) -> string;
 import Confectory.EditorHome::PublicChatInvitations as Invitations (string,string) -> object;
 import Confectory.EditorHome.Model::CreatorHost as CreatorHost (string) -> bool;
@@ -42,12 +50,16 @@ def message(index):
 
 
 @contextmanager
-def process(command, checkout, directory, mode):
+def process(command, checkout, directory, mode, docker_launch=None):
+    fixture_env = dict(CONFECTORY_EDITOR_REPO=str(checkout), CONFECTORY_TLS_TEST_MODE=mode,
+                       CONFECTORY_TLS_TEST_ROOT=str(directory), CONFECTORY_TLS_TEST_ISOLATED="0")
+    docker_cleanup = lambda: None
+    if docker_launch is not None:
+        command, docker_cleanup = docker_launch(command, checkout, directory, fixture_env)
     with tempfile.TemporaryFile(mode="w+t") as errors:
         child = subprocess.Popen(command, cwd=checkout, text=True, stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE, stderr=errors,
-                                 env=dict(env, CONFECTORY_EDITOR_REPO=str(checkout),
-                                          CONFECTORY_TLS_TEST_MODE=mode, CONFECTORY_TLS_TEST_ROOT=str(directory)))
+                                 env=dict(env, **fixture_env))
 
         def call(operation, **values):
             # The isolated runner passes synthetic codes over anonymous stdin/stdout pipes.
@@ -71,6 +83,7 @@ def process(command, checkout, directory, mode):
                 child.kill()
                 child.wait()
             child.stdout.close()
+            docker_cleanup()
             if child.returncode != 0:
                 errors.seek(0)
                 raise AssertionError(f"{mode} exited with {child.returncode}: {errors.read()[-2000:]}")
@@ -266,6 +279,108 @@ def lost_reply_flow(command, checkout, directory):
     print("PASS dropped join acknowledgement releases the connection, keeps the invitation consumed, and requires a fresh empty admission")
 
 
+@contextmanager
+def isolated_docker(image):
+    docker = ["docker", "--host=unix:///var/run/docker.sock"]
+    docker_env = {key: value for key, value in os.environ.items()
+                  if key not in ("DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_TLS", "DOCKER_TLS_VERIFY", "DOCKER_CERT_PATH")}
+    network = "confectory-chat-" + uuid.uuid4().hex[:12]
+    image_id = subprocess.check_output([*docker, "image", "inspect", "--format", "{{.Id}}", image],
+                                       env=docker_env, text=True).strip()
+    subprocess.run([*docker, "network", "create", "--internal", "--subnet", "192.0.2.0/29",
+                    "--opt", "com.docker.network.bridge.inhibit_ipv4=true", network],
+                   env=docker_env, stdout=subprocess.DEVNULL, check=True)
+    try:
+        inspected = subprocess.check_output([*docker, "network", "inspect", network], env=docker_env)
+        scope, = json.loads(inspected)
+        assert scope["Internal"] and scope["Options"]["com.docker.network.bridge.inhibit_ipv4"] == "true"
+        assert not scope["Containers"]
+
+        def launch(command, checkout, directory, fixture_env):
+            host = fixture_env["CONFECTORY_TLS_TEST_MODE"] == "transport-host"
+            name = network + ("-host" if host else "-guest")
+            address = "192.0.2.2" if host else "192.0.2.3"
+            machine_id = directory / "fixture-machine-id"
+            machine_id.write_text(uuid.uuid4().hex + "\n")
+            targets = (checkout / "targets").resolve()
+            run = [*docker, "run", "--pull=never", "--rm", "--interactive", "--name", name,
+                   "--network", network, "--ip", address, "--cap-drop", "ALL",
+                   "--security-opt", "no-new-privileges", "--user", f"{os.getuid()}:{os.getgid()}",
+                   "--mount", f"type=bind,src={checkout},dst={checkout},readonly",
+                   "--mount", f"type=bind,src={directory},dst={directory}",
+                   "--mount", f"type=bind,src={targets},dst={targets},readonly",
+                   "--mount", f"type=bind,src={machine_id},dst=/etc/machine-id,readonly",
+                   "--workdir", str(checkout)]
+            for key, value in dict(fixture_env, CONFECTORY_TLS_TEST_ISOLATED="1", CONFECTORY_DOTNET=dotnet).items():
+                run.extend(("--env", f"{key}={value}"))
+
+            def cleanup():
+                # Normal exit uses --rm. This releases a lingering fixture after a timeout.
+                subprocess.run([*docker, "rm", "--force", name], env=docker_env,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+
+            return ["env", "-u", "DOCKER_HOST", "-u", "DOCKER_CONTEXT", "-u", "DOCKER_TLS",
+                    "-u", "DOCKER_TLS_VERIFY", "-u", "DOCKER_CERT_PATH", *run, image_id, *command], cleanup
+
+        yield launch
+    finally:
+        subprocess.run([*docker, "network", "rm", network], env=docker_env,
+                       stdout=subprocess.DEVNULL, check=True)
+
+
+def transport_flow(command, checkout, directory, docker_launch=None):
+    host_dir, guest_dir = directory / "host", directory / "guest"
+    public_certs = ("trusted.der", "wrong.der")
+    for state_dir in (host_dir, guest_dir):
+        make_profiles(state_dir)
+
+    with process(command, checkout, host_dir, "transport-host", docker_launch) as host:
+        route = host("start")
+        # The synthetic host's public trust material is transferred independently
+        # of the socket and of the address selected by the native fixture.
+        for name in public_certs:
+            shutil.copyfile(host_dir / name, guest_dir / name)
+        with process(command, checkout, guest_dir, "transport-guest", docker_launch) as guest:
+            code = host("issue")["invitation"]
+            assert connect(guest, route, code, "bad-pin", pin="wrong").get("error") == "AuthenticationException"
+            assert connect(guest, route, code, "wrong-name", authority="other.confectory.test").get("error") == "AuthenticationException"
+            assert connect(guest, route, code, "invalid-name", authority="https://chat-host.confectory.test").get("error") == "ArgumentException"
+            other_project = dict(route, project=message(123))
+            assert connect(guest, other_project, code, "wrong-project").get("error") == "UnauthorizedAccessException"
+            assert connect(guest, route, code, "joined") == {"status": "ok"}
+            assert connect(guest, route, code, "used").get("error") == "UnauthorizedAccessException"
+            seen(guest, "joined")
+
+            assert host("send", id=message(1), text="Host text over supplied transport") == {"status": "ok"}
+            rgb = bytes((12, 34, 56)) * (96 * 96)
+            image = {"kind": "image", "width": 96, "height": 96, "encoding": "rgb24-base64",
+                     "hash": hashlib.sha256(rgb).hexdigest(), "pixels": base64.b64encode(rgb).decode()}
+            attachment = {"description": "Fixture LaY", "items": [image]}
+            upload = dict(id=message(2), text="Guest attached LaY", attachment=attachment)
+            assert request(guest, "joined", "send-attachment", **upload) == {"status": "committed"}
+            assert request(guest, "joined", "send-attachment", **upload) == {"status": "committed"}
+            seen(guest, "joined", 1, 2)
+            assert request(guest, "joined", "attachment", id=message(2)) == {"status": "ok", **attachment}
+            journal, = (host_dir / "host-profile/project-chat").glob("*.json")
+            saved, = [row for row in json.loads(journal.read_bytes())["messages"] if row["id"] == message(2)]
+            capture, = saved["attachment"]["package"]["items"]
+            assert saved["attachment"]["package"]["text"] == attachment["description"]
+            assert hashlib.sha256(base64.b64decode(capture["capture"]["pixels"])).hexdigest() == image["hash"]
+
+            assert guest("close", name="joined") == {"status": "ok"}
+            assert request(guest, "joined", "read").get("error") == "ObjectDisposedException"
+            assert connect(guest, route, host("issue")["invitation"], "fresh") == {"status": "ok"}
+            seen(guest, "fresh")
+            assert request(guest, "fresh", "attachment", id=message(2)) == {"status": "denied"}
+            assert host("stop") == host("wait") == {"status": "ok"}
+            assert "error" in request(guest, "fresh", "read")
+
+    verify_private(host_dir)
+    verify_private(guest_dir)
+    route_name = "isolated non-loopback Docker" if docker_launch is not None else "loopback"
+    print(f"PASS supplied {route_name} transport: pinned TLS identity, project-bound single use, text, LaY, and empty rejoin")
+
+
 with tempfile.TemporaryDirectory(prefix="confectory-protected-chat-") as directory:
     root = Path(directory)
     checkout = root / "checkout"
@@ -289,3 +404,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-protected-chat-") as directo
         assert args.target == "linux", "Use --compile-only for a Windows target"
         regular_flow(report["run"], checkout, root / "regular")
         lost_reply_flow(report["run"], checkout, root / "loss")
+        transport_flow(report["run"], checkout, root / "separated")
+        if args.isolated_docker_image:
+            with isolated_docker(args.isolated_docker_image) as launch:
+                transport_flow(report["run"], checkout, root / "isolated", launch)

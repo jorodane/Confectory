@@ -1,0 +1,4 @@
+implementation Confectory.EditorHome::StartPublicChatBody for Confectory.EditorHome::StartPublicChat (string session, string activation, object certificate, object listener) -> object {
+import Confectory.EditorHome::PublicChatInvitations as Invitations (string,string) -> object;
+body common "StartPublicChat.csbody";
+}

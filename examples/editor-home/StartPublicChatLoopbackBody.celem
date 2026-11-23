@@ -1,5 +1,5 @@
 implementation Confectory.EditorHome::StartPublicChatLoopbackBody for Confectory.EditorHome::StartPublicChatLoopback (string session, string activation, object certificate) -> object {
-import Confectory.EditorHome::PublicChatInvitations as Invitations (string,string) -> object;
+import Confectory.EditorHome::StartPublicChat as Start (string,string,object,object) -> object;
 import Confectory.ProjectChat::OpenProtectedLoopback as Listen (object) -> object;
 body common "StartPublicChatLoopback.csbody";
 }

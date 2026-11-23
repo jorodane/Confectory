@@ -1,4 +1,4 @@
 implementation Confectory.ProjectChat::ConnectProtectedLoopbackBody for Confectory.ProjectChat::ConnectProtectedLoopback (int port, object trustedCertificate, string project, string invitation, string displayName) -> object {
-import Confectory.ProjectChat::LoopbackChatFrames as Frames () -> object;
+import Confectory.ProjectChat::ConnectProtectedChat as Connect (string,object,object,string,string,string) -> object;
 body common "ConnectProtectedLoopback.csbody";
 }

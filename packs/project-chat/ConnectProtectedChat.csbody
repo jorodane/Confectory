@@ -1,0 +1,100 @@
+const int MaxRequest = 16 * 1024;
+const int MaxUpload = 2 * 1024 * 1024 + 32 * 1024;
+const int MaxResponse = 4 * 1024 * 1024 + 4096;
+if (trustedCertificate is not System.Security.Cryptography.X509Certificates.X509Certificate2 expected ||
+    expected.HasPrivateKey || !IsDnsName(tlsName) ||
+    transport is not Func<System.Threading.CancellationToken, System.IO.Stream> openTransport)
+    throw new ArgumentException("A native transport, explicit TLS DNS identity and independently trusted public certificate are required.");
+
+static bool IsDnsName(string name)
+{
+    if (name.Length is < 1 or > 253 || !System.Linq.Enumerable.Any(name, char.IsAsciiLetter)) return false;
+    foreach (string label in name.Split('.'))
+        if (label.Length is < 1 or > 63 || !char.IsAsciiLetterOrDigit(label[0]) || !char.IsAsciiLetterOrDigit(label[^1]) ||
+            System.Linq.Enumerable.Any(label, c => !char.IsAsciiLetterOrDigit(c) && c != '-'))
+            return false;
+    return true;
+}
+
+var (read, write) = ((Func<System.IO.Stream, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>>,
+    Func<System.IO.Stream, System.Text.Json.Nodes.JsonObject, int, System.Threading.CancellationToken,
+    System.Threading.Tasks.Task>))calls.Frames.Invoke();
+var chainPolicy = new System.Security.Cryptography.X509Certificates.X509ChainPolicy
+{
+    TrustMode = System.Security.Cryptography.X509Certificates.X509ChainTrustMode.CustomRootTrust,
+    // This explicit, pinned development trust anchor has no external revocation service.
+    RevocationMode = System.Security.Cryptography.X509Certificates.X509RevocationMode.NoCheck,
+    DisableCertificateDownloads = true
+};
+chainPolicy.CustomTrustStore.Add(expected);
+byte[] pinned = expected.GetRawCertData();
+var options = new System.Net.Security.SslClientAuthenticationOptions
+{
+    TargetHost = tlsName,
+    CertificateChainPolicy = chainPolicy,
+    EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | System.Security.Authentication.SslProtocols.Tls13,
+    AllowRenegotiation = false,
+    RemoteCertificateValidationCallback = (_, certificate, _, errors) =>
+        errors == System.Net.Security.SslPolicyErrors.None && certificate is not null &&
+        System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(certificate.GetRawCertData(), pinned)
+};
+
+System.IO.Stream? ownedTransport = null;
+System.Net.Security.SslStream? stream = null;
+var gate = new object();
+try
+{
+    using var opening = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+    ownedTransport = openTransport(opening.Token);
+    stream = new System.Net.Security.SslStream(ownedTransport, leaveInnerStreamOpen: true);
+    stream.AuthenticateAsClientAsync(options, opening.Token).GetAwaiter().GetResult();
+    // No application bytes containing the invitation are written before TLS authenticates.
+    write(stream, new() { ["op"] = "join", ["project"] = project, ["invitation"] = invitation, ["display"] = displayName },
+        MaxRequest, opening.Token).GetAwaiter().GetResult();
+    if (read(stream, MaxResponse, opening.Token).GetAwaiter().GetResult()["status"]?.GetValue<string>() != "joined")
+        throw new UnauthorizedAccessException("The project chat invitation was refused.");
+
+    System.Text.Json.Nodes.JsonObject Request(System.Text.Json.Nodes.JsonObject input)
+    {
+        lock (gate)
+        {
+            if (stream is null) throw new ObjectDisposedException("Protected chat connection");
+            using var deadline = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
+            {
+                if (input.Count == 4 && input["op"]?.GetValue<string>() == "send-attachment" &&
+                    input["attachment"] is System.Text.Json.Nodes.JsonObject box)
+                {
+                    var header = new System.Text.Json.Nodes.JsonObject
+                    {
+                        ["op"] = "send-attachment", ["id"] = input["id"]?.DeepClone(), ["text"] = input["text"]?.DeepClone()
+                    };
+                    write(stream, header, MaxRequest, deadline.Token).GetAwaiter().GetResult();
+                    write(stream, box, MaxUpload, deadline.Token).GetAwaiter().GetResult();
+                }
+                else write(stream, input, MaxRequest, deadline.Token).GetAwaiter().GetResult();
+                return read(stream, MaxResponse, deadline.Token).GetAwaiter().GetResult();
+            }
+            catch { Close(); throw; }
+        }
+    }
+
+    void Close()
+    {
+        System.Threading.Interlocked.Exchange(ref ownedTransport, null)?.Dispose();
+        lock (gate)
+        {
+            stream?.Dispose();
+            stream = null;
+        }
+    }
+
+    return ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>)Request, (Action)Close);
+}
+catch
+{
+    ownedTransport?.Dispose();
+    stream?.Dispose();
+    throw;
+}

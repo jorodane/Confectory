@@ -1,42 +1,5 @@
-const int RoomSlot = 15;
-const int ListenerSlot = 16;
-if (Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" ||
-    certificate is not System.Security.Cryptography.X509Certificates.X509Certificate2 serverCertificate ||
-    !serverCertificate.HasPrivateKey)
-    throw new InvalidOperationException("Explicit loopback enablement and a server certificate are required.");
-if (AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
-    throw new UnauthorizedAccessException("An active host session is required.");
+if (Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1")
+    throw new InvalidOperationException("Protected chat loopback is disabled.");
 
-lock (owner)
-{
-    if (owner[ListenerSlot] is System.Threading.Tasks.Task running && !running.IsCompleted)
-        throw new InvalidOperationException("This editor already owns a protected chat listener.");
-
-    calls.Invitations.Invoke(session, activation);
-    var (_, _, admission, active, close, lifetime) =
-        ((string, object, object, Func<bool>, Action, System.Threading.CancellationToken))owner[RoomSlot];
-
-    var (_, accept, _) = ((Func<int, string>, Func<string, string, string, object>, Action))admission;
-
-    bool Check()
-    {
-        lock (owner)
-        {
-            if (active()) return true;
-            close();
-            return false;
-        }
-    }
-
-    var (port, _, completion) = ((int, Action, System.Threading.Tasks.Task))
-        calls.Listen.Invoke((serverCertificate, accept, (Func<bool>)Check, lifetime));
-    async System.Threading.Tasks.Task Finish()
-    {
-        try { await completion.ConfigureAwait(false); }
-        finally { close(); }
-    }
-    var ownedCompletion = Finish();
-    owner[ListenerSlot] = ownedCompletion;
-    // Close cancels the room, its invitations and the listener without waiting under the editor lock.
-    return (port, close, ownedCompletion);
-}
+return calls.Start.Invoke(session, activation, certificate,
+    (Func<object, object>)(options => calls.Listen.Invoke(options)));
