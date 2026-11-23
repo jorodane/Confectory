@@ -2,9 +2,13 @@ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
-if(endpoint=="readPublicChatHistory"){
- if(args.Count!=0)throw new UnauthorizedAccessException("public_chat_history_fields");
- string result=calls.PublicChatHistory.Invoke(context,before["selected"]?["activation"]?.ToString()??"");
+if(endpoint is "readPublicChatHistory" or "readPublicChatAttachment" or "readPublicChatFirstImage" or "readPublicChatSecondImage"){
+ bool history=endpoint=="readPublicChatHistory";
+ if(history ? args.Count!=0 : args.Count!=2||args["messageId"] is null||args["attachmentId"] is null)
+  throw new UnauthorizedAccessException("public_chat_fields");
+ string operation=endpoint switch{"readPublicChatHistory"=>"history","readPublicChatAttachment"=>"attachment","readPublicChatFirstImage"=>"first-image",_=>"second-image"};
+ string result=calls.PublicChatHistory.Invoke(context,before["selected"]?["activation"]?.ToString()??"",operation,
+  history?"":args["messageId"]!.GetValue<string>(),history?"":args["attachmentId"]!.GetValue<string>());
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
  return result;
 }

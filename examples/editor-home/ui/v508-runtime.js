@@ -215,7 +215,7 @@ const mainColumn=document.createElement('div');mainColumn.className='work-main-c
 bindParticipantSidebar();
 const openActiveProjectMenu=e=>projectMenu({id:current.listingId,title:current.title},e,e.currentTarget);
 $('#title').onclick=openActiveProjectMenu;
-$('#augment').onclick=()=>work(async()=>{await readCurrentView('augmentShow',{});showAugment();},'증강 상태');$('#chat').onclick=showChat;$('#logs-tab').onclick=()=>{$('#chat-inner').hidden=true;$('#execution-logs').hidden=false;$('#chat').classList.remove('selected');$('#logs-tab').classList.add('selected');};$('#yogi').onclick=()=>openLocalYogi();$('#worker-finder-bubble').onclick=()=>workspaceFinder.open();$('#nav').onclick=toggleNav;$('#build-target').onclick=showTargets;const projectRun=$('#run'),projectMenuButton=$('#project-menu');
+$('#augment').onclick=()=>work(async()=>{await readCurrentView('augmentShow',{});showAugment();},'증강 상태');$('#chat').onclick=showChat;$('#logs-tab').onclick=()=>{retirePublicChat();$('#chat-inner').hidden=true;$('#execution-logs').hidden=false;$('#chat').classList.remove('selected');$('#logs-tab').classList.add('selected');};$('#yogi').onclick=()=>openLocalYogi();$('#worker-finder-bubble').onclick=()=>workspaceFinder.open();$('#nav').onclick=toggleNav;$('#build-target').onclick=showTargets;const projectRun=$('#run'),projectMenuButton=$('#project-menu');
 if(projectRun)projectRun.onclick=()=>showRun({launch:!document.body.classList.contains('is-mobile-editor')});
 if(projectMenuButton)projectMenuButton.onclick=openActiveProjectMenu;$('#conflict-log').onclick=()=>battleLogUI.open();$('#issues').onclick=()=>unsupported('신문고','신문고 수신·전송 계약은 연결되지 않았습니다.');setupChatResize();actualWorkspace.attach(current);showChat();}
 
@@ -589,6 +589,7 @@ function renderHomeProjects(){
  }
  $$('[data-enter]',root).forEach(b=>b.onclick=()=>{if(!dragged)act('openProject',{id:b.dataset.enter});});$$('[data-manage]',root).forEach(b=>b.onclick=e=>projectMenu(current.cards.find(p=>p.id===b.dataset.manage),e));$$('[data-favorite]',root).forEach(b=>b.onclick=()=>act('favoriteProject',{id:b.dataset.favorite,favorite:b.getAttribute('aria-pressed')!=='true'}));controls();
 }
+const publicChat = {activation:'', container:null, flight:null, viewer:null, lastCheck:0, signature:''};
 const view=new WebView(connectLocal(),state=>{const changed=current?.projectId!==state.projectId;if(changed){$('[data-connection-dialog]')?._retireConnectionDialog?.();keepInput();resourceBrowser.retireAll();resourcePreviews.retireAll();actualWorkspace.detach();}current=state;workerBadges.refresh();if(state.relationsMap)browserProjection.snapshot();releaseV508Ready?.();homePreferences.hydrate(state.homePreferences);buildsUI.update();mcpUI.update();$('[data-connection-dialog]')?._renderConnectionOutcome?.();if(!startupDecided){startupDecided=true;let started=false;try{started=localStorage.getItem('confectory-started-v508')==='true';}catch{}startupVisible=!state.projectId;}if(startupVisible&&!state.projectId){showStartupReady();controls();return;}const participantKey=JSON.stringify([state.projectId,state.projectHelperIds,state.mainHelperId,state.helpers,state.connections,state.helperAgents?.agents?.map(a=>[a.id,a.model,a.state]),state.helperAgents?.assignments]);if(!changed&&$('.home-side')&&participantKey!==participantSnapshot){syncParticipants();const template=document.createElement('template');template.innerHTML=participantSidebarMarkup();$('.home-side').replaceWith(template.content.firstElementChild);bindParticipantSidebar();}participantSnapshot=participantKey;if(!state.projectId){if(changed||!$('.home-grid'))drawHome();else if(homeCardsSnapshot!==JSON.stringify(state.cards)){if(homeCardsIdentity===homeProjectIdentity(state.cards))updateHomeProjectStats();else renderHomeProjects();}inventoryUI.renderHome();updateConnectionPresentations();controls();return;}if(changed)drawWork();$('#title').textContent=state.title+' ▾';$('#workspace-label').textContent=state.title.toUpperCase()+' / WORKSPACE';renderObjects();renderPacks();packManager.render();ensureBrowserInventory();editor();if(windows.get('schema')?.elementSchema&&state.schema?.id===state.draft?.id&&windows.get('schema')?.meta.id===state.schema.id)elementEditors.show(state.schema);relationsUI.update();tablesUI.update();conflictsUI.update();draftBadge(windows.get('schema'),state.draft);renderEditorViews();if(windows.has('declaration')&&state.declaration)declarationEditors.show();updateHelperPresentations();updateConnectionPresentations();renderRetainedEditors();renderProjectLogs(state.logs);renderRun();if(windows.has('yogi')&&windows.get('yogi').meta.snapshot!==JSON.stringify([state.yogi,state.yogiError]))showYogi();if($('#chat-output'))$('#chat-output').textContent=state.aiOutput||'';if($('#chat-helper'))$('#chat-helper').textContent=state.aiHelperId||state.helperProfile?.helper||'';$('#helper-summary').textContent=state.helperProfile?state.helperProfile.helper+' · '+state.helperProfile.speciality:'Helper를 명시적으로 선택하세요.';if(windows.has('augment')&&windows.get('augment').meta.snapshot!==JSON.stringify(state.augment))showAugment(true);if(windows.has('worker')){const panel=windows.get('worker'),row=state.workers.find(item=>item.id===panel.meta.workerId);if(row&&panel.meta.snapshot!==JSON.stringify([row,state.aiOwnerAvailable,state.planningOwnerAvailable,state.connection,state.augment?.canCustom]))showWorker(row,true);}$('#agent-summary').textContent='⌘ AGENT · '+(state.connection?'설정 선택됨 · '+state.aiState:'미연결');$('#worker-summary').replaceChildren(...(state.workers||[]).map(worker=>{const b=document.createElement('button');b.dataset.operation='worker';const tone=['running','dispatching','awaiting-verification'].includes(worker.status)?'working':['error','interrupted','cancelled'].includes(worker.status)?'problem':'waiting';b.className='consumer-worker';b.innerHTML=`<span class="helper-worker-dot ${tone}" tabindex="0" aria-label="${esc(worker.id)} · ${esc(worker.status)}"><span class="worker-status-tooltip"><strong>${esc(worker.status)}</strong><p>${esc(worker.ownerHelper||'')} · ${esc(worker.goal||'')}</p><small>${esc(worker.progress||worker.blocker||'')}</small></span></span><small>${esc(worker.id)}</small>`;b.onclick=()=>work(async()=>{await view.call('selectWorker',{task:worker.id});showWorker(worker);},'Worker 상태');return b;}));if(changed){const input=retained.get(state.projectId);if(input?.dirty){draft=input.draft;dirty=true;const source=windows.get('source');if(source){source.el.hidden=false;workspaceRuntime.registerWorkspaceNode(source);$('#source').value=input.text;$('#selection').textContent=draft.id;editor();}}}});
 // Reopen read-only view ownership through the existing idempotent contract.
 // Only an unexecuted transport revision rejection is retried; source CAS is untouched.
@@ -600,7 +601,7 @@ async function restoreWorkspaceBindings(bindings,id){
 }
 function recover(){if(!recovering)recovering=(async()=>{
  const wasBusy=busy;busy=true;controls();
- try{keepInput();await view.dispose();for(let attempt=0;;attempt++){try{await view.mount();break;}catch(error){if(error.message!=='busy'||attempt===99)throw error;await new Promise(resolve=>setTimeout(resolve,50));}}
+ try{retirePublicChat();keepInput();await view.dispose();for(let attempt=0;;attempt++){try{await view.mount();break;}catch(error){if(error.message!=='busy'||attempt===99)throw error;await new Promise(resolve=>setTimeout(resolve,50));}}
   if($('.modal[data-helper-settings]')){const expanded=$('.helper-local-settings')?.open;showHelpers();if(expanded)$('.helper-local-settings').open=true;}
  }finally{busy=wasBusy;controls();}
 })().finally(()=>recovering=null);return recovering;}
@@ -618,6 +619,7 @@ async function work(action,message,options={}){if(busy)return;busy=true;controls
 function act(endpoint,input){if(dirty&&['select','objects','page'].includes(endpoint)&&!(endpoint==='select'&&input.id===draft?.id)){toast('Apply local input before changing selection');return;}const scope=current.projectId,generation=view.generation;return work(async()=>{if(endpoint==='openProject'||endpoint==='page')await resourcePreviews.flushDrafts();if(endpoint==='select'){for(let attempt=0;attempt<3;attempt++){await view.update();if(current.projectId!==scope||view.generation!==generation||dirty&&draft?.id!==input.id)throw Error('선택할 작업 공간이 바뀌었습니다. 입력은 유지됩니다.');try{await view.call(endpoint,input);break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}}else await view.call(endpoint,input);if(endpoint==='select'&&!dirty&&['category','concept','function','module','object','schema','implementation'].includes(view.state.draft?.kind)){if(['object','schema'].includes(view.state.draft.kind)){await view.call('schema',{id:input.id});const opened=showSchema();if(opened)focusWindow(opened);}else{await inspectDeclaration(input.id);declarationEditors.open();}}},'Ready');}
 async function apply(){if(!draft||!dirty)return;if(view.state.draft?.id!==draft.id)throw Error('브라우저에서 편집 중인 객체를 다시 선택하세요. 입력은 유지되었습니다.');await view.call('editDraft',{id:draft.id,text:$('#source').value,revision:draft.revision});dirty=false;draft=view.state.draft;$('#source').value=draft.text;await view.update();}
 function bindCommon(){const objects=$('#objects-refresh');if(objects)objects.onclick=()=>{browser();act('objects',{});};const reconnect=$('#reconnect');if(reconnect)reconnect.onclick=()=>{if(dirty){toast('Apply local input before reconnecting');return;}return work(async()=>{await view.dispose();await view.mount();},'Reconnected; shared draft retained');};}
+setInterval(()=>syncPublicChat(),1500);
 let updating=false;setInterval(async()=>{if(updating||!view.active)return;updating=true;try{await view.update();}catch(e){if(e.message==='scope_changed')await recover();else toast(failureMessage(e));}finally{updating=false;}},100);
 addEventListener('resize',clampWindows);addEventListener('keydown',e=>{workspaceRuntime.state.shiftHeld=e.shiftKey;if(!e.defaultPrevented&&e.key==='Delete'&&page==='work'&&!e.target.closest('.feature-author-document')&&!actualWorkspace.noteDocuments.active&&!actualWorkspace.windowDocuments.active&&!e.target.closest('input,textarea,select,[contenteditable=true]')&&!$('.modal')){const nodes=workspaceRuntime.selectedWorkspaceNodes();if(nodes.length){e.preventDefault();workspaceRuntime.deleteWorkspaceNodes(nodes);}}});addEventListener('keyup',e=>{workspaceRuntime.state.shiftHeld=e.shiftKey;});
 
@@ -1162,6 +1164,122 @@ function closeActiveProject(){
  if(!active){close();return;}
  modal('작업 중인 프로젝트 종료',`<p>이 프로젝트의 실행 중인 AI·Worker 또는 프로젝트 실행을 종료하고 완전히 닫을까요?</p><p>계속 작업을 선택하면 현재 작업이 유지됩니다.</p><div class="actions"><button data-keep-project>계속 작업</button><button class="danger" data-confirm-project-close>작업 종료 후 닫기</button></div>`,(root,dismiss)=>{$('[data-keep-project]',root).onclick=dismiss;$('[data-confirm-project-close]',root).onclick=()=>{dismiss();close();};});
 }
+
+function clearPublicChatRows(){
+ publicChat.container?.querySelector('[data-public-chat-rows]')?.remove();
+ publicChat.signature='';
+}
+function retirePublicChat(){
+ publicChat.flight?.abort();publicChat.flight=null;
+ publicChat.viewer?.close();
+ clearPublicChatRows();
+ publicChat.container=null;publicChat.activation='';publicChat.lastCheck=0;
+}
+function publicChatActive(container,activation,generation){
+ return view.active&&view.generation===generation&&view.scope?.projectActivation===activation&&
+  container.isConnected&&!$('#chat-inner')?.hidden;
+}
+function syncPublicChat(force=false){
+ const container=$('#messages'),activation=view.scope?.projectActivation||'',generation=view.generation;
+ if(publicChat.container!==container||publicChat.activation!==activation){
+  retirePublicChat();publicChat.container=container;publicChat.activation=activation;
+ }
+ if(!container||!activation||$('#chat-inner')?.hidden||publicChat.flight||
+    (!force&&performance.now()-publicChat.lastCheck<1500))return;
+ const flight=new AbortController();publicChat.flight=flight;publicChat.lastCheck=performance.now();
+ const active=()=>publicChat.flight===flight&&publicChatActive(container,activation,generation);
+ view.observe('readPublicChatHistory',{},flight.signal).then(result=>{
+  if(!active())return;
+  if(result.status!=='available'||result.projectActivation!==activation){
+   publicChat.viewer?.close();clearPublicChatRows();return;
+  }
+  if(publicChat.viewer&&!result.messages.some(row=>
+     row.id===publicChat.viewer.messageId&&row.attachmentId===publicChat.viewer.attachmentId))
+   publicChat.viewer.close();
+  const signature=JSON.stringify(result.messages);
+  if(signature===publicChat.signature)return;
+  clearPublicChatRows();publicChat.signature=signature;
+  if(!result.messages.length)return;
+  const group=document.createElement('div');group.dataset.publicChatRows='';group.setAttribute('aria-label','저장된 공용 채팅');
+  for(const message of result.messages){
+   const row=document.createElement('div');row.className='message';
+   const sender=document.createElement('strong');sender.textContent='공용 · '+message.sender;
+   const text=document.createElement('span');text.textContent=message.text;
+   row.append(sender,text);
+   if(message.attachmentId){
+    const button=document.createElement('button');button.type='button';button.className='tag amber';button.textContent='YogiBox 보기';
+    button.onclick=()=>openPublicChatYogi(container,activation,generation,message);
+    row.append(button);
+   }
+   group.append(row);
+  }
+  container.prepend(group);
+ }).catch(error=>{
+  if(active()&&error.message!=='busy'){publicChat.viewer?.close();clearPublicChatRows();}
+ }).finally(()=>{if(publicChat.flight===flight)publicChat.flight=null;});
+}
+function openPublicChatYogi(container,activation,generation,message){
+ if(!publicChatActive(container,activation,generation))return;
+ publicChat.viewer?.close();
+ modal('YogiBox 보기', '<div class="window-content" data-public-yogi aria-live="polite"></div>', (root,close)=>{
+  const token={close,abort:new AbortController(),messageId:message.id,attachmentId:message.attachmentId};publicChat.viewer=token;
+  root._ownedCleanup=()=>{token.abort.abort();if(publicChat.viewer===token)publicChat.viewer=null;};
+  const body=$('[data-public-yogi]',root),active=()=>publicChat.viewer===token&&root.isConnected&&publicChatActive(container,activation,generation);
+  const pair={messageId:message.id,attachmentId:message.attachmentId};
+  const read=async endpoint=>{
+   let result;
+   for(let attempt=0;active();attempt++){
+    try{result=await view.observe(endpoint,pair,token.abort.signal);break;}
+    catch(error){
+     if(error.message!=='busy'||attempt===3)throw error;
+     await new Promise(resolve=>setTimeout(resolve,35));
+    }
+   }
+   if(!active())return null;
+   if(result.status!=='available'||result.projectActivation!==activation||
+      result.messageId!==pair.messageId||result.attachmentId!==pair.attachmentId)throw Error('public_chat_unavailable');
+   return result;
+  };
+  const deny=()=>{if(active()){close();toast('현재 프로젝트에서 이 YogiBox를 열 수 없어요.');}};
+  body.textContent='YogiBox 읽는 중…';
+  read('readPublicChatAttachment').then(result=>{
+   if(!result)return;
+   const description=document.createElement('p');description.textContent=result.description;description.style.whiteSpace='pre-wrap';
+   body.replaceChildren(description);
+   for(const item of result.items){
+    const row=document.createElement('p');
+    if(item.kind==='image'){
+     const preview=document.createElement('button');preview.type='button';preview.textContent='이미지 보기';
+     preview.onclick=async()=>{
+      preview.disabled=true;
+      try{
+       const image=await read(item.image===0?'readPublicChatFirstImage':'readPublicChatSecondImage');
+       if(!image)return;
+       if(image.item!==item.item)throw Error('public_chat_image_changed');
+       preview.replaceWith(rgbCanvas(image.capture));
+      }catch{deny();}
+     };
+     row.append(preview);
+    }else if(item.availability==='available'){
+     const reference=document.createElement('button');reference.type='button';reference.textContent=item.id;
+     reference.onclick=async()=>{
+      if(busy)return;
+      try{
+       const latest=await read('readPublicChatAttachment');
+       if(!latest)return;
+       const match=latest.items.find(row=>row.item===item.item&&row.id===item.id&&row.availability==='available');
+       if(!match){toast('현재 프로젝트에서 이 EY 참조를 열 수 없어요.');reference.disabled=true;return;}
+       close();await act('select',{id:match.id});
+      }catch{deny();}
+     };
+     row.append(reference);
+    }else row.textContent='현재 열 수 없는 EY';
+    body.append(row);
+   }
+  }).catch(deny);
+ });
+}
+
 function renderProjectLogs(logs){
  const text=(logs||[]).join('\n');
  $('#execution-logs').textContent=text;
@@ -1169,7 +1287,7 @@ function renderProjectLogs(logs){
  if(latest.textContent!==line)latest.textContent=line;
  latest.hidden=!line;
 }
-function showChat(){const scope=current.projectId,body=$('#chat-inner');body.hidden=false;$('#execution-logs').hidden=true;$('#chat').classList.add('selected');$('#logs-tab').classList.remove('selected');if($('#chat-input'))return;body.innerHTML=`<div class="messages" id="messages"><div class="message"><strong id="chat-helper">${esc(current.aiHelperId||current.helperProfile?.helper||'')}</strong><span id="chat-output">${esc(current.aiOutput||'')}</span></div></div><form class="chat-compose" id="chat-form"><textarea id="chat-input" maxlength="4096" aria-label="프로젝트 채팅 입력" placeholder="함께 만들 내용을 남겨보세요…">${esc(conversations.get(scope)??current.chatDraft??'')}</textarea><button class="primary" data-operation id="chat-prepare" type="submit" aria-label="메시지 보내기">보내기</button></form><small class="muted" id="chat-latest-log" hidden></small>`;
+function showChat(){const scope=current.projectId,body=$('#chat-inner');body.hidden=false;$('#execution-logs').hidden=true;$('#chat').classList.add('selected');$('#logs-tab').classList.remove('selected');if($('#chat-input')){syncPublicChat(true);return;}body.innerHTML=`<div class="messages" id="messages"><div class="message"><strong id="chat-helper">${esc(current.aiHelperId||current.helperProfile?.helper||'')}</strong><span id="chat-output">${esc(current.aiOutput||'')}</span></div></div><form class="chat-compose" id="chat-form"><textarea id="chat-input" maxlength="4096" aria-label="프로젝트 채팅 입력" placeholder="함께 만들 내용을 남겨보세요…">${esc(conversations.get(scope)??current.chatDraft??'')}</textarea><button class="primary" data-operation id="chat-prepare" type="submit" aria-label="메시지 보내기">보내기</button></form><small class="muted" id="chat-latest-log" hidden></small>`;
 $('#chat-input').oninput=()=>{conversations.set(scope,$('#chat-input').value);const key=scope+'|'+current.helperProfile?.helper;helperTalkGenerations.set(key,(helperTalkGenerations.get(key)||0)+1);};
 $('#chat-input').onblur=e=>{if(e.relatedTarget?.closest('#conflict-log,#run,#title,#worker-finder-bubble,.run-window button,[data-window-tab],.workspace-tab-close')){actualWorkspace.schedule();return;}if($('#chat-form').contains(e.relatedTarget)||e.relatedTarget?.closest('.brand')||current.projectId!==scope||busy)return;const value=$('#chat-input')?.value;if(value!==undefined&&value!==current.chatDraft)work(()=>view.call('chatDraft',{value}),'프로젝트 대화 초안 저장됨 · 전송 없음');};
 const input=$('#chat-input'),form=$('#chat-form');
@@ -1177,7 +1295,7 @@ const input=$('#chat-input'),form=$('#chat-form');
  input.addEventListener('compositionstart',()=>{composing=true;});
  input.addEventListener('compositionend',()=>{composing=false;});
  projectChatKeys(input,form,()=>composing);
- form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing)return;const value=input.value;work(()=>prepareHelperMessage(current.helperProfile?.helper,scope,value),'');};controls();}
+ form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing)return;const value=input.value;work(()=>prepareHelperMessage(current.helperProfile?.helper,scope,value),'');};controls();syncPublicChat(true);}
 
 // Present the existing per-request Codex policy without changing its grant or checks.
 function projectChatReview(preview,projectTitle,helperName){

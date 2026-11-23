@@ -1,5 +1,11 @@
+static bool StableId(string value) =>
+    Guid.TryParseExact(value, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == value;
+
 const string Unavailable = "{\"status\":\"unavailable\"}";
-if (activation.Length == 0 ||
+bool history = operation == "history";
+// This journal uses the owning message UUID as its attachment UUID.
+if ((!history && (operation is not ("attachment" or "first-image" or "second-image") ||
+        !StableId(messageId) || messageId != attachmentId)) || activation.Length == 0 ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
     return Unavailable;
 
@@ -28,22 +34,112 @@ lock (owner)
             return Unavailable;
 
         // Use the same bounded parser and manifest checks as the host. This observation
-        // neither retains the mutable host handle nor calls its send or attachment delegates.
-        var (_, _, read, close, _, _) =
+        // neither retains the mutable host handle nor calls its send delegates.
+        var (_, _, read, close, _, readAttachment) =
             ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
               Func<string, string, string, bool>, Func<string, string>))
             calls.OpenHost.Invoke(storage, project, "local-user", manifest);
         try
         {
-            string messages = read();
-            if (messages.Length > 2000000 || !Authorized() ||
-                calls.Origin.Invoke(manifest, false, false) != manifestOrigin) return Unavailable;
-            return new System.Text.Json.Nodes.JsonObject
+            var result = new System.Text.Json.Nodes.JsonObject
             {
                 ["status"] = "available",
-                ["projectActivation"] = activation,
-                ["messages"] = System.Text.Json.Nodes.JsonNode.Parse(messages)
-            }.ToJsonString();
+                ["projectActivation"] = activation
+            };
+            if (history)
+            {
+                result["messages"] = System.Text.Json.Nodes.JsonNode.Parse(read());
+            }
+            else
+            {
+                var package = System.Text.Json.Nodes.JsonNode.Parse(readAttachment(messageId))!["package"]!;
+                var items = package["items"]!.AsArray();
+                result["messageId"] = messageId;
+                result["attachmentId"] = attachmentId;
+                if (operation == "attachment")
+                {
+                    result["description"] = package["text"]!.DeepClone();
+                    var viewItems = new System.Text.Json.Nodes.JsonArray();
+                    var workspaces = (System.Collections.Generic.Dictionary<string, string>)owner[9];
+                    string? draft = workspaces.TryGetValue(context, out var workspace)
+                        ? calls.BorrowDraft.Invoke(workspace) : null;
+                    var identity = draft is null ? null : calls.WorkspaceIdentity.Invoke(draft);
+                    if (identity?[0] != manifest || identity?[1] != "local-user") draft = null;
+
+                    int imageIndex = 0;
+                    foreach (var item in items)
+                    {
+                        string kind = item!["kind"]!.GetValue<string>();
+                        var row = new System.Text.Json.Nodes.JsonObject
+                        {
+                            ["item"] = item["item"]!.DeepClone(),
+                            ["kind"] = kind
+                        };
+                        if (kind == "image")
+                        {
+                            row["image"] = imageIndex++;
+                            row["width"] = item["capture"]!["width"]!.DeepClone();
+                            row["height"] = item["capture"]!["height"]!.DeepClone();
+                        }
+                        else
+                        {
+                            string id = item["id"]!.GetValue<string>();
+                            string elementKind = item["elementKind"]!.GetValue<string>();
+                            row["availability"] = "unavailable";
+                            if (draft is not null && CanOpenReference(draft, id, elementKind))
+                            {
+                                row["availability"] = "available";
+                                row["id"] = id;
+                                row["elementKind"] = elementKind;
+                            }
+                        }
+                        viewItems.Add(row);
+                    }
+                    result["items"] = viewItems;
+                }
+                else
+                {
+                    int index = operation == "first-image" ? 0 : 1;
+                    var image = System.Linq.Enumerable.ElementAtOrDefault(
+                        System.Linq.Enumerable.Where(items, item => item!["kind"]!.GetValue<string>() == "image"), index);
+                    if (image is null) return Unavailable;
+                    result["item"] = image["item"]!.DeepClone();
+                    var capture = new System.Text.Json.Nodes.JsonObject();
+                    foreach (string field in new[] { "width", "height", "pixels", "hash", "encoding" })
+                        capture[field] = image["capture"]![field]!.DeepClone();
+                    result["capture"] = capture;
+                }
+            }
+
+            string reply = result.ToJsonString(new System.Text.Json.JsonSerializerOptions
+            {
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+            if (reply.Length > 2097152 || !Authorized() ||
+                calls.Origin.Invoke(manifest, false, false) != manifestOrigin) return Unavailable;
+            return reply;
+
+            bool CanOpenReference(string draft, string id, string kind)
+            {
+                if (kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation"))
+                    return false;
+                try
+                {
+                    // Use both the live draft's owned-unit gate and a fresh read of the
+                    // registered declaration. Cached drafts alone can outlive a deletion.
+                    if (calls.WorkspaceStatus.Invoke(draft, id)[1] != kind) return false;
+                    string request = System.Text.Json.JsonSerializer.Serialize(new { action = "read", id });
+                    var catalog = System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(manifest, request));
+                    return catalog?["status"]?.ToString() == "available" &&
+                        catalog["element"]?["id"]?.ToString() == id &&
+                        catalog["element"]?["kind"]?.ToString() == kind;
+                }
+                catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+                    UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException)
+                {
+                    return false;
+                }
+            }
         }
         finally { close(); }
     }

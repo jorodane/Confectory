@@ -31,7 +31,25 @@ void Create(string storage, string name, bool seed, bool attachment = false)
                 string workspace = calls.OpenWorkspace.Invoke(manifest, "local-user", "chat-seed");
                 string box = calls.OpenBox.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,
                     ".confectory", "yogi"), id, "local-user", workspace);
-                calls.Text.Invoke(box, "sealed attachment fixture must stay out of the observation");
+                calls.Text.Invoke(box, "independent private Yogi draft");
+                calls.SaveBox.Invoke(box);
+                calls.Text.Invoke(box, "전송 당시 설명\nOriginal sealed description");
+                calls.Exactly.Invoke(box, workspace, new[] { "Project.AuthorA::Main", "Project.AuthorA::MainBody" }, Array.Empty<string>());
+                for (int index = 0; index < 2; index++)
+                {
+                    string source = new string('a', 64);
+                    string ticket = calls.Reserve.Invoke(box, source, 0, 4, 5, 512, 512);
+                    byte[] pixels = new byte[512 * 512 * 3];
+                    Array.Fill(pixels, (byte)(23 + index));
+                    string capture = System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        source, view = 0, x = 4, y = 5, width = 512, height = 512,
+                        encoding = "rgb24-base64", scope = "selected-owned-client-region",
+                        pixels = Convert.ToBase64String(pixels),
+                        hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
+                    });
+                    if (!calls.Complete.Invoke(box, ticket, capture)) throw new InvalidOperationException("Fixture capture rejected");
+                }
                 calls.Seal.Invoke(box, true);
                 sendAttachment(messageId, name + " public message", box);
             }

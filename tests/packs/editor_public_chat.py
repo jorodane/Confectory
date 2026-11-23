@@ -1,5 +1,6 @@
 """Exercise the actual EditorHome WebUI observation using disposable native journals."""
 from contextlib import contextmanager
+import base64
 import hashlib
 import json
 import os
@@ -13,13 +14,15 @@ import time
 import urllib.request
 import uuid
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
 
 repo = Path(__file__).resolve().parents[2]
 tools = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else repo
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
 cli = tools / "src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll"
 endpoint = "readPublicChatHistory"
+attachment_endpoint = "readPublicChatAttachment"
+description = "전송 당시 설명\nOriginal sealed description"
 assert dotnet and cli.is_file(), "Build the Release CLI and targets or pass their checkout"
 env = dict(os.environ, CONFECTORY_DOTNET=dotnet,
            PATH=str(Path(dotnet).resolve().parent) + os.pathsep + os.environ["PATH"])
@@ -52,9 +55,9 @@ class Editor:
             time.sleep(.01)
         raise AssertionError("Editor could not mount")
 
-    def observe(self, mounted, payload=None):
+    def observe(self, mounted, payload=None, action=endpoint):
         return self.request({"op": "observe", "view": mounted["view"], "scope": mounted["scope"],
-                             "endpoint": endpoint, "input": payload or {}})
+                             "endpoint": action, "input": payload or {}})
 
     def change(self, action, payload, project):
         for _ in range(8):
@@ -117,12 +120,13 @@ def assert_message(reply, mounted, title, attachment=False):
     assert row["text"] == title + " public message" and row["sender"] == "local-user", row
     if attachment:
         assert row["attachmentId"] == row["id"]
+    return row
 
 
-def delayed_observation(page, url):
+def delayed_observation(page, url, pair):
     # Hold a real, completed server reply before delivering it to the shipped WebView.
     page.goto(url)
-    arrived = page.evaluate("""async () => {
+    arrived = page.evaluate("""async pair => {
         const {connectLocal, WebView} = await import('/web-ui.js');
         const send = connectLocal();
         let reportReply;
@@ -130,7 +134,7 @@ def delayed_observation(page, url):
         const gate = new Promise(resolve => { window.releaseChatReply = resolve; });
         window.chatView = new WebView(async (request, options) => {
             const reply = await send(request, options);
-            if (request.endpoint === 'readPublicChatHistory' && !window.chatReplyHeld && reply.ok) {
+            if (request.endpoint === 'readPublicChatAttachment' && !window.chatReplyHeld && reply.ok) {
                 window.chatReplyHeld = true;
                 reportReply(reply.result);
                 await gate;
@@ -147,11 +151,11 @@ def delayed_observation(page, url):
             }
         };
         await mountChatView();
-        window.chatResult = chatView.observe('readPublicChatHistory').then(
+        window.chatResult = chatView.observe('readPublicChatAttachment', pair).then(
             value => ({ value }), error => ({ error: error.message }));
         return await Promise.race([arrived, chatResult]);
-    }""")
-    assert arrived["messages"][0]["text"] == "AuthorA public message", arrived
+    }""", pair)
+    assert arrived["description"] == description, arrived
 
 
 with tempfile.TemporaryDirectory(prefix="confectory-editor-public-chat-") as directory:
@@ -170,7 +174,11 @@ import Confectory.ProjectChat::OpenHostWithAttachments as OpenHost (string,strin
 import Confectory.EditWorkspace::Open as OpenWorkspace (string,string,string) -> string;
 import Confectory.YogiBox::Open as OpenBox (string,string,string,string) -> string;
 import Confectory.YogiBox::Text as Text (string,string) -> void;
+import Confectory.YogiBox::Save as SaveBox (string) -> void;
 import Confectory.YogiBox::Seal as Seal (string,bool) -> void;
+import Confectory.YogiBox::Exactly as Exactly (string,string,string[],string[]) -> void;
+import Confectory.YogiBox::ReserveCapture as Reserve (string,string,int,int,int,int,int) -> string;
+import Confectory.YogiBox::CompleteCapture as Complete (string,string,string) -> bool;
 body common "PublicChatFixture.csbody";'''))
     shutil.copyfile(repo / "tests/fixtures/editor-public-chat/Main.csbody", home / "PublicChatFixture.csbody")
     seed = subprocess.run(build(manifest), capture_output=True, text=True, timeout=90,
@@ -197,24 +205,60 @@ body common "PublicChatFixture.csbody";'''))
     private = profile / "helper-conversations/fixture.json"
     private.parent.mkdir(exist_ok=True)
     private.write_text('{"unchanged":"personal Helper data"}\n')
-    protected = {path: path.read_bytes() for path in [private, *profile.glob("project-chat/*.json")]}
+    a_journal = profile / "project-chat" / (a["id"] + ".json")
+    message = json.loads(a_journal.read_text())["messages"][0]["id"]
+    pair = {"messageId": message, "attachmentId": message}
+    private_yogi, = Path(a["manifest"]).parent.glob(".confectory/yogi/package-*.json")
+    protected = {path: path.read_bytes() for path in [private, private_yogi, *profile.glob("project-chat/*.json")]}
     unavailable = {"status": "unavailable"}
+
+    def attachment(editor, view, query=pair):
+        return editor.observe(view, query, attachment_endpoint)
 
     with host(command, checkout, empty_profile, empty["manifest"]) as editor:
         view = editor.mount()
         assert editor.observe(view)["result"]["messages"] == []
+        assert attachment(editor, view)["result"] == unavailable
         assert not (empty_profile / "project-chat").exists()
         home_view = editor.change("leaveProject", {}, "")
         assert editor.observe(home_view)["result"] == unavailable
     with host(command, checkout, copy_profile, a["manifest"]) as editor:
-        assert editor.observe(editor.mount())["result"] == unavailable
+        denied = editor.mount()
+        assert editor.observe(denied)["result"] == unavailable
+        assert attachment(editor, denied)["result"] == unavailable
     print("PASS no journal on read, Home denied, and exact copies of a journal/receipt denied in another profile", flush=True)
 
     with host(command, checkout, profile, a["manifest"]) as editor:
         first = editor.mount()
         assert_message(editor.observe(first), first, "AuthorA", attachment=True)
+        metadata = attachment(editor, first)["result"]
+        assert metadata["description"] == description and metadata["projectActivation"] == first["scope"]["projectActivation"]
+        assert {row["id"] for row in metadata["items"] if row.get("availability") == "available"} == {
+            "Project.AuthorA::Main", "Project.AuthorA::MainBody"}
+        assert "pixels" not in json.dumps(metadata)
+        for index, action in enumerate(("readPublicChatFirstImage", "readPublicChatSecondImage")):
+            capture = editor.observe(first, pair, action)["result"]["capture"]
+            pixels = base64.b64decode(capture["pixels"], validate=True)
+            assert capture["width"] == capture["height"] == 512
+            assert pixels == bytes([23 + index]) * (512 * 512 * 3)
+            assert hashlib.sha256(pixels).hexdigest() == capture["hash"]
+
         for key in ("role", "projectId", "path", "user"):
             assert not editor.observe(first, {key: "forged"})["ok"]
+            assert not attachment(editor, first, dict(pair, **{key: "forged"}))["ok"]
+        assert attachment(editor, first, dict(pair, attachmentId=uuid.uuid4().hex))["result"] == unavailable
+        assert attachment(editor, first, {"messageId": a["id"], "attachmentId": a["id"]})["result"] == unavailable
+
+        # A cached workspace locator alone must not reopen an already removed declaration.
+        body_path = Path(a["manifest"]).parent / "main_body.celem"
+        moved_body = body_path.with_suffix(".withheld")
+        body_path.rename(moved_body)
+        try:
+            items = attachment(editor, first)["result"]["items"]
+            removed = next(row for row in items if row["item"] == metadata["items"][1]["item"])
+            assert removed["availability"] == "unavailable" and "id" not in removed
+        finally:
+            moved_body.rename(body_path)
 
         def open_project(path, project_id):
             listing = hashlib.sha256(str(path).encode()).hexdigest()[:32].upper()
@@ -223,6 +267,7 @@ body common "PublicChatFixture.csbody";'''))
         editor.change("leaveProject", {}, "")
         copied = open_project(replica_manifest, a["id"])
         assert editor.observe(copied)["result"] == unavailable
+        assert attachment(editor, copied)["result"] == unavailable
         assert editor.observe(first)["error"]["code"] == "scope_changed"
         editor.change("leaveProject", {}, "")
         again = open_project(a["manifest"], a["id"])
@@ -233,7 +278,54 @@ body common "PublicChatFixture.csbody";'''))
             page = browser.new_page()
             page.route("**/*", lambda route: route.continue_()
                        if route.request.url.startswith(editor.origin + "/") else route.abort())
-            delayed_observation(page, editor.url)
+            page.goto(editor.url)
+            later = page.locator('.welcome #later')
+            if later.is_visible():
+                later.click()
+            rows = page.locator("[data-public-chat-rows]")
+            expect(rows).to_contain_text("공용 · local-user", timeout=20000)
+            expect(rows).to_contain_text("AuthorA public message")
+            expect(page.locator("#chat-output")).not_to_contain_text("AuthorA public message")
+            page.locator("#chat-input").fill("독립 Helper 작성 중")
+            page.locator("#logs-tab").click()
+            expect(rows).to_have_count(0)
+            page.locator("#chat").click()
+            expect(page.locator("#chat-input")).to_have_value("독립 Helper 작성 중")
+            rows.get_by_role("button", name="YogiBox 보기").click()
+            dialog = page.get_by_role("dialog", name="YogiBox 보기", exact=True)
+            expect(dialog).to_contain_text("Original sealed description")
+            expect(dialog.locator("textarea")).to_have_count(0)
+            dialog.get_by_role("button", name="이미지 보기").first.click()
+            canvas = dialog.locator("canvas")
+            expect(canvas).to_be_visible()
+            assert canvas.evaluate("node => Array.from(node.getContext('2d').getImageData(0, 0, 1, 1).data)") == [23, 23, 23, 255]
+
+            # Qualifying EY uses the existing selection path, while the composer is left intact.
+            dialog.get_by_role("button", name="Project.AuthorA::Main", exact=True).click()
+            expect(dialog).to_have_count(0)
+            for _ in range(120):
+                selection = editor.mount()
+                editor.request({"op": "dispose", "view": selection["view"]})
+                if selection["state"]["draft"]["id"] == "Project.AuthorA::Main":
+                    break
+                page.wait_for_timeout(40)
+            else:
+                raise AssertionError(selection["state"]["draft"])
+            expect(page.locator("#chat-input")).to_have_value("독립 Helper 작성 중")
+
+            rows.get_by_role("button", name="YogiBox 보기").click()
+            expect(dialog).to_contain_text("Original sealed description")
+            proof_path = profile / "project-creators" / (a["id"] + ".json")
+            hidden_proof = proof_path.with_suffix(".withheld")
+            proof_path.rename(hidden_proof)
+            try:
+                expect(dialog).to_have_count(0, timeout=12000)
+                expect(rows).to_have_count(0)
+                assert attachment(editor, again)["result"] == unavailable
+            finally:
+                hidden_proof.rename(proof_path)
+
+            delayed_observation(page, editor.url, pair)
             editor.change("leaveProject", {}, "")
             second = open_project(b["manifest"], b["id"])
             result = page.evaluate("""async () => {
@@ -248,9 +340,13 @@ body common "PublicChatFixture.csbody";'''))
             browser.close()
         assert_message(editor.observe(second), second, "AuthorB")
         assert editor.observe(again)["error"]["code"] == "scope_changed"
+        assert attachment(editor, second)["result"] == unavailable
+        assert attachment(editor, again)["error"]["code"] == "scope_changed"
         receipt = profile / "project-creators" / (b["id"] + ".json")
         receipt.rename(receipt.with_suffix(".withheld"))
         assert editor.observe(second)["result"] == unavailable
 
     assert all(path.read_bytes() == original for path, original in protected.items())
-    print("PASS cold read/v1/v2, stale A→copy→A, delayed Chromium reply on A→B, live proof withdrawal, private/journal bytes unchanged")
+    print("PASS cold v1/v2, exact ID pair and two maximum LaY captures, fresh EY deletion checking")
+    print("PASS visible read-only YogiBox, existing EY navigation, Chat/Log and Helper draft, live revocation and stale reply retirement")
+    print("PASS private YogiBox/Helper and public journal bytes unchanged")
