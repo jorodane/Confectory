@@ -46,7 +46,8 @@ def seed_one(name, target):
                        returnMapping="native-return-out-v1", source="return Result.NoBranch;")
     node.update(control="switch", executionEnum=enum, arguments={"amount": {"input": "seed"}},
                 postCall={"mode": "execution-enum", "returnMapping": "native-return-out-v1",
-                          "contractHash": wrapper["contractHash"], "source": wrapper["source"], "helpers": ""})
+                          "contractHash": wrapper["contractHash"], "source": wrapper["source"],
+                          "helpers": "private static long Retained(long value) { return value; }"})
     graph["profile"] = "sync-acyclic-switch-v1"
     graph["entry"] = CALL
     graph["edges"].append({"from": CALL, "port": "next", "to": "body"})
@@ -152,6 +153,49 @@ def assert_state(author, label):
     expect(author.locator('[data-document-cell="body"] .fd-cell-state')).to_have_text("동작")
 
 
+def refresh_publication(page, checkpoint, old):
+    feature = NS + TARGET
+    f.call("select", {"id": feature})
+    f.call("inspectDeclaration", {"id": feature})
+    declaration = f.state()["declaration"]
+    f.call("editMetadata", {"id": feature, "revision": declaration["revision"], "hash": declaration["textHash"],
+                            "field": "blueprintPublishedOutputs", "value": '["return"]'})
+    f.call("saveDraft", {})
+    stored = checkpoint.read_bytes()
+    _, stale = graph(A)
+    assert stale["postCallStale"] and stale["postCallSignatureMatches"], stale
+    receipt = stale["postCallEditor"]["contractHash"]
+    assert receipt != old["postCall"]["contractHash"]
+
+    author = open_document(page, A)
+    cell = author.locator(f'[data-document-cell="{CALL}"]')
+    if not cell.locator(".fd-cell-content").is_visible():
+        cell.locator("[data-document-fold]").click()
+    assert_state(author, LABEL)
+    button = cell.locator("[data-document-call-refresh]")
+    expect(button).to_be_enabled()
+    button.click()
+    expect(button).to_have_count(0)
+    assert_state(author, "참조")
+    assert graph(A)[1]["postCall"] == old["postCall"] and checkpoint.read_bytes() == stored
+    f.original()
+    document = author.locator(".function-document")
+    document.press("Control+z")
+    assert_state(author, LABEL)
+    expect(button).to_be_enabled()
+    document.press("Control+y")
+    assert_state(author, "참조")
+    author.locator("[data-bp-save]").click()
+    expect(author.locator(".bp-status")).to_have_text("저장됨", timeout=120000)
+    saved, call = graph(A)
+    assert not call["postCallStale"]
+    assert saved["edges"] == old["edges"] and call["arguments"] == old["arguments"]
+    assert call["postCall"] == {**old["postCall"], "contractHash": receipt}
+    assert graph(B)[1]["postCallStale"] is False
+    f.original()
+    f.checked("Logic Code explicitly renews a same-signature publication receipt, preserving source, helpers and wiring through Undo/Redo and Save")
+
+
 def run():
     seed()
     try:
@@ -193,12 +237,13 @@ def run():
                 assert_state(open_document(page, A), LABEL)
                 assert checkpoint.read_bytes() == saved
                 rename_draft(page, "renamed", "amount")
-                _, restored = graph(A)
+                restored_graph, restored = graph(A)
                 assert restored["postCallSignatureMatches"] is True and restored["postCallStale"] is False
                 assert_state(open_document(page, A), "참조")
                 f.original()
                 assert not f.errors and not f.external, (f.errors, f.external)
                 f.checked("The same local cell ID in another function stays unaffected; restoring the declaration clears the indicator")
+                refresh_publication(page, checkpoint, {**restored, "edges": restored_graph["edges"]})
     finally:
         f.save_evidence()
         f.stop()
