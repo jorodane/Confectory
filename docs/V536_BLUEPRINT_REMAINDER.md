@@ -2,6 +2,17 @@
 
 Browser 잔여 묶음 이후 수행할 고정 UI 연결 목록이다. 이 문서는 구현 완료/사용자 권한 승낙이 아니며 이번 Browser 변경에서 아래 기능을 새로 구현하지 않았다. 원본 v536 레이아웃과 자연어 Blueprint 좌→우 직렬 실행, 사용자 초안/소유권/CAS·명시적 compiler Confirm을 유지한다. 새 시각적 분기/반복 모델을 도입하지 않는다.
 
+## 현행 v821에서 이어받은 계약
+
+[사용자 확정 v821 기준](V821_UI_BASELINE.md)은 위에서 아래로 읽는 **논리 코드**를 기본 보기로 두고, 기존 **블루프린트 보기**와 네이티브 편집/미리보기를 구분한다. 아래의 좌→우 배치와 v536 조작 목록은 당시 수용 기준이다. [수직 셀 초기 검증](VALIDATION_V821_DOCUMENT_CELLS.md)과 [네이티브·구조 저장 검증](VALIDATION_V821_NATIVE_STRUCTURE.md)에 현재 흐름을 기록한다. 초안 Save, 냉시작 복원, Review, 명시적 컴파일 Confirm과 원본 CAS는 두 보기에서 계속 적용되는 계약이다.
+
+- 직접 소유한 유효 범위의 루트·분기·복합 자식 셀 추가와 순서 변경은 연결했다. [복합 자식 추가](VALIDATION_V821_CHILD_INSERT.md), [분기 편집](VALIDATION_V821_BRANCH_CELLS.md), [범위 이동](VALIDATION_V821_SCOPE_TRANSFER.md)의 지원 조건을 따른다. 기존 구현을 고르는 [직접 소유 슬롯 교체](VALIDATION_V821_SLOT_ASSIGNMENT.md)도 별도로 지원한다.
+- `034b268e`의 Linux 실제 편집기에서 새 복합 자식 셀의 C#을 저장하고 냉시작했다. Review 취소와 실제 컴파일 오류 `CS0103`는 확정 원본을 보존했고, 실패 직전 체크포인트도 바이트 단위로 동일했다. 다시 시작해 같은 셀을 수정·저장한 뒤 명시적으로 확정했으며, 새 셀 포함 실행 순서와 기존 반환값 10, 형제 흐름, 기존 원본 C#을 확인했다. `tests/web/v821_child_insert_ui.py`의 `compile-recovery`로 이 왕복을 고정했다.
+- 지원되는 복합 셀 전체 삭제는 자식과 연결을 Undo 한 건으로 복구한다. 확정된 삭제의 Undo는 새 복원 초안을 만들고 별도 Save/Review/Confirm을 거친다. 이 동작과 원본 C#의 수명은 `tests/web/v821_cell_removal_history_ui.py`의 `compound` 검증을 따른다. 최초 삭제 조사 문서의 미지원 표시는 당시 상태다.
+- 혼합 Save와 일반 호출 ABI는 아래에 명시된 소유권·계약·저장 조합을 따른다. 자식 분기의 중간 셀 삭제는 이전 리더의 이력 호환 결정이 남아 있다. 분기 탭의 새 이름·정렬과 기존 셀의 재사용 기능 승격에는 별도 설계 결정이 필요하다.
+
+## v536 원래 작업 목록
+
 1. **다중 구현·C# 변환 실제 화면 완주 — 지원 원본 문맥 묶음 검증.** 기존 `blueprintFeatureBodies`/conversion/정확한 source proof API를 원본 선택·추가·전환에 연결한다. 각 구현/실행 대상별 미저장 입력을 분리하고 다른 구현/부모/등록 팩 원본을 보존한다. UI 선택→미리보기→취소/저장→cold→명시 Confirm, 실패/응답 유실/늦은 새 입력을 유한 회귀로 수용한다. 기존 서버 검사가 실제 UI 전체 완료를 뜻하지 않는다. 실제 3문맥(두 소유 슬롯+전역 provide)의 선택·전환·cold·응답 유실/늦은 입력·개별 Save/Review/compiler Confirm·provider 변경 차단 9건과 controlled renderer10건을 확인했다. 원본에 없는 전역 ID picker/추가, 외부 source 직접 편집, 모든 native/target/View 조합은 확대하지 않았다. 정확한 한계와 결과는 `VALIDATION_V536_MULTIPLE_IMPLEMENTATIONS.md`를 따른다.
 
 2. **검증된 범위 밖의 호출 ABI.** 현재 검증은 단일 소유 호출의 값↔ref, typed import, 생산자 공개 출력→소비자 검토·공동 명시 Confirm이다. 후속에서 소유 슬롯의 같은 단일 root/본문/호출 값↔ref와 typed import 원자 저장, 슬롯 변경 차단·입력 보존·cold·명시 Confirm을 연결했다. 지원 행렬과 실제 검사 범위는 `V536_CALL_ABI_SCOPE.md`, `VALIDATION_V536_SLOT_CALL_ABI.md`를 따른다. 후속 직접 등록 callable의 함수/manifest receipt와 명시적 재확인도 실제6건으로 연결했다(`VALIDATION_V536_REGISTERED_CALL_ABI.md`). 후속 저장된 직접 배치 복사본의 단일 본문 값↔ref는 별도 후보/CAS·출처 검사로 연결했다(`VALIDATION_V536_SAVED_COPY_ABI.md`). 후속 owned ordinary2target의 한정 ABI는 `VALIDATION_V536_MULTI_TARGET_ABI.md`, 새 private copy의 단일 target immutable snapshot·직접 등록 receipt·명시적 값↔ref 갱신은 `VALIDATION_V536_PRIVATE_COPY_ABI.md`로 수용했다. opaque/상속/copy의 다중 target·동일 호출 복수 사용·whole-body context·일반 ABI 재매핑은 미지원이다. 원본이 요구하는 다른 호출 소유 문맥/형태를 먼저 실제 목록으로 고정하고 하나씩 연결한다. 비호환 연결을 추측해 변경/삭제하지 않고 명시적 갱신에서만 일관되게 갱신한다. 공개 출력은 호출 후 SourceContext 읽기이며 외부 공유/프로젝트 권한이 아니다.

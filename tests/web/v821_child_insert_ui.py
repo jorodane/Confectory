@@ -18,8 +18,84 @@ def proposal(data,node='cell_probe',after=anchor,to=None):
  incoming=dict(action='entry',node='$entry',to=node) if after=='$entry' else dict(action='route',node=after,port='next',to=node)
  successor=to or ('inner' if after=='$entry' else 'tail')
  return dict(action='authorBatch',documentFrame=copy.deepcopy(data.get('documentFrameOrderBinding')or dict(root=t.graph,graph=frame,path='body/nest',rootHash='0'*64,frameHash='0'*64)),id=frame,attempt=uuid.uuid4().hex,checkpointHash=data['checkpointHash'],sourceProof=x.proof(data),edits=[dict(action='createNode',node=node,definition=dict(kind='code',control='next',intent='새 동작',signature=signature())),dict(action='rename',node=node,text='자식 추가 α'),dict(action='intent',node=node,text='자식 추가 α'),dict(action='source',node=node,text='global::System.Console.WriteLine("inserted-child");\nreturn;'),incoming,dict(action='route',node=node,port='next',to=successor)])
-def edit_body(created):
- doc().locator('[data-document-code="'+created+'"]').click();dialog=f.page.locator('.bp-script-dialog');source=dialog.locator('[data-code-source]');body=dialog.locator('[data-code-region=body]').text_content();source.evaluate('(el,text)=>{el.focus();const at=el.value.indexOf(text);if(at<0)throw Error("Missing protected body");el.setSelectionRange(at,at+text.length)}',body);f.page.keyboard.insert_text('global::System.Console.WriteLine("inserted-child");\nreturn;');dialog.locator('[data-code-save]').click();f.idle()
+def edit_body(created, text='global::System.Console.WriteLine("inserted-child");\nreturn;'):
+ cell = doc().locator(f'[data-document-code="{created}"]')
+ expect(cell).to_be_enabled()
+ cell.click()
+ dialog = f.page.locator('.bp-script-dialog')
+ source = dialog.locator('[data-code-source]')
+ body = dialog.locator('[data-code-region=body]').text_content()
+ source.evaluate('(el,text)=>{el.focus();const at=el.value.indexOf(text);if(at<0)throw Error("Missing protected body");el.setSelectionRange(at,at+text.length)}',body)
+ f.page.keyboard.insert_text(text)
+ expect(dialog.locator('[data-code-region=body]')).to_have_text(text)
+ dialog.locator('[data-code-save]').click()
+ expect(dialog).to_be_hidden()
+ f.idle()
+def confirm_with_compile_error(window):
+ mark = len(f.traffic)
+ window.locator('#confirm').click()
+ deadline = time.monotonic() + 120
+ while time.monotonic() < deadline:
+  ids = {row['invoke']['requestId'] for row in f.traffic[mark:]
+         if row.get('invoke',{}).get('endpoint') == 'confirmGroup'}
+  replies = [row['result'] for row in f.traffic[mark:]
+             if row.get('result',{}).get('requestId') in ids]
+  if replies:
+   reply = replies[-1]['result']
+   f.idle()
+   diagnostics = json.dumps(f.state(), ensure_ascii=False)
+   assert reply['sourceConfirmed'] is False and 'CS0103' in diagnostics and 'MissingChildCellSymbol' in diagnostics, f.state().get('review')
+   return
+  f.page.wait_for_timeout(25)
+ raise AssertionError('Missing compiler result from explicit Confirm')
+def verify_compiler_recovery(checkpoint):
+ invalid = 'MissingChildCellSymbol();\nreturn;'
+ add = doc().locator(f'[data-document-add="{anchor}"]')
+ add.click()
+ f.idle()
+ created, = [cell for cell in order() if cell.startswith('cell_')]
+ edit_body(created,invalid)
+ save()
+ assert not pending() and order() == inserted_order(created)
+ physical = {p:p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.parts}
+ assert physical == x.physical
+ resume(1)
+ assert order() == inserted_order(created)
+ inserted = next(node for node in read()['nodes'] if node['id']==created)
+ assert inserted['source'] == invalid
+ review().locator('[data-reject]').click()
+ expect(f.page.locator('.window[data-key="review"]')).to_be_hidden()
+ untouched()
+ window = review()
+ saved = checkpoint.read_bytes()
+ confirm_with_compile_error(window)
+ assert checkpoint.read_bytes() == saved
+ assert {p:p.read_bytes() for p in f.project.rglob('*') if p.is_file() and '.confectory' not in p.parts} == physical
+ assert next(node for node in read()['nodes'] if node['id']==created)['source'] == invalid
+ f.checked('nested cell Save and cold reopen retain C#; Review cancel and real CS0103 Confirm leave the whole checkpoint and final files intact')
+
+ resume(2)
+ assert order() == inserted_order(created)
+ edit_body(created)
+ panel().locator('[data-bp-save]').click()
+ f.idle()
+ assert not pending()
+ corrected = next(node for node in read()['nodes'] if node['id']==created)
+ assert corrected['sourceId'] == inserted['sourceId'] and 'inserted-child' in corrected['source']
+ untouched()
+ resume(3)
+ assert order() == inserted_order(created)
+ window = review()
+ window.locator('#confirm').click()
+ expect(window).to_be_hidden(timeout=120000)
+ f.idle()
+ x.build('owned-child-compile-recovery',10,'body\ninserted-child\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
+ assert all(p.read_bytes()==v for p,v in physical.items() if p.name!=t.graph_file)
+ files = {p for p in f.project.rglob('*.node.json') if '.confectory' not in p.parts} - physical.keys()
+ assert len(files)==1 and json.loads(files.pop().read_text())['node']==created
+ resume(4)
+ assert order() == inserted_order(created) and len(read(other)['nodes'])==2 and not pending()
+ f.checked('after cold recovery the same cell can be corrected, saved and explicitly confirmed; actual order, return, sibling and original sources are preserved')
 def pure_denied(graph,path,edits):
  try:f.metadata('blueprintCellRegion',action='frame-create',graph=graph,path=path,edits=edits)
  except (AssertionError,subprocess.CalledProcessError):return
@@ -35,6 +111,8 @@ try:
   if mode=='shared':
    expect(insert_at_start()).to_have_count(0)
    assert original['documentFrameOrderBinding']is None;expect(doc().locator('[data-document-add=inner]')).to_be_disabled();doc().locator('[data-document-name=inner]').fill('공유 경계 입력 보존');doc().locator('.fd-document-title').click();held=pending();f.invoke('blueprint',proposal(original),False);assert checkpoint.read_bytes()==before and pending()==held;untouched();resume(1);assert pending()==held;expect(doc().locator('[data-document-name=inner]')).to_have_value('공유 경계 입력 보존');x.build('child-insert-shared-unchanged',10,'body\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10');untouched();f.checked('shared ancestor refuses child addition in UI/server and retains full-path private input and original execution through cold')
+  elif mode=='compile-recovery':
+   verify_compiler_recovery(checkpoint)
   else:
    assert original['documentFrameOrderBinding']['path']=='body/nest'
    add=doc().locator('[data-document-add="'+anchor+'"]');expect(add).to_be_enabled()
