@@ -1,0 +1,41 @@
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern IntPtr cairo_image_surface_create_for_data(IntPtr data, int format, int width, int height, int stride);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern int cairo_surface_status(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_surface_destroy(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_surface_flush(IntPtr surface);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_rectangle(IntPtr context, double x, double y, double width, double height);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_clip(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_translate(IntPtr context, double x, double y);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_scale(IntPtr context, double x, double y);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_set_source_surface(IntPtr context, IntPtr surface, double x, double y);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern IntPtr cairo_get_source(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_pattern_set_filter(IntPtr pattern, int filter);
+[System.Runtime.InteropServices.DllImport("libcairo.so.2")] static extern void cairo_paint(IntPtr context);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")] static extern int XFlush(IntPtr display);
+
+if (!OperatingSystem.IsLinux() || bounds.Length != 4 || bounds[2] < 1 || bounds[3] < 1 ||
+    width is < 1 or > 512 || height is < 1 or > 512 || pixels.Length != width * height) return;
+var pin = System.Runtime.InteropServices.GCHandle.Alloc(pixels, System.Runtime.InteropServices.GCHandleType.Pinned);
+IntPtr image = IntPtr.Zero;
+long[]? canvas = null;
+try
+{
+    image = cairo_image_surface_create_for_data(pin.AddrOfPinnedObject(), 1, width, height, width * 4); // Cairo RGB24.
+    if (cairo_surface_status(image) != 0) return;
+    canvas = calls.OpenCanvas.Invoke(surfaces, 0);
+    var context = (IntPtr)canvas[1];
+    cairo_rectangle(context, bounds[0], bounds[1], bounds[2], bounds[3]);
+    cairo_clip(context);
+    cairo_translate(context, bounds[0], bounds[1]);
+    cairo_scale(context, (double)bounds[2] / width, (double)bounds[3] / height);
+    cairo_set_source_surface(context, image, 0, 0);
+    cairo_pattern_set_filter(cairo_get_source(context), 3); // Nearest pixel when the window is smaller than the capture.
+    cairo_paint(context);
+    cairo_surface_flush((IntPtr)canvas[0]);
+    XFlush((IntPtr)surfaces[0]);
+}
+finally
+{
+    if (canvas is not null) calls.CloseCanvas.Invoke(canvas);
+    if (image != IntPtr.Zero) cairo_surface_destroy(image);
+    pin.Free();
+}

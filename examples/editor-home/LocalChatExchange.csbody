@@ -23,7 +23,8 @@ lock (owner)
     {
         var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
         string? action = args["action"]?.GetValue<string>();
-        if (nativeGtk && action is not ("issue-lan" or "inspect-lan" or "join-lan" or "issue-relay" or "inspect-relay" or "join-relay" or "read" or "status" or "send"))
+        if (nativeGtk && action is not ("issue-lan" or "inspect-lan" or "join-lan" or "issue-relay" or "inspect-relay" or "join-relay" or "read" or "status" or "send" or
+            "prepare-attachment" or "cancel-attachment" or "send-attachment" or "attachment" or "first-image" or "second-image"))
             return Unavailable;
         if (action is "read" or "status" or "send" or "send-attachment" or "prepare-attachment" or "cancel-attachment" or
             "attachment" or "first-image" or "second-image")
@@ -90,13 +91,28 @@ lock (owner)
             (string Message, string Selection)? prepared = null;
             Bind((op, id, text) =>
             {
-                if (op is not ("status" or "send" or "prepare-attachment" or "cancel-attachment" or "send-attachment"))
+                bool nativeRead = nativeGtk && op is "attachment" or "first-image" or "second-image";
+                if (!nativeRead && op is not ("status" or "send" or "prepare-attachment" or "cancel-attachment" or "send-attachment"))
                     return Unavailable;
                 if (listener.Completion.IsCompleted || !ReferenceEquals(owner[16], listener.Completion) ||
                     owner[15] is not (string scope, object _, object _, Func<bool> isActive, Action _, System.Threading.CancellationToken _) ||
                     scope != activation || !isActive())
                     throw new ObjectDisposedException("Local public chat host");
                 if (op == "status") return "{\"status\":\"hosting\"}";
+                if (nativeRead)
+                {
+                    string reply = calls.Chat.Invoke(session, activation, op, id, id, "");
+                    if (op != "attachment") return reply;
+                    var view = System.Text.Json.Nodes.JsonNode.Parse(reply)!;
+                    if (view["items"] is System.Text.Json.Nodes.JsonArray items)
+                        foreach (var item in items)
+                        {
+                            item!.AsObject().Remove("id");
+                            item.AsObject().Remove("elementKind");
+                            if (item["kind"]?.ToString() == "semantic") item["availability"] = "unavailable";
+                        }
+                    return view.ToJsonString();
+                }
                 if (op == "prepare-attachment")
                 {
                     var result = System.Text.Json.Nodes.JsonNode.Parse(

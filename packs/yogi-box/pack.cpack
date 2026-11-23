@@ -5,6 +5,8 @@ element Clear function "Clear.celem";
 element ClearBody implementation "ClearBody.celem";
 element Open function "Open.celem";
 element OpenBody implementation "OpenBody.celem";
+element OpenBound function "OpenBound.celem";
+element OpenBoundBody implementation "OpenBoundBody.celem";
 element Save function "Save.celem";
 element SaveBody implementation "SaveBody.celem";
 element Close function "Close.celem";

@@ -1,0 +1,4 @@
+function Confectory.EditorHome::DrawChatCapture (long[] surfaces, int[] bounds, int width, int height, int[] pixels) -> void {
+provide Confectory.EditorHome::DrawChatCapture with Confectory.EditorHome::DrawChatCaptureBody;
+description "Paint a validated RGB capture inside the owned Linux chat surface.";
+}

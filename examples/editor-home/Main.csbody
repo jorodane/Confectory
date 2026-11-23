@@ -25,7 +25,7 @@ string session=Own("session",calls.CreateSession.Invoke(repo,storage),value=>cal
 // Register the 128 controls used by the project surface; home-only and unused IDs stay out.
 string homeControl=control,shellControl=Own("shell-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Where(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,99),System.Linq.Enumerable.Range(200,29)),id=>Array.IndexOf(new[]{1,2,3,9,10,11,12,13,14,18,19,31,32,70,71,72,200},id)<0),System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)))),value=>calls.CloseControls.Invoke(value));var aiOutputViews=new System.Collections.Generic.HashSet<string>();var chatBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);var logBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
 string viewControls=Own("view-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12)))),value=>calls.CloseControls.Invoke(value));
-string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,34),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
+string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,41),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
 var owner=Own("owner",calls.CreateOwner.Invoke(1),value=>calls.DisposeOwner.Invoke(value));var surfaces=Own("surfaces",calls.CreateSurfaces.Invoke(new[]{"Confectory - Projects"},960,700),value=>calls.Close.Invoke(value,-1));
 string nativeHome=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeShell=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeHost=nativeHome;bool nativePickerPending=false,archivePending=false,storagePending=false;int pickerFocus=0;
 bool canRun=System.Linq.Enumerable.Contains(calls.ExecutionCapabilities.Invoke(),"build-and-run",StringComparer.Ordinal),canOpenFolder=J(calls.NativeCapabilities.Invoke())["openFolder"]?.GetValue<bool>()==true;
@@ -49,8 +49,8 @@ var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.L
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
-allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,34),System.Linq.Enumerable.Range(500,32))));
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","profile","fields","actions","lan-chat"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,13)):name is "information" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id==450:id<=32||id>=100&&id<196||id==450||id>=500)))});
+allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,41),System.Linq.Enumerable.Range(500,32))));
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","profile","fields","actions","lan-chat"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name is "information" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id==450:id<=32||id>=100&&id<196||id==450||id>=500)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -304,13 +304,20 @@ const int LanEntry = 450, LanClose = 451, LanIssue = 452, LanReview = 453;
 const int LanHostAddress = 454, LanGuestAddress = 455, LanCard = 456, LanDisplayName = 457;
 const int LanJoin = 458, LanInput = 459, LanSend = 460, LanMessages = 461;
 const int LanRelayIssue = 462, LanRelayReview = 463;
+const int LanAttach = 464, LanOpenAttachment = 465, LanOlderAttachment = 466, LanNewerAttachment = 467;
+const int LanCloseAttachment = 468, LanNextImage = 469;
 var lanBuffers = new System.Collections.Generic.Dictionary<int,string>();
 System.Threading.CancellationTokenSource? lanLifetime = null;
 System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonNode>? lanWork = null;
 string lanReturn = "home", lanView = "", lanActivation = "", lanMode = "", lanAction = "", lanStatus = "";
 string lanReviewHash = "", lanReviewedCard = "", lanReviewDetails = "", lanPendingText = "", lanPendingId = "";
 long lanNextPoll = 0, lanCardExpires = 0;
-bool lanCanHost = false, lanUsesRelay = false, lanSendQueued = false;
+bool lanCanHost = false, lanUsesRelay = false;
+string lanQueuedAction = "", lanQueuedId = "", lanActionId = "", lanDraftBox = "", lanViewerId = "", lanDescription = "";
+var lanAttachments = new System.Collections.Generic.List<string>();
+var lanImages = new System.Collections.Generic.List<(int Width, int Height, int[] Pixels)>();
+int lanAttachmentIndex = 0, lanImageIndex = 0;
+bool lanHasHiddenEy = false;
 string lanRelayRole = "";
 string LanCurrentActivation() => model["selected"]?["activation"]?.ToString() ?? "";
 string LanBuffer(int id)
@@ -327,9 +334,15 @@ void SetLanText(int id,string text)
  calls.NativeRequest.Invoke(nativeHome,"forget",System.Text.Json.JsonSerializer.Serialize(new{binding=buffer}),0);
  calls.ReplaceText.Invoke(buffer,text,0,0);
 }
+void CloseLanAttachment()
+{
+ lanViewerId=lanDescription="";lanImages.Clear();lanImageIndex=0;lanHasHiddenEy=false;
+ if(lanQueuedAction=="attachment")lanQueuedAction=lanQueuedId="";
+}
 void RetireLan()
 {
- lanSendQueued=false;
+ lanQueuedAction=lanQueuedId=lanDraftBox="";lanAttachments.Clear();lanAttachmentIndex=0;
+ CloseLanAttachment();
  var lifetime=lanLifetime;
  if(lifetime is null)return;
  lanLifetime=null;
@@ -357,36 +370,77 @@ void OpenLanPanel()
  lanCardExpires=0;
  Change("lan-chat");
 }
-void RequestLan(string action,object input)
+void RequestLan(string action,object input,string id="")
 {
  if(lanLifetime is null||lanWork is not null)return;
  string payload=System.Text.Json.JsonSerializer.Serialize(input), activation=lanActivation;
  var binding=(lanView,lanLifetime.Token,activation);
- lanAction=action;
+ lanAction=action;lanActionId=id;
  lanWork=System.Threading.Tasks.Task.Run(()=>{
+  if(action=="prepare-attachment"&&J(calls.Command.Invoke(session,"yogi-chat-open",
+   System.Text.Json.JsonSerializer.Serialize(new{activation})))["status"]?.ToString()!="ready")
+   return J("{\"status\":\"no-sealed-lay\"}");
   var response=J(calls.LanExchange.Invoke(session,payload,binding,true));
   if(action=="status"&&response["status"]?.ToString()=="hosting")return J(calls.PublicHistory.Invoke(session,activation,"history","",""));
+  if(action=="attachment"&&response["status"]?.ToString()=="available")
+  {
+   var images=new System.Text.Json.Nodes.JsonArray();
+   int count=System.Linq.Enumerable.Count(response["items"]!.AsArray(),item=>item?["kind"]?.ToString()=="image");
+   for(int index=0;index<Math.Min(count,2);index++)
+   {
+    string imageAction=index==0?"first-image":"second-image";
+    string query=System.Text.Json.JsonSerializer.Serialize(new{action=imageAction,id});
+    var image=J(calls.LanExchange.Invoke(session,query,binding,true))["capture"];
+    if(image is null)return J("{\"status\":\"unavailable\"}");
+    images.Add(image.DeepClone());
+   }
+   response["captures"]=images;
+  }
   return response;
  });
 }
-bool LanCanSend() => !lanSendQueued && (lanWork is null || lanAction is "read" or "status");
-void SendLan()
+bool LanCanRequest() => lanQueuedAction.Length==0 && (lanWork is null || lanAction is "read" or "status");
+void DispatchLanRequest()
 {
- lanSendQueued=false;
- RequestLan("send",new{action="send",id=lanPendingId,text=lanPendingText});
+ string action=lanQueuedAction,id=lanQueuedId;
+ lanQueuedAction=lanQueuedId="";
+ if(action is "send" or "send-attachment")RequestLan(action,new{action,id,text=lanPendingText},id);
+ else RequestLan(action,new{action,id},id);
+}
+void QueueLanRequest(string action,string id)
+{
+ lanQueuedAction=action;lanQueuedId=id;
+ if(lanWork is null)DispatchLanRequest();
 }
 void LanControl(int id)
 {
  if(id==LanClose){CloseLanPanel();return;}
- if(id==LanSend&&lanMode is "hosting" or "joined")
+ if(lanMode is "hosting" or "joined")
  {
-  if(!LanCanSend())return;
-  string text=LanText(LanInput);
-  if(string.IsNullOrWhiteSpace(text)||text.Length>2048){lanStatus="Enter a public message of 1 to 2048 characters.";return;}
-  if(text!=lanPendingText){lanPendingText=text;lanPendingId=Guid.NewGuid().ToString("N");}
-  // A background read can start between rendering the button and receiving its click.
-  if(lanWork is not null)lanSendQueued=true;
-  else SendLan();
+  if(id==LanCloseAttachment){CloseLanAttachment();return;}
+  if(id==LanNextImage&&lanImages.Count>1){lanImageIndex=(lanImageIndex+1)%lanImages.Count;return;}
+  if(lanViewerId.Length!=0)return;
+  if(id==LanOlderAttachment&&lanAttachmentIndex>0){lanAttachmentIndex--;return;}
+  if(id==LanNewerAttachment&&lanAttachmentIndex+1<lanAttachments.Count){lanAttachmentIndex++;return;}
+  if(!LanCanRequest())return;
+  if(id==LanOpenAttachment&&lanAttachments.Count>0)
+  {
+   CloseLanAttachment();lanViewerId=lanAttachments[lanAttachmentIndex];lanDescription="Loading YogiBox…";
+   QueueLanRequest("attachment",lanViewerId);return;
+  }
+  if(id==LanAttach)
+  {
+   if(lanDraftBox.Length==0)QueueLanRequest("prepare-attachment",Guid.NewGuid().ToString("N"));
+   else QueueLanRequest("cancel-attachment",lanDraftBox);
+   return;
+  }
+  if(id==LanSend)
+  {
+   string text=LanText(LanInput);
+   if(string.IsNullOrWhiteSpace(text)||text.Length>2048){lanStatus="Enter a public message of 1 to 2048 characters.";return;}
+   if(text!=lanPendingText){lanPendingText=text;lanPendingId=Guid.NewGuid().ToString("N");}
+   QueueLanRequest(lanDraftBox.Length==0?"send":"send-attachment",lanDraftBox.Length==0?lanPendingId:lanDraftBox);
+  }
   return;
  }
  if(lanWork is not null)return;
@@ -422,6 +476,41 @@ void LanControl(int id)
   SetLanText(LanCard,"");lanReviewedCard=lanReviewHash="";
  }
 }
+void UpdateLanMessages(System.Text.Json.Nodes.JsonArray? rows)
+{
+ string selected=lanAttachments.Count>0?lanAttachments[lanAttachmentIndex]:"";
+ lanAttachments.Clear();
+ var lines=new System.Collections.Generic.List<string>();
+ if(rows is not null)
+  foreach(var row in System.Linq.Enumerable.TakeLast(rows,40))
+  {
+   string sender=row!["sender"]!.GetValue<string>(),line=sender+": "+row["text"];
+   if(row["attachmentId"]?.GetValue<string>() is string id&&id==row["id"]?.GetValue<string>())
+   {
+    lanAttachments.Add(id);line+="  [YogiBox "+lanAttachments.Count+"]";
+   }
+   lines.Add(line);
+  }
+ int previous=lanAttachments.IndexOf(selected);
+ lanAttachmentIndex=previous<0?Math.Max(0,lanAttachments.Count-1):previous;
+ SetLanText(LanMessages,lines.Count==0?"No messages yet.":string.Join("\n",lines));
+}
+void LoadLanCapture(System.Text.Json.Nodes.JsonNode capture)
+{
+ if(capture["width"] is not System.Text.Json.Nodes.JsonValue horizontal||!horizontal.TryGetValue<int>(out int width)||
+    capture["height"] is not System.Text.Json.Nodes.JsonValue vertical||!vertical.TryGetValue<int>(out int height)||
+    width is <1 or >512||height is <1 or >512||capture["encoding"]?.ToString()!="rgb24-base64"||
+    capture["pixels"] is not System.Text.Json.Nodes.JsonValue content||!content.TryGetValue<string>(out string? encoded))
+  throw new ArgumentException("Unsupported LaY capture");
+ if(encoded.Length!=4*((width*height*3+2)/3))throw new ArgumentException("Invalid LaY length");
+ byte[] rgb=Convert.FromBase64String(encoded);
+ string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(rgb));
+ if(rgb.Length!=width*height*3||!string.Equals(hash,capture["hash"]?.ToString(),StringComparison.OrdinalIgnoreCase))
+  throw new ArgumentException("Invalid LaY digest");
+ var pixels=new int[width*height];
+ for(int i=0;i<pixels.Length;i++)pixels[i]=rgb[3*i]<<16|rgb[3*i+1]<<8|rgb[3*i+2];
+ lanImages.Add((width,height,pixels));
+}
 void PollLanPanel()
 {
  if(screen!="lan-chat")return;
@@ -450,19 +539,37 @@ void PollLanPanel()
    case "inspect-relay":lanReviewedCard="";lanStatus="Invitation does not match the preconfigured test relay.";break;
    case "join-lan" or "join-relay" when status=="joined":lanMode="joined";lanStatus="Connected. Only public messages received on this connection appear here.";break;
    case "join-lan" or "join-relay":lanMode="join";lanReviewDetails="";lanStatus="Could not join. The invitation may be invalid, used, expired or revoked.";break;
-   case "send" when status=="committed":
+   case "prepare-attachment" when status=="ready":
+    lanDraftBox=lanActionId;lanPendingId=lanPendingText="";lanStatus="Sealed YogiBox attached to this draft. Send publicly to share it.";break;
+   case "prepare-attachment" or "send-attachment" when status=="ey-unsupported":
+    lanStatus="Guest YogiBoxes with EY cannot be shared. Your original box is retained.";break;
+   case "prepare-attachment":lanStatus="An existing sealed YogiBox with a LaY is required.";break;
+   case "cancel-attachment" when status=="cancelled":
+    lanDraftBox=lanPendingId=lanPendingText="";lanStatus="Attachment removed from the public draft.";break;
+   case "cancel-attachment":lanStatus="Attachment removal could not be confirmed.";break;
+   case "send" or "send-attachment" when status=="committed":
     if(LanText(LanInput)==lanPendingText)SetLanText(LanInput,"");
-    lanPendingId=lanPendingText="";lanStatus="Public message sent.";break;
-   case "send":lanStatus="Public message was not confirmed. Your input remains here.";break;
+    lanDraftBox=lanPendingId=lanPendingText="";lanStatus="Public message sent.";break;
+   case "send" or "send-attachment":lanStatus="Public message was not confirmed. Your input remains here.";break;
+   case "attachment" when lanViewerId==lanActionId:
+    if(status!="available"){lanDescription="Attachment unavailable.";break;}
+    try{
+     foreach(var capture in result!["captures"]!.AsArray())LoadLanCapture(capture!);
+     if(result["description"] is not System.Text.Json.Nodes.JsonValue description||
+        !description.TryGetValue<string>(out string? text)||text.Length>4096)throw new ArgumentException("Invalid YogiBox description");
+     lanDescription=text;
+     lanHasHiddenEy=System.Linq.Enumerable.Any(result["items"]!.AsArray(),item=>item?["kind"]?.ToString()=="semantic");
+    }catch(ArgumentException){lanImages.Clear();lanDescription="Attachment unavailable.";}
+    catch(FormatException){lanImages.Clear();lanDescription="Attachment unavailable.";}
+    break;
    case "read" or "status" when status is "joined" or "available":
-    var rows=result?["messages"]?.AsArray();
-    SetLanText(LanMessages,rows is null||rows.Count==0?"No messages yet.":string.Join("\n",System.Linq.Enumerable.Select(System.Linq.Enumerable.TakeLast(rows,40),row=>row!["sender"]+": "+row["text"])));break;
+    UpdateLanMessages(result?["messages"]?.AsArray());break;
    case "read" or "status":
     RetireLan();SetLanText(LanMessages,"");SetLanText(LanCard,"");lanCardExpires=0;lanMode="closed";lanStatus="Public chat disconnected. Use a new invitation to rejoin.";break;
   }
   lanNextPoll=now+650;
  }
- if(lanWork is null&&lanSendQueued)SendLan();
+ if(lanWork is null&&lanQueuedAction.Length!=0)DispatchLanRequest();
  else if(lanWork is null&&now>=lanNextPoll&&(lanMode is "hosting" or "joined"))
  {
   string action=lanMode=="hosting"?"status":"read";
@@ -587,7 +694,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id is 62 or 63){WorkspaceAction("page",page:Math.Max(0,model["workspace"]!["page"]!.GetValue<int>()+(id==62?-1:1)));return;}
  if(id==17){Start("remove",new{path=removePath});return;}if(id==18){Change("home");return;}
  if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;string path=cards[index]!["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenFolder(path);else{removePath=path;Change("remove");}return;}}
-void Render(){var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
+void Render(){int[] lanImageBounds=Array.Empty<int>();var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
  int workspaceSide=sidebar?Math.Min(200,Math.Max(120,w/4)):54,workspaceLeft=workspaceSide+16,workspaceWidth=Math.Max(1,w-workspaceLeft-16);
  int chatHeight=Math.Min(188,Math.Max(148,h/4)),chatTop=h-chatHeight-40;
  int[] workarea=new[]{Math.Min(w-1,workspaceLeft),Math.Min(h-1,58),Math.Max(1,workspaceWidth),Math.Max(1,chatTop-70)};
@@ -660,12 +767,30 @@ void Render(){var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimen
    WrappedLabel(new[]{left,324,area,140},lanReviewDetails);
    Button(LanJoin,new[]{left,472,180,34},"Join this project",available&&LanText(LanCard).Trim()==lanReviewedCard);
   }
+ }else if(lanViewerId.Length!=0){
+  Button(LanCloseAttachment,new[]{left,146,180,32},"Back to messages");
+  if(lanImages.Count>1)Button(LanNextImage,new[]{left+190,146,170,32},"Image "+(lanImageIndex+1)+" / "+lanImages.Count+" · Next");
+  WrappedLabel(new[]{left,188,area,68},lanDescription);
+  if(lanHasHiddenEy)Label(new[]{left,258,area,28},"EY unavailable in public chat");
+  if(lanImages.Count>0&&h>340){
+   var image=lanImages[lanImageIndex];
+   double scale=Math.Min(1d,Math.Min((double)area/image.Width,(double)(h-340)/image.Height));
+   lanImageBounds=new[]{left,294,Math.Max(1,(int)(image.Width*scale)),Math.Max(1,(int)(image.Height*scale))};
+  }
  }else if(lanMode is "hosting" or "joined"){
   int first=150;
   if(lanMode=="hosting"&&lanCardExpires!=0){Field(LanCard,new[]{left,first,area,78},"One-use invitation · select and copy");first+=88;}
-  Field(LanMessages,new[]{left,first,area,Math.Max(8,h-first-123)},"Public messages · read only");
+  int attachmentsHeight=lanAttachments.Count>0?36:0;
+  Field(LanMessages,new[]{left,first,area,Math.Max(8,h-first-159-attachmentsHeight)},"Public messages · read only");
+  if(lanAttachments.Count>0){
+   int y=h-153-attachmentsHeight;
+   Button(LanOlderAttachment,new[]{left,y,64,30},"Earlier",lanAttachmentIndex>0);
+   Button(LanOpenAttachment,new[]{left+70,y,Math.Max(8,Math.Min(180,area-140)),30},"View YogiBox "+(lanAttachmentIndex+1),LanCanRequest());
+   Button(LanNewerAttachment,new[]{left+256,y,64,30},"Later",lanAttachmentIndex+1<lanAttachments.Count);
+  }
+  Button(LanAttach,new[]{left,h-151,238,30},lanDraftBox.Length==0?"Attach sealed YogiBox":"Remove attached YogiBox",LanCanRequest()&&lanActivation.Length>0);
   Field(LanInput,new[]{left,h-114,Math.Max(8,area-134),60},"Public message");
-  Button(LanSend,new[]{left+Math.Max(8,area-124),h-114,Math.Min(124,area),38},"Send publicly",LanCanSend());
+  Button(LanSend,new[]{left+Math.Max(8,area-124),h-114,Math.Min(124,area),38},"Send publicly",LanCanRequest());
  }
  WrappedLabel(new[]{left,h-48,area,44},lanStatus);
   }
@@ -780,8 +905,10 @@ else if(screen=="fields"){
  foreach(var pair in layerBounds)if(Folded(pair.Key)){layer=pair.Key;var b=pair.Value;Paint(new[]{b[0],b[1],b[2],b[3],0x2A4253});TextRun(b,new[]{b[0]+8,b[1]+4},"Double-click to expand", "window-handle");}layer=1;
  foreach(int id in shown)if(!present.Contains(id))calls.ControlState.Invoke(ControlFor(id),"hide",id);shown=present;hits=hit.ToArray();radii=hitRadii.ToArray();buttons=widget.ToArray();foreach(var pair in layerControls)scene=calls.OrderUpdate.Invoke(scene,"controls",new System.Text.Json.Nodes.JsonObject{["id"]=pair.Key,["controls"]=pair.Value}.ToJsonString());windowScenes[sceneKey]=scene;orderFrame=calls.OrderCompose.Invoke(scene,new[]{0,0,w,h});var composed=J(orderFrame);var nextEligible=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.SelectMany(composed["windows"]!.AsArray(),row=>row!["active"]!.GetValue<bool>()?System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(row["controls"]!.AsArray(),c=>c!["input"]!.GetValue<bool>()),c=>c!["id"]!.GetValue<int>()):System.Linq.Enumerable.Empty<int>()));bool changed=J(nav)["active"]!.ToString()!=screen||!System.Linq.Enumerable.SequenceEqual(eligible,nextEligible);eligible=nextEligible;if(pendingFocus!=0&&active.Contains(pendingFocus)){Focus(pendingFocus);pendingFocus=0;changed=true;}if(changed){nav=calls.NavGroup.Invoke(nav,screen,calls.ControlState.Invoke(control,"query",0)[0],eligible);Focus(J(nav)["focus"]!.GetValue<int>());}
  bool traceComposition=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_TRACE")=="1";if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="begin",frames,screen,nativeHost,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString(),nativePickerPending,jobPending=job is not null,emittedRoles,nativeFields=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>new{id=J(x)["id"]!.GetValue<int>(),visible=J(x)["visible"]!.GetValue<bool>(),enabled=J(x)["enabled"]!.GetValue<bool>()})),rectangles=draw.Count/5,textRuns=texts.Count}));
- calls.NativeFrame.Invoke(nativeHost,System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>J(x)["key"]!.ToString())));calls.Draw.Invoke(surfaces,0,draw.ToArray(),labels.ToArray());if(texts.Count>0)calls.DrawText.Invoke(surfaces,0,clips.ToArray(),origins.ToArray(),texts.ToArray());if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="end",frames}));
- if(Environment.GetEnvironmentVariable("CONFECTORY_HOME_TRACE")=="1"&&frames%15==0)Console.WriteLine("HOME_UI "+new System.Text.Json.Nodes.JsonObject{["screen"]=screen,["width"]=w,["height"]=h,["sidebar"]=sidebar,["job"]=job is not null,["operation"]=operation,["queuedAction"]=queuedAction,["deferredActions"]=deferredActions,["pointer"]=calls.ControlState.Invoke(control,"query",0)[1],["nativePickerPending"]=nativePickerPending,["focus"]=calls.ControlState.Invoke(control,"query",0)[0],["hits"]=System.Text.Json.JsonSerializer.SerializeToNode(hits),["radii"]=System.Text.Json.JsonSerializer.SerializeToNode(radii),["orderFrame"]=J(orderFrame),["navigationPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(navPanel),["submenuPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(subPanel),["fields"]=TraceFields(),["lanMode"]=lanMode,["lanStatus"]=lanStatus,["model"]=model.DeepClone(),["message"]=message,["controls"]=control,["homeControls"]=homeControl,["projectControls"]=shellControl,["retainedViews"]=screen=="project"?System.Text.Json.JsonSerializer.SerializeToNode(Views()):null,["chatBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(chatBuffers),["texts"]=System.Text.Json.JsonSerializer.SerializeToNode(texts),["textClips"]=System.Text.Json.JsonSerializer.SerializeToNode(clips),["detailBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(detailBuffers),["detailKey"]=DetailsScreen()?DetailKey():"",["nativeTree"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeProjection()?.DeepClone():null,["nativeTreeState"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeState().DeepClone():null,["sourceInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(sourceVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["propertyInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(propertyVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["nativeAction"]=screen=="actions"?new System.Text.Json.Nodes.JsonObject{["status"]=nativeActionStatus,["object"]=nativeActionObject,["selection"]=nativeActionSelection,["token"]=nativeActionList?["token"]?.DeepClone(),["actions"]=nativeActionList?["actions"]?.DeepClone(),["chosen"]=nativeActionChosen,["generation"]=nativeActionGeneration}:null,["nativeFieldState"]=screen=="fields"?NativeFieldState().DeepClone():null,["nativeFieldResult"]=screen=="fields"?NativeFieldResult()?.DeepClone():null,["nativeFieldChoosing"]=screen=="fields"&&nativeFieldChoosing,["nativeFieldCandidates"]=screen=="fields"?System.Text.Json.JsonSerializer.SerializeToNode(nativeFieldCandidates):null,["nativeFieldObjects"]=screen=="fields"?nativeFieldObjects?.DeepClone():null,["nativeFieldObjectOffset"]=nativeFieldObjectOffset,["nativeFieldStatus"]=screen=="fields"&&nativeFieldStatus.TryGetValue(Context(),out var fieldStatus)?fieldStatus:"",["buffers"]=System.Text.Json.JsonSerializer.SerializeToNode(buffers)}.ToJsonString());}
+ calls.NativeFrame.Invoke(nativeHost,System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>J(x)["key"]!.ToString())));calls.Draw.Invoke(surfaces,0,draw.ToArray(),labels.ToArray());if(texts.Count>0)calls.DrawText.Invoke(surfaces,0,clips.ToArray(),origins.ToArray(),texts.ToArray());
+ if(lanImageBounds.Length==4){var image=lanImages[lanImageIndex];calls.DrawChatCapture.Invoke(surfaces,lanImageBounds,image.Width,image.Height,image.Pixels);}
+ if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="end",frames}));
+ if(Environment.GetEnvironmentVariable("CONFECTORY_HOME_TRACE")=="1"&&frames%15==0)Console.WriteLine("HOME_UI "+new System.Text.Json.Nodes.JsonObject{["screen"]=screen,["width"]=w,["height"]=h,["sidebar"]=sidebar,["job"]=job is not null,["operation"]=operation,["queuedAction"]=queuedAction,["deferredActions"]=deferredActions,["pointer"]=calls.ControlState.Invoke(control,"query",0)[1],["nativePickerPending"]=nativePickerPending,["focus"]=calls.ControlState.Invoke(control,"query",0)[0],["hits"]=System.Text.Json.JsonSerializer.SerializeToNode(hits),["radii"]=System.Text.Json.JsonSerializer.SerializeToNode(radii),["orderFrame"]=J(orderFrame),["navigationPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(navPanel),["submenuPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(subPanel),["fields"]=TraceFields(),["lanMode"]=lanMode,["lanStatus"]=lanStatus,["lanImageBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(lanImageBounds),["model"]=model.DeepClone(),["message"]=message,["controls"]=control,["homeControls"]=homeControl,["projectControls"]=shellControl,["retainedViews"]=screen=="project"?System.Text.Json.JsonSerializer.SerializeToNode(Views()):null,["chatBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(chatBuffers),["texts"]=System.Text.Json.JsonSerializer.SerializeToNode(texts),["textClips"]=System.Text.Json.JsonSerializer.SerializeToNode(clips),["detailBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(detailBuffers),["detailKey"]=DetailsScreen()?DetailKey():"",["nativeTree"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeProjection()?.DeepClone():null,["nativeTreeState"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeState().DeepClone():null,["sourceInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(sourceVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["propertyInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(propertyVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["nativeAction"]=screen=="actions"?new System.Text.Json.Nodes.JsonObject{["status"]=nativeActionStatus,["object"]=nativeActionObject,["selection"]=nativeActionSelection,["token"]=nativeActionList?["token"]?.DeepClone(),["actions"]=nativeActionList?["actions"]?.DeepClone(),["chosen"]=nativeActionChosen,["generation"]=nativeActionGeneration}:null,["nativeFieldState"]=screen=="fields"?NativeFieldState().DeepClone():null,["nativeFieldResult"]=screen=="fields"?NativeFieldResult()?.DeepClone():null,["nativeFieldChoosing"]=screen=="fields"&&nativeFieldChoosing,["nativeFieldCandidates"]=screen=="fields"?System.Text.Json.JsonSerializer.SerializeToNode(nativeFieldCandidates):null,["nativeFieldObjects"]=screen=="fields"?nativeFieldObjects?.DeepClone():null,["nativeFieldObjectOffset"]=nativeFieldObjectOffset,["nativeFieldStatus"]=screen=="fields"&&nativeFieldStatus.TryGetValue(Context(),out var fieldStatus)?fieldStatus:"",["buffers"]=System.Text.Json.JsonSerializer.SerializeToNode(buffers)}.ToJsonString());}
 entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??repo,"listen","{}"),value=>calls.EntryRequest.Invoke(value,"close","{}"));bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invoke(surfaces)[0]==0){cancelNativeField?.Invoke();cancelNativeAction?.Invoke();return job is not null&&!job.IsCompleted;}
  if(appClosePending&&operation=="save-chat-drafts"&&job?.IsCompleted==true){
   var closing=job;

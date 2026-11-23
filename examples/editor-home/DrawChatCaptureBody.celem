@@ -1,0 +1,5 @@
+implementation Confectory.EditorHome::DrawChatCaptureBody for Confectory.EditorHome::DrawChatCapture (long[] surfaces, int[] bounds, int width, int height, int[] pixels) -> void {
+import Confectory.Window::CreateTextLayout as OpenCanvas (long[],int) -> long[];
+import Confectory.Window::CloseTextLayout as CloseCanvas (long[]) -> void;
+body common "DrawChatCapture.csbody";
+}

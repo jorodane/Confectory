@@ -204,7 +204,7 @@ class NativeEditor:
         assert self.field(self.state(), 456).get('text') == '', 'Secret reached diagnostic trace'
         return clipboard_invite(version)
 
-    def review(self, host, port):
+    def review(self, host, port, title="GTK Host"):
         self.click(450)
         self.click(453)
         self.click(456)
@@ -214,7 +214,7 @@ class NativeEditor:
         row = self.wait(lambda row: row['lanMode'] == 'review', 'Inspect clipboard invitation')
         assert self.field(row, 456).get('text') == ''
         assert any(f'Host: {HOST}:{port}' in text for text in row['texts'])
-        assert any('Project: GTK Host' in text for text in row['texts'])
+        assert any(f'Project: {title}' in text for text in row['texts'])
         assert any('Host certificate SHA-256' in text for text in row['texts'])
         assert port not in host.established_ports()
 

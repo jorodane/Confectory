@@ -1,0 +1,4 @@
+function Confectory.YogiBox::OpenBound (string directory, string project, string owner, string workspace, bool sealedImageOnly) -> string {
+provide Confectory.YogiBox::OpenBound with Confectory.YogiBox::OpenBoundBody;
+description "Open the usual bound package, or require an existing clean sealed package with a LaY before installing an owner.";
+}

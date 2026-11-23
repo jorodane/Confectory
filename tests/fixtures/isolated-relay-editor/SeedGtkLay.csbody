@@ -1,0 +1,52 @@
+string repo=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+string profile=Environment.GetEnvironmentVariable("CONFECTORY_HOME_STORAGE")!;
+string directory=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(profile)!,"projects");
+string role=Environment.GetEnvironmentVariable("CONFECTORY_TEST_GTK_LAY")!;
+string session=calls.CreateSession.Invoke(repo,profile);
+try
+{
+    void Seed(string title, int tone, bool ey, int imageCount)
+    {
+        System.Text.Json.Nodes.JsonNode Apply(string operation,object input)
+        {
+            var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,operation,
+                System.Text.Json.JsonSerializer.Serialize(input)))!;
+            if(reply["status"]!.ToString().StartsWith("Error:",StringComparison.Ordinal))
+                throw new InvalidOperationException(reply["status"]!.ToString());
+            return reply;
+        }
+        var selected=Apply("create",new{title,directory})["selected"]!;
+        string id=selected["namespace"]!.ToString()+"::Main";
+        Apply("workspace",new{action="open"});
+        Apply("workspace",new{action="select",id});
+        if(ey)Apply("yogi",new{action="exactly",id});
+        const int width=24,height=18;
+        for(int imageIndex=0;imageIndex<imageCount;imageIndex++)
+        {
+            byte[] pixels=new byte[width*height*3];
+            for(int y=0;y<height;y++)
+            for(int x=0;x<width;x++)
+            {
+                int offset=3*(y*width+x);
+                pixels[offset]=(byte)(tone+imageIndex*19);
+                pixels[offset+1]=(byte)(x*7);
+                pixels[offset+2]=(byte)(y*11);
+            }
+            Apply("yogi",new{action="capture",id,view="",image=new{width,height,encoding="rgb24-base64",
+                pixels=Convert.ToBase64String(pixels),
+                hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()}});
+        }
+        Apply("yogi",new{action="text",text=title+" frozen description"});
+        Apply("yogi",new{action="seal",@sealed=true});
+        Apply("leave",new{context=selected["context"]!.ToString(),draft=""});
+    }
+    if(role=="host")Seed("GTK LaY Host",91,true,2);
+    else if(role=="guest")
+    {
+        Seed("GTK LaY Guest",153,false,1);
+        Seed("GTK Mixed Guest",124,true,1);
+    }
+    else throw new InvalidOperationException("Unknown synthetic LaY fixture");
+}
+finally{calls.CloseSession.Invoke(session);}
+return 0;
