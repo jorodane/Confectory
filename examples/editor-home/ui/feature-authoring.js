@@ -286,6 +286,28 @@ function blueprintNormalizeControls(scope){
    panel.onpointerdown=e=>e.stopPropagation();panel.onclick=e=>e.stopPropagation();panel.addEventListener('focusout',()=>queueMicrotask(()=>{if(menu===panel&&!panel.contains(document.activeElement)&&!panel._popup?.contains(document.activeElement)&&!pin.contains(document.activeElement))closeMenu('commit');}));panel.onkeydown=e=>{e.stopPropagation();if(e.isComposing||e.keyCode===229)return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();if(closeMenu('commit')!==false)queueMicrotask(()=>{if(owns(w,canvasScope)&&w.meta.id===canvasId)w.body.querySelector('[data-bp-save]')?.click();});}else if(e.key==='Escape'){e.preventDefault();closeMenu('cancel');viewport.focus();}else if(e.key==='Enter'){e.preventDefault();if(closeMenu('commit')!==false)viewport.focus();}};$('form',panel).onsubmit=e=>{e.preventDefault();if(closeMenu('commit')!==false)viewport.focus();};$('[data-pin-close]',panel).onclick=()=>closeMenu('commit');if(rows.find(row=>row.id===pin.dataset.node)?.kind==='code'){const form=$('form',panel),line=document.createElement('div');line.className='bp-inline-pin-line';const toggle=document.createElement('button');toggle.type='button';toggle.className='bp-pin-menu-toggle';toggle.setAttribute('aria-label','출력 핀 메뉴');toggle.setAttribute('aria-haspopup','dialog');toggle.textContent=input.value||'이름 입력';line.append(toggle);panel.insertBefore(line,panel.querySelector('.bp-pin-remove,[data-pin-close]'));const open=()=>{panel._popup?.remove();const popup=document.createElement('section');popup.className='bp-value-menu';popup.setAttribute('role','dialog');popup.setAttribute('aria-label','출력 핀 설정');const typeButton=document.createElement('button');typeButton.type='button';typeButton.className='bp-value-menu-option';typeButton.textContent='자료형 선택…';typeButton.onclick=()=>{closeMenu('cancel');choosePinType(pin);};const heading=document.createElement('div');heading.className='bp-value-menu-heading';heading.textContent='지역변수 이름';popup.append(typeButton,heading,form);panel._popup=popup;document.body.append(popup);toggle.setAttribute('aria-expanded','true');positionAliasEditor();popup.onpointerdown=e=>{if(e.target.closest('button'))e.preventDefault();e.stopPropagation();};popup.onclick=e=>e.stopPropagation();popup.onkeydown=e=>panel.onkeydown(e);popup.addEventListener('focusout',()=>queueMicrotask(()=>{if(menu===panel&&!panel.contains(document.activeElement)&&!popup.contains(document.activeElement))closeMenu('commit');}));input.focus();input.select();};toggle.onclick=open;open();}else{input.focus();input.select();}
   }
   function closeMenu(reason='cancel'){menu?._branchControl?.setAttribute('aria-expanded','false');const close=closeEdit;closeEdit=null;if(close&&close(reason)===false){closeEdit=close;return false;}menu?.remove();menu=null;return true;}
+  function pickBranchExit(id,control,allowed=()=>true){
+   if(!canvasOwns()||!allowed()||!branchExitSupported(w)||closeMenu('cancel')===false)return;
+   const exit=id.slice(6),members=branchExitMembers(w);
+   if(!Object.hasOwn(branchExitPlan(w).exits,exit))return;
+   const picker=document.createElement('div');menu=picker;picker.className='workspace-search-menu bp-search-menu';
+   picker.setAttribute('role','listbox');picker.setAttribute('aria-label','기존 분기 선택');picker._branchControl=control;
+   for(const member of members){
+    const option=document.createElement('button');option.type='button';option.setAttribute('role','option');
+    option.dataset.branchOption=member.id;option.textContent=member.name;
+    option.onclick=()=>{
+     if(menu!==picker||!canvasOwns()||!allowed()||!Object.hasOwn(branchExitPlan(w).exits,exit))return;
+     closeMenu();changeBranchExits(w,plan=>{plan.exits[exit]={...plan.exits[exit],executionBranch:member.id};});
+    };
+    picker.append(option);
+   }
+   document.body.append(picker);const anchor=control.getBoundingClientRect();
+   picker.style.left=Math.max(8,Math.min(innerWidth-picker.offsetWidth-8,anchor.left))+'px';
+   picker.style.top=Math.max(8,Math.min(innerHeight-picker.offsetHeight-8,anchor.bottom+4))+'px';
+   control.setAttribute('aria-expanded','true');
+   picker.onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();closeMenu();control.focus();}};
+   picker.querySelector('button')?.focus();
+  }
   function stage(node,kind,text){if(disposed||!owns(w)||w.authorData!==data)return;const relatedPublicCase=rootExecutionSupported(w)&&kind.startsWith('route:case:')&&!data.privatePath&&data.reviewIds?.length>=3&&data.reviewIds[2]!== (data.rootId||data.id)&&data.sources?.some(s=>s.id===data.reviewIds[2]&&s.kind==='blueprint')&&rows.some(r=>r.id===node&&r.publicExecution&&r.calledFeature===data.reviewIds[0]);if(branchExitSupported(w)&&!relatedPublicCase&&['entry','route'].some(k=>kind===k||kind.startsWith(k+':'))){changeBranchExits(w,p=>{if(kind==='entry')p.entry=text;else{const port=kind==='route'?'next':kind.slice(6);p.edges=p.edges.filter(e=>e.from!==node||e.port!==port);if(text)p.edges.push({from:node,port,to:text});}});return;}if(inputs.has(prefix(w)+'$root|root-parameters')&&['entry','route'].includes(kind)){try{changeRootContract(w,plan=>{if(kind==='entry')plan.outputEntry=text;else{plan.outputRoutes??=[];plan.outputRoutes=plan.outputRoutes.filter(row=>row.node!==node);plan.outputRoutes.push({node,to:text});}});}catch(error){api.toast(error.message);}return;}if(data.privatePath&&(data.privateCopy||data.slotContext?.copySource)&&['entry','route'].includes(kind))structuralEdit(w,()=>privateValue(w,node,kind,text));else privateValue(w,node,kind,text);status(w);selected=null;schedule();}
   function pendingPort(){for(const p of $$('.bp-port',plane)){const active=p===pending;p.classList.toggle('is-pending',active);p.setAttribute('aria-pressed',String(active));}}
   function safeSerial(source,target){if(source===target)return false;const seen=new Set([target]);for(let i=0;i<nodes.length;i++)for(const l of links())if(seen.has(l.from))seen.add(l.to);return !seen.has(source);}
@@ -356,7 +378,8 @@ function blueprintNormalizeControls(scope){
   for(const n of nodes.filter(n=>n.kind==='export')){const el=element(n.id),header=$(':scope>.bp-node-header',el);for(const p of $$(':scope>.bp-port:not([data-kind=data])',el))p.remove();header.insertAdjacentHTML('beforeend','<button type="button" class="bp-port bp-port-in bp-exec-line bp-exec-header-in" data-node="'+esc(n.id)+'" data-side="in" aria-label="상단바에 실행 줄 걸기"><span class="bp-execution-segment"></span></button>'+(!n.id.startsWith('$exit:')?'<button type="button" class="bp-port bp-port-out bp-exec-line bp-exec-line-out" style="top:calc(50% - 22.5px)" data-node="'+esc(n.id)+'" data-side="out" data-port="next" aria-label="다음 줄 연결"><span class="bp-execution-segment"></span></button>':''));}
   for(const n of nodes.filter(n=>n.kind==='branch-exit')){
    const exitMembers=branchExitMembers(w),member=exitMembers.find(m=>m.id===n.branchId);$('.bp-nodes',root).insertAdjacentHTML('beforeend','<article class="bp-node bp-kind-branch-exit" data-bp-node="'+esc(n.id)+'" style="left:'+n.x+'px;top:'+n.y+'px"><header class="bp-node-header"><div class="bp-export-name"><input type="text" role="combobox" aria-label="반환할 분기 이름" aria-expanded="false" data-bp-branch-name readonly placeholder="분기 이름" value="'+esc(member?.name||'')+'"><button type="button" data-bp-branch-select aria-label="기존 분기 선택">'+blueprintControlIconMarkup()+'</button></div><strong>분기</strong><button type="button" data-bp-remove aria-label="분기 반환 노드 삭제">×</button><button type="button" class="bp-port bp-port-in bp-exec-line bp-exec-header-in" data-node="'+esc(n.id)+'" data-side="in" aria-label="상단바에 실행 줄 걸기"><span class="bp-execution-segment"></span></button></header></article>');
-   const el=element(n.id),control=$('[data-bp-branch-name]',el),choose=()=>{if(!canvasOwns())return;if(closeMenu('cancel')===false)return;menu=document.createElement('div');menu.className='workspace-search-menu bp-search-menu';menu.setAttribute('role','listbox');menu.setAttribute('aria-label','기존 분기 선택');menu._branchControl=control;for(const m of exitMembers){const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.dataset.branchOption=m.id;b.textContent=m.name;b.onclick=()=>{if(!canvasOwns())return;closeMenu();changeBranchExits(w,p=>{p.exits[n.id.slice(6)]={...p.exits[n.id.slice(6)],executionBranch:m.id};});};menu.append(b);}document.body.append(menu);const r=control.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(innerWidth-menu.offsetWidth-8,r.left))+'px';menu.style.top=Math.max(8,Math.min(innerHeight-menu.offsetHeight-8,r.bottom+4))+'px';control.setAttribute('aria-expanded','true');menu.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();closeMenu();control.setAttribute('aria-expanded','false');control.focus();}};menu.querySelector('button')?.focus();};$('[data-bp-branch-select]',el).onclick=choose;control.onclick=choose;control.onkeydown=e=>{if(['Enter','ArrowDown'].includes(e.key)){e.preventDefault();choose();}};
+   const el=element(n.id),control=$('[data-bp-branch-name]',el),choose=()=>pickBranchExit(n.id,control);
+   $('[data-bp-branch-select]',el).onclick=choose;control.onclick=choose;control.onkeydown=e=>{if(['Enter','ArrowDown'].includes(e.key)){e.preventDefault();choose();}};
    $('[data-bp-remove]',el).onclick=()=>{if(!canvasOwns())return;const id=n.id.slice(1),plan=branchExitPlan(w);if(plan.entry===id||plan.edges.some(e=>e.to===id))return api.toast('이 반환 노드의 실행 연결을 먼저 해제해 주세요. 기존 연결은 유지됩니다.');changeBranchExits(w,p=>{delete p.exits[n.id.slice(6)];});};
   }
   blueprintNormalizeControls(root);
@@ -816,8 +839,14 @@ function blueprintNormalizeControls(scope){
   const flowDocument=documentFlowPreview(w,data),flowChild=flowDocument==='child';
   const callsNeedingReview=new Set((data.nodes||[]).filter(row=>
    row.kind==='call'&&row.postCallStale===true&&row.postCallSignatureMatches===false).map(row=>row.id));
+  const documentBranchExit=id=>!api.busy&&data.privatePath&&data.executionExitMode===true&&
+   !data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&branchExitSupported(w)&&
+   data.exits.some(exit=>'$exit:'+exit.name===id);
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
+   model.nodes=model.nodes.map(node=>documentBranchExit(node.id)
+    ?{...node,branchExitChoice:branchExitMembers(w).find(member=>member.id===node.branchId)?.name||'선택 필요'}
+    :node);
    if(flowDocument){
     const child=flowChildFrame(w.meta.nodeFlowDraft);
     model.nodes=model.nodes.map(node=>node.kind==='branch-exit'
@@ -849,6 +878,7 @@ function blueprintNormalizeControls(scope){
   }
   documentView=mountFunctionDocument(root,{...surface,context:functionDocumentContext(w,data),nativeDefinition:!!data.privateConversion&&!flowDocument,
    initialMode:flowChild?'blueprint':undefined,model:documentModel,
+   pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
    values:flowDocument?()=>[]:surface.values,
    removeCell:(id,button)=>{
     if(!canRemoveDocumentCell(id)||surface.closeValues('preserve')===false)return;

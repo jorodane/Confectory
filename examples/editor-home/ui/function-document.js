@@ -69,6 +69,7 @@ export function mountFunctionDocument(root,api){
   if(!owns()||state.mode!=='logic')return;if(pointerType==='mouse'&&!drag)return;if(drag){if(currentDrag())return;cancelDrag();}
   const model=api.model(),tree=functionDocumentTree(model);
   const fields=(node,side)=>{
+   if(side==='inputs'&&node.branchExitChoice!==undefined)return '<div class="fd-pin"><span>반환할 분기</span><button type="button" data-document-branch-exit="'+esc(node.id)+'" aria-haspopup="listbox" aria-expanded="false">'+esc(node.branchExitChoice)+'</button></div>';
    const values=side==='inputs'?api.values(node.id):[];
    const declared=node.id==='$entry'?(side==='inputs'?model.inputs:model.outputs):side==='inputs'?node.inputs:node.outputs;
    if(side==='inputs'&&node.kind==='export')return values.map(field=>'<div class="fd-pin"><span>'+fieldLabel(field)+'</span><button type="button" data-document-value="'+esc(node.id)+'" data-document-port="'+esc(field.port)+'">'+esc(field.text||'값 선택')+'</button></div>').join('');
@@ -92,6 +93,7 @@ export function mountFunctionDocument(root,api){
   for(const button of host.querySelectorAll('[data-document-branch]'))button.onclick=()=>{if(!owns()||api.closeValues('preserve')===false)return;state.tabs[button.dataset.documentOwner]=button.dataset.documentBranch;persist();render();};
   for(const input of host.querySelectorAll('[data-document-name]'))input.oninput=()=>{if(owns()){api.write(input.dataset.documentName,'rename',input.value);syncActions();}};
   for(const button of host.querySelectorAll('[data-document-value]'))button.onclick=()=>{if(owns())api.editValue(button.dataset.documentValue,button.dataset.documentPort,button);};
+  for(const button of host.querySelectorAll('[data-document-branch-exit]'))button.onclick=()=>{if(owns())api.pickBranchExit(button.dataset.documentBranchExit,button);};
   for(const button of host.querySelectorAll('[data-document-code]'))button.onclick=()=>{if(owns())api.code(button.dataset.documentCode);};
   for(const button of host.querySelectorAll('[data-document-internal]'))button.onclick=()=>{if(owns())api.internal(button.dataset.documentInternal);};
   for(const button of host.querySelectorAll('[data-document-drag]')){
