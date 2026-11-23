@@ -1,9 +1,10 @@
-"""Real Logic Code property read and consumption in one owned synchronous child."""
+"""Real Logic Code property read and consumption in an owned root or child."""
 import ast
 import copy
 import json
 from pathlib import Path
 import subprocess
+import sys
 from types import SimpleNamespace
 import uuid
 
@@ -16,6 +17,8 @@ feature = f.n + 'Calc'
 root_id = f.n + 'CalcBody/body:common'
 frame = root_id + '/graph:work'
 sibling = root_id + '/graph:peer'
+root = 'root' in sys.argv[3:]
+shared = 'shared' in sys.argv[3:]
 graph_path = f.project / 'Calc.graph.json'
 profile = 'sync-acyclic-methods-v1'
 t = SimpleNamespace(feature=feature)
@@ -60,18 +63,30 @@ def setup_project():
     graph = {**f.g, 'profile': profile, 'entry': 'work', 'nodes': [selected, peer],
              'edges': [edge('work', 'peer'), edge('peer', 'exit:return')],
              'exits': {'return': {'node': 'work', 'output': 'return'}}}
+    if root:
+        graph.update(selected['graph'])
+        graph['nodes'].insert(1, code('other', 'Other.node.json', sig(), {}))
+        graph['edges'] = [edge('mark', 'other'), edge('other', 'consume'), edge('consume', 'exit:return')]
     graph.pop('locals')
     definitions = f.metadata('featureBlueprintNodes', featureSource=f.items['Calc'][1], graph=graph,
                              implementationContext={'implementation': f.n + 'CalcBody'}, bodyTarget='common')
     assert definitions['state'] == 'node-definitions', definitions
-    rows = definitions['nestedNodes']
-    for qualified, file, source in [
-            ('work/mark', 'Mark.node.json', 'System.Console.WriteLine("mark");'),
-            ('work/consume', 'Work.node.json', 'System.Console.WriteLine("work:" + value);return value;'),
-            ('peer/consume', 'Peer.node.json', 'System.Console.WriteLine("peer:" + value);return value;')]:
+    rows = definitions['nodes' if root else 'nestedNodes']
+    bodies = [
+        ('work/mark', 'Mark.node.json', 'System.Console.WriteLine("mark");'),
+        ('work/consume', 'Work.node.json', 'System.Console.WriteLine("work:" + value);return value;'),
+        ('peer/consume', 'Peer.node.json', 'System.Console.WriteLine("peer:" + value);return value;'),
+    ]
+    if root:
+        bodies = [(cell.split('/')[-1], file, source) for cell, file, source in bodies[:2]]
+        bodies.append(('other', 'Other.node.json', 'System.Console.WriteLine("other");'))
+    for qualified, file, source in bodies:
         definition = next(row for row in rows if row['id'] == qualified)
         (f.project / file).write_text(json.dumps({'schema': 1, 'node': qualified.split('/')[-1],
                                                   'definitionHash': definition['definitionHash'], 'source': source}))
+    if shared:
+        graph['copySource'] = {'implementation': f.n+'Origin', 'target': 'common',
+                               'bodyOrigin': f.n+'Origin', 'sourceKind': 'blueprint'}
     graph_path.write_text(json.dumps(graph))
     main = f.project / 'Main.csbody'
     create = f'calls.Create.Invoke({json.dumps(json.dumps(f.descriptor, separators=(",", ":")))},' \
@@ -88,8 +103,11 @@ def execute(label, values):
     command = json.loads(build.stdout)['run']
     done = subprocess.run(command, env=f.env, capture_output=True, text=True, check=True)
     (f.case / (label + '.txt')).write_text(done.stdout)
-    assert done.stdout.splitlines() == [line for value in values
-                                       for line in ['mark', f'work:{value}', 'peer:9', str(value)]], done.stdout
+    expected = []
+    for value in values:
+        expected.extend(['mark', 'other', f'work:{value}', str(value)] if root
+                        else ['mark', f'work:{value}', 'peer:9', str(value)])
+    assert done.stdout.splitlines() == expected, done.stdout
 
 
 def blueprint(action, graph=frame, *, ok=True, **options):
@@ -162,7 +180,8 @@ def pick(name='value'):
 
 
 def enter():
-    doc().locator('[data-document-internal="work"]').click()
+    if not root:
+        doc().locator('[data-document-internal="work"]').click()
     expect(pin()).to_be_visible()
 
 
@@ -170,6 +189,17 @@ def run(browser, graph, original_checkpoint):
     open_page(browser)
     open_document()
     enter()
+    if shared:
+        assert blueprint('read', root_id)['requiresCoupledCopy']
+        pin().click()
+        menu = f.page.get_by_role('dialog', name='핀 값 선택')
+        expect(menu).to_be_visible()
+        expect(menu.get_by_role('button', name='속성 읽기 연결…')).to_have_count(0)
+        f.page.keyboard.press('Escape')
+        assert not pending() and checkpoint.read_bytes() == original_checkpoint
+        f.unchanged()
+        f.checked('The same root pin cannot create a property read in a graph with shared copy provenance.')
+        return
     dialog = pick('flag')
     expect(dialog.locator('[data-property-status]')).to_have_text('이 입력과 자료형이 같은 속성이 없습니다.')
     expect(dialog.locator('[data-property-connect]')).to_be_disabled()
@@ -185,20 +215,27 @@ def run(browser, graph, original_checkpoint):
     assert len(pending()) == 4
     f.checked('The Logic Code picker filters by consumer type and stages the selected receiver, read and link together.')
 
-    schema = f.project / 'Vitals.celem'
-    original_schema = schema.read_bytes()
-    schema.write_bytes(original_schema.replace(b'long', b'bool'))
+    conflict = graph_path if root else f.project / 'Vitals.celem'
+    original_source = conflict.read_bytes()
+    if root:
+        reordered = copy.deepcopy(graph)
+        reordered['edges'] = [edge('mark', 'consume'), edge('consume', 'other'), edge('other', 'exit:return')]
+        conflict.write_text(json.dumps(reordered))
+    else:
+        conflict.write_bytes(original_source.replace(b'long', b'bool'))
+    changed_source = conflict.read_bytes()
     try:
         panel().locator('[data-bp-save]').click()
         expect(panel().locator('.bp-status')).not_to_have_text('저장 중…', timeout=120000)
         f.idle()
         assert checkpoint.read_bytes() == original_checkpoint
+        assert conflict.read_bytes() == changed_source
         assert len([row for _, row in pending() if row.get('type')]) == 4
         expect(pin()).to_contain_text('health')
     finally:
-        schema.write_bytes(original_schema)
+        conflict.write_bytes(original_source)
     f.unchanged()
-    f.checked('A changed field contract rejects Save and retains both the pending read and the consumed value.')
+    f.checked('An external route or field change rejects Save while retaining both the pending read and its binding.')
 
     panel().locator('[data-bp-save]').click()
     expect(panel().locator('.bp-status')).to_have_text('저장됨', timeout=120000)
@@ -211,9 +248,10 @@ def run(browser, graph, original_checkpoint):
     open_page(browser)
     expect(pin()).to_contain_text('health')
     cards = doc().locator('[data-document-cell]').evaluate_all('(cells) => cells.map(cell => cell.dataset.documentCell)')
-    assert len(cards) == 5 and cards[:2] == ['$entry', 'mark'] and cards[-2:] == ['consume', '$exit:return'], cards
-    assert cards[2].startswith('property_'), cards
-    expect(doc().locator(f'[data-document-value="{cards[2]}"][data-document-port="field:target"]')).to_have_text('target')
+    before_read = ['$entry', 'mark', 'other'] if root else ['$entry', 'mark']
+    read_id = cards[len(before_read)]
+    assert read_id.startswith('property_') and cards == before_read + [read_id, 'consume', '$exit:return'], cards
+    expect(doc().locator(f'[data-document-value="{read_id}"][data-document-port="field:target"]')).to_have_text('target')
     review().locator('[data-reject]').click()
     retained = json.loads(checkpoint.read_bytes())
     # Reopening and then saving rebases the live revision, while the saved
@@ -230,19 +268,21 @@ def run(browser, graph, original_checkpoint):
     expect(final_review).to_be_hidden(timeout=120000)
     actual = json.loads(graph_path.read_text())
     expected = copy.deepcopy(graph)
-    child = expected['nodes'][0]['graph']
-    read_id = cards[2]
-    added = next(node for node in actual['nodes'][0]['graph']['nodes'] if node['id'] == read_id)
+    scope = expected if root else expected['nodes'][0]['graph']
+    actual_scope = actual if root else actual['nodes'][0]['graph']
+    added = next(node for node in actual_scope['nodes'] if node['id'] == read_id)
     assert added['kind'] == 'property' and added['field'] == 'health' and added['propertyOwner'] == f.n+'Monster'
     assert added['arguments'] == {'target': {'input': 'target'}}
-    child['nodes'].append(added)
-    child['nodes'][1]['arguments']['value'] = {'node': read_id, 'output': 'return'}
-    child['edges'] = [edge('consume', 'exit:return'), edge('mark', read_id), edge(read_id, 'consume')]
+    scope['nodes'].append(added)
+    next(node for node in scope['nodes'] if node['id'] == 'consume')['arguments']['value'] = {'node': read_id, 'output': 'return'}
+    previous = 'other' if root else 'mark'
+    scope['edges'] = [route for route in scope['edges'] if route['from'] != previous]
+    scope['edges'].extend([edge(previous, read_id), edge(read_id, 'consume')])
     assert actual == expected
     assert all((f.project / name).read_bytes() == raw for name, raw in f.original.items() if name != graph_path.name)
     assert not errors, errors
     execute('confirmed', [10, 25])
-    f.checked('Cold Save, Review cancellation and Confirm preserve sources and the same-ID sibling. The compiled child consumes the actual property value.')
+    f.checked('Cold Save, Review cancellation and Confirm preserve unrelated sources. The compiled consumer receives the actual property value.')
 
 
 f.author = lambda: f.page.locator('.window[data-key=blueprint]')
@@ -251,13 +291,15 @@ errors = []
 try:
     graph = setup_project()
     f.original = {path.name: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
-    execute('baseline', [1, 1])
+    if not shared:
+        execute('baseline', [1, 1])
     f.start(0)
     f.call('select', {'id': feature})
     f.call('saveDraft', {})
     checkpoint = next(f.project.glob('.confectory/edit-workspaces/*/draft.json'))
     original_checkpoint = checkpoint.read_bytes()
-    rejected_plans(original_checkpoint)
+    if not root:
+        rejected_plans(original_checkpoint)
     with sync_playwright() as playwright:
         expect.set_options(timeout=30000)
         with playwright.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox']) as browser:

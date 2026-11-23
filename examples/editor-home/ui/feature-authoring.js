@@ -332,20 +332,33 @@ function blueprintNormalizeControls(scope){
   }
 
   const draftType=pin=>'value-draft:'+(pin.dataset.node.startsWith('$exit:')?'value':pinArgument(pin));
-  const privatePropertyFrame=()=>!!data.privatePath&&!data.privatePath.includes('/')&&!data.privateCopy&&!data.slotContext&&
-   !data.requiresCoupledCopy&&!data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&!data.executionExitMode&&
+  const propertyProfile=()=>
    ['sync-acyclic-property-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(data.profile);
+  const privatePropertyFrame=()=>!!data.privatePath&&!data.privatePath.includes('/')&&!data.privateCopy&&!data.slotContext&&
+   !data.requiresCoupledCopy&&!data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&!data.executionExitMode&&propertyProfile();
+  const rootPropertyFrame=()=>data.id===data.rootId&&!data.privateConversion&&!w.meta.nodeFlowDraft&&
+   !data.executionExitMode&&propertyProfile()&&properties.supported(w);
   function propertyConsumer(pin){
-   if(!canvasOwns()||documentView?.mode!=='logic'||!privatePropertyFrame()||saveEntries(w).length||!frameInputsClear()||
+   if(!canvasOwns()||documentView?.mode!=='logic'||!(privatePropertyFrame()||rootPropertyFrame())||saveEntries(w).length||!frameInputsClear()||
       !['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
    const node=data.nodes.find(row=>row.id===pin.dataset.node);
    const argument=signature(node?.signature).args.find(arg=>arg.name===pinArgument(pin)&&!arg.mode);
    const receivers=signature(data.signature).args.filter(arg=>arg.type==='object'&&!arg.mode).map(arg=>arg.name);
    const ordinary=row=>['code','property'].includes(row.kind)&&row.control==='next'&&!row.branchOwner&&!row.implementationContext&&
     !row.contextBoundary&&!row.forwardCallerStorage&&!row.executionForwarded;
-   const incoming=rawLinks().filter(link=>link.to===node?.id);
+   const routes=rawLinks(),incoming=routes.filter(link=>link.to===node?.id);
    if(node?.kind!=='code'||!argument||!receivers.length||data.nodes.length>=63||!data.nodes.every(ordinary)||
       incoming.length!==1||incoming[0].port!=='next')return null;
+   if(!data.privatePath){
+    const visited=new Set();
+    for(let id='$entry';id&&!visited.has(id);){
+     if(id===node.id)return {node,argument,receivers};
+     visited.add(id);
+     const next=routes.filter(link=>link.from===id);
+     id=next.length===1&&next[0].port==='next'?next[0].to:null;
+    }
+    return null;
+   }
    return {node,argument,receivers};
   }
   function pickPropertyRead(pin){
@@ -875,7 +888,7 @@ function blueprintNormalizeControls(scope){
    :null;
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
-   if(privatePropertyFrame())model.links=model.links.flatMap(link=>{
+   if(privatePropertyFrame()||rootPropertyFrame())model.links=model.links.flatMap(link=>{
     const path=[link.from,...(link.readChain||[]),link.to];
     return path.slice(1).map((to,index)=>({from:path[index],port:index===0?link.port:'next',to}));
    });
