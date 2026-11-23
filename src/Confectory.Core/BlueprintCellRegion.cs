@@ -60,13 +60,15 @@ public static class BlueprintCellRegion
 
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
-    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false)
+    static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
+        bool allowDirectMethodLeaves=false)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
             bool switchChild=allowSwitchChild&&depth==1&&S(g,"profile")==FeatureBlueprint.SwitchProfile;
-            Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild) && g["copySource"] is null
+            bool methodLeaf=allowDirectMethodLeaves&&depth==1&&S(g,"profile")==FeatureBlueprint.MethodsProfile;
+            Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
             Need(nodes.Count is >0 and <64 && total<=256,"Bounded complete compound chain required");
@@ -78,6 +80,13 @@ public static class BlueprintCellRegion
             Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
                 && n!["branchOwner"] is null && n["executionEnum"] is null && PlainCallContext(n)),
                 "Preserve branch, call, opaque, receiver and forwarded storage contexts");
+            if(allowDirectMethodLeaves)
+                Need(nodes.All(node=>node!["sourceIdentity"] is null && node["completionBranch"] is null
+                    && node[BlueprintCompletionAdapter.Metadata] is null), "Ordinary synchronous method preview required");
+            if(methodLeaf)
+                Need(g["locals"] is null or JsonArray {Count:0}
+                    && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!)),
+                    "Direct method preview requires ordinary value-parameter code leaves");
             var edges=g["edges"]!.AsArray();
             Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
                 &&edges.Select(e=>S(e,"from")).Distinct(StringComparer.Ordinal).Count()==nodes.Count,"One exclusive next route per cell required");
@@ -85,7 +94,12 @@ public static class BlueprintCellRegion
             var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(g,"entry");
             while(names.Contains(at)){Need(seen.Add(at),"Compound chain cannot cycle");at=links[at];}
             Need(seen.Count==names.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&g["exits"]!.AsObject().ContainsKey(at[5..]),"Retain every cell and the original frame exit");
-            foreach(var node in nodes.Where(n=>S(n,"kind")=="graph"))Chain(node!["graph"]!.AsObject(),depth+1);
+            foreach(var node in nodes.Where(n=>S(n,"kind")=="graph")){
+                var child=node!["graph"]!.AsObject();
+                if(allowDirectMethodLeaves&&S(child,"profile")==FeatureBlueprint.MethodsProfile)
+                    Need(ValueParameters(node!),"Direct method preview requires an ordinary value-parameter frame");
+                Chain(child,depth+1);
+            }
             return at;
         }
         string terminal=Chain(graph,0);
@@ -103,6 +117,10 @@ public static class BlueprintCellRegion
         Need(visited.Count==original.Count&&next==terminal,"Compound order cannot drop cells or retarget its exit");
         return new JsonObject{["entry"]=S(entry,"to"),["edges"]=new JsonArray(routes.Select(p=>(JsonNode)new JsonObject{["from"]=p.Key,["port"]="next",["to"]=p.Value}).ToArray())};
     }
+
+    static bool ValueParameters(JsonNode node) => node["signature"]?["args"] is JsonArray args
+        && args.All(arg=>S(arg,"mode")=="");
+
     static JsonArray CurrentRoutes(JsonObject graph)
     {
         var routes=new JsonArray{new JsonObject{["action"]="entry",["node"]="$entry",["to"]=graph["entry"]!.DeepClone()}};
@@ -124,7 +142,8 @@ public static class BlueprintCellRegion
         }
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
-        CompoundOrder(root,CurrentRoutes(root));
+        bool directMethodLeaf=!path.Contains('/')&&S(selected,"profile")==FeatureBlueprint.MethodsProfile;
+        CompoundOrder(root,CurrentRoutes(root),allowDirectMethodLeaves:directMethodLeaf);
         return selected;
     }
 

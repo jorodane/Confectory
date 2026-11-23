@@ -1333,9 +1333,15 @@ lock(state){
  System.Text.Json.Nodes.JsonObject ChildFrameBinding() => new System.Text.Json.Nodes.JsonObject{
   ["root"]=graphId,["graph"]=viewGraphId,["path"]=privatePath,["rootHash"]=Hash(rootGraph.ToJsonString()),["frameHash"]=Hash(graph.ToJsonString())
  };
+ bool methodChild=privatePath.Length>0&&graph["profile"]?.ToString()=="sync-acyclic-methods-v1";
+ System.Text.Json.Nodes.JsonObject ChildPreviewBinding(){
+  var binding=ChildFrameBinding();
+  if(methodChild)binding["workspace"]=Hash(draft);
+  return binding;
+ }
  var check=(System.Text.Json.Nodes.JsonObject)request.DeepClone();check["definitionsOnly"]=false;check["implementations"]=records;if(nativePreview){if(privatePath.Length>0){
   if(input.Count is <4 or >6||System.Linq.Enumerable.Any(input,p=>p.Key is not ("id" or "context" or "uiSurface" or "documentFrame" or "sourceProof" or "checkpointHash"))||input["uiSurface"]?.ToString() is not (null or "")||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||!owned.Contains(implementationMetadata["function"]!.ToString())||input["sourceProof"] is not System.Text.Json.Nodes.JsonValue)throw new UnauthorizedAccessException("One observed directly owned child preview required");
-  if(!System.Text.Json.Nodes.JsonNode.DeepEquals(ChildFrameBinding(),input["documentFrame"])||calls.CheckpointSnapshot.Invoke(calls.CheckpointLocation.Invoke(draft))[2]!=input["checkpointHash"]?.ToString())throw new InvalidOperationException("Child preview observation changed; no result exposed");
+  if(!System.Text.Json.Nodes.JsonNode.DeepEquals(ChildPreviewBinding(),input["documentFrame"])||calls.CheckpointSnapshot.Invoke(calls.CheckpointLocation.Invoke(draft))[2]!=input["checkpointHash"]?.ToString())throw new InvalidOperationException("Child preview observation changed; no result exposed");
  }check["assemblePreview"]=true;}var diagnostics=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",check.ToJsonString()))!;
  System.Text.Json.Nodes.JsonNode? callPrepared=null,callDefinitions=null,externalContract=null;int registeredCallBytes=0;
  if(readingCall){
@@ -1442,24 +1448,24 @@ lock(state){
     if(status[1]=="blueprint"&&SamePath(status[2]))throw new InvalidOperationException("Exclusive physical Blueprint graph required");
    }
  }
- void RequireExclusiveSwitchPreviewSources(){
+ void RequireExclusivePreviewSources(){
   var comparison=OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal;
   var paths=new System.Collections.Generic.Dictionary<string,string>(comparison);
   string FullPath(string relative)=>System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],relative));
   void Add(string id,string relative){
    if(calls.Status.Invoke(draft,id)[5]=="missing"||!paths.TryAdd(FullPath(relative),id))
-    throw new InvalidOperationException("Existing exclusive switch preview sources required");
+    throw new InvalidOperationException("Existing exclusive child preview sources required");
   }
   Add(graphId,graphSource[2]);
   foreach(var node in graph["nodes"]!.AsArray()){
    string id=graphId+"/node:"+privatePath+"/node:"+node!["id"]!.ToString();
    if(sources[id] is not System.Text.Json.Nodes.JsonObject source||source["kind"]?.ToString()!="blueprint-node")
-    throw new InvalidOperationException("Observed switch code source required");
+    throw new InvalidOperationException("Observed child code source required");
    Add(id,source["path"]!.ToString());
   }
   void Check(string id,string relative){
    if(paths.TryGetValue(FullPath(relative),out string? owner)&&owner!=id)
-    throw new InvalidOperationException("Shared source is outside switch preview scope");
+    throw new InvalidOperationException("Shared source is outside child preview scope");
   }
   foreach(var locator in locators["units"]!.AsArray())Check(locator!["id"]!.ToString(),locator["path"]!.ToString());
   foreach(string id in owned)Check(id,calls.Status.Invoke(draft,id)[2]);
@@ -1546,8 +1552,8 @@ lock(state){
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
    ["action"]="frame-preview",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
   }.ToJsonString());
-  if(graph["profile"]?.ToString()=="sync-acyclic-switch-v1")RequireExclusiveSwitchPreviewSources();
-  framePreviewBinding=ChildFrameBinding();
+  if(methodChild||graph["profile"]?.ToString()=="sync-acyclic-switch-v1")RequireExclusivePreviewSources();
+  framePreviewBinding=ChildPreviewBinding();
  }catch{framePreviewBinding=null;}
  System.Text.Json.Nodes.JsonObject? frameCaseOrderBinding=null;
  if(ownedSerialChild&&graph["profile"]?.ToString()=="sync-acyclic-switch-v1"&&string.IsNullOrEmpty(input["uiSurface"]?.ToString()))try{
@@ -1605,7 +1611,7 @@ lock(state){
   if(privateReturnChoices.Count>0){
    // Same bound physical graph and qualified child code sources as the existing preview.
    RequireExclusiveWritableGraph();
-   RequireExclusiveSwitchPreviewSources();
+   RequireExclusivePreviewSources();
    if(bodySourceIds.Length is <3 or >64||System.Linq.Enumerable.Any(bodySourceIds,id=>
      calls.Status.Invoke(draft,id)[6]!="clean"||UnitGrouped(id)))throw new InvalidOperationException("Clean owned private return sources required");
    foreach(var node in graph["nodes"]!.AsArray()){

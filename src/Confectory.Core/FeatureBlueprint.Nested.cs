@@ -47,10 +47,10 @@ public static partial class FeatureBlueprint
         }
         string? prefix = request["sourcePath"]?.ToString();
         bool selected = prefix is not null && request["assemblyPath"]?.ToString() == prefix;
-        List<(string Id, string Text)>? switchMembers = selected && request["graph"]?["profile"]?.ToString() == SwitchProfile
+        List<(string Id, string Text)>? methodMembers = selected && request["graph"]?["profile"]?.ToString() is (MethodsProfile or SwitchProfile)
             ? [] : null;
         JsonObject result;
-        try { result = ProcessCore(request, switchMembers); }
+        try { result = ProcessCore(request, methodMembers); }
         catch (Refusal refusal)
         {
             string? path = request["sourcePath"]?.ToString();
@@ -106,13 +106,13 @@ public static partial class FeatureBlueprint
             }
             var code = included.Where(entry => S(entry.Node, "kind") == "code").ToArray();
             string members = S(result, "members");
-            // Switch helpers are separate class members. Match the entire
+            // Method helpers are separate class members. Match the entire
             // member buffer to contributions captured at its regular emit site.
-            bool exactMembers = switchMembers is null ? members.Length == 0
-                : code.Length == included.Length && switchMembers.Count == code.Length
+            bool exactMembers = methodMembers is null ? members.Length == 0
+                : code.Length == included.Length && methodMembers.Count == code.Length
                     && code.Select(entry => entry.Key).ToHashSet(StringComparer.Ordinal)
-                        .SetEquals(switchMembers.Select(member => member.Id))
-                    && members == string.Concat(switchMembers.Select(member => member.Text));
+                        .SetEquals(methodMembers.Select(member => member.Id))
+                    && members == string.Concat(methodMembers.Select(member => member.Text));
             Need(exactMembers && ExactPaths("sourceMap", "node", included)
                 && ExactPaths("nodeSources", "id", code),
                 "GRAPH_ASSEMBLY_SCOPE", prefix);

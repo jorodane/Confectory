@@ -96,7 +96,7 @@ public static partial class FeatureBlueprint
         ["sourceWritten"] = false,
         ["executed"] = false
     };
-    static JsonObject ProcessCore(JsonObject request, List<(string Id, string Text)>? switchMembers)
+    static JsonObject ProcessCore(JsonObject request, List<(string Id, string Text)>? methodMembers)
     {
         string operation = S(request, "operation");
         bool inspectStalePostCalls = operation == "featureBlueprintNodes" && request["inspectStalePostCalls"]?.GetValue<bool>() == true;
@@ -673,7 +673,7 @@ public static partial class FeatureBlueprint
                 string type=MethodClass(request,id);
                 string member=MethodsMember(type,node,string.Join(",",node.Signature.Args.Select(p=>p.Declaration()).Concat(NodeImports(node).Select(f=>(asyncFeature?Generation.ImportInterface(Import(f).Element):Generation.Interface(f))+" "+ImportParameter(f)))),bodies[id],helpers[id],marker);
                 membersOutput.Append(member);
-                switchMembers?.Add((id,member));
+                methodMembers?.Add((id,member));
                 output.AppendLine((ExecutionType(node)=="void"?"":"return ")+(node.Control=="switch"?"(int)":"")+type+".Execute("+string.Join(",",node.Signature.Args.Select(p=>(p.Mode is "ref" or "out"?p.Mode+" ":"")+p.Name).Concat(NodeImports(node).Select(ImportParameter)))+");");
             }
             else
