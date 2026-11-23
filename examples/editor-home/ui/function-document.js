@@ -104,7 +104,7 @@ export function mountFunctionDocument(root,api){
    button.ondragend=()=>{cancelDrag();render();};
    button.onkeydown=event=>{if(!event.isComposing&&event.altKey&&['ArrowUp','ArrowDown'].includes(event.key)){event.preventDefault();event.stopPropagation();cancelDrag();if(owns())api.moveCell(button.dataset.documentDrag,event.key==='ArrowUp'?-1:1,button);}};
   }
-  for(const button of host.querySelectorAll('[data-document-remove]'))button.onclick=()=>{if(owns())api.removeCell(button.dataset.documentRemove);};
+  for(const button of host.querySelectorAll('[data-document-remove]'))button.onclick=()=>{if(owns())api.removeCell(button.dataset.documentRemove,button);};
   for(const button of host.querySelectorAll('[data-document-up]'))button.onclick=()=>{if(owns())api.moveCell(button.dataset.documentUp,-1);};
   for(const button of host.querySelectorAll('[data-document-down]'))button.onclick=()=>{if(owns())api.moveCell(button.dataset.documentDown,1);};
   for(const button of host.querySelectorAll('[data-document-add]'))button.onclick=()=>{if(owns())api.addCell(button.dataset.documentAdd);};
@@ -202,7 +202,9 @@ export function mountFunctionDocument(root,api){
  },{signal:events.signal});
  root.addEventListener('input',()=>{if(owns()&&state.mode==='native'&&preview.querySelector('[data-native-body]')&&previewVersion!==api.nativeVersion?.()){previewRequest++;previewVersion=api.nativeVersion?.();preview.querySelector('[data-native-body]').textContent='';preview.querySelector('[data-native-members]').textContent='';preview.querySelector('[data-native-members]').hidden=true;preview.querySelector('[role=status]').textContent='입력 또는 소스가 바뀌었습니다. 갱신해 주세요.';}},{signal:events.signal});
  mode(state.mode,true);
- return {get mode(){return state.mode;},focusGrip(id){
+ return {get mode(){return state.mode;},focusDocument(){
+  if(owns()&&state.mode==='logic')host.focus({preventScroll:true});
+ },focusGrip(id){
   if(!owns()||state.mode!=='logic')return;
   syncActions();
   host.querySelector('[data-document-drag="'+CSS.escape(id)+'"]:enabled')?.focus();

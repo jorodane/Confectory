@@ -141,13 +141,22 @@ def confirm():
 def rejected_confirm(window):
     mark = len(f.traffic)
     window.locator("#confirm").click()
+    # The UI can become idle before Playwright delivers the matching result event.
+    deadline = time.monotonic() + 30
+    while time.monotonic() < deadline:
+        requests = {row["invoke"]["requestId"] for row in f.traffic[mark:]
+                    if row.get("invoke", {}).get("endpoint") == "confirmGroup"}
+        result = next((row["result"]["result"] for row in f.traffic[mark:]
+                       if row.get("result", {}).get("requestId") in requests
+                       and row["result"].get("ok")
+                       and "sourceConfirmed" in row["result"].get("result", {})), None)
+        if result is not None:
+            assert result["sourceConfirmed"] is False, result
+            break
+        f.page.wait_for_timeout(25)
+    else:
+        raise AssertionError("Expected an engine confirmation refusal")
     f.idle()
-    requests = {row["invoke"]["requestId"] for row in f.traffic[mark:]
-                if row.get("invoke", {}).get("endpoint") == "confirmGroup"}
-    results = [row["result"] for row in f.traffic[mark:]
-               if row.get("result", {}).get("requestId") in requests]
-    assert any(result.get("ok") and result.get("result", {}).get("sourceConfirmed") is False
-               for result in results), results
     if window.is_visible():
         window.locator("[data-reject]").click()
 
@@ -332,9 +341,15 @@ try:
                 f.checked("compound deletion confirmation can be cancelled without staging an edit")
             click_remove(remove)
             expect_cell(False)
-            doc().locator(".fd-document-title").click()
-            doc().press("Control+z")
-            expect(remove).to_be_visible()
+            f.page.keyboard.press("Control+z")
+            expect(remove).to_be_visible(timeout=5000)
+            if compound_case:
+                f.page.keyboard.press("Control+y")
+                expect_cell(False)
+                f.page.keyboard.press("Control+z")
+                expect_cell(True)
+                assert_compound_sources(True)
+                f.checked("direct keyboard Undo/Redo after compound deletion restores or removes the whole group")
             assert checkpoint.read_bytes() == baseline_checkpoint
             real_files_unchanged()
 

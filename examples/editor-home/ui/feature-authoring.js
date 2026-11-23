@@ -806,9 +806,14 @@ function blueprintNormalizeControls(scope){
    return {...model,nodes:model.nodes.filter(node=>node.id!==removal),links};
   };
   documentView=mountFunctionDocument(root,{...surface,context:w.authorScope+'|function-document|'+(w.meta.authorView||'primary')+'|'+(w.meta.slotOwner||'')+'|'+String(data.id||data.rootId||w.meta.id)+'|'+(data.privatePath||''),nativeDefinition:!!data.privateConversion,model:documentModel,
-   removeCell:id=>{
+   removeCell:(id,button)=>{
     if(!canRemoveDocumentCell(id)||surface.closeValues('preserve')===false)return;
-    const remove=()=>{if(canRemoveDocumentCell(id))structuralEdit(w,()=>privateValue(w,id,'document-cell-remove',''));};
+    const remove=()=>{
+     if(!canRemoveDocumentCell(id))return;
+     const restoreFocus=document.activeElement===button;
+     structuralEdit(w,()=>privateValue(w,id,'document-cell-remove',''));
+     if(restoreFocus&&document.activeElement===document.body)w.authorDocumentView?.focusDocument();
+    };
     const node=rows.find(row=>row.id===id);
     if(node?.kind!=='graph'){remove();return;}
     api.modal('복합 셀 삭제','<p><strong>'+esc(node.displayName||node.id)+'</strong>과 안에 있는 자식 셀을 함께 삭제할까요?</p>'+
