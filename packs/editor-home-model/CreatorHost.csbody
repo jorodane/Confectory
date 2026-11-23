@@ -1,0 +1,8 @@
+if (AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner) return false;
+lock (owner)
+{
+    if ((bool)owner[6]) return false;
+    var model = (System.Text.Json.Nodes.JsonObject)owner[3];
+    if (model["selected"]?["context"]?.GetValue<string>() is not string context) return false;
+    return calls.Verify.Invoke((string[])owner[0], context, System.IO.Path.GetDirectoryName((string)owner[2])!, false);
+}

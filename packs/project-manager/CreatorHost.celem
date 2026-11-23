@@ -1,0 +1,9 @@
+function Confectory.ProjectManager::CreatorHost (string[] manager, string context, string profile, bool record) -> bool {
+provide Confectory.ProjectManager::CreatorHost with Confectory.ProjectManager::CreatorHostBody;
+provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+description "Verify the current profile is the local creator. Record only after successful editor creation with origin minted by CreateProject.";
+}

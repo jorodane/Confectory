@@ -1,0 +1,3 @@
+implementation Confectory.ProjectManager::CreationOriginBody for Confectory.ProjectManager::CreationOrigin (string path, bool directory, bool privateOnly) -> string {
+body common "CreationOrigin.csbody";
+}

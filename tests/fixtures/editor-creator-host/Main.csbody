@@ -1,0 +1,122 @@
+static void Check(bool condition, string failure)
+{
+    if (!condition) throw new InvalidOperationException(failure);
+}
+
+static void CopyDirectory(string source, string target)
+{
+    System.IO.Directory.CreateDirectory(target);
+    foreach (string file in System.IO.Directory.GetFiles(source))
+        System.IO.File.Copy(file, System.IO.Path.Combine(target, System.IO.Path.GetFileName(file)));
+    foreach (string child in System.IO.Directory.GetDirectories(source))
+        CopyDirectory(child, System.IO.Path.Combine(target, System.IO.Path.GetFileName(child)));
+}
+
+string repo = Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")!;
+string root = Environment.GetEnvironmentVariable("CONFECTORY_CREATOR_TEST_ROOT")!;
+string profile = System.IO.Path.Combine(root, "creator-profile");
+string guestProfile = System.IO.Path.Combine(root, "guest-profile");
+string parent = System.IO.Path.Combine(root, "projects");
+string recordDirectory = System.IO.Path.Combine(profile, "project-creators");
+string privateHelper = System.IO.Path.Combine(profile, "helper-conversations", "sentinel.txt");
+const string Private = "personal fixture untouched";
+string selected = calls.CreateSession.Invoke(repo, profile);
+System.Text.Json.Nodes.JsonNode Command(string session, string op, object input) =>
+    System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session, op, System.Text.Json.JsonSerializer.Serialize(input)))!;
+bool Host(string session) => calls.CreatorHost.Invoke(session);
+string Open(string session, string path)
+{
+    var opened = Command(session, "open", new { path });
+    Check(opened["selected"]?["path"]?.ToString() == path && !opened["status"]!.ToString().StartsWith("Error:"),
+        "Open failed: " + opened["status"]);
+    return opened["selected"]!["projectId"]!.ToString();
+}
+string retryParent = System.IO.Path.Combine(parent, "retry-parent");
+string a = System.IO.Path.Combine(retryParent, "AuthoredA", "project.cproj");
+string b = System.IO.Path.Combine(parent, "AuthoredB", "project.cproj");
+string rejected = System.IO.Path.Combine(parent, "Occupied", "project.cproj");
+
+try
+{
+    Check(!Host(selected), "Home without an open project has authority");
+    if (Environment.GetEnvironmentVariable("CONFECTORY_CREATOR_TEST_PHASE") == "restart")
+    {
+        string id = Open(selected, a);
+        Check(Host(selected), "Creator lost authority on real process restart");
+        Check(System.IO.File.ReadAllText(privateHelper) == Private, "Personal history was changed");
+        Open(selected, b);
+        Check(Host(selected), "Second genuine creation was conflated with the first");
+        string other = calls.CreateSession.Invoke(repo, guestProfile);
+        try
+        {
+            Check(Open(other, a) == id && !Host(other), "Opening the same original granted guest authority");
+            string copiedRecords = System.IO.Path.Combine(guestProfile, "project-creators");
+            System.IO.Directory.CreateDirectory(copiedRecords,
+                System.IO.UnixFileMode.UserRead | System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
+            System.IO.File.Copy(System.IO.Path.Combine(recordDirectory, id + ".json"),
+                System.IO.Path.Combine(copiedRecords, id + ".json"));
+            Check(!Host(other), "A copied receipt granted authority to another profile");
+        }
+        finally { calls.CloseSession.Invoke(other); }
+
+        // Replace the directory at the original path with exact copied project files and identity.
+        string original = System.IO.Path.GetDirectoryName(a)!;
+        string moved = System.IO.Path.Combine(retryParent, "MovedOriginal");
+        System.IO.Directory.Move(original, moved);
+        CopyDirectory(moved, original);
+        Check(Open(selected, a) == id && !Host(selected), "Same-path replacement inherited host authority");
+        Open(selected, b);
+        Check(Host(selected), "Replacing A invalidated the independent B receipt");
+        Console.WriteLine("PASS cold host reopen, other profile, exact same-path replacement and independent project");
+        return 0;
+    }
+
+    System.IO.Directory.CreateDirectory(parent);
+    System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(privateHelper)!);
+    System.IO.File.WriteAllText(privateHelper, Private);
+    // Planning/cancel returns no creation receipt. A collision cannot register the existing project.
+    string[] unusedPlan = calls.PlanCreation.Invoke("NeverCreated", parent);
+    Check(!System.IO.Directory.Exists(unusedPlan[2]) &&
+        !System.IO.Directory.Exists(recordDirectory), "Planning/cancel recorded a creator");
+    var occupied = System.IO.Path.GetDirectoryName(rejected)!;
+    System.IO.Directory.CreateDirectory(occupied);
+    System.IO.File.WriteAllText(rejected, "project Existing.BeforeFeature version \"1\" { standalone false; }");
+    var failed = Command(selected, "create", new { title = "Occupied", directory = parent, role = "host" });
+    Check(failed["status"]!.ToString().StartsWith("Error:") && !System.IO.Directory.Exists(recordDirectory),
+        "Failed create recorded a creator");
+    Open(selected, rejected);
+    Check(!Host(selected) && !System.IO.Directory.Exists(recordDirectory), "Existing project was promoted on first open");
+    var aRequest = new { title = "AuthoredA", directory = retryParent };
+    var unavailable = Command(selected, "create", aRequest);
+    Check(unavailable["status"]!.ToString().StartsWith("Error:") && !System.IO.Directory.Exists(recordDirectory),
+        "Unsuccessful attempt recorded a creator");
+    System.IO.Directory.CreateDirectory(retryParent);
+    var retry = Command(selected, "create", aRequest);
+    Check(retry["selected"]?["path"]?.ToString() == a && Host(selected), "Genuinely created project lacks authority");
+    string idA = retry["selected"]!["projectId"]!.ToString();
+    string receipt = System.IO.Path.Combine(recordDirectory, idA + ".json");
+    var saved = System.IO.File.ReadAllBytes(receipt);
+    var duplicate = Command(selected, "create", aRequest);
+    Check(duplicate["status"]!.ToString().StartsWith("Error:") && Host(selected) &&
+        System.IO.File.ReadAllBytes(receipt).AsSpan().SequenceEqual(saved), "Create retry overrode the existing proof");
+
+    string copyRoot = System.IO.Path.Combine(parent, "ImportedCopy");
+    CopyDirectory(System.IO.Path.GetDirectoryName(a)!, copyRoot);
+    string copy = System.IO.Path.Combine(copyRoot, "project.cproj");
+    string copiedIdentity = System.IO.Path.Combine(copyRoot, ".confectory", "project-identity.json");
+    var metadata = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(copiedIdentity))!;
+    metadata["manifest"] = copy;
+    metadata["role"] = "host";
+    metadata["creator"] = "local-user";
+    System.IO.File.WriteAllText(copiedIdentity, metadata.ToJsonString());
+    Check(Open(selected, copy) == idA && !Host(selected), "Copied stable ID/metadata granted host authority");
+    var second = Command(selected, "create", new { title = "AuthoredB", directory = parent, role = "guest" });
+    Check(second["selected"]?["path"]?.ToString() == b && Host(selected), "B lacked its own creator receipt");
+    Check(System.IO.Directory.GetFiles(recordDirectory, "*.json").Length == 2, "Expected just the two genuine creation receipts");
+    Check((System.IO.File.GetUnixFileMode(recordDirectory) &
+        (System.IO.UnixFileMode.GroupRead | System.IO.UnixFileMode.OtherRead)) == 0, "Creator receipts were readable outside the profile owner");
+    Check(System.IO.File.ReadAllText(privateHelper) == Private, "Creator changes wrote private history");
+    Console.WriteLine("PASS genuine editor create, failed create/retry, existing open, copy and metadata refusal");
+    return 0;
+}
+finally { calls.CloseSession.Invoke(selected); }

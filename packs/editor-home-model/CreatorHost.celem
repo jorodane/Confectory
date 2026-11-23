@@ -1,0 +1,4 @@
+function Confectory.EditorHome.Model::CreatorHost (string session) -> bool {
+provide Confectory.EditorHome.Model::CreatorHost with Confectory.EditorHome.Model::CreatorHostBody;
+description "Verify the local creator for the current live project and EditorHome profile without recording or changing authority.";
+}

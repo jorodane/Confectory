@@ -1,0 +1,38 @@
+[System.Runtime.InteropServices.DllImport("libc", EntryPoint = "statx")]
+static extern int Statx(int fd,
+    [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)] string path,
+    int flags, uint mask, IntPtr result);
+[System.Runtime.InteropServices.DllImport("libc", EntryPoint = "geteuid")]
+static extern uint EffectiveUser();
+
+if (!OperatingSystem.IsLinux() || !System.IO.Path.IsPathFullyQualified(path)) return "";
+path = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(path));
+var buffer = System.Runtime.InteropServices.Marshal.AllocHGlobal(256);
+try
+{
+    for (string? part = path; part is not null; part = System.IO.Path.GetDirectoryName(part))
+        if ((System.IO.File.GetAttributes(part) & System.IO.FileAttributes.ReparsePoint) != 0) return "";
+
+    // Linux statx has a fixed 256-byte ABI, including on 32-bit systems.
+    const uint required = 0x90f; // type, mode, nlink, uid, inode and btime
+    const int noFollowOrAutomount = 0x100 | 0x800;
+    int IntAt(int offset) => System.Runtime.InteropServices.Marshal.ReadInt32(buffer, offset);
+    long LongAt(int offset) => System.Runtime.InteropServices.Marshal.ReadInt64(buffer, offset);
+    if (Statx(-100, path, noFollowOrAutomount, required, buffer) != 0 || ((uint)IntAt(0) & required) != required)
+        return "";
+    int mode = (ushort)System.Runtime.InteropServices.Marshal.ReadInt16(buffer, 28);
+    uint uid = (uint)IntAt(20);
+    if (uid != EffectiveUser() || (mode & 0xf000) != (directory ? 0x4000 : 0x8000) ||
+        (privateOnly && (mode & 0x3f) != 0) || (!directory && IntAt(16) != 1))
+        return "";
+    return FormattableString.Invariant($"{uid}:{IntAt(136)}:{IntAt(140)}:{LongAt(32)}:{LongAt(80)}:{IntAt(88)}");
+}
+catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or
+    EntryPointNotFoundException or DllNotFoundException)
+{
+    return "";
+}
+finally
+{
+    System.Runtime.InteropServices.Marshal.FreeHGlobal(buffer);
+}

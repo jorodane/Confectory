@@ -14,6 +14,21 @@ try
  var paths=new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
  for(int i=0;i<template.Length;i+=2){string relative=template[i];if(string.IsNullOrWhiteSpace(relative)||System.IO.Path.IsPathRooted(relative)||relative.Contains('\\')||System.Linq.Enumerable.Any(relative.Split('/'),part=>part is "" or "." or "..")||!paths.Add(relative))throw new InvalidOperationException("Unsafe template path.");string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(stage,relative));if(!path.StartsWith(stage+System.IO.Path.DirectorySeparatorChar,StringComparison.Ordinal))throw new InvalidOperationException("Template path escaped staging.");if(System.IO.File.Exists(path))throw new InvalidOperationException("Template overwrites entry source.");System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);System.IO.File.WriteAllText(path,template[i+1]);}
  if(!paths.Contains("project.cproj"))throw new InvalidOperationException("Template lacks ProjectPack manifest.");
- System.IO.Directory.Move(stage,root);committed=true;return calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cproj"));
+ string originalDirectory = calls.Origin.Invoke(stage, true, false);
+ System.IO.Directory.Move(stage,root);committed=true;
+ string context = calls.Open.Invoke(manager,System.IO.Path.Combine(root,"project.cproj"));
+ // Only this successful exclusive create can attach origin evidence to the live context.
+ if (originalDirectory.Length > 0 && calls.Origin.Invoke(root, true, false) == originalDirectory)
+ {
+  for (int i = 4; i < manager.Length; i++)
+  {
+   if (manager[i] is null) continue;
+   var entry = System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;
+   if (entry[0] != context) continue;
+   manager[i] = System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Append(entry, originalDirectory));
+   break;
+  }
+ }
+ return context;
 }
 catch{if(System.IO.Directory.Exists(stage))System.IO.Directory.Delete(stage,true);if(committed)System.IO.Directory.Delete(root,true);throw;}

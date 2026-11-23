@@ -1,0 +1,81 @@
+if (!OperatingSystem.IsLinux() || string.IsNullOrEmpty(context)) return false;
+
+static bool Contains(string directory, string child)
+{
+    string relative = System.IO.Path.GetRelativePath(directory, child);
+    return !System.IO.Path.IsPathRooted(relative) && relative != ".." &&
+        !relative.StartsWith("../", StringComparison.Ordinal);
+}
+
+try
+{
+    var info = calls.Context.Invoke(manager, context);
+    if (info[5] != "open") return false;
+    string manifest = info[1];
+    string root = System.IO.Path.GetDirectoryName(manifest)!;
+    profile = System.IO.Path.TrimEndingDirectorySeparator(System.IO.Path.GetFullPath(profile));
+    if (Contains(root, profile) || Contains(profile, root)) return false;
+
+    string projectOrigin = calls.Origin.Invoke(root, true, false);
+    string profileOrigin = calls.Origin.Invoke(profile, true, false);
+    string identityFile = System.IO.Path.Combine(root, ".confectory", "project-identity.json");
+    string identityOrigin = calls.Origin.Invoke(identityFile, false, false);
+    if (projectOrigin.Length == 0 || profileOrigin.Length == 0 || identityOrigin.Length == 0) return false;
+    if (record)
+    {
+        bool observedCreate = false;
+        for (int i = 4; i < manager.Length; i++)
+        {
+            if (manager[i] is null) continue;
+            var entry = System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;
+            if (entry[0] != context) continue;
+            observedCreate = entry.Length == 9 && entry[8] == projectOrigin;
+            break;
+        }
+        if (!observedCreate) return false;
+    }
+
+    string project = calls.ReadIdentity.Invoke(manager, context);
+    if (!Guid.TryParseExact(project, "N", out var id) || id == Guid.Empty || id.ToString("N") != project)
+        return false;
+    string machine = calls.Snapshot.Invoke("/etc/machine-id", 128)[1].Trim();
+    if (!Guid.TryParseExact(machine, "N", out var machineId) || machineId == Guid.Empty) return false;
+
+    string directory = System.IO.Path.Combine(profile, "project-creators");
+    if (record && !System.IO.Directory.Exists(directory))
+        System.IO.Directory.CreateDirectory(directory, System.IO.UnixFileMode.UserRead |
+            System.IO.UnixFileMode.UserWrite | System.IO.UnixFileMode.UserExecute);
+    if (calls.Origin.Invoke(directory, true, true).Length == 0) return false;
+
+    string filename = project + ".json";
+    string path = System.IO.Path.Combine(directory, filename);
+    byte[] binding = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(new[]
+    {
+        machine, profile, profileOrigin, manifest, projectOrigin, identityOrigin, project
+    });
+    string receipt = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        version = 1,
+        binding = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(binding))
+    });
+    string receiptOrigin = calls.Origin.Invoke(path, false, false);
+    bool SameObjects() => calls.Origin.Invoke(root, true, false) == projectOrigin &&
+        calls.Origin.Invoke(identityFile, false, false) == identityOrigin &&
+        calls.Origin.Invoke(profile, true, false) == profileOrigin;
+    if (receiptOrigin.Length > 0)
+    {
+        var saved = calls.Snapshot.Invoke(path, 512);
+        return saved[0] == "exists" && saved[1] == receipt &&
+            calls.Origin.Invoke(path, false, false) == receiptOrigin && SameObjects();
+    }
+    if (System.IO.File.Exists(path) || System.IO.Directory.Exists(path)) return false;
+    if (!record) return false;
+    // An existing receipt, including one for a replaced project, cannot be overwritten.
+    if (!SameObjects()) return false;
+    return calls.Commit.Invoke(directory, new[] { filename }, new[] { "missing" }, new[] { receipt })[0] == "applied";
+}
+catch (Exception error) when (error is System.IO.IOException or UnauthorizedAccessException or
+    ArgumentException or InvalidOperationException or System.Text.Json.JsonException or NotSupportedException)
+{
+    return false;
+}

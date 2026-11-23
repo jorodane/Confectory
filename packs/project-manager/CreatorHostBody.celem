@@ -1,0 +1,8 @@
+implementation Confectory.ProjectManager::CreatorHostBody for Confectory.ProjectManager::CreatorHost (string[] manager, string context, string profile, bool record) -> bool {
+import Confectory.ProjectManager::Context as Context (string[],string) -> string[] in Confectory.ProjectManager::CreatorHost;
+import Confectory.ProjectManager::ReadIdentity as ReadIdentity (string[],string) -> string in Confectory.ProjectManager::CreatorHost;
+import Confectory.ProjectManager::CreationOrigin as Origin (string,bool,bool) -> string;
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[] in Confectory.ProjectManager::CreatorHost;
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[] in Confectory.ProjectManager::CreatorHost;
+body common "CreatorHost.csbody";
+}

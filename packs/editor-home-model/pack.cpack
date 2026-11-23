@@ -31,6 +31,8 @@ dependency Confectory.Save version "0.1.0";
 dependency Confectory.SchemaEditing version "0.1.0";
 
 element CreateSession function "CreateSession.celem"; element CreateSessionBody implementation "CreateSessionBody.celem";
+element CreatorHost function "CreatorHost.celem";
+element CreatorHostBody implementation "CreatorHostBody.celem";
 element Command function "Command.celem"; element CommandBody implementation "CommandBody.celem";
 element Snapshot function "Snapshot.celem"; element SnapshotBody implementation "SnapshotBody.celem";
 element CloseSession function "CloseSession.celem"; element CloseSessionBody implementation "CloseSessionBody.celem";

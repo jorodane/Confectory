@@ -1,0 +1,4 @@
+function Confectory.ProjectManager::CreationOrigin (string path, bool directory, bool privateOnly) -> string {
+provide Confectory.ProjectManager::CreationOrigin with Confectory.ProjectManager::CreationOriginBody;
+description "Observe the current Linux user's physical file or directory with birth time. Missing, linked, foreign, or unsupported objects yield no evidence.";
+}

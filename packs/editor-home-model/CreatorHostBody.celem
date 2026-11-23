@@ -1,0 +1,4 @@
+implementation Confectory.EditorHome.Model::CreatorHostBody for Confectory.EditorHome.Model::CreatorHost (string session) -> bool {
+import Confectory.ProjectManager::CreatorHost as Verify (string[],string,string,bool) -> bool;
+body common "CreatorHost.csbody";
+}
