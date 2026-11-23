@@ -1,0 +1,3 @@
+implementation Confectory.ProjectChat::PrivateLanRouteBody for Confectory.ProjectChat::PrivateLanRoute (string localAddress, string peerAddress) -> object {
+body common "PrivateLanRoute.csbody";
+}

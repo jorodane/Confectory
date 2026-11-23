@@ -18,4 +18,6 @@ element OpenProtectedChat function "OpenProtectedChat.celem";
 element OpenProtectedChatBody implementation "OpenProtectedChatBody.celem";
 element ConnectProtectedChat function "ConnectProtectedChat.celem";
 element ConnectProtectedChatBody implementation "ConnectProtectedChatBody.celem";
+element PrivateLanRoute function "PrivateLanRoute.celem";
+element PrivateLanRouteBody implementation "PrivateLanRouteBody.celem";
 }

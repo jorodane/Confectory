@@ -3,8 +3,9 @@ const string Unavailable = "{\"status\":\"unavailable\"}";
 const string Denied = "{\"status\":\"denied\"}";
 const string Committed = "{\"status\":\"committed\"}";
 static bool StableId(string id) => Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
-if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
-    Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" ||
+bool development = Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") == "1";
+bool lan = Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
+if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) || (!development && !lan) ||
     AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient." + cancellation) is not (string view, System.Threading.CancellationToken life, string mountedScope) ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
     return Unavailable;
@@ -46,13 +47,22 @@ lock (owner)
         }
         if (active is not null) return Unavailable;
 
-        if (action == "issue" && args.Count == 1 && selected is not null && calls.CreatorHost.Invoke(session))
+        bool issuingLan = action == "issue-lan";
+        if ((development && action == "issue" && args.Count == 1 || lan && issuingLan && args.Count == 3) &&
+            selected is not null && calls.CreatorHost.Invoke(session))
         {
+            string project = selected["projectId"]!.GetValue<string>();
+            string title = selected["title"]!.GetValue<string>();
+            string hostAddress = issuingLan ? args["host"]?.GetValue<string>() ?? "" : "";
+            string guestAddress = issuingLan ? args["guest"]?.GetValue<string>() ?? "" : "";
+            if (issuingLan && (title.Length is < 1 or > 128 || System.Linq.Enumerable.Any(title, char.IsControl))) return Denied;
+            var route = issuingLan ? Route(hostAddress, guestAddress) : default;
+            string tlsName = issuingLan ? LanTlsName(hostAddress, project) : "localhost";
             using var key = System.Security.Cryptography.RSA.Create(2048);
-            var request = new System.Security.Cryptography.X509Certificates.CertificateRequest("CN=localhost", key,
+            var request = new System.Security.Cryptography.X509Certificates.CertificateRequest(issuingLan ? "CN=Confectory LAN" : "CN=localhost", key,
                 System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
             var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
-            san.AddDnsName("localhost");
+            san.AddDnsName(tlsName);
             request.CertificateExtensions.Add(san.Build());
             request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
             request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
@@ -60,7 +70,14 @@ lock (owner)
                 System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
             var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(15));
             (int Port, Action Stop, System.Threading.Tasks.Task Completion) listener;
-            try { listener = ((int, Action, System.Threading.Tasks.Task))calls.Start.Invoke(session, activation, certificate); }
+            try
+            {
+                var listening = issuingLan
+                    ? calls.StartProtected.Invoke(session, activation, certificate,
+                        (Func<object, object>)(options => ListenLan(route.Local!, route.Peer!, route.Attached!, options)))
+                    : calls.Start.Invoke(session, activation, certificate);
+                listener = ((int, Action, System.Threading.Tasks.Task))listening;
+            }
             catch { certificate.Dispose(); throw; }
             _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
             (string Message, string Selection)? prepared = null;
@@ -111,15 +128,18 @@ lock (owner)
                 var issued = System.Text.Json.Nodes.JsonNode.Parse(
                     calls.Chat.Invoke(session, activation, "issue-invitation", "", "", ""));
                 if (issued?["invitation"]?.GetValue<string>() is not string code) throw new InvalidOperationException();
-                return System.Text.Json.JsonSerializer.Serialize(new
+                var issuedCard = new System.Text.Json.Nodes.JsonObject
                 {
-                    status = "issued",
-                    card = System.Text.Json.JsonSerializer.Serialize(new
-                    {
-                        version = 1, port = listener.Port, project = selected["projectId"]!.ToString(),
-                        certificate = Convert.ToBase64String(certificate.RawData), code
-                    })
-                });
+                    ["version"] = issuingLan ? 2 : 1, ["port"] = listener.Port, ["project"] = project,
+                    ["certificate"] = Convert.ToBase64String(certificate.RawData), ["code"] = code
+                };
+                if (issuingLan)
+                {
+                    issuedCard["host"] = hostAddress;
+                    issuedCard["guest"] = guestAddress;
+                    issuedCard["title"] = title;
+                }
+                return System.Text.Json.JsonSerializer.Serialize(new { status = "issued", card = issuedCard.ToJsonString() });
             }
             catch
             {
@@ -128,23 +148,55 @@ lock (owner)
             }
         }
 
-        if (action == "join" && args.Count == 3 && args["name"]?.GetValue<string>() is string name &&
-            name.Length is > 0 and <= 64 && args["card"]?.GetValue<string>() is string card && card.Length is > 0 and <= 4096)
+        bool reviewingLan = action == "inspect-lan";
+        bool joiningLan = action == "join-lan";
+        bool usingLan = reviewingLan || joiningLan;
+        if ((development && action == "join" && args.Count == 3 ||
+             lan && reviewingLan && args.Count == 2 || lan && joiningLan && args.Count == 4) &&
+            args["card"]?.GetValue<string>() is string card && card.Length is > 0 and <= 4096)
         {
             var invitation = System.Text.Json.Nodes.JsonNode.Parse(card)!.AsObject();
-            if (invitation.Count != 5 || invitation["version"]?.GetValue<int>() != 1 ||
-                invitation["port"]?.GetValue<int>() is not int port || port is < 1 or > 65535 ||
-                invitation["project"]?.GetValue<string>() is not string project || !Guid.TryParseExact(project, "N", out _) ||
+            if (invitation.Count != (usingLan ? 8 : 5) || invitation["version"]?.GetValue<int>() != (usingLan ? 2 : 1) ||
+                invitation["port"]?.GetValue<int>() is not int port || port < (usingLan ? 1024 : 1) || port > 65535 ||
+                invitation["project"]?.GetValue<string>() is not string project || !StableId(project) ||
                 invitation["code"]?.GetValue<string>() is not string code || code.Length != 64 ||
+                System.Linq.Enumerable.Any(code, character => !char.IsAsciiHexDigit(character)) ||
                 invitation["certificate"]?.GetValue<string>() is not string encoded || encoded.Length > 3500)
                 return Unavailable;
 
             using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
-            var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
-                calls.Connect.Invoke(port, pin, project, code, name);
+            object connection;
+            Func<bool>? attachedGuest = null;
+            if (usingLan)
+            {
+                if (invitation["host"]?.GetValue<string>() is not string host ||
+                    invitation["guest"]?.GetValue<string>() is not string guest ||
+                    invitation["title"]?.GetValue<string>() is not string title || title.Length is < 1 or > 128 ||
+                    System.Linq.Enumerable.Any(title, char.IsControl))
+                    return Denied;
+                var route = Route(guest, host);
+                string review = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card)));
+                if (reviewingLan)
+                    return System.Text.Json.JsonSerializer.Serialize(new { status = "review", host, port, guest, project, title,
+                        fingerprint = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pin.RawData)), review });
+                if (args["review"]?.GetValue<string>() != review || args["name"]?.GetValue<string>() is not string name ||
+                    name.Length is < 1 or > 64) return Denied;
+                life.ThrowIfCancellationRequested();
+                attachedGuest = route.Attached;
+                connection = calls.ConnectProtected.Invoke(LanTlsName(host, project), pin,
+                    ((Func<System.Threading.CancellationToken, System.IO.Stream>)(cancel =>
+                        ConnectLan(route.Local, route.Peer, route.Attached, port, cancel)), life), project, code, name);
+            }
+            else
+            {
+                if (args["name"]?.GetValue<string>() is not string name || name.Length is < 1 or > 64) return Denied;
+                connection = calls.Connect.Invoke(port, pin, project, code, name);
+            }
+            var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))connection;
             (string Message, string Box, string Digest)? prepared = null;
             Bind((op, id, text) =>
             {
+                if (attachedGuest?.Invoke() == false) throw new ObjectDisposedException("The selected private LAN route changed.");
                 if (op == "cancel-attachment")
                 {
                     if (prepared is not { } pending || pending.Message != id) return Denied;
@@ -269,12 +321,74 @@ lock (owner)
     }
     catch (Exception error) when (error is ArgumentException or InvalidOperationException or
         UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException or FormatException or
-        OperationCanceledException or System.Net.Sockets.SocketException or System.Security.Authentication.AuthenticationException or
+        OperationCanceledException or System.Net.Sockets.SocketException or System.Net.NetworkInformation.NetworkInformationException or System.Security.Authentication.AuthenticationException or
         System.Security.Cryptography.CryptographicException)
     {
         return Unavailable;
     }
     return Unavailable;
+
+    (System.Net.IPAddress Local, System.Net.IPAddress Peer, Func<bool> Attached) Route(string local, string peer) =>
+        ((System.Net.IPAddress, System.Net.IPAddress, Func<bool>))calls.PrivateLanRoute.Invoke(local, peer);
+
+    static string LanTlsName(string host, string project) => "lan-" + host.Replace('.', '-') + "." + project + ".confectory.invalid";
+
+    object ListenLan(System.Net.IPAddress local, System.Net.IPAddress peer, Func<bool> attached, object options)
+    {
+        var (certificate, admit, active, lifetime) = ((System.Security.Cryptography.X509Certificates.X509Certificate2,
+            Func<string, string, string, object>, Func<bool>, System.Threading.CancellationToken))options;
+        var listener = new System.Net.Sockets.TcpListener(local, 0);
+        (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action) Open(int backlog)
+        {
+            listener.Server.ExclusiveAddressUse = true;
+            listener.Server.Ttl = 1;
+            listener.Start(backlog);
+            return (Accept, listener.Stop);
+        }
+        async System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken cancel)
+        {
+            while (true)
+            {
+                var socket = await listener.AcceptSocketAsync(cancel).ConfigureAwait(false);
+                try
+                {
+                    if (socket.RemoteEndPoint is System.Net.IPEndPoint remote && remote.Address.Equals(peer) &&
+                        socket.LocalEndPoint is System.Net.IPEndPoint bound && bound.Address.Equals(local) && attached())
+                    {
+                        socket.Ttl = 1;
+                        return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                    }
+                }
+                catch { socket.Dispose(); throw; }
+                socket.Dispose();
+            }
+        }
+        try
+        {
+            var (stop, completion) = ((Action, System.Threading.Tasks.Task))calls.ListenProtected.Invoke(
+                (certificate, admit, (Func<bool>)(() => attached() && active()), lifetime,
+                 (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)Open));
+            return (((System.Net.IPEndPoint)listener.LocalEndpoint).Port, stop, completion);
+        }
+        catch { listener.Stop(); throw; }
+    }
+
+    static System.IO.Stream ConnectLan(System.Net.IPAddress local, System.Net.IPAddress peer, Func<bool> attached, int port,
+        System.Threading.CancellationToken cancel)
+    {
+        if (!attached()) throw new UnauthorizedAccessException("The local private route changed.");
+        var socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+            System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+        try
+        {
+            socket.Ttl = 1;
+            socket.Bind(new System.Net.IPEndPoint(local, 0));
+            socket.ConnectAsync(new System.Net.IPEndPoint(peer, port), cancel).AsTask().GetAwaiter().GetResult();
+            if (!attached()) throw new UnauthorizedAccessException("The local private route changed.");
+            return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+        }
+        catch { socket.Dispose(); throw; }
+    }
 
     void Bind(Func<string,string,string,string> exchange, Action release)
     {

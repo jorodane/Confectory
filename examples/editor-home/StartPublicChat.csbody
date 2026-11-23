@@ -27,8 +27,10 @@ lock (owner)
         }
     }
 
-    var (port, _, completion) = ((int, Action, System.Threading.Tasks.Task))
-        listen((serverCertificate, accept, (Func<bool>)Check, lifetime));
+    (int port, Action _, System.Threading.Tasks.Task completion) listening;
+    try { listening = ((int, Action, System.Threading.Tasks.Task))listen((serverCertificate, accept, (Func<bool>)Check, lifetime)); }
+    catch { close(); throw; }
+    var (port, _, completion) = listening;
     async System.Threading.Tasks.Task Finish()
     {
         try { await completion.ConfigureAwait(false); }

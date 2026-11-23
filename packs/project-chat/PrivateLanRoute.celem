@@ -1,0 +1,4 @@
+function Confectory.ProjectChat::PrivateLanRoute (string localAddress, string peerAddress) -> object {
+provide Confectory.ProjectChat::PrivateLanRoute with Confectory.ProjectChat::PrivateLanRouteBody;
+description "Resolve two distinct IPv4 endpoints on one locally attached RFC1918 subnet.";
+}

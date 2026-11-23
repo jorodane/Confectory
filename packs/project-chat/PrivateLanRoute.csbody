@@ -1,0 +1,61 @@
+static System.Net.IPAddress Parse(string text)
+{
+    if (text.Length is < 7 or > 15 ||
+        !System.Net.IPAddress.TryParse(text, out var address) ||
+        address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork ||
+        address.ToString() != text || PrivatePrefix(address.GetAddressBytes()) == 0)
+        throw new ArgumentException("An exact private IPv4 address is required.");
+    return address;
+}
+
+static int PrivatePrefix(byte[] address) => address[0] switch
+{
+    10 => 8,
+    172 when address[1] is >= 16 and <= 31 => 12,
+    192 when address[1] == 168 => 16,
+    _ => 0
+};
+
+var local = Parse(localAddress);
+var peer = Parse(peerAddress);
+if (local.Equals(peer)) throw new ArgumentException("Use distinct local and peer addresses.");
+byte[] localBytes = local.GetAddressBytes();
+int minimumPrefix = PrivatePrefix(localBytes);
+uint localBits = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(localBytes);
+uint peerBits = System.Buffers.Binary.BinaryPrimitives.ReadUInt32BigEndian(peer.GetAddressBytes());
+
+(bool Eligible, string Id, int Prefix) Find()
+{
+    var result = (Eligible: false, Id: "", Prefix: 0);
+    foreach (var nic in System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces())
+    {
+        if (nic.OperationalStatus != System.Net.NetworkInformation.OperationalStatus.Up ||
+            nic.NetworkInterfaceType is not (System.Net.NetworkInformation.NetworkInterfaceType.Ethernet or
+                System.Net.NetworkInformation.NetworkInterfaceType.Wireless80211 or
+                System.Net.NetworkInformation.NetworkInterfaceType.GigabitEthernet or
+                System.Net.NetworkInformation.NetworkInterfaceType.FastEthernetT or
+                System.Net.NetworkInformation.NetworkInterfaceType.FastEthernetFx))
+            continue;
+        foreach (var entry in nic.GetIPProperties().UnicastAddresses)
+        {
+            if (!entry.Address.Equals(local)) continue;
+            int prefix = entry.PrefixLength;
+            if (result.Id.Length > 0) return (false, "", 0);
+            if (prefix < minimumPrefix || prefix > 30) { result = (false, nic.Id, prefix); continue; }
+            uint mask = uint.MaxValue << (32 - prefix);
+            uint host = localBits & ~mask, other = peerBits & ~mask;
+            bool eligible = (localBits & mask) == (peerBits & mask) &&
+                host != 0 && host != ~mask && other != 0 && other != ~mask;
+            result = (eligible, nic.Id, prefix);
+        }
+    }
+    return result;
+}
+
+var attached = Find();
+if (!attached.Eligible) throw new UnauthorizedAccessException("The peer is outside the selected attached private subnet.");
+return (local, peer, (Func<bool>)(() =>
+{
+    try { return Find() == attached; }
+    catch (System.Net.NetworkInformation.NetworkInformationException) { return false; }
+}));

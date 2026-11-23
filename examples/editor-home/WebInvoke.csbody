@@ -1,5 +1,5 @@
 if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
-if(endpoint=="localChatDevelopment")return calls.LocalChatDevelopment.Invoke(context,input,cancellation);
+if(endpoint is "localChatDevelopment" or "localProjectChat")return calls.LocalChatDevelopment.Invoke(context,input,cancellation);
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;

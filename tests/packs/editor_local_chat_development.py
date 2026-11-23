@@ -1,4 +1,5 @@
 """Exercise development invitations in two real editor processes and local Chromium contexts."""
+import argparse
 from contextlib import contextmanager
 import hashlib
 import json
@@ -6,6 +7,8 @@ import os
 from pathlib import Path
 import shutil
 import signal
+import socket
+import struct
 import subprocess
 import sys
 import tempfile
@@ -17,7 +20,11 @@ repo = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(repo / "tests/web"))
 from editor_navigation import goto_editor
 
-tool_repo = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else repo
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("checkout", nargs="?", type=Path, default=repo)
+parser.add_argument("--isolated-lan-image", help="local Linux fixture image with .NET system dependencies, sh and Python at /usr/bin/python3")
+args = parser.parse_args()
+tool_repo = args.checkout.resolve()
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
 cli = tool_repo / "src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll"
 assert dotnet and cli.is_file()
@@ -104,7 +111,7 @@ def route_page(browser, url, calls, send_attempts, drop_ack=None):
             return
         if route.request.method == "POST" and route.request.url.endswith("/api/request"):
             request = route.request.post_data_json
-            if request.get("endpoint") == "localChatDevelopment":
+            if request.get("endpoint") in ("localChatDevelopment", "localProjectChat"):
                 data = request.get("input", {})
                 calls.append((request.get("op"), data.get("action")))
                 if data.get("action") in ("send", "send-attachment"):
@@ -206,6 +213,167 @@ def verify_captures(viewer, colors):
 
 
 
+def test_private_lan(root, checkout, seed, command, image):
+    from editor_private_lan_fixture import GUEST, HOST, OTHER, Peer, internal_network
+
+    def rows(peer):
+        return [row.split() for row in peer.sockets().splitlines()[1:] if row.strip()]
+
+    def listeners(peer):
+        result = set()
+        for cells in rows(peer):
+            if cells[3] != "0A":
+                continue
+            address, port = cells[1].split(":")
+            address = socket.inet_ntoa(struct.pack("<I", int(address, 16)))
+            # The editor's diagnostic HTTP UI and Docker's embedded DNS are loopback only.
+            if not address.startswith("127."):
+                result.add((address, int(port, 16)))
+        return result
+
+    def issue_lan(page):
+        page.get_by_role("button", name="LAN 채팅 초대", exact=True).click()
+        panel = page.get_by_role("dialog", name="LAN 채팅 초대", exact=True)
+        panel.get_by_label("내 PC IPv4").fill(HOST)
+        issue_button = panel.get_by_role("button", name="일회용 초대 발급", exact=True)
+        for ineligible in ("192.0.2.8", "172.29.174.3"):
+            panel.get_by_label("참가 PC IPv4").fill(ineligible)
+            issue_button.click()
+            expect(panel.locator("[data-local-chat-status]")).to_contain_text("발급할 수 없습니다")
+            expect(issue_button).to_be_enabled()
+            assert not listeners(host)
+        panel.get_by_label("참가 PC IPv4").fill(GUEST)
+        issue_button.click()
+        expect(panel.get_by_role("button", name="초대 텍스트 선택")).to_be_visible(timeout=20000)
+        return panel, panel.get_by_label("일회용 초대").input_value()
+
+    def review(page, card):
+        menu(page, "LAN 초대 참가")
+        panel = page.get_by_role("dialog", name="LAN 초대 참가", exact=True)
+        panel.get_by_label("일회용 초대").fill(card)
+        panel.get_by_label("참가 이름").fill("격리 참가자")
+        panel.get_by_role("button", name="연결 대상 확인", exact=True).click()
+        value = json.loads(card)
+        target = panel.locator("[data-lan-review]")
+        expect(target).to_contain_text(f'{HOST}:{value["port"]}')
+        expect(target).to_contain_text(value["project"])
+        expect(target).to_contain_text("HostOwner")
+        endpoint = socket.inet_aton(HOST)[::-1].hex().upper() + f':{value["port"]:04X}'
+        assert not any(cells[3] == "01" and cells[1] == endpoint for cells in rows(host))
+        return panel
+
+    with internal_network(image) as (network, image_id), \
+         Peer(network, image_id, "host", HOST, root/"lan-host", checkout, tool_repo, dotnet) as host, \
+         Peer(network, image_id, "guest", GUEST, root/"lan-guest", checkout, tool_repo, dotnet) as guest, \
+         Peer(network, image_id, "observer", OTHER, root/"lan-observer", checkout, tool_repo, dotnet) as observer:
+        for peer in (host, guest):
+            peer.run(seed, CONFECTORY_DEV_TEST_ROOT=str(peer.directory))
+        host_project = json.loads((host.directory/"fixture.json").read_text())["HostOwner"]
+        guest_project = json.loads((guest.directory/"fixture.json").read_text())["GuestWorkspace"]
+        host_profile, guest_profile = host.directory/"HostOwner", guest.directory/"GuestWorkspace"
+        before_host = Path(host_project).read_bytes()
+        before_guest = Path(guest_project).read_bytes()
+        guest_private = guest_profile/"helper-conversations/fixture.json"
+        guest_private.parent.mkdir(exist_ok=True)
+        guest_private.write_bytes(b'{"personal":true}')
+        with sync_playwright() as playwright, playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser, \
+             host.editor(command, host_profile, host_project) as (host_url, host_log), \
+             guest.editor(command, guest_profile, guest_project) as (guest_url, guest_log):
+            hc, hp = route_page(browser, host_url, [], [])
+            gc, gp = route_page(browser, guest_url, [], [])
+            hp.locator("#chat").click()
+            gp.locator("#chat").click()
+            expect(hp.get_by_role("button", name="LAN 채팅 초대", exact=True)).to_be_visible()
+            assert not listeners(host) and not listeners(guest)
+            host_panel, card = issue_lan(hp)
+            details = json.loads(card)
+            port, code = details["port"], details["code"]
+            assert details["version"] == 2 and details["host"] == HOST and details["guest"] == GUEST
+            assert listeners(host) == {(HOST, port)}
+            # The third isolated address is dropped before TLS, even on the same subnet.
+            observer.run(["/usr/bin/python3", "-c",
+                          "import socket,sys; s=socket.create_connection((sys.argv[1],int(sys.argv[2])),3); assert s.recv(1)==b''",
+                          HOST, str(port)])
+            host_form = composer(hp, "호스트 공용 채팅")
+            send(host_form, "참가 이전 기록")
+            guest_panel = review(gp, card)
+            guest_panel.get_by_role("button", name="이 프로젝트에 참가").click()
+            status = guest_panel.locator("[data-local-chat-status]")
+            expect(status).to_have_text("새 메시지가 없습니다.", timeout=20000)
+            expect(guest_panel).not_to_contain_text("참가 이전 기록")
+            print("PASS no LAN listener before issuance; bound interface and single peer; review precedes TLS and empty first inbox", flush=True)
+
+            guest_form = composer(gp, "참가 프로젝트 공용 채팅")
+            send(host_form, "LAN 호스트 글")
+            expect(guest_panel.locator("[data-local-chat-messages]")).to_contain_text("LAN 호스트 글")
+            send(guest_form, "LAN 참가자 글")
+            expect(hp.locator("[data-public-chat-rows]")).to_contain_text("LAN 참가자 글")
+            hp.locator("#yogi").click()
+            sealed = hp.get_by_role("dialog", name="YogiBox", exact=True).locator(".yogi-package")
+            expect(sealed).to_be_visible()
+            sealed.get_by_role("button", name="YogiBox 닫기", exact=True).click()
+            host_form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True).click()
+            send(host_form, "LAN 봉인 첨부")
+            guest_panel.get_by_role("button", name="YogiBox 보기", exact=True).click()
+            viewer = guest_panel.get_by_role("region", name="YogiBox 보기")
+            expect(viewer).to_contain_text("첨부 시점의 봉인 설명")
+            expect(viewer).to_contain_text("현재 열 수 없는 EY")
+            verify_captures(viewer, (59, 60))
+            print("PASS bidirectional editor chat and frozen LaY pixels without guest EY", flush=True)
+
+            guest_panel.get_by_role("button", name="닫기", exact=True).click()
+            replay = review(gp, card)
+            replay.get_by_role("button", name="이 프로젝트에 참가").click()
+            expect(replay.locator("[data-local-chat-status]")).to_contain_text("연결할 수 없습니다")
+            replay.get_by_role("button", name="닫기", exact=True).click()
+            host_panel.get_by_role("button", name="닫기", exact=True).click()
+            expect(host_form).to_have_count(0)
+            host_panel, fresh = issue_lan(hp)
+            guest_panel = review(gp, fresh)
+            guest_panel.get_by_role("button", name="이 프로젝트에 참가").click()
+            expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+            expect(guest_panel.get_by_role("button", name="YogiBox 보기", exact=True)).to_have_count(0)
+            host_panel.get_by_role("button", name="닫기", exact=True).click()
+            expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
+            assert not listeners(host)
+            guest_panel.get_by_role("button", name="닫기", exact=True).click()
+
+            host_panel, closing = issue_lan(hp)
+            guest_panel = review(gp, closing)
+            guest_panel.get_by_role("button", name="이 프로젝트에 참가").click()
+            expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+            host.stop_editor(host_profile)
+            expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
+            assert not listeners(host)
+            assert Path(host_project).read_bytes()==before_host and Path(guest_project).read_bytes()==before_guest
+            assert guest_private.read_bytes() == b'{"personal":true}' and not (guest_profile/"project-chat").exists()
+            journal, = (host_profile/"project-chat").glob("*.json")
+            assert sum(row["text"] == "LAN 참가자 글" for row in json.loads(journal.read_text())["messages"]) == 1
+            assert all(json.loads(invitation)["code"] not in journal.read_text() + host_log.read_text() + guest_log.read_text()
+                       for invitation in (card, fresh, closing))
+            hc.close()
+            gc.close()
+            print("PASS one-use replay rejected, rejoin empty, revoke and host process shutdown disconnect, and the guest has no durable public copy", flush=True)
+
+            copy = guest.directory/"copy"
+            source = Path(host_project)
+            shutil.copytree(source.parent, copy, ignore=shutil.ignore_patterns(".confectory"))
+            copy_manifest = copy/source.name
+            # Use the existing creator-host fixture's bound identity shape. A raw
+            # copy with the old manifest path would be refused before hosting is checked.
+            identity = json.loads((source.parent/".confectory/project-identity.json").read_text())
+            identity["manifest"] = str(copy_manifest)
+            (copy/".confectory").mkdir()
+            (copy/".confectory/project-identity.json").write_text(json.dumps(identity))
+            with guest.editor(command, guest.directory/"CopyProfile", str(copy_manifest)) as (copy_url, _):
+                cc, cp = route_page(browser, copy_url, [], [])
+                cp.locator("#chat").click()
+                expect(cp.get_by_role("button", name="LAN 채팅 초대", exact=True)).to_have_count(0)
+                assert not listeners(guest)
+                cc.close()
+            print("PASS a separate editor profile opening a project copy does not become host", flush=True)
+
+
 with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     root = Path(temp)
     checkout = root / "checkout"
@@ -217,7 +385,12 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     original = manifest.read_text()
     manifest.write_text(original.replace("entry Confectory.EditorHome::Main;", "entry Confectory.EditorHome::VerifyShell;"))
     (home / "VerifyShell.csbody").write_text(seed_body)
-    seed = subprocess.run(build(manifest)["run"], capture_output=True, timeout=90,
+    seed_command = build(manifest)["run"]
+    if args.isolated_lan_image:
+        manifest.write_text(original)
+        test_private_lan(root, checkout, seed_command, build(manifest)["run"], args.isolated_lan_image)
+        sys.exit(0)
+    seed = subprocess.run(seed_command, capture_output=True, timeout=90,
         env=dict(env, CONFECTORY_DEV_TEST_ROOT=str(root), CONFECTORY_EDITOR_REPO=str(checkout)))
     assert seed.returncode == 0, seed.stderr.decode()
     projects = json.loads((root / "fixture.json").read_text())

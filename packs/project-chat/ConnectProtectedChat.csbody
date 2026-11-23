@@ -1,9 +1,14 @@
 const int MaxRequest = 16 * 1024;
 const int MaxUpload = 2 * 1024 * 1024 + 32 * 1024;
 const int MaxResponse = 4 * 1024 * 1024 + 4096;
+var (openTransport, lifetime) = transport switch
+{
+    (Func<System.Threading.CancellationToken, System.IO.Stream> open, System.Threading.CancellationToken life) => (open, life),
+    Func<System.Threading.CancellationToken, System.IO.Stream> open => (open, System.Threading.CancellationToken.None),
+    _ => throw new ArgumentException("An authorized native transport is required.")
+};
 if (trustedCertificate is not System.Security.Cryptography.X509Certificates.X509Certificate2 expected ||
-    expected.HasPrivateKey || !IsDnsName(tlsName) ||
-    transport is not Func<System.Threading.CancellationToken, System.IO.Stream> openTransport)
+    expected.HasPrivateKey || !IsDnsName(tlsName))
     throw new ArgumentException("A native transport, explicit TLS DNS identity and independently trusted public certificate are required.");
 
 static bool IsDnsName(string name)
@@ -45,11 +50,13 @@ System.Net.Security.SslStream? stream = null;
 var gate = new object();
 try
 {
-    using var opening = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+    using var opening = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+    opening.CancelAfter(TimeSpan.FromSeconds(10));
     ownedTransport = openTransport(opening.Token);
     stream = new System.Net.Security.SslStream(ownedTransport, leaveInnerStreamOpen: true);
     stream.AuthenticateAsClientAsync(options, opening.Token).GetAwaiter().GetResult();
     // No application bytes containing the invitation are written before TLS authenticates.
+    opening.Token.ThrowIfCancellationRequested();
     write(stream, new() { ["op"] = "join", ["project"] = project, ["invitation"] = invitation, ["display"] = displayName },
         MaxRequest, opening.Token).GetAwaiter().GetResult();
     if (read(stream, MaxResponse, opening.Token).GetAwaiter().GetResult()["status"]?.GetValue<string>() != "joined")
