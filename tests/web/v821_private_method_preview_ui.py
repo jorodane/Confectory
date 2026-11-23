@@ -291,14 +291,20 @@ def run():
         view = native()
         if alias:
             assert 'documentFramePreviewBinding' not in selected
+            assert selected['documentFrameOrderBinding'] is None
             assert_empty(view, '지원하지')
             fixture.original()
             assert fixture.checkpoint() == checkpoint_before and history() == history_before
             f.checked('Shared physical graph remains unavailable in the actual preview')
             return
         expect(view.locator('[role=status]')).to_contain_text('생성됨', timeout=12000)
-        assert selected['documentFrameOrderBinding'] is None
         options = request('first', selected)
+        order_binding = selected['documentFrameOrderBinding']
+        assert order_binding is not None
+        assert order_binding['sources']
+        frame_binding = {key: value for key, value in order_binding.items() if key != 'sources'}
+        assert dict(frame_binding, workspace=options['documentFrame']['workspace']) == options['documentFrame']
+        assert preview(dict(options, documentFrame=order_binding), False) is None
         first = preview(options)
         second = preview(request('second', fixture.read(frame_id('second'))))
         full = preview({'action': 'nativePreview', 'id': root_id})['diagnostics']

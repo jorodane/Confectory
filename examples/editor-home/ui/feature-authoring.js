@@ -679,7 +679,7 @@ function blueprintNormalizeControls(scope){
   };
   // Compound drag uses only the same engine-observed whole-call chain as the buttons.
   const cellDrag=id=>{
-   if(!canvasOwns()||api.busy||!frameInputsClear())return null;
+   if(!canvasOwns()||api.busy||data.privatePath&&data.profile==='sync-acyclic-methods-v1'||!frameInputsClear())return null;
    const held=saveEntries(w),engineScope=data.documentScopeTransfer;
    const from=!held.length&&engineScope?.movable.includes(id)?engineScope.lanes.find(lane=>lane.order.includes(id)):null;
    const cross=from?{owner:engineScope.owner,lanes:engineScope.lanes.filter(lane=>caseLane(lane.id)!==caseLane(from.id))}:null;
@@ -703,7 +703,7 @@ function blueprintNormalizeControls(scope){
    const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;
    return cellOrderPlan(id,slot-(slot>from?1:0));
   };
-  const caseInsertionAvailable=chain=>!!chain&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
+  const caseInsertionAvailable=chain=>!!chain&&!(chain.frame&&data.profile==='sync-acyclic-methods-v1')&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
   const insertCell=(chain,from,port,next)=>{
    if(!caseInsertionAvailable(chain)||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
    if(!next)throw Error('다음 연결을 확인하지 못했습니다. 기존 흐름은 유지됩니다.');
@@ -865,7 +865,7 @@ function blueprintNormalizeControls(scope){
     if(flowDocument)return null;
     const held=saveEntries(w);
     if(id==='$entry'){
-     const showAdd=!w.meta.copyDraft&&!!(data.documentRootStart?.entry||frameCellChain(data));
+     const showAdd=!w.meta.copyDraft&&!!(data.documentRootStart?.entry||data.profile==='sync-acyclic-nested-v1'&&frameCellChain(data));
      return {showAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
     }
     const chain=linearCells(id),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);

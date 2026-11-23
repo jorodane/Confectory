@@ -61,13 +61,14 @@ public static class BlueprintCellRegion
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
-        int methodPreviewDepth=0)
+        int methodPreviewDepth=0, bool methodFrameOrder=false)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
             bool switchChild=allowSwitchChild&&depth==1&&S(g,"profile")==FeatureBlueprint.SwitchProfile;
-            bool methodLeaf=depth>0&&depth<=methodPreviewDepth&&S(g,"profile")==FeatureBlueprint.MethodsProfile;
+            bool methodLeaf=S(g,"profile")==FeatureBlueprint.MethodsProfile
+                && (depth>0&&depth<=methodPreviewDepth || depth==0&&methodFrameOrder);
             Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
@@ -80,13 +81,13 @@ public static class BlueprintCellRegion
             Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
                 && n!["branchOwner"] is null && n["executionEnum"] is null && PlainCallContext(n)),
                 "Preserve branch, call, opaque, receiver and forwarded storage contexts");
-            if(methodPreviewDepth>0)
+            if(methodPreviewDepth>0||methodLeaf)
                 Need(nodes.All(node=>node!["sourceIdentity"] is null && node["completionBranch"] is null
-                    && node[BlueprintCompletionAdapter.Metadata] is null), "Ordinary synchronous method preview required");
+                    && node[BlueprintCompletionAdapter.Metadata] is null), "Ordinary synchronous method frame required");
             if(methodLeaf)
                 Need(g["locals"] is null or JsonArray {Count:0}
                     && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!)),
-                    "Method preview requires ordinary value-parameter code leaves");
+                    "Method frame requires ordinary value-parameter code leaves");
             var edges=g["edges"]!.AsArray();
             Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
                 &&edges.Select(e=>S(e,"from")).Distinct(StringComparer.Ordinal).Count()==nodes.Count,"One exclusive next route per cell required");
@@ -160,6 +161,17 @@ public static class BlueprintCellRegion
         var selected = BlueprintTree.Select(root, path);
         CompoundOrder(selected,CurrentRoutes(selected),true);
         return selected;
+    }
+
+    static JsonObject FrameOrder(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
+    {
+        var selected = BlueprintTree.Select(root, path);
+        if (S(selected, "profile") != FeatureBlueprint.MethodsProfile)
+            return CompoundOrder(OwnedFrame(root, path), edits, ordinaryFrame: true);
+
+        Need(allowDesktopFrames, "Owned method frame order requires desktop authoring");
+        OwnedPreviewFrame(root, path);
+        return CompoundOrder(selected, edits, ordinaryFrame: true, methodFrameOrder: true);
     }
     static string RootStart(JsonObject graph,out bool compound)
     {
@@ -614,7 +626,7 @@ public static class BlueprintCellRegion
             CompoundOrder(candidate,CurrentRoutes(candidate));
             return new JsonObject{["entry"]=candidate["entry"]!.DeepClone(),["edges"]=candidate["edges"]!.DeepClone()};
         }
-        if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):CompoundOrder(OwnedFrame(graph,S(request,"path")),edits,true);
+        if(frame)return action=="frame-create"?FrameCreate(graph,S(request,"path"),edits):FrameOrder(graph,S(request,"path"),edits,allowDesktopFrames);
         if(action=="compound-order")return CompoundOrder(graph,edits,allowSwitchChild:true);
         if(action is "order" or "transfer"){
             ExactBranchRoutes(edits);
