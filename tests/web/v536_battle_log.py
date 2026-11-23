@@ -1,9 +1,22 @@
-"""v536 Helper 생성/설정 원본 모달을 실제 엔진 프로필 API에 연결. 격리 계정 없는 설정만; 추론 없음."""
+"""Read and filter real EditorHome Worker logs with isolated local fixtures."""
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 from editor_navigation import goto_editor
-repo=pathlib.Path(sys.argv[1]).resolve();report=json.loads(pathlib.Path(sys.argv[2]).read_text());fixture=pathlib.Path(sys.argv[3]).resolve();assert fixture==repo.parent/'scratch/v508-elements/actual13-source-fixture'
-case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-node-contract-engine-'));project=case/'owned project';shutil.copytree(fixture/'owned project',project,ignore=shutil.ignore_patterns('.confectory','.build'));storage=case/'profile';storage.mkdir();original={str(p.relative_to(project)):p.read_bytes() for p in project.rglob('*') if p.is_file() and '.confectory' not in p.parts};id='Owned.Elements::Serial';text='9223372036854775804';description='재시작할 미적용 설명 한글';env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(case/'instances'),CONFECTORY_WEB_PROJECT=str(project/'project.cproj'),CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH'];host=None;log=None;errors=[];external=[];checks=[]
+repo=pathlib.Path(sys.argv[1]).resolve()
+report=json.loads(pathlib.Path(sys.argv[2]).read_text())
+fixture=pathlib.Path(__file__).resolve().parents[2]/'examples/frame-loop'
+case=pathlib.Path(tempfile.mkdtemp(prefix='confectory-battle-log-'))
+project=case/'owned project'
+shutil.copytree(fixture,project,ignore=shutil.ignore_patterns('.confectory','.build'))
+manifest=project/'project.cpack'
+manifest.write_text(manifest.read_text().replace('../../',str(repo)+'/'))
+storage=case/'profile'
+storage.mkdir()
+original={p:p.read_bytes() for p in project.rglob('*') if p.is_file()}
+env=os.environ.copy()
+env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(case/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'))
+env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
+host=None;log=None;errors=[];external=[];checks=[]
 def stop():
  global host,log
  if host and host.poll() is None:os.killpg(host.pid,signal.SIGTERM)
@@ -75,18 +88,6 @@ def route(request):
 def setup():
  page=browser.new_page(viewport={'width':1280,'height':900});page.add_init_script("""window.__battleLifecycle=[];window.confectoryWebUITrace=[];const html=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');Object.defineProperty(Element.prototype,'innerHTML',{get:html.get,set(value){if(this.id==='app'&&this.querySelector('[data-key=conflict-log]'))window.__battleLifecycle.push({kind:'app-replace',stack:new Error().stack});return html.set.call(this,value);}});""");page.on('pageerror',lambda e:errors.append(str(e)));page.on('response',observe);page.route('**/*',route);goto_editor(page,url);return page
 
-def settled():
- expect(w.locator('[data-feature-action=save]')).to_be_enabled(timeout=30000)
- for _ in range(600):
-  s=state();d=s.get('declaration')
-  if d and d['id']==id and d['revision']==s['draft']['revision']:return s
-  page.wait_for_timeout(20)
- raise AssertionError('feature inspect did not settle')
-
-def sdk(op,**data):
- p=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':op,**data}),text=True,capture_output=True,check=True,env=env);v=json.loads(p.stdout);assert v['ok'],v;return v['result']
-
-
 try:
  with sync_playwright() as p:
   browser=p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);start(0);page=setup();project_id=state()['projectId'];agent='Confectory.Agent.Responses::Connection'
@@ -118,8 +119,59 @@ try:
   close_window('conflict-detail');w.locator('[data-conflict-filter="all"]').click();expect(w.locator('[data-open-conflict="'+finished+'"]')).to_have_attribute('aria-label',titles['completed']+' · 읽음');close_window('conflict-log');w=log_window();expect(w.locator('[data-open-conflict="'+finished+'"]')).to_have_attribute('aria-label',titles['completed']+' · 읽음');w.locator('[data-open-conflict="'+running+'"]').click();d=page.locator('.window[data-key="conflict-detail"]');expect(d).to_contain_text('현재 상태 확인 필요');expect(d).to_contain_text('Worker 실행을 시작했어요.');assert all(f.read_bytes()==v for f,v in stored.items());checked('닫기/재진입은 읽은 기록과 선택을 보존하고 stored running을 재개하거나 Task 상태를 쓰지 않는다')
   page.screenshot(path=str(case/'battle-log-desktop.png'));page.evaluate('async()=>await confectoryFlushPresentation()');page.close();stop();start(2);page=setup();w=page.locator('.window[data-key="conflict-log"]');expect(w.locator('[data-open-conflict="'+finished+'"]')).to_have_attribute('aria-label',titles['completed']+' · 읽음',timeout=30000);d=page.locator('.window[data-key="conflict-detail"]');expect(d).to_contain_text('현재 상태 확인 필요',timeout=30000);expect(page.locator('#chat-input')).to_have_value('로그를 보는 동안 보존할 입력');assert all(f.read_bytes()==v for f,v in stored.items());checked('실제 프로세스 재시작에서 목록/상세/읽음/채팅 입력을 복원하며 저널 바이트를 보존한다')
   invoke('battleLog',{'action':'read','id':finished,'path':str(outside)},False);invoke('battleLog',{'action':'send','id':finished},False);checked('임의 경로/협의 전송 같은 위조 요청을 서버에서 차단한다')
-  page.close();stop();other=case/'same-name project';shutil.copytree(project,other,ignore=shutil.ignore_patterns('.confectory','.build'));env['CONFECTORY_WEB_PROJECT']=str(other/'project.cproj');start(3);page=setup();assert state()['projectId']!=project_id;w=log_window();expect(w.locator('[data-open-conflict]')).to_have_count(0);invoke('battleLog',{'action':'read','id':finished},False);expect(page.locator('#chat-input')).not_to_have_value('로그를 보는 동안 보존할 입력');assert all(f.read_bytes()==v for f,v in stored.items());checked('같은 이름의 다른 프로젝트에서 이전 기록/입력을 표시하거나 record id로 읽지 못한다')
+  page.close();stop();other=case/'same-name project';shutil.copytree(project,other,ignore=shutil.ignore_patterns('.confectory','.build'));env['CONFECTORY_WEB_PROJECT']=str(other/manifest.name);start(3);page=setup();assert state()['projectId']!=project_id;w=log_window();expect(w.locator('[data-open-conflict]')).to_have_count(0);invoke('battleLog',{'action':'read','id':finished},False);expect(page.locator('#chat-input')).not_to_have_value('로그를 보는 동안 보존할 입력');assert all(f.read_bytes()==v for f,v in stored.items());checked('같은 이름의 다른 프로젝트에서 이전 기록/입력을 표시하거나 record id로 읽지 못한다')
   page.set_viewport_size({'width':390,'height':844});page.locator('[data-mobile-more]').click();page.locator('.context-menu').get_by_role('button',name='전투 로그',exact=True).click();expect(page.locator('.conflict-log-list').first).to_be_visible();panel=page.locator('.window[data-key="conflict-log"]');expect(panel).to_have_class(__import__('re').compile(r'window-document'));box=panel.bounding_box();assert box['x']>=-1 and box['x']+box['width']<=391 and box['y']>=-1 and box['y']+box['height']<=845,box;assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');page.screenshot(path=str(case/'battle-log-mobile.png'))
+  page.close()
+  stop()
+  for n in range(34):
+   task_id=f'additional-completed-{n:02}'
+   tasks[task_id]={
+    'task':task_id,'worker':uuid.uuid4().hex,'ownerHelper':chief,'project':project_id,
+    'status':'completed','specification':{'goal':f'완료된 작업 {n:02}'},
+   }
+  task_path.write_text(json.dumps(document,ensure_ascii=False))
+  stored[task_path]=task_path.read_bytes()
+  env['CONFECTORY_WEB_PROJECT']=str(manifest)
+  start(4)
+  page=setup()
+  page.locator('[data-window-tab="conflict-log"]').click()
+  w=page.locator('.window[data-key="conflict-log"]')
+  expect(w.locator('.conflict-log-list')).to_be_visible()
+  filters=w.locator('.conflict-log-filters')
+  expect(filters.locator('[data-conflict-filter="all"]')).to_have_text('전체 37')
+  expect(filters.locator('[data-conflict-filter="active"]')).to_have_text('진행 중 2')
+  expect(filters.locator('[data-conflict-filter="history"]')).to_have_text('지난 기록 35')
+  expect(w.locator('[data-open-conflict]')).to_have_count(32)
+  expect(w.locator('[data-conflict-section="active"]')).to_contain_text('이 페이지에는 진행 중인 기록이 없어요.')
+  filters.locator('[data-conflict-filter="active"]').click()
+  expect(filters.locator('[data-conflict-filter="active"]')).to_have_attribute('aria-pressed','true')
+  expect(w.locator('[data-open-conflict]')).to_have_count(2)
+  for status in ('ready','running'):
+   expect(w.get_by_role('button',name=titles[status],exact=False)).to_be_visible()
+  expect(w.locator('[data-battle-page]')).to_have_count(0)
+  checked('전체 기록 수와 첫 페이지 밖의 진행 중 작업 2건을 정확히 표시한다')
+
+  filters.locator('[data-conflict-filter="history"]').click()
+  expect(w.locator('[data-open-conflict]')).to_have_count(32)
+  w.get_by_role('button',name='다음',exact=True).click()
+  expect(w.locator('[data-open-conflict]')).to_have_count(3)
+  expect(w.get_by_role('button',name=titles['completed'],exact=False)).to_be_visible()
+  expect(w.locator('[data-conflict-section="active"]')).to_have_count(0)
+  expect(w.get_by_role('button',name='다음',exact=True)).to_be_disabled()
+  page.evaluate('async()=>await confectoryFlushPresentation()')
+  page.close()
+  stop()
+
+  start(5)
+  page=setup()
+  w=page.locator('.window[data-key="conflict-log"]')
+  expect(w.locator('[data-conflict-filter="history"]')).to_have_attribute('aria-pressed','true')
+  expect(w.locator('[data-open-conflict]')).to_have_count(3)
+  w.locator('[data-conflict-filter="active"]').click()
+  expect(w.locator('[data-open-conflict]')).to_have_count(2)
+  expect(w.locator('[data-battle-page]')).to_have_count(0)
+  assert all(f.read_bytes()==v for f,v in {**original,**stored}.items())
+  checked('지난 기록 35건의 페이지 탐색과 필터의 cold 복원 후 첫 페이지 전환에서 원본과 저널을 보존한다')
   assert not errors and not external,(errors,external);page.close();browser.close()
 except Exception:
  try:(case/'failure-state.json').write_text(json.dumps(state(),ensure_ascii=False,indent=2));page.screenshot(path=str(case/'failure.png'))

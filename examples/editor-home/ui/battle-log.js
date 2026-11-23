@@ -6,17 +6,79 @@ export function createBattleLog(api){
  const eventLabels={'chief-assigned':'메인 도우미가 작업을 배정했어요.','worker-recruited':'Worker를 배정했어요.','dispatch-reserved':'실행 요청을 기록했어요.','dispatch-failed':'실행 요청이 실패했어요.','worker-started':'Worker 실행을 시작했어요.',checkpoint:'작업 체크포인트를 기록했어요.','worker-completed':'작업 완료를 검증했어요.','worker-cancelled':'작업을 취소했어요.','cancel-requested':'중지를 요청했어요.','worker-error':'작업 오류를 기록했어요.','execution-completed':'응답이 종료됐어요. 작업 검증과 최종 반영은 별도예요.','worker-delta':'응답을 받았어요.','worker-progress':'진행 상태를 기록했어요.','process-interrupted':'이전 실행이 중단되었어요.'};
  const status=r=>r.needsCheck?'저장된 실행 기록 · 현재 상태 확인 필요':labels[r.status]||'상태 확인 필요';
  function heading(r,detail=false){const tag=detail?'div':'span',title=detail?'h2':'strong';return '<'+tag+' class="conflict-record-copy conflict-log-card-heading '+(r.active?'is-active':'is-ended')+'"><span class="conflict-log-card-meta"><strong>'+esc(r.type)+'</strong></span><'+title+' title="'+esc(r.title)+'">'+esc(r.title||'작업 기록')+'</'+title+'><span class="conflict-record-description">'+esc(status(r))+'</span></'+tag+'><span class="conflict-log-card-bottom"><span class="conflict-log-actors" role="group" aria-label="'+esc(r.helperName)+'"><span class="conflict-log-actor"><span class="issue-source-icon" aria-hidden="true">'+esc(r.helperName.charAt(0))+'</span><span class="conflict-log-actor-info"><span class="conflict-log-actor-name">'+esc(r.helperName)+'</span></span></span></span></span>';}
- function message(w,text){w.body.innerHTML='<div class="window-content"><p class="conflict-log-empty" role="status">'+esc(text)+'</p><button type="button" data-battle-retry>다시 읽기</button></div>';w.body.querySelector('[data-battle-retry]').onclick=()=>load(w);}
- const alive=(w,scope,generation)=>api.current.projectId===scope&&api.generation===generation&&api.windows.get(w.key)===w&&w.el.isConnected;
- function load(w){if(w.battlePending)return;const scope=api.current.projectId,generation=api.generation,detail=w.key==='conflict-detail',id=w.meta.recordId,page=w.meta.battlePage||0;w.battlePending=true;const sequence=(w.battleSequence||0)+1;w.battleSequence=sequence;
-  (async()=>{do{await api.whenIdle();if(!alive(w,scope,generation))return;}while(api.busy);const outcome=await api.work(async()=>{try{let data;for(let attempt=0;attempt<3;attempt++){await api.view.update();if(!alive(w,scope,generation))return;try{data=await api.view.call('battleLog',detail?{action:'read',id}:{action:'list',page});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}if(!alive(w,scope,generation)||w.battleSequence!==sequence||data.project!==scope)return;w.battleData=data;if(detail)renderDetail(w);else renderList(w);}catch(error){if(alive(w,scope,generation))message(w,'기록을 읽지 못했어요. 현재 프로젝트를 확인하고 다시 읽어 주세요.');throw error;}},'',{flushWorkspace:false,failureMessage:'작업 기록을 읽지 못했어요. 현재 프로젝트와 저장 상태를 확인해 주세요.'});if(outcome===false&&api.current.projectId===scope&&api.windows.get(w.key)===w&&w.el.isConnected&&!w.el.hidden)message(w,'기록을 읽지 못했어요. 현재 프로젝트를 확인하고 다시 읽어 주세요.');})().finally(()=>{if(w.battleSequence===sequence)w.battlePending=false;});
+ const filters=[['all','전체'],['active','진행 중'],['history','지난 기록']];
+ const listFilter=value=>filters.some(([id])=>id===value)?value:'all';
+ function message(w,text,retry=()=>load(w)){
+  w.body.innerHTML='<div class="window-content"><p class="conflict-log-empty" role="status">'+esc(text)+'</p><button type="button" data-battle-retry>다시 읽기</button></div>';
+  w.body.querySelector('[data-battle-retry]').onclick=retry;
  }
- function renderList(w){const data=w.battleData;if(!data)return;const scroll=w.body.scrollTop,header=w.el.querySelector(':scope>.window-title'),filter=['all','active','history'].includes(w.meta.conflictFilter)?w.meta.conflictFilter:'all',rows=data.records||[],active=rows.filter(r=>r.active),history=rows.filter(r=>!r.active),collapsed=new Set(w.meta.collapsedConflictSections||[]),read=new Set(w.meta.readRecordIds||[]);header.classList.add('conflict-log-toolbar');header.querySelector('.conflict-log-filters')?.remove();const filters=document.createElement('div');filters.className='conflict-log-filters';filters.setAttribute('role','group');filters.setAttribute('aria-label','충돌 기록 보기');filters.onpointerdown=e=>{if(e.target.closest('button'))e.stopPropagation();};filters.innerHTML=[['all','전체',rows.length],['active','진행 중',active.length],['history','지난 기록',history.length]].map(([id,label,n])=>'<button type="button" data-conflict-filter="'+id+'" aria-pressed="'+(filter===id)+'">'+label+' <span>'+n+'</span></button>').join('');header.insertBefore(filters,header.querySelector(':scope>.row'));
-  w.body.innerHTML='<div class="window-content conflict-log-list">'+[['active','진행 중',active],['history','지난 기록',history]].filter(([key])=>filter==='all'||filter===key).map(([key,label,items])=>'<details class="conflict-log-section" data-conflict-section="'+key+'" '+(collapsed.has(key)?'':'open')+'><summary><span>'+label+' <small>'+items.length+'</small></span></summary><div class="conflict-log-section-cards">'+(items.map(row=>'<article class="conflict-log-card" data-conflict-record="'+esc(row.id)+'"><button type="button" class="conflict-record-open" data-open-conflict="'+esc(row.id)+'" aria-label="'+esc(row.title)+(read.has(row.id)?' · 읽음':'')+'">'+heading(row)+'</button></article>').join('')||'<p class="conflict-log-empty">'+(key==='active'?'진행 중인 기록이 없어요.':'지난 기록이 없어요.')+'</p>')+'</div></details>').join('')+(data.warnings?.length?'<p class="conflict-log-empty" role="status">일부 저장 기록을 읽지 못했어요. 전체 기록이 아닐 수 있어요.</p>':'')+(data.total>32?'<div class="actions"><button type="button" data-battle-page="-1" '+(data.page===0?'disabled':'')+'>이전</button><span>'+(data.page+1)+' / '+Math.ceil(data.total/32)+'</span><button type="button" data-battle-page="1" '+((data.page+1)*32>=data.total?'disabled':'')+'>다음</button></div>':'')+'</div>';
-  for(const button of $$('[data-conflict-filter]',header))button.onclick=()=>{w.meta.conflictFilter=button.dataset.conflictFilter;renderList(w);api.persist();header.querySelector('[data-conflict-filter="'+w.meta.conflictFilter+'"]').focus({preventScroll:true});};
+ const alive=(w,scope,generation)=>api.current.projectId===scope&&api.generation===generation&&api.windows.get(w.key)===w&&w.el.isConnected;
+ function load(w,selection){
+  if(w.battlePending)return;
+  const scope=api.current.projectId,generation=api.generation,detail=w.key==='conflict-detail';
+  const filter=selection?.filter??listFilter(w.meta.conflictFilter),page=selection?.page??w.meta.battlePage??0;
+  const request=detail?{action:'read',id:w.meta.recordId}:{action:'list',filter,page};
+  w.battlePending=true;
+  const sequence=(w.battleSequence||0)+1;
+  w.battleSequence=sequence;
+  const current=()=>alive(w,scope,generation)&&w.battleSequence===sequence;
+  const failed=()=>message(w,'기록을 읽지 못했어요. 현재 프로젝트를 확인하고 다시 읽어 주세요.',()=>load(w,selection));
+  (async()=>{
+   do{await api.whenIdle();if(!current())return;}while(api.busy);
+   const outcome=await api.work(async()=>{
+    let data;
+    for(let attempt=0;attempt<3;attempt++){
+     await api.view.update();
+     if(!current())return;
+     try{data=await api.view.call('battleLog',request);break;}
+     catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}
+    }
+    if(!current()||data.project!==scope)return;
+    w.battleData=data;
+    if(detail){renderDetail(w);return;}
+    const changed=w.meta.conflictFilter!==data.filter||(w.meta.battlePage??0)!==data.page;
+    w.meta.conflictFilter=data.filter;
+    w.meta.battlePage=data.page;
+    renderList(w);
+    if(changed)api.persist();
+    if(selection?.focusFilter)w.el.querySelector('[data-conflict-filter="'+data.filter+'"]')?.focus({preventScroll:true});
+   },'',{flushWorkspace:false,failureMessage:'작업 기록을 읽지 못했어요. 현재 프로젝트와 저장 상태를 확인해 주세요.'});
+   if(outcome===false&&current()&&!w.el.hidden)failed();
+  })().finally(()=>{if(w.battleSequence===sequence)w.battlePending=false;});
+ }
+ function renderList(w){
+  const data=w.battleData;
+  if(!data)return;
+  const scroll=w.body.scrollTop,header=w.el.querySelector(':scope>.window-title');
+  const {filter,counts}=data,rows=data.records||[];
+  const active=rows.filter(r=>r.active),history=rows.filter(r=>!r.active);
+  const collapsed=new Set(w.meta.collapsedConflictSections||[]),read=new Set(w.meta.readRecordIds||[]);
+  header.classList.add('conflict-log-toolbar');
+  header.querySelector('.conflict-log-filters')?.remove();
+  const toolbar=document.createElement('div');
+  toolbar.className='conflict-log-filters';
+  toolbar.setAttribute('role','group');
+  toolbar.setAttribute('aria-label','충돌 기록 보기');
+  toolbar.onpointerdown=e=>{if(e.target.closest('button'))e.stopPropagation();};
+  toolbar.innerHTML=filters.map(([id,label])=>'<button type="button" data-conflict-filter="'+id+'" aria-pressed="'+(filter===id)+'">'+label+' <span>'+counts[id]+'</span></button>').join('');
+  header.insertBefore(toolbar,header.querySelector(':scope>.row'));
+  const sections=[['active','진행 중',active],['history','지난 기록',history]].filter(([key])=>filter==='all'||filter===key);
+  const sectionMarkup=([key,label,items])=>{
+   const cards=items.map(row=>'<article class="conflict-log-card" data-conflict-record="'+esc(row.id)+'"><button type="button" class="conflict-record-open" data-open-conflict="'+esc(row.id)+'" aria-label="'+esc(row.title)+(read.has(row.id)?' · 읽음':'')+'">'+heading(row)+'</button></article>').join('');
+   const emptyMessage=(counts[key]>0?'이 페이지에는 ':'')+(key==='active'?'진행 중인 기록이 없어요.':'지난 기록이 없어요.');
+   return '<details class="conflict-log-section" data-conflict-section="'+key+'" '+(collapsed.has(key)?'':'open')+'><summary><span>'+label+' <small>'+items.length+'</small></span></summary><div class="conflict-log-section-cards">'+(cards||'<p class="conflict-log-empty">'+emptyMessage+'</p>')+'</div></details>';
+  };
+  const pages=Math.ceil(data.total/data.pageSize);
+  const paging=pages>1?'<div class="actions"><button type="button" data-battle-page="-1" '+(data.page===0?'disabled':'')+'>이전</button><span>'+(data.page+1)+' / '+pages+'</span><button type="button" data-battle-page="1" '+(data.page+1>=pages?'disabled':'')+'>다음</button></div>':'';
+  const warning=data.warnings?.length?'<p class="conflict-log-empty" role="status">일부 저장 기록을 읽지 못했어요. 전체 기록이 아닐 수 있어요.</p>':'';
+  w.body.innerHTML='<div class="window-content conflict-log-list">'+sections.map(sectionMarkup).join('')+warning+paging+'</div>';
+  for(const button of $$('[data-conflict-filter]',toolbar))button.onclick=()=>{
+   if(button.dataset.conflictFilter!==filter)load(w,{filter:button.dataset.conflictFilter,page:0,focusFilter:true});
+  };
   for(const section of $$('[data-conflict-section]',w.body))section.ontoggle=()=>{const values=new Set(w.meta.collapsedConflictSections||[]);if(values.has(section.dataset.conflictSection)===!section.open)return;if(section.open)values.delete(section.dataset.conflictSection);else values.add(section.dataset.conflictSection);w.meta.collapsedConflictSections=[...values];api.persist();};
-  for(const button of $$('[data-open-conflict]',w.body))button.onclick=()=>{openDetail(button.dataset.openConflict);};
-  for(const button of $$('[data-battle-page]',w.body))button.onclick=()=>{if(w.battlePending)return;w.meta.battlePage=data.page+Number(button.dataset.battlePage);api.persist();load(w);};w.body.scrollTop=scroll;
+  for(const button of $$('[data-open-conflict]',w.body))button.onclick=()=>openDetail(button.dataset.openConflict);
+  for(const button of $$('[data-battle-page]',w.body))button.onclick=()=>load(w,{filter,page:data.page+Number(button.dataset.battlePage)});
+  w.body.scrollTop=scroll;
  }
  function renderDetail(w){const r=w.battleData?.record;if(!r)return;const list=api.windows.get('conflict-log');if(list&&!w.el.hidden&&!(list.meta.readRecordIds||[]).includes(r.id)){list.meta.readRecordIds=[...(list.meta.readRecordIds||[]),r.id].slice(-256);if(list.battleData)renderList(list);api.persist();}const header=w.el.querySelector(':scope>.window-title');header.classList.add('conflict-window-title');const controls=header.querySelector(':scope>.row');if(!header.querySelector('.conflict-window-controls')){header.replaceChildren();if(controls){controls.classList.add('conflict-window-controls');header.append(controls);}}header.querySelector('.conflict-record-header')?.remove();header.insertAdjacentHTML('beforeend','<div class="conflict-record-header is-compact '+(r.active?'is-active':'is-ended')+'">'+heading(r,true)+'</div>');
   const events=(r.events||[]).map(event=>'<li class="conflict-discussion-message"><span class="issue-source-icon" aria-hidden="true">▤</span><div><span class="conflict-message-author">작업 기록<time>기록 '+event.sequence+'</time></span><p>'+esc(eventLabels[event.kind]||'작업 상태를 기록했어요.')+'</p></div></li>').join('');

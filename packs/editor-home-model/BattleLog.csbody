@@ -3,10 +3,12 @@ if(payload.Length>4096)throw new ArgumentException("Battle log query budget");
 var owner=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("EditorHome");
 lock(owner){
  if((bool)owner[6])throw new ObjectDisposedException("EditorHome closing");var model=(System.Text.Json.Nodes.JsonObject)owner[3];var selected=model["selected"]??throw new UnauthorizedAccessException("Open the owned project first");var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
- foreach(var field in input)if(field.Key is not ("context" or "action" or "id" or "page"))throw new UnauthorizedAccessException("Battle log query fields");
+ foreach(var field in input)if(field.Key is not ("context" or "action" or "id" or "page" or "filter"))throw new UnauthorizedAccessException("Battle log query fields");
  string context=selected["context"]!.ToString(),project=selected["projectId"]!.ToString();if(input["context"]?.ToString()!=context)throw new UnauthorizedAccessException("Battle log project changed");
  var pinned=calls.Context.Invoke((string[])owner[0],context);string manifest=selected["path"]!.ToString();if(pinned[1]!=manifest)throw new UnauthorizedAccessException("Battle log manifest changed");string root=System.IO.Path.GetDirectoryName(manifest)!;
  string action=input["action"]?.GetValue<string>()??"list",requested=input["id"]?.GetValue<string>()??"";int page=input["page"]?.GetValue<int>()??0;if(action is not ("list" or "read")||page is <0 or >1024||action=="read"&&!System.Text.RegularExpressions.Regex.IsMatch(requested,"^[a-f0-9]{64}$"))throw new ArgumentException("Battle log query");
+ string filter=input["filter"]?.GetValue<string>()??"all";
+ if(filter is not ("all" or "active" or "history")||action=="read"&&input.ContainsKey("filter"))throw new ArgumentException("Battle log filter");
  string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
  string Text(System.Text.Json.Nodes.JsonNode? value,int limit){string text=value?.GetValue<string>()??"";if(text.Length>limit||text.Contains('\0'))throw new ArgumentException("Battle log text budget");return text.Replace(root,"[Project]",StringComparison.Ordinal);}
  string Read(string relative){string path=System.IO.Path.Combine(root,relative);for(string? part=path;part is not null&&part.Length>root.Length;part=System.IO.Path.GetDirectoryName(part))if((System.IO.File.Exists(part)||System.IO.Directory.Exists(part))&&(System.IO.File.GetAttributes(part)&System.IO.FileAttributes.ReparsePoint)!=0)throw new UnauthorizedAccessException("Battle log link refused");if(!System.IO.File.Exists(path))return "";if(new System.IO.FileInfo(path).Length>4194304)throw new ArgumentException("Battle log file budget");return calls.Snapshot.Invoke(path)[1];}
@@ -32,6 +34,15 @@ lock(owner){
  }
  // No event details/raw requests/progress/auth data, synthesized messages or negotiation outcomes.
  var warningRows=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToArray(warnings));if(action=="read"){var record=records.Find(row=>row["id"]!.ToString()==requested)??throw new ArgumentException("Current project record unavailable");return new System.Text.Json.Nodes.JsonObject{["project"]=project,["record"]=record,["warnings"]=warningRows,["discussionSupported"]=false}.ToJsonString();}
- records.Reverse();var visible=new System.Text.Json.Nodes.JsonArray();foreach(var record in System.Linq.Enumerable.Take(System.Linq.Enumerable.Skip(records,checked(page*32)),32)){var summary=record.DeepClone().AsObject();summary.Remove("events");summary.Remove("adoption");visible.Add(summary);}
- return new System.Text.Json.Nodes.JsonObject{["project"]=project,["records"]=visible,["total"]=records.Count,["page"]=page,["pageSize"]=32,["warnings"]=warningRows,["discussionSupported"]=false}.ToJsonString();
+ const int pageSize=32;
+ int active=records.FindAll(row=>row["active"]!.GetValue<bool>()).Count;
+ var counts=new System.Text.Json.Nodes.JsonObject{["all"]=records.Count,["active"]=active,["history"]=records.Count-active};
+ records.Reverse();
+ var matching=filter=="all"?records:records.FindAll(row=>row["active"]!.GetValue<bool>()==(filter=="active"));
+ if(input.ContainsKey("filter"))page=Math.Min(page,Math.Max(0,(matching.Count-1)/pageSize));
+ var visible=new System.Text.Json.Nodes.JsonArray();
+ foreach(var record in System.Linq.Enumerable.Take(System.Linq.Enumerable.Skip(matching,page*pageSize),pageSize)){
+  var summary=record.DeepClone().AsObject();summary.Remove("events");summary.Remove("adoption");visible.Add(summary);
+ }
+ return new System.Text.Json.Nodes.JsonObject{["project"]=project,["records"]=visible,["filter"]=filter,["counts"]=counts,["total"]=matching.Count,["page"]=page,["pageSize"]=pageSize,["warnings"]=warningRows,["discussionSupported"]=false}.ToJsonString();
 }
