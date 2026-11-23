@@ -1,0 +1,4 @@
+function Confectory.EditorHome::CaptureWorkspaceLay (long[] surfaces, int[] area, int[] rectangles, string[] labels, int[] clips, int[] origins, string[] text) -> string {
+provide Confectory.EditorHome::CaptureWorkspaceLay with Confectory.EditorHome::CaptureWorkspaceLayBody;
+description "Capture an explicit editor-painted selection through an owned offscreen X11 drawable.";
+}

@@ -1,0 +1,6 @@
+implementation Confectory.EditorHome::CaptureWorkspaceLayBody for Confectory.EditorHome::CaptureWorkspaceLay (long[] surfaces, int[] area, int[] rectangles, string[] labels, int[] clips, int[] origins, string[] text) -> string {
+import Confectory.RenderInput::Draw as Draw (long[],int,int[],string[]) -> void;
+import Confectory.RenderInput::DrawText as DrawText (long[],int,int[],int[],string[]) -> void;
+import Confectory.Window::Capture as Capture (long[],int,int,int,int,int) -> string;
+body common "CaptureWorkspaceLay.csbody";
+}

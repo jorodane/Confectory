@@ -1,0 +1,42 @@
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XGetGeometry(IntPtr display, nuint drawable, out nuint root, out int x, out int y,
+    out uint width, out uint height, out uint border, out uint depth);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern nuint XCreatePixmap(IntPtr display, nuint drawable, uint width, uint height, uint depth);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]
+static extern int XFreePixmap(IntPtr display, nuint pixmap);
+
+if (!OperatingSystem.IsLinux() || surfaces.Length < 2 || surfaces[0] == 0 || surfaces[1] == 0)
+    throw new InvalidOperationException("The Linux editor workspace is unavailable.");
+if (area.Length != 4 || area[0] < 0 || area[1] < 0 || area[2] is < 1 or > 512 || area[3] is < 1 or > 512)
+    throw new ArgumentException("Select a bounded editor workspace region.");
+var display = (IntPtr)surfaces[0];
+var editor = (nuint)surfaces[1];
+if (XGetGeometry(display, editor, out _, out _, out _, out uint width, out uint height, out _, out uint depth) == 0 ||
+    (long)area[0] + area[2] > width || (long)area[1] + area[3] > height)
+    throw new InvalidOperationException("The editor workspace changed size.");
+
+static int[] Translate(int[] values, int stride, int x, int y)
+{
+    var result = (int[])values.Clone();
+    for (int i = 0; i < result.Length; i += stride)
+    {
+        result[i] -= x;
+        result[i + 1] -= y;
+    }
+    return result;
+}
+
+// Replay the rendered editor frame, never read the screen or any other window.
+nuint pixmap = XCreatePixmap(display, editor, (uint)area[2], (uint)area[3], depth);
+if (pixmap == 0) throw new InvalidOperationException("Cannot allocate the editor capture.");
+try
+{
+    long[] canvas = { surfaces[0], (long)pixmap };
+    calls.Draw.Invoke(canvas, 0, Translate(rectangles, 5, area[0], area[1]), labels);
+    if (text.Length != 0)
+        calls.DrawText.Invoke(canvas, 0, Translate(clips, 4, area[0], area[1]),
+            Translate(origins, 2, area[0], area[1]), text);
+    return calls.Capture.Invoke(canvas, 0, 0, 0, area[2], area[3]);
+}
+finally { XFreePixmap(display, pixmap); }

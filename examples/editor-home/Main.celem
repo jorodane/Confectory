@@ -19,6 +19,7 @@ provide Confectory.RuntimeBase::Unsubscribe with Confectory.RuntimeBase::Unsubsc
 provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
 provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
 provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
+provide Confectory.Window::Capture with Confectory.Window::CaptureBody;
 provide Confectory.YogiBox::Open with Confectory.YogiBox::OpenBody;
 provide Confectory.YogiBox::Save with Confectory.YogiBox::SaveBody;
 provide Confectory.YogiBox::Close with Confectory.YogiBox::CloseBody;

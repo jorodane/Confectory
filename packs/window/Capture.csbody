@@ -1,6 +1,10 @@
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern IntPtr XGetImage(IntPtr display,nuint drawable,int x,int y,uint width,uint height,nuint planes,int format);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern nuint XGetPixel(IntPtr image,int x,int y);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XDestroyImage(IntPtr image);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XDefaultScreen(IntPtr display);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XDefaultDepth(IntPtr display,int screen);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern IntPtr XDefaultVisual(IntPtr display,int screen);
+[System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGetGeometry(IntPtr display,nuint drawable,out nuint root,out int x,out int y,out uint width,out uint height,out uint border,out uint depth);
 [System.Runtime.InteropServices.DllImport("user32.dll")]static extern IntPtr GetDC(IntPtr window);
 [System.Runtime.InteropServices.DllImport("user32.dll")]static extern int ReleaseDC(IntPtr window,IntPtr dc);
 [System.Runtime.InteropServices.DllImport("gdi32.dll")]static extern IntPtr CreateCompatibleDC(IntPtr dc);
@@ -14,6 +18,43 @@ if(OperatingSystem.IsAndroid())throw new PlatformNotSupportedException("Android 
 var dimensions=calls.Dimensions.Invoke(surfaces,view);if(dimensions.Length!=2)throw new InvalidOperationException("Capture source closed");if(x<0||y<0||width<1||height<1||width>512||height>512||x>dimensions[0]-width||y>dimensions[1]-height)throw new ArgumentException("Capture must stay within the selected bounded client region");
 var pixels=new byte[width*height*3];
 if(OperatingSystem.IsWindows()){IntPtr window=(IntPtr)surfaces[view+1],dc=GetDC(window),memory=IntPtr.Zero,bitmap=IntPtr.Zero,old=IntPtr.Zero,info=IntPtr.Zero;if(dc==IntPtr.Zero)throw new InvalidOperationException("Capture DC unavailable");try{memory=CreateCompatibleDC(dc);bitmap=CreateCompatibleBitmap(dc,width,height);if(memory==IntPtr.Zero||bitmap==IntPtr.Zero)throw new InvalidOperationException("Capture bitmap unavailable");old=SelectObject(memory,bitmap);if(!BitBlt(memory,0,0,width,height,dc,x,y,0x00CC0020))throw new InvalidOperationException("Capture copy failed");SelectObject(memory,old);old=IntPtr.Zero;info=System.Runtime.InteropServices.Marshal.AllocHGlobal(40);for(int i=0;i<40;i++)System.Runtime.InteropServices.Marshal.WriteByte(info,i,0);System.Runtime.InteropServices.Marshal.WriteInt32(info,0,40);System.Runtime.InteropServices.Marshal.WriteInt32(info,4,width);System.Runtime.InteropServices.Marshal.WriteInt32(info,8,-height);System.Runtime.InteropServices.Marshal.WriteInt16(info,12,1);System.Runtime.InteropServices.Marshal.WriteInt16(info,14,32);var bgra=new byte[width*height*4];if(GetDIBits(dc,bitmap,0,(uint)height,bgra,info,0)!=height)throw new InvalidOperationException("Capture read failed");for(int i=0;i<width*height;i++){pixels[i*3]=bgra[i*4+2];pixels[i*3+1]=bgra[i*4+1];pixels[i*3+2]=bgra[i*4];}}finally{if(old!=IntPtr.Zero)SelectObject(memory,old);if(info!=IntPtr.Zero)System.Runtime.InteropServices.Marshal.FreeHGlobal(info);if(bitmap!=IntPtr.Zero)DeleteObject(bitmap);if(memory!=IntPtr.Zero)DeleteDC(memory);ReleaseDC(window,dc);}}
-else if(OperatingSystem.IsLinux()){IntPtr image=XGetImage((IntPtr)surfaces[0],(nuint)surfaces[view+1],x,y,(uint)width,(uint)height,nuint.MaxValue,2);if(image==IntPtr.Zero)throw new InvalidOperationException("Capture image unavailable");try{if(IntPtr.Size!=8)throw new PlatformNotSupportedException("XImage capture requires the existing 64-bit X11 ABI");nuint red=(nuint)System.Runtime.InteropServices.Marshal.ReadInt64(image,56),green=(nuint)System.Runtime.InteropServices.Marshal.ReadInt64(image,64),blue=(nuint)System.Runtime.InteropServices.Marshal.ReadInt64(image,72);byte Channel(nuint pixel,nuint mask){if(mask==0)return 0;int shift=0;while((mask&1)==0){mask>>=1;shift++;}return (byte)(((pixel>>shift)&mask)*255/mask);}for(int cy=0;cy<height;cy++)for(int cx=0;cx<width;cx++){nuint pixel=XGetPixel(image,cx,cy);int at=(cy*width+cx)*3;pixels[at]=Channel(pixel,red);pixels[at+1]=Channel(pixel,green);pixels[at+2]=Channel(pixel,blue);}}finally{XDestroyImage(image);}}
+else if(OperatingSystem.IsLinux())
+{
+ var display=(IntPtr)surfaces[0];
+ var drawable=(nuint)surfaces[view+1];
+ IntPtr image=XGetImage(display,drawable,x,y,(uint)width,(uint)height,nuint.MaxValue,2);
+ if(image==IntPtr.Zero)throw new InvalidOperationException("Capture image unavailable");
+ try
+ {
+  if(IntPtr.Size!=8)throw new PlatformNotSupportedException("XImage capture requires the existing 64-bit X11 ABI");
+  nuint Mask(IntPtr address,int offset)=>(nuint)System.Runtime.InteropServices.Marshal.ReadInt64(address,offset);
+  nuint red=Mask(image,56),green=Mask(image,64),blue=Mask(image,72);
+  if(red==0||green==0||blue==0)
+  {
+   // XGetImage has no visual to report for a Pixmap. The owned editor
+   // Pixmap uses the default TrueColor visual at the same depth.
+   int screen=XDefaultScreen(display);
+   IntPtr visual=XDefaultVisual(display,screen);
+   if(visual==IntPtr.Zero||System.Runtime.InteropServices.Marshal.ReadInt32(visual,16)!=4||
+      XGetGeometry(display,drawable,out _,out _,out _,out _,out _,out _,out uint depth)==0||depth!=XDefaultDepth(display,screen))
+    throw new InvalidOperationException("Capture visual is unavailable");
+   red=Mask(visual,24);green=Mask(visual,32);blue=Mask(visual,40);
+   if(red==0||green==0||blue==0)throw new InvalidOperationException("Capture color masks are unavailable");
+  }
+  static byte Channel(nuint pixel,nuint mask)
+  {
+   int shift=0;
+   while((mask&1)==0){mask>>=1;shift++;}
+   return (byte)(((pixel>>shift)&mask)*255/mask);
+  }
+  for(int cy=0;cy<height;cy++)for(int cx=0;cx<width;cx++)
+  {
+   nuint pixel=XGetPixel(image,cx,cy);
+   int at=(cy*width+cx)*3;
+   pixels[at]=Channel(pixel,red);pixels[at+1]=Channel(pixel,green);pixels[at+2]=Channel(pixel,blue);
+  }
+ }
+ finally{XDestroyImage(image);}
+}
 else throw new PlatformNotSupportedException("No native client capture provider");
 return new System.Text.Json.Nodes.JsonObject{["encoding"]="rgb24-base64",["width"]=width,["height"]=height,["view"]=view,["x"]=x,["y"]=y,["pixels"]=Convert.ToBase64String(pixels),["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant(),["source"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(surfaces[view+1].ToString(System.Globalization.CultureInfo.InvariantCulture)))).ToLowerInvariant(),["scope"]="selected-owned-client-region"}.ToJsonString();
