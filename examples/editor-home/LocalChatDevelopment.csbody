@@ -1,5 +1,7 @@
 const int DevelopmentView = 17;
 const string Unavailable = "{\"status\":\"unavailable\"}";
+const string Denied = "{\"status\":\"denied\"}";
+const string Committed = "{\"status\":\"committed\"}";
 if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
     Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1" ||
     AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient." + cancellation) is not (string view, System.Threading.CancellationToken life, string mountedScope) ||
@@ -12,18 +14,29 @@ lock (owner)
     var selected = ((System.Text.Json.Nodes.JsonObject)owner[3])["selected"];
     string activation = selected?["activation"]?.ToString() ?? "";
     if (System.Text.Json.Nodes.JsonNode.Parse(mountedScope)?["projectActivation"]?.ToString() != activation) return Unavailable;
-    var active = owner[DevelopmentView] as (string Activation, string View, Func<string>? Read, Action Stop)?;
+    var active = owner[DevelopmentView] as (string Activation, string View, Func<string,string,string,string> Exchange, Action Stop)?;
 
     try
     {
         var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
         string? action = args["action"]?.GetValue<string>();
-        if (action == "read" && args.Count == 1)
+        if (action is "read" or "status" or "send")
         {
-            if (active is not { } guest || guest.View != view || guest.Activation != activation || guest.Read is null)
+            if (active is not { } bound || bound.View != view || bound.Activation != activation)
                 return Unavailable;
-            try { return guest.Read(); }
-            catch { guest.Stop(); throw; }
+            string id = "", text = "";
+            if (action == "send")
+            {
+                id = args["id"]?.GetValue<string>() ?? "";
+                text = args["text"]?.GetValue<string>() ?? "";
+                if (args.Count != 3 || !Guid.TryParseExact(id, "N", out var parsed) || parsed == Guid.Empty ||
+                    parsed.ToString("N") != id || string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
+                    return Denied;
+            }
+            else if (args.Count != 1) return Unavailable;
+            life.ThrowIfCancellationRequested();
+            try { return bound.Exchange(action, id, text); }
+            catch { bound.Stop(); throw; }
         }
         if (active is not null) return Unavailable;
 
@@ -44,7 +57,16 @@ lock (owner)
             try { listener = ((int, Action, System.Threading.Tasks.Task))calls.Start.Invoke(session, activation, certificate); }
             catch { certificate.Dispose(); throw; }
             _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
-            Bind(null, listener.Stop);
+            Bind((op, id, text) =>
+            {
+                if (op is not ("status" or "send")) return Unavailable;
+                if (listener.Completion.IsCompleted || !ReferenceEquals(owner[16], listener.Completion) ||
+                    owner[15] is not (string scope, object _, object _, Func<bool> isActive, Action _, System.Threading.CancellationToken _) ||
+                    scope != activation || !isActive())
+                    throw new ObjectDisposedException("Local public chat host");
+                if (op == "status") return "{\"status\":\"hosting\"}";
+                return calls.Chat.Invoke(session, activation, "send-text", id, "", text) == Committed ? Committed : Denied;
+            }, listener.Stop);
             try
             {
                 life.ThrowIfCancellationRequested();
@@ -63,7 +85,7 @@ lock (owner)
             }
             catch
             {
-                if (owner[DevelopmentView] is ValueTuple<string, string, Func<string>?, Action> bound) bound.Item4();
+                if (owner[DevelopmentView] is ValueTuple<string, string, Func<string,string,string,string>, Action> bound) bound.Item4();
                 throw;
             }
         }
@@ -82,8 +104,19 @@ lock (owner)
             using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
             var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
                 calls.Connect.Invoke(port, pin, project, code, name);
-            Bind(() =>
+            Bind((op, id, text) =>
             {
+                if (op == "send")
+                {
+                    string? status = request(new() { ["op"] = "send", ["id"] = id, ["text"] = text })["status"]?.ToString();
+                    return status switch
+                    {
+                        "committed" => Committed,
+                        "denied" => Denied,
+                        _ => throw new InvalidOperationException()
+                    };
+                }
+                if (op != "read") return Unavailable;
                 var response = request(new() { ["op"] = "read" });
                 if (response["status"]?.ToString() != "ok" || response["messages"] is not System.Text.Json.Nodes.JsonArray rows)
                     throw new InvalidOperationException();
@@ -108,7 +141,7 @@ lock (owner)
     }
     return Unavailable;
 
-    void Bind(Func<string>? read, Action release)
+    void Bind(Func<string,string,string,string> exchange, Action release)
     {
         bool closed = false;
         System.Threading.CancellationTokenRegistration registration = default;
@@ -123,7 +156,7 @@ lock (owner)
                 release();
             }
         }
-        owner[DevelopmentView] = (activation, view, read, (Action)Stop);
+        owner[DevelopmentView] = (activation, view, exchange, (Action)Stop);
         registration = life.UnsafeRegister(_ => Stop(), null);
     }
 }

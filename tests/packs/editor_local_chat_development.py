@@ -73,7 +73,7 @@ def editor(command, checkout, storage, project, enabled):
                 process.wait(timeout=20)
 
 
-def route_page(browser, url, calls):
+def route_page(browser, url, calls, send_attempts, drop_ack=None):
     context = browser.new_context(viewport={"width": 1440, "height": 1000})
     page = context.new_page()
     origin = url.split("/#")[0]
@@ -85,7 +85,18 @@ def route_page(browser, url, calls):
         if route.request.method == "POST" and route.request.url.endswith("/api/request"):
             request = route.request.post_data_json
             if request.get("endpoint") == "localChatDevelopment":
-                calls.append((request.get("op"), request.get("input", {}).get("action")))
+                data = request.get("input", {})
+                calls.append((request.get("op"), data.get("action")))
+                if data.get("action") == "send":
+                    send_attempts.append((data["text"], data["id"]))
+                    if drop_ack is not None and data["text"] in drop_ack:
+                        reply = route.fetch()
+                        if reply.json().get("result", {}).get("status") == "committed":
+                            drop_ack.remove(data["text"])
+                            route.abort()
+                        else:
+                            route.fulfill(response=reply)
+                        return
         route.continue_()
 
     page.route("**/*", handle)
@@ -124,17 +135,14 @@ def join(panel, card):
     panel.get_by_role("button", name="참가", exact=True).click()
 
 
-def send_native(page, text):
-    # Only the staged test build has a producer, since the public composer is deferred.
-    return page.evaluate("""async text => {
-      const {connectLocal, WebView}=await import('/web-ui.js');
-      const view=new WebView(connectLocal());
-      for(let i=0;;i++){try{await view.mount();break;}catch(error){if(error.message!=='busy'||i===10)throw error;await new Promise(r=>setTimeout(r,50));}}
-      try{
-        for(let i=0;;i++){try{return await view.transient('devChatFixtureSend',{text});}
-        catch(error){if(error.message!=='busy'||i===10)throw error;await new Promise(r=>setTimeout(r,50));}}
-      }finally{await view.dispose();}
-    }""", text)
+def composer(page, name):
+    return page.get_by_role("form", name=name, exact=True)
+
+
+def send(form, text):
+    form.get_by_label("공용 메시지 입력").fill(text)
+    form.get_by_role("button", name="공용으로 보내기", exact=True).click()
+    expect(form.get_by_label("공용 메시지 입력")).to_have_value("")
 
 
 with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
@@ -153,21 +161,11 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     assert seed.returncode == 0, seed.stderr.decode()
     projects = json.loads((root / "fixture.json").read_text())
     manifest.write_text(original)
-    bundle = home / "WebBundle.csbody"
-    bundle.write_text(bundle.read_text().replace('JsonArray("localChatDevelopment")', 'JsonArray("localChatDevelopment","devChatFixtureSend")'))
-    invoke = home / "WebInvoke.csbody"
-    invoke.write_text('''if(endpoint=="devChatFixtureSend"&&AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient."+cancellation) is not null){
- var payload=System.Text.Json.Nodes.JsonNode.Parse(input)!;
- var fixtureProject=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!["selected"]!;
- return calls.FixtureChat.Invoke(context,fixtureProject["activation"]!.ToString(),"send-text",Guid.NewGuid().ToString("N"),"",payload["text"]!.ToString());
-}
-'''+invoke.read_text())
-    body = home / "WebInvokeBody.celem"
-    body.write_text(body.read_text().replace('body common "WebInvoke.csbody";',
-        'import Confectory.EditorHome::LocalPublicChat as FixtureChat (string,string,string,string,string,string) -> string;\nbody common "WebInvoke.csbody";'))
     command = build(manifest)["run"]
     known_codes = []
     calls = []
+    send_attempts = []
+    drop_ack = set()
     host_storage, guest_storage = [root / name for name in ("HostOwner", "GuestWorkspace")]
     sentinels = {}
     for storage in (host_storage, guest_storage):
@@ -181,16 +179,25 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
         try:
             with editor(command, checkout, host_storage, projects["HostOwner"], True) as (host_url, host_log), \
                  editor(command, checkout, guest_storage, projects["GuestWorkspace"], True) as (guest_url, guest_log):
-                hc, host_page = route_page(browser, host_url, calls)
-                gc, guest_page = route_page(browser, guest_url, calls)
+                hc, host_page = route_page(browser, host_url, calls, send_attempts)
+                gc, guest_page = route_page(browser, guest_url, calls, send_attempts, drop_ack)
                 try:
-                    assert send_native(host_page, "이전 공용 기록") == {"status": "committed"}
+                    host_page.locator("#chat").click()
+                    host_form = composer(host_page, "호스트 공용 채팅")
+                    expect(host_form).to_have_count(0)
                     host_panel, first = issue(host_page)
                     known_codes.append(json.loads(first)["code"])
+                    send(host_form, "이전 공용 기록")
+                    host_history = host_page.locator("[data-public-chat-rows]")
+                    expect(host_history).to_contain_text("이전 공용 기록")
 
                     guest_page.locator("#chat").click()
                     draft = guest_page.locator("#chat-input")
                     draft.fill("그대로 둘 Helper 작성 중 입력")
+                    draft.press("Shift+Enter")
+                    draft.press("End")
+                    guest_page.keyboard.insert_text("다음 줄")
+                    expect(draft).to_have_value("그대로 둘 Helper 작성 중 입력\n다음 줄")
                     guest_panel = open_join(guest_page)
                     broken = dict(json.loads(first), certificate="broken")
                     join(guest_panel, json.dumps(broken))
@@ -199,9 +206,46 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     join(guest_panel, first)
                     expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
                     expect(guest_panel).not_to_contain_text("이전 공용 기록")
-                    assert send_native(host_page, "참가 후 공용 한 줄") == {"status": "committed"}
-                    expect(guest_panel.locator("[data-local-chat-messages]")).to_contain_text("참가 후 공용 한 줄")
-                    expect(draft).to_have_value("그대로 둘 Helper 작성 중 입력")
+                    guest_form = composer(guest_page, "참가 프로젝트 공용 채팅")
+                    guest_history = guest_panel.locator("[data-local-chat-messages]")
+                    send(host_form, "참가 후 공용 한 줄")
+                    expect(guest_history).to_contain_text("참가 후 공용 한 줄")
+                    send(guest_form, "게스트가 보낸 공용 글")
+                    expect(host_history).to_contain_text("게스트가 보낸 공용 글")
+                    expect(guest_history).to_contain_text("게스트가 보낸 공용 글")
+                    expect(draft).to_have_value("그대로 둘 Helper 작성 중 입력\n다음 줄")
+
+                    journal, = (host_storage / "project-chat").glob("*.json")
+                    original = journal.read_bytes()
+                    mode = journal.stat().st_mode & 0o777
+                    rejected = "저장 실패 뒤 다시 보낸 글"
+                    journal.chmod(0o444)
+                    try:
+                        guest_form.get_by_label("공용 메시지 입력").fill(rejected)
+                        guest_form.get_by_role("button", name="공용으로 보내기").click()
+                        expect(guest_form.locator("[data-public-send-status]")).to_contain_text("저장이 거절")
+                        expect(guest_form.get_by_label("공용 메시지 입력")).to_have_value(rejected)
+                        expect(guest_history).not_to_contain_text(rejected)
+                        assert journal.read_bytes() == original
+                    finally:
+                        journal.chmod(mode)
+                    guest_form.get_by_role("button", name="공용으로 보내기").click()
+                    expect(guest_form.get_by_label("공용 메시지 입력")).to_have_value("")
+                    expect(host_history).to_contain_text(rejected)
+
+                    uncertain = "응답을 받기 전에 끊긴 공용 글"
+                    drop_ack.add(uncertain)
+                    guest_form.get_by_label("공용 메시지 입력").fill(uncertain)
+                    guest_form.get_by_role("button", name="공용으로 보내기").click()
+                    expect(guest_form.locator("[data-public-send-status]")).to_contain_text("전송을 확인하지 못했습니다")
+                    expect(guest_form.get_by_label("공용 메시지 입력")).to_have_value(uncertain)
+                    expect(guest_history).to_contain_text(uncertain)
+                    guest_form.get_by_role("button", name="공용으로 보내기").click()
+                    expect(guest_form.get_by_label("공용 메시지 입력")).to_have_value("")
+                    for retried in (rejected, uncertain):
+                        ids = [value for text, value in send_attempts if text == retried]
+                        assert len(ids) == 2 and ids[0] == ids[1]
+                        assert sum(row["text"] == retried for row in json.loads(journal.read_text())["messages"]) == 1
 
                     guest_panel.get_by_role("button", name="닫기").click()
                     guest_panel = open_join(guest_page)
@@ -214,6 +258,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     known_codes.append(json.loads(second)["code"])
                     join(guest_panel, second)
                     expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+                    expect(guest_panel).not_to_contain_text("게스트가 보낸 공용 글")
                     menu(guest_page, "프로젝트 나가기")
                     expect(guest_page.locator(".home-grid")).to_be_visible()
                     expect(guest_panel).to_have_count(0)
@@ -224,11 +269,15 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     guest_panel = open_join(guest_page, home=True)
                     join(guest_panel, third)
                     expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+                    send(host_form, "재참가 뒤 공용 글")
+                    expect(guest_panel.locator("[data-local-chat-messages]")).to_contain_text("재참가 뒤 공용 글")
                     menu(host_page, "프로젝트 나가기")
                     expect(host_page.locator(".home-grid")).to_be_visible()
                     expect(host_panel).to_have_count(0)
                     expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
                     expect(guest_panel.locator("[data-local-chat-messages]")).to_be_empty()
+                    expect(guest_form.get_by_role("button", name="공용으로 보내기")).to_be_disabled()
+                    expect(host_form).to_have_count(0)
 
                     for page in (host_page, guest_page):
                         visible = page.evaluate("""() => [location.href, document.documentElement.outerHTML,
@@ -239,7 +288,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     gc.close()
 
             with editor(command, checkout, guest_storage, projects["HostOwner"], True) as (other_url, other_log):
-                context, page = route_page(browser, other_url, calls)
+                context, page = route_page(browser, other_url, calls, send_attempts)
                 try:
                     menu(page, "로컬 채팅 초대")
                     panel = page.get_by_role("dialog", name="로컬 채팅 초대", exact=True)
@@ -250,7 +299,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     context.close()
 
             with editor(command, checkout, guest_storage, projects["GuestWorkspace"], False) as (disabled_url, disabled_log):
-                context, page = route_page(browser, disabled_url, calls)
+                context, page = route_page(browser, disabled_url, calls, send_attempts)
                 try:
                     page.locator("#title").click()
                     expect(page.locator(".context-menu").get_by_role("button", name="로컬 채팅 초대")).to_have_count(0)
@@ -259,12 +308,16 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     context.close()
 
             assert calls and all(operation == "transient" for operation, _ in calls)
-            assert {action for _, action in calls} == {"issue", "join", "read"}
+            assert {action for _, action in calls} == {"issue", "join", "read", "status", "send"}
             assert not (guest_storage / "project-chat").exists()
             journal, = (host_storage / "project-chat").glob("*.json")
+            assert [row["text"] for row in json.loads(journal.read_text())["messages"]] == [
+                "이전 공용 기록", "참가 후 공용 한 줄", "게스트가 보낸 공용 글",
+                "저장 실패 뒤 다시 보낸 글", "응답을 받기 전에 끊긴 공용 글", "재참가 뒤 공용 글",
+            ]
             for path in [journal, host_log, guest_log, other_log, disabled_log, *sentinels]:
                 assert all(code.encode() not in path.read_bytes() for code in known_codes)
             assert all(path.read_bytes() == before for path, before in sentinels.items())
         finally:
             browser.close()
-    print("PASS two EditorHome processes: opt-in UI issue/join, history and draft isolation, rejected invites, cleanup on both project transitions")
+    print("PASS two Chromium editor sessions: UI text both ways, denied storage and lost acknowledgements, stable retries, cold rejoin, Helper isolation")

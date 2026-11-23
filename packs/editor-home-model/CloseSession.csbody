@@ -2,7 +2,7 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as o
 lock(state){
  // true means closing: commands are rejected, but CloseSession remains retryable.
  state[6]=true;
- if(state[17] is ValueTuple<string,string,Func<string>?,Action> localChatView)localChatView.Item4();
+ if(state[17] is ValueTuple<string,string,Func<string,string,string,string>,Action> localChatView)localChatView.Item4();
  if(state[15] is (string _,object _,object _,Func<bool> _,Action stopPublicChat,System.Threading.CancellationToken _))stopPublicChat();
  if(AppDomain.CurrentDomain.GetData("Confectory.EditorHome.ResourceUpload."+session)is object[] upload){((System.IO.MemoryStream)upload[6]).Dispose();AppDomain.CurrentDomain.SetData("Confectory.EditorHome.ResourceUpload."+session,null);}var errors=new System.Collections.Generic.List<Exception>();
  try{calls.RunWindows.Invoke(session,"close-all","{}");}catch(Exception error){errors.Add(error);}

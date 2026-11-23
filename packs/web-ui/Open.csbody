@@ -67,7 +67,7 @@ void RetireLifetime(System.Threading.CancellationTokenSource lifetime){
 string Immediate(System.Text.Json.Nodes.JsonObject req,bool transient){
  try{
   foreach(var field in req)if(field.Key is not ("op" or "view" or "scope" or "endpoint" or "input"))return Error("observation_fields").ToJsonString();
-  string v=req["view"]!.GetValue<string>(),endpoint=req["endpoint"]!.GetValue<string>(),payload=req["input"]?.AsObject().ToJsonString()??"{}";if(!(transient?transientActions:observations).Contains(endpoint))return Error("endpoint_denied").ToJsonString();if(payload.Length>8192)return Error("request_too_large").ToJsonString();
+  string v=req["view"]!.GetValue<string>(),endpoint=req["endpoint"]!.GetValue<string>(),payload=req["input"]?.AsObject().ToJsonString()??"{}";if(!(transient?transientActions:observations).Contains(endpoint))return Error("endpoint_denied").ToJsonString();if(payload.Length>(transient?16384:8192))return Error("request_too_large").ToJsonString();
   if(!System.Threading.Monitor.TryEnter(execution))return Error("busy").ToJsonString();bool admitted=false;
   try{
    string scope;System.Threading.CancellationToken lifetime;lock(gate){if(closing)return Error("owner_closed").ToJsonString();if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();scope=mounted.Scope;lifetime=mounted.Lifetime.Token;observationsInFlight++;admitted=true;}

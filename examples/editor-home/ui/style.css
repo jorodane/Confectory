@@ -212,6 +212,9 @@
 .chatbar #chat-inner{display:flex;flex-direction:column;gap:8px;overflow:hidden;padding-bottom:10px}.chatbar #messages{flex:1;min-height:0;width:100%;overflow-y:auto}.chatbar #chat-form{display:flex;flex:none;width:100%;gap:8px;align-items:stretch}.chatbar #chat-input{flex:1;min-width:0;width:auto;height:36px;min-height:36px;max-height:36px;resize:none;padding:7px 10px;font-size:13px;line-height:20px}.chatbar #chat-form>button{flex:none;width:auto;min-width:64px;padding:6px 12px;white-space:nowrap;font-size:13px}.chatbar.is-minimized #chat-inner{display:none}
 
 .chatbar #messages{padding:7px 10px}
+.local-public-compose{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px 8px;width:100%;min-width:0;flex:none;margin:0}
+.local-public-compose textarea{height:36px;min-width:0;resize:none;padding:7px 10px;font-size:13px}
+.local-public-compose small{grid-column:1/-1}.local-public-compose small:empty{display:none}
 .chatbar #chat-latest-log{flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.bubble-dock #yogi-bubble,.bubble-dock #augment-bubble,.bubble-dock #run,.bubble-dock #build{font-size:24px;line-height:1}
 
 .bubble-dock #augment-bubble>span[aria-hidden]{font-family:"Segoe UI Symbol",sans-serif;font-size:32px;line-height:1}
