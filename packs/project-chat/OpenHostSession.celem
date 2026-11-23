@@ -1,0 +1,8 @@
+function Confectory.ProjectChat::OpenHostSession (string hostStorage, string projectId, string hostParticipant, string manifest) -> object {
+provide Confectory.ProjectChat::OpenHostSession with Confectory.ProjectChat::OpenHostSessionBody;
+provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
+provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
+provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
+provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
+description "Open the chat owner with a connection-scoped receiver for bounded remote LaY attachments.";
+}

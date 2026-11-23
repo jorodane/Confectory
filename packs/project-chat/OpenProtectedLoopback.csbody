@@ -1,5 +1,6 @@
 const int MaxConnections = 16;
 const int MaxRequest = 16 * 1024;
+const int MaxUpload = 2 * 1024 * 1024 + 32 * 1024;
 const int MaxResponse = 4 * 1024 * 1024 + 4096;
 
 if (Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") != "1")
@@ -56,10 +57,23 @@ async System.Threading.Tasks.Task Serve(System.Net.Sockets.TcpClient socket)
         // Admission is a capability of this worker only. No actor, session token,
         // or other reusable authorization is communicated to the client.
         opening.Token.ThrowIfCancellationRequested();
-        var (send, inbox, release, _, attachment, _) =
-            ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
-              Func<string, string>, string))accept(project, invitation, display);
-        leave = release;
+        object admission = accept(project, invitation, display);
+        Func<string, string, bool> send;
+        Func<string> inbox;
+        Func<string, string> attachment;
+        Func<string, string, System.Text.Json.Nodes.JsonObject, bool>? upload = null;
+        if (admission is (Func<string, string, bool> sendLive, Func<string> liveInbox, Action releaseLive,
+            Func<string, string, string, bool> _, Func<string, string> readLive, string _,
+            Func<string, string, System.Text.Json.Nodes.JsonObject, bool> sendLaY))
+        {
+            (send, inbox, leave, attachment, upload) = (sendLive, liveInbox, releaseLive, readLive, sendLaY);
+        }
+        else
+        {
+            (send, inbox, leave, _, attachment, _) =
+                ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
+                  Func<string, string>, string))admission;
+        }
         opening.Token.ThrowIfCancellationRequested();
         await Reply(new() { ["status"] = "joined" }).ConfigureAwait(false);
         while (!cancelled.IsCancellationRequested)
@@ -69,9 +83,23 @@ async System.Threading.Tasks.Task Serve(System.Net.Sockets.TcpClient socket)
             var request = await read(tls, MaxRequest, idle.Token).ConfigureAwait(false);
             cancelled.ThrowIfCancellationRequested();
             System.Text.Json.Nodes.JsonObject response;
-            try { response = Dispatch(request, send, inbox, attachment); }
-            catch (UnauthorizedAccessException) { response = new() { ["status"] = "denied" }; }
-            catch (InvalidOperationException error) when (error is not ObjectDisposedException)
+            try
+            {
+                if (upload is not null && request.Count == 3 && request["op"]?.GetValue<string>() == "send-attachment" &&
+                    request["id"]?.GetValue<string>() is string id && request["text"]?.GetValue<string>() is string text)
+                {
+                    // Only an admitted upload consumes a second, separately bounded frame.
+                    using var deadline = System.Threading.CancellationTokenSource.CreateLinkedTokenSource(cancelled);
+                    deadline.CancelAfter(TimeSpan.FromSeconds(10));
+                    var box = await read(tls, MaxUpload, deadline.Token).ConfigureAwait(false);
+                    deadline.Token.ThrowIfCancellationRequested();
+                    response = new() { ["status"] = upload(id, text, box) ? "committed" : "denied" };
+                }
+                else response = Dispatch(request, send, inbox, attachment);
+            }
+            catch (Exception error) when (error is ArgumentException or FormatException or
+                UnauthorizedAccessException or System.Text.Json.JsonException ||
+                error is InvalidOperationException and not ObjectDisposedException)
             {
                 response = new() { ["status"] = "denied" };
             }

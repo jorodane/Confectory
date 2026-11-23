@@ -1,4 +1,9 @@
 var utf8 = new System.Text.UTF8Encoding(false, true);
+var json = new System.Text.Json.JsonSerializerOptions
+{
+    // Transport JSON is carried as a length-delimited TLS frame, never HTML.
+    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+};
 
 async System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject> Read(
     System.IO.Stream stream, int limit, System.Threading.CancellationToken cancel)
@@ -17,7 +22,7 @@ async System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject> Read(
 async System.Threading.Tasks.Task Write(System.IO.Stream stream, System.Text.Json.Nodes.JsonObject value,
     int limit, System.Threading.CancellationToken cancel)
 {
-    byte[] bytes = utf8.GetBytes(value.ToJsonString());
+    byte[] bytes = utf8.GetBytes(value.ToJsonString(json));
     if (bytes.Length == 0 || bytes.Length > limit) throw new System.IO.InvalidDataException("Invalid chat frame length.");
     var header = new byte[4];
     System.Buffers.Binary.BinaryPrimitives.WriteInt32BigEndian(header, bytes.Length);

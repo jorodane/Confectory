@@ -165,6 +165,36 @@ def regular_flow(command, checkout, directory):
                      "hash": hashlib.sha256(pixels).hexdigest(),
                      "pixels": base64.b64encode(pixels).decode()},
                 ]}
+            journal, = (directory / "host-profile/project-chat").glob("*.json")
+            before_upload = journal.read_bytes()
+            image = {"kind": "image", "width": 1, "height": 1, "encoding": "rgb24-base64",
+                     "hash": hashlib.sha256(pixels).hexdigest(), "pixels": base64.b64encode(pixels).decode()}
+            projected = {"description": "Guest LaY", "items": [image]}
+
+            def upload(body, who="one", text="Guest upload"):
+                return request(guest, who, "send-attachment", id=message(7), text=text, attachment=body)
+
+            for rejected in (
+                dict(projected, items=[image, {"kind": "semantic"}]),
+                dict(projected, items=[dict(image, source="unverified-source")]),
+                dict(projected, items=[dict(image, hash="0" * 64)]),
+                dict(projected, items=[dict(image, width=2)]),
+                dict(projected, items=[dict(image, pixels="!!!!")]),
+                dict(projected, items=[image] * 3),
+                dict(projected, description="x" * 4097),
+                dict(projected, attachmentId=message(42)),
+            ):
+                assert upload(rejected) == {"status": "denied"}
+                assert journal.read_bytes() == before_upload
+            assert upload(projected) == {"status": "committed"}
+            after_upload = journal.read_bytes()
+            assert upload(projected) == {"status": "committed"}
+            assert upload(projected, text="Changed retry") == {"status": "denied"}
+            assert upload(projected, who="winner") == {"status": "denied"}
+            assert journal.read_bytes() == after_upload
+            assert request(guest, "winner", "attachment", id=message(7)) == {
+                "status": "ok", "description": "Guest LaY", "items": [image]}
+
             assert "error" in request(guest, "winner", "send-attachment", id=message(99), box="remote")
             assert guest("close", name="one") == {"status": "ok"}
             assert request(guest, "one", "read").get("error") == "ObjectDisposedException"
@@ -172,10 +202,11 @@ def regular_flow(command, checkout, directory):
             assert connect(guest, route, rejoin, "two") == {"status": "ok"}
             seen(guest, "two")
             assert request(guest, "two", "attachment", id=message(5)) == {"status": "denied"}
+            assert request(guest, "two", "attachment", id=message(7)) == {"status": "denied"}
             assert host("send", id=message(6), text="After rejoin") == {"status": "ok"}
             seen(guest, "two", 6)
             saved = host("history")
-            assert [row["id"] for row in saved["messages"]] == list(map(message, range(1, 7)))
+            assert [row["id"] for row in saved["messages"]] == list(map(message, (1, 2, 3, 4, 5, 7, 6)))
             journal, = (directory / "host-profile/project-chat").glob("*.json")
             before = journal.read_bytes()
             assert all(code.encode() not in before for code in (invite, race, rejoin))
@@ -197,7 +228,7 @@ def regular_flow(command, checkout, directory):
             assert "error" in request(guest, "four", "read")
             assert journal.read_bytes() == before
     verify_private(directory)
-    print("PASS separate .NET processes, verified TLS, socket-only admission, race/replay, bounded frames, live attachment, stop and revocation")
+    print("PASS separate .NET processes, verified TLS, socket-only admission, race/replay, bounded frames, validated guest LaY and retry, stop and revocation")
 
 
 def wait_for(path):

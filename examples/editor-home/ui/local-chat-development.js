@@ -1,5 +1,6 @@
 const yogiDragType = 'application/x-yogibox';
 const messageId = () => crypto.randomUUID().replaceAll('-', '');
+const eyUnsupported = 'EY가 담긴 YogiBox는 게스트가 보낼 수 없습니다. 기존 상자는 그대로 유지됩니다.';
 
 function publicComposer({call, alive, label, refresh, attachment}) {
  const form = document.createElement('form');
@@ -36,6 +37,10 @@ function publicComposer({call, alive, label, refresh, attachment}) {
    try {
     const reply = await call({action:'prepare-attachment', id});
     if (!alive() || retired) return;
+    if (reply.status === 'ey-unsupported') {
+     status.textContent = eyUnsupported;
+     return;
+    }
     if (reply.status !== 'ready') throw new Error('box_unavailable');
     selection = id;
     pending = null;
@@ -95,6 +100,8 @@ function publicComposer({call, alive, label, refresh, attachment}) {
     selection = null;
     input.value = '';
     refresh?.();
+   } else if (reply.status === 'ey-unsupported') {
+    status.textContent = eyUnsupported;
    } else if (reply.status === 'denied') {
     status.textContent = '저장이 거절되었습니다. 입력은 유지됩니다.';
    } else {
@@ -122,6 +129,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
  const close = () => dialog?.close();
  function update() {
   if (dialog && dialog.scope !== scope()) close();
+  dialog?.guestComposer?.paint();
   const composer = dialog?.hostComposer;
   if (!composer) return;
   const target = hostTarget();
@@ -151,6 +159,10 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
    const button = root.querySelector(issuing ? '[data-issue]' : 'button[type=submit]');
    const input = root.querySelector('textarea');
    const messages = root.querySelector('[data-local-chat-messages]');
+   const attachment = {
+    canAttach:sealedYogi, dragging:() => yogiDrag?.owner === owner,
+    dropped:() => { yogiDrag.dropped = true; }
+   };
    let timer = null, expiryTimer = null, guestComposer = null, guestViewer = null;
    root._ownedCleanup = () => {
     if (dialog === owner) dialog = null;
@@ -307,10 +319,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
       root.querySelector('[data-invite-result]').hidden = false;
       select.hidden = false;
       status.textContent = '게스트 창으로 직접 복사해 전달하세요.';
-      owner.hostComposer = publicComposer({call, alive, label:'호스트 공용 채팅', refresh:refreshHost, attachment:{
-       canAttach:sealedYogi, dragging:() => yogiDrag?.scope === owner.scope,
-       dropped:() => { yogiDrag.dropped = true; }
-      }});
+      owner.hostComposer = publicComposer({call, alive, label:'호스트 공용 채팅', refresh:refreshHost, attachment});
       owner.hostComposer.enable(true);
       update();
       timer = setTimeout(checkHosting, 1500);
@@ -340,7 +349,8 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
       if (!alive()) return;
       if (reply.status !== 'joined') throw new Error('invitation_unavailable');
       form.remove();
-      guestComposer = publicComposer({call, alive, label:'참가 프로젝트 공용 채팅'});
+      guestComposer = publicComposer({call, alive, label:'참가 프로젝트 공용 채팅', attachment});
+      owner.guestComposer = guestComposer;
       messages.after(guestComposer.form);
       void poll();
      } catch {
@@ -360,7 +370,8 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
  return {
   open, update, hosting:() => !!dialog?.hostComposer,
   startYogiDrag() {
-   yogiDrag = dialog?.hostComposer?.form.isConnected && sealedYogi() ? {scope:scope(), dropped:false} : null;
+   const composer = dialog?.hostComposer ?? dialog?.guestComposer;
+   yogiDrag = composer?.form.isConnected && sealedYogi() ? {owner:dialog, dropped:false} : null;
    return !!yogiDrag;
   },
   endYogiDrag() {

@@ -1,0 +1,13 @@
+var (join, send, read, close, sendBox, readBox) =
+    ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
+      Func<string, string, string, bool>, Func<string, string>))calls.Open.Invoke(hostStorage, projectId, hostParticipant, manifest);
+
+object JoinLocal(string participant)
+{
+    var (sendHere, readHere, leave, sendHereBox, readHereBox, _) =
+        ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
+          Func<string, string>, Func<string, string, System.Text.Json.Nodes.JsonObject, bool>))join(participant);
+    return (sendHere, readHere, leave, sendHereBox, readHereBox);
+}
+
+return ((Func<string, object>)JoinLocal, send, read, close, sendBox, readBox);

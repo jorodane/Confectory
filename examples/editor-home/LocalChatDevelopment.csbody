@@ -142,11 +142,35 @@ lock (owner)
             using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
             var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))
                 calls.Connect.Invoke(port, pin, project, code, name);
+            (string Message, string Box, string Digest)? prepared = null;
             Bind((op, id, text) =>
             {
+                if (op == "cancel-attachment")
+                {
+                    if (prepared is not { } pending || pending.Message != id) return Denied;
+                    prepared = null;
+                    return "{\"status\":\"cancelled\"}";
+                }
+                if (op is "prepare-attachment" or "send-attachment")
+                {
+                    if (op == "send-attachment" && (prepared is not { } chosen || chosen.Message != id)) return Denied;
+                    if (ReadGuestBox(out var box, out var digest, out var projection) is string refusal) return refusal;
+                    if (op == "prepare-attachment")
+                    {
+                        prepared = (id, box, digest);
+                        return "{\"status\":\"ready\"}";
+                    }
+                    if (prepared!.Value.Box != box || prepared.Value.Digest != digest) return Denied;
+                    return Send(new() { ["op"] = "send-attachment", ["id"] = id, ["text"] = text, ["attachment"] = projection });
+                }
                 if (op == "send")
                 {
-                    string? status = request(new() { ["op"] = "send", ["id"] = id, ["text"] = text })["status"]?.ToString();
+                    if (prepared is { } pinned && pinned.Message == id) return Denied;
+                    return Send(new() { ["op"] = "send", ["id"] = id, ["text"] = text });
+                }
+                string Send(System.Text.Json.Nodes.JsonObject message)
+                {
+                    string? status = request(message)["status"]?.ToString();
                     return status switch
                     {
                         "committed" => Committed,
@@ -200,6 +224,47 @@ lock (owner)
                 }.ToJsonString();
             }, close);
             return life.IsCancellationRequested ? Unavailable : "{\"status\":\"joined\"}";
+
+            string? ReadGuestBox(out string box, out string digest, out System.Text.Json.Nodes.JsonObject? projection)
+            {
+                box = digest = "";
+                projection = null;
+                // This is the guest's own EditorHome selection, independent of
+                // the invitation's project. No browser-supplied data enters the box.
+                var local = ((System.Text.Json.Nodes.JsonObject)owner[3])["selected"];
+                if (activation.Length == 0 || local?["activation"]?.ToString() != activation)
+                    return Denied;
+                var boxes = (System.Collections.Generic.Dictionary<string, string>)owner[12];
+                string context = local["context"]!.GetValue<string>();
+                string localProject = local["projectId"]!.GetValue<string>();
+                if (!boxes.TryGetValue(context, out var currentBox)) return Denied;
+                try
+                {
+                    if (calls.ReadIdentity.Invoke((string[])owner[0], context) != localProject) return Denied;
+                    string snapshot = calls.Handoff.Invoke(currentBox, localProject, "local-user", local["path"]!.GetValue<string>());
+                    var package = System.Text.Json.Nodes.JsonNode.Parse(snapshot)!["package"]!;
+                    var images = new System.Text.Json.Nodes.JsonArray();
+                    foreach (var item in package["items"]!.AsArray())
+                    {
+                        if (item!["kind"]!.GetValue<string>() != "image")
+                            return "{\"status\":\"ey-unsupported\"}";
+                        var image = new System.Text.Json.Nodes.JsonObject { ["kind"] = "image" };
+                        foreach (string field in new[] { "width", "height", "encoding", "hash", "pixels" })
+                            image[field] = item["capture"]![field]!.DeepClone();
+                        images.Add(image);
+                    }
+                    box = currentBox;
+                    digest = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                        System.Text.Encoding.UTF8.GetBytes(snapshot)));
+                    projection = new() { ["description"] = package["text"]!.DeepClone(), ["items"] = images };
+                    return null;
+                }
+                catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+                    UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException)
+                {
+                    return Denied;
+                }
+            }
         }
     }
     catch (Exception error) when (error is ArgumentException or InvalidOperationException or

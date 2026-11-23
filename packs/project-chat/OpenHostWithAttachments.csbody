@@ -71,6 +71,61 @@ string NormalizeAttachment(System.Text.Json.Nodes.JsonObject handoff)
     return new System.Text.Json.Nodes.JsonObject { ["namespace"] = semanticNamespace, ["package"] = validated }.ToJsonString();
 }
 
+// A remote peer supplies pixels and description only. The receiver assigns all
+// journal identities and never treats a peer's data as a local workspace capture.
+string ReceiveLaY(string message, System.Text.Json.Nodes.JsonObject input)
+{
+    if (manifest.Length == 0 || input.Count != 2 ||
+        input["description"]?.GetValue<string>() is not string description ||
+        description.Length > 4096 || description.Contains('\0') ||
+        input["items"] is not System.Text.Json.Nodes.JsonArray images || images.Count > 2 ||
+        (images.Count == 0 && string.IsNullOrWhiteSpace(description)))
+        throw new ArgumentException("Bounded LaY attachment required.");
+    strictUtf8.GetByteCount(description);
+
+    var items = new System.Text.Json.Nodes.JsonArray();
+    foreach (var entry in images)
+    {
+        if (entry is not System.Text.Json.Nodes.JsonObject image || image.Count != 6 ||
+            image["kind"]?.GetValue<string>() != "image" ||
+            image["encoding"]?.GetValue<string>() != "rgb24-base64" ||
+            image["width"]?.GetValue<int>() is not int width || width is < 1 or > 512 ||
+            image["height"]?.GetValue<int>() is not int height || height is < 1 or > 512 ||
+            image["hash"]?.GetValue<string>() is not string hash || hash.Length != 64 ||
+            image["pixels"]?.GetValue<string>() is not string encoded ||
+            encoded.Length != ((width * height * 3 + 2) / 3) * 4)
+            throw new ArgumentException("Invalid LaY capture fields.");
+
+        byte[] pixels = Convert.FromBase64String(encoded);
+        if (pixels.Length != width * height * 3 || Convert.ToBase64String(pixels) != encoded ||
+            Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant() != hash)
+            throw new ArgumentException("Invalid LaY pixels or hash.");
+
+        // The existing journal uses a capture envelope. These host-assigned
+        // placeholders carry no file, coordinates in a remote view, or EY target.
+        items.Add(new System.Text.Json.Nodes.JsonObject
+        {
+            ["item"] = Hash(message + ":" + items.Count.ToString(System.Globalization.CultureInfo.InvariantCulture))[..32],
+            ["kind"] = "image",
+            ["capture"] = new System.Text.Json.Nodes.JsonObject
+            {
+                ["source"] = hash, ["scope"] = "selected-owned-client-region",
+                ["view"] = 0, ["x"] = 0, ["y"] = 0, ["width"] = width, ["height"] = height,
+                ["encoding"] = "rgb24-base64", ["hash"] = hash, ["pixels"] = encoded
+            }
+        });
+    }
+    return NormalizeAttachment(new System.Text.Json.Nodes.JsonObject
+    {
+        ["namespace"] = "remote-lay",
+        ["package"] = new System.Text.Json.Nodes.JsonObject
+        {
+            ["schema"] = 1, ["sealed"] = true, ["text"] = description,
+            ["items"] = items, ["pending"] = new System.Text.Json.Nodes.JsonArray()
+        }
+    });
+}
+
 CheckParticipant(hostParticipant);
 if (!IsStableId(projectId)) throw new ArgumentException("An existing stable project ID is required.");
 if (manifest.Length != 0)
@@ -278,6 +333,15 @@ object Join(string participant)
                 return Send(participant, id, text, Capture(box, participant));
             }
         }
+        bool SendHereLaY(string id, string text, System.Text.Json.Nodes.JsonObject payload)
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                CheckMessage(id, text);
+                return Send(participant, id, text, ReceiveLaY(id, payload));
+            }
+        }
         string ReadHereAttachment(string id)
         {
             lock (gate)
@@ -296,7 +360,8 @@ object Join(string participant)
         }
 
         return ((Func<string, string, bool>)SendHere, (Func<string>)Read, (Action)Leave,
-            (Func<string, string, string, bool>)SendHereAttachment, (Func<string, string>)ReadHereAttachment);
+            (Func<string, string, string, bool>)SendHereAttachment, (Func<string, string>)ReadHereAttachment,
+            (Func<string, string, System.Text.Json.Nodes.JsonObject, bool>)SendHereLaY);
     }
 }
 

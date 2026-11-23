@@ -6,6 +6,8 @@ element OpenHost function "OpenHost.celem";
 element OpenHostBody implementation "OpenHostBody.celem";
 element OpenHostWithAttachments function "OpenHostWithAttachments.celem";
 element OpenHostWithAttachmentsBody implementation "OpenHostWithAttachmentsBody.celem";
+element OpenHostSession function "OpenHostSession.celem";
+element OpenHostSessionBody implementation "OpenHostSessionBody.celem";
 element LoopbackChatFrames function "LoopbackChatFrames.celem";
 element LoopbackChatFramesBody implementation "LoopbackChatFramesBody.celem";
 element OpenProtectedLoopback function "OpenProtectedLoopback.celem";

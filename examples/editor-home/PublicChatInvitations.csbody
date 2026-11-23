@@ -28,7 +28,7 @@ lock (owner)
     if (owner[RoomSlot] is (string scope, object _, object existing, Func<bool> isActive, Action stop,
         System.Threading.CancellationToken _) && scope == activation)
     {
-        if (isActive()) return existing;
+        if (isActive()) return LocalAdmission(existing);
         stop();
         throw new UnauthorizedAccessException("The local chat host changed.");
     }
@@ -135,9 +135,10 @@ lock (owner)
 
             // The host assigns the actor. The supplied name is only a bounded label.
             string actor = displayName.Trim() + " (guest " + Guid.NewGuid().ToString("N") + ")";
-            var (send, read, leave, sendBox, readBox) =
+            var (send, read, leave, sendBox, readBox, sendLaY) =
                 ((Func<string, string, bool>, Func<string>, Action,
-                  Func<string, string, string, bool>, Func<string, string>))join(actor);
+                  Func<string, string, string, bool>, Func<string, string>,
+                  Func<string, string, System.Text.Json.Nodes.JsonObject, bool>))join(actor);
             invitations.Remove(key);
 
             T Current<T>(Func<T> action)
@@ -152,13 +153,31 @@ lock (owner)
             return ((Func<string, string, bool>)((id, text) => Current(() => send(id, text))),
                 (Func<string>)(() => Current(read)), (Action)(() => { lock (owner) leave(); }),
                 (Func<string, string, string, bool>)((id, text, box) => Current(() => sendBox(id, text, box))),
-                (Func<string, string>)(id => Current(() => readBox(id))), actor);
+                (Func<string, string>)(id => Current(() => readBox(id))), actor,
+                (Func<string, string, System.Text.Json.Nodes.JsonObject, bool>)((id, text, payload) =>
+                    Current(() => sendLaY(id, text, payload))));
         }
     }
 
     object admission = ((Func<int, string>)Issue, (Func<string, string, string, object>)Accept, (Action)Close);
     owner[RoomSlot] = (activation, host, admission, (Func<bool>)Active, (Action)Close, lifetime.Token);
-    return admission;
+    return LocalAdmission(admission);
+}
+
+// Keep the local admission API shape. The protected listener holds the
+// separate receive capability as part of the live room it initializes.
+static object LocalAdmission(object admission)
+{
+    var (issue, accept, close) = ((Func<int, string>, Func<string, string, string, object>, Action))admission;
+    object AcceptLocal(string project, string code, string display)
+    {
+        var (send, read, leave, sendBox, readBox, actor, _) =
+            ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>,
+              Func<string, string>, string, Func<string, string, System.Text.Json.Nodes.JsonObject, bool>))
+            accept(project, code, display);
+        return (send, read, leave, sendBox, readBox, actor);
+    }
+    return (issue, (Func<string, string, string, object>)AcceptLocal, close);
 }
 
 static string Hash(string value) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(

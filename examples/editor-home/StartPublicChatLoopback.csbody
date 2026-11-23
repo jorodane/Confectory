@@ -12,10 +12,11 @@ lock (owner)
     if (owner[ListenerSlot] is System.Threading.Tasks.Task running && !running.IsCompleted)
         throw new InvalidOperationException("This editor already owns a protected chat listener.");
 
-    var (_, accept, _) = ((Func<int, string>, Func<string, string, string, object>, Action))
-        calls.Invitations.Invoke(session, activation);
-    var (_, _, _, active, close, lifetime) =
+    calls.Invitations.Invoke(session, activation);
+    var (_, _, admission, active, close, lifetime) =
         ((string, object, object, Func<bool>, Action, System.Threading.CancellationToken))owner[RoomSlot];
+
+    var (_, accept, _) = ((Func<int, string>, Func<string, string, string, object>, Action))admission;
 
     bool Check()
     {

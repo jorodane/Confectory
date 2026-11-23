@@ -35,22 +35,23 @@ foreach(string title in new[]{"HostOwner","GuestWorkspace"}){
   var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"create",
    System.Text.Json.JsonSerializer.Serialize(new{title,directory=projects})))!;
   result[title]=opened["selected"]?["path"]?.DeepClone()??throw new InvalidOperationException("Fixture create failed");
-  if(title=="HostOwner"){
+  bool host=title=="HostOwner";
+  {
    void Run(string operation,object input){
     var response=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,operation,System.Text.Json.JsonSerializer.Serialize(input)))!;
     if(response["status"]!.ToString().StartsWith("Error:",StringComparison.Ordinal))throw new InvalidOperationException(response["status"]!.ToString());
    }
-   const string id="Project.HostOwner::Main";
+   string id="Project."+title+"::Main";
    Run("workspace",new{action="open"});
    Run("workspace",new{action="select",id});
    Run("yogi",new{action="exactly",id});
-   for(int i=0;i<2;i++){
+   for(int i=0;i<(host?2:1);i++){
     byte[] pixels=new byte[512*512*3];
-    Array.Fill(pixels,(byte)(59+i));
+    Array.Fill(pixels,host?(byte)(59+i):(byte)65);
     Run("yogi",new{action="capture",id,view="",image=new{width=512,height=512,encoding="rgb24-base64",
      pixels=Convert.ToBase64String(pixels),hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()}});
    }
-   Run("yogi",new{action="text",text="첨부 시점의 봉인 설명"});
+   Run("yogi",new{action="text",text=host?"첨부 시점의 봉인 설명":"게스트의 봉인 설명"});
    Run("yogi",new{action="seal",@sealed=true});
   }
  }finally{calls.CloseSession.Invoke(session);}
@@ -164,6 +165,20 @@ def send(form, text):
     expect(form.get_by_label("공용 메시지 입력")).to_have_value("")
 
 
+def drag_box(page, sealed, form, offset=24):
+    field = form.get_by_label("공용 메시지 입력")
+    field.scroll_into_view_if_needed()
+    assert form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True).is_enabled()
+    source, target = sealed.bounding_box(), field.bounding_box()
+    assert source and target
+    page.mouse.move(source["x"] + source["width"] / 2, source["y"] + source["height"] / 2)
+    page.mouse.down()
+    # Chromium needs two pointer movements over the drop target.
+    page.mouse.move(target["x"] + offset, target["y"] + 12, steps=12)
+    page.mouse.move(target["x"] + offset + 8, target["y"] + 14)
+    page.mouse.up()
+
+
 def verify_yogi(viewer, host):
     expect(viewer).to_contain_text("첨부 시점의 봉인 설명")
     if host:
@@ -171,7 +186,11 @@ def verify_yogi(viewer, host):
     else:
         expect(viewer).to_contain_text("현재 열 수 없는 EY")
         expect(viewer).not_to_contain_text("Project.HostOwner::Main")
-    for number in range(2):
+    verify_captures(viewer, (59, 60))
+
+
+def verify_captures(viewer, colors):
+    for number, value in enumerate(colors):
         # Clicking an image replaces that button. Check every pixel of each rendered capture.
         viewer.get_by_role("button", name="이미지 보기", exact=True).first.click()
         canvas = viewer.locator("canvas").nth(number)
@@ -183,7 +202,8 @@ def verify_yogi(viewer, host):
           const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',rgb)),
              v=>v.toString(16).padStart(2,'0')).join('');
           return [width,height,hash];
-        }""") == [512, 512, hashlib.sha256(bytes([59 + number]) * (512 * 512 * 3)).hexdigest()]
+        }""") == [512, 512, hashlib.sha256(bytes([value]) * (512 * 512 * 3)).hexdigest()]
+
 
 
 with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
@@ -210,6 +230,8 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     host_storage, guest_storage = [root / name for name in ("HostOwner", "GuestWorkspace")]
     local_yogi, = (Path(projects["HostOwner"]).parent / ".confectory/yogi").glob("package-*.json")
     saved_yogi = local_yogi.read_bytes()
+    guest_yogi_file, = (Path(projects["GuestWorkspace"]).parent / ".confectory/yogi").glob("package-*.json")
+    original_guest_box = guest_yogi_file.read_bytes()
     sentinels = {}
     for storage in (host_storage, guest_storage):
         private = storage / "helper-conversations/fixture.json"
@@ -250,7 +272,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
                     expect(guest_panel).not_to_contain_text("이전 공용 기록")
                     guest_form = composer(guest_page, "참가 프로젝트 공용 채팅")
-                    expect(guest_form.get_by_role("button", name="봉인 YogiBox 첨부")).to_have_count(0)
+                    expect(guest_form.get_by_role("button", name="봉인 YogiBox 첨부")).to_be_disabled()
                     guest_history = guest_panel.locator("[data-local-chat-messages]")
                     send(host_form, "참가 후 공용 한 줄")
                     expect(guest_history).to_contain_text("참가 후 공용 한 줄")
@@ -296,16 +318,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     sealed = host_page.get_by_role("dialog", name="YogiBox", exact=True).locator(".yogi-package")
                     expect(sealed).to_be_visible()
                     host_text = host_form.get_by_label("공용 메시지 입력")
-                    # Move twice over the exposed left side so Chromium dispatches dragover.
-                    host_text.scroll_into_view_if_needed()
-                    assert host_form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True).is_enabled()
-                    source, target = sealed.bounding_box(), host_text.bounding_box()
-                    assert source and target
-                    host_page.mouse.move(source["x"] + source["width"] / 2, source["y"] + source["height"] / 2)
-                    host_page.mouse.down()
-                    host_page.mouse.move(target["x"] + 24, target["y"] + 12, steps=12)
-                    host_page.mouse.move(target["x"] + 32, target["y"] + 14)
-                    host_page.mouse.up()
+                    drag_box(host_page, sealed, host_form)
                     cancel = host_form.get_by_role("button", name="YogiBox 첨부 취소", exact=True)
                     expect(cancel).to_be_visible()
                     assert journal.read_bytes() == before_attach
@@ -347,6 +360,81 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     host_yogi.get_by_role("button", name="YogiBox 보기 닫기", exact=True).click()
                     expect(draft).to_have_value("그대로 둘 Helper 작성 중 입력\n다음 줄")
 
+                    guest_yogi.get_by_role("button", name="YogiBox 보기 닫기", exact=True).click()
+                    public_before_guest = journal.read_bytes()
+                    guest_page.locator("#yogi").click()
+                    guest_box_window = guest_page.get_by_role("dialog", name="YogiBox", exact=True)
+                    guest_sealed = guest_box_window.locator(".yogi-package")
+                    expect(guest_sealed).to_be_visible()
+                    guest_attach = guest_form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True)
+                    guest_cancel = guest_form.get_by_role("button", name="YogiBox 첨부 취소", exact=True)
+                    guest_status = guest_form.locator("[data-public-send-status]")
+                    guest_input = guest_form.get_by_label("공용 메시지 입력")
+                    guest_send = guest_form.get_by_role("button", name="공용으로 보내기", exact=True)
+                    guest_attach.click()
+                    expect(guest_status).to_contain_text("EY가 담긴 YogiBox는 게스트가 보낼 수 없습니다")
+                    expect(guest_cancel).to_have_count(0)
+                    assert guest_yogi_file.read_bytes() == original_guest_box
+                    assert journal.read_bytes() == public_before_guest
+
+                    guest_sealed.dblclick()
+                    guest_box_window.get_by_role("button", name="Exactly Yogi", exact=True).click()
+                    guest_box_window.locator('#yogi-items [data-kind="semantic"]').get_by_role("button", name="제거").click()
+                    guest_box_window.locator("#yogi-seal").click()
+                    expect(guest_sealed).to_be_visible()
+                    prepared_guest_box = guest_yogi_file.read_bytes()
+                    assert [item["kind"] for item in json.loads(prepared_guest_box)["package"]["items"]] == ["image"]
+
+                    drag_box(guest_page, guest_sealed, guest_form)
+                    expect(guest_cancel).to_be_visible()
+                    assert journal.read_bytes() == public_before_guest
+                    guest_sealed.get_by_role("button", name="YogiBox 닫기", exact=True).click()
+                    guest_cancel.click()
+                    expect(guest_status).to_contain_text("첨부를 취소")
+                    assert journal.read_bytes() == public_before_guest
+
+                    guest_attachment_text = "게스트가 보낸 봉인 LaY"
+                    guest_attach.click()
+                    expect(guest_cancel).to_be_visible()
+                    journal.chmod(0o444)
+                    try:
+                        guest_input.fill(guest_attachment_text)
+                        guest_send.click()
+                        expect(guest_status).to_contain_text("저장이 거절")
+                        expect(guest_cancel).to_be_visible()
+                        expect(guest_input).to_have_value(guest_attachment_text)
+                        assert journal.read_bytes() == public_before_guest
+                    finally:
+                        journal.chmod(mode)
+                    drop_ack.add(guest_attachment_text)
+                    guest_send.click()
+                    expect(guest_status).to_contain_text("전송을 확인하지 못했습니다")
+                    expect(guest_history).to_contain_text(guest_attachment_text)
+                    guest_send.click()
+                    expect(guest_input).to_have_value("")
+                    received = [row for row in json.loads(journal.read_text())["messages"]
+                                if row["text"] == guest_attachment_text]
+                    assert len(received) == 1
+                    ids = [value for text, value in send_attempts if text == guest_attachment_text]
+                    assert len(ids) >= 3 and set(ids) == {received[0]["id"]}
+                    package = received[0]["attachment"]["package"]
+                    assert package["text"] == "게스트의 봉인 설명"
+                    assert [item["kind"] for item in package["items"]] == ["image"]
+                    assert guest_yogi_file.read_bytes() == prepared_guest_box
+                    assert local_yogi.read_bytes() == saved_yogi
+
+                    for panel, history in ((guest_panel, guest_history), (host_page, host_history)):
+                        row = history.get_by_text(guest_attachment_text, exact=True).locator("..")
+                        row.get_by_role("button", name="YogiBox 보기", exact=True).click()
+                        viewer = panel.get_by_role("region", name="YogiBox 보기", exact=True)
+                        expect(viewer).to_contain_text("게스트의 봉인 설명")
+                        expect(viewer.get_by_role("button", name="이미지 보기", exact=True)).to_have_count(1)
+                        expect(viewer).not_to_contain_text("Project.GuestWorkspace::Main")
+                        verify_captures(viewer, (65,))
+                    host_page.get_by_role("region", name="YogiBox 보기", exact=True).get_by_role(
+                        "button", name="YogiBox 보기 닫기", exact=True).click()
+                    expect(draft).to_have_value("그대로 둘 Helper 작성 중 입력\n다음 줄")
+
                     guest_panel.get_by_role("button", name="닫기", exact=True).click()
                     expect(guest_yogi).to_have_count(0)
                     guest_panel = open_join(guest_page)
@@ -360,6 +448,7 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
                     join(guest_panel, second)
                     expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
                     expect(guest_panel).not_to_contain_text("게스트가 보낸 공용 글")
+                    expect(guest_panel).not_to_contain_text(guest_attachment_text)
                     expect(guest_panel.get_by_role("button", name="YogiBox 보기", exact=True)).to_have_count(0)
                     menu(guest_page, "프로젝트 나가기")
                     expect(guest_page.locator(".home-grid")).to_be_visible()
@@ -416,11 +505,12 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
             journal, = (host_storage / "project-chat").glob("*.json")
             assert [row["text"] for row in json.loads(journal.read_text())["messages"]] == [
                 "이전 공용 기록", "참가 후 공용 한 줄", "게스트가 보낸 공용 글",
-                "저장 실패 뒤 다시 보낸 글", "응답을 받기 전에 끊긴 공용 글", "봉인 요기박스 공용 첨부", "재참가 뒤 공용 글",
+                "저장 실패 뒤 다시 보낸 글", "응답을 받기 전에 끊긴 공용 글", "봉인 요기박스 공용 첨부",
+                "게스트가 보낸 봉인 LaY", "재참가 뒤 공용 글",
             ]
             for path in [journal, host_log, guest_log, other_log, disabled_log, *sentinels]:
                 assert all(code.encode() not in path.read_bytes() for code in known_codes)
             assert all(path.read_bytes() == before for path, before in sentinels.items())
         finally:
             browser.close()
-    print("PASS two Chromium editors: explicit sealed drop/selection, cancel and retry, frozen LaY/EY projection, cold rejoin and personal isolation")
+    print("PASS two Chromium editors: explicit host/guest attachment, mixed EY refusal, frozen RGB, failed and lost acknowledgement retry, rejoin and private isolation")
