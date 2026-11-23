@@ -375,7 +375,7 @@ public static partial class FeatureBlueprint
         {
             var versions = new JsonObject(imports.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => new KeyValuePair<string, JsonNode?>(p.Key, JsonValue.Create(p.Value.Hash))));
             versions[feature.Id] = contractHash;
-            return new JsonObject
+            var definitions = new JsonObject
             {
                 ["state"] = "node-definitions", ["feature"] = feature.Id, ["profile"] = profile, ["contractHash"] = contractHash, ["publicExecutionBranches"] = publicBranches.DeepClone(), ["signature"] = contract.DeepClone(),
                 ["nodes"] = new JsonArray(nodes.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => (JsonNode)new JsonObject { ["id"] = p.Key, ["definitionHash"] = p.Value.DefinitionHash, ["definition"] = p.Value.Definition.DeepClone(), ["outputs"] = NodeOutputDocument(p.Value), ["currentCallSignature"] = p.Value.Kind == "call" ? SignatureDocument(Import(p.Value.Feature!).Element.Signature!) : null, ["callAbiSourceHash"] = p.Value.Kind == "call" ? Import(p.Value.Feature!).SourceHash : null, ["postCallStale"] = p.Value.Definition["postCall"] is not null && (p.Value.Definition["postCall"]!["contractHash"]!.ToString() != BlueprintCallWrapper.ContractHash(Import(p.Value.Feature!).Element,p.Value.Definition["postCall"]?["originalExecution"] is not null) || p.Value.Definition["postCall"]?["originalExecution"] is not null && p.Value.Definition["postCall"]!["originalExecution"]!.ToString()!=Import(p.Value.Feature!).Hash), ["postCallSignatureMatches"] = p.Value.Kind != "call" || p.Value.Signature.Args.Select(a => (a.Name,a.Type,a.Mode)).SequenceEqual(Import(p.Value.Feature!).Element.Signature!.Args.Select(a => (a.Name,a.Type,a.Mode))) && p.Value.Signature.Return == Import(p.Value.Feature!).Element.Signature!.Return, ["postCallEditor"] = p.Value.Definition["publicExecution"] is not null ? null : p.Value.Kind == "call" && p.Value.Control == "switch" ? BlueprintCallWrapper.Editor(Import(p.Value.Feature!).Element,p.Value.Definition["executionEnum"]!.AsObject(),p.Value.Definition["postCall"] as JsonObject,inspectStalePostCalls) : p.Value.Kind == "call" ? BlueprintCallAfter.Prepare(Import(p.Value.Feature!).Element, inspectStalePostCalls ? null : p.Value.Definition["postCall"]?["contractHash"]?.ToString(), p.Value.Definition["postCall"]?["source"]?.GetValue<string>(), p.Value.Definition["postCall"]?["helpers"]?.GetValue<string>()??"") : null, ["wrapperEditor"] = p.Value.Kind == "call" && (p.Value.Control == "next" || p.Value.Definition["publicExecution"] is not null) && p.Value.Definition["postCall"] is null ? BlueprintCallWrapper.Default(Import(p.Value.Feature!).Element) : null }).ToArray()),
@@ -383,6 +383,16 @@ public static partial class FeatureBlueprint
                 ["imports"] = new JsonArray(imports.OrderBy(i => i.Key, StringComparer.Ordinal).Select(i => (JsonNode)new JsonObject { ["feature"] = i.Key, ["alias"] = i.Value.Alias, ["contractHash"] = i.Value.Hash, ["binding"] = canonicalImports.Contains(i.Key) ? "canonical" : "implementation-context", ["signature"] = SignatureNode(i.Value.Element.Signature!) }).ToArray()),
                 ["independentNodeCompilation"] = true, ["sourceWritten"] = false, ["compiled"] = false, ["executed"] = false
             };
+            if (inspectStalePostCalls)
+            {
+                var renames = new JsonObject();
+                foreach (var node in nodes.Values)
+                    if (node.Kind == "call" && node.Control == "switch" && node.Definition["postCall"] is JsonObject postCall &&
+                        BlueprintCallWrapper.InputRename(Import(node.Feature!).Element, node.Signature, postCall) is JsonObject rename)
+                        renames[node.Id] = rename;
+                if (renames.Count > 0) definitions["callInputRenames"] = renames;
+            }
+            return definitions;
         }
 
         string entry = S(graph, "entry");

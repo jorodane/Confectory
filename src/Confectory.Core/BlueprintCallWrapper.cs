@@ -32,6 +32,30 @@ public static class BlueprintCallWrapper
         _=BlueprintExecutionBranches.Read(feature);
         return JsonData.HashBytes(System.Text.Encoding.UTF8.GetBytes(new JsonObject{["schema"]=1,["snapshot"]=snapshot,["execution"]=FeatureBlueprint.ContractHash(feature)}.ToJsonString()));
     }
+
+    // The stored receipt also covers published outputs. Recreate the old
+    // snapshot with the current publication before offering a rename-only edit.
+    internal static JsonObject? InputRename(Element feature, FunctionSignature before, JsonObject postCall)
+    {
+        var after = feature.Signature;
+        if (after is null || !before.Matches(after) || postCall["originalExecution"] is not null || BlueprintExecutionBranches.Has(feature))
+            return null;
+        var changed = before.Args.Zip(after.Args).Where(pair => pair.First.Name != pair.Second.Name).Take(2).ToArray();
+        if (changed.Length != 1 || changed[0].First.Mode is not null)
+            return null;
+
+        var original = new Element { Id = feature.Id, Kind = feature.Kind, Signature = before };
+        if (feature.Values.TryGetValue(BlueprintOutputSnapshot.Metadata, out var published))
+            original.Values[BlueprintOutputSnapshot.Metadata] = published;
+        var originalSnapshot = BlueprintOutputSnapshot.Prepare(original);
+        if (originalSnapshot["contractHash"]!.ToString() != postCall["contractHash"]?.ToString())
+            return null;
+        var currentSnapshot = BlueprintOutputSnapshot.Prepare(feature);
+        if (new[] { "sourceParameter", "contextVariable", "returnVariable" }
+            .Any(key => originalSnapshot[key]!.ToString() != currentSnapshot[key]!.ToString()))
+            return null;
+        return new JsonObject { ["before"] = changed[0].First.Name, ["after"] = changed[0].Second.Name };
+    }
     public static JsonObject Default(Element feature) => Prepare(feature,BlueprintExecutionBranches.Has(feature)?DefaultEnum(feature):new JsonObject{["primary"]="next",["members"]=new JsonArray(new JsonObject{["id"]="next",["name"]="NoBranch",["value"]=0})},returnMapping:feature.Signature!.Return=="void"?null:NativeReturnMapping,originalExecution:BlueprintExecutionBranches.Has(feature)?FeatureBlueprint.ContractHash(feature):null);
     static JsonObject DefaultEnum(Element feature) {
         var result=BlueprintExecutionBranches.Enum(feature);

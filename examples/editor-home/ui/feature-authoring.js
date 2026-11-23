@@ -893,6 +893,35 @@ function blueprintNormalizeControls(scope){
    const call=callsNeedingReview.get(id);
    return documentCallContract()&&call?.postCallSignatureMatches===false&&call.currentCallSignature?call:null;
   };
+  function documentRenameBinding(call){
+   const rename=call?.callInputRename,remap=call?.callAbiRemap;
+   if(!rename||!remap||!canRefreshAfter(w,call)||data.profile!=='sync-acyclic-switch-v1'||
+      call.callAbiReceipt||call.callAbiGroupBinding||call.callAbiUseGroupBinding||saveEntries(w).length||!frameInputsClear())return null;
+   if(remap.inputs[rename.after]!==null||Object.entries(remap.inputs).some(([name,old])=>name!==rename.after&&name!==old)||
+      Object.entries(remap.outputs).some(([name,next])=>name!==next))return null;
+   return call.arguments.find(arg=>arg.name===rename.before&&arg.valueJson&&arg.valueJson!=='null')??null;
+  }
+  function chooseDocumentRename(call){
+   const current=()=>canvasOwns()&&!api.busy&&documentView?.mode==='logic'&&documentCallComparison(call.id)===call;
+   const binding=current()?documentRenameBinding(call):null;
+   if(!binding)return;
+   const {before,after}=call.callInputRename;
+   api.modal('기존 입력 연결 선택','<label>'+esc(after)+'에 연결할 기존 입력<select data-call-input-rename-source>'+
+    '<option value="">기존 입력 선택</option><option value="'+esc(before)+'">'+esc(before+' · '+bindingLabel(binding.valueJson))+'</option></select></label>'+
+    '<div class="actions"><button type="button" class="secondary" data-call-input-rename-cancel>취소</button>'+
+    '<button type="button" class="primary" data-call-input-rename-apply disabled>선택한 계약 갱신</button></div>',(dialog,close)=>{
+     const source=$('[data-call-input-rename-source]',dialog),apply=$('[data-call-input-rename-apply]',dialog);
+     source.onchange=()=>{apply.disabled=source.value!==before;};
+     $('[data-call-input-rename-cancel]',dialog).onclick=close;
+     apply.onclick=()=>{
+      if(source.value!==before||!current()||!documentRenameBinding(call))return;
+      const remap=structuredClone(call.callAbiRemap);
+      remap.inputs[after]=before;
+      close();
+      refreshAfter(w,call,remap);
+     };
+    });
+  }
   function compareDocumentCall(id){
    const call=documentCallComparison(id);
    if(!canvasOwns()||api.busy||documentView?.mode!=='logic'||!call||closeMenu('preserve')===false)return;
@@ -901,13 +930,17 @@ function blueprintNormalizeControls(scope){
    const changedInputs=before.args.filter(pin=>pin.mode!=='out'&&
     call.arguments?.some(arg=>arg.name===pin.name&&arg.valueJson&&arg.valueJson!=='null')&&
     !after.args.some(arg=>arg.name===pin.name&&arg.type===pin.type&&arg.mode===pin.mode));
+   const canSelect=!!documentRenameBinding(call);
    api.modal('원본 계약 비교','<p><strong>'+esc(call.calledFeature)+'</strong></p><dl>'+
     '<dt>기존 호출</dt><dd><code data-call-contract-before>'+esc(format(before))+'</code></dd>'+
     '<dt>현재 원본</dt><dd><code data-call-contract-after>'+esc(format(after))+'</code></dd></dl>'+
     (changedInputs.length?'<p data-call-contract-bound>확인이 필요한 기존 입력 연결 · '+esc(changedInputs.map(pin=>pin.name).join(', '))+'</p>':'')+
-    (canRefreshAfter(w,call)?'<p>입출력 연결은 블루프린트 보기의 원본 계약 갱신에서 직접 선택할 수 있습니다.</p>':'')+
-    '<div class="actions"><button type="button" data-call-contract-close>닫기</button></div>',(dialog,close)=>{
+    (!canSelect&&canRefreshAfter(w,call)?'<p>입출력 연결은 블루프린트 보기의 원본 계약 갱신에서 직접 선택할 수 있습니다.</p>':'')+
+    '<div class="actions"><button type="button" data-call-contract-close>닫기</button>'+
+    (canSelect?'<button type="button" class="primary" data-call-input-rename>기존 입력 연결 선택…</button>':'')+'</div>',(dialog,close)=>{
      $('[data-call-contract-close]',dialog).onclick=close;
+     const choose=$('[data-call-input-rename]',dialog);
+     if(choose)choose.onclick=()=>{close();chooseDocumentRename(call);};
     });
   }
   const propertyWrites=new Map((data.nodes||[]).filter(row=>row.kind==='property-set').map(row=>[row.id,row]));
@@ -1208,13 +1241,17 @@ function blueprintNormalizeControls(scope){
  function canRefreshAfter(w,row){const data=w.authorData;return !!(row?.postCallStale&&row.postCallEditor&&
   (row.postCallSignatureMatches||row.callAbiAvailable)&&(!data.slotContext||row.callAbiAvailable)&&
   (!data.privateCopy||row.privateCopyAbiBinding)&&(!data.privatePath||privateAbiScope(w,row)));}
- function refreshAfter(w,row){
+ function refreshAfter(w,row,approvedRemap=null){
   if(!owns(w)||!row.postCallStale||!row.postCallEditor)return;if(!row.postCallSignatureMatches&&!row.callAbiAvailable)return api.toast('원본 입출력 계약이 바뀌었습니다. 기존 코드와 핀을 보존하고 먼저 계약을 확인해 주세요.');
   if(w.authorData.slotContext&&!row.callAbiAvailable||w.authorData.privateCopy&&!row.privateCopyAbiBinding||w.authorData.privatePath&&!privateAbiScope(w,row))return api.toast('소유한 일반 호출 원본에서 계약을 확인해 주세요. 기존 입력은 유지됩니다.');
   const data=w.authorData,generation=w.authorGeneration,enumMode=row.postCall.mode==='execution-enum',type=enumMode?'wrapper':'post-call',key=prefix(w)+row.id+'|'+type,previous=inputs.get(key);let saved;
   try{saved=previous?JSON.parse(previous.text):row.postCall;if(!saved||typeof saved.source!=='string')throw Error('보관한 후속 코드를 확인해 주세요.');if(enumMode){if((saved.returnMapping??row.postCall.returnMapping)!==row.postCall.returnMapping)throw Error('보관한 반환 매핑을 먼저 확인해 주세요. 입력은 유지됩니다.');checkWrapperPorts(w,row,saved.executionEnum??row.executionEnum);}}catch(error){return api.toast(error.message);}
   const plan={source:saved.source,helpers:saved.helpers??row.postCall.helpers??'',contractHash:row.postCallEditor.contractHash,...(row.postCallEditor.originalExecution?{originalExecution:row.postCallEditor.originalExecution}:{}),refreshFrom:saved.refreshFrom??row.postCall.contractHash,...(!row.postCallSignatureMatches&&row.callAbiAvailable?{abi:{signature:structuredClone(row.currentCallSignature),sourceHash:row.callAbiSourceHash,...(row.callAbiReceipt?{receipt:structuredClone(row.callAbiReceipt)}:{}),...(row.copyAbiBinding?{copyBinding:structuredClone(row.copyAbiBinding)}:{}),...(row.privateCopyAbiBinding?{privateCopyBinding:structuredClone(row.privateCopyAbiBinding)}:{})}}:{}),...(enumMode?{executionEnum:structuredClone(saved.executionEnum??row.executionEnum),returnMapping:(!row.postCallSignatureMatches?row.postCallEditor.returnMapping:row.postCall.returnMapping)??null}:{})};
   const apply=()=>{try{if(!owns(w)||w.authorData!==data||w.authorGeneration!==generation||inputs.get(key)!==previous)throw Error('편집 대상이나 입력이 바뀌었습니다. 기존 입력은 유지됩니다.');structuralEdit(w,()=>{inputs.set(key,{text:JSON.stringify(plan),basis:data.basis,proof:proof(data),node:row.id,type});api.persist();});api.toast('원본 계약을 초안에 갱신했어요. 기존 후속 코드의 공개 출력 이름도 확인해 주세요.');}catch(error){api.toast(error.message);}};
+  if(approvedRemap){
+   if(!plan.abi||row.callAbiGroupBinding||row.callAbiUseGroupBinding)return;
+   plan.abi.remap=approvedRemap;apply();return;
+  }
   if(row.callAbiRemap||[row.callAbiGroupPlans,row.callAbiUseGroupPlans].some(plans=>plans&&Object.values(plans).some(p=>p.remap))){
    const uses=!!row.callAbiUseGroupBinding,target=uses?row.callAbiUseKey:data.id?.split('/body:')[1]||'현재 호출',plans=uses?structuredClone(row.callAbiUseGroupPlans):row.callAbiGroupPlans?structuredClone(row.callAbiGroupPlans):null,targets=plans?Object.fromEntries(Object.entries(plans).map(([id,p])=>[id,{before:p.before,after:row.currentCallSignature,remap:p.remap}])):{[target]:{before:row.signature,after:row.currentCallSignature,remap:row.callAbiRemap}},formKey=prefix(w)+row.id+'|abi-remap-form',prior=inputs.get(formKey);let own=prior;
    try{openCallAbiRemap({modal:api.modal,esc,targets,saved:prior?.text,remember:text=>{if(!owns(w)||w.authorData!==data||w.authorGeneration!==generation||inputs.get(formKey)!==own)throw Error('편집 기준이 바뀌었습니다. 입력은 유지됩니다.');privateValue(w,row.id,'abi-remap-form',text);own=inputs.get(formKey);},cancel:()=>{if(inputs.get(formKey)===own){if(prior)inputs.set(formKey,prior);else inputs.delete(formKey);api.persist();}},onClose:close=>{const forced=()=>{if(w.authorCloseDialog===forced)w.authorCloseDialog=null;close();};w.authorCloseDialog=forced;return ()=>{if(w.authorCloseDialog===forced)w.authorCloseDialog=null;};},accept:remaps=>{if(!owns(w)||w.authorData!==data||w.authorGeneration!==generation||inputs.get(key)!==previous||inputs.get(formKey)!==own)throw Error('편집 대상이나 입력이 바뀌었습니다. 기존 입력은 유지됩니다.');plan.abi.remap=remaps[target];if(plans){for(const id of Object.keys(plans))plans[id].remap=remaps[id];Object.assign(plans[target],Object.fromEntries(['source','helpers','executionEnum','contractHash','refreshFrom','returnMapping'].map(field=>[field,structuredClone(plan[field])])));if(uses){plan.abi.useGroup=structuredClone(row.callAbiUseGroupBinding);plan.abi.usePlans=plans;}else{plan.abi.targetGroup=structuredClone(row.callAbiGroupBinding);plan.abi.targetPlans=plans;}}if(inputs.get(formKey)===own)inputs.delete(formKey);if(w.authorCloseDialog)w.authorCloseDialog=null;apply();}});}catch(error){api.toast(error.message);}return;
