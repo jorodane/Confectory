@@ -3825,7 +3825,7 @@ def main():
                 cases=[('root',[]),('nested',['--nested']),('owned-case',['--owned-case']),('repeat',['--repeat'])] if label=='lf' else [('refs',['--refs']),('root',[])]
                 for name,flags in cases:
                     work.run(label+'-branch-api-'+name,[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_api.py'),str(checkout),str(report),*flags],cwd=checkout,env=env)
-                for mode in (['normal','storage','conflict','project','loss-edit'] if label=='lf' else ['loss','late']):
+                for mode in (['normal','logic','storage','conflict','project','loss-edit'] if label=='lf' else ['loss','late']):
                     work.run(label+'-branch-ui-'+mode,[sys.executable,str(checkout/'tests/web/v666_node_internal_branch_ui.py'),str(checkout),str(report),mode,*(['--refs'] if mode=='late' else [])],cwd=checkout,env=env)
                 work.run(label+'-branch-context-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_context_api.py'),str(checkout),str(report),*(['--refs'] if label=='crlf' else [])],cwd=checkout,env=env)
                 work.run(label+'-branch-storage-regression',[sys.executable,str(checkout/'tests/web/v666_node_internal_storage_api.py'),str(checkout),str(report),*(['--private','--local'] if label=='crlf' else [])],cwd=checkout,env=env)

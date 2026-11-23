@@ -791,7 +791,9 @@ function blueprintNormalizeControls(scope){
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
    if(flowDocument){
-    model.nodes=model.nodes.map(node=>({...node,internal:false,codeEditable:node.id==='body'&&node.codeEditable}));
+    model.nodes=model.nodes.map(node=>node.kind==='branch-exit'
+     ?{...node,name:'반환 · '+(branchExitMembers(w).find(member=>member.id===node.branchId)?.name||'선택 필요')}
+     :{...node,internal:false,codeEditable:node.id==='body'&&node.codeEditable});
    }
    if(callsNeedingReview.size)model.nodes=model.nodes.map(node=>callsNeedingReview.has(node.id)
     ?{...node,contractReviewRequired:true}:node);
@@ -855,7 +857,7 @@ function blueprintNormalizeControls(scope){
      }
     });
    },'');},
-   branchActions:(owner,port)=>({add:caseInsertionAvailable(branchChain(owner,port,true))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
+   branchActions:(owner,port)=>({add:!flowDocument&&caseInsertionAvailable(branchChain(owner,port,true))&&!saveEntries(w).length&&data.nodes.length<63}),addBranch:(owner,port)=>{if(canvasOwns()&&!api.busy&&surface.closeValues('preserve')!==false)api.work(()=>addBranch(owner,port),'');},
    moveCell:async(id,offset,grip)=>{
     if(!canvasOwns()||api.busy||surface.closeValues('preserve')===false)return;
     const generation=await api.work(()=>{
@@ -876,7 +878,7 @@ function blueprintNormalizeControls(scope){
     if(!canvasOwns()||api.busy)return;
     const step=(redo?w.authorRedo:w.authorUndo)?.at(-1);
     if(data.privateConversion){
-     if(flowDocument&&step?.kind==='node-flow')undoStructure(w,redo);
+     if(flowDocument&&step)undoStructure(w,redo);
      return;
     }
     if(step){undoStructure(w,redo);return;}
@@ -1171,8 +1173,9 @@ function blueprintNormalizeControls(scope){
  }
  function documentFlowPreview(w,data){
   const proposal=w.meta.nodeFlowDraft;
-  return data.nodeFlowPreview===true&&!!proposal&&!proposal.executionEnum&&!proposal.creatingCopy&&
-   !data.privateCopy&&!data.slotContext&&!w.meta.authorView&&!w.meta.copyDraft&&data.id===flowChildFrame(proposal);
+  return data.nodeFlowPreview===true&&!!proposal&&!proposal.creatingCopy&&
+   !data.privateCopy&&!data.slotContext&&!w.meta.authorView&&!w.meta.copyDraft&&data.id===flowChildFrame(proposal)&&
+   (!proposal.executionEnum||data.nodes?.some(node=>node.id==='body'&&node.executionForwarded===true));
  }
  function flowInputPrefix(w,proposal){return w.authorScope+'|v508-author|'+(w.meta.authorView?'view:'+w.meta.authorView+'|':'')+w.meta.id+(w.meta.slotOwner?'|slot:'+w.meta.slotOwner+':'+w.meta.slotImplementation:w.meta.implementationBody?'|body:'+w.meta.implementationBody:'')+'|private:'+flowChildPath(proposal)+'|';}
  function canInternalCode(w,row){if(row?.completionAdapter)return false;const d=w.authorData,creating=!!w.meta.copyDraft&&d.privateCopy&&(row?.control==='next'&&!row.executionEnum||row?.control==='switch'&&row.executionEnum?.members?.length&&signature(row.signature).return==='void');return !!row&&row.kind==='code'&&(row.control==='next'&&!row.executionEnum||row.control==='switch'&&row.executionEnum?.members?.length&&signature(row.signature).return==='void')&&(!d.privateCopy||creating)&&!d.privateConversion&&(creating||!d.slotContext&&!d.requiresCoupledCopy||d.slotContext&&d.nodeFlowCopyAvailable&&!row.rootModeEditor)&&(!w.meta.copyDraft||creating)&&!w.meta.nodeFlowDraft&&(d.id||creating)&&['sync-acyclic-nested-v1','sync-acyclic-methods-v1','sync-acyclic-property-v1','sync-acyclic-switch-v1','sync-acyclic-property-set-v1','sync-acyclic-property-ref-v1'].includes(d.profile);}
