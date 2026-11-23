@@ -50,7 +50,25 @@ export function createWindowDocuments(api){
  function floatingBounds(w,point){const minimum=w.key.startsWith('helper-')?150:260,width=Math.min(Math.max(minimum,w.width),innerWidth-16),height=Math.min(Math.max(160,w.height),innerHeight-16),title=w.el.querySelector('.window-title')?.offsetHeight||45;return {width,height,left:Math.max(8,Math.min((point?.x??innerWidth/2)-width/2,innerWidth-width-8)),top:Math.max(8,Math.min((point?.y??innerHeight/3)-title/2,innerHeight-height-8))};}
  function orderedKeys(){return [...canvas?.querySelectorAll('.workspace-movable-tabs>[data-tab-order-key]')||[]].map(el=>el.dataset.tabOrderKey);}
  function closeRelated(key,side){const project=api.project,keys=orderedKeys(),at=keys.indexOf(key);if(at<0)return;const targets=side==='right'?keys.slice(at+1):side==='left'?keys.slice(0,at):side==='others'?keys.filter(value=>value!==key):[...keys];for(const target of targets){if(api.project!==project||api.loading)return;const group=[...canvas.querySelectorAll('[data-tab-order-key]')].find(el=>el.dataset.tabOrderKey===target);group?.querySelector('.workspace-tab-close')?.click();}const kept=[...canvas.querySelectorAll('[data-tab-order-key]')].find(el=>el.dataset.tabOrderKey===key);if(kept&&side!=='all')kept.querySelector('[role=tab]')?.click();(kept?.querySelector('[role=tab]')||canvas.querySelector('#workspace-home-tab'))?.focus({preventScroll:true});}
- function tabMenu(key,event){const project=api.project,keys=orderedKeys(),at=keys.indexOf(key);if(at<0)return;const run=fn=>()=>{if(project===api.project&&!api.loading)fn();};const close=()=>[...canvas.querySelectorAll('[data-tab-order-key]')].find(el=>el.dataset.tabOrderKey===key)?.querySelector('.workspace-tab-close')?.click();const items=[...(key.startsWith('window:')?[['워크스페이스로 이동',run(()=>returnToWorkspace(key.slice(7)))]]:[]),['탭 닫기',run(close)],...['다른 탭 닫기','오른쪽 탭 닫기','왼쪽 탭 닫기','모든 탭 닫기'].map((label,index)=>[label,run(()=>closeRelated(key,['others','right','left','all'][index]))])];api.contextMenu(event.clientX,event.clientY,items);for(const button of document.querySelectorAll('.context-menu button')){if(button.textContent==='다른 탭 닫기')button.disabled=keys.length<2;if(button.textContent==='오른쪽 탭 닫기')button.disabled=at>=keys.length-1;if(button.textContent==='왼쪽 탭 닫기')button.disabled=at===0;}}
+ function tabMenu(key,event){
+  const project=api.project,keys=orderedKeys(),at=keys.indexOf(key);
+  if(at<0)return;
+  const run=fn=>()=>{if(project===api.project&&!api.loading)fn();};
+  const windowKey=key.startsWith('window:')?key.slice(7):null;
+  const source=windowKey?current(windowKey):null;
+  const windowActions=windowKey?[['워크스페이스로 이동',run(()=>returnToWorkspace(windowKey))]]:[];
+  for(const [label,action] of api.runtime.browserDuplicateMenu?.(source)||[]){
+   windowActions.push([label,run(()=>{if(current(windowKey)===source)action();})]);
+  }
+  const close=()=>[...canvas.querySelectorAll('[data-tab-order-key]')].find(el=>el.dataset.tabOrderKey===key)?.querySelector('.workspace-tab-close')?.click();
+  const closeItems=['다른 탭 닫기','오른쪽 탭 닫기','왼쪽 탭 닫기','모든 탭 닫기'].map((label,index)=>[label,run(()=>closeRelated(key,['others','right','left','all'][index]))]);
+  api.contextMenu(event.clientX,event.clientY,[...windowActions,['탭 닫기',run(close)],...closeItems]);
+  for(const button of document.querySelectorAll('.context-menu button')){
+   if(button.textContent==='다른 탭 닫기')button.disabled=keys.length<2;
+   if(button.textContent==='오른쪽 탭 닫기')button.disabled=at>=keys.length-1;
+   if(button.textContent==='왼쪽 탭 닫기')button.disabled=at===0;
+  }
+ }
 
  function menu(key,event){tabMenu('window:'+key,event);}
  function renderTabs(tabs){const active=activeKey();if(active)for(const tab of tabs.querySelectorAll('[role=tab]'))tab.setAttribute('aria-selected','false');for(const row of rows()){const w=current(row.key);if(!w)continue;const tab=document.createElement('button');tab.type='button';tab.className='workspace-window-tab'+(active===row.key?' is-current':'');tab.dataset.windowTab=row.key;tab.disabled=api.loading;tab.setAttribute('role','tab');tab.setAttribute('aria-selected',String(active===row.key));tab.textContent=w.title;tab.onclick=()=>activate(row.key);tab.oncontextmenu=event=>{event.preventDefault();event.stopPropagation();menu(row.key,event);};tabs.append(tab);const close=document.createElement('button');close.type='button';close.className='workspace-tab-close';close.dataset.windowTabClose=row.key;close.setAttribute('aria-label',w.title+' 편집 탭 닫기');close.textContent='×';close.onclick=()=>returnToWorkspace(row.key,true);tabs.append(close);}}
