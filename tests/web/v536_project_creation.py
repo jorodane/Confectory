@@ -5,7 +5,8 @@ from editor_navigation import goto_editor
 import json,os,pathlib,shutil,signal,subprocess,sys,tempfile,time,urllib.request,uuid
 from playwright.sync_api import sync_playwright,expect
 expect.set_options(timeout=30000)
-offline_only="--offline" in sys.argv[2:]
+native_close="--native-close" in sys.argv[2:]
+offline_only=native_close or "--offline" in sys.argv[2:]
 project_chat=False;chat_provider=None
 if project_chat:
  from project_chat_contract import OwnedChat
@@ -37,6 +38,14 @@ branch="""if(context.Request.Url!.AbsolutePath=="/fixture/native-create"){
    System.IO.File.AppendAllText(LOG,new System.Text.Json.Nodes.JsonObject{["title"]=value["title"]!.DeepClone(),["milliseconds"]=watch.ElapsedMilliseconds,["ok"]=System.Text.Json.Nodes.JsonNode.Parse(reply)!["ok"]!.DeepClone()}.ToJsonString()+Environment.NewLine);
    bytes=System.Text.Encoding.UTF8.GetBytes(reply);response.ContentType="application/json";
   }else """.replace('PARENT',json.dumps(str(root/'projects'))).replace('LOG',json.dumps(str(root/'native-calls.jsonl')))
+if native_close:
+ source=source.replace('or "/fixture/native-create")','or "/fixture/native-create" or "/fixture/native-close")')
+ branch="""if(context.Request.Url!.AbsolutePath=="/fixture/native-close"){
+  var value=System.Text.Json.Nodes.JsonNode.Parse(envelope)!.AsObject();
+  if(value.Count!=1||value["confirmed"] is null)throw new ArgumentException("Fixture close confirmation only");
+  bytes=System.Text.Encoding.UTF8.GetBytes(calls.NativeRequest.Invoke(owner,"close",value.ToJsonString()));
+  response.ContentType="application/json";
+ }else """+branch
 p.write_text(source.replace(second,branch+second));(root/'projects').mkdir()
 env=os.environ.copy();env.pop('CONFECTORY_WEB_PROJECT',None);env.pop('CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK',None);env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_UI_TRACE='1',CONFECTORY_DOTNET=env.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'));env['PATH']=str(pathlib.Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
 with (root/'build.json').open('w') as output,(root/'build.err').open('w') as error:built=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(editor/'project.cpack'),'linux'],env=env,cwd=repo,stdout=output,stderr=error,timeout=180)
@@ -93,6 +102,30 @@ try:
    assert manifest.is_file() and receipt.is_file()
    original,proof=manifest.read_bytes(),receipt.read_bytes()
    print('PASS Later and new local project; creator recognized without Agent or Helper',flush=True)
+   if native_close:
+    def close_request(confirmed):
+     body={'confirmed':confirmed}
+     req=urllib.request.Request(origin+'/fixture/native-close',data=json.dumps(body).encode(),headers={
+      'Content-Type':'application/json','X-Confectory-Session':token})
+     return json.load(urllib.request.urlopen(req,timeout=30))
+    draft=page.locator('#chat-input')
+    draft.fill('Unsent private browser draft')
+    store=root/'profile/project-chat-drafts'
+    assert not close_request(False)['ok']
+    assert not store.exists()
+    expect(draft).to_have_value('Unsent private browser draft')
+    page.evaluate('async()=>await confectoryFlushPresentation()')
+    assert state()['chatDraft']=='Unsent private browser draft'
+    store.write_text('Controlled local destination error')
+    assert not close_request(True)['ok']
+    assert store.read_text()=='Controlled local destination error'
+    expect(draft).to_have_value('Unsent private browser draft')
+    assert state()['projectId']==project
+    store.unlink()
+    assert close_request(True)['ok']
+    record=next(store.glob('*.json'))
+    assert json.loads(record.read_text())['draft']=='Unsent private browser draft'
+    print('PASS browser host confirmation and actual write rejection retain the input; confirmed retry saves through the native owner contract',flush=True)
    page.close();os.killpg(host.pid,signal.SIGTERM);host.wait(timeout=20);log.close()
    log_path=root/'host-restart.log';log=log_path.open('w')
    host=subprocess.Popen(report['run'],cwd=repo,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -109,6 +142,17 @@ try:
    expect(page.locator('.work-body')).to_be_visible()
    reopened=state(check_creator=True)
    assert reopened['projectId']==project and not reopened['helpers'] and not reopened['helperAgents']['agents']
+   if native_close:
+    draft=page.locator('#chat-input')
+    expect(draft).to_have_value('Unsent private browser draft')
+    draft.fill('')
+    page.evaluate('async()=>await confectoryFlushPresentation()')
+    assert close_request(True)['ok']
+    assert json.loads(record.read_text())['draft']==''
+    assert (root/'profile/project-chat-drafts').is_dir()
+    assert not (manifest.parent/'.confectory/project-shell.json').exists()
+    assert not {'prepareAI','startAI','confirmDraft','confirmGroup','localChatDevelopment'}&set(invocations),invocations
+    print('PASS actual cold browser reopen and clearing the same private draft without sending or confirming',flush=True)
    assert manifest.read_bytes()==original and receipt.read_bytes()==proof
    assert len((root/'native-calls.jsonl').read_text().splitlines())==1
    assert not (root/'profile/project-chat').exists() and not (root/'profile/helper-presentations').exists()

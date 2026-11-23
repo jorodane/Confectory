@@ -131,6 +131,7 @@ if(endpoint is "openProject" or "host.open-file"){
 }
 if(endpoint=="host.close"){
  if(args["confirmed"]?.GetValue<bool>()!=true)throw new ArgumentException("Explicit close confirmation required");
+ Command("save-chat-drafts",new());
  calls.BuildJobs.Invoke(context,"close-all","{}");
  var paths=new System.Collections.Generic.List<string>();if(before["selected"]?["path"] is not null)paths.Add(before["selected"]!["path"]!.ToString());
  foreach(var row in before["backgroundProjects"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())paths.Add(row!["project"]!["path"]!.ToString());

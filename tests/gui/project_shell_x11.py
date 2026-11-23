@@ -273,7 +273,157 @@ def check_folder_route(window, first_context, first_manifest):
     check_folder_request(window,second['path'])
     print('PASS after project switch only the new active root is dispatched')
 
+def check_app_close_drafts(baseline=False):
+    import fcntl
+    from pathlib import Path
+
+    def home():
+        window=launch()
+        wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'offline startup')
+        click(window,1)
+        wait(lambda t:t['screen']=='home','offline Home')
+        return window
+
+    def create(window,name):
+        click(window,2)
+        wait(lambda t:t['screen']=='create','new project')
+        click(window,10)
+        type_text(window,name)
+        click(window,13)
+        return wait(lambda t:t['screen']=='project' and t['model']['shell'],'created project')['model']['selected']
+
+    def enter(window,control=100):
+        click(window,control)
+        return wait(lambda t:t['screen']=='project' and t['model']['shell'] is not None,'reopened project')
+
+    def draft_input(window,value):
+        click(window,38)
+        if value:
+            type_text(window,value)
+        else:
+            field=json.loads(latest()['fields']['38'])
+            native_controls.key(int(field['nativeHandle']),'a',(0xFFE3,))
+            native_controls.key(int(field['nativeHandle']),0xFF08)
+        wait(lambda t:json.loads(t['fields'].get('38','{}')).get('text')==value,'chat input')
+
+    def stored_draft(manifest):
+        return next(file for file in (Path(storage)/'project-chat-drafts').glob('*.json')
+                    if json.loads(file.read_text())['project']==manifest)
+
+    a=home()
+    created=create(a,'Local Close A')
+    manifest=created['path']
+    assert not latest()['model']['helperAgents']['agents']
+    draft_input(a,'First private unsent draft')
+    assert not latest()['model']['shell']['draft']
+    end(a)
+
+    a=home()
+    first=enter(a)
+    if baseline:
+        assert not first['model']['shell']['draft']
+        end(a)
+        print('REPRODUCED WM_DELETE_WINDOW loses the unsent GTK input on cold reopen')
+        return
+    assert first['model']['selected']['projectId']==created['projectId']
+    assert first['model']['shell']['draft']=='First private unsent draft'
+    first_file=stored_draft(manifest)
+    first_bytes=first_file.read_bytes()
+    assert not (Path(manifest).parent/'.confectory/project-shell.json').exists()
+    print('PASS direct GTK window close restores the exact unsent draft after cold reopen')
+
+    leave_project(a)
+    wait(lambda t:t['screen']=='home','hide first project')
+    other=create(a,'Local Close B')
+    draft_input(a,'Second project only')
+    click(a,33)
+    wait(lambda t:t['model']['shell']['menu']=='project','second project menu')
+    click(a,52)
+    wait(lambda t:t['screen']=='home' and t['model']['selected'] is None,'explicit project close')
+    second_file=stored_draft(other['path'])
+    assert json.loads(second_file.read_text())['draft']=='Second project only'
+    assert first_file.read_bytes()==first_bytes
+    enter(a,103)
+    assert latest()['model']['shell']['draft']=='Second project only'
+    leave_project(a)
+    wait(lambda t:t['screen']=='home','hide second project')
+    enter(a)
+    assert latest()['model']['shell']['draft']=='First private unsent draft'
+
+    original_body=Path(manifest).parent/'main.csbody'
+    original_body.write_text('System.Threading.Thread.Sleep(60000); return 0;\n')
+    body=original_body.read_bytes()
+    click(a,36)
+    wait(lambda t:t['model']['execution']['state']=='running','fixture is genuinely running',seconds=90)
+    draft_input(a,'Typed before cancellation')
+    click(a,33)
+    wait(lambda t:t['model']['shell']['menu']=='project','active project menu')
+    click(a,52)
+    wait(lambda t:t['model']['closeRequest'] is not None and 66 in t['hits'][::5],'active close confirmation')
+    click(a,66)
+    wait(lambda t:t['model']['closeRequest'] is None and t['model']['execution']['state']=='running','cancel kept the execution')
+    assert first_file.read_bytes()==first_bytes and original_body.read_bytes()==body
+    assert json.loads(latest()['fields']['38'])['text']=='Typed before cancellation'
+    click(a,37)
+    wait(lambda t:t['model']['execution']['state']=='stopped','fixture stopped')
+    print('PASS explicit project close remains scoped; cancel leaves the actual runtime, draft file and current input alone')
+
+    first_mode=first_file.stat().st_mode
+    first_file.chmod(first_mode & ~0o222)
+    try:
+        close(a)
+        wait(lambda t:not t['job'] and t['operation']=='save-chat-drafts' and
+             'read-only' in t['message'],'failed close stays open')
+        assert find(b'Confectory - Projects')==a and first_file.read_bytes()==first_bytes
+        assert json.loads(latest()['fields']['38'])['text']=='Typed before cancellation'
+    finally:
+        first_file.chmod(first_mode)
+    print('PASS a storage refusal keeps the real window open, the old saved bytes and the input available for retry')
+
+    # Delay the repository's normal commit lease, release it, and verify an explicitly empty input stays empty.
+    draft_input(a,'')
+    started=time.monotonic()
+    with (Path(storage)/'.confectory/source-transaction.lock').open('r+b') as lease:
+        fcntl.flock(lease,fcntl.LOCK_EX)
+        close(a)
+        wait(lambda t:t['job'] and t['operation']=='save-chat-drafts','close waiting for actual commit lease')
+        close(a)
+        assert app.poll() is None and find(b'Confectory - Projects')==a
+        assert first_file.read_bytes()==first_bytes
+    assert app.wait(timeout=15)==0
+    log.close()
+    assert time.monotonic()-started<15 and json.loads(first_file.read_text())['draft']==''
+    assert original_body.read_bytes()==body
+    a=home()
+    enter(a)
+    assert not latest()['model']['shell']['draft']
+    draft_input(a,'Profile A only')
+    end(a)
+    owner_bytes=first_file.read_bytes()
+    print('PASS close waits for the storage acknowledgement, multiple requests coalesce, and cleared input stays cleared')
+
+    legacy=Path(manifest).parent/'.confectory/project-shell.json'
+    legacy.write_text(json.dumps({'project':manifest,'draft':'Unowned legacy draft'}))
+    legacy_bytes=legacy.read_bytes()
+    other_profile=Path(storage)/'second-profile'
+    other_profile.mkdir()
+    env.update(CONFECTORY_HOME_STORAGE=str(other_profile),CONFECTORY_ENTRY_STORAGE=str(other_profile/'entry'))
+    a=home()
+    click(a,3)
+    native_controls.folder(find,await_window,str(Path(manifest).parent))
+    wait(lambda t:t['screen']=='project' and t['model']['selected']['path']==manifest,'same original in another profile')
+    assert not latest()['model']['shell']['draft']
+    end(a)
+    assert first_file.read_bytes()==owner_bytes and not (other_profile/'project-chat-drafts').exists()
+    assert legacy.read_bytes()==legacy_bytes
+    assert not (Path(storage)/'project-chat').exists() and not (other_profile/'project-chat').exists()
+    print('PASS the same project file is empty in another EditorHome profile and closing it cannot change the creator profile draft')
+    print('Private GUI evidence: '+storage)
+
 try:
+    if '--app-close-drafts' in sys.argv[2:]:
+        check_app_close_drafts('--baseline' in sys.argv[2:])
+        sys.exit(0)
     a=launch();wait(lambda t:t['screen']=='intro' and 1 in t['hits'][::5],'intro');click(a,1);wait(lambda t:t['screen']=='home','offline home');home=latest()['controls']
     click(a,2);wait(lambda t:t['screen']=='create','new');click(a,10);type_text(a,'Shell Gui A');click(a,11);type_text(a,'A project workspace');click(a,13)
     state=wait(lambda t:t['screen']=='project' and t['model']['shell'],'project owns shell');context=state['model']['selected']['context'];path=state['model']['selected']['path'];assert state['model']['shell']['project']['context']==context and not state['model']['shell']['liveProvider'];project_control=state['controls'];assert project_control!=home
