@@ -5,7 +5,8 @@ from playwright.sync_api import sync_playwright,expect
 import v666_node_names_recovery_fixture as t
 f=t.f;x=t.x;mode=sys.argv[3]if len(sys.argv)>3 else'normal'
 method = mode.startswith('method-')
-compound_parent = mode in ('method-compound-parent', 'method-compound-order', 'method-compound-dependency', 'method-compound-shared')
+compound_parent = mode in ('method-compound-parent', 'method-compound-roundtrip',
+                           'method-compound-order', 'method-compound-dependency', 'method-compound-shared')
 compound_dependency = mode == 'method-compound-dependency'
 direct = mode == 'method-direct'
 too_deep = mode == 'method-deep'

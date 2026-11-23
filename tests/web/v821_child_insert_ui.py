@@ -214,6 +214,62 @@ def check_confirmed_compound_workflow():
  x.build('compound-insert-then-child-order', 10, 'inside\nbody\ninserted-child\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
  assert all(path.read_bytes() == raw for path, raw in originals.items())
  f.checked('After confirming insertion, the selected parent preview and a separate child reorder retain the actual insertion and sibling execution.')
+
+def check_same_frame_roundtrip(created, checkpoint):
+ graph_path = f.project / t.graph_file
+ original_graph = graph_path.read_bytes()
+ originals = {path: path.read_bytes() for path in f.project.rglob('*')
+              if path.is_file() and '.confectory' not in path.parts and path != graph_path}
+ inserted = inserted_order(created)
+ reordered = ['$entry', created, 'nest', 'finish', '$exit:return']
+ assert order() == inserted
+ created_source = next(node for node in read()['nodes'] if node['id'] == created)['sourceId']
+ doc().locator('[data-document-down=nest]').click()
+ f.idle()
+ assert order() == reordered and len(pending()) == 4
+ doc().press('Control+z')
+ assert order() == inserted and not pending()
+ doc().press('Control+y')
+ assert order() == reordered
+ save()
+ assert not pending() and read()['entry'] == created
+ shared = json.loads(checkpoint.read_bytes())
+ assert [unit['id'] for unit in shared['changes']] == [t.graph]
+ assert len(shared['history']['undo']) == 1
+
+ resume(10)
+ assert order() == reordered
+ for direction, expected in (('undo', inserted), ('redo', reordered)):
+  history = f.invoke('draftHistory', {'action': 'inspect'})['result']['result']
+  action = f.invoke('draftHistory', {'action': direction, 'token': history[direction]['token']})['result']['result']
+  assert action['accepted'] and read()['entry'] == expected[1]
+  f.invoke('saveDraft', {})
+  resume(11 if direction == 'undo' else 12)
+  assert order() == expected and not pending()
+  assert graph_path.read_bytes() == original_graph
+
+ r = review()
+ before_cancel = checkpoint.read_bytes()
+ r.locator('[data-reject]').click()
+ expect(r).to_be_hidden()
+ assert read()['entry'] == created and checkpoint.read_bytes() == before_cancel
+ assert graph_path.read_bytes() == original_graph
+ r = review()
+ r.locator('#confirm').click()
+ expect(r).to_be_hidden(timeout=120000)
+ f.idle()
+ resume(13)
+ assert order() == reordered and not pending()
+ assert next(node for node in read()['nodes'] if node['id'] == created)['sourceId'] == created_source
+ expected_graph = json.loads(original_graph)
+ chosen(expected_graph).update(entry=created, edges=[
+  edge(created, 'nest'), edge('nest', 'finish'), edge('finish', 'exit:return'),
+ ])
+ assert json.loads(graph_path.read_text()) == expected_graph
+ assert all(path.read_bytes() == raw for path, raw in originals.items())
+ x.build('insert-then-move-in-same-frame', 10, 'inserted-child\nbody\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
+ f.checked('Confirmed insertion, one-unit movement, cold private/shared history and a second Confirm keep descendant/sibling graphs and every C# source, including the newly registered action.')
+
 try:
  f.start(0);f.invoke('select',dict(id=t.feature));f.invoke('saveDraft',{});checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
  with sync_playwright()as pw:
@@ -345,7 +401,9 @@ try:
     assert c['edges']==target['edges']+[edge(created,target['entry'])]
     c['entry']=target['entry']
    c['nodes'].remove(new);c['edges']=copy.deepcopy(chosen(base)['edges']);assert written==base;new_sources=[p for p in f.project.rglob('*.node.json')if p not in x.physical and '.confectory'not in p.parts];assert len(new_sources)==1 and json.loads(new_sources[0].read_text())['node']==created;resume(4);assert order()==inserted_order(created) and len(read(other)['nodes'])==2;f.checked('Review cancel/final sibling CAS and read-only graph preserve originals and missing new body; Confirm writes one graph insertion and one new local body, real execution returns 10 with parent/sibling continuation intact, and reopens')
-   if compound_parent:
+   if mode == 'method-compound-roundtrip':
+    check_same_frame_roundtrip(created, checkpoint)
+   elif compound_parent:
     check_confirmed_compound_workflow()
   doc().scroll_into_view_if_needed();f.page.screenshot(path=str(f.case/('child-insert-'+mode+'.png')),full_page=True);assert not f.errors and not f.external,(f.errors,f.external);f.browser.close()
 except BaseException:
