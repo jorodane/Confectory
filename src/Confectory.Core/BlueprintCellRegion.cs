@@ -61,7 +61,7 @@ public static class BlueprintCellRegion
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
-        int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false)
+        int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
@@ -98,7 +98,26 @@ public static class BlueprintCellRegion
             var links=edges.ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
             var seen=new HashSet<string>(StringComparer.Ordinal);string at=S(g,"entry");
             while(names.Contains(at)){Need(seen.Add(at),"Compound chain cannot cycle");at=links[at];}
-            Need(seen.Count==names.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&g["exits"]!.AsObject().ContainsKey(at[5..]),"Retain every cell and the original frame exit");
+            bool reconnect = ReferenceEquals(g, detachedFrame);
+            Need((reconnect||seen.Count==names.Count)&&at.StartsWith("exit:",StringComparison.Ordinal)
+                &&g["exits"]!.AsObject().ContainsKey(at[5..]),"Retain every cell and the original frame exit");
+            if (reconnect)
+            {
+                Need(seen.Count>0&&nodes.All(n=>S(n,"kind")=="code"&&ValueParameters(n!)&&n!["sourceIdentity"] is null
+                    &&n["completionBranch"] is null&&n[BlueprintCompletionAdapter.Metadata] is null)&&g["locals"] is null or JsonArray {Count:0},
+                    "Detached reconnect requires ordinary code cells, value parameters and an explicit entry");
+                foreach (string id in names.Where(id=>!seen.Contains(id)))
+                {
+                    var detached = new HashSet<string>(StringComparer.Ordinal);
+                    string next = id;
+                    while (links.TryGetValue(next,out var continuation)&&!seen.Contains(next))
+                    {
+                        Need(detached.Add(next),"Detached cells cannot cycle");
+                        next = continuation;
+                    }
+                    Need(next==at||seen.Contains(next),"Preserve the existing detached cell continuation and exit");
+                }
+            }
             foreach(var node in nodes.Where(n=>S(n,"kind")=="graph")){
                 var child=node!["graph"]!.AsObject();
                 if(methodPreviewDepth>0&&S(child,"profile")==FeatureBlueprint.MethodsProfile)
@@ -143,7 +162,7 @@ public static class BlueprintCellRegion
         return routes;
     }
 
-    internal static JsonObject OwnedPreviewFrame(JsonObject root, string path, bool previewOutParameters=false)
+    internal static JsonObject OwnedPreviewFrame(JsonObject root, string path, bool previewOutParameters=false, bool allowDetached=false)
     {
         var segments = path.Split('/');
         Need(segments.All(part => part.Length > 0), "Exact nonempty owned frame path required");
@@ -169,7 +188,8 @@ public static class BlueprintCellRegion
         bool selectedOutFrame = previewOutParameters && (methodFrame
             ? selected["nodes"]!.AsArray().Any(HasOutParameter)
             : methodChildren.Any(child => child["nodes"]!.AsArray().Any(HasOutParameter)));
-        CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth, previewOutParameters: selectedOutFrame);
+        CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth, previewOutParameters: selectedOutFrame,
+            detachedFrame: allowDetached ? selected : null);
         return selected;
     }
 
@@ -203,6 +223,40 @@ public static class BlueprintCellRegion
         var selected = EditableFrame(root, path, allowDesktopFrames);
         return CompoundOrder(selected, edits, ordinaryFrame: true,
             methodFrameOrder: S(selected, "profile") == FeatureBlueprint.MethodsProfile);
+    }
+
+    static JsonObject FrameReconnect(JsonObject root, string path, JsonArray edits)
+    {
+        Need(path.Split('/').Length is 1 or 2 && edits.Count<=1,"Select one existing edge of an owned child frame");
+        var selected = BlueprintTree.Select(root, path);
+        Need(S(selected,"profile") is FeatureBlueprint.MethodsProfile or FeatureBlueprint.NestedProfile,
+            "Ordinary serial child frame required");
+        OwnedPreviewFrame(root,path,allowDetached:true);
+        var edges = selected["edges"]!.AsArray();
+        var links = edges.ToDictionary(e=>S(e,"from"),e=>S(e,"to"),StringComparer.Ordinal);
+        string entry = S(selected,"entry");
+        var active = new List<string>{"$entry"};
+        for (string next=entry;links.TryGetValue(next,out var continuation);next=continuation) active.Add(next);
+        var incoming = links.Values.ToHashSet(StringComparer.Ordinal);
+        var targets = new JsonObject();
+        foreach (string source in active)
+        {
+            string current = source=="$entry" ? entry : links[source];
+            var choices = links.Where(link=>link.Value==current&&!active.Contains(link.Key)&&!incoming.Contains(link.Key))
+                .Select(link=>(JsonNode?)JsonValue.Create(link.Key)).ToArray();
+            if (choices.Length>0) targets[source]=new JsonArray(choices);
+        }
+        if (edits.Count==0) return targets;
+
+        var edit = edits[0]!.AsObject();
+        string from = S(edit,"node"), to = S(edit,"to");
+        bool entryEdit = from=="$entry" && S(edit,"action")=="entry" && edit.Count==3;
+        bool routeEdit = from!="$entry" && S(edit,"action")=="route" && S(edit,"port")=="next" && edit.Count==4;
+        Need((entryEdit||routeEdit)&&targets[from] is JsonArray allowed&&allowed.Any(id=>id!.GetValue<string>()==to),
+            "Choose an existing detached cell in the observed child frame with the same continuation");
+        var routes = edges.DeepClone().AsArray();
+        if (routeEdit) routes.Single(edge=>S(edge,"from")==from)!["to"]=to;
+        return new JsonObject{["entry"]=entryEdit ? to : entry,["edges"]=routes};
     }
     static string RootStart(JsonObject graph,out bool compound)
     {
@@ -610,9 +664,11 @@ public static class BlueprintCellRegion
         bool preview = allowDesktopFrames && action == "frame-preview";
         bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create";
         bool frameCompound = allowDesktopFrames && action is "frame-compound-insert-options" or "frame-compound-insert";
-        bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound;
+        bool frameReconnect = allowDesktopFrames && action == "frame-reconnect";
+        bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound || frameReconnect;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
+        if (frameReconnect) return FrameReconnect(graph,S(request,"path"),edits);
         if (preview)
         {
             Need(edits.Count == 0, "Observe a preview frame without edits");
