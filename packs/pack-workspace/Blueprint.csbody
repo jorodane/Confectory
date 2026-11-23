@@ -2,7 +2,6 @@ string Process(string targetHandle,string targetOperation,string targetPayload){
 if(targetOperation is "authorBatch" or "settledAuthorBatch"){
  if(targetPayload.Length>2097152)throw new ArgumentException("Author batch payload budget");
  var request=System.Text.Json.Nodes.JsonNode.Parse(targetPayload)!.AsObject();string graphId=request["id"]!.GetValue<string>(),attempt=request["attempt"]!.GetValue<string>();var edits=request["edits"]!.AsArray();string physicalGraphId=graphId.Split("/graph:",StringSplitOptions.None)[0];bool privateBranchExits=physicalGraphId!=graphId&&edits.Count==1&&edits[0]?["action"]?.ToString()=="branchExits";bool privateEnum=physicalGraphId!=graphId&&edits.Count==1&&edits[0]?["action"]?.ToString()=="enumCode";bool privateCopyAbi=physicalGraphId!=graphId&&edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi";bool copyCallUses=edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi"&&edits[0]?["definition"]?["abi"]?["useGroup"] is not null;string surface=request["uiSurface"]?.ToString()??"";if(surface is not ("" or "view:1" or "view:2" or "view:3"))throw new UnauthorizedAccessException("Bound authoring surface required");string expectedCheckpoint=request["checkpointHash"]?.GetValue<string>()??throw new InvalidOperationException("Original checkpoint binding required; retain input");if(expectedCheckpoint!="missing"&&!System.Text.RegularExpressions.Regex.IsMatch(expectedCheckpoint,@"\A[a-f0-9]{64}\z"))throw new ArgumentException("Checkpoint identity required");
- if(privateEnum){if(request["privateBinding"] is not System.Text.Json.Nodes.JsonObject binding||binding.Count!=6||System.Linq.Enumerable.Any(binding,p=>p.Key is not ("graph" or "root" or "node" or "source" or "definitionHash" or "sourceHash"))||binding["graph"]?.ToString()!=graphId||binding["root"]?.ToString()!=physicalGraphId||binding["node"]?.ToString()!=edits[0]?["node"]?.ToString())throw new InvalidOperationException("Original private enum source binding required; retain input");}else if(request["privateBinding"] is not null)throw new ArgumentException("Private source binding belongs to the observed private enum only");
  bool documentBranch=request["documentBranch"]?.GetValue<bool>()==true;
  bool documentCompound=request["documentCompound"]?.GetValue<bool>()==true;
  bool documentFrame=request["documentFrame"] is System.Text.Json.Nodes.JsonObject;
@@ -68,7 +67,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
  bool ownedAliasSourceBatch=request["owner"] is null&&graphId==physicalGraphId&&edits.Count==2&&edits[0] is System.Text.Json.Nodes.JsonObject aliasSourceRow&&aliasSourceRow.Count==3&&System.Linq.Enumerable.All(aliasSourceRow,p=>p.Key is "action" or "node" or "text")&&aliasSourceRow["action"]?.ToString()=="source"&&aliasSourceRow["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&aliasSourceRow["text"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&edits[1] is System.Text.Json.Nodes.JsonObject aliasPlanRow&&aliasPlanRow.Count==3&&aliasPlanRow["action"]?.ToString()=="aliasPlan"&&aliasPlanRow["node"]?.ToString()=="$locals"&&aliasPlanRow["definition"] is System.Text.Json.Nodes.JsonObject;
  bool ownedAliasRoutesBatch=request["owner"] is null&&graphId==physicalGraphId&&edits.Count is >=2 and <=64&&edits[edits.Count-1] is System.Text.Json.Nodes.JsonObject aliasRoutesPlan&&aliasRoutesPlan.Count==3&&aliasRoutesPlan["action"]?.ToString()=="aliasPlan"&&aliasRoutesPlan["node"]?.ToString()=="$locals"&&aliasRoutesPlan["definition"] is System.Text.Json.Nodes.JsonObject&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(System.Linq.Enumerable.Take(edits,edits.Count-1),e=>e?["node"]?.ToString()),StringComparer.Ordinal))==edits.Count-1&&System.Linq.Enumerable.All(System.Linq.Enumerable.Take(edits,edits.Count-1),e=>e is System.Text.Json.Nodes.JsonObject row&&row.Count==4&&row["action"]?.ToString()=="route"&&row["port"]?.ToString()=="next"&&row["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&row["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String);
  bool ownedNodeInputBatch=ownedCellOrderBatch||ownedNamedArgumentBatch||ownedAliasRoutesBatch||ownedAliasSourceBatch||ownedTextFieldsBatch||ownedRootInputNameBatch||ownedRootOutputOrderBatch||ownedRootReturnBatch||ownedOutputBatch||ownedEntryBatch||ownedRouteBatch||ownedRenameBatch||request["owner"] is null&&graphId==physicalGraphId&&edits.Count>0&&System.Linq.Enumerable.All(edits,e=>e?["frame"] is null&&(e?["action"]?.ToString() is "argument" or "intent" or "source"));
- // One explicit retarget, one contract, and one source edit on a direct private frame.
+ // One explicit retarget, one contract, and one source edit in the same private frame.
  bool privateReturnRemapBatch=request["owner"] is null&&physicalGraphId!=graphId&&edits.Count==3
   &&edits[0] is System.Text.Json.Nodes.JsonObject use&&use.Count==4&&use["action"]?.ToString()=="argument"
   &&use["node"] is not null&&use["name"] is not null&&use["valueJson"] is not null
@@ -76,6 +75,14 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
   &&remapContract["node"] is not null&&remapContract["definition"] is not null&&remapContract["node"]!.ToString()!=use["node"]!.ToString()
   &&edits[2] is System.Text.Json.Nodes.JsonObject sourceEdit&&sourceEdit.Count==3&&sourceEdit["action"]?.ToString()=="source"
   &&sourceEdit["node"]?.ToString()==remapContract["node"]!.ToString()&&sourceEdit["text"] is not null;
+ bool nestedReturnRemap=privateReturnRemapBatch&&graphId.IndexOf("/graph:",physicalGraphId.Length+7,StringComparison.Ordinal)>=0;
+ var boundPrivateNode=privateEnum?edits[0]?["node"]:nestedReturnRemap?edits[1]?["node"]:null;
+ if(boundPrivateNode is not null){
+  if(request["privateBinding"] is not System.Text.Json.Nodes.JsonObject binding||binding.Count!=6
+   ||System.Linq.Enumerable.Any(binding,p=>p.Key is not ("graph" or "root" or "node" or "source" or "definitionHash" or "sourceHash"))
+   ||binding["graph"]?.ToString()!=graphId||binding["root"]?.ToString()!=physicalGraphId||binding["node"]?.ToString()!=boundPrivateNode.ToString())
+   throw new InvalidOperationException("Original qualified private source binding required; retain input");
+ }else if(privateEnum||nestedReturnRemap||request["privateBinding"] is not null)throw new ArgumentException("One observed private source binding required");
  // Existing owned nested-copy batches retain their original classifier and protections.
  bool codeParametersBatch=privateReturnRemapBatch||(request["owner"] is null||physicalGraphId==graphId)&&edits.Count is >=1 and <=64&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="parameters")==1&&System.Linq.Enumerable.All(edits,e=>e?["frame"] is null&&(e?["action"]?.ToString() is "parameters" or "source" or "argument" or "intent" or "rename" or "icon"))&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?["node"]?.ToString()),StringComparer.Ordinal))==1;
  bool propertySourceBatch=request["owner"] is null&&graphId==physicalGraphId&&System.Linq.Enumerable.All(edits,e=>e?["frame"] is null)&&System.Linq.Enumerable.Any(edits,e=>e?["action"]?.ToString()=="source")&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString() is "source" or "intent" or "rename" or "argument" or "route");
@@ -206,7 +213,12 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(plainSlot&&current["slotContext"]?["checkpointPlain"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Exclusive owned information body required; retain input");
     if(current["slotContext"] is not null&&(slotRequest.Count==0||(current["slotContext"]?["copySource"] is not null&&!plainSlot&&!(edits.Count==1&&edits[0]?["action"]?.ToString()=="rebindCopyAbi")))||current["privatePath"]?.ToString()!=""&&!ownedFrameOrderBatch&&!ownedFrameCreationBatch&&!ownedCellRemovalBatch&&!codeParametersBatch&&!asyncBatch&&!nodeFlowBatch&&!privateEnum&&!privateBranchExits&&!privateCopyAbi&&!(presentationBatch&&System.Linq.Enumerable.All(edits,e=>e?["action"]?.ToString()=="icon"))&&!(plainSlot&&current["slotContext"]?["copySource"] is not null&&System.Linq.Enumerable.All(edits,e=>e!["action"]?.ToString() is "source" or "intent" or "argument" or "parameters" or "route" or "entry" or "createNode" or "rename" or "icon" or "enumCode"))||current["rootId"]?.ToString()!=physicalGraphId||candidate["units"]?[physicalGraphId]?["kind"]?.ToString()!="blueprint")throw new InvalidOperationException("Observed owned ordinary root creation batch required");
     var expected=System.Text.Json.Nodes.JsonNode.Parse(request["sourceProof"]!.GetValue<string>())!.AsArray();var actual=current["sources"]!.AsArray();if(expected.Count!=actual.Count||System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(expected,r=>r![0]!.ToString()),StringComparer.Ordinal))!=expected.Count||System.Linq.Enumerable.Any(expected,r=>r is not System.Text.Json.Nodes.JsonArray row||row.Count!=3||!System.Linq.Enumerable.Any(actual,a=>a!["id"]!.ToString()==row[0]!.ToString()&&a["hash"]!.ToString()==row[2]!.ToString())))throw new InvalidOperationException("Original creation source closure changed; preserve all input");
-    if(privateEnum){var node=System.Linq.Enumerable.Single(current["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==edits[0]!["node"]!.ToString())!;var source=System.Linq.Enumerable.Single(actual,r=>r!["id"]!.ToString()==node["sourceId"]!.ToString())!;var binding=new System.Text.Json.Nodes.JsonObject{["graph"]=graphId,["root"]=physicalGraphId,["node"]=node["id"]!.DeepClone(),["source"]=node["sourceId"]!.DeepClone(),["definitionHash"]=node["definitionHash"]!.DeepClone(),["sourceHash"]=source["hash"]!.DeepClone()};if(!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,request["privateBinding"]))throw new InvalidOperationException("Private enum source changed; retain input without applying a candidate");}
+    if(boundPrivateNode is not null){
+     var node=System.Linq.Enumerable.Single(current["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==boundPrivateNode.ToString())!;
+     var source=System.Linq.Enumerable.Single(actual,r=>r!["id"]!.ToString()==node["sourceId"]!.ToString())!;
+     var binding=new System.Text.Json.Nodes.JsonObject{["graph"]=graphId,["root"]=physicalGraphId,["node"]=node["id"]!.DeepClone(),["source"]=node["sourceId"]!.DeepClone(),["definitionHash"]=node["definitionHash"]!.DeepClone(),["sourceHash"]=source["hash"]!.DeepClone()};
+     if(!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,request["privateBinding"]))throw new InvalidOperationException("Private source changed; retain input without applying a candidate");
+    }
     if(ownedCellRemovalBatch){
      string node=edits[0]!["node"]!.ToString(),frame=current["privatePath"]!.ToString();
      string cell=frame.Length==0?node:frame+"/"+node;
@@ -324,11 +336,16 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if((nestedBodyEdits||ownedCellOrderBatch||ownedBranchOrderBatch||ownedBranchCreationBatch||ownedFrameOrderBatch||serialInsertionBatch)&&current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Private value/type/frame validation failed; no candidate saved");
     }
     if(privateReturnRemapBatch){
-     var parentRead=BatchRead();parentRead["id"]=physicalGraphId;
-     var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",parentRead.ToJsonString()))!;
-     if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled")
-      ||parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
+     if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
       throw new InvalidOperationException("Private return candidate failed to assemble; no source or checkpoint saved");
+     var parentRead=BatchRead();string parentId=graphId;
+     while(parentId!=physicalGraphId){
+      parentId=parentId[..parentId.LastIndexOf("/graph:",StringComparison.Ordinal)];
+      parentRead["id"]=parentId;
+      var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",parentRead.ToJsonString()))!;
+      if(parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))
+       throw new InvalidOperationException("Private return ancestor failed to assemble; no source or checkpoint saved");
+     }
     }
     if(documentFrame){var parentRead=BatchRead();parentRead["id"]=physicalGraphId;var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",parentRead.ToJsonString()))!;if(parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Parent boundary validation failed; child candidate not saved");}
     if(nodeFlowBatch&&edits[0]?["definition"]?["executionExits"] is not null&&current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Complete explicit internal exit candidate required; no source or checkpoint saved");
@@ -1609,7 +1626,7 @@ lock(state){
  if((AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject)?["units"]?[graphId]?["cellRemovalPending"] is not null)
   creationGroup=new[]{graphId};
  var privateReturnChoices=new System.Text.Json.Nodes.JsonObject();
- if(targetOperation=="read"&&privatePath.Length>0&&!privatePath.Contains('/')&&slotContext is null&&!copiedRoot
+ if(targetOperation=="read"&&privatePath.Length>0&&slotContext is null&&!copiedRoot
   &&rootGraph["profile"]?.ToString()=="sync-acyclic-nested-v1"&&graph["profile"]?.ToString()=="sync-acyclic-methods-v1"
   &&implementationMetadata["parent"] is null&&owned.Contains(implementationMetadata["function"]!.ToString())
   &&System.Linq.Enumerable.All(neededContracts,contracts.ContainsKey)&&string.IsNullOrEmpty(input["uiSurface"]?.ToString())
@@ -1624,7 +1641,7 @@ lock(state){
    if(bodySourceIds.Length is <3 or >64||System.Linq.Enumerable.Any(bodySourceIds,id=>
      calls.Status.Invoke(draft,id)[6]!="clean"||UnitGrouped(id)))throw new InvalidOperationException("Clean owned private return sources required");
    foreach(var node in graph["nodes"]!.AsArray()){
-    string id=graphId+"/node:"+privatePath+"/node:"+node!["id"]!.ToString();
+    string id=nodeOwnerId+"/node:"+node!["id"]!.ToString();
     RequireWritableFile(sources[id]!["path"]!.ToString());
    }
   }

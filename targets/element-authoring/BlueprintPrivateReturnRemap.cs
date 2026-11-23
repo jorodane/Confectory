@@ -6,10 +6,12 @@ internal static class BlueprintPrivateReturnRemap
     public static JsonObject Choices(JsonObject root, string path)
     {
         var result = new JsonObject();
-        if (path.Length == 0 || path.Contains('/') || root["profile"]?.ToString() != FeatureBlueprint.NestedProfile)
+        var frames = path.Split('/');
+        if (frames.Length > 2 || frames.Any(string.IsNullOrEmpty)
+            || root["profile"]?.ToString() != FeatureBlueprint.NestedProfile)
             return result;
-
-        if (Serial(root, path) is null) return result;
+        if (frames.Length == 1 ? Serial(root, path) is null : !SerialMethodTree(root, depth: 2))
+            return result;
         var child = BlueprintTree.Select(root, path);
         if (child["profile"]?.ToString() != FeatureBlueprint.MethodsProfile) return result;
         var order = Serial(child, null);
@@ -45,7 +47,20 @@ internal static class BlueprintPrivateReturnRemap
         return result;
     }
 
-    static List<JsonObject>? Serial(JsonObject graph, string? child)
+    // A two-level edit keeps both ancestor contracts and the other serial frames intact.
+    static bool SerialMethodTree(JsonObject graph, int depth)
+    {
+        string? profile = graph["profile"]?.ToString();
+        bool methods = profile == FeatureBlueprint.MethodsProfile;
+        if (!methods && (depth == 0 || profile != FeatureBlueprint.NestedProfile)) return false;
+        return Serial(graph, null, allowGraphs: !methods) is { } order
+            && order.All(node => node["retainedCode"] is null && node["sourceIdentity"] is null
+                && node["postCall"] is null && node[BlueprintCompletionAdapter.Metadata] is null
+                && (node["kind"]?.ToString() != "graph"
+                    || node["graph"] is JsonObject child && SerialMethodTree(child, depth - 1)));
+    }
+
+    static List<JsonObject>? Serial(JsonObject graph, string? child, bool allowGraphs = false)
     {
         if (graph["schema"]?.GetValue<int>() != 1 || graph["copySource"] is not null
             || graph["executionExitMode"] is not null || graph["exits"] is not JsonObject { Count: 1 } exits
@@ -53,7 +68,10 @@ internal static class BlueprintPrivateReturnRemap
             || graph["edges"] is not JsonArray edges || edges.Count != nodes.Count)
             return null;
         var byId = nodes.Select(node => node!.AsObject()).ToDictionary(node => node["id"]!.ToString(), StringComparer.Ordinal);
-        if (byId.Values.Any(node => node["kind"]?.ToString() != (node["id"]?.ToString() == child ? "graph" : "code")
+        bool OrdinaryKind(JsonObject node) => node["id"]?.ToString() == child
+            ? node["kind"]?.ToString() == "graph"
+            : node["kind"]?.ToString() == "code" || allowGraphs && node["kind"]?.ToString() == "graph";
+        if (byId.Values.Any(node => !OrdinaryKind(node)
             || node["control"]?.ToString() != "next" || new[] { "implementationContext", "contextBoundary", "forwardCallerStorage",
                 "executionEnum", "executionSource", "completionBranch", "branchOwner", "async" }.Any(node.ContainsKey))) return null;
         var next = edges.Where(edge => edge?["port"]?.ToString() == "next")

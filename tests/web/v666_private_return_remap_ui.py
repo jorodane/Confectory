@@ -10,9 +10,10 @@ import uuid
 from playwright.sync_api import expect, sync_playwright
 
 # The shared fixture needs its single direct return consumer in either direction.
-narrow = sys.argv[3:4] == ["narrow"]
-if narrow:
-    sys.argv[3] = "return-argument-original"
+mode = sys.argv[3] if len(sys.argv) > 3 else "return-argument-original"
+nested = mode in ("nested", "nested-narrow")
+narrow = mode in ("narrow", "nested-narrow")
+sys.argv[3:4] = ["return-argument-original"]
 import v666_private_node_out_double_fixture as fixture
 
 original_type, selected_type = ("double", "long") if narrow else ("long", "double")
@@ -20,7 +21,10 @@ output_pin = "realOutput" if narrow else "secondNative"
 before_value, after_value = (129.25, 99.5) if narrow else (129, 99)
 
 f = fixture.f
-frame = fixture.whole_graph + "/graph:inner"
+frame_path = ("outer", "inner") if nested else ("inner",)
+frame = fixture.whole_graph + "".join("/graph:" + cell for cell in frame_path)
+producer_id = fixture.whole_graph + "".join("/node:" + cell for cell in (*frame_path, "body"))
+peer_path = f.project / ("peer-sink.node.json" if nested else fixture.extra_path)
 sink_path = f.project / "private-out-void-sink.node.json"
 sink_record = json.loads(sink_path.read_text())
 sink_record["source"] = 'global::System.Console.WriteLine("consumer:"+value.ToString(global::System.Globalization.CultureInfo.InvariantCulture));'
@@ -58,7 +62,7 @@ var flags=global::System.Reflection.BindingFlags.Public|global::System.Reflectio
 foreach(var type in global::System.Reflection.Assembly.GetExecutingAssembly().GetTypes())
     foreach(var method in type.GetMethods(flags)){
         var pins=method.GetParameters();
-        if(pins.Length!=3||pins[2].Name!="realOutput")continue;
+        if(pins.Length!=3||pins[0].Name!="firstNative"||pins[2].Name!="realOutput")continue;
         if(!pins[2].IsOut||pins[2].ParameterType!=typeof(double).MakeByRefType())
             throw new global::System.InvalidOperationException("original double out changed");
         var kind=method.ReturnType==typeof(double)?"double":method.ReturnType==typeof(long)?"long":"unsupported";
@@ -72,6 +76,59 @@ return checked((int)value);
 """)
 
 sink_path.write_text(json.dumps(sink_record))
+
+
+def child_graph(graph, path=frame_path):
+    for cell in path:
+        graph = next(node["graph"] for node in graph["nodes"] if node["id"] == cell)
+    return graph
+
+
+def add_nested_frames():
+    graph_file = f.project / fixture.graph_path
+    graph = json.loads(graph_file.read_text())
+    inner = graph["nodes"][1]
+    outer = copy.deepcopy(inner)
+    outer.update(id="outer", intent="Selected ancestor")
+    inner["arguments"] = {arg["name"]: {"input": arg["name"]} for arg in outer["signature"]["args"]}
+    outer["graph"] = {
+        "schema": 1, "profile": "sync-acyclic-nested-v1", "nodes": [inner], "entry": "inner",
+        "edges": [{"from": "inner", "port": "next", "to": "exit:return"}],
+        "exits": {"return": {"node": "inner"}},
+    }
+    peer = copy.deepcopy(outer)
+    peer.update(id="peer", intent="Sibling ancestor")
+    body, sink = child_graph(peer["graph"], ("inner",))["nodes"]
+    body["implementation"] = "peer-body.node.json"
+    sink["implementation"] = peer_path.name
+    body["signature"]["args"][0]["name"] = "peerNative"
+    body["arguments"]["peerNative"] = body["arguments"].pop("firstNative")
+    graph["nodes"][1:] = [outer, peer]
+    graph["edges"][0]["to"] = "outer"
+    graph["edges"][1].update({"from": "outer", "to": "peer"})
+    graph["edges"].append({"from": "peer", "port": "next", "to": "exit:return"})
+    graph["exits"]["return"]["node"] = "outer"
+    graph_file.write_text(json.dumps(graph))
+    definitions = f.metadata(
+        "blueprintDescribeOwned", project=str(f.manifest), id=fixture.whole_implementation,
+        text=fixture.whole_header.decode(), bodyTarget="common", graph=graph, definitionsOnly=True,
+    )
+    assert definitions["state"] == "node-definitions", definitions
+    hashes = {node["id"]: node["definitionHash"] for node in definitions["nestedNodes"]}
+    producer = json.loads((f.project / fixture.node_path).read_text())
+    peer_producer = dict(producer, source=source.replace("firstNative", "peerNative"))
+    peer_sink = dict(sink_record, source=f'if(value!={before_value})throw new System.InvalidOperationException("Sibling link changed");')
+    for path, record, relative in (
+        (f.project / fixture.node_path, producer, "outer/inner/body"),
+        (sink_path, sink_record, "outer/inner/sink"),
+        (f.project / body["implementation"], peer_producer, "peer/inner/body"),
+        (peer_path, peer_sink, "peer/inner/sink"),
+    ):
+        path.write_text(json.dumps(dict(record, definitionHash=hashes[relative])))
+
+
+if nested:
+    add_nested_frames()
 originals = {
     path: path.read_bytes() for path in f.project.rglob("*")
     if path.is_file() and ".confectory" not in path.relative_to(f.project).parts
@@ -82,8 +139,12 @@ def untouched():
     assert all(path.read_bytes() == data for path, data in originals.items())
 
 
-def read():
-    return f.invoke("blueprint", {"action": "read", "id": frame})["result"]["result"]
+def read(graph_id=frame):
+    return f.invoke("blueprint", {"action": "read", "id": graph_id})["result"]["result"]
+
+
+def source_proof(data):
+    return json.dumps([[row["id"], row["revision"], row["hash"]] for row in data["sources"]])
 
 
 def build(name, expected_consumer, expected_return):
@@ -118,13 +179,18 @@ def open_graph():
     if not panel.locator(".bp-breadcrumbs").count():
         panel.get_by_role("tab", name="논리 코드", exact=True).click()
         document = panel.locator(".function-document")
-        expect(document.locator('[data-document-cell="inner"]')).to_be_visible()
-        button = document.locator('[data-document-internal="inner"]')
+        cell = frame_path[0]
+        expect(document.locator(f'[data-document-cell="{cell}"]')).to_be_visible()
+        button = document.locator(f'[data-document-internal="{cell}"]')
         if not button.is_visible():
-            document.locator('[data-document-fold="inner"][aria-expanded=false]').click()
+            document.locator(f'[data-document-fold="{cell}"][aria-expanded=false]').click()
         button.click()
         f.idle()
     blueprint_tab.click()
+    if nested and not panel.locator('[data-bp-node="body"]').count():
+        panel.locator('[data-bp-node="inner"] [data-internal-flow]').click()
+        f.idle()
+        blueprint_tab.click()
     expect(panel.locator('[data-bp-node="body"]')).to_be_visible()
     return panel
 
@@ -169,7 +235,7 @@ try:
     baseline = checkpoint.read_bytes()
     initial = read()
     expected_choice = {"consumer": "sink", "argument": "value", "output": output_pin, "returnType": selected_type}
-    assert initial["privateReturnChoices"] == {"body": expected_choice}
+    assert initial["privateReturnChoices"] == {"body": expected_choice}, initial["diagnostics"]["state"]
     parameter_plan = {"args": code_args, "returnType": selected_type,
                       "remap": {arg["name"]: arg["name"] for arg in code_args}}
     wrong_output = "secondNative" if narrow else "return"
@@ -179,19 +245,55 @@ try:
         {"action": "parameters", "node": "body", "definition": parameter_plan},
         {"action": "source", "node": "body", "text": authored},
     ]
-    proof = json.dumps([[row["id"], row["revision"], row["hash"]] for row in initial["sources"]])
+    request = {"action": "authorBatch", "id": frame, "checkpointHash": initial["checkpointHash"],
+               "sourceProof": source_proof(initial)}
+    if nested:
+        producer = next(node for node in initial["nodes"] if node["id"] == "body")
+        assert producer["sourceId"] == producer_id
+        source_hash = next(row["hash"] for row in initial["sources"] if row["id"] == producer_id)
+        request["privateBinding"] = {"graph": frame, "root": fixture.whole_graph, "node": "body",
+                                     "source": producer_id, "definitionHash": producer["definitionHash"],
+                                     "sourceHash": source_hash}
     wrong_type = copy.deepcopy(edits)
     wrong_type[0]["valueJson"] = json.dumps({"node": "body", "output": output_pin})
     wrong_type[1]["definition"]["returnType"] = "int"
     for rejected in (edits, edits[1:], wrong_type):
-        f.invoke("blueprint", {"action": "authorBatch", "id": frame, "attempt": uuid.uuid4().hex,
-                 "checkpointHash": initial["checkpointHash"], "sourceProof": proof, "edits": rejected}, False)
+        f.invoke("blueprint", dict(request, attempt=uuid.uuid4().hex, edits=rejected), False)
         assert checkpoint.read_bytes() == baseline
         untouched()
+    if nested:
+        peer_frame = fixture.whole_graph + "/graph:peer/graph:inner"
+        sibling = read(peer_frame)
+        assert sibling["privateReturnChoices"] == {"body": expected_choice}
+        peer_edits = copy.deepcopy(wrong_type)
+        peer_edits[1]["definition"] = {"args": sibling["nodes"][0]["signature"]["args"],
+                                       "returnType": selected_type,
+                                       "remap": {arg["name"]: arg["name"] for arg in sibling["nodes"][0]["signature"]["args"]}}
+        peer_edits[2]["text"] = authored.replace("firstNative", "peerNative")
+        f.invoke("blueprint", dict(request, id=peer_frame, attempt=uuid.uuid4().hex,
+                                   sourceProof=source_proof(sibling), edits=peer_edits,
+                                   privateBinding=dict(request["privateBinding"], graph=peer_frame)), False)
+        assert checkpoint.read_bytes() == baseline
+        untouched()
+        f.checked("An eligible sibling with identical local IDs rejects the selected frame's source binding.")
+        valid_edits = copy.deepcopy(wrong_type)
+        valid_edits[1]["definition"]["returnType"] = selected_type
+        original_source = f.project / fixture.node_path
+        stamp = original_source.stat()
+        original_source.write_bytes(originals[original_source] + b"\n")
+        try:
+            f.invoke("blueprint", dict(request, attempt=uuid.uuid4().hex, edits=valid_edits), False)
+            assert checkpoint.read_bytes() == baseline
+            assert original_source.read_bytes() == originals[original_source] + b"\n"
+            assert all(path == original_source or path.read_bytes() == data for path, data in originals.items())
+        finally:
+            original_source.write_bytes(originals[original_source])
+            os.utime(original_source, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
+        f.checked("After the selected source changes on disk, a previously valid retarget cannot stage any of its three edits.")
     with_another_use = copy.deepcopy(json.loads(originals[f.project / fixture.graph_path]))
-    child = next(node["graph"] for node in with_another_use["nodes"] if node["id"] == "inner")
+    child = child_graph(with_another_use)
     child["exits"]["return"] = {"node": "body"}
-    assert not f.metadata("blueprintPrivateReturnChoices", graph=with_another_use, path="inner")
+    assert not f.metadata("blueprintPrivateReturnChoices", graph=with_another_use, path="/".join(frame_path))
     f.checked("Wrong and missing selections and an unsupported return type fail closed; a second return use prevents eligibility.")
 
     with sync_playwright() as playwright:
@@ -229,6 +331,8 @@ try:
         actions = [row["invoke"]["input"] for row in f.traffic[mark:] if row.get("invoke", {}).get("endpoint") == "blueprint"]
         save = [row for row in actions if row["action"] == "authorBatch"]
         assert len(save) == 1 and [edit["action"] for edit in save[0]["edits"]] == ["argument", "parameters", "source"]
+        if nested:
+            assert save[0]["privateBinding"] == request["privateBinding"]
         assert not any(row["action"] in ("argument", "parameters", "source") for row in actions)
         assert inputs
         untouched()
@@ -242,7 +346,7 @@ try:
     graph_unit = next(row for row in text["changes"] if row["id"] == fixture.whole_graph)
     candidate = json.loads(graph_unit["draft"])
     expected = json.loads(originals[f.project / fixture.graph_path])
-    child = next(node["graph"] for node in expected["nodes"] if node["id"] == "inner")
+    child = child_graph(expected)
     child["nodes"][0]["signature"]["return"] = selected_type
     child["nodes"][1]["arguments"]["value"]["output"] = output_pin
     assert candidate == expected
@@ -256,11 +360,11 @@ try:
     assert restored["nodes"][0]["signature"]["return"] == selected_type
     assert restored["nodes"][0]["source"] == authored
     ids = restored["reviewIds"]
-    assert {fixture.whole_graph, fixture.whole_node} <= set(ids)
+    assert {fixture.whole_graph, producer_id} <= set(ids)
     f.invoke("reviewGroup", {"ids": ids, "target": "portable"})
     review = f.state()["review"]
     assert review["status"] == "ready", review
-    peer = f.project / fixture.extra_path
+    peer = peer_path
     saved = checkpoint.read_bytes()
     assert peer.read_bytes() == originals[peer]
     stamp = peer.stat()
