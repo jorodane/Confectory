@@ -78,6 +78,9 @@ def pending():page.evaluate('async()=>await confectoryFlushPresentation()');retu
 def author():return page.locator('.window[data-key=blueprint]')
 def open_author():
  idle();page.locator('#workspace').click(button='right',position={'x':1240,'y':650});page.get_by_role('button',name='프로젝트 브라우저',exact=True).click();b=page.locator('.window[data-key^="browser:project:"]');b.locator('[data-tab="feature"]').click();row=b.locator('[data-object="'+n+'Calc"]');expect(row).to_have_attribute('aria-disabled','false');row.press('Enter');idle();b.locator('[data-close]').click();page.locator('.window[data-key=declaration] [data-function-write-direct]').click();expect(author().locator('[data-bp-save]')).to_be_enabled();idle()
+ # This fixture exercises the legacy canvas and its portrait editor.
+ author().get_by_role('tab',name='블루프린트 보기',exact=True).click()
+ expect(author().locator('.bp-viewport')).to_be_visible()
 def value(id,text):
  author().locator('[data-bp-node="'+id+'"] .bp-pin-plug[data-side=in] input').click();menu=page.get_by_role('dialog',name='핀 값 선택',exact=True);menu.get_by_role('searchbox',name='값 검색').fill(text);menu.get_by_role('searchbox',name='값 검색').press('Enter');expect(menu).not_to_be_visible()
 def saved(mark):
@@ -132,6 +135,11 @@ try:
   first.locator('.bp-pin-plug[data-side=out] .bp-pin-value').click();name=author().get_by_role('textbox',name='지역변수 이름',exact=True);name.fill('');name.press('Enter');assert any(v['type']=='set-name-draft' and v['text']=='' for _,v in pending());assert next(v for v in current()['locals'] if v['id']=='firstValue')['name']=='첫 저장값';name.press('Escape');assert pending()==[];checked('불완전한 출력 이름은 비공개 입력에 보관하고 Escape는 서버나 기존 이름을 바꾸지 않고 취소한다')
   value('first','9223372036854775807');p=pending();assert any(v['type']=='set-plan' for _,v in p);assert any(v['type']=='argument:value' and '9223372036854775807' in v['text'] for _,v in p);assert next(v for v in current()['nodes'] if v['id']=='first')['arguments'][0]['valueJson']=='{"constant":1}';checked('Set 값 편집은 64비트 정수 원문과 별도 출력 저장소를 비공개 계획으로 유지하며 저장 전에 부분 적용하지 않는다')
   page.set_viewport_size({'width':390,'height':844});expect(author().locator('.bp-flow-card[data-flow-node=first]')).to_be_visible();author().locator('.bp-flow-card[data-flow-node=first]').click();overlay=page.locator('.bp-flow-overlay-host:visible');expect(overlay.locator('[data-flow-set-target]')).to_have_value('counter');expect(overlay.locator('[data-signature-name]')).to_have_value('첫 저장값');page.screenshot(path=str(case/'set-mobile.png'));held=pending();page.close();stop();start(1);page=setup(browser);page.set_viewport_size({'width':390,'height':844});expect(author().locator('[data-bp-save]')).to_be_enabled();idle();assert pending()==held;assert next(v for v in current()['nodes'] if v['id']=='first')['arguments'][0]['valueJson']=='{"constant":1}';checked('모바일 원본 저장 대상/출력 편집과 폭 전환 뒤 실제 엔진 재시작이 저장 전 입력 및 대상/출력 정체성을 복원한다')
+  # The saved Blueprint tab may reopen as a graph even at portrait width.
+  blueprint=author().get_by_role('tab',name='블루프린트 보기',exact=True)
+  if blueprint.get_attribute('aria-selected')!='true':blueprint.click()
+  if not author().locator('.bp-flow-card[data-flow-node=first]').is_visible():
+   author().locator('[data-mobile-flow]').click()
   overlay=page.locator('.bp-flow-overlay-host:visible');
   if not overlay.is_visible():author().locator('.bp-flow-card[data-flow-node=first]').click()
   overlay.locator('[data-flow-done]').click();mark=len(traffic);author().locator('[data-bp-save]').click();requests=saved(mark);assert len(requests[-1]['input']['edits'])==1 and requests[-1]['input']['edits'][0]['action']=='setPlan';assert pending()==[];after=current();assert next(v for v in after['nodes'] if v['id']=='first')['arguments'][0]['valueJson']=='{"constant":9223372036854775807}';assert next(v for v in after['nodes'] if v['id']=='second')['local']=='counter';unchanged();checked('실제 모바일 저장은 값·대상·별도 출력 셀을 단일 Set 후보/CAS로 저장하고 원본 파일과 두 번째 Set을 보존한다')
