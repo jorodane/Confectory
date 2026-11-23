@@ -61,13 +61,13 @@ public static class BlueprintCellRegion
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
-        bool allowDirectMethodLeaves=false)
+        int methodPreviewDepth=0)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
             bool switchChild=allowSwitchChild&&depth==1&&S(g,"profile")==FeatureBlueprint.SwitchProfile;
-            bool methodLeaf=allowDirectMethodLeaves&&depth==1&&S(g,"profile")==FeatureBlueprint.MethodsProfile;
+            bool methodLeaf=depth>0&&depth<=methodPreviewDepth&&S(g,"profile")==FeatureBlueprint.MethodsProfile;
             Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
@@ -80,13 +80,13 @@ public static class BlueprintCellRegion
             Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
                 && n!["branchOwner"] is null && n["executionEnum"] is null && PlainCallContext(n)),
                 "Preserve branch, call, opaque, receiver and forwarded storage contexts");
-            if(allowDirectMethodLeaves)
+            if(methodPreviewDepth>0)
                 Need(nodes.All(node=>node!["sourceIdentity"] is null && node["completionBranch"] is null
                     && node[BlueprintCompletionAdapter.Metadata] is null), "Ordinary synchronous method preview required");
             if(methodLeaf)
                 Need(g["locals"] is null or JsonArray {Count:0}
                     && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!)),
-                    "Direct method preview requires ordinary value-parameter code leaves");
+                    "Method preview requires ordinary value-parameter code leaves");
             var edges=g["edges"]!.AsArray();
             Need(edges.Count==nodes.Count && edges.All(e=>S(e,"port")=="next"&&names.Contains(S(e,"from")))
                 &&edges.Select(e=>S(e,"from")).Distinct(StringComparer.Ordinal).Count()==nodes.Count,"One exclusive next route per cell required");
@@ -96,8 +96,8 @@ public static class BlueprintCellRegion
             Need(seen.Count==names.Count&&at.StartsWith("exit:",StringComparison.Ordinal)&&g["exits"]!.AsObject().ContainsKey(at[5..]),"Retain every cell and the original frame exit");
             foreach(var node in nodes.Where(n=>S(n,"kind")=="graph")){
                 var child=node!["graph"]!.AsObject();
-                if(allowDirectMethodLeaves&&S(child,"profile")==FeatureBlueprint.MethodsProfile)
-                    Need(ValueParameters(node!),"Direct method preview requires an ordinary value-parameter frame");
+                if(methodPreviewDepth>0&&S(child,"profile")==FeatureBlueprint.MethodsProfile)
+                    Need(ValueParameters(node!),"Method preview requires an ordinary value-parameter frame");
                 Chain(child,depth+1);
             }
             return at;
@@ -130,9 +130,10 @@ public static class BlueprintCellRegion
 
     internal static JsonObject OwnedPreviewFrame(JsonObject root, string path)
     {
-        Need(path.Split('/').All(part => part.Length > 0), "Exact nonempty owned frame path required");
+        var segments = path.Split('/');
+        Need(segments.All(part => part.Length > 0), "Exact nonempty owned frame path required");
         var selected = BlueprintTree.Select(root, path);
-        if (!path.Contains('/') && S(selected, "profile") == FeatureBlueprint.SwitchProfile)
+        if (segments.Length == 1 && S(selected, "profile") == FeatureBlueprint.SwitchProfile)
         {
             OwnedSwitchFrame(root, path);
             Need(selected["nodes"]!.AsArray().All(node => node!["sourceIdentity"] is null
@@ -142,8 +143,9 @@ public static class BlueprintCellRegion
         }
         // Verify the entire owned tree, including every ancestor and sibling.
         // IDs remain local to each frame; the caller binds the physical root.
-        bool directMethodLeaf=!path.Contains('/')&&S(selected,"profile")==FeatureBlueprint.MethodsProfile;
-        CompoundOrder(root,CurrentRoutes(root),allowDirectMethodLeaves:directMethodLeaf);
+        int methodDepth = S(selected, "profile") == FeatureBlueprint.MethodsProfile ? segments.Length : 0;
+        Need(methodDepth <= 2, "Method preview requires an owned frame at depth one or two");
+        CompoundOrder(root, CurrentRoutes(root), methodPreviewDepth: methodDepth);
         return selected;
     }
 

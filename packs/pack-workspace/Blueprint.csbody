@@ -1458,7 +1458,7 @@ lock(state){
   }
   Add(graphId,graphSource[2]);
   foreach(var node in graph["nodes"]!.AsArray()){
-   string id=graphId+"/node:"+privatePath+"/node:"+node!["id"]!.ToString();
+   string id=nodeOwnerId+"/node:"+node!["id"]!.ToString();
    if(sources[id] is not System.Text.Json.Nodes.JsonObject source||source["kind"]?.ToString()!="blueprint-node")
     throw new InvalidOperationException("Observed child code source required");
    Add(id,source["path"]!.ToString());

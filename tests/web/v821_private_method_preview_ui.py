@@ -1,4 +1,4 @@
-"""Preview one directly owned methods frame using the real desktop emitter."""
+"""Preview a directly owned methods frame, including at depth two."""
 import copy
 import hashlib
 import json
@@ -15,7 +15,18 @@ f = fixture.f
 root_id = fixture.graph
 frames = ('first', 'second')
 names = ('AlphaOnly', 'BetaOnly')
-alias = sys.argv[3:] == ['alias']
+mode = sys.argv[3] if len(sys.argv) > 3 else 'direct'
+assert mode in {'direct', 'alias', 'nested', 'nested-alias'}
+nested = mode.startswith('nested')
+alias = mode.endswith('alias')
+
+
+def frame_path(frame):
+    return f'{frame}/methods' if nested else frame
+
+
+def frame_id(frame):
+    return f'{root_id}/graph:' + frame_path(frame).replace('/', '/graph:')
 
 
 def prepare_project():
@@ -26,23 +37,48 @@ def prepare_project():
     graph['edges'] = [{'from': frames[0], 'port': 'next', 'to': frames[1]},
                       {'from': frames[1], 'port': 'next', 'to': 'exit:return'}]
     graph['exits'] = {'return': {'node': frames[1]}}
+    sources = {}
     for index, name in enumerate(frames):
         child = copy.deepcopy(fixture.g)
         del child['feature'], child['contractHash']
-        child['nodes'][0]['implementation'] = f'{name}.node.json'
+        leaf = child['nodes'][0]
+        leaf['implementation'] = f'{name}.node.json'
+        signature = leaf['signature']
+        marker = names[index]
+        sources[f'{frame_path(name)}/calculate'] = (
+            leaf['implementation'], f'return {marker}(amount);',
+            f'private static long {marker}(long value) => value + {10 + index};')
+        if nested:
+            finish = dict(leaf, id='finish', implementation=f'{name}.finish.node.json',
+                          arguments={'amount': {'node': 'calculate'}})
+            child['nodes'].append(finish)
+            child['edges'] = [{'from': 'calculate', 'port': 'next', 'to': 'finish'},
+                              {'from': 'finish', 'port': 'next', 'to': 'exit:return'}]
+            child['exits'] = {'return': {'node': 'finish'}}
+            sources[f'{frame_path(name)}/finish'] = (finish['implementation'], f'return {marker}Finish(amount);',
+                                                    f'private static long {marker}Finish(long value) => value;')
+            ancestor = f'{name}.ancestor.node.json'
+            child = {'schema': 1, 'profile': 'sync-acyclic-nested-v1', 'entry': 'methods',
+                     'nodes': [{'id': 'methods', 'kind': 'graph', 'control': 'next', 'intent': 'Methods',
+                                'signature': signature, 'arguments': {'amount': {'input': 'amount'}}, 'graph': child},
+                               {'id': 'trace', 'kind': 'code', 'control': 'next', 'intent': 'Ancestor trace',
+                                'signature': {'args': [], 'return': 'void'}, 'arguments': {}, 'implementation': ancestor}],
+                     'edges': [{'from': 'methods', 'port': 'next', 'to': 'trace'},
+                               {'from': 'trace', 'port': 'next', 'to': 'exit:return'}],
+                     'exits': {'return': {'node': 'methods'}}}
+            sources[f'{name}/trace'] = (ancestor, f'System.Console.WriteLine("AncestorOnly_{name}");', '')
         graph['nodes'].append({'id': name, 'intent': name, 'kind': 'graph', 'control': 'next',
-                               'graph': child, 'signature': child['nodes'][0]['signature'],
+                               'graph': child, 'signature': signature,
                                'arguments': {'amount': {'input': 'amount'} if index == 0 else {'node': frames[0]}}})
     context = {'implementation': fixture.impl, 'feature': fixture.feature,
                'signature': graph['nodes'][0]['signature'], 'imports': {}}
     definitions = f.metadata('featureBlueprintNodes', featureSource=fixture.function, graph=graph,
                              implementationContext=context, bodyTarget='common')
     rows = {row['id']: row for row in definitions['nestedNodes']}
-    for index, (name, marker) in enumerate(zip(frames, names)):
-        record = dict(fixture.record, definitionHash=rows[f'{name}/calculate']['definitionHash'],
-                      source=f'return {marker}(amount);',
-                      helpers=f'private static long {marker}(long value) => value + {10 + index};')
-        (f.project / f'{name}.node.json').write_text(json.dumps(record))
+    for path, (filename, source, helpers) in sources.items():
+        record = dict(fixture.record, node=path.split('/')[-1], definitionHash=rows[path]['definitionHash'], source=source,
+                      helpers=helpers)
+        (f.project / filename).write_text(json.dumps(record))
     (f.project / 'Flow.graph.json').write_text(json.dumps(graph))
     if alias:
         impl = f.project / 'FlowBody.celem'
@@ -53,6 +89,13 @@ def prepare_project():
 
 def enter(frame):
     document().locator(f'[data-document-internal="{frame}"]').click()
+    if nested:
+        expect(document().locator('[data-document-cell="methods"]')).to_be_visible()
+        if frame == 'first':
+            tab('블루프린트 보기').click()
+            panel().locator('[data-bp-node="methods"] [data-internal-flow]').click()
+        else:
+            document().locator('[data-document-internal="methods"]').click()
     expect(document().locator('[data-document-cell="calculate"]')).to_be_visible()
 
 
@@ -91,7 +134,7 @@ def open_original_and_cancel():
 
 
 def request(frame, data):
-    return dict(action='nativePreview', id=f'{root_id}/graph:{frame}', documentFrame=data['documentFramePreviewBinding'],
+    return dict(action='nativePreview', id=frame_id(frame), documentFrame=data['documentFramePreviewBinding'],
                 sourceProof=fixture.proof(data), checkpointHash=data['checkpointHash'])
 
 
@@ -113,7 +156,7 @@ def run():
     f.invoke('saveDraft', {})
     checkpoint_before = fixture.checkpoint()
     history_before = history()
-    selected = fixture.read(f'{root_id}/graph:first')
+    selected = fixture.read(frame_id('first'))
 
     with sync_playwright() as playwright:
         expect.set_options(timeout=60000)
@@ -135,21 +178,31 @@ def run():
         assert selected['documentFrameOrderBinding'] is None
         options = request('first', selected)
         first = preview(options)
-        second = preview(request('second', fixture.read(f'{root_id}/graph:second')))
+        second = preview(request('second', fixture.read(frame_id('second'))))
         full = preview({'action': 'nativePreview', 'id': root_id})['diagnostics']
+        if nested:
+            assert all(f'AncestorOnly_{frame}' in full['body'] for frame in frames)
         for index, result in enumerate((first, second)):
             code = result['diagnostics']
             assert code['body'] in full['body'] and code['members'] in full['members']
             assert names[index] in code['members'] and names[1-index] not in json.dumps(result)
+            if nested:
+                assert f'return {names[index]}(amount);' in code['members']
+                assert f'return {names[index]}Finish(amount);' in code['members']
+                assert f'private static long {names[index]}Finish(' in code['members']
+                assert 'AncestorOnly_' not in json.dumps(result)
             assert hashlib.sha256((code['body'] + code['members']).encode()).hexdigest() == code['bodyHash']
             assert not result['sourceWritten'] and not result['compiled']
-        shown(view, 'first', first)
+        shown(view, frame_path('first'), first)
         assert not f.pending()['blueprint']
         fixture.original()
         assert fixture.checkpoint() == checkpoint_before and history() == history_before
         f.checked('Editable private body and read-only preview show the exact selected emitter body and helper members')
 
-        assert preview(dict(options, id=f'{root_id}/graph:second'), False) is None
+        assert preview(dict(options, id=frame_id('second')), False) is None
+        if nested:
+            assert preview(dict(options, id=f'{root_id}/graph:first'), False) is None
+            assert preview(dict(options, documentFrame=dict(options['documentFrame'], path='methods')), False) is None
         assert preview(dict(options, checkpointHash='0' * 64), False) is None
         assert preview(dict(options, sourceProof='[]'), False) is None
         changed = f.project / 'second.node.json'
@@ -162,9 +215,13 @@ def run():
             changed.write_bytes(raw)
 
         tab('논리 코드').click()
+        if nested:
+            panel().locator('.bp-breadcrumbs button').nth(1).click()
+            expect(tab('블루프린트 보기')).to_have_attribute('aria-selected', 'true')
+            expect(panel().locator('[data-bp-node="methods"]')).to_be_visible()
         go_root()
         enter('second')
-        shown(native(), 'second', second)
+        shown(native(), frame_path('second'), second)
         f.checked('Exact scope, checkpoint and full source observations reject stale requests and clear both code panes')
 
         requests = set()
@@ -210,13 +267,13 @@ def run():
         assert not f.pending()['blueprint']
         open_feature('first')
         enter('first')
-        current_options = request('first', fixture.read(f'{root_id}/graph:first'))
+        current_options = request('first', fixture.read(frame_id('first')))
         old_binding, current_binding = options['documentFrame'], current_options['documentFrame']
         assert dict(old_binding, workspace=current_binding['workspace']) == current_binding
         assert old_binding['workspace'] != current_binding['workspace']
         assert preview(dict(current_options, documentFrame=old_binding), False) is None
         current = preview(current_options)
-        shown(native(), 'first', current)
+        shown(native(), frame_path('first'), current)
         assert all(path.read_bytes() == raw for path, raw in other_files.items())
 
         f.env['CONFECTORY_WEB_PROJECT'] = str(fixture.manifest)
