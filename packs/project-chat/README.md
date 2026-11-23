@@ -1,0 +1,9 @@
+# Project Chat
+
+`Confectory.ProjectChat::OpenHost(hostStorage, projectId, hostParticipant)` is an optional local text model. The trusted composer supplies a private, machine-local storage directory, the existing durable project UUID, and the host identity. It holds one active owner per project and storage directory and closes that owner when the host stops. The model has no editor or network adapter and does not authenticate caller-supplied identities.
+
+The returned native handle is a tuple of `Join`, `Send`, `Read`, and `Close`. Only the composer holds that handle. After admitting a participant, it gives the connection only the tuple of `Send`, `Read`, and `Leave` returned by `Join`. The connection uses the admitted identity for every send and can read only messages committed after it joined, including its own messages. `Leave` revokes that connection. `Close` revokes all connections. Each `Read` returns ordered JSON rows containing `id`, `sender`, and `text`.
+
+The host commits to `project-chat/<projectId>.json` inside its local storage before a successful send becomes visible. All public messages use that one journal. The model does not open a participant or Helper store. Reusing the same lowercase GUID in `N` form with the same sender and text acknowledges the original commit without appending or delivering a message. Reusing it for a different submission fails. A conflict between host writes requires reopening the host. The bounded model rejects more than 256 messages, 4 MiB of journal data, or 16 simultaneous connections per host.
+
+Build the Release CLI and .NET target, then run `python3 tests/packs/project_chat_model.py`. The script accepts a checkout containing prebuilt tools as its optional argument. It uses disposable data and starts a second .NET process to check the restart boundary.

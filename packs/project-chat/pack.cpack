@@ -1,0 +1,6 @@
+pack Confectory.ProjectChat version "0.1.0" {
+standalone false;
+dependency Confectory.FileStream version "0.1.0";
+element OpenHost function "OpenHost.celem";
+element OpenHostBody implementation "OpenHostBody.celem";
+}

@@ -1,0 +1,204 @@
+const int MaxMessages = 256;
+const int MaxConnections = 16;
+const int MaxJournalBytes = 4 * 1024 * 1024;
+var strictUtf8 = new System.Text.UTF8Encoding(false, true);
+
+static string Hash(string text) =>
+    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+
+void CheckParticipant(string participant)
+{
+    if (string.IsNullOrWhiteSpace(participant) || participant.Length > 128 ||
+        System.Linq.Enumerable.Any(participant, char.IsControl))
+        throw new ArgumentException("Explicit bounded participant required.");
+    strictUtf8.GetByteCount(participant);
+}
+
+static bool IsStableId(string id) =>
+    Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
+
+void CheckMessage(string id, string text)
+{
+    if (!IsStableId(id))
+        throw new ArgumentException("A stable message GUID in lowercase N form is required.");
+    if (string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
+        throw new ArgumentException("Explicit bounded chat text required.");
+    strictUtf8.GetByteCount(text);
+}
+
+static void CheckOwnedPath(string path)
+{
+    for (string? part = path; part is not null; part = System.IO.Path.GetDirectoryName(part))
+    {
+        try
+        {
+            if ((System.IO.File.GetAttributes(part) & System.IO.FileAttributes.ReparsePoint) != 0)
+                throw new ArgumentException("Project chat storage must not use filesystem links.");
+        }
+        catch (System.IO.FileNotFoundException) { }
+        catch (System.IO.DirectoryNotFoundException) { }
+    }
+}
+
+static object MessageRow((string Id, string Sender, string Text) row) =>
+    new { id = row.Id, sender = row.Sender, text = row.Text };
+
+CheckParticipant(hostParticipant);
+if (!IsStableId(projectId)) throw new ArgumentException("An existing stable project ID is required.");
+if (!System.IO.Path.IsPathFullyQualified(hostStorage) || !System.IO.Directory.Exists(hostStorage))
+    throw new ArgumentException("An existing absolute host-local storage directory is required.");
+string storage = System.IO.Path.Combine(System.IO.Path.GetFullPath(hostStorage), "project-chat");
+string file = projectId + ".json";
+string path = System.IO.Path.Combine(storage, file);
+CheckOwnedPath(path);
+
+var history = new System.Collections.Generic.List<(string Id, string Sender, string Text)>();
+var byId = new System.Collections.Generic.Dictionary<string, (string Id, string Sender, string Text)>(StringComparer.Ordinal);
+var saved = calls.Snapshot.Invoke(path, MaxJournalBytes);
+string basis = saved[2];
+if (saved[0] == "exists")
+{
+    var document = System.Text.Json.Nodes.JsonNode.Parse(saved[1])?.AsObject()
+        ?? throw new InvalidOperationException("Project chat journal is invalid.");
+    if (document.Count != 4 || document["version"]?.GetValue<int>() != 1 ||
+        document["project"]?.GetValue<string>() != projectId ||
+        document["host"]?.GetValue<string>() != hostParticipant ||
+        document["messages"] is not System.Text.Json.Nodes.JsonArray records || records.Count > MaxMessages)
+        throw new InvalidOperationException("Project chat journal does not belong to this host and project.");
+
+    foreach (var record in records)
+    {
+        if (record is not System.Text.Json.Nodes.JsonObject row || row.Count != 3)
+            throw new InvalidOperationException("Project chat journal contains an invalid message.");
+        string id = row["id"]!.GetValue<string>();
+        string sender = row["sender"]!.GetValue<string>();
+        string text = row["text"]!.GetValue<string>();
+        CheckMessage(id, text);
+        CheckParticipant(sender);
+        var message = (id, sender, text);
+        if (!byId.TryAdd(id, message)) throw new InvalidOperationException("Duplicate project chat message ID.");
+        history.Add(message);
+    }
+}
+
+var gate = new object();
+bool closed = false;
+var connections = new System.Collections.Generic.List<
+    System.Collections.Generic.List<(string Id, string Sender, string Text)>>();
+
+void CheckOpen()
+{
+    if (closed) throw new ObjectDisposedException("Project chat host");
+}
+
+string ReadHost()
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Select(history, MessageRow));
+    }
+}
+
+// Call under gate. Acknowledgements contain no historical message data, including on retry.
+bool Send(string sender, string id, string text)
+{
+    CheckMessage(id, text);
+    var message = (id, sender, text);
+    if (byId.TryGetValue(id, out var prior))
+    {
+        if (prior != message) throw new InvalidOperationException("The message ID belongs to a different submission.");
+        return true;
+    }
+    if (history.Count == MaxMessages) throw new InvalidOperationException("Project chat journal is full.");
+
+    string next = System.Text.Json.JsonSerializer.Serialize(new {
+        version = 1,
+        project = projectId,
+        host = hostParticipant,
+        messages = System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(history, MessageRow), MessageRow(message))
+    });
+    if (System.Text.Encoding.UTF8.GetByteCount(next) > MaxJournalBytes)
+        throw new InvalidOperationException("Project chat journal exceeds its byte bound.");
+
+    CheckOwnedPath(path);
+    System.IO.Directory.CreateDirectory(storage);
+    if (calls.Commit.Invoke(storage, new[] { file }, new[] { basis }, new[] { next })[0] != "applied")
+        throw new InvalidOperationException("Project chat journal changed. Reopen the host before retrying.");
+
+    basis = Hash(next);
+    history.Add(message);
+    byId.Add(id, message);
+    foreach (var inbox in connections) inbox.Add(message);
+    return true;
+}
+
+bool SendHost(string id, string text)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return Send(hostParticipant, id, text);
+    }
+}
+
+object Join(string participant)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        CheckParticipant(participant);
+        if (participant == hostParticipant)
+            throw new InvalidOperationException("The host identity cannot join as a participant.");
+        if (connections.Count == MaxConnections)
+            throw new InvalidOperationException("Project chat has reached its connection limit.");
+
+        var inbox = new System.Collections.Generic.List<(string Id, string Sender, string Text)>();
+        connections.Add(inbox);
+        void CheckConnection()
+        {
+            CheckOpen();
+            if (!connections.Contains(inbox)) throw new ObjectDisposedException("Project chat connection");
+        }
+        bool SendHere(string id, string text)
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return Send(participant, id, text);
+            }
+        }
+        string Read()
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Select(inbox, MessageRow));
+            }
+        }
+        void Leave()
+        {
+            lock (gate)
+            {
+                connections.Remove(inbox);
+                inbox.Clear();
+            }
+        }
+
+        return ((Func<string, string, bool>)SendHere, (Func<string>)Read, (Action)Leave);
+    }
+}
+
+void Close()
+{
+    lock (gate)
+    {
+        closed = true;
+        foreach (var inbox in connections) inbox.Clear();
+        connections.Clear();
+        history.Clear();
+        byId.Clear();
+    }
+}
+
+return ((Func<string, object>)Join, (Func<string, string, bool>)SendHost, (Func<string>)ReadHost, (Action)Close);

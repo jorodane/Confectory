@@ -1,0 +1,134 @@
+static string Id(int value) => value.ToString("x32");
+static void Check(bool condition, string failure)
+{
+    if (!condition) throw new InvalidOperationException(failure);
+}
+static void Reject<T>(Action attempt) where T : Exception
+{
+    try { attempt(); }
+    catch (T) { return; }
+    throw new InvalidOperationException("Expected " + typeof(T).Name);
+}
+static void Expect(Func<string> read, params int[] values)
+{
+    using var json = System.Text.Json.JsonDocument.Parse(read());
+    var ids = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(
+        json.RootElement.EnumerateArray(), item => item.GetProperty("id").GetString()));
+    Check(System.Linq.Enumerable.SequenceEqual(ids, System.Linq.Enumerable.Select(values, Id)),
+        "Unexpected message IDs: " + string.Join(",", ids));
+}
+static (Func<string, string, bool> Send, Func<string> Read, Action Leave) Guest(object connection) =>
+    ((Func<string, string, bool>, Func<string>, Action))connection;
+
+var root = Environment.GetEnvironmentVariable("CONFECTORY_CHAT_FIXTURE")!;
+const string AliceText = "첫 번째 메시지\nwith a second line 🐉";
+string home = System.IO.Path.Combine(root, "host-home");
+string otherHome = System.IO.Path.Combine(root, "other-home");
+string project = Id(100);
+string other = Id(200);
+(Func<string, object> Join, Func<string, string, bool> Send, Func<string> Read, Action Close)
+    Open(string projectId, string actor = "host", string? storage = null) =>
+    ((Func<string, object>, Func<string, string, bool>, Func<string>, Action))
+        calls.Open.Invoke(storage ?? home, projectId, actor);
+
+var host = Open(project);
+var journal = System.IO.Path.Combine(home, "project-chat", project + ".json");
+if (Environment.GetEnvironmentVariable("CONFECTORY_CHAT_PHASE") == "restart")
+{
+    Expect(host.Read, 1, 2, 3, 4, 5);
+    Reject<InvalidOperationException>(() => { _ = Open(project, "not-the-host"); });
+    var isolatedHome = Open(project, storage: otherHome);
+    Expect(isolatedHome.Read);
+    var isolatedGuest = Guest(isolatedHome.Join("alice"));
+    Expect(isolatedGuest.Read);
+    var alice = Guest(host.Join("alice"));
+    var bob = Guest(host.Join("bob"));
+    Expect(alice.Read);
+    Expect(bob.Read);
+    Check(alice.Send(Id(2), AliceText), "Original receipt not recognized");
+    Expect(alice.Read);
+    Expect(bob.Read);
+    Expect(host.Read, 1, 2, 3, 4, 5);
+    Check(bob.Send(Id(6), "after actual process restart"), "Fresh send rejected");
+    Expect(alice.Read, 6);
+    Expect(bob.Read, 6);
+    Expect(host.Read, 1, 2, 3, 4, 5, 6);
+    Expect(isolatedHome.Read);
+    Expect(isolatedGuest.Read);
+    isolatedHome.Close();
+    host.Close();
+    Reject<ObjectDisposedException>(() => { _ = alice.Read(); });
+    Console.WriteLine("PASS separate process restores only host history; old retry has no delivery");
+    return 0;
+}
+
+Check(host.Send(Id(1), "before either guest joined"), "Host send rejected");
+Reject<InvalidOperationException>(() => { _ = host.Join("host"); });
+object connection = host.Join("alice");
+Check(connection is not ValueTuple<Func<string, object>, Func<string, string, bool>, Func<string>, Action>,
+    "A guest received a host capability");
+var aliceFirst = Guest(connection);
+Expect(aliceFirst.Read);
+Check(aliceFirst.Send(Id(2), AliceText), "Guest send rejected");
+Expect(aliceFirst.Read, 2);
+var bobFirst = Guest(host.Join("bob"));
+Expect(bobFirst.Read);
+Check(host.Send(Id(3), "live post for both guests"), "Host send rejected");
+Expect(aliceFirst.Read, 2, 3);
+Expect(bobFirst.Read, 3);
+var secondHost = Open(other);
+var otherAlice = Guest(secondHost.Join("alice"));
+Expect(otherAlice.Read);
+Check(otherAlice.Send(Id(2), "independent project"), "Same ID in a separate project rejected");
+Expect(secondHost.Read, 2);
+Expect(otherAlice.Read, 2);
+Expect(aliceFirst.Read, 2, 3);
+secondHost.Close();
+
+aliceFirst.Leave();
+Reject<ObjectDisposedException>(() => { _ = aliceFirst.Read(); });
+Reject<ObjectDisposedException>(() => { _ = aliceFirst.Send(Id(4), "old connection"); });
+var rejoined = Guest(host.Join("alice"));
+Expect(rejoined.Read);
+Check(rejoined.Send(Id(2), AliceText), "Exact retry rejected");
+Expect(rejoined.Read);
+Expect(bobFirst.Read, 3);
+Reject<InvalidOperationException>(() => { _ = bobFirst.Send(Id(2), AliceText); });
+Reject<InvalidOperationException>(() => { _ = rejoined.Send(Id(2), "changed payload"); });
+Console.WriteLine("PASS own posts, live peer visibility, project isolation, late join and revoked connection");
+
+byte[] committed = System.IO.File.ReadAllBytes(journal);
+var attributes = System.IO.File.GetAttributes(journal);
+System.IO.File.SetAttributes(journal, attributes | System.IO.FileAttributes.ReadOnly);
+try
+{
+    Reject<UnauthorizedAccessException>(() => { _ = rejoined.Send(Id(4), "retry after write rejection"); });
+    Expect(host.Read, 1, 2, 3);
+    Expect(rejoined.Read);
+    Expect(bobFirst.Read, 3);
+    Check(System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(committed), "Rejected write changed journal");
+}
+finally
+{
+    System.IO.File.SetAttributes(journal, attributes);
+}
+Check(rejoined.Send(Id(4), "retry after write rejection"), "Retry did not commit");
+byte[] retry = System.IO.File.ReadAllBytes(journal);
+Check(rejoined.Send(Id(4), "retry after write rejection"), "Duplicate receipt not recognized");
+Check(System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(retry), "Exact retry rewrote journal");
+Expect(rejoined.Read, 4);
+Expect(bobFirst.Read, 3, 4);
+
+var stale = Open(project);
+var staleGuest = Guest(stale.Join("observer"));
+Check(host.Send(Id(5), "host continues"), "Host send rejected");
+Reject<InvalidOperationException>(() => { _ = staleGuest.Send(Id(6), "stale candidate"); });
+Expect(staleGuest.Read);
+Expect(host.Read, 1, 2, 3, 4, 5);
+Expect(bobFirst.Read, 3, 4, 5);
+Expect(rejoined.Read, 4, 5);
+stale.Close();
+host.Close();
+Reject<ObjectDisposedException>(() => { _ = bobFirst.Read(); });
+Console.WriteLine("PASS host write rejection, CAS conflict and exact retry publish no ghost or duplicate");
+return 0;

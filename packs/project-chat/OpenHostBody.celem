@@ -1,0 +1,5 @@
+implementation Confectory.ProjectChat::OpenHostBody for Confectory.ProjectChat::OpenHost (string hostStorage, string projectId, string hostParticipant) -> object {
+import Confectory.FileStream::BoundedSnapshot as Snapshot (string,int) -> string[] in Confectory.ProjectChat::OpenHost;
+import Confectory.FileStream::Commit as Commit (string,string[],string[],string[]) -> string[] in Confectory.ProjectChat::OpenHost;
+body common "OpenHost.csbody";
+}
