@@ -29,7 +29,7 @@ export function mountFunctionDocument(root,api){
   const style=document.createElement('link');style.rel='stylesheet';style.href=new URL('./function-document.css',import.meta.url).href;style.dataset.functionDocumentStyle='';document.head.append(style);
  }
  const esc=api.esc,events=new AbortController(),context=api.context,views=Object.assign(Object.create(null),api.view.meta.functionDocumentViews||{});
- const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:['blueprint','native'].includes(prior?.mode)?prior.mode:'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
+ const prior=Object.hasOwn(views,context)?views[context]:null,state={mode:['logic','blueprint','native'].includes(prior?.mode)?prior.mode:api.initialMode==='blueprint'?'blueprint':'logic',cells:{...prior?.cells},groups:{...prior?.groups},tabs:{...prior?.tabs},scroll:Number.isFinite(prior?.scroll)?Math.max(0,prior.scroll):0};
  let destroyed=false,frame=0,activated=false,previewRequest=0,previewVersion=null,drag=null,pointerType=null;
  const owns=()=>!destroyed&&root.isConnected&&!api.view.el.hidden&&api.owns();
  const nav=document.createElement('nav');nav.className='fd-view-tabs';nav.setAttribute('role','tablist');nav.setAttribute('aria-label','기능 보기');
