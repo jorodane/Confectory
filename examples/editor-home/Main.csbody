@@ -45,6 +45,10 @@ bool Folded(int id)=>foldedWindows.TryGetValue(sceneKey,out var ids)&&ids.Contai
 void Fold(int id){if(!foldedWindows.TryGetValue(sceneKey,out var ids)){ids=new();foldedWindows.Add(sceneKey,ids);}if(!ids.Add(id))ids.Remove(id);dragWindow=0;}
 
 var model=J(calls.Snapshot.Invoke(session));string screen="intro",pickerMode="open",parent=storage,message="",removePath="";bool sidebar=true;int rowsOffset=0,helperOffset=0,pendingFocus=0,frames=0;long eventID=0;
+string layReturnScreen="project";
+(string Screen,string Activation,string View,int X,int Y)? layBoxPress=null;
+(string Screen,string Activation,string View,int X,int Y,long Time)? layBoxClick=null;
+bool layBoxDragging=false;
 var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,32),System.Linq.Enumerable.Range(100,96)));allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Range(33,32)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
@@ -66,7 +70,7 @@ void CancelInput(long identity){calls.ButtonInput.Invoke(control,identity,Array.
 int RoundedInput(long identity,int[] records,int[] corners,int type,int x,int y,int activation){var indexes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(0,records.Length/5),n=>ControlFor(records[n*5])==control));return calls.RoundedInput.Invoke(control,identity,InputHits(records),System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(indexes,n=>corners[n])),InputButtons(),type,x,y,activation);}
 void UseControl(int id){if(id<=0)return;string next=ControlFor(id);if(control==next)return;calls.ControlState.Invoke(control,"cancel",0);calls.ControlState.Invoke(control,"focus",0);control=next;}
 void Focus(int id){UseControl(id);if(traceFlow)TraceFlow("focus-before",new{id,state=calls.ControlState.Invoke(control,"query",0)[..3]});calls.NativeFocus.Invoke(nativeHost,control,id);if(traceFlow)TraceFlow("focus-after",new{id,state=calls.ControlState.Invoke(control,"query",0)[..3]});}
-void Change(string next){if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
+void Change(string next){ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
 void Start(string op,object args,int focus=0){if(job is not null)return;operation=op;jobContext=model["selected"]?["context"]?.ToString()??"";jobFocus=focus;string payload=System.Text.Json.JsonSerializer.Serialize(args);var completion=new System.Threading.Tasks.TaskCompletionSource<string>();job=completion.Task;string token=Guid.NewGuid().ToString("N");AppContext.SetData("Confectory.HostLoop.Job."+token,new object[]{(Func<string>)(()=>calls.Command.Invoke(session,op,payload)),completion});try{calls.HostSchedule.Invoke(token);}catch(Exception error){AppContext.SetData("Confectory.HostLoop.Job."+token,null);completion.TrySetException(error);throw;}}
 string informationId="",informationReturn="home",profileReturn="home",profileId="";
 int profileIndex=0;
@@ -307,13 +311,14 @@ const int LanJoin = 458, LanInput = 459, LanSend = 460, LanMessages = 461;
 const int LanRelayIssue = 462, LanRelayReview = 463;
 const int LanAttach = 464, LanOpenAttachment = 465, LanOlderAttachment = 466, LanNewerAttachment = 467;
 const int LanCloseAttachment = 468, LanNextImage = 469;
+const int LayEntry=470, LayClose=471, LayCaptureAnother=472, LayDescription=473, LaySeal=474;
 var lanBuffers = new System.Collections.Generic.Dictionary<int,string>();
 System.Threading.CancellationTokenSource? lanLifetime = null;
 System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonNode>? lanWork = null;
 string lanReturn = "home", lanView = "", lanActivation = "", lanMode = "", lanAction = "", lanStatus = "";
 string lanReviewHash = "", lanReviewedCard = "", lanReviewDetails = "", lanPendingText = "", lanPendingId = "";
 long lanNextPoll = 0, lanCardExpires = 0;
-bool lanCanHost = false, lanUsesRelay = false;
+bool lanCanHost = false, lanUsesRelay = false, lanHasSealedBox = false;
 string lanQueuedAction = "", lanQueuedId = "", lanActionId = "", lanDraftBox = "", lanViewerId = "", lanDescription = "";
 var lanAttachments = new System.Collections.Generic.List<string>();
 var lanImages = new System.Collections.Generic.List<(int Width, int Height, int[] Pixels)>();
@@ -342,6 +347,7 @@ void CloseLanAttachment()
 }
 void RetireLan()
 {
+ ClearYogiPointer();lanHasSealedBox=false;
  lanQueuedAction=lanQueuedId=lanDraftBox="";lanAttachments.Clear();lanAttachmentIndex=0;
  CloseLanAttachment();
  var lifetime=lanLifetime;
@@ -366,7 +372,8 @@ void OpenLanPanel()
  lanLifetime=new System.Threading.CancellationTokenSource();
  lanCanHost=lanActivation.Length>0&&calls.CreatorHost.Invoke(session);
  lanRelayRole=calls.IsolatedRelay.Invoke(true) is (string role,Func<string,object?> _,Func<string,string?> _)?role:"";
- lanUsesRelay=false;
+ lanUsesRelay=lanHasSealedBox=false;
+ calls.NativeRequest.Invoke(nativeHome,"block-drop",System.Text.Json.JsonSerializer.Serialize(new{id=LanInput}),0);
  lanMode="start";lanStatus="Public chat is separate from your Helper draft.";
  lanCardExpires=0;
  Change("lan-chat");
@@ -378,10 +385,16 @@ void RequestLan(string action,object input,string id="")
  var binding=(lanView,lanLifetime.Token,activation);
  lanAction=action;lanActionId=id;
  lanWork=System.Threading.Tasks.Task.Run(()=>{
-  if(action=="prepare-attachment"&&J(calls.Command.Invoke(session,"yogi-chat-open",
-   System.Text.Json.JsonSerializer.Serialize(new{activation})))["status"]?.ToString()!="ready")
-   return J("{\"status\":\"no-sealed-lay\"}");
+  bool LocalSealedBox()=>!binding.Token.IsCancellationRequested&&activation.Length>0&&
+   J(calls.Command.Invoke(session,"yogi-chat-open",System.Text.Json.JsonSerializer.Serialize(new{activation})))["status"]?.ToString()=="ready";
+  if(action=="prepare-attachment"&&!LocalSealedBox())return J("{\"status\":\"no-sealed-lay\"}");
   var response=J(calls.LanExchange.Invoke(session,payload,binding,true));
+  if(action is "issue-lan" or "issue-relay" or "join-lan" or "join-relay"&&response["status"]?.ToString() is "issued" or "joined")
+  {
+   try{response["localSealedBox"]=LocalSealedBox();}
+   catch(Exception error) when(error is ArgumentException or InvalidOperationException or System.IO.IOException or
+      UnauthorizedAccessException or System.Text.Json.JsonException){response["localSealedBox"]=false;}
+  }
   if(action=="status"&&response["status"]?.ToString()=="hosting")return J(calls.PublicHistory.Invoke(session,activation,"history","",""));
   if(action=="attachment"&&response["status"]?.ToString()=="available")
   {
@@ -413,9 +426,16 @@ void QueueLanRequest(string action,string id)
  lanQueuedAction=action;lanQueuedId=id;
  if(lanWork is null)DispatchLanRequest();
 }
+void PrepareLanAttachment()
+{
+ if(LanCanRequest()&&lanDraftBox.Length==0&&lanViewerId.Length==0&&lanActivation.Length>0&&lanActivation==LanCurrentActivation()&&
+    lanLifetime is { IsCancellationRequested:false }&&lanMode is "hosting" or "joined")
+  QueueLanRequest("prepare-attachment",Guid.NewGuid().ToString("N"));
+}
 void LanControl(int id)
 {
  if(id==LanClose){CloseLanPanel();return;}
+ if(id==LayEntry){OpenLayIcon();return;}
  if(lanMode is "hosting" or "joined")
  {
   if(id==LanCloseAttachment){CloseLanAttachment();return;}
@@ -431,7 +451,7 @@ void LanControl(int id)
   }
   if(id==LanAttach)
   {
-   if(lanDraftBox.Length==0)QueueLanRequest("prepare-attachment",Guid.NewGuid().ToString("N"));
+   if(lanDraftBox.Length==0)PrepareLanAttachment();
    else QueueLanRequest("cancel-attachment",lanDraftBox);
    return;
   }
@@ -514,7 +534,7 @@ void UpdateLanMessages(System.Text.Json.Nodes.JsonArray? rows)
 }
 void PollLanPanel()
 {
- if(screen!="lan-chat")return;
+ if(screen!="lan-chat"&&!(screen=="yogi"&&layReturnScreen=="lan-chat"&&lanLifetime is not null))return;
  if(lanActivation!=LanCurrentActivation()){CloseLanPanel();return;}
  long now=Environment.TickCount64;
  if(lanCardExpires!=0&&lanCardExpires<=now){SetLanText(LanCard,"");lanCardExpires=0;lanStatus="Invitation expired. End public chat to issue a new one.";}
@@ -527,7 +547,7 @@ void PollLanPanel()
   switch(lanAction)
   {
    case "issue-lan" or "issue-relay" when status=="issued":
-    SetLanText(LanCard,result!["card"]!.GetValue<string>());lanMode="hosting";lanCardExpires=now+300000;
+    SetLanText(LanCard,result!["card"]!.GetValue<string>());lanHasSealedBox=result["localSealedBox"]?.GetValue<bool>()==true;lanMode="hosting";lanCardExpires=now+300000;
     lanStatus="Select and copy the invitation directly to the guest. It can be used once within five minutes.";break;
    case "issue-lan":lanStatus="Could not issue an invitation. Check original ownership and both private addresses.";break;
    case "issue-relay":lanStatus="Could not issue an invitation through the configured test relay.";break;
@@ -538,10 +558,10 @@ void PollLanPanel()
     lanStatus="Confirm the project, endpoint and fingerprint with the host before joining.";break;
    case "inspect-lan":lanReviewedCard="";lanStatus="Invitation or attached private route could not be verified.";break;
    case "inspect-relay":lanReviewedCard="";lanStatus="Invitation does not match the preconfigured test relay.";break;
-   case "join-lan" or "join-relay" when status=="joined":lanMode="joined";lanStatus="Connected. Only public messages received on this connection appear here.";break;
+   case "join-lan" or "join-relay" when status=="joined":lanHasSealedBox=result!["localSealedBox"]?.GetValue<bool>()==true;lanMode="joined";lanStatus="Connected. Only public messages received on this connection appear here.";break;
    case "join-lan" or "join-relay":lanMode="join";lanReviewDetails="";lanStatus="Could not join. The invitation may be invalid, used, expired or revoked.";break;
    case "prepare-attachment" when status=="ready":
-    lanDraftBox=lanActionId;lanPendingId=lanPendingText="";lanStatus="Sealed YogiBox attached to this draft. Send publicly to share it.";break;
+    lanHasSealedBox=true;lanDraftBox=lanActionId;lanPendingId=lanPendingText="";lanStatus="Sealed YogiBox attached to this draft. Send publicly to share it.";break;
    case "prepare-attachment" or "send-attachment" when status=="ey-unsupported":
     lanStatus="Guest YogiBoxes with EY cannot be shared. Your original box is retained.";break;
    case "prepare-attachment":lanStatus="An existing sealed YogiBox with a LaY is required.";break;
@@ -578,7 +598,6 @@ void PollLanPanel()
  }
 }
 // The private package belongs to the active project. Capture mode never opens or saves it.
-const int LayEntry=470, LayClose=471, LayCaptureAnother=472, LayDescription=473, LaySeal=474;
 const int LayFirst=475, LaySecond=476, LayRemoveFirst=477, LayRemoveSecond=478;
 (string Activation,string Unit,string Mode,int Focus)? laySelection=null;
 (int X,int Y)? layAnchor=null;
@@ -609,7 +628,7 @@ bool BeginLaySelection(int focus)
   if(screen=="project"&&LayUnit().Length==0&&job is null)message="Select a workspace item before capturing a LaY.";
   return false;
  }
- CancelInput(eventID++);pendingFocus=0;Focus(0);layReturnFocus=focus;
+ CancelInput(eventID++);pendingFocus=0;Focus(0);layReturnScreen="project";layReturnFocus=focus;
  laySelection=(LanCurrentActivation(),LayUnit(),WorkspaceMode(),focus);
  layAnchor=null;layFrame=null;
  Render();
@@ -669,16 +688,16 @@ bool HandleLayGesture(int type,int x,int y,int key,int flags,bool fromNative)
 }
 void CloseLayPanel()
 {
- layPreview=null;Change("project");pendingFocus=layReturnFocus;
+ layPreview=null;Change(layReturnScreen);pendingFocus=layReturnFocus;
 }
 void LayPanelAction(int id)
 {
  if(job is not null)return;
  if(id==LayClose){CloseLayPanel();return;}
- if(id==LayCaptureAnother){CloseLayPanel();BeginLaySelection(layReturnFocus);return;}
+ if(id==LayCaptureAnother&&layReturnScreen=="project"){CloseLayPanel();BeginLaySelection(layReturnFocus);return;}
  var items=LayItems();int index=id is LayFirst or LayRemoveFirst?0:1;
  string context=Context(),activation=LanCurrentActivation();
- if(id==LaySeal)
+ if(id==LaySeal&&layReturnScreen=="project")
  {
   bool seal=!LaySealed();
   Start("yogi-native",new{context,activation,action="seal",@sealed=seal,text=seal?calls.TextSnapshot.Invoke(LayDescriptionBuffer())[1]:null},LaySeal);
@@ -689,11 +708,73 @@ void LayPanelAction(int id)
   catch(ArgumentException){layPreview=null;message="LaY preview unavailable.";}
   catch(FormatException){layPreview=null;message="LaY preview unavailable.";}
  }
- else if(id is LayRemoveFirst or LayRemoveSecond&&index<items.Length&&!LaySealed())
+ else if(id is LayRemoveFirst or LayRemoveSecond&&index<items.Length&&!LaySealed()&&layReturnScreen=="project")
  {
   layPreview=null;
   Start("yogi-native",new{context,activation,action="remove",item=items[index]["item"]!.GetValue<string>()},LayDescription);
  }
+}
+// The X11 pointer grab stays in this editor. No GTK/OS drop payload is read.
+bool YogiIconHit(int id,int x,int y)
+{
+ if(orderFrame.Length==0)return false;
+ int[] hit=calls.OrderHit.Invoke(orderFrame,x,y);
+ return hit[1]==id&&hit[2]==0;
+}
+void ClearYogiPointer()
+{
+ layBoxPress=null;layBoxClick=null;layBoxDragging=false;
+}
+bool CanOpenLayIcon()=>OperatingSystem.IsLinux()&&job is null&&!appClosePending&&!nativePickerPending&&!storagePending&&
+ (screen=="project"&&model["closeRequest"] is null&&model["workspace"]?["review"] is null||
+  screen=="lan-chat"&&LanSealedIconAvailable());
+bool LanSealedIconAvailable()=>lanHasSealedBox&&lanLifetime is not null&&lanActivation.Length>0&&lanActivation==LanCurrentActivation()&&
+ lanViewerId.Length==0&&lanMode is "hosting" or "joined";
+void OpenLayIcon()
+{
+ if(!CanOpenLayIcon())return;
+ layReturnScreen=screen;layReturnFocus=LayEntry;
+ Start("yogi-native",new{context=Context(),activation=LanCurrentActivation(),action="show"});
+}
+bool HandleYogiPointer(int type,int x,int y,int key,bool fromNative)
+{
+ if(layBoxPress is { } press)
+ {
+  if(type==(fromNative?6:5)&&key==Key(27,0xFF1B))
+  {ClearYogiPointer();CancelInput(eventID++);return true;}
+  bool current=press.Screen==screen&&press.Activation==LanCurrentActivation()&&
+   (screen!="lan-chat"||press.View==lanView)&&CanOpenLayIcon();
+  if(!current||type is 7 or 9 or 11)
+  {ClearYogiPointer();CancelInput(eventID++);return false;}
+  if(fromNative||type is not (1 or 2 or 3))return false;
+  layBoxDragging|=Math.Abs(x-press.X)>=6||Math.Abs(y-press.Y)>=6;
+  if(type!=2)return true;
+
+  bool dragged=layBoxDragging;
+  layBoxPress=null;layBoxDragging=false;
+  if(dragged)
+  {
+   layBoxClick=null;
+   if(screen=="lan-chat"&&YogiIconHit(LanInput,x,y))PrepareLanAttachment();
+   return true;
+  }
+  if(!YogiIconHit(LayEntry,x,y)){layBoxClick=null;return true;}
+  long now=Environment.TickCount64;
+  if(layBoxClick is { } click&&click.Screen==press.Screen&&click.Activation==press.Activation&&click.View==press.View&&
+     now-click.Time<=400&&Math.Abs(x-click.X)<6&&Math.Abs(y-click.Y)<6)
+  {layBoxClick=null;OpenLayIcon();}
+  else layBoxClick=(press.Screen,press.Activation,press.View,x,y,now);
+  return true;
+ }
+ if(type is 7 or 9 or 11)layBoxClick=null;
+ if(fromNative||type!=1)return false;
+ if(!CanOpenLayIcon()||(screen=="project"&&!LaySealed())||!YogiIconHit(LayEntry,x,y))
+ {layBoxClick=null;return false;}
+
+ layBoxPress=(screen,LanCurrentActivation(),screen=="lan-chat"?lanView:"",x,y);
+ layBoxDragging=false;
+ CancelInput(eventID++);Focus(LayEntry);
+ return true;
 }
 System.Text.Json.Nodes.JsonNode TraceModel()
 {
@@ -725,9 +806,7 @@ string ProjectMenu()=>model["helperPanel"]?["context"]?.ToString()==Context()&&m
 string ActionPin(int id)=>nativeActionGeneration+"|"+screen+"|"+model["selected"]?["context"]+"|"+model["selectedTask"]+"|"+model["workspace"]?["selected"]+"|"+model["aiPreview"]?["token"]+"|"+model["closeRequest"]?["context"]+"|"+model["shell"]?["menu"]+"|"+model["shell"]?["navigation"]+"|"+model["helperPanel"]?["mode"]+"|"+model["helperContext"]?["helper"]+"|"+model["helperContext"]?["membership"]+"|"+(id==27?SelectedWorker()?["status"]?.ToString():"")+"|"+(screen=="project"&&id==24&&ProjectMenu()=="helpers"?RecruitmentAgent():"");
 void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPending=job is not null});if(appClosePending||nativePickerPending||storagePending)return;if(screen=="lan-chat"){LanControl(id);return;}
  if(screen=="yogi"){LayPanelAction(id);return;}
- if(id==LayEntry&&OperatingSystem.IsLinux()&&screen=="project"&&job is null){
-  layReturnFocus=LayEntry;Start("yogi-native",new{context=Context(),activation=LanCurrentActivation(),action="show"});return;
- }if(OperatingSystem.IsLinux()&&id==LanEntry&&screen is "home" or "project"&&job is null){OpenLanPanel();return;}if(screen=="actions"){NativeActionAction(id);return;}if(screen=="project"&&id==324&&job is null){OpenNativeActions();return;}if(screen=="fields"&&(job is null||NativeFieldReading())){if(job is not null&&id==430){CancelNativeFields(false);queuedAction=id;queuedActionPin=ActionPin(id);return;}NativeFieldAction(id);return;}if(screen=="project"&&id==82&&job is null){OpenNativeFields();return;}if(job is not null&&id!=7){if(operation=="poll"&&queuedAction==0){queuedAction=id;queuedActionPin=ActionPin(id);deferredActions++;TraceFlow("action-deferred",new{id,queuedActionPin});}return;}
+ if(id==LayEntry&&screen=="project"){OpenLayIcon();return;}if(OperatingSystem.IsLinux()&&id==LanEntry&&screen is "home" or "project"&&job is null){OpenLanPanel();return;}if(screen=="actions"){NativeActionAction(id);return;}if(screen=="project"&&id==324&&job is null){OpenNativeActions();return;}if(screen=="fields"&&(job is null||NativeFieldReading())){if(job is not null&&id==430){CancelNativeFields(false);queuedAction=id;queuedActionPin=ActionPin(id);return;}NativeFieldAction(id);return;}if(screen=="project"&&id==82&&job is null){OpenNativeFields();return;}if(job is not null&&id!=7){if(operation=="poll"&&queuedAction==0){queuedAction=id;queuedActionPin=ActionPin(id);deferredActions++;TraceFlow("action-deferred",new{id,queuedActionPin});}return;}
  if(DetailsScreen()){DetailsAction(id);return;}
  if(screen=="home"&&id>=500&&id<532){var cards=model["cards"]!.AsArray();if(id-500<cards.Count)OpenInformation(ListingId(cards[id-500]!),"home");return;}
  if(screen=="project"&&id>=319&&id<=321){int slot=id-319;if(slot>=Views().Length)return;var view=Views()[slot];view["open"]=true;if(WindowRow(30+slot) is not null){Order("show",new{id=30+slot});Order("activate",new{id=30+slot});}pendingFocus=Folded(30+slot)?0:400+slot*4;Start("workspace",new{context=Context(),view=(slot+1).ToString(),action="open-view",id=view["id"]!.ToString(),viewMode=view["mode"]!.ToString()},pendingFocus);return;}
@@ -870,28 +949,31 @@ void Render(){int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Emp
   if(sidebar){Label(new[]{8,114,side-16,32},screen=="project"?"Participants":"AI management");Button(6,new[]{8,150,side-16,42},"Agent  "+(screen=="project"&&model["aiBindings"]?[Context()] is not null?(model["ai"]?["state"]?.ToString()??"configured"):"unbound"));if(screen=="project"){Box(new[]{8,202,side-16,112},0x263C4B);Button(8,new[]{16,210,side-32,36},"Helper  "+(model["helperContext"] is null?"0":"1"));WrappedLabel(new[]{12,250,side-24,58},model["helperContext"] is null?"Choose a Helper for this project":HelperDisplayName(model["helperContext"]!["helper"]!.ToString())+"\n"+(model["ai"]?["state"]?.ToString()??"local draft"),"helper-participant");Label(new[]{8,320,side-16,26},"Player  "+model["shell"]!["players"]);if(area<640){Button(17,new[]{8,356,side-16,32},"Augment");Button(317,new[]{8,396,side-16,32},"Object browser");}}else Button(8,new[]{8,210,side-16,42},"Helper  0");if(h>=620)Label(new[]{8,h-90,side-16,70},"Local workspace\nAI is optional");}
   }else Label(new[]{8,64,Math.Max(1,side-16),180},"Local display details\nProject context retained\nNo AI request");
   if(!DetailsScreen()&&screen!="project"&&model["backgroundProjects"] is System.Text.Json.Nodes.JsonArray hiddenProjects&&hiddenProjects.Count>0)Button(19,new[]{8,Math.Max(270,h-140),Math.Max(1,side-16),36},sidebar?"Hidden projects ("+hiddenProjects.Count+")":"("+hiddenProjects.Count+")");
-  if(screen!="project")Label(new[]{left,10,area,44},screen=="information"?"Project information":screen=="profile"?"Helper display profile":screen=="home"?"Projects":screen=="create"?"New project":screen=="manage"?"AI management":screen=="remove"?"Remove listing":model["selected"]?["title"]?.ToString()??"Project");
+  bool showLanLayIcon=screen=="lan-chat"&&area>=286&&LanSealedIconAvailable();
+  if(screen!="project")Label(new[]{left,10,showLanLayIcon?area-104:area,44},screen=="information"?"Project information":screen=="profile"?"Helper display profile":screen=="home"?"Projects":screen=="create"?"New project":screen=="manage"?"AI management":screen=="remove"?"Remove listing":model["selected"]?["title"]?.ToString()??"Project");
   if(screen=="yogi"){
  int width=Math.Min(520,area);
  Label(new[]{left,60,width,34},LaySealed()?"Sealed YogiBox":"YogiBox");
- Button(LayClose,new[]{left,104,150,30},"Back to workspace");
- Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture LaY",LayUnit().Length!=0);
+ bool fromChat=layReturnScreen=="lan-chat";
+ Button(LayClose,new[]{left,104,150,30},fromChat?"Back to messages":"Back to workspace");
+ if(!fromChat)Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture LaY",LayUnit().Length!=0);
  var items=LayItems();
  if(items.Length==0)Label(new[]{left,152,width,30},"No captured regions");
  for(int index=0;index<items.Length;index++){
   int y=150+index*38;
   var capture=items[index]["capture"]!;
   Button(LayFirst+index,new[]{left,y,Math.Max(1,width-96),30},"LaY "+(index+1)+" · "+capture["width"]+" × "+capture["height"]);
-  if(!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"Remove");
+  if(!fromChat&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"Remove");
  }
- if(LaySealed())WrappedLabel(new[]{left,232,width,58},model["yogi"]?["text"]?.ToString()??"");
+ if(fromChat||LaySealed())WrappedLabel(new[]{left,232,width,58},model["yogi"]?["text"]?.ToString()??"");
  else Field(LayDescription,new[]{left,232,width,58},"Description saved when you seal the box");
- Button(LaySeal,new[]{left,302,170,34},LaySealed()?"Unseal YogiBox":"Seal YogiBox",LaySealed()||items.Length>0);
+ if(!fromChat)Button(LaySeal,new[]{left,302,170,34},LaySealed()?"Unseal YogiBox":"Seal YogiBox",LaySealed()||items.Length>0);
  if(layPreview is { } image&&h>402){
   double scale=Math.Min(1d,Math.Min((double)width/image.Width,(double)(h-402)/image.Height));
   layPreviewBounds=new[]{left,350,Math.Max(1,(int)(image.Width*scale)),Math.Max(1,(int)(image.Height*scale))};
  }
  }else if(screen=="lan-chat"){
+ if(showLanLayIcon)Button(LayEntry,new[]{left+area-100,10,100,42},"▣ YogiBox");
  string heading=lanMode=="start"?"Public chat":lanUsesRelay?"Public chat · Internet test relay":"Public chat · LAN";
  Label(new[]{left,62,area,34},heading);
  Button(LanClose,new[]{left,104,180,30},lanMode is "hosting" or "joined"?"End public chat":"Back");
@@ -943,7 +1025,7 @@ void Render(){int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Emp
   Field(LanInput,new[]{left,h-114,Math.Max(8,area-134),60},"Public message");
   Button(LanSend,new[]{left+Math.Max(8,area-124),h-114,Math.Min(124,area),38},"Send publicly",LanCanRequest());
  }
- WrappedLabel(new[]{left,h-48,area,44},lanStatus);
+ WrappedLabel(new[]{left,h-48,area,44},layBoxDragging?"Drop on the public message to attach.":lanStatus);
   }
 else if(screen=="actions"){
  Label(new[]{left,62,area,32},"Object Actions | "+nativeActionObject);
@@ -1091,7 +1173,7 @@ entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvir
     chatBuffers.TryGetValue(jobContext,out var chat)&&calls.TextSnapshot.Invoke(chat)[1]==submitted)
   calls.ReplaceText.Invoke(chat,"",0,0);
  TraceFlow("job-completed",new{operation,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});if(model["status"]!.ToString().StartsWith("Error:")){message=model["status"]!.ToString();pendingFocus=jobFocus;}else if(operation=="yogi-native"){
-  if(screen=="project"){Change("yogi");pendingFocus=LaySealed()?LayClose:LayDescription;}
+  if(screen is "project" or "lan-chat"){Change("yogi");pendingFocus=layReturnScreen=="lan-chat"||LaySealed()?LayClose:LayDescription;}
   else if(jobFocus!=0)pendingFocus=jobFocus;
  }else if(operation=="ai-bind"){RememberRecruitmentChoice(jobContext);}else if(operation is "project-information" or "project-information-save"){Change("information");LoadInformation(operation=="project-information-save");}else if(operation=="helper-display-list"||operation=="helper-recruit"&&screen=="profile"){Change("profile");var rows=ProfileRows();int index=Array.FindIndex(rows,row=>row["helper"]!.ToString()==profileId);profileIndex=index>=0?index:0;profileId=rows.Length>0?rows[profileIndex]["helper"]!.ToString():"";LoadProfile();}else if(operation=="helper-presentation-save"){LoadProfile(true);message="Display profile and local input saved; template and project context retained";}else if(operation is "open" or "open-request" or "create" or "connection-settings"){Change("project");if(operation=="connection-settings")viewModes[Context()]="properties";}else if(operation is "leave" or "remove"||operation=="close-project"&&model["selected"] is null){Change("home");if(operation=="close-project")ReleaseProjectUI(jobContext);}else if(operation=="workspace"){
  if(model["archive"] is System.Text.Json.Nodes.JsonNode archive){calls.NativeRequest.Invoke(nativeHost,"archive-begin",archive.ToJsonString(),surfaces[1]);model["archive"]=null;archivePending=true;nativePickerPending=true;}
@@ -1117,13 +1199,13 @@ entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvir
   if(nativePickerPending||storagePending){message="Finish the current dialog or save, then close again.";break;}
   queuedAction=0;queuedActionPin="";
   appClosePending=true;
-  if(screen=="lan-chat")CloseLanPanel();
+  if(screen=="lan-chat"||screen=="yogi"&&layReturnScreen=="lan-chat")CloseLanPanel();
   if(laySelection is not null)EndLaySelection(false);
   message="Saving local project chat drafts before closing";
   Render();
  }
  break;
- }if(appClosePending)continue;if(HandleLayGesture(type,events[i+2],events[i+3],key,flags,fromNative))continue;long identity=eventID++;if(type!=12)TraceFlow("event-before",new{identity,type,source=fromNative?"native":"window",sourceControl=events[i],state=calls.ControlState.Invoke(control,"query",0)[..3],nativeFocus=nativeState["focus"]!.GetValue<int>(),menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});int focused=calls.ControlState.Invoke(control,"query",0)[0];bool editing=fields.ContainsKey(focused);if(screen=="lan-chat"&&type==5&&key==Key(27,0xFF1B)){CloseLanPanel();Render();continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&model["closeRequest"] is not null){Action(66);continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&model["workspace"]?["review"] is not null){Action(66);continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&(model["shell"]!["menu"]!.ToString().Length>0||model["shell"]!["navigation"]!.ToString().Length>0)){CancelInput(identity);Action(model["shell"]!["navigation"]!.ToString().Length>0?44:42);continue;}int[] orderedHit=orderFrame.Length==0?new[]{0,0,0}:calls.OrderHit.Invoke(orderFrame,events[i+2],events[i+3]);if(type is 7 or 9 or 11){dragWindow=0;lastHeader=0;}
+ }if(appClosePending)continue;if(HandleLayGesture(type,events[i+2],events[i+3],key,flags,fromNative)||HandleYogiPointer(type,events[i+2],events[i+3],key,fromNative))continue;long identity=eventID++;if(type!=12)TraceFlow("event-before",new{identity,type,source=fromNative?"native":"window",sourceControl=events[i],state=calls.ControlState.Invoke(control,"query",0)[..3],nativeFocus=nativeState["focus"]!.GetValue<int>(),menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});int focused=calls.ControlState.Invoke(control,"query",0)[0];bool editing=fields.ContainsKey(focused);if(screen=="lan-chat"&&type==5&&key==Key(27,0xFF1B)){CloseLanPanel();Render();continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&model["closeRequest"] is not null){Action(66);continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&model["workspace"]?["review"] is not null){Action(66);continue;}if(screen=="project"&&type==5&&key==Key(27,0xFF1B)&&(model["shell"]!["menu"]!.ToString().Length>0||model["shell"]!["navigation"]!.ToString().Length>0)){CancelInput(identity);Action(model["shell"]!["navigation"]!.ToString().Length>0?44:42);continue;}int[] orderedHit=orderFrame.Length==0?new[]{0,0,0}:calls.OrderHit.Invoke(orderFrame,events[i+2],events[i+3]);if(type is 7 or 9 or 11){dragWindow=0;lastHeader=0;}
  if(!fromNative&&type==1&&orderedHit[0]>0&&orderedHit[2]==0){int id=orderedHit[0];UseControl(orderedHit[1]);Order("activate",orderedHit[1]>0?(object)new{id,control=orderedHit[1]}:new{id});if(Floating(id)&&orderedHit[1]==0){var b=WindowBounds(id);if(events[i+3]<b[1]+(Folded(id)?26:8)){double stamp=watch.Elapsed.TotalSeconds;if(lastHeader==id&&stamp-lastHeaderTime<.4){Fold(id);lastHeader=0;}else{lastHeader=id;lastHeaderTime=stamp;dragWindow=id;dragX=events[i+2]-b[0];dragY=events[i+3]-b[1];}CancelInput(identity);Render();continue;}}Render();orderedHit=calls.OrderHit.Invoke(orderFrame,events[i+2],events[i+3]);}
  if(!fromNative&&dragWindow!=0&&type is 2 or 3){if(type==3){var b=WindowBounds(dragWindow);Order("drag",new{id=dragWindow,bounds=new[]{events[i+2]-dragX,events[i+3]-dragY,b[2],b[3]}});lastHeader=0;}else dragWindow=0;Render();continue;}
  if(type==1&&orderedHit[2]==0)UseControl(orderedHit[1]);

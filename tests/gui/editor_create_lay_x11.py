@@ -8,12 +8,15 @@ Every private YogiBox is made in the GTK UI of a fresh project.
 import base64
 import ctypes as c
 import json
+import os
+import select
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
 import time
 
-from editor_lan_chat_x11 import GUEST, HOST, P, U, bind, display, eventually, internal_network, peer, ui, x11
+from editor_lan_chat_x11 import GUEST, HOST, P, U, bind, display, eventually, internal_network, native_windows, peer, ui, x11
 from editor_relay_chat_x11 import fixture_build, identity, issue as relay_issue, reservations, review as relay_review
 
 
@@ -34,22 +37,118 @@ def packages(editor):
     return list((editor.profile.parent / "projects").rglob("package-*.json"))
 
 
+def root_point(window, x, y):
+    rx, ry, child = c.c_int(), c.c_int(), U()
+    assert ui.translate(display, window, ui.root, x, y, c.byref(rx), c.byref(ry), c.byref(child))
+    return rx.value, ry.value
+
+
+def move(window, x, y):
+    ui.motion(display, -1, *root_point(window, x, y), 0)
+    ui.flush(display)
+
+
+def hold(down):
+    ui.button(display, 1, int(down), 0)
+    ui.flush(display)
+
+
 def drag_region(editor, crop):
     x, y, width, height = crop
-    def root_point(px, py):
-        rx, ry, child = c.c_int(), c.c_int(), U()
-        assert ui.translate(display, editor.window, ui.root, px, py, c.byref(rx), c.byref(ry), c.byref(child))
-        return rx.value, ry.value
     ui.raise_window(display, editor.window)
-    ui.motion(display, -1, *root_point(x, y), 0)
-    ui.button(display, 1, 1, 0)
-    ui.flush(display)
+    move(editor.window, x, y)
+    hold(True)
     time.sleep(.04)
-    ui.motion(display, -1, *root_point(x + width, y + height), 0)
-    ui.flush(display)
+    move(editor.window, x + width, y + height)
     time.sleep(.04)
-    ui.button(display, 1, 0, 0)
-    ui.flush(display)
+    hold(False)
+
+
+def point(editor, control):
+    row = editor.wait(lambda row: control in row["hits"][::5], f"Visible control {control}")
+    i = 5 * row["hits"][::5].index(control)
+    x, y, w, h = row["hits"][i+1:i+5]
+    return x+w//2, y+h//2
+
+
+def box_drag(editor, target):
+    x, y = point(editor, 470)
+    dest_x, dest_y = target
+    drag_region(editor, [x, y, dest_x-x, dest_y-y])
+
+
+def double_box(editor):
+    x, y = point(editor, 470)
+    ui.raise_window(display, editor.window)
+    move(editor.window, x, y)
+    for _ in range(2):
+        hold(True)
+        time.sleep(.035)
+        hold(False)
+        time.sleep(.075)
+    editor.wait(lambda row: row["screen"] == "yogi" and "Sealed YogiBox" in row["texts"], "Double-click opened sealed YogiBox")
+
+
+def keyboard_attach(editor):
+    for _ in range(20):
+        focus = editor.state()["focus"]
+        if focus == 464:
+            ui.key(editor.window, 0xFF0D)
+            return
+        if editor.field(editor.state(), focus).get("visible"):
+            editor.key(focus, 0xFF09)
+        else:
+            ui.key(editor.window, 0xFF09)
+        editor.wait(lambda row: row["focus"] != focus, "Tab navigates public chat")
+    raise AssertionError("Attachment button unavailable through keyboard navigation")
+
+
+EXTERNAL_DROP = """
+import gi
+import sys
+gi.require_version("Gtk", "3.0")
+gi.require_version("Gdk", "3.0")
+from gi.repository import Gdk, Gtk
+window = Gtk.Window(title="GTK External Drop Fixture")
+window.move(4, 4)
+window.set_default_size(132, 66)
+button = Gtk.Button(label="Drag fixture")
+window.add(button)
+button.drag_source_set(Gdk.ModifierType.BUTTON1_MASK, [Gtk.TargetEntry.new(sys.argv[1], 0, 0)], Gdk.DragAction.COPY)
+button.connect("drag-begin", lambda *_: print("drag-begin", flush=True))
+def data(widget, context, selection, info, time):
+    selection.set(selection.get_target(), 8, sys.argv[2].encode())
+button.connect("drag-data-get", data)
+window.show_all()
+Gtk.main()
+"""
+
+
+def reject_external_drop(editor):
+    cache = editor.profile / "external-drag-cache"
+    cache.mkdir(exist_ok=True)
+    environment = dict(os.environ, XDG_CACHE_HOME=str(cache))
+    for mime, marker in (("UTF8_STRING", "Unauthenticated text https://invalid.example/"),
+                         ("text/uri-list", "file:///tmp/confectory-no-file.txt\r\n")):
+        with subprocess.Popen(["/usr/bin/python3", "-u", "-c", EXTERNAL_DROP, mime, marker],
+                              stdout=subprocess.PIPE, text=True, env=environment) as source:
+            try:
+                window = eventually(lambda: next(iter(native_windows(b"GTK External Drop Fixture")), None), "Actual GTK drag source")
+                move(window, 45, 45)
+                hold(True)
+                time.sleep(.1)
+                move(window, 96, 53)
+                assert select.select([source.stdout], [], [], 5)[0] and source.stdout.readline().strip() == "drag-begin"
+                move(editor.window, *point(editor, 459))
+                time.sleep(.25)
+                hold(False)
+                time.sleep(.25)
+                assert editor.field(editor.state(),459).get("text") == "Keep this public draft"
+                assert "attached to this draft" not in editor.state()["lanStatus"]
+            finally:
+                hold(False)
+                source.terminate()
+                source.wait(timeout=5)
 
 
 def start_drag(editor, crop):
@@ -141,35 +240,104 @@ def view_capture(editor, description, expected, crop, newer=False):
 def exercise(host, guest, invite, review):
     host_box = make_box(host, "GTK Sender", "Host selected this workspace region", cancel_and_remove=True)
     guest_box = make_box(guest, "GTK Receiver", "Guest selected this workspace region")
+    host.click(470)
+    time.sleep(.45)
+    assert host.state()["screen"] == "project", "Single click must not reopen the sealed box"
+    double_box(host)
+    host.click(471)
+    host.wait(lambda row: row["screen"] == "project", "Back from the sealed workspace box")
+
     invite()
     review(host_box[0])
     guest.click(458)
     guest.wait(lambda row: guest.field(row,461).get("text") == "No messages yet.", "First admission is empty")
 
-    host.click(464)
-    host.wait(lambda row: "attached to this draft" in row["lanStatus"], "Prepared a real GTK-created sealed box")
+    host.fill(459, "Keep this public draft")
+    reject_external_drop(host)
     assert not (host.profile / "project-chat").exists()
+    box_drag(host, point(host,461))
+    assert host.field(host.state(),459).get("text") == "Keep this public draft"
+    assert "attached to this draft" not in host.state()["lanStatus"]
+    assert not (host.profile / "project-chat").exists(), "Drop outside the composer wrote public history"
+
+    box_drag(host, point(host,459))
+    host.wait(lambda row: "attached to this draft" in row["lanStatus"], "Internal drop prepares the actual sealed box")
+    assert host.field(host.state(),459).get("text") == "Keep this public draft"
+    assert guest.field(guest.state(),461).get("text") == "No messages yet."
+    assert not (host.profile / "project-chat").exists(), "Drop alone wrote public history"
+    host.click(464)
+    host.wait(lambda row: "removed from the public draft" in row["lanStatus"], "Remove the staged YogiBox")
+    assert not (host.profile / "project-chat").exists()
+
+    double_box(host)
+    assert 474 not in host.state()["hits"][::5], "The private preview in chat permits changes to the staged source"
+    ui.key(host.window,0xFF1B)
+    host.wait(lambda row: row["screen"] == "lan-chat" and row["lanMode"] == "hosting" and row["focus"] == 470,
+              "Return to the same chat and restore focus")
+    assert host.field(host.state(),459).get("text") == "Keep this public draft"
+    keyboard_attach(host)
+    host.wait(lambda row: "attached to this draft" in row["lanStatus"], "Keyboard attachment uses the same preparation")
+    assert not (host.profile / "project-chat").exists()
+    host.click(464)
+    host.wait(lambda row: "removed from the public draft" in row["lanStatus"], "Clear keyboard-selected attachment")
+
+    box_drag(host, point(host,459))
+    host.wait(lambda row: "attached to this draft" in row["lanStatus"], "Restore attachment via drag")
     host.send("GTK host captured this region")
     guest.wait(lambda row: "[YogiBox 1]" in guest.field(row,461).get("text",""), "Host attachment appeared on its public message")
     view_capture(guest, "Host selected this workspace region", host_box[2], host_box[1])
     guest.click(468)
 
-    guest.click(464)
-    guest.wait(lambda row: "attached to this draft" in row["lanStatus"], "Prepared the guest's real GTK-created sealed box")
+    box_drag(guest, point(guest,459))
+    guest.wait(lambda row: "attached to this draft" in row["lanStatus"], "Guest drag prepares the private sealed box")
     guest.send("GTK guest captured this region")
     host.wait(lambda row: "[YogiBox 2]" in host.field(row,461).get("text",""), "Guest attachment appeared on its public message")
     view_capture(host, "Guest selected this workspace region", guest_box[2], guest_box[1], newer=True)
+    assert host_box[3].read_bytes() == host_box[4] and guest_box[3].read_bytes() == guest_box[4]
 
     guest.click(465)
     guest.wait(lambda row: row["lanImageBounds"], "A guest attachment was open before revocation")
     host.click(451)
     guest.wait(lambda row: row["lanMode"] == "closed" and not row["lanImageBounds"], "Revocation cleared the visible attachment")
     guest.click(451)
+
+    double_box(host)
+    host.click(474)
+    host.wait(lambda row: host.field(row,473).get("visible"), "Explicitly unseal the local original")
+    host.click(477)
+    host.wait(lambda row: "No captured regions" in row["texts"], "Remove the previous private capture")
+    host.fill(473,"Changed private description")
+    host.click(472)
+    host.wait(lambda row: row["laySelecting"], "Start a new capture for the private version")
+    alternate = host_box[1].copy()
+    alternate[0] += 150
+    replacement = pixels(host, alternate)
+    assert replacement != host_box[2]
+    drag_region(host, alternate)
+    host.wait(lambda row: row["screen"] == "yogi" and 475 in row["hits"][::5], "Added different private pixels")
+    host.click(474)
+    host.wait(lambda row: "Sealed YogiBox" in row["texts"] and "Changed private description" in row["texts"], "Resealed local original")
+    revised_package = host_box[3].read_bytes()
+    changed_image, = json.loads(revised_package)["package"]["items"]
+    assert base64.b64decode(changed_image["capture"]["pixels"]) == b"".join(pixel.to_bytes(3,"big") for pixel in replacement)
+    assert revised_package != host_box[4]
+    host.click(471)
     invite()
     review(host_box[0])
     guest.click(458)
     guest.wait(lambda row: guest.field(row,461).get("text") == "No messages yet." and 465 not in row["hits"][::5],
                "Fresh invitation gave no old attachments")
+
+    host.wait(lambda row: "View YogiBox 2" in row["texts"], "Host retained history")
+    host.click(466)
+    host.wait(lambda row: "View YogiBox 1" in row["texts"], "Select the original public attachment")
+    view_capture(host, "Host selected this workspace region", host_box[2], host_box[1])
+    host.click(468)
+
+    box_drag(host, point(host,459))
+    host.wait(lambda row: "attached to this draft" in row["lanStatus"], "New private version staged explicitly")
+    double_box(host)
+    host.wait(lambda row: "Changed private description" in row["texts"], "The reopened private box has the new version")
     host.close()
     guest.wait(lambda row: row["lanMode"] == "closed", "Host shutdown ended the fresh admission")
     guest.close()
@@ -178,8 +346,9 @@ def exercise(host, guest, invite, review):
         "GTK host captured this region", "GTK guest captured this region"]
     assert not (guest.profile / "project-chat").exists()
     assert not (host.profile / "helper-conversations").exists() and not (guest.profile / "helper-conversations").exists()
-    assert host_box[3].read_bytes() == host_box[4] and guest_box[3].read_bytes() == guest_box[4]
-    print("PASS user-created LaY from actual GTK, cancel/outside refusal, remove and reseal, bidirectional exact pixels, host-only history, empty re-entry",flush=True)
+    assert host_box[3].read_bytes() == revised_package and guest_box[3].read_bytes() == guest_box[4]
+    print("PASS actual GTK drag, outside/external drop rejection, double-click, keyboard attach, removal and close without sending",flush=True)
+    print("PASS bidirectional exact pixels, original snapshot after private reseal, host-only history, revocation and empty re-entry",flush=True)
 
 
 def lan(root, image, command):

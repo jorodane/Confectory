@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 
+from editor_create_lay_x11 import box_drag, point
 from editor_lan_chat_x11 import GUEST, HOST, P, U, bind, display, dotnet, internal_network, peer, repo, x11
 from editor_relay_chat_x11 import fixture_build, identity, issue as relay_issue, reservations, review as relay_review
 
@@ -128,8 +129,8 @@ def exercise(host, guest, invite, review):
     review(owner)
     guest.click(458)
     guest.wait(lambda row: guest.field(row,461).get("text") == "No messages yet.", "New session has no old attachments")
-    guest.click(464)
-    guest.wait(lambda row: "with EY cannot be shared" in row["lanStatus"], "Mixed guest package refused")
+    box_drag(guest, point(guest,459))
+    guest.wait(lambda row: "with EY cannot be shared" in row["lanStatus"], "Mixed guest package refused on drop")
     assert journal.read_bytes() == committed
     host.click(464)
     host.wait(lambda row: row["lanStatus"].startswith("Sealed YogiBox attached"), "Prepare an attachment before closing")
