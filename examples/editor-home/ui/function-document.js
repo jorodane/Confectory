@@ -2,17 +2,20 @@
 // View folds never enter authorInputs, source plans, or the source Undo stack.
 export function functionDocumentTree(model){
  const byId=new Map(model.nodes.map(node=>[node.id,node])),visited=new Set(),main=new Set();
- const next=(id,port='next')=>model.links.find(link=>link.from===id&&link.port===port)?.to;
- for(let id='$entry';byId.has(id)&&!main.has(id);id=next(id))main.add(id);
- function sequence(id,branch=false){
+ const next=(id,port='next')=>model.links.find(link=>link.from===id&&link.port===port);
+ for(let id='$entry';byId.has(id)&&!main.has(id);id=next(id)?.to)main.add(id);
+ function sequence(id,branch=false,incoming=null){
   const result=[];
   while(byId.has(id)){
    const node=byId.get(id);
-   if(visited.has(id)||branch&&main.has(id)){result.push({reference:node});break;}
+   if(visited.has(id)||branch&&main.has(id)){result.push({reference:node,incoming});break;}
    visited.add(id);
-   result.push({node,branches:(node.branches||[]).map(port=>({...port,cells:sequence(next(id,port.id),true)}))});
+   result.push({node,incoming,branches:(node.branches||[]).map(port=>{
+    const link=next(id,port.id);
+    return {...port,cells:sequence(link?.to,true,link)};
+   })});
    if(node.terminal)break;
-   id=next(id);
+   incoming=next(id);id=incoming?.to;
   }
   return result;
  }
@@ -79,8 +82,11 @@ export function mountFunctionDocument(root,api){
     return '<div class="fd-pin"><span>'+fieldLabel(field)+'</span>'+(value?'<button type="button" data-document-value="'+esc(node.id)+'" data-document-port="'+esc(value.port)+'">'+esc(value.text||'값 선택')+'</button>':'')+'</div>';
    }).join('')||'<span class="fd-empty">'+(side==='inputs'?'입력 없음':'출력 없음')+'</span>';
   };
+  const branchReturnButton=link=>api.canAddBranchReturn?.(link)?'<button type="button" data-document-branch-return="'+esc(link.to)+
+   '" data-document-return-from="'+esc(link.from)+'" data-document-return-port="'+esc(link.port)+'">이 위치에 분기 반환 추가…</button>':'';
   const cells=items=>items.map(item=>{
-   if(item.reference)return '<div class="fd-reference">↪ '+esc(item.reference.name)+'</div>';
+   const branchReturn=branchReturnButton(item.incoming);
+   if(item.reference)return '<div class="fd-reference">↪ '+esc(item.reference.name)+branchReturn+'</div>';
    const {node,branches}=item,actions=api.cellActions?.(node.id),folded=state.cells[node.id]===true,selected=branches.some(branch=>branch.id===state.tabs[node.id])?state.tabs[node.id]:branches[0]?.id,groupFolded=state.groups[node.id]===true;
    const cellState=node.contractReviewRequired?'계약 확인 필요':({entry:'입력',action:'동작',call:'참조',export:'출력','branch-exit':'분기 반환',set:'저장',property:'속성','property-set':'속성 쓰기'}[node.kind]||'동작');
    const executionTarget=api.hasExecutionTarget?.(node.id)?'<button type="button" data-document-execution-target="'+esc(node.id)+'">'+(node.id==='$entry'?'시작 대상 선택…':'다음 실행 대상 선택…')+'</button>':'';
@@ -90,7 +96,7 @@ export function mountFunctionDocument(root,api){
    const callRefresh=api.hasCallRefresh?.(node.id)?'<button type="button" data-document-call-refresh="'+esc(node.id)+'">원본 계약 갱신</button>':'';
    const callComparison=api.hasCallComparison?.(node.id)?'<button type="button" data-document-call-compare="'+esc(node.id)+'">계약 차이 보기</button>':'';
    const setTarget=api.hasSetTarget?.(node.id)?'<label class="bp-set-target">저장 대상<select aria-label="저장 대상" data-document-set-target="'+esc(node.id)+'"></select></label>':'';
-   return '<article class="fd-cell" data-document-cell="'+esc(node.id)+'"><header class="fd-cell-header"><button type="button" data-document-fold="'+esc(node.id)+'" aria-label="'+esc(node.name)+' '+(folded?'펼치기':'접기')+'" aria-expanded="'+!folded+'">'+(folded?'▸':'▾')+'</button>'+(node.readonly||node.id==='$entry'?'<strong class="fd-cell-title">'+esc(node.name)+'</strong>':'<input class="fd-cell-title" data-document-name="'+esc(node.id)+'" aria-label="동작 이름" value="'+esc(node.name)+'">')+'<span class="fd-cell-state"'+(node.contractReviewRequired?' title="'+esc(reviewTitle)+'"':'')+'>'+esc(cellState)+'</span><button type="button" class="fd-cell-grip" data-document-drag="'+esc(node.id)+'" '+(actions?.drag?'draggable="true"':'disabled')+' aria-label="'+esc(node.name)+' 셀 이동" title="'+esc(dragTitle(actions))+'">⠿</button>'+(actions?.remove?'<button type="button" data-document-remove="'+esc(node.id)+'" aria-label="'+esc(node.name)+' 셀 삭제" title="실행 흐름에서 셀 삭제 · C# 원본 유지 · Ctrl+Z로 취소">×</button>':'')+'</header><div class="fd-cell-content" '+(folded?'hidden':'')+'>'+propertyOwner+'<div class="fd-cell-io"><section class="fd-inputs" aria-label="셀 입력">'+fields(node,'inputs')+'</section><section class="fd-outputs" aria-label="셀 출력">'+fields(node,'outputs')+'</section></div>'+setTarget+addAtStart+(node.id!=='$entry'&&!node.terminal?'<div class="fd-cell-actions">'+(actions?'<button type="button" data-document-up="'+esc(node.id)+'" '+(actions.up?'':'disabled title="'+esc(actions.reason||'현재 분기의 첫 셀입니다.')+'"')+'>위로</button><button type="button" data-document-down="'+esc(node.id)+'" '+(actions.down?'':'disabled title="'+esc(actions.reason||'현재 분기의 마지막 셀입니다.')+'"')+'>아래로</button><button type="button" data-document-add="'+esc(node.id)+'" '+(actions.add?'':'disabled title="'+esc(actions.reason||'현재 문맥의 추가는 지원하지 않습니다.')+'"')+'>이 아래에 동작 추가</button>':'')+executionTarget+callRefresh+callComparison+(node.codeEditable?'<button type="button" data-document-code="'+esc(node.id)+'">네이티브 코드 편집</button>':'')+(node.internal?'<button type="button" data-document-internal="'+esc(node.id)+'">내부 흐름</button>':'')+(node.kind==='call'?'<button type="button" data-document-source="'+esc(node.id)+'">원본 열기</button>':'')+'</div>':'')+(branches.length?'<section class="fd-branches"><nav class="fd-branch-tabs" aria-label="실행 분기"><button type="button" data-document-group="'+esc(node.id)+'" aria-label="분기 내용 '+(groupFolded?'펼치기':'접기')+'" aria-expanded="'+!groupFolded+'">'+(groupFolded?'▸':'▾')+'</button>'+branches.map(branch=>'<button type="button" data-document-branch="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" aria-pressed="'+(branch.id===selected)+'">'+esc(branch.name)+'</button>').join('')+'</nav>'+branches.map(branch=>'<div class="fd-branch-panel" data-document-panel="'+esc(branch.id)+'" '+(groupFolded||branch.id!==selected?'hidden':'')+'>'+('<button type="button" data-document-branch-add="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" '+(api.branchActions?.(node.id,branch.id)?.add?'':'disabled title="미저장 입력을 먼저 저장하거나 기존 분기·공유·소유 범위를 확인해 주세요."')+'>이 분기에 동작 추가</button>')+cells(branch.cells)+'</div>').join('')+'</section>':'')+'</div></article>';
+   return '<article class="fd-cell" data-document-cell="'+esc(node.id)+'"><header class="fd-cell-header"><button type="button" data-document-fold="'+esc(node.id)+'" aria-label="'+esc(node.name)+' '+(folded?'펼치기':'접기')+'" aria-expanded="'+!folded+'">'+(folded?'▸':'▾')+'</button>'+(node.readonly||node.id==='$entry'?'<strong class="fd-cell-title">'+esc(node.name)+'</strong>':'<input class="fd-cell-title" data-document-name="'+esc(node.id)+'" aria-label="동작 이름" value="'+esc(node.name)+'">')+'<span class="fd-cell-state"'+(node.contractReviewRequired?' title="'+esc(reviewTitle)+'"':'')+'>'+esc(cellState)+'</span><button type="button" class="fd-cell-grip" data-document-drag="'+esc(node.id)+'" '+(actions?.drag?'draggable="true"':'disabled')+' aria-label="'+esc(node.name)+' 셀 이동" title="'+esc(dragTitle(actions))+'">⠿</button>'+(actions?.remove?'<button type="button" data-document-remove="'+esc(node.id)+'" aria-label="'+esc(node.name)+' 셀 삭제" title="실행 흐름에서 셀 삭제 · C# 원본 유지 · Ctrl+Z로 취소">×</button>':'')+'</header><div class="fd-cell-content" '+(folded?'hidden':'')+'>'+propertyOwner+'<div class="fd-cell-io"><section class="fd-inputs" aria-label="셀 입력">'+fields(node,'inputs')+'</section><section class="fd-outputs" aria-label="셀 출력">'+fields(node,'outputs')+'</section></div>'+branchReturn+setTarget+addAtStart+(node.id!=='$entry'&&!node.terminal?'<div class="fd-cell-actions">'+(actions?'<button type="button" data-document-up="'+esc(node.id)+'" '+(actions.up?'':'disabled title="'+esc(actions.reason||'현재 분기의 첫 셀입니다.')+'"')+'>위로</button><button type="button" data-document-down="'+esc(node.id)+'" '+(actions.down?'':'disabled title="'+esc(actions.reason||'현재 분기의 마지막 셀입니다.')+'"')+'>아래로</button><button type="button" data-document-add="'+esc(node.id)+'" '+(actions.add?'':'disabled title="'+esc(actions.reason||'현재 문맥의 추가는 지원하지 않습니다.')+'"')+'>이 아래에 동작 추가</button>':'')+executionTarget+callRefresh+callComparison+(node.codeEditable?'<button type="button" data-document-code="'+esc(node.id)+'">네이티브 코드 편집</button>':'')+(node.internal?'<button type="button" data-document-internal="'+esc(node.id)+'">내부 흐름</button>':'')+(node.kind==='call'?'<button type="button" data-document-source="'+esc(node.id)+'">원본 열기</button>':'')+'</div>':'')+(branches.length?'<section class="fd-branches"><nav class="fd-branch-tabs" aria-label="실행 분기"><button type="button" data-document-group="'+esc(node.id)+'" aria-label="분기 내용 '+(groupFolded?'펼치기':'접기')+'" aria-expanded="'+!groupFolded+'">'+(groupFolded?'▸':'▾')+'</button>'+branches.map(branch=>'<button type="button" data-document-branch="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" aria-pressed="'+(branch.id===selected)+'">'+esc(branch.name)+'</button>').join('')+'</nav>'+branches.map(branch=>'<div class="fd-branch-panel" data-document-panel="'+esc(branch.id)+'" '+(groupFolded||branch.id!==selected?'hidden':'')+'>'+('<button type="button" data-document-branch-add="'+esc(branch.id)+'" data-document-owner="'+esc(node.id)+'" '+(api.branchActions?.(node.id,branch.id)?.add?'':'disabled title="미저장 입력을 먼저 저장하거나 기존 분기·공유·소유 범위를 확인해 주세요."')+'>이 분기에 동작 추가</button>')+cells(branch.cells)+'</div>').join('')+'</section>':'')+'</div></article>';
   }).join('');
   const scroll=host.scrollTop;
   host.innerHTML='<div class="fd-document-title">'+esc(model.name)+'</div>'+cells(tree.cells)+(tree.detached.length?'<section class="fd-detached"><h3>별도 셀</h3>'+cells(tree.detached)+'</section>':'');
@@ -102,6 +108,8 @@ export function mountFunctionDocument(root,api){
   for(const control of host.querySelectorAll('[data-document-set-target]'))api.mountSetTarget(control.dataset.documentSetTarget,control);
   for(const button of host.querySelectorAll('[data-document-value]'))button.onclick=()=>{if(owns())api.editValue(button.dataset.documentValue,button.dataset.documentPort,button);};
   for(const button of host.querySelectorAll('[data-document-branch-exit]'))button.onclick=()=>{if(owns())api.pickBranchExit(button.dataset.documentBranchExit,button);};
+  for(const button of host.querySelectorAll('[data-document-branch-return]'))button.onclick=()=>{if(owns())api.addBranchReturn({
+   from:button.dataset.documentReturnFrom,port:button.dataset.documentReturnPort,to:button.dataset.documentBranchReturn},button);};
   for(const button of host.querySelectorAll('[data-document-execution-target]'))button.onclick=()=>{if(owns())api.pickExecutionTarget(button.dataset.documentExecutionTarget,button);};
   for(const button of host.querySelectorAll('[data-document-code]'))button.onclick=()=>{if(owns())api.code(button.dataset.documentCode);};
   for(const button of host.querySelectorAll('[data-document-internal]'))button.onclick=()=>{if(owns())api.internal(button.dataset.documentInternal);};

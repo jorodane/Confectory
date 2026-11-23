@@ -15,14 +15,14 @@ def review():
  d=n.read();ids=d['reviewIds'] or [s['id'] for s in d['sources']];return ids,f.invoke('reviewGroup',{'target':'portable','ids':ids})['state']['review']['token']
 def confirm():
  ids,token=review();f.invoke('confirmGroup',{'token':token,'ids':ids})
-def run(name,swapped=False,early=False):
+def run(name,swapped=False,early=False,all_alternate=False):
  build=subprocess.run([f.env['CONFECTORY_DOTNET'],str(f.repo/'src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll'),'build',str(x.manifest),'portable'],capture_output=True,text=True,env=f.env);(f.case/(name+'-build.log')).write_text(build.stdout+build.stderr);assert build.returncode==0,build.stdout[-4000:]+build.stderr[-4000:]
  report=json.loads(build.stdout);done=subprocess.run(report['run'],capture_output=True,text=True,env=f.env);(f.case/(name+'-run.json')).write_text(json.dumps({'exit':done.returncode,'stdout':done.stdout,'stderr':done.stderr}));assert done.returncode==7,done.stderr
  if n.refs:wanted='41\n41\n11,16,26' if swapped else '42\n42\n12,16,26'
  else:
   lines=[]
   for mode in [-2,17,99]:
-   chosen=(mode!=17 if swapped else mode==17) if not early else swapped
+   chosen=all_alternate or ((mode!=17 if swapped else mode==17) if not early else swapped)
    for i in [1,2]:lines.append(str(mode)+':42,'+str(0 if early else mode+i)+':'+','.join(map(str,[0 if early else i,i if chosen else 0,0,i])))
   wanted='\n'.join(lines)
  assert done.stdout.strip()==wanted,(done.stdout,wanted)

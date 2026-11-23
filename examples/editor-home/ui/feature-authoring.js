@@ -290,17 +290,21 @@ function blueprintNormalizeControls(scope){
   }
   function closeMenu(reason='cancel'){menu?._branchControl?.setAttribute('aria-expanded','false');const close=closeEdit;closeEdit=null;if(close&&close(reason)===false){closeEdit=close;return false;}menu?.remove();menu=null;return true;}
   function pickBranchExit(id,control,allowed=()=>true){
-   if(!canvasOwns()||!allowed()||!branchExitSupported(w)||closeMenu('cancel')===false)return;
-   const exit=id.slice(6),members=branchExitMembers(w);
-   if(!Object.hasOwn(branchExitPlan(w).exits,exit))return;
+   const exit=id.slice(6),current=()=>allowed()&&branchExitSupported(w)&&Object.hasOwn(branchExitPlan(w).exits,exit);
+   pickBranchMember(control,'기존 분기 선택',current,member=>changeBranchExits(w,plan=>{
+    plan.exits[exit]={...plan.exits[exit],executionBranch:member.id};
+   }));
+  }
+  function pickBranchMember(control,label,allowed,apply){
+   if(!canvasOwns()||!allowed()||closeMenu('cancel')===false)return;
    const picker=document.createElement('div');menu=picker;picker.className='workspace-search-menu bp-search-menu';
-   picker.setAttribute('role','listbox');picker.setAttribute('aria-label','기존 분기 선택');picker._branchControl=control;
-   for(const member of members){
+   picker.setAttribute('role','listbox');picker.setAttribute('aria-label',label);picker._branchControl=control;
+   for(const member of branchExitMembers(w)){
     const option=document.createElement('button');option.type='button';option.setAttribute('role','option');
     option.dataset.branchOption=member.id;option.textContent=member.name;
     option.onclick=()=>{
-     if(menu!==picker||!canvasOwns()||!allowed()||!Object.hasOwn(branchExitPlan(w).exits,exit))return;
-     closeMenu();changeBranchExits(w,plan=>{plan.exits[exit]={...plan.exits[exit],executionBranch:member.id};});
+     if(menu!==picker||!canvasOwns()||!allowed())return;
+     closeMenu();apply(member);
     };
     picker.append(option);
    }
@@ -909,7 +913,35 @@ function blueprintNormalizeControls(scope){
   const propertyWrites=new Map((data.nodes||[]).filter(row=>row.kind==='property-set').map(row=>[row.id,row]));
   const documentBranchExit=id=>!api.busy&&data.privatePath&&data.executionExitMode===true&&
    !data.privateConversion&&!w.meta.copyDraft&&!w.meta.nodeFlowDraft&&branchExitSupported(w)&&
-   data.exits.some(exit=>'$exit:'+exit.name===id);
+   id.startsWith('$exit:')&&Object.hasOwn(branchExitPlan(w).exits,id.slice(6));
+  function canAddDocumentBranchReturn(link){
+   if(!link?.to?.startsWith('$exit:')||!canvasOwns()||!documentBranchExit(link.to)||
+      data.privatePath.includes('/')||data.profile!=='sync-acyclic-switch-v1'||data.requiresCoupledCopy||
+      data.slotContext||data.privateCopy||saveEntries(w).length||!frameInputsClear()||
+      !['source-ready','source-assembled'].includes(data.diagnostics?.state)||data.exits.length>=64||
+      data.nodes.some(row=>nodeAsync(w,row)))return false;
+   const target=link.to.slice(1),exit=branchExitPlan(w).exits[link.to.slice(6)];
+   if(typeof exit?.executionBranch!=='string'||Object.keys(exit).length!==1)return false;
+   const reachable=new Set([data.entry]);
+   for(const from of reachable)for(const edge of data.edges)if(edge.from===from)reachable.add(edge.to);
+   const incoming=data.edges.filter(edge=>edge.to===target&&reachable.has(edge.from));
+   // Retain the shared return for every other path. The selected edge alone
+   // reaches the new endpoint; the engine checks the resulting M11 plan.
+   return incoming.length>1&&incoming.some(edge=>edge.from===link.from&&edge.port===link.port&&
+    (edge.port==='next'||edge.port.startsWith('case:')));
+  }
+  function addDocumentBranchReturn(link,anchor){
+   const current=()=>anchor.isConnected&&documentView?.mode==='logic'&&canAddDocumentBranchReturn(link);
+   pickBranchMember(anchor,'새 분기 반환 선택',current,member=>{
+    changeBranchExits(w,plan=>{
+     const id='branch_'+crypto.randomUUID().replaceAll('-','');
+     const edge=plan.edges.find(row=>row.from===link.from&&row.port===link.port&&row.to===link.to.slice(1));
+     plan.exits[id]=rootExitChoice(w,plan.exits[link.to.slice(6)],member.id);
+     edge.to='exit:'+id;
+    });
+    w.authorDocumentView?.focusDocument();
+   });
+  }
   const documentSetTarget=id=>!flowDocument&&data.id===data.rootId&&data.profile?.startsWith('sync-')&&sets.supported(w)
    ?data.nodes.find(row=>row.id===id&&row.kind==='set'&&row.outputLocal)
    :null;
@@ -1030,6 +1062,7 @@ function blueprintNormalizeControls(scope){
    },
    hasCallComparison:id=>!!documentCallComparison(id),compareCall:compareDocumentCall,
    pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
+   canAddBranchReturn:canAddDocumentBranchReturn,addBranchReturn:addDocumentBranchReturn,
    hasSetTarget:id=>!!documentSetTarget(id),
    mountSetTarget:(id,control)=>{
     const row=documentSetTarget(id);
