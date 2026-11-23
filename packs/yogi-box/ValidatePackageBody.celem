@@ -1,0 +1,1 @@
+implementation Confectory.YogiBox::ValidatePackageBody for Confectory.YogiBox::ValidatePackage (string text, string project, string owner, string manifest, string semanticNamespace, bool enclosed) -> string {body common "ValidatePackage.csbody";}

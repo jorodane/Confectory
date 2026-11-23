@@ -1,0 +1,316 @@
+const int MaxMessages = 256;
+const int MaxConnections = 16;
+const int MaxJournalBytes = 4 * 1024 * 1024;
+var strictUtf8 = new System.Text.UTF8Encoding(false, true);
+
+static string Hash(string text) =>
+    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+
+void CheckParticipant(string participant)
+{
+    if (string.IsNullOrWhiteSpace(participant) || participant.Length > 128 ||
+        System.Linq.Enumerable.Any(participant, char.IsControl))
+        throw new ArgumentException("Explicit bounded participant required.");
+    strictUtf8.GetByteCount(participant);
+}
+
+static bool IsStableId(string id) =>
+    Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
+
+void CheckMessage(string id, string text)
+{
+    if (!IsStableId(id))
+        throw new ArgumentException("A stable message GUID in lowercase N form is required.");
+    if (string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
+        throw new ArgumentException("Explicit bounded chat text required.");
+    strictUtf8.GetByteCount(text);
+}
+
+static void CheckOwnedPath(string path)
+{
+    for (string? part = path; part is not null; part = System.IO.Path.GetDirectoryName(part))
+    {
+        try
+        {
+            if ((System.IO.File.GetAttributes(part) & System.IO.FileAttributes.ReparsePoint) != 0)
+                throw new ArgumentException("Project chat storage must not use filesystem links.");
+        }
+        catch (System.IO.FileNotFoundException) { }
+        catch (System.IO.DirectoryNotFoundException) { }
+    }
+}
+
+System.Text.Json.Nodes.JsonObject MessageRow((string Id, string Sender, string Text, string? Attachment) row)
+{
+    var message = new System.Text.Json.Nodes.JsonObject { ["id"] = row.Id, ["sender"] = row.Sender, ["text"] = row.Text };
+    if (manifest.Length != 0 && row.Attachment is not null) message["attachmentId"] = row.Id;
+    return message;
+}
+
+static System.Text.Json.Nodes.JsonObject JournalRow((string Id, string Sender, string Text, string? Attachment) row)
+{
+    var message = new System.Text.Json.Nodes.JsonObject { ["id"] = row.Id, ["sender"] = row.Sender, ["text"] = row.Text };
+    if (row.Attachment is not null) message["attachment"] = System.Text.Json.Nodes.JsonNode.Parse(row.Attachment);
+    return message;
+}
+
+string NormalizeAttachment(System.Text.Json.Nodes.JsonObject handoff)
+{
+    string semanticNamespace = handoff["namespace"]?.GetValue<string>() ?? "";
+    if (handoff.Count != 2 || string.IsNullOrWhiteSpace(semanticNamespace) || semanticNamespace.Length > 256 ||
+        handoff["package"] is not System.Text.Json.Nodes.JsonObject package)
+        throw new ArgumentException("Scoped Yogi handoff expected.");
+
+    var validated = System.Text.Json.Nodes.JsonNode.Parse(calls.ValidatePackage.Invoke(
+        package.ToJsonString(), "", "", "", semanticNamespace, false))!.AsObject();
+    if (validated["sealed"]?.GetValue<bool>() != true)
+        throw new InvalidOperationException("Seal a live Yogi before sending.");
+    // EY stays a reference. Resolve it later under the reader's existing workspace access.
+    foreach (var item in validated["items"]!.AsArray())
+        if (item!["kind"]!.GetValue<string>() == "semantic") item["metadata"] = new System.Text.Json.Nodes.JsonObject();
+    return new System.Text.Json.Nodes.JsonObject { ["namespace"] = semanticNamespace, ["package"] = validated }.ToJsonString();
+}
+
+CheckParticipant(hostParticipant);
+if (!IsStableId(projectId)) throw new ArgumentException("An existing stable project ID is required.");
+if (manifest.Length != 0)
+{
+    if (!System.IO.Path.IsPathFullyQualified(manifest) || !System.IO.File.Exists(manifest) ||
+        System.IO.Path.GetExtension(manifest).ToLowerInvariant() is not (".cpack" or ".cproj"))
+        throw new ArgumentException("An existing absolute project manifest is required for attachments.");
+    manifest = System.IO.Path.GetFullPath(manifest);
+    CheckOwnedPath(manifest);
+}
+if (!System.IO.Path.IsPathFullyQualified(hostStorage) || !System.IO.Directory.Exists(hostStorage))
+    throw new ArgumentException("An existing absolute host-local storage directory is required.");
+string storage = System.IO.Path.Combine(System.IO.Path.GetFullPath(hostStorage), "project-chat");
+string file = projectId + ".json";
+string path = System.IO.Path.Combine(storage, file);
+CheckOwnedPath(path);
+
+var history = new System.Collections.Generic.List<(string Id, string Sender, string Text, string? Attachment)>();
+var byId = new System.Collections.Generic.Dictionary<string, (string Id, string Sender, string Text, string? Attachment)>(StringComparer.Ordinal);
+var saved = calls.Snapshot.Invoke(path, MaxJournalBytes);
+string basis = saved[2];
+string? manifestKey = manifest.Length == 0 ? null : Hash(OperatingSystem.IsWindows() ? manifest.ToUpperInvariant() : manifest);
+string? attachmentScope = null;
+if (saved[0] == "exists")
+{
+    var document = System.Text.Json.Nodes.JsonNode.Parse(saved[1])?.AsObject()
+        ?? throw new InvalidOperationException("Project chat journal is invalid.");
+    int version = document["version"]?.GetValue<int>() ?? 0;
+    if (version is not (1 or 2) || document.Count != (version == 2 ? 5 : 4) ||
+        document["project"]?.GetValue<string>() != projectId ||
+        document["host"]?.GetValue<string>() != hostParticipant ||
+        document["messages"] is not System.Text.Json.Nodes.JsonArray records || records.Count > MaxMessages)
+        throw new InvalidOperationException("Project chat journal does not belong to this host and project.");
+
+    if (version == 2)
+    {
+        attachmentScope = document["attachmentScope"]?.GetValue<string>();
+        if (attachmentScope is null || attachmentScope.Length != 64 ||
+            (manifestKey is not null && attachmentScope != manifestKey))
+            throw new InvalidOperationException("The attachment journal belongs to another project manifest.");
+    }
+
+    foreach (var record in records)
+    {
+        if (record is not System.Text.Json.Nodes.JsonObject row ||
+            (row.Count != 3 && (row.Count != 4 || version != 2 ||
+                row["attachment"] is not System.Text.Json.Nodes.JsonObject)))
+            throw new InvalidOperationException("Project chat journal contains an invalid message.");
+        string id = row["id"]!.GetValue<string>();
+        string sender = row["sender"]!.GetValue<string>();
+        string text = row["text"]!.GetValue<string>();
+        CheckMessage(id, text);
+        CheckParticipant(sender);
+        string? attachment = row["attachment"] is System.Text.Json.Nodes.JsonObject attached
+            ? NormalizeAttachment(attached)
+            : null;
+        var message = (id, sender, text, attachment);
+        if (!byId.TryAdd(id, message)) throw new InvalidOperationException("Duplicate project chat message ID.");
+        history.Add(message);
+    }
+}
+
+var gate = new object();
+bool closed = false;
+var connections = new System.Collections.Generic.List<
+    System.Collections.Generic.List<(string Id, string Sender, string Text, string? Attachment)>>();
+
+void CheckOpen()
+{
+    if (closed) throw new ObjectDisposedException("Project chat host");
+}
+
+string ReadHost()
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Select(history, MessageRow));
+    }
+}
+
+// Call under gate. Acknowledgements contain no historical message data, including on retry.
+bool Send(string sender, string id, string text, string? attachment = null)
+{
+    CheckMessage(id, text);
+    var message = (id, sender, text, attachment);
+    if (byId.TryGetValue(id, out var prior))
+    {
+        if (prior != message) throw new InvalidOperationException("The message ID belongs to a different submission.");
+        return true;
+    }
+    if (history.Count == MaxMessages) throw new InvalidOperationException("Project chat journal is full.");
+
+    string? nextScope = attachmentScope ?? (attachment is null ? null : manifestKey);
+    var document = new System.Text.Json.Nodes.JsonObject
+    {
+        ["version"] = nextScope is null ? 1 : 2,
+        ["project"] = projectId,
+        ["host"] = hostParticipant,
+        ["messages"] = new System.Text.Json.Nodes.JsonArray(
+            System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Append(
+                System.Linq.Enumerable.Select(history, JournalRow), JournalRow(message))))
+    };
+    if (nextScope is not null) document["attachmentScope"] = nextScope;
+    string next = document.ToJsonString();
+    if (System.Text.Encoding.UTF8.GetByteCount(next) > MaxJournalBytes)
+        throw new InvalidOperationException("Project chat journal exceeds its byte bound.");
+
+    CheckOwnedPath(path);
+    System.IO.Directory.CreateDirectory(storage);
+    if (calls.Commit.Invoke(storage, new[] { file }, new[] { basis }, new[] { next })[0] != "applied")
+        throw new InvalidOperationException("Project chat journal changed. Reopen the host before retrying.");
+
+    basis = Hash(next);
+    attachmentScope = nextScope;
+    history.Add(message);
+    byId.Add(id, message);
+    foreach (var inbox in connections) inbox.Add(message);
+    return true;
+}
+
+bool SendHost(string id, string text)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return Send(hostParticipant, id, text);
+    }
+}
+
+// These callbacks are only issued to the corresponding live owner/connection.
+string ReadAttachment(
+    System.Collections.Generic.List<(string Id, string Sender, string Text, string? Attachment)> messages, string id)
+{
+    if (manifest.Length != 0 && IsStableId(id))
+        foreach (var message in messages)
+            if (message.Id == id && message.Attachment is not null) return message.Attachment;
+    throw new UnauthorizedAccessException("Attachment is not available in this chat scope.");
+}
+
+string Capture(string box, string sender)
+{
+    if (manifest.Length == 0) throw new InvalidOperationException("An explicit project manifest is required to send attachments.");
+    return NormalizeAttachment(System.Text.Json.Nodes.JsonNode.Parse(
+        calls.Handoff.Invoke(box, projectId, sender, manifest))!.AsObject());
+}
+
+bool SendHostAttachment(string id, string text, string box)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return Send(hostParticipant, id, text, Capture(box, hostParticipant));
+    }
+}
+
+string ReadHostAttachment(string id)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        return ReadAttachment(history, id);
+    }
+}
+
+object Join(string participant)
+{
+    lock (gate)
+    {
+        CheckOpen();
+        CheckParticipant(participant);
+        if (participant == hostParticipant)
+            throw new InvalidOperationException("The host identity cannot join as a participant.");
+        if (connections.Count == MaxConnections)
+            throw new InvalidOperationException("Project chat has reached its connection limit.");
+
+        var inbox = new System.Collections.Generic.List<(string Id, string Sender, string Text, string? Attachment)>();
+        connections.Add(inbox);
+        void CheckConnection()
+        {
+            CheckOpen();
+            if (!connections.Contains(inbox)) throw new ObjectDisposedException("Project chat connection");
+        }
+        bool SendHere(string id, string text)
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return Send(participant, id, text);
+            }
+        }
+        string Read()
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Select(inbox, MessageRow));
+            }
+        }
+        bool SendHereAttachment(string id, string text, string box)
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return Send(participant, id, text, Capture(box, participant));
+            }
+        }
+        string ReadHereAttachment(string id)
+        {
+            lock (gate)
+            {
+                CheckConnection();
+                return ReadAttachment(inbox, id);
+            }
+        }
+        void Leave()
+        {
+            lock (gate)
+            {
+                connections.Remove(inbox);
+                inbox.Clear();
+            }
+        }
+
+        return ((Func<string, string, bool>)SendHere, (Func<string>)Read, (Action)Leave,
+            (Func<string, string, string, bool>)SendHereAttachment, (Func<string, string>)ReadHereAttachment);
+    }
+}
+
+void Close()
+{
+    lock (gate)
+    {
+        closed = true;
+        foreach (var inbox in connections) inbox.Clear();
+        connections.Clear();
+        history.Clear();
+        byId.Clear();
+    }
+}
+
+return ((Func<string, object>)Join, (Func<string, string, bool>)SendHost, (Func<string>)ReadHost, (Action)Close,
+    (Func<string, string, string, bool>)SendHostAttachment, (Func<string, string>)ReadHostAttachment);

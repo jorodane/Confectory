@@ -1,0 +1,4 @@
+function Confectory.YogiBox::HandoffSnapshot (string box, string project, string owner, string manifest) -> string {
+provide Confectory.YogiBox::HandoffSnapshot with Confectory.YogiBox::HandoffSnapshotBody;
+description "Clone the sealed package for an explicit handoff. Scoped consumers must supply the bound project, participant and canonical manifest.";
+}

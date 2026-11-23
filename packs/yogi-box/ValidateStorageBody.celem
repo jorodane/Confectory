@@ -1,1 +1,3 @@
-implementation Confectory.YogiBox::ValidateStorageBody for Confectory.YogiBox::ValidateStorage (string text, string project, string owner, string manifest, string semanticNamespace) -> string {body common "ValidateStorage.csbody";}
+implementation Confectory.YogiBox::ValidateStorageBody for Confectory.YogiBox::ValidateStorage (string text, string project, string owner, string manifest, string semanticNamespace) -> string {
+import Confectory.YogiBox::ValidatePackage as Validate (string,string,string,string,string,bool) -> string;
+body common "ValidateStorage.csbody";}

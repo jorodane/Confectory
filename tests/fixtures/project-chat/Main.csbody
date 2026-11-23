@@ -17,25 +17,55 @@ static void Expect(Func<string> read, params int[] values)
     Check(System.Linq.Enumerable.SequenceEqual(ids, System.Linq.Enumerable.Select(values, Id)),
         "Unexpected message IDs: " + string.Join(",", ids));
 }
-static (Func<string, string, bool> Send, Func<string> Read, Action Leave) Guest(object connection) =>
-    ((Func<string, string, bool>, Func<string>, Action))connection;
+static (Func<string, string, bool> Send, Func<string> Read, Action Leave,
+        Func<string, string, string, bool> SendAttachment, Func<string, string> ReadAttachment) Guest(object connection) =>
+    ((Func<string, string, bool>, Func<string>, Action, Func<string, string, string, bool>, Func<string, string>))connection;
+
+static void ExpectAttachment(Func<string, string> read, int id, string description)
+{
+    var attachment = System.Text.Json.Nodes.JsonNode.Parse(read(Id(id)))!["package"]!;
+    Check(attachment["text"]!.ToString() == description, "Attachment description changed");
+    var items = attachment["items"]!.AsArray();
+    Check(items.Count == 2 && items[0]!["id"]!.ToString() == "Test.ProjectChat::Main" &&
+        items[0]!["metadata"]!.AsObject().Count == 0, "Expected a stable EY reference without captured metadata");
+    Check(Convert.FromBase64String(items[1]!["capture"]!["pixels"]!.ToString()).AsSpan()
+        .SequenceEqual(new byte[] { 23, 61, 201 }), "LaY pixels changed");
+}
 
 var root = Environment.GetEnvironmentVariable("CONFECTORY_CHAT_FIXTURE")!;
+const string Description = "전송 시점의 설명";
+const string RevisedDescription = "수정한 설명";
 const string AliceText = "첫 번째 메시지\nwith a second line 🐉";
 string home = System.IO.Path.Combine(root, "host-home");
 string otherHome = System.IO.Path.Combine(root, "other-home");
+string manifest = System.IO.Path.Combine(root, "project.cpack");
+string mirror = System.IO.Path.Combine(root, "mirror", "project.cpack");
 string project = Id(100);
 string other = Id(200);
-(Func<string, object> Join, Func<string, string, bool> Send, Func<string> Read, Action Close)
-    Open(string projectId, string actor = "host", string? storage = null) =>
-    ((Func<string, object>, Func<string, string, bool>, Func<string>, Action))
-        calls.Open.Invoke(storage ?? home, projectId, actor);
+(Func<string, object> Join, Func<string, string, bool> Send, Func<string> Read, Action Close,
+    Func<string, string, string, bool> SendAttachment, Func<string, string> ReadAttachment) Open(string projectId, string actor = "host", string? storage = null) =>
+    ((Func<string, object>, Func<string, string, bool>, Func<string>, Action,
+      Func<string, string, string, bool>, Func<string, string>))calls.Open.Invoke(storage ?? home, projectId, actor,
+           projectId == project ? manifest : mirror);
 
 var host = Open(project);
 var journal = System.IO.Path.Combine(home, "project-chat", project + ".json");
 if (Environment.GetEnvironmentVariable("CONFECTORY_CHAT_PHASE") == "restart")
 {
     Expect(host.Read, 1, 2, 3, 4, 5);
+    ExpectAttachment(host.ReadAttachment, 2, Description);
+    ExpectAttachment(host.ReadAttachment, 4, RevisedDescription);
+    string priorWorkspace = calls.OpenWorkspace.Invoke(System.IO.Path.Combine(root, "project.cpack"), "alice", "attachment-fixture");
+    string priorBox = calls.OpenBox.Invoke(System.IO.Path.Combine(root, ".confectory", "yogi"), project, "alice", priorWorkspace);
+    var persistedBox = System.Text.Json.Nodes.JsonNode.Parse(calls.BoxSnapshot.Invoke(priorBox))!;
+    Check(persistedBox["text"]!.ToString() == "existing private box contents" && persistedBox["items"]!.AsArray().Count == 0,
+        "Public attachment appeared in the private box after restart");
+    var (_, _, textOnlyRead, textOnlyClose) =
+        ((Func<string, object>, Func<string, string, bool>, Func<string>, Action))calls.OpenText.Invoke(home, project, "host");
+    Expect(textOnlyRead, 1, 2, 3, 4, 5);
+    Check(!textOnlyRead().Contains("attachmentId"), "Text API changed row shape");
+    Reject<InvalidOperationException>(() => { _ = calls.Open.Invoke(home, project, "host", mirror); });
+    textOnlyClose();
     Reject<InvalidOperationException>(() => { _ = Open(project, "not-the-host"); });
     var isolatedHome = Open(project, storage: otherHome);
     Expect(isolatedHome.Read);
@@ -45,7 +75,10 @@ if (Environment.GetEnvironmentVariable("CONFECTORY_CHAT_PHASE") == "restart")
     var bob = Guest(host.Join("bob"));
     Expect(alice.Read);
     Expect(bob.Read);
-    Check(alice.Send(Id(2), AliceText), "Original receipt not recognized");
+    Reject<UnauthorizedAccessException>(() => { _ = alice.ReadAttachment(Id(2)); });
+    Reject<UnauthorizedAccessException>(() => { _ = bob.ReadAttachment(Id(2)); });
+    Reject<UnauthorizedAccessException>(() => { _ = isolatedHome.ReadAttachment(Id(2)); });
+    Reject<UnauthorizedAccessException>(() => { _ = isolatedGuest.ReadAttachment(Id(2)); });
     Expect(alice.Read);
     Expect(bob.Read);
     Expect(host.Read, 1, 2, 3, 4, 5);
@@ -58,43 +91,102 @@ if (Environment.GetEnvironmentVariable("CONFECTORY_CHAT_PHASE") == "restart")
     isolatedHome.Close();
     host.Close();
     Reject<ObjectDisposedException>(() => { _ = alice.Read(); });
-    Console.WriteLine("PASS separate process restores only host history; old retry has no delivery");
+    Console.WriteLine("PASS cold restart restores host attachments and text API; guests and other EditorHome cannot read old IDs");
     return 0;
 }
 
+string workspace = calls.OpenWorkspace.Invoke(manifest, "alice", "attachment-fixture");
+string directory = System.IO.Path.Combine(root, ".confectory", "yogi");
+string box = calls.OpenBox.Invoke(directory, project, "alice", workspace);
+calls.SetDescription.Invoke(box, "existing private box contents");
+calls.SaveBox.Invoke(box);
+string privateFile = System.Linq.Enumerable.Single(System.IO.Directory.GetFiles(directory, "package-*.json"));
+byte[] privateContents = System.IO.File.ReadAllBytes(privateFile);
+
 Check(host.Send(Id(1), "before either guest joined"), "Host send rejected");
+var textJournal = System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(journal))!;
+Check(textJournal["version"]!.GetValue<int>() == 1, "Text-only journal changed versions");
 Reject<InvalidOperationException>(() => { _ = host.Join("host"); });
 object connection = host.Join("alice");
 Check(connection is not ValueTuple<Func<string, object>, Func<string, string, bool>, Func<string>, Action>,
     "A guest received a host capability");
 var aliceFirst = Guest(connection);
 Expect(aliceFirst.Read);
-Check(aliceFirst.Send(Id(2), AliceText), "Guest send rejected");
-Expect(aliceFirst.Read, 2);
 var bobFirst = Guest(host.Join("bob"));
-Expect(bobFirst.Read);
+Reject<InvalidOperationException>(() => { _ = aliceFirst.SendAttachment(Id(2), AliceText, box); });
+calls.SetDescription.Invoke(box, Description);
+calls.Exactly.Invoke(box, workspace, new[] { "Test.ProjectChat::Main" }, new[] { "description" });
+string source = new string('a', 64);
+var pixels = new byte[] { 23, 61, 201 };
+string ticket = calls.Reserve.Invoke(box, source, 0, 4, 5, 1, 1);
+Reject<InvalidOperationException>(() => calls.Seal.Invoke(box, true));
+string capture = System.Text.Json.JsonSerializer.Serialize(new {
+    source, view = 0, x = 4, y = 5, width = 1, height = 1,
+    encoding = "rgb24-base64", scope = "selected-owned-client-region", pixels = Convert.ToBase64String(pixels),
+    hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pixels)).ToLowerInvariant()
+});
+Check(calls.Complete.Invoke(box, ticket, capture), "Fixture capture rejected");
+calls.Seal.Invoke(box, true);
+Reject<InvalidOperationException>(() => { _ = calls.LegacyHandoff.Invoke(box, "unspecified-receiver"); });
+Expect(host.Read, 1); // Merely sealing or leaving without a send never creates an attachment.
+Reject<UnauthorizedAccessException>(() => { _ = bobFirst.SendAttachment(Id(2), AliceText, box); });
+Reject<UnauthorizedAccessException>(() => { _ = host.SendAttachment(Id(2), AliceText, box); });
+string mirrorWorkspace = calls.OpenWorkspace.Invoke(mirror, "alice", "other-manifest");
+string mirrorBox = calls.OpenBox.Invoke(
+    System.IO.Path.Combine(root, "mirror", ".confectory", "yogi"), project, "alice", mirrorWorkspace);
+calls.SetDescription.Invoke(mirrorBox, "same actor and project label in another workspace");
+calls.Seal.Invoke(mirrorBox, true);
+Reject<UnauthorizedAccessException>(() => { _ = aliceFirst.SendAttachment(Id(2), AliceText, mirrorBox); });
+Check(aliceFirst.SendAttachment(Id(2), AliceText, box), "Guest send rejected");
+ExpectAttachment(aliceFirst.ReadAttachment, 2, Description);
+ExpectAttachment(bobFirst.ReadAttachment, 2, Description);
+ExpectAttachment(host.ReadAttachment, 2, Description);
+Check(aliceFirst.Read().Contains("attachmentId") && !aliceFirst.Read().Contains("pixels"), "List exposed attachment payload");
+Expect(aliceFirst.Read, 2);
+Expect(bobFirst.Read, 2);
+var late = Guest(host.Join("late"));
+Expect(late.Read);
+Reject<UnauthorizedAccessException>(() => { _ = late.ReadAttachment(Id(2)); });
 Check(host.Send(Id(3), "live post for both guests"), "Host send rejected");
 Expect(aliceFirst.Read, 2, 3);
-Expect(bobFirst.Read, 3);
+Expect(bobFirst.Read, 2, 3);
 var secondHost = Open(other);
 var otherAlice = Guest(secondHost.Join("alice"));
 Expect(otherAlice.Read);
+Reject<UnauthorizedAccessException>(() => { _ = otherAlice.SendAttachment(Id(2), AliceText, box); });
+Reject<UnauthorizedAccessException>(() => { _ = otherAlice.ReadAttachment(Id(2)); });
 Check(otherAlice.Send(Id(2), "independent project"), "Same ID in a separate project rejected");
-Expect(secondHost.Read, 2);
-Expect(otherAlice.Read, 2);
+string hostWorkspace = calls.OpenWorkspace.Invoke(mirror, "host", "host-send");
+string hostBox = calls.OpenBox.Invoke(System.IO.Path.Combine(root, "mirror", ".confectory", "yogi"), other, "host", hostWorkspace);
+calls.SetDescription.Invoke(hostBox, "host's sealed attachment");
+calls.Seal.Invoke(hostBox, true);
+Check(secondHost.SendAttachment(Id(7), "host post", hostBox), "Host attachment send rejected");
+var hostPost = System.Text.Json.Nodes.JsonNode.Parse(otherAlice.ReadAttachment(Id(7)))!;
+Check(hostPost["package"]!["text"]!.ToString() == "host's sealed attachment", "Host attachment did not reach active guest");
+Reject<UnauthorizedAccessException>(() => { _ = host.ReadAttachment(Id(7)); });
+Reject<UnauthorizedAccessException>(() => { _ = aliceFirst.ReadAttachment(Id(7)); });
+Expect(secondHost.Read, 2, 7);
+Expect(otherAlice.Read, 2, 7);
 Expect(aliceFirst.Read, 2, 3);
 secondHost.Close();
 
 aliceFirst.Leave();
 Reject<ObjectDisposedException>(() => { _ = aliceFirst.Read(); });
+Reject<ObjectDisposedException>(() => { _ = aliceFirst.ReadAttachment(Id(2)); });
 Reject<ObjectDisposedException>(() => { _ = aliceFirst.Send(Id(4), "old connection"); });
 var rejoined = Guest(host.Join("alice"));
 Expect(rejoined.Read);
-Check(rejoined.Send(Id(2), AliceText), "Exact retry rejected");
+Reject<UnauthorizedAccessException>(() => { _ = rejoined.ReadAttachment(Id(2)); });
+Check(rejoined.SendAttachment(Id(2), AliceText, box), "Exact retry rejected");
+Reject<UnauthorizedAccessException>(() => { _ = rejoined.ReadAttachment(Id(2)); });
 Expect(rejoined.Read);
-Expect(bobFirst.Read, 3);
+Expect(bobFirst.Read, 2, 3);
 Reject<InvalidOperationException>(() => { _ = bobFirst.Send(Id(2), AliceText); });
-Reject<InvalidOperationException>(() => { _ = rejoined.Send(Id(2), "changed payload"); });
+Reject<InvalidOperationException>(() => { _ = rejoined.SendAttachment(Id(2), "changed payload", box); });
+calls.SetDescription.Invoke(box, RevisedDescription);
+calls.Seal.Invoke(box, true);
+Reject<InvalidOperationException>(() => { _ = rejoined.SendAttachment(Id(2), AliceText, box); });
+ExpectAttachment(host.ReadAttachment, 2, Description);
 Console.WriteLine("PASS own posts, live peer visibility, project isolation, late join and revoked connection");
 
 byte[] committed = System.IO.File.ReadAllBytes(journal);
@@ -102,30 +194,37 @@ var attributes = System.IO.File.GetAttributes(journal);
 System.IO.File.SetAttributes(journal, attributes | System.IO.FileAttributes.ReadOnly);
 try
 {
-    Reject<UnauthorizedAccessException>(() => { _ = rejoined.Send(Id(4), "retry after write rejection"); });
+    Reject<UnauthorizedAccessException>(() => { _ = rejoined.SendAttachment(Id(4), "retry after write rejection", box); });
     Expect(host.Read, 1, 2, 3);
     Expect(rejoined.Read);
-    Expect(bobFirst.Read, 3);
+    Reject<UnauthorizedAccessException>(() => { _ = host.ReadAttachment(Id(4)); });
+    Reject<UnauthorizedAccessException>(() => { _ = rejoined.ReadAttachment(Id(4)); });
+    Expect(bobFirst.Read, 2, 3);
     Check(System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(committed), "Rejected write changed journal");
 }
 finally
 {
     System.IO.File.SetAttributes(journal, attributes);
 }
-Check(rejoined.Send(Id(4), "retry after write rejection"), "Retry did not commit");
+Check(rejoined.SendAttachment(Id(4), "retry after write rejection", box), "Retry did not commit");
 byte[] retry = System.IO.File.ReadAllBytes(journal);
-Check(rejoined.Send(Id(4), "retry after write rejection"), "Duplicate receipt not recognized");
+Check(rejoined.SendAttachment(Id(4), "retry after write rejection", box), "Duplicate receipt not recognized");
 Check(System.IO.File.ReadAllBytes(journal).AsSpan().SequenceEqual(retry), "Exact retry rewrote journal");
 Expect(rejoined.Read, 4);
-Expect(bobFirst.Read, 3, 4);
+Expect(bobFirst.Read, 2, 3, 4);
+ExpectAttachment(rejoined.ReadAttachment, 4, RevisedDescription);
+ExpectAttachment(bobFirst.ReadAttachment, 4, RevisedDescription);
+Check(System.IO.File.ReadAllBytes(privateFile).AsSpan().SequenceEqual(privateContents), "Public send changed private Yogi draft");
 
 var stale = Open(project);
-var staleGuest = Guest(stale.Join("observer"));
+var staleGuest = Guest(stale.Join("alice"));
 Check(host.Send(Id(5), "host continues"), "Host send rejected");
-Reject<InvalidOperationException>(() => { _ = staleGuest.Send(Id(6), "stale candidate"); });
+Reject<InvalidOperationException>(() => { _ = staleGuest.SendAttachment(Id(6), "stale candidate", box); });
 Expect(staleGuest.Read);
+Reject<UnauthorizedAccessException>(() => { _ = staleGuest.ReadAttachment(Id(6)); });
+Reject<UnauthorizedAccessException>(() => { _ = host.ReadAttachment(Id(6)); });
 Expect(host.Read, 1, 2, 3, 4, 5);
-Expect(bobFirst.Read, 3, 4, 5);
+Expect(bobFirst.Read, 2, 3, 4, 5);
 Expect(rejoined.Read, 4, 5);
 stale.Close();
 host.Close();

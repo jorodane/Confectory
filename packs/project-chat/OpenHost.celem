@@ -1,8 +1,4 @@
 function Confectory.ProjectChat::OpenHost (string hostStorage, string projectId, string hostParticipant) -> object {
 provide Confectory.ProjectChat::OpenHost with Confectory.ProjectChat::OpenHostBody;
-provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
-provide Confectory.FileStream::Commit with Confectory.FileStream::CommitBody;
-provide Confectory.FileStream::LeasePath with Confectory.FileStream::LeasePathBody;
-provide Confectory.FileStream::WriteAtomic with Confectory.FileStream::WriteAtomicBody;
 description "Open the optional local project chat owner using host-local storage and an existing project identity. The trusted composer keeps the host capability and grants one in-memory participant capability per admitted connection.";
 }

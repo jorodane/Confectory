@@ -1,6 +1,9 @@
 pack Confectory.ProjectChat version "0.1.0" {
 standalone false;
 dependency Confectory.FileStream version "0.1.0";
+dependency Confectory.YogiBox version "0.1.0";
 element OpenHost function "OpenHost.celem";
 element OpenHostBody implementation "OpenHostBody.celem";
+element OpenHostWithAttachments function "OpenHostWithAttachments.celem";
+element OpenHostWithAttachmentsBody implementation "OpenHostWithAttachmentsBody.celem";
 }

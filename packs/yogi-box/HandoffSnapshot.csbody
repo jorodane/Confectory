@@ -1,0 +1,30 @@
+var state = AppDomain.CurrentDomain.GetData("Confectory.YogiBox." + box) as object[]
+    ?? throw new ObjectDisposedException("YogiBox");
+lock (state[0])
+{
+    if ((bool)state[5] || !(bool)state[2])
+        throw new InvalidOperationException("Seal a live Yogi before handoff");
+    string semanticNamespace = "";
+    if (project.Length != 0 || owner.Length != 0 || manifest.Length != 0)
+    {
+        if (state[6] is not object[] storage || project != (string)storage[1] || owner != (string)storage[2] ||
+            !string.Equals(manifest, (string)storage[3], OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+            throw new UnauthorizedAccessException("Yogi handoff project or owner mismatch.");
+        if (((System.Collections.Generic.Dictionary<string, System.Text.Json.Nodes.JsonObject>)state[4]).Count != 0 ||
+            ((System.Text.Json.Nodes.JsonArray)state[7]).Count != 0)
+            throw new InvalidOperationException("Pending or interrupted captures cannot be handed off.");
+        semanticNamespace = (string)storage[4];
+    }
+    return new System.Text.Json.Nodes.JsonObject
+    {
+        ["namespace"] = semanticNamespace,
+        ["package"] = new System.Text.Json.Nodes.JsonObject
+        {
+            ["schema"] = 1,
+            ["sealed"] = true,
+            ["text"] = (string)state[3],
+            ["items"] = ((System.Text.Json.Nodes.JsonArray)state[1]).DeepClone(),
+            ["pending"] = new System.Text.Json.Nodes.JsonArray()
+        }
+    }.ToJsonString();
+}

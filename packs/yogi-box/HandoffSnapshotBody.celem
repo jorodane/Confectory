@@ -1,0 +1,3 @@
+implementation Confectory.YogiBox::HandoffSnapshotBody for Confectory.YogiBox::HandoffSnapshot (string box, string project, string owner, string manifest) -> string {
+body common "HandoffSnapshot.csbody";
+}
