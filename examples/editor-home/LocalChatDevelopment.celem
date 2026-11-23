@@ -1,7 +1,4 @@
 function Confectory.EditorHome::LocalChatDevelopment (string session, string payload, string cancellation) -> string {
 provide Confectory.EditorHome::LocalChatDevelopment with Confectory.EditorHome::LocalChatDevelopmentBody;
-provide Confectory.ProjectManager::ReadIdentity with Confectory.ProjectManager::ReadIdentityBody;
-provide Confectory.ProjectManager::Context with Confectory.ProjectManager::ContextBody;
-provide Confectory.FileStream::BoundedSnapshot with Confectory.FileStream::BoundedSnapshotBody;
-description "Use a disposable desktop development view to join, read or explicitly send protected local chat.";
+description "Use the protected chat exchange through an owned transient WebUI view.";
 }

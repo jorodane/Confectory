@@ -57,4 +57,7 @@ import Confectory.HostLoop::Run as HostRun (string) -> int;
 import Confectory.HostLoop::Schedule as HostSchedule (string) -> void;
 import Confectory.NativeUI::Capabilities as NativeCapabilities () -> string;
 import Confectory.ProjectExecution::Capabilities as ExecutionCapabilities () -> string[];
+import Confectory.EditorHome::LocalChatExchange as LanExchange (string,string,object,bool) -> string;
+import Confectory.EditorHome::PublicChatHistory as PublicHistory (string,string,string,string,string) -> string;
+import Confectory.EditorHome.Model::CreatorHost as CreatorHost (string) -> bool;
 body common "Main.csbody"; }

@@ -1,0 +1,481 @@
+const int DevelopmentView = 17;
+const string Unavailable = "{\"status\":\"unavailable\"}";
+const string Denied = "{\"status\":\"denied\"}";
+const string Committed = "{\"status\":\"committed\"}";
+static bool StableId(string id) => Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
+bool development = !nativeLan && Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") == "1";
+bool lan = nativeLan || Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
+var isolatedRelay = nativeLan ? null : calls.IsolatedRelay.Invoke() as (string Role, Func<string, object?> Describe, Func<string, string?> Take)?;
+if ((nativeLan ? !OperatingSystem.IsLinux() : !OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
+    (!development && !lan && isolatedRelay is null) ||
+    binding is not (string view, System.Threading.CancellationToken life, string activation) || view.Length == 0 ||
+    AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
+    return Unavailable;
+
+lock (owner)
+{
+    if ((bool)owner[6] || life.IsCancellationRequested) return Unavailable;
+    var selected = ((System.Text.Json.Nodes.JsonObject)owner[3])["selected"];
+    if ((selected?["activation"]?.ToString() ?? "") != activation) return Unavailable;
+    var active = owner[DevelopmentView] as (string Activation, string View, Func<string,string,string,string> Exchange, Action Stop)?;
+
+    try
+    {
+        var args = System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
+        string? action = args["action"]?.GetValue<string>();
+        if (nativeLan && action is not ("issue-lan" or "inspect-lan" or "join-lan" or "read" or "status" or "send"))
+            return Unavailable;
+        if (action is "read" or "status" or "send" or "send-attachment" or "prepare-attachment" or "cancel-attachment" or
+            "attachment" or "first-image" or "second-image")
+        {
+            if (active is not { } bound || bound.View != view || bound.Activation != activation)
+                return Unavailable;
+            string id = "", text = "";
+            if (action is "send" or "send-attachment")
+            {
+                id = args["id"]?.GetValue<string>() ?? "";
+                text = args["text"]?.GetValue<string>() ?? "";
+                if (args.Count != 3 || !StableId(id) || string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))
+                    return Denied;
+            }
+            else if (action is not ("read" or "status"))
+            {
+                id = args["id"]?.GetValue<string>() ?? "";
+                if (args.Count != 2 || !StableId(id)) return Denied;
+            }
+            else if (args.Count != 1) return Unavailable;
+            life.ThrowIfCancellationRequested();
+            try { return bound.Exchange(action, id, text); }
+            catch { bound.Stop(); throw; }
+        }
+        if (active is not null) return Unavailable;
+
+        bool issuingLan = action == "issue-lan";
+        bool issuingRelay = action == "issue-relay";
+        if ((development && action == "issue" && args.Count == 1 || lan && issuingLan && args.Count == 3 ||
+             issuingRelay && args.Count == 1 && isolatedRelay is { Role: "host" }) &&
+            selected is not null && calls.CreatorHost.Invoke(session))
+        {
+            string project = selected["projectId"]!.GetValue<string>();
+            string title = selected["title"]!.GetValue<string>();
+            string hostAddress = issuingLan ? args["host"]?.GetValue<string>() ?? "" : "";
+            string guestAddress = issuingLan ? args["guest"]?.GetValue<string>() ?? "" : "";
+            if ((issuingLan || issuingRelay) && !ValidTitle(title)) return Denied;
+            var relay = issuingRelay ? RelayRoute("") : null;
+            if (issuingRelay && relay is null) return Unavailable;
+            var route = issuingLan ? Route(hostAddress, guestAddress) : default;
+            string tlsName = issuingLan ? LanTlsName(hostAddress, project) : "localhost";
+            var certificate = relay?.HostIdentity ?? NewLocalCertificate(tlsName, issuingLan);
+            (int Port, Action Stop, System.Threading.Tasks.Task Completion) listener;
+            try
+            {
+                if (relay is { } reserved)
+                {
+                    var (stop, completion) = ((Action, System.Threading.Tasks.Task))calls.StartRelay.Invoke(
+                        session, activation, certificate, ClaimRelay(reserved));
+                    listener = (0, stop, completion);
+                }
+                else
+                {
+                    var listening = issuingLan
+                        ? calls.StartProtected.Invoke(session, activation, certificate,
+                            (Func<object, object>)(options => ListenLan(route.Local!, route.Peer!, route.Attached!, options)))
+                        : calls.Start.Invoke(session, activation, certificate);
+                    listener = ((int, Action, System.Threading.Tasks.Task))listening;
+                }
+            }
+            catch { if (!issuingRelay) certificate.Dispose(); throw; }
+            if (!issuingRelay)
+                _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
+            (string Message, string Selection)? prepared = null;
+            Bind((op, id, text) =>
+            {
+                if (op is not ("status" or "send" or "prepare-attachment" or "cancel-attachment" or "send-attachment"))
+                    return Unavailable;
+                if (listener.Completion.IsCompleted || !ReferenceEquals(owner[16], listener.Completion) ||
+                    owner[15] is not (string scope, object _, object _, Func<bool> isActive, Action _, System.Threading.CancellationToken _) ||
+                    scope != activation || !isActive())
+                    throw new ObjectDisposedException("Local public chat host");
+                if (op == "status") return "{\"status\":\"hosting\"}";
+                if (op == "prepare-attachment")
+                {
+                    var result = System.Text.Json.Nodes.JsonNode.Parse(
+                        calls.Chat.Invoke(session, activation, op, id, "", ""));
+                    if (result?["selection"]?.GetValue<string>() is not string selection) return Denied;
+                    prepared = (id, selection);
+                    return "{\"status\":\"ready\"}";
+                }
+                if (op is "cancel-attachment" or "send-attachment")
+                {
+                    if (prepared is not { } chosen || chosen.Message != id) return Denied;
+                    string result = calls.Chat.Invoke(session, activation, op, id, chosen.Selection, text);
+                    if (op == "cancel-attachment" && result == "{\"status\":\"cancelled\"}")
+                    {
+                        prepared = null;
+                        return result;
+                    }
+                    // Keep the selection on acknowledgement loss so the same submission
+                    // can be retried by message ID through the existing journal CAS.
+                    return result == Committed ? Committed : Denied;
+                }
+                if (prepared is { } pinned && pinned.Message == id) return Denied;
+                return calls.Chat.Invoke(session, activation, "send-text", id, "", text) == Committed ? Committed : Denied;
+            }, () =>
+            {
+                try
+                {
+                    if (prepared is { } chosen)
+                        calls.Chat.Invoke(session, activation, "cancel-attachment", chosen.Message, chosen.Selection, "");
+                }
+                finally { listener.Stop(); }
+            });
+            try
+            {
+                life.ThrowIfCancellationRequested();
+                var issued = System.Text.Json.Nodes.JsonNode.Parse(
+                    calls.Chat.Invoke(session, activation, "issue-invitation", "", "", ""));
+                if (issued?["invitation"]?.GetValue<string>() is not string code) throw new InvalidOperationException();
+                var issuedCard = new System.Text.Json.Nodes.JsonObject
+                {
+                    ["version"] = issuingRelay ? 3 : issuingLan ? 2 : 1, ["project"] = project, ["code"] = code
+                };
+                if (relay is { } reserved)
+                {
+                    issuedCard["reservation"] = reserved.Id;
+                    issuedCard["title"] = title;
+                }
+                else
+                {
+                    issuedCard["port"] = listener.Port;
+                    issuedCard["certificate"] = Convert.ToBase64String(certificate.RawData);
+                }
+                if (issuingLan)
+                {
+                    issuedCard["host"] = hostAddress;
+                    issuedCard["guest"] = guestAddress;
+                    issuedCard["title"] = title;
+                }
+                return System.Text.Json.JsonSerializer.Serialize(new { status = "issued", card = issuedCard.ToJsonString() });
+            }
+            catch
+            {
+                if (owner[DevelopmentView] is ValueTuple<string, string, Func<string,string,string,string>, Action> bound) bound.Item4();
+                throw;
+            }
+        }
+
+        bool reviewingLan = action == "inspect-lan";
+        bool joiningLan = action == "join-lan";
+        bool reviewingRelay = action == "inspect-relay";
+        bool joiningRelay = action == "join-relay";
+        bool usingLan = reviewingLan || joiningLan;
+        bool usingRelay = reviewingRelay || joiningRelay;
+        if ((development && action == "join" && args.Count == 3 ||
+             lan && (reviewingLan && args.Count == 2 || joiningLan && args.Count == 4) ||
+             isolatedRelay is { Role: "guest" } && (reviewingRelay && args.Count == 2 || joiningRelay && args.Count == 4)) &&
+            args["card"]?.GetValue<string>() is string card && card.Length is > 0 and <= 4096)
+        {
+            var invitation = System.Text.Json.Nodes.JsonNode.Parse(card)!.AsObject();
+            if (invitation.Count != (usingLan ? 8 : 5) || invitation["version"]?.GetValue<int>() != (usingRelay ? 3 : usingLan ? 2 : 1) ||
+                invitation["project"]?.GetValue<string>() is not string project || !StableId(project) ||
+                invitation["code"]?.GetValue<string>() is not string code || code.Length != 64 ||
+                System.Linq.Enumerable.Any(code, character => !char.IsAsciiHexDigit(character)))
+                return Unavailable;
+
+            object connection;
+            Func<bool>? attachedGuest = null;
+            if (usingRelay)
+            {
+                if (invitation["reservation"]?.GetValue<string>() is not string id || !StableId(id) ||
+                    invitation["title"]?.GetValue<string>() is not string title || !ValidTitle(title) ||
+                    RelayRoute(id) is not { } reserved) return Denied;
+                string fingerprint = Digest(reserved.HostIdentity.RawData);
+                string review = Digest(System.Text.Encoding.UTF8.GetBytes(card + fingerprint + reserved.Endpoint + Digest(reserved.Pin.RawData)));
+                if (reviewingRelay)
+                    return System.Text.Json.JsonSerializer.Serialize(new { status = "review", relay = reserved.Endpoint.ToString(),
+                        project, title, fingerprint, review });
+                if (args["review"]?.GetValue<string>() != review || args["name"]?.GetValue<string>() is not string name ||
+                    name.Length is < 1 or > 64) return Denied;
+                life.ThrowIfCancellationRequested();
+                connection = calls.ConnectRelay.Invoke(ClaimRelay(reserved), reserved.HostIdentity, project, code, name, life);
+            }
+            else
+            {
+                if (invitation["port"]?.GetValue<int>() is not int port || port < (usingLan ? 1024 : 1) || port > 65535 ||
+                    invitation["certificate"]?.GetValue<string>() is not string encoded || encoded.Length > 3500) return Unavailable;
+                using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
+                if (usingLan)
+                {
+                    if (invitation["host"]?.GetValue<string>() is not string host ||
+                        invitation["guest"]?.GetValue<string>() is not string guest ||
+                        invitation["title"]?.GetValue<string>() is not string title || !ValidTitle(title))
+                        return Denied;
+                    var route = Route(guest, host);
+                    string review = Digest(System.Text.Encoding.UTF8.GetBytes(card));
+                    if (reviewingLan)
+                        return System.Text.Json.JsonSerializer.Serialize(new { status = "review", host, port, guest, project, title,
+                            fingerprint = Digest(pin.RawData), review });
+                    if (args["review"]?.GetValue<string>() != review || args["name"]?.GetValue<string>() is not string name ||
+                        name.Length is < 1 or > 64) return Denied;
+                    life.ThrowIfCancellationRequested();
+                    attachedGuest = route.Attached;
+                    connection = calls.ConnectProtected.Invoke(LanTlsName(host, project), pin,
+                        ((Func<System.Threading.CancellationToken, System.IO.Stream>)(cancel =>
+                            ConnectLan(route.Local, route.Peer, route.Attached, port, cancel)), life), project, code, name);
+                }
+                else
+                {
+                    if (args["name"]?.GetValue<string>() is not string name || name.Length is < 1 or > 64) return Denied;
+                    connection = calls.Connect.Invoke(port, pin, project, code, name);
+                }
+            }
+            var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))connection;
+            (string Message, string Box, string Digest)? prepared = null;
+            Bind((op, id, text) =>
+            {
+                if (attachedGuest?.Invoke() == false) throw new ObjectDisposedException("The selected private LAN route changed.");
+                if (op == "cancel-attachment")
+                {
+                    if (prepared is not { } pending || pending.Message != id) return Denied;
+                    prepared = null;
+                    return "{\"status\":\"cancelled\"}";
+                }
+                if (op is "prepare-attachment" or "send-attachment")
+                {
+                    if (op == "send-attachment" && (prepared is not { } chosen || chosen.Message != id)) return Denied;
+                    if (ReadGuestBox(out var box, out var digest, out var projection) is string refusal) return refusal;
+                    if (op == "prepare-attachment")
+                    {
+                        prepared = (id, box, digest);
+                        return "{\"status\":\"ready\"}";
+                    }
+                    if (prepared!.Value.Box != box || prepared.Value.Digest != digest) return Denied;
+                    return Send(new() { ["op"] = "send-attachment", ["id"] = id, ["text"] = text, ["attachment"] = projection });
+                }
+                if (op == "send")
+                {
+                    if (prepared is { } pinned && pinned.Message == id) return Denied;
+                    return Send(new() { ["op"] = "send", ["id"] = id, ["text"] = text });
+                }
+                string Send(System.Text.Json.Nodes.JsonObject message)
+                {
+                    string? status = request(message)["status"]?.ToString();
+                    return status switch
+                    {
+                        "committed" => Committed,
+                        "denied" => Denied,
+                        _ => throw new InvalidOperationException()
+                    };
+                }
+                if (op is "attachment" or "first-image" or "second-image")
+                {
+                    // The TLS peer resolves IDs against this exact admitted inbox.
+                    // Split captures to fit the WebUI result budget. EY identities
+                    // remain absent until a recipient workspace can authorize them.
+                    var reply = request(new() { ["op"] = "attachment", ["id"] = id });
+                    if (reply["status"]?.ToString() != "ok" || reply["items"] is not System.Text.Json.Nodes.JsonArray items)
+                        return Denied;
+                    if (op == "attachment")
+                    {
+                        var metadata = new System.Text.Json.Nodes.JsonArray();
+                        int nextImage = 0;
+                        foreach (var item in items)
+                        {
+                            if (item!["kind"]?.ToString() == "image")
+                                metadata.Add(new System.Text.Json.Nodes.JsonObject { ["kind"] = "image", ["image"] = nextImage++ });
+                            else
+                                metadata.Add(new System.Text.Json.Nodes.JsonObject { ["kind"] = "semantic", ["availability"] = "unavailable" });
+                        }
+                        return new System.Text.Json.Nodes.JsonObject
+                        {
+                            ["status"] = "available", ["description"] = reply["description"]!.DeepClone(), ["items"] = metadata
+                        }.ToJsonString();
+                    }
+                    int index = op == "first-image" ? 0 : 1;
+                    var image = System.Linq.Enumerable.ElementAtOrDefault(
+                        System.Linq.Enumerable.Where(items, item => item?["kind"]?.ToString() == "image"), index);
+                    return image is null ? Denied : new System.Text.Json.Nodes.JsonObject
+                    {
+                        ["status"] = "available", ["capture"] = image.DeepClone()
+                    }.ToJsonString();
+                }
+                if (op != "read") return Unavailable;
+                var response = request(new() { ["op"] = "read" });
+                if (response["status"]?.ToString() != "ok" || response["messages"] is not System.Text.Json.Nodes.JsonArray rows)
+                    throw new InvalidOperationException();
+                // Leave headroom under the WebUI response limit, even with escaped text.
+                int omitted = Math.Max(0, rows.Count - 128);
+                var messages = new System.Text.Json.Nodes.JsonArray();
+                for (int i = omitted; i < rows.Count; i++) messages.Add(rows[i]!.DeepClone());
+                return new System.Text.Json.Nodes.JsonObject
+                {
+                    ["status"] = "joined", ["messages"] = messages, ["omitted"] = omitted
+                }.ToJsonString();
+            }, close);
+            return life.IsCancellationRequested ? Unavailable : "{\"status\":\"joined\"}";
+
+            string? ReadGuestBox(out string box, out string digest, out System.Text.Json.Nodes.JsonObject? projection)
+            {
+                box = digest = "";
+                projection = null;
+                // This is the guest's own EditorHome selection, independent of
+                // the invitation's project. No browser-supplied data enters the box.
+                var local = ((System.Text.Json.Nodes.JsonObject)owner[3])["selected"];
+                if (activation.Length == 0 || local?["activation"]?.ToString() != activation)
+                    return Denied;
+                var boxes = (System.Collections.Generic.Dictionary<string, string>)owner[12];
+                string context = local["context"]!.GetValue<string>();
+                string localProject = local["projectId"]!.GetValue<string>();
+                if (!boxes.TryGetValue(context, out var currentBox)) return Denied;
+                try
+                {
+                    if (calls.ReadIdentity.Invoke((string[])owner[0], context) != localProject) return Denied;
+                    string snapshot = calls.Handoff.Invoke(currentBox, localProject, "local-user", local["path"]!.GetValue<string>());
+                    var package = System.Text.Json.Nodes.JsonNode.Parse(snapshot)!["package"]!;
+                    var images = new System.Text.Json.Nodes.JsonArray();
+                    foreach (var item in package["items"]!.AsArray())
+                    {
+                        if (item!["kind"]!.GetValue<string>() != "image")
+                            return "{\"status\":\"ey-unsupported\"}";
+                        var image = new System.Text.Json.Nodes.JsonObject { ["kind"] = "image" };
+                        foreach (string field in new[] { "width", "height", "encoding", "hash", "pixels" })
+                            image[field] = item["capture"]![field]!.DeepClone();
+                        images.Add(image);
+                    }
+                    box = currentBox;
+                    digest = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                        System.Text.Encoding.UTF8.GetBytes(snapshot)));
+                    projection = new() { ["description"] = package["text"]!.DeepClone(), ["items"] = images };
+                    return null;
+                }
+                catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+                    UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException)
+                {
+                    return Denied;
+                }
+            }
+        }
+    }
+    catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+        UnauthorizedAccessException or System.IO.IOException or System.Text.Json.JsonException or FormatException or
+        OperationCanceledException or System.Net.Sockets.SocketException or System.Net.NetworkInformation.NetworkInformationException or System.Security.Authentication.AuthenticationException or
+        System.Security.Cryptography.CryptographicException)
+    {
+        return Unavailable;
+    }
+    return Unavailable;
+
+    (string Id, System.Net.IPEndPoint Endpoint, string Dns, System.Security.Cryptography.X509Certificates.X509Certificate2 Pin,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 HostIdentity)? RelayRoute(string id) =>
+        isolatedRelay?.Describe(id) as (string, System.Net.IPEndPoint, string, System.Security.Cryptography.X509Certificates.X509Certificate2,
+            System.Security.Cryptography.X509Certificates.X509Certificate2)?;
+
+    object ClaimRelay((string Id, System.Net.IPEndPoint Endpoint, string Dns,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 Pin,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 HostIdentity) reserved)
+    {
+        life.ThrowIfCancellationRequested();
+        string token = isolatedRelay?.Take(reserved.Id) ?? throw new UnauthorizedAccessException("Relay reservation unavailable.");
+        return (reserved.Endpoint, reserved.Dns, reserved.Pin, token);
+    }
+
+    static string Digest(byte[] bytes) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+
+    static bool ValidTitle(string title) => title.Length is >= 1 and <= 128 && !System.Linq.Enumerable.Any(title, char.IsControl);
+
+    static System.Security.Cryptography.X509Certificates.X509Certificate2 NewLocalCertificate(string tlsName, bool lan)
+    {
+        using var key = System.Security.Cryptography.RSA.Create(2048);
+        var request = new System.Security.Cryptography.X509Certificates.CertificateRequest(lan ? "CN=Confectory LAN" : "CN=localhost", key,
+            System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+        var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+        san.AddDnsName(tlsName);
+        request.CertificateExtensions.Add(san.Build());
+        request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
+        request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+            System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+            System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
+        return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(15));
+    }
+
+    (System.Net.IPAddress Local, System.Net.IPAddress Peer, Func<bool> Attached) Route(string local, string peer) =>
+        ((System.Net.IPAddress, System.Net.IPAddress, Func<bool>))calls.PrivateLanRoute.Invoke(local, peer);
+
+    static string LanTlsName(string host, string project) => "lan-" + host.Replace('.', '-') + "." + project + ".confectory.invalid";
+
+    object ListenLan(System.Net.IPAddress local, System.Net.IPAddress peer, Func<bool> attached, object options)
+    {
+        var (certificate, admit, active, lifetime) = ((System.Security.Cryptography.X509Certificates.X509Certificate2,
+            Func<string, string, string, object>, Func<bool>, System.Threading.CancellationToken))options;
+        var listener = new System.Net.Sockets.TcpListener(local, 0);
+        (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action) Open(int backlog)
+        {
+            listener.Server.ExclusiveAddressUse = true;
+            listener.Server.Ttl = 1;
+            listener.Start(backlog);
+            return (Accept, listener.Stop);
+        }
+        async System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken cancel)
+        {
+            while (true)
+            {
+                var socket = await listener.AcceptSocketAsync(cancel).ConfigureAwait(false);
+                try
+                {
+                    if (socket.RemoteEndPoint is System.Net.IPEndPoint remote && remote.Address.Equals(peer) &&
+                        socket.LocalEndPoint is System.Net.IPEndPoint bound && bound.Address.Equals(local) && attached())
+                    {
+                        socket.Ttl = 1;
+                        return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                    }
+                }
+                catch { socket.Dispose(); throw; }
+                socket.Dispose();
+            }
+        }
+        try
+        {
+            var (stop, completion) = ((Action, System.Threading.Tasks.Task))calls.ListenProtected.Invoke(
+                (certificate, admit, (Func<bool>)(() => attached() && active()), lifetime,
+                 (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)Open));
+            return (((System.Net.IPEndPoint)listener.LocalEndpoint).Port, stop, completion);
+        }
+        catch { listener.Stop(); throw; }
+    }
+
+    static System.IO.Stream ConnectLan(System.Net.IPAddress local, System.Net.IPAddress peer, Func<bool> attached, int port,
+        System.Threading.CancellationToken cancel)
+    {
+        if (!attached()) throw new UnauthorizedAccessException("The local private route changed.");
+        var socket = new System.Net.Sockets.Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+            System.Net.Sockets.SocketType.Stream, System.Net.Sockets.ProtocolType.Tcp);
+        try
+        {
+            socket.Ttl = 1;
+            socket.Bind(new System.Net.IPEndPoint(local, 0));
+            socket.ConnectAsync(new System.Net.IPEndPoint(peer, port), cancel).AsTask().GetAwaiter().GetResult();
+            if (!attached()) throw new UnauthorizedAccessException("The local private route changed.");
+            return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+        }
+        catch { socket.Dispose(); throw; }
+    }
+
+    void Bind(Func<string,string,string,string> exchange, Action release)
+    {
+        bool closed = false;
+        System.Threading.CancellationTokenRegistration registration = default;
+        void Stop()
+        {
+            lock (owner)
+            {
+                if (closed) return;
+                closed = true;
+                owner[DevelopmentView] = null!;
+                registration.Unregister();
+                release();
+            }
+        }
+        owner[DevelopmentView] = (activation, view, exchange, (Action)Stop);
+        registration = life.UnsafeRegister(_ => Stop(), null);
+    }
+}

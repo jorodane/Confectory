@@ -1,0 +1,16 @@
+implementation Confectory.EditorHome::LocalChatExchangeBody for Confectory.EditorHome::LocalChatExchange (string session, string payload, object binding, bool nativeLan) -> string {
+import Confectory.EditorHome::StartPublicChatLoopback as Start (string,string,object) -> object;
+import Confectory.EditorHome::LocalPublicChat as Chat (string,string,string,string,string,string) -> string;
+import Confectory.EditorHome.Model::CreatorHost as CreatorHost (string) -> bool;
+import Confectory.ProjectChat::ConnectProtectedLoopback as Connect (int,object,string,string,string) -> object;
+import Confectory.ProjectManager::ReadIdentity as ReadIdentity (string[],string) -> string in Confectory.EditorHome::LocalChatExchange;
+import Confectory.YogiBox::HandoffSnapshot as Handoff (string,string,string,string) -> string;
+import Confectory.ProjectChat::PrivateLanRoute as PrivateLanRoute (string,string) -> object;
+import Confectory.EditorHome::StartPublicChat as StartProtected (string,string,object,object) -> object;
+import Confectory.ProjectChat::OpenProtectedChat as ListenProtected (object) -> object;
+import Confectory.ProjectChat::ConnectProtectedChat as ConnectProtected (string,object,object,string,string,string) -> object;
+import Confectory.EditorHome::IsolatedChatRelay as IsolatedRelay () -> object;
+import Confectory.EditorHome::StartPublicChatRelay as StartRelay (string,string,object,object) -> object;
+import Confectory.ProjectChat::ConnectRelayedProtectedChat as ConnectRelay (object,object,string,string,string,object) -> object;
+body common "LocalChatExchange.csbody";
+}
