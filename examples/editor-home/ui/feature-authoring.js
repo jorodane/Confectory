@@ -886,6 +886,58 @@ function blueprintNormalizeControls(scope){
   const documentSetTarget=id=>!flowDocument&&data.id===data.rootId&&data.profile?.startsWith('sync-')&&sets.supported(w)
    ?data.nodes.find(row=>row.id===id&&row.kind==='set'&&row.outputLocal)
    :null;
+  function documentExecutionTargets(id){
+   if(!canvasOwns()||api.busy||flowDocument||data.id!==data.rootId||data.privatePath||data.slotContext||
+      data.privateCopy||data.privateConversion||data.requiresCoupledCopy||w.meta.copyDraft||data.executionExitMode||
+      !['sync-acyclic-v1','sync-acyclic-implicit-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1'].includes(data.profile)||
+      !['source-ready','source-assembled'].includes(data.diagnostics?.state)||saveEntries(w).length||!frameInputsClear()||
+      branchExitSupported(w)||data.nodes.some(row=>!['code','call','export'].includes(row.kind)||row.control!=='next'||
+       row.branchOwner||row.contextBoundary||row.implementationContext||row.forwardCallerStorage||row.executionForwarded||
+       row.postCall||row.publicExecution||nodeAsync(w,row)))return [];
+   const ownedCode=row=>row.kind==='code'&&row.sourceId&&row.definitionHash;
+   if(id!=='$entry'&&!data.nodes.some(row=>row.id===id&&ownedCode(row)))return [];
+   const routes=rawLinks(),outgoing=from=>routes.filter(link=>link.from===from);
+   const next=from=>{const links=outgoing(from);return links.length===1&&links[0].port==='next'?links[0].to:null;};
+   const current=next(id);
+   if(!current&&outgoing(id).length)return [];
+   const visited=new Set();
+   for(let cell='$entry';cell&&!visited.has(cell);cell=next(cell))visited.add(cell);
+   if(!visited.has(id))return [];
+   const leadsToExit=from=>{
+    const seen=new Set(visited);
+    for(let cell=from;cell&&!seen.has(cell);cell=next(cell)){
+     if(cell.startsWith('$exit:'))return true;
+     seen.add(cell);
+    }
+    return false;
+   };
+   // Retain the continuation of an existing edge. For an open edge, accept
+   // only a detached path that already has an explicit exit of its own.
+   return data.nodes.filter(row=>ownedCode(row)&&!visited.has(row.id)&&!routes.some(link=>link.to===row.id)&&
+    (current?next(row.id)===current:(id!=='$entry'||!signature(row.signature).args.length)&&leadsToExit(row.id)));
+  }
+  function pickDocumentExecutionTarget(id,anchor){
+   if(documentView?.mode!=='logic'||closeMenu('preserve')===false)return;
+   const targets=documentExecutionTargets(id);
+   if(!targets.length)return;
+   const entry=id==='$entry',label=entry?'시작 대상 선택':'다음 실행 대상 선택';
+   api.modal(label,'<label>'+label+'<select data-document-route-choice><option value="">기존 셀 선택</option>'+
+    targets.map(row=>'<option value="'+esc(row.id)+'">'+esc(row.displayName&&row.displayName!==row.id?
+     row.displayName+' ('+row.id+')':row.id)+'</option>').join('')+'</select></label>'+
+    '<div class="actions"><button type="button" class="secondary" data-route-cancel>취소</button>'+
+    '<button type="button" data-route-apply disabled>적용</button></div>',(dialog,close)=>{
+     const choice=$('[data-document-route-choice]',dialog),apply=$('[data-route-apply]',dialog);
+     choice.onchange=()=>{apply.disabled=!choice.value;};
+     $('[data-route-cancel]',dialog).onclick=close;
+     apply.onclick=()=>{
+      if(!anchor.isConnected||documentView?.mode!=='logic'||!documentExecutionTargets(id).some(row=>row.id===choice.value))return;
+      const target=choice.value;
+      close();
+      structuralEdit(w,()=>privateValue(w,id,entry?'entry':'route',target));
+      w.authorDocumentView?.focusDocument();
+     };
+    });
+  }
   const documentModel=()=>{
    const model={...mobileModel(),inputs:inputFields};
    if(privatePropertyFrame()||rootPropertyFrame())model.links=model.links.flatMap(link=>{
@@ -936,6 +988,7 @@ function blueprintNormalizeControls(scope){
   }
   documentView=mountFunctionDocument(root,{...surface,context:functionDocumentContext(w,data),nativeDefinition:!!data.privateConversion&&!flowDocument,
    initialMode:flowChild?'blueprint':undefined,model:documentModel,
+   hasExecutionTarget:id=>documentExecutionTargets(id).length>0,pickExecutionTarget:pickDocumentExecutionTarget,
    pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
    hasSetTarget:id=>!!documentSetTarget(id),
    mountSetTarget:(id,control)=>{
