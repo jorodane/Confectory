@@ -19,6 +19,69 @@ export function runDebugFacts(data,error=false,surface=null,audio=null){
  let rate=null;if(connected)try{rate=decodeRunRate(surface?.renderRate,null,surface?.revision);}catch{}const rateText=rate?(rate.ready?(Number(rate.frames)*1000/rate.windowMs).toFixed(1)+' fps · 최근 '+rate.windowMs+' ms':'집계 중'):null;
  return Object.freeze({connected,lines:Object.freeze(['상태: '+(error?'확인 필요':Object.hasOwn(states,data?.state)?states[data.state]:'확인 필요'),rateText?'소프트웨어 출력 FPS: '+rateText:'렌더 FPS: 미지원','렌더 해상도: '+(surface?surface.width+' × '+surface.height+' px':'미지원'),audio?'오디오: PCM16 · 16000 Hz · 모노':'오디오: 미지원',...(connected?['프레임: '+counters[0],'제어: '+(c.mode==='paused'?'일시 정지':'실행 중'),'명령 확인: '+counters[1]+' / '+counters[2],'대기 명령: '+counters[3]]:['프레임 제어: 확인할 수 없음'])])});
 }
+// Project history exposes recorded facts. Only the live Run controls use a handle.
+function createRunHistory(menu,read,canRead,position){
+ const states={building:'빌드 중',running:'실행 중',failed:'실행 실패',exited:'실행 종료',stopped:'중단됨'};
+ const panel=document.createElement('details');
+ panel.dataset.runHistory='';
+ panel.innerHTML='<summary>프로젝트 실행 기록</summary><p data-run-history-status role="status"></p><div class="actions"><button type="button" data-run-history-prev disabled>이전</button><button type="button" data-run-history-refresh>다시 읽기</button><button type="button" data-run-history-next disabled>다음</button></div><ul data-run-history-rows></ul>';
+ menu.append(panel);
+ const status=panel.querySelector('[data-run-history-status]'),list=panel.querySelector('[data-run-history-rows]');
+ const previous=panel.querySelector('[data-run-history-prev]'),refresh=panel.querySelector('[data-run-history-refresh]'),next=panel.querySelector('[data-run-history-next]');
+ let page=0,total=0,pageSize=32,flight=null;
+ const visible=()=>panel.open&&menu.matches(':popover-open')&&canRead();
+ const controls=()=>{
+  previous.disabled=!!flight||page===0;
+  next.disabled=!!flight||(page+1)*pageSize>=total;
+  refresh.disabled=!!flight;
+ };
+ function clear(){
+  flight?.abort();flight=null;page=0;total=0;
+  list.replaceChildren();status.textContent='';controls();
+ }
+ async function load(requestedPage){
+  if(!visible()||flight)return;
+  const request=new AbortController();
+  flight=request;
+  const current=()=>flight===request&&!request.signal.aborted&&visible();
+  status.textContent='실행 기록을 읽고 있어요.';
+  controls();
+  try{
+   const data=await read(requestedPage,request.signal);
+   if(!current())return;
+   if(data?.scope!=='recorded-project-executions')throw Error('Run history scope changed');
+   if(data.state==='unavailable'&&data.providerAvailable===false){
+    clear();status.textContent='이 호스트에서는 실행 기록을 지원하지 않아요.';return;
+   }
+   if(data.state!=='available')throw Error('Run history unavailable');
+   const rows=data.rows.map(record=>{
+    const row=document.createElement('li'),heading=document.createElement('strong'),id=document.createElement('code'),detail=document.createElement('small');
+    row.dataset.runHistoryExecution=record.execution;
+    heading.textContent=states[record.recordedState]||'확인 필요';
+    id.textContent=record.execution;
+    const facts=[record.ownerAvailable?'이 편집기에서 관측한 실행':'이 편집기에 실행 소유자 없음',new Date(record.observedUtc).toLocaleString()];
+    if(record.frame!==null)facts.push('프레임 '+record.frame,'명령 확인 '+record.ack,record.frameState==='paused'?'일시 정지':'실행 중');
+    if(record.exitCode!==null)facts.push('종료 코드 '+record.exitCode);
+    detail.textContent=facts.join(' · ');
+    row.append(heading,document.createElement('br'),id,document.createElement('br'),detail);
+    return row;
+   });
+   page=data.page;total=data.total;pageSize=data.pageSize;
+   list.replaceChildren(...rows);
+   status.textContent=total?'저장된 실행 기록 '+total+'건 · '+(page+1)+' / '+Math.ceil(total/pageSize)+' 페이지':'저장된 실행 기록이 없어요.';
+   if(data.recordingState&&!['available','none'].includes(data.recordingState))status.textContent+=' 이 창의 최근 실행 기록 저장을 확인하지 못했어요.';
+  }catch{
+   if(current()){list.replaceChildren();total=0;page=0;status.textContent='실행 기록을 읽을 수 없어요. 다시 확인해 주세요.';}
+  }finally{
+   if(flight===request){flight=null;controls();}
+   if(visible())position();
+  }
+ }
+ panel.addEventListener('toggle',()=>{if(panel.open)void load(0);else clear();});
+ previous.onclick=()=>load(page-1);next.onclick=()=>load(page+1);refresh.onclick=()=>load(page);
+ return ()=>{panel.open=false;clear();};
+}
+
 // Original v536 Run chrome. Owners/leases are transient server facts, never layout data.
 export function createRunWindows(api){
  const {$,esc}=api;let timer=null;
@@ -52,6 +115,7 @@ export function createRunWindows(api){
   w.runGrid=createRunGrid(w.body.querySelector('.run-screen'));w.runBounds=createRunBounds(w.body.querySelector('.run-screen'));
   const current=()=>!disposed&&owns(w)&&!w.el.hidden&&!w.folded&&!w.runClosing;
   const close=()=>{if(menu.matches(':popover-open'))menu.hidePopover();trigger.setAttribute('aria-expanded','false');};
+  const resetHistory=createRunHistory(menu,(page,signal)=>api.view.observe('runWindowHistory',{view:w.meta.runView,lease:w.runData?.lease||'',page},signal),current,()=>position());
   const position=()=>{if(!menu.matches(':popover-open'))return;const box=trigger.getBoundingClientRect();Object.assign(menu.style,{left:Math.max(8,Math.min(box.right-menu.offsetWidth,innerWidth-menu.offsetWidth-8))+'px',top:(box.bottom+6+menu.offsetHeight<=innerHeight-8?box.bottom+6:Math.max(8,box.top-menu.offsetHeight-6))+'px'});};
   const select=menu.querySelector('[data-run-resolution]'),custom=menu.querySelector('.run-custom-resolution'),width=menu.querySelector('[data-run-width]'),height=menu.querySelector('[data-run-height]'),apply=menu.querySelector('[data-run-size-apply]'),feedback=menu.querySelector('[data-run-size-feedback]');
   custom.after(feedback); // Output receipts stay visible in preset and direct-input modes.
@@ -78,7 +142,7 @@ export function createRunWindows(api){
   presetRefresh.onclick=async()=>{if(!current())return;await presets.load(current);if(current()){w.runPresetAttempt=null;w.runPresetMessage='등록 목록을 확인했어요. 출력 크기는 바꾸지 않았어요.';paint();}};
   presetRetry.onclick=async()=>{if(!current()||presetRetry.disabled)return;const attempt=w.runPresetAttempt,result=await presets.retry(w.key,current);if(!current()||!result)return;if(attempt?.kind==='add')await finishRegistration(result,attempt.epoch);else{w.runPresetMessage='삭제 결과를 확인했어요. 출력 크기는 유지해요.';paint();}};
 
-  menu.addEventListener('beforetoggle',event=>{if(event.newState==='open'&&!current()){event.preventDefault();return;}trigger.setAttribute('aria-expanded',String(event.newState==='open'));if(event.newState==='open'){paint();void presets.load(current);}});menu.addEventListener('toggle',event=>{if(event.newState==='open')position();});menu.onkeydown=event=>event.stopPropagation();menu.onpointerdown=event=>event.stopPropagation();
+  menu.addEventListener('beforetoggle',event=>{if(event.newState==='open'&&!current()){event.preventDefault();return;}trigger.setAttribute('aria-expanded',String(event.newState==='open'));if(event.newState==='open'){paint();void presets.load(current);}else resetHistory();});menu.addEventListener('toggle',event=>{if(event.newState==='open')position();});menu.onkeydown=event=>event.stopPropagation();menu.onpointerdown=event=>event.stopPropagation();
   menu.querySelector('[data-run-sound]').onchange=async event=>{const enabled=event.currentTarget.checked;if(!current()||!w.runAudioInfo)return;if(!enabled){clearAudio(w,{keepInfo:true});paint();return;}if(w.runAudioStarting)return;clearAudio(w,{keepInfo:true});let player;try{player=new RunAudioPlayer();w.runAudioPlayer=player;w.runAudioStarting=true;paint();await player.activate();if(!current()||w.runAudioPlayer!==player){player.close();return;}w.runAudioEnabled=true;w.runAudioError=false;w.runAudioGap=false;w.runAudioPacket=null;w.runAudioCursor='';void observeAudio(w,w.runData);}catch{if(owns(w)&&(!player||w.runAudioPlayer===player))clearAudio(w,{keepInfo:true,failed:true});}finally{if(w.runAudioPlayer===player)w.runAudioStarting=false;if(owns(w))paint();}};
   menu.querySelector('[data-run-sound-test]').onclick=()=>{if(!current()||!w.runAudioEnabled)return;try{w.runAudioPlayer?.test();}catch{clearAudio(w,{keepInfo:true,failed:true});paint();}};
   menu.querySelector('[data-dev-close]').onclick=()=>{close();if(current())trigger.focus({preventScroll:true});};menu.querySelector('[data-run-debug="info"]').onchange=event=>{if(!current()){close();return;}w.runDebugInfo=event.currentTarget.checked;paint();};

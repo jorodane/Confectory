@@ -5,6 +5,7 @@ lock(owner){
  var model=(System.Text.Json.Nodes.JsonObject)owner[3];string key="Confectory.EditorHome.RunWindows."+session;var state=AppDomain.CurrentDomain.GetData(key) as object[];
  if(state is null&&operation=="active-context")return "{\"active\":false}";
  if(state is null&&(operation is "close-all" or "close-context"))return "{}";
+ if(state is null&&operation=="history")throw new UnauthorizedAccessException("Open the Run window before reading history");
  if(state is null){state=new object[]{new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal),new System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>(StringComparer.Ordinal),0};AppDomain.CurrentDomain.SetData(key,state);}
  var rows=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[0];var closed=(System.Collections.Generic.Dictionary<string,System.Text.Json.Nodes.JsonObject>)state[1];var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();
  string Text(string field)=>input[field]?.GetValue<string>()??"";
@@ -24,8 +25,10 @@ lock(owner){
   if(operation=="close-all")AppDomain.CurrentDomain.SetData(key,null);return "{}";
  }
  if((bool)owner[6])throw new ObjectDisposedException("EditorHome closing");
- foreach(var field in input)if(field.Key is not ("context" or "view" or "lease" or "command" or "target" or "handle" or "action" or "runtime" or "ack" or "sequence" or "cursor" or "publisher" or "sizeSequence" or "width" or "height"))throw new UnauthorizedAccessException("Run view input fields");
- if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control" or "surface" or "surface-size" or "audio"))throw new ArgumentException("Run view operation");
+ foreach(var field in input)
+  if(operation=="history"?field.Key is not ("context" or "view" or "lease" or "page"):field.Key is not ("context" or "view" or "lease" or "command" or "target" or "handle" or "action" or "runtime" or "ack" or "sequence" or "cursor" or "publisher" or "sizeSequence" or "width" or "height"))
+   throw new UnauthorizedAccessException("Run view input fields");
+ if(operation is not ("open" or "read" or "start" or "stop" or "close" or "control" or "surface" or "surface-size" or "audio" or "history"))throw new ArgumentException("Run view operation");
  var selected=model["selected"]??throw new UnauthorizedAccessException("Open the owned project first");string current=selected["context"]!.ToString();if(Text("context")!=current)throw new UnauthorizedAccessException("Run view project changed");var child=calls.Context.Invoke(manager,current);if(child[1]!=selected["path"]!.ToString())throw new UnauthorizedAccessException("Run view manifest changed");
  string id=Text("view");if(id.Length==0&&operation=="open")id=Guid.NewGuid().ToString("N");if(!Guid.TryParseExact(id,"N",out _))throw new ArgumentException("Run view identity");
  if(rows.TryGetValue(id,out var view)&&(view["context"]!.ToString()!=current||view["manifest"]!.ToString()!=child[1]))throw new UnauthorizedAccessException("Run view belongs to another project");
@@ -37,6 +40,12 @@ lock(owner){
  if(view is null){if(operation is "read" or "close"&&closed.TryGetValue(id,out var previous)){if(operation=="close"&&previous["lease"]?.ToString()!=Text("lease"))throw new UnauthorizedAccessException("Run close receipt changed");return Public(previous).ToJsonString();}if(operation!="read")throw new UnauthorizedAccessException("Run owner unavailable; explicitly open this view first");return new System.Text.Json.Nodes.JsonObject{["view"]=id,["state"]="owner-unavailable",["closed"]=true,["canRun"]=false,["surfaceSupported"]=false,["fpsSupported"]=false}.ToJsonString();}
  if(operation=="read"){Observe(view);return Public(view).ToJsonString();}
  if(Text("lease")!=view["lease"]!.ToString())throw new UnauthorizedAccessException("Run view lease changed");
+ if(operation=="history"){
+  int page=input["page"]?.GetValue<int>()??0;
+  if(page<0||page>7)throw new ArgumentException("Run history page");
+  var query=new System.Text.Json.Nodes.JsonObject{["page"]=page,["current"]=view["handle"]!.ToString()};
+  return calls.RunHistory.Invoke(Execution(),child[1],"history",query.ToJsonString());
+ }
  if(operation=="start"){
   if(view["canRun"]?.GetValue<bool>()!=true)throw new PlatformNotSupportedException("This project cannot run on the current host");
   string target=Text("target"),command=Text("command");if(!Guid.TryParseExact(command,"N",out _)||!System.Linq.Enumerable.Any(selected["targets"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),value=>value?.ToString()==target))throw new ArgumentException("Explicit declared Run target and command required");

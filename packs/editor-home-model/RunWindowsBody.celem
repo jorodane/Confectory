@@ -4,6 +4,7 @@ import Confectory.ProjectManager::Executions as Executions (string[]) -> string[
 import Confectory.ProjectExecution::Capabilities as Capabilities () -> string[];
 import Confectory.ProjectExecution::LaunchConfigured as Launch (string[],string,string,string,string[],string[]) -> string;
 import Confectory.ProjectExecution::Observe as Observe (string[],string) -> string[];
+import Confectory.ProjectExecution::RunHistory as RunHistory (string[],string,string,string) -> string;
 import Confectory.ProjectExecution::Control as Control (string[],string,string) -> string;
 import Confectory.ProjectExecution::Stop as Stop (string[],string) -> void;
 import Confectory.ProjectExecution::Surface as Surface (string[],string,string) -> string;
