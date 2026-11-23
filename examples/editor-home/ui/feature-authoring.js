@@ -314,11 +314,15 @@ function blueprintNormalizeControls(scope){
     };
     picker.append(option);
    }
-   document.body.append(picker);const anchor=control.getBoundingClientRect();
+   showBranchMenu(picker,control);
+  }
+  function showBranchMenu(picker,control){
+   if(!picker.isConnected)document.body.append(picker);
+   const anchor=control.getBoundingClientRect();
    picker.style.left=Math.max(8,Math.min(innerWidth-picker.offsetWidth-8,anchor.left))+'px';
    picker.style.top=Math.max(8,Math.min(innerHeight-picker.offsetHeight-8,anchor.bottom+4))+'px';
    control.setAttribute('aria-expanded','true');
-   picker.onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();closeMenu();control.focus();}};
+   picker.onkeydown=event=>{if(event.key==='Escape'&&!event.isComposing){event.preventDefault();event.stopPropagation();closeMenu();control.focus();}};
    picker.querySelector('button')?.focus();
   }
   function stage(node,kind,text){if(disposed||!owns(w)||w.authorData!==data)return;const relatedPublicCase=rootExecutionSupported(w)&&kind.startsWith('route:case:')&&!data.privatePath&&data.reviewIds?.length>=3&&data.reviewIds[2]!== (data.rootId||data.id)&&data.sources?.some(s=>s.id===data.reviewIds[2]&&s.kind==='blueprint')&&rows.some(r=>r.id===node&&r.publicExecution&&r.calledFeature===data.reviewIds[0]);if(branchExitSupported(w)&&!relatedPublicCase&&['entry','route'].some(k=>kind===k||kind.startsWith(k+':'))){changeBranchExits(w,p=>{if(kind==='entry')p.entry=text;else{const port=kind==='route'?'next':kind.slice(6);p.edges=p.edges.filter(e=>e.from!==node||e.port!==port);if(text)p.edges.push({from:node,port,to:text});}});return;}if(inputs.has(prefix(w)+'$root|root-parameters')&&['entry','route'].includes(kind)){try{changeRootContract(w,plan=>{if(kind==='entry')plan.outputEntry=text;else{plan.outputRoutes??=[];plan.outputRoutes=plan.outputRoutes.filter(row=>row.node!==node);plan.outputRoutes.push({node,to:text});}});}catch(error){api.toast(error.message);}return;}if(data.privatePath&&(data.privateCopy||data.slotContext?.copySource)&&['entry','route'].includes(kind))structuralEdit(w,()=>privateValue(w,node,kind,text));else privateValue(w,node,kind,text);status(w);selected=null;schedule();}
@@ -1004,8 +1008,24 @@ function blueprintNormalizeControls(scope){
    return incoming.length>1&&incoming.some(edge=>edge.from===link.from&&edge.port===link.port&&
     (edge.port==='next'||edge.port.startsWith('case:')));
   }
-  function addDocumentBranchReturn(link,anchor){
+  function pickDocumentBranchReturn(link,anchor){
    const current=()=>anchor.isConnected&&documentView?.mode==='logic'&&canAddDocumentBranchReturn(link);
+   if(!current()||closeMenu('preserve')===false||!current())return;
+   const picker=document.createElement('div');menu=picker;
+   picker.className='workspace-search-menu bp-search-menu';picker.setAttribute('role','dialog');
+   picker._branchControl=anchor;
+   function step(label,choice,apply){
+    picker.setAttribute('aria-label',label);
+    const button=document.createElement('button');button.type='button';
+    button.className='workspace-search-entry';button.textContent=choice;
+    button.onclick=()=>{if(menu===picker&&current())apply();};
+    picker.replaceChildren(button);
+    showBranchMenu(picker,anchor);
+   }
+   step('다음 세부기능 추가','기본 기능',()=>step('기본 기능','분기 반환',
+    ()=>applyDocumentBranchReturn(link,anchor,current)));
+  }
+  function applyDocumentBranchReturn(link,anchor,current){
    pickBranchMember(anchor,'새 분기 반환 선택',current,member=>{
     changeBranchExits(w,plan=>{
      const id='branch_'+crypto.randomUUID().replaceAll('-','');
@@ -1152,7 +1172,7 @@ function blueprintNormalizeControls(scope){
    },
    hasCallComparison:id=>!!documentCallComparison(id),compareCall:compareDocumentCall,
    pickBranchExit:(id,control)=>pickBranchExit(id,control,()=>documentView?.mode==='logic'&&control.isConnected&&documentBranchExit(id)),
-   canAddBranchReturn:canAddDocumentBranchReturn,addBranchReturn:addDocumentBranchReturn,
+   canAddBranchReturn:canAddDocumentBranchReturn,addBranchReturn:pickDocumentBranchReturn,
    hasSetTarget:id=>!!documentSetTarget(id),
    mountSetTarget:(id,control)=>{
     const row=documentSetTarget(id);

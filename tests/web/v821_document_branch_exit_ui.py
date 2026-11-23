@@ -104,15 +104,28 @@ def run_insert():
     add = branch.locator('[data-document-branch-return="$exit:shared"]')
     expect(add).to_have_attribute('data-document-return-port', 'case:alternate')
     expect(doc().locator('[data-document-branch-return][data-document-return-port="next"]')).to_be_visible()
-    add.press('Enter')
+    expect(add).to_have_text('다음 세부기능 추가')
+    category = f.page.get_by_role('dialog', name='다음 세부기능 추가')
+    basic = f.page.get_by_role('dialog', name='기본 기능')
     menu = f.page.get_by_role('listbox', name='새 분기 반환 선택')
-    expect(menu).to_be_visible()
+
+    def open_return():
+        add.press('Enter')
+        category.get_by_role('button', name='기본 기능', exact=True).click()
+        basic.get_by_role('button', name='분기 반환', exact=True).click()
+        expect(menu).to_be_visible()
+
+    add.press('Enter')
+    expect(category.get_by_role('button', name='기본 기능')).to_be_focused()
+    f.page.keyboard.press('Escape')
+    expect(add).to_be_focused()
+    open_return()
     f.page.keyboard.press('Escape')
     expect(add).to_be_focused()
     assert not pending() and checkpoint.read_bytes() == before
     x.original()
 
-    add.click()
+    open_return()
     menu.locator('[data-branch-option="next"]').click()
     held = pending()
     assert len(held) == 1 and held[0][1]['type'] == 'branch-exits'
@@ -173,7 +186,37 @@ def cold_open(index):
     expect(doc()).to_be_visible()
 
 
+def seed_same_named_peer():
+    n = fixture.n
+    file = f.project / n.graph_file
+    graph = json.loads(file.read_text())
+    peer_source = 'Peer.body.node.json'
+    peer = {'id': 'peer', 'kind': 'graph', 'intent': 'Unchanged sibling', 'control': 'next',
+            'signature': n.sig([]), 'arguments': {}, 'graph': {
+                'schema': 1, 'profile': 'sync-acyclic-methods-v1', 'entry': 'body',
+                'nodes': [{'id': 'body', 'kind': 'code', 'intent': 'Same local ID', 'control': 'next',
+                           'signature': n.sig([]), 'arguments': {}, 'implementation': peer_source}],
+                'edges': [n.edge('body', 'exit:return')], 'exits': {'return': None},
+            }}
+    parent = n.at(graph)
+    parent['nodes'].append(peer)
+    after = next((edge for edge in parent['edges'] if edge['from'] == 'after'), None)
+    if after:
+        parent['edges'].append(n.edge('peer', after['to']))
+        after['to'] = 'peer'
+    else:
+        parent['edges'].append(n.edge('after', 'peer'))
+    definitions = f.metadata('featureBlueprintNodes', featureSource=n.function, graph=graph,
+                             implementationContext={'implementation': x.impl}, bodyTarget='common')
+    known = next(row for row in definitions['nestedNodes'] if row['id'] == (n.frame+'/' if n.frame else '')+'peer/body')
+    (f.project/peer_source).write_text(json.dumps({'schema': 1, 'node': 'body',
+                                                  'definitionHash': known['definitionHash'], 'source': 'return;'}))
+    file.write_text(json.dumps(graph, ensure_ascii=False))
+
+
 try:
+    if insert_shared and not fixture.n.copy_mode:
+        seed_same_named_peer()
     f.start(0)
     f.invoke('select', {'id': feature})
     f.invoke('saveDraft', {})

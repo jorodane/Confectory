@@ -85,7 +85,7 @@ export function mountFunctionDocument(root,api){
    }).join('')||'<span class="fd-empty">'+(side==='inputs'?'입력 없음':'출력 없음')+'</span>';
   };
   const branchReturnButton=link=>api.canAddBranchReturn?.(link)?'<button type="button" data-document-branch-return="'+esc(link.to)+
-   '" data-document-return-from="'+esc(link.from)+'" data-document-return-port="'+esc(link.port)+'">이 위치에 분기 반환 추가…</button>':'';
+   '" data-document-return-from="'+esc(link.from)+'" data-document-return-port="'+esc(link.port)+'" aria-haspopup="true" aria-expanded="false">다음 세부기능 추가</button>':'';
   const branchTargetButton=(owner,port)=>api.hasBranchTarget?.(owner,port)?
    '<button type="button" data-document-branch-target="'+esc(port)+'" data-document-owner="'+esc(owner)+'">분기 실행 대상 선택…</button>':'';
   const cells=items=>items.map(item=>{
