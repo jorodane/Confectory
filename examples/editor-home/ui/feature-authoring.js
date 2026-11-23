@@ -654,9 +654,11 @@ function blueprintNormalizeControls(scope){
   };
   const canContinueOrder=(chain,held)=>!held.length||ownedCellOrder(w,held)&&
    (!chain?.frame||!chain.owner||held.some(([,v])=>v.node===chain.owner&&v.type==='route:'+chain.port));
+  const buttonOrderCells=(id,ordinary=linearCells(id))=>ordinary||
+   (!w.meta.copyDraft?frameCellChain(data,links(),true):null);
   // Buttons and document drag share one complete order plan and one Undo record.
-  const cellOrderPlan=(id,to)=>{
-   const chain=linearCells(id),held=saveEntries(w);if(!chain||!canContinueOrder(chain,held))throw Error('이 이동은 직렬 셀의 전체 실행 순서만 지원합니다. 다른 입력과 분기·참조 연결은 유지됩니다.');
+  const cellOrderPlan=(id,to,chain=linearCells(id))=>{
+   const held=saveEntries(w);if(!chain||!canContinueOrder(chain,held))throw Error('이 이동은 직렬 셀의 전체 실행 순서만 지원합니다. 다른 입력과 분기·참조 연결은 유지됩니다.');
    if(chain.frame)guardOtherInputs(w,data);
    const from=chain.order.indexOf(id);if(from<0||!Number.isInteger(to)||to<0||to>=chain.order.length||from===to)return null;
    chain.order.splice(from,1);chain.order.splice(to,0,id);
@@ -670,7 +672,7 @@ function blueprintNormalizeControls(scope){
    privateValue(w,chain.owner||'$entry',chain.owner?'route:'+chain.port:'entry',chain.order[0],false,frameCase);
    chain.order.forEach((node,index)=>privateValue(w,node,'route',chain.order[index+1]||chain.exit,false,frameCase));
   });};
-  const moveCell=(id,offset)=>{if(!canvasOwns()||![-1,1].includes(offset))return;const chain=linearCells(id);if(chain)applyCellOrder(cellOrderPlan(id,chain.order.indexOf(id)+offset));};
+  const moveCell=(id,offset)=>{if(!canvasOwns()||![-1,1].includes(offset))return;const chain=buttonOrderCells(id);if(chain)applyCellOrder(cellOrderPlan(id,chain.order.indexOf(id)+offset,chain));};
   const transferTarget=(id,chain)=>{
    const scope=data.documentBranchTransfer;
    if(w.meta.copyDraft||saveEntries(w).length||!scope||scope.owner!==chain.owner||!scope.movable.includes(id))return null;
@@ -872,8 +874,8 @@ function blueprintNormalizeControls(scope){
      const showAdd=!w.meta.copyDraft&&!!(data.documentRootStart?.entry||(data.profile==='sync-acyclic-nested-v1'||data.documentMethodFrameCreationAvailable===true)&&frameCellChain(data));
      return {showAdd,add:showAdd&&!held.length&&data.nodes.length<63&&frameInputsClear()};
     }
-    const chain=linearCells(id),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
-    const insertion=insertionCells(id,chain);
+    const serial=linearCells(id),chain=buttonOrderCells(id,serial),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
+    const insertion=insertionCells(id,serial);
     return {remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:insertion?.order.includes(id)&&caseInsertionAvailable(insertion)&&(!insertion.compound||canInsertAfterCompound(id,insertion))&&!held.length&&data.nodes.length<63&&(!(insertion.frame||insertion.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':insertion?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
    },
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},

@@ -157,10 +157,12 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     var current=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",BatchRead().ToJsonString()))!;
     var scopeSources=ownedScopeTransferBatch?current["documentScopeTransfer"]?["sources"]?.DeepClone().AsArray():null;
     bool methodFrame=current["profile"]?.ToString()=="sync-acyclic-methods-v1";
-    bool methodFrameOrder=ownedFrameOrderBatch&&methodFrame,methodFrameCreation=ownedFrameCreationBatch&&methodFrame;
-    var frameSources=(ownedFrameCaseBatch||ownedFrameCompoundCreationBatch||methodFrameOrder||methodFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
+    bool observedFrameOrder=ownedFrameOrderBatch&&!ownedFrameCaseOrderBatch&&
+     (methodFrame||current[frameOrderBindingKey]?["sources"] is System.Text.Json.Nodes.JsonArray);
+    bool methodFrameCreation=ownedFrameCreationBatch&&methodFrame;
+    var frameSources=(ownedFrameCaseBatch||ownedFrameCompoundCreationBatch||observedFrameOrder||methodFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
     if(ownedScopeTransferBatch&&scopeSources is null)throw new InvalidOperationException("Observed directly owned root and case required; preserve inputs");
-    if((methodFrameOrder||methodFrameCreation)&&frameSources is null)throw new InvalidOperationException("Observed owned method sources required; preserve inputs");
+    if((observedFrameOrder||methodFrameCreation)&&frameSources is null)throw new InvalidOperationException("Observed owned frame sources required; preserve inputs");
     if(methodFrameCreation&&current["documentMethodFrameCreationAvailable"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Clean bounded method sources required before inserting one body; preserve inputs");
     var remapSources=privateReturnRemapBatch?current["privateReturnSources"]?.AsArray():null;
     if(codeParametersBatch){
@@ -362,9 +364,9 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     // original read baseline across later legitimate source/Undo/Redo edits.
     // Reuse the existing owned code/declaration read-baseline receipt through
     // cold restore, Review and the final file commit lease, including siblings.
-    if(privateReturnRemapBatch||methodFrameOrder||ownedFrameCaseOrderBatch||guardedBranchTransfer||serialInsertionBatch||propertyBatch||live["units"]?[physicalGraphId]?["propertyObservations"] is not null){
+    if(privateReturnRemapBatch||observedFrameOrder||ownedFrameCaseOrderBatch||guardedBranchTransfer||serialInsertionBatch||propertyBatch||live["units"]?[physicalGraphId]?["propertyObservations"] is not null){
      var priorReads=live["units"]?[physicalGraphId]?["propertyObservations"]?["sources"] as System.Text.Json.Nodes.JsonObject;
-     var reads=(ownedFrameCaseBatch||methodFrameOrder||ownedBranchOrderBatch||ownedScopeTransferBatch)&&priorReads is not null?priorReads.DeepClone().AsObject():new System.Text.Json.Nodes.JsonObject();
+     var reads=(ownedFrameCaseBatch||observedFrameOrder||ownedBranchOrderBatch||ownedScopeTransferBatch)&&priorReads is not null?priorReads.DeepClone().AsObject():new System.Text.Json.Nodes.JsonObject();
      // The view also probes every project unit for optional async/public-contract
      // actions. Only the exact observed body closure belongs in this route Review.
      // The accepted graph carries the exact retargeted link. Keep the existing source lease for its original closure.
@@ -372,7 +374,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
       (ownedFrameCaseCreationBatch||ownedFrameCompoundCreationBatch||methodFrameCreation)?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()),
        physicalGraphId+"/node:"+current["privatePath"]!.ToString().Replace("/","/node:",StringComparison.Ordinal)
         +"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
-      (ownedFrameCaseOrderBatch||methodFrameOrder)?System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()):
+      (ownedFrameCaseOrderBatch||observedFrameOrder)?System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()):
       ownedScopeTransferBatch?System.Linq.Enumerable.Select(scopeSources!,id=>id!.ToString()):ownedBranchTransferBatch?System.Linq.Enumerable.Select(current["documentBranchTransfer"]!["sources"]!.AsArray(),id=>id!.ToString()):
       ownedBranchOrderBatch&&priorReads is not null?System.Linq.Enumerable.Empty<string>():System.Linq.Enumerable.Select(proof,member=>member.Key);
      foreach(string id in readIds){var unit=candidate["units"]![id]!;reads[id]??=new System.Text.Json.Nodes.JsonObject{["path"]=unit["path"]!.DeepClone(),["kind"]=unit["kind"]!.DeepClone(),["hash"]=unit["baseline"]!.DeepClone()};}
@@ -1360,7 +1362,9 @@ lock(state){
   ["root"]=graphId,["graph"]=viewGraphId,["path"]=privatePath,["rootHash"]=Hash(rootGraph.ToJsonString()),["frameHash"]=Hash(graph.ToJsonString())
  };
  bool methodChild=privatePath.Length>0&&graph["profile"]?.ToString()=="sync-acyclic-methods-v1";
- bool methodParent=privatePath.Length>0&&!privatePath.Contains('/')&&graph["profile"]?.ToString()=="sync-acyclic-nested-v1"&&
+ bool compoundChild=privatePath.Length>0&&!privatePath.Contains('/')&&graph["profile"]?.ToString()=="sync-acyclic-nested-v1"&&
+  System.Linq.Enumerable.Any(graph["nodes"]!.AsArray(),node=>node?["kind"]?.ToString()=="graph");
+ bool methodParent=compoundChild&&
   System.Linq.Enumerable.Any(graph["nodes"]!.AsArray(),node=>node?["kind"]?.ToString()=="graph"&&node["graph"]?["profile"]?.ToString()=="sync-acyclic-methods-v1");
  System.Text.Json.Nodes.JsonObject ChildPreviewBinding(){
   var binding=ChildFrameBinding();
@@ -1577,19 +1581,19 @@ lock(state){
  System.Text.Json.Nodes.JsonObject? framePreviewBinding=null;
  bool ownedSerialChild=privatePath.Length>0&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
   &&owned.Contains(implementationMetadata["function"]!.ToString())&&diagnostics["state"]?.ToString() is "source-ready" or "source-assembled";
- if(ownedSerialChild)try{
+ if(ownedSerialChild&&(!compoundChild||string.IsNullOrEmpty(input["uiSurface"]?.ToString())))try{
   var order=new System.Text.Json.Nodes.JsonArray{new System.Text.Json.Nodes.JsonObject{["action"]="entry",["node"]="$entry",["to"]=graph["entry"]!.DeepClone()}};
   foreach(var edge in graph["edges"]!.AsArray())order.Add(new System.Text.Json.Nodes.JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]="frame-order",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=order}.ToJsonString());
-  if(methodChild){
+  if(methodChild||compoundChild){
    RequireExclusiveWritableGraph();
-   RequireExclusiveChildSources();
-   if(bodySourceIds.Length>64)throw new InvalidOperationException("Bounded owned method source closure required");
+   RequireExclusiveChildSources(includeDescendants:compoundChild);
+   if(bodySourceIds.Length>64)throw new InvalidOperationException("Bounded owned frame source closure required");
   }
   frameOrderBinding=ChildFrameBinding();
-  if(methodChild)frameOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
+  if(methodChild||compoundChild)frameOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  }catch{frameOrderBinding=null;}
- if(ownedSerialChild&&(frameOrderBinding is null||methodChild)&&string.IsNullOrEmpty(input["uiSurface"]?.ToString()))try{
+ if(ownedSerialChild&&(frameOrderBinding is null||methodChild||compoundChild)&&string.IsNullOrEmpty(input["uiSurface"]?.ToString()))try{
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
    ["action"]="frame-preview",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
   }.ToJsonString());
@@ -1609,7 +1613,7 @@ lock(state){
   frameCaseOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  }catch{frameCaseOrderBinding=null;}
  var removableCells=new System.Text.Json.Nodes.JsonArray();
- if((privatePath.Length==0||!methodChild&&(frameOrderBinding is not null||frameCaseOrderBinding is not null)&&!privatePath.Contains('/'))&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
+ if((privatePath.Length==0||!methodChild&&!compoundChild&&(frameOrderBinding is not null||frameCaseOrderBinding is not null)&&!privatePath.Contains('/'))&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
   &&owned.Contains(implementationMetadata["function"]!.ToString())&&string.IsNullOrEmpty(input["uiSurface"]?.ToString())
   &&savedBodyReads is null&&diagnostics["state"]?.ToString() is "source-ready" or "source-assembled")try{
   RequireExclusiveWritableGraph();
@@ -1675,9 +1679,8 @@ lock(state){
   if(sources.Count<64&&System.Linq.Enumerable.All(sources,source=>calls.Status.Invoke(draft,source.Key)[6]=="clean"))
    readResult["documentFrameCaseCreationAvailable"]=true;
  }
- if(ownedSerialChild&&!privatePath.Contains('/')&&graph["profile"]?.ToString()=="sync-acyclic-nested-v1"
+ if(ownedSerialChild&&compoundChild
   &&string.IsNullOrEmpty(input["uiSurface"]?.ToString())&&sources.Count<64
-  &&System.Linq.Enumerable.Any(graph["nodes"]!.AsArray(),node=>node?["kind"]?.ToString()=="graph")
   &&System.Linq.Enumerable.All(sources,source=>calls.Status.Invoke(draft,source.Key)[6]=="clean"))try{
   RequireExclusiveWritableGraph();
   RequireExclusiveChildSources(includeDescendants:true);

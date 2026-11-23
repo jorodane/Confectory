@@ -191,6 +191,12 @@ public static class BlueprintCellRegion
 
     static JsonObject FrameOrder(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
     {
+        if (allowDesktopFrames && path.Length > 0 && !path.Contains('/') &&
+            IsCompoundFrame(BlueprintTree.Select(root, path)))
+        {
+            var parent = OwnedCompoundFrame(root, path);
+            return CompoundOrder(parent, edits, methodPreviewDepth: 1);
+        }
         var selected = EditableFrame(root, path, allowDesktopFrames);
         return CompoundOrder(selected, edits, ordinaryFrame: true,
             methodFrameOrder: S(selected, "profile") == FeatureBlueprint.MethodsProfile);
@@ -230,12 +236,14 @@ public static class BlueprintCellRegion
         return new JsonObject{["entry"]=child["entry"]!.DeepClone(),["edges"]=child["edges"]!.DeepClone()};
     }
 
-    static JsonObject CompoundInsertionFrame(JsonObject root, string path)
+    static bool IsCompoundFrame(JsonObject frame) => S(frame, "profile") == FeatureBlueprint.NestedProfile
+        && frame["nodes"]!.AsArray().Any(node => S(node, "kind") == "graph");
+
+    static JsonObject OwnedCompoundFrame(JsonObject root, string path)
     {
         Need(path.Length > 0 && !path.Contains('/'), "One directly owned compound parent required");
         var selected = OwnedPreviewFrame(root, path);
-        Need(S(selected, "profile") == FeatureBlueprint.NestedProfile
-            && selected["nodes"]!.AsArray().Any(node => S(node, "kind") == "graph"),
+        Need(IsCompoundFrame(selected),
             "An existing compound invocation in the selected serial frame is required");
         return selected;
     }
@@ -614,14 +622,14 @@ public static class BlueprintCellRegion
             if (action == "frame-compound-insert-options")
             {
                 Need(edits.Count == 0, "Observe the selected compound frame without edits");
-                var selected = CompoundInsertionFrame(graph, path);
+                var selected = OwnedCompoundFrame(graph, path);
                 return new JsonObject { ["nodes"] = new JsonArray(selected["nodes"]!.AsArray()
                     .Where(node => S(node, "kind") == "graph").Select(node => node!["id"]!.DeepClone()).ToArray()) };
             }
             var candidate = graph.DeepClone().AsObject();
-            var frameGraph = CompoundInsertionFrame(candidate, path);
+            var frameGraph = OwnedCompoundFrame(candidate, path);
             InsertCell(frameGraph, edits, InsertionAnchor.CompoundCall);
-            CompoundInsertionFrame(candidate, path);
+            OwnedCompoundFrame(candidate, path);
             return new JsonObject { ["entry"] = frameGraph["entry"]!.DeepClone(), ["edges"] = frameGraph["edges"]!.DeepClone() };
         }
         if (frameCase)

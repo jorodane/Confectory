@@ -69,10 +69,11 @@ export function compoundOrderCells(data,cells){
  return seen.size===region.order.length&&at===region.exit;
 }
 
-export function frameCellChain(data,edges=data.edges){
+export function frameCellChain(data,edges=data.edges,allowCompoundOrder=false){
  const binding=data.documentFrameOrderBinding;
  if(!binding||binding.root!==data.rootId||binding.graph!==data.id||binding.path!==data.privatePath||!data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||!['sync-acyclic-nested-v1','sync-acyclic-methods-v1'].includes(data.profile)||!data.nodes.length||data.nodes.length>=64)return null;
- if(data.nodes.some(n=>n.kind!=='code'||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
+ const compound=allowCompoundOrder&&data.profile==='sync-acyclic-nested-v1'&&!data.privatePath.includes('/')&&Array.isArray(binding.sources);
+ if(data.nodes.some(n=>!(n.kind==='code'||compound&&n.kind==='graph')||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
  const names=new Set(data.nodes.map(n=>n.id)),routes=edges.filter(e=>e.from!=='$entry'),start=edges.find(e=>e.from==='$entry'&&e.port==='next')?.to||data.entry;
  if(routes.length!==names.size||routes.some(e=>e.port!=='next'||!names.has(e.from))||new Set(routes.map(e=>e.from)).size!==names.size)return null;
  const order=[],seen=new Set();let at=start;
@@ -80,7 +81,7 @@ export function frameCellChain(data,edges=data.edges){
  return order.length===names.size&&at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5))?{order,exit:at,frame:true}:null;
 }
 export function frameOrderCells(data,cells){
- const region=frameCellChain(data),rows=cells.map(([,v])=>v);
+ const region=frameCellChain(data,data.edges,true),rows=cells.map(([,v])=>v);
  if(!region||rows.length!==region.order.length+1||new Set(rows.map(v=>v.node)).size!==rows.length||rows.filter(v=>v.type==='entry'&&v.node==='$entry').length!==1||rows.some(v=>typeof v.text!=='string'||!(v.type==='entry'&&v.node==='$entry'||v.type==='route'&&region.order.includes(v.node))))return false;
  const links=new Map(rows.map(v=>[v.node,normal(v.text)])),seen=new Set();let at=links.get('$entry');
  while(region.order.includes(at)){if(seen.has(at))return false;seen.add(at);at=links.get(at);}

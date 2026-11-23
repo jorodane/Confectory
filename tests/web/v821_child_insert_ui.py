@@ -251,7 +251,7 @@ try:
    if compound_parent:
     expect(insert_at_start()).to_have_count(0)
     expect(doc().locator('[data-document-add=finish]')).to_be_disabled()
-    expect(doc().locator('[data-document-up=finish]')).to_be_disabled()
+    expect(doc().locator('[data-document-up=finish]')).to_be_enabled()
     pure_denied(base, frame_path, proposal(original, after='finish', to='exit:return')['edits'])
    else:
     qparent=proposal(original,node='finish');f.metadata('blueprintCellRegion',action=insertion_action,graph=base,path=frame_path,edits=qparent['edits'])
