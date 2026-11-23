@@ -27,7 +27,9 @@ export function createFeatureAuthoring(api){
  const cellRemovalInput=cells=>cells.length===1&&cells[0][1].type==='document-cell-remove';
  const frameRemovalBinding=data=>data.documentFrameOrderBinding??data.documentFrameCaseOrderBinding;
  const frameReconnectInput=(data,value)=>data.documentFrameReconnectBinding?.graph===data.id&&
-  (value.node==='$entry'?value.type==='entry':value.type==='route')&&data.documentFrameReconnectTargets?.[value.node]?.includes(value.text);
+  (value.type?.startsWith('route:case:')?
+   data.documentFrameCaseReconnectTargets?.[value.node]?.[value.type.slice(6)]?.includes(value.text):
+   (value.node==='$entry'?value.type==='entry':value.type==='route')&&data.documentFrameReconnectTargets?.[value.node]?.includes(value.text));
  const frameBindingFor=(w,data,cells)=>{
   if(w.meta.copyDraft||!cells.length||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
   if(cells.length===1&&frameReconnectInput(data,cells[0][1]))return data.documentFrameReconnectBinding;
@@ -1182,7 +1184,11 @@ function blueprintNormalizeControls(scope){
   function documentBranchTargets(owner,port){
    if(!canvasOwns()||api.busy||flowDocument||w.meta.copyDraft||saveEntries(w).length||!frameInputsClear())return [];
    if(port==='completion')return documentCompletionTargets(owner);
-   const options=data.documentBranchReconnectTargets?.[owner]?.[port]||[];
+   const binding=data.documentFrameReconnectBinding;
+   if(data.privatePath&&(data.slotContext||data.privateCopy||data.privateConversion||data.requiresCoupledCopy||
+      !binding||binding.root!==data.rootId||binding.graph!==data.id||binding.path!==data.privatePath))return [];
+   const targets=data.privatePath?data.documentFrameCaseReconnectTargets:data.documentBranchReconnectTargets;
+   const options=targets?.[owner]?.[port]||[];
    return data.nodes.filter(row=>options.includes(row.id));
   }
   function pickDocumentExecutionTarget(id,anchor,port=null){
@@ -1206,7 +1212,7 @@ function blueprintNormalizeControls(scope){
       structuralEdit(w,()=>{
        const type=port?'route:'+port:entry?'entry':'route';
        privateValue(w,id,type,target);
-       if(port?.startsWith('case:')){
+       if(port?.startsWith('case:')&&!data.privatePath){
         const key=prefix(w)+id+'|'+type;
         inputs.set(key,{...inputs.get(key),branchReconnect:true});
        }

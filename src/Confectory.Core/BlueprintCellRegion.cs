@@ -229,6 +229,8 @@ public static class BlueprintCellRegion
     {
         Need(path.Split('/').Length is 1 or 2 && edits.Count<=1,"Select one existing edge of an owned child frame");
         var selected = BlueprintTree.Select(root, path);
+        if (S(selected,"profile")==FeatureBlueprint.SwitchProfile)
+            return FrameCaseReconnect(root, path, selected, edits);
         Need(S(selected,"profile") is FeatureBlueprint.MethodsProfile or FeatureBlueprint.NestedProfile,
             "Ordinary serial child frame required");
         OwnedPreviewFrame(root,path,allowDetached:true);
@@ -258,6 +260,28 @@ public static class BlueprintCellRegion
         if (routeEdit) routes.Single(edge=>S(edge,"from")==from)!["to"]=to;
         return new JsonObject{["entry"]=entryEdit ? to : entry,["edges"]=routes};
     }
+    static JsonObject FrameCaseReconnect(JsonObject root, string path, JsonObject child, JsonArray edits)
+    {
+        Need(!path.Contains('/'), "Select one directly owned switch child");
+        var options = BranchReconnect(child, new JsonArray());
+        var choices = options.SelectMany(owner => owner.Value!.AsObject().SelectMany(port =>
+            port.Value!.AsArray().Select(target => new JsonObject
+            {
+                ["action"] = "route", ["node"] = owner.Key, ["port"] = port.Key, ["to"] = target!.DeepClone(),
+            }))).ToArray();
+        Need(choices.Length==1, "Restore one empty case to its detached, same-owner continuation");
+        var plan = BranchReconnect(child, new JsonArray(choices[0]));
+        // Check the complete physical hierarchy with only this edge restored.
+        // The same planner already used for child switch edits must accept it.
+        var candidate = root.DeepClone().AsObject();
+        BlueprintTree.Select(candidate,path)["edges"] = plan["edges"]!.DeepClone();
+        OwnedSwitchFrame(candidate,path);
+        if (edits.Count==0) return options;
+        Need(JsonNode.DeepEquals(edits[0],choices[0]), "Exact observed child case target required");
+        plan["entry"] = child["entry"]!.DeepClone();
+        return plan;
+    }
+
     static string RootStart(JsonObject graph,out bool compound)
     {
         string entry=S(graph,"entry");

@@ -48,7 +48,8 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
   &&edits[0] is System.Text.Json.Nodes.JsonObject reconnect&&reconnect["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String
   &&reconnect["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String
   &&(reconnect.Count==3&&reconnect["action"]?.ToString()=="entry"&&reconnect["node"]?.ToString()=="$entry"
-   ||reconnect.Count==4&&reconnect["action"]?.ToString()=="route"&&reconnect["port"]?.ToString()=="next");
+   ||reconnect.Count==4&&reconnect["action"]?.ToString()=="route"&&reconnect["port"] is System.Text.Json.Nodes.JsonValue reconnectPort
+    &&reconnectPort.TryGetValue<string>(out var reconnectPortName)&&(reconnectPortName=="next"||reconnectPortName.StartsWith("case:",StringComparison.Ordinal)));
  string frameOrderAction=ownedFrameReconnectBatch?"frame-reconnect":ownedFrameCaseOrderBatch?"frame-case-order":"frame-order";
  bool ownedFrameOrderBatch=ownedFrameReconnectBatch||ownedFrameCaseOrderBatch||documentFrame&&request["owner"] is null&&graphId!=physicalGraphId&&edits.Count is >=2 and <=64&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="entry")==1&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?["node"]?.ToString()),StringComparer.Ordinal))==edits.Count&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row&&row["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&(row.Count==3&&row["action"]?.ToString()=="entry"&&row["node"]?.ToString()=="$entry"||row.Count==4&&row["action"]?.ToString()=="route"&&row["port"]?.ToString()=="next"&&row["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String));
  bool ownedFrameCreationBatch=documentFrame&&request["owner"] is null&&graphId!=physicalGraphId&&edits.Count==6&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="createNode")==1;
@@ -1822,7 +1823,8 @@ lock(state){
    var binding=ChildFrameBinding();
    binding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
    readResult["documentFrameReconnectBinding"]=binding;
-   readResult["documentFrameReconnectTargets"]=targets;
+   var reconnectTargets=graph["profile"]?.ToString()=="sync-acyclic-switch-v1"?"documentFrameCaseReconnectTargets":"documentFrameReconnectTargets";
+   readResult[reconnectTargets]=targets;
   }
  }catch{}
  if(methodChild&&frameOrderBinding is not null&&sources.Count<64&&System.Linq.Enumerable.All(sources,source=>calls.Status.Invoke(draft,source.Key)[6]=="clean"))
