@@ -1,0 +1,68 @@
+if (Environment.GetEnvironmentVariable("CONFECTORY_TEST_PUBLIC_CHAT_RELAY") == "1")
+{
+    var setup = System.Text.Json.Nodes.JsonNode.Parse(Console.ReadLine()!)!.AsObject();
+    string role = setup["role"]!.ToString();
+    var cert = role == "guest"
+        ? System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(setup["identity"]!.ToString()))
+        : System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadPkcs12(Convert.FromBase64String(setup["identity"]!.ToString()), (string?)null,
+            System.Security.Cryptography.X509Certificates.X509KeyStorageFlags.EphemeralKeySet);
+    if (role == "relay")
+    {
+        using var lifetime = new System.Threading.CancellationTokenSource();
+        var pairs = new System.Collections.Generic.List<(Action Stop, System.Threading.Tasks.Task Completion)>();
+        try
+        {
+            while (Console.ReadLine() is string line)
+            {
+                var args = System.Text.Json.Nodes.JsonNode.Parse(line)!.AsObject();
+                int port = 0;
+                (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action) Open(int capacity)
+                {
+                    var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Any, 0);
+                    listener.Start(capacity);
+                    port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+                    async System.Threading.Tasks.Task<System.IO.Stream> Accept(System.Threading.CancellationToken token) =>
+                        new System.Net.Sockets.NetworkStream(await listener.AcceptSocketAsync(token), ownsSocket: true);
+                    return (Accept, listener.Stop);
+                }
+                pairs.Add(((Action, System.Threading.Tasks.Task))calls.FixtureRelay.Invoke((cert,
+                    (Func<int, (Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<System.IO.Stream>>, Action)>)Open,
+                    args["hostHash"]!.ToString(), args["guestHash"]!.ToString(), args["seconds"]!.GetValue<int>(), 16777216L, lifetime.Token)));
+                Console.WriteLine(port);
+            }
+        }
+        finally
+        {
+            lifetime.Cancel();
+            foreach (var pair in pairs) pair.Completion.GetAwaiter().GetResult();
+            cert.Dispose();
+        }
+        return 0;
+    }
+    var relayPin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(
+        Convert.FromBase64String(setup["relayPin"]!.ToString()));
+    var address = System.Net.IPAddress.Parse(setup["address"]!.ToString());
+    var routes = new System.Collections.Generic.Dictionary<string, System.Net.IPEndPoint>();
+    var credentials = new System.Collections.Generic.Dictionary<string, string>();
+    foreach (var row in setup["reservations"]!.AsArray())
+    {
+        string id = row!["id"]!.ToString();
+        routes.Add(id, new(address, row["port"]!.GetValue<int>()));
+        credentials.Add(id, row["grant"]!.ToString());
+    }
+    var gate = new object();
+    object? Describe(string id)
+    {
+        lock (gate)
+        {
+            if (id.Length == 0)
+                id = System.Linq.Enumerable.FirstOrDefault(credentials.Keys) ?? System.Linq.Enumerable.First(routes.Keys);
+            return routes.TryGetValue(id, out var endpoint) ? (id, endpoint, "relay.confectory.invalid", relayPin, cert) : null;
+        }
+    }
+    string? Take(string id)
+    {
+        lock (gate) return credentials.Remove(id, out var value) ? value : null;
+    }
+    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.IsolatedChatRelay", (role, (Func<string, object?>)Describe, (Func<string, string?>)Take));
+}

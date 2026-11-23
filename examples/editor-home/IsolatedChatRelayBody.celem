@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome::IsolatedChatRelayBody for Confectory.EditorHome::IsolatedChatRelay () -> object {
+body common "IsolatedChatRelay.csbody";
+}

@@ -33,10 +33,10 @@ def docker(*args, **options):
 
 
 @contextmanager
-def internal_network(image):
+def internal_network(image, subnet="172.29.173.0/29"):
     image_id = docker("image", "inspect", "--format", "{{.Id}}", image).stdout.strip()
     network = "confectory-editor-lan-" + uuid.uuid4().hex[:12]
-    docker("network", "create", "--internal", "--subnet", "172.29.173.0/29",
+    docker("network", "create", "--internal", "--subnet", subnet,
            "--opt", "com.docker.network.bridge.inhibit_ipv4=true", network)
     try:
         settings, = json.loads(docker("network", "inspect", network).stdout)
@@ -47,8 +47,9 @@ def internal_network(image):
 
 
 class Peer:
-    def __init__(self, network, image, role, address, directory, checkout, tool_repo, dotnet):
+    def __init__(self, network, image, role, address, directory, checkout, tool_repo, dotnet, other_network=None):
         self.network, self.image, self.address = network, image, address
+        self.other_network = other_network
         self.name = network + "-" + role
         self.directory = directory
         self.checkout = checkout
@@ -59,19 +60,29 @@ class Peer:
         self.directory.mkdir()
         machine = self.directory / "machine-id"
         machine.write_text(uuid.uuid4().hex + "\n")
-        command = ["run", "--pull=never", "--detach", "--name", self.name, "--network", self.network,
-                   "--ip", self.address, "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
+        command = ["run", "--pull=never", "--detach", "--name", self.name, "--network", f"name={self.network},ip={self.address}",
+                   "--cap-drop", "ALL", "--security-opt", "no-new-privileges",
                    "--user", f"{os.getuid()}:{os.getgid()}", "--workdir", str(self.checkout)]
         for item in self.mounts:
             command.extend(("--mount", f"type=bind,src={item},dst={item},readonly"))
+        if self.other_network:
+            other, address = self.other_network
+            command.extend(("--network", f"name={other},ip={address}", "--sysctl", "net.ipv4.ip_forward=0"))
         command.extend(("--mount", f"type=bind,src={self.directory},dst={self.directory}",
                         "--mount", f"type=bind,src={machine},dst=/etc/machine-id,readonly",
                         self.image, "/usr/bin/python3", "-c", "import time; time.sleep(900)"))
-        docker(*command)
+        try:
+            docker(*command)
+        except subprocess.CalledProcessError as error:
+            subprocess.run([*DOCKER, "rm", "--force", self.name], capture_output=True, check=False)
+            raise RuntimeError(error.stderr.strip()) from None
         try:
             settings, = json.loads(docker("inspect", self.name).stdout)
             assert not settings["HostConfig"]["PortBindings"]
-            assert set(settings["NetworkSettings"]["Networks"]) == {self.network}
+            networks = {self.network}
+            if self.other_network:
+                networks.add(self.other_network[0])
+            assert set(settings["NetworkSettings"]["Networks"]) == networks
             routes = self.run(["/usr/bin/python3", "-c", "print(open('/proc/net/route').read())"]).stdout
             assert all(row.split()[1] != "00000000" for row in routes.splitlines()[1:] if row.strip())
         except BaseException:
@@ -108,7 +119,7 @@ class Peer:
                "import os,signal,sys; os.kill(int(sys.argv[1]),signal.SIGTERM)", str(pid))
 
     @contextmanager
-    def editor(self, command, profile, manifest):
+    def editor(self, command, profile, manifest, relay_setup=None):
         class Handler(socketserver.BaseRequestHandler):
             def handle(handler):
                 with subprocess.Popen([*DOCKER, "exec", "-i", self.name, "/usr/bin/python3", "-u", "-c",
@@ -149,12 +160,19 @@ class Peer:
             # The shell ends at exec, so this PID belongs to this exact editor fixture.
             run = ["/bin/sh", "-c", 'echo "$$" > "$1"; shift; exec "$@"', "fixture", str(pid_path), *command]
             with log.open("w") as output:
-                child = subprocess.Popen([*DOCKER, *self.command(run, CONFECTORY_UI="web",
+                process = self.command(run, CONFECTORY_UI="web",
+                    CONFECTORY_TEST_PUBLIC_CHAT_RELAY="1" if relay_setup is not None else "0",
                     CONFECTORY_WEB_PORT=str(port), CONFECTORY_WEB_PROJECT=manifest,
                     CONFECTORY_HOME_STORAGE=str(profile), CONFECTORY_ENTRY_STORAGE=str(profile),
-                    CONFECTORY_MCP_DIRECTORY=str(profile / "instances"))],
-                    stdout=output, stderr=subprocess.STDOUT)
+                    CONFECTORY_MCP_DIRECTORY=str(profile / "instances"))
+                if relay_setup is not None:
+                    process.insert(1, "-i")
+                child = subprocess.Popen([*DOCKER, *process], stdout=output, stderr=subprocess.STDOUT,
+                                         stdin=subprocess.PIPE if relay_setup is not None else None)
                 try:
+                    if relay_setup is not None:
+                        child.stdin.write((json.dumps(relay_setup) + "\n").encode())
+                        child.stdin.close()
                     deadline = time.monotonic() + 45
                     while time.monotonic() < deadline:
                         for line in log.read_text().splitlines():

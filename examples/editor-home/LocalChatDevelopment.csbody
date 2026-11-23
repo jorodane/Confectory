@@ -5,7 +5,8 @@ const string Committed = "{\"status\":\"committed\"}";
 static bool StableId(string id) => Guid.TryParseExact(id, "N", out var parsed) && parsed != Guid.Empty && parsed.ToString("N") == id;
 bool development = Environment.GetEnvironmentVariable("CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK") == "1";
 bool lan = Environment.GetEnvironmentVariable("CONFECTORY_UI") is "embedded" or "web";
-if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) || (!development && !lan) ||
+var isolatedRelay = calls.IsolatedRelay.Invoke() as (string Role, Func<string, object?> Describe, Func<string, string?> Take)?;
+if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) || (!development && !lan && isolatedRelay is null) ||
     AppDomain.CurrentDomain.GetData("Confectory.WebUI.Transient." + cancellation) is not (string view, System.Threading.CancellationToken life, string mountedScope) ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
     return Unavailable;
@@ -48,38 +49,42 @@ lock (owner)
         if (active is not null) return Unavailable;
 
         bool issuingLan = action == "issue-lan";
-        if ((development && action == "issue" && args.Count == 1 || lan && issuingLan && args.Count == 3) &&
+        bool issuingRelay = action == "issue-relay";
+        if ((development && action == "issue" && args.Count == 1 || lan && issuingLan && args.Count == 3 ||
+             issuingRelay && args.Count == 1 && isolatedRelay is { Role: "host" }) &&
             selected is not null && calls.CreatorHost.Invoke(session))
         {
             string project = selected["projectId"]!.GetValue<string>();
             string title = selected["title"]!.GetValue<string>();
             string hostAddress = issuingLan ? args["host"]?.GetValue<string>() ?? "" : "";
             string guestAddress = issuingLan ? args["guest"]?.GetValue<string>() ?? "" : "";
-            if (issuingLan && (title.Length is < 1 or > 128 || System.Linq.Enumerable.Any(title, char.IsControl))) return Denied;
+            if ((issuingLan || issuingRelay) && !ValidTitle(title)) return Denied;
+            var relay = issuingRelay ? RelayRoute("") : null;
+            if (issuingRelay && relay is null) return Unavailable;
             var route = issuingLan ? Route(hostAddress, guestAddress) : default;
             string tlsName = issuingLan ? LanTlsName(hostAddress, project) : "localhost";
-            using var key = System.Security.Cryptography.RSA.Create(2048);
-            var request = new System.Security.Cryptography.X509Certificates.CertificateRequest(issuingLan ? "CN=Confectory LAN" : "CN=localhost", key,
-                System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
-            var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
-            san.AddDnsName(tlsName);
-            request.CertificateExtensions.Add(san.Build());
-            request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
-            request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
-                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
-                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
-            var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(15));
+            var certificate = relay?.HostIdentity ?? NewLocalCertificate(tlsName, issuingLan);
             (int Port, Action Stop, System.Threading.Tasks.Task Completion) listener;
             try
             {
-                var listening = issuingLan
-                    ? calls.StartProtected.Invoke(session, activation, certificate,
-                        (Func<object, object>)(options => ListenLan(route.Local!, route.Peer!, route.Attached!, options)))
-                    : calls.Start.Invoke(session, activation, certificate);
-                listener = ((int, Action, System.Threading.Tasks.Task))listening;
+                if (relay is { } reserved)
+                {
+                    var (stop, completion) = ((Action, System.Threading.Tasks.Task))calls.StartRelay.Invoke(
+                        session, activation, certificate, ClaimRelay(reserved));
+                    listener = (0, stop, completion);
+                }
+                else
+                {
+                    var listening = issuingLan
+                        ? calls.StartProtected.Invoke(session, activation, certificate,
+                            (Func<object, object>)(options => ListenLan(route.Local!, route.Peer!, route.Attached!, options)))
+                        : calls.Start.Invoke(session, activation, certificate);
+                    listener = ((int, Action, System.Threading.Tasks.Task))listening;
+                }
             }
-            catch { certificate.Dispose(); throw; }
-            _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
+            catch { if (!issuingRelay) certificate.Dispose(); throw; }
+            if (!issuingRelay)
+                _ = listener.Completion.ContinueWith(_ => certificate.Dispose(), System.Threading.Tasks.TaskScheduler.Default);
             (string Message, string Selection)? prepared = null;
             Bind((op, id, text) =>
             {
@@ -130,9 +135,18 @@ lock (owner)
                 if (issued?["invitation"]?.GetValue<string>() is not string code) throw new InvalidOperationException();
                 var issuedCard = new System.Text.Json.Nodes.JsonObject
                 {
-                    ["version"] = issuingLan ? 2 : 1, ["port"] = listener.Port, ["project"] = project,
-                    ["certificate"] = Convert.ToBase64String(certificate.RawData), ["code"] = code
+                    ["version"] = issuingRelay ? 3 : issuingLan ? 2 : 1, ["project"] = project, ["code"] = code
                 };
+                if (relay is { } reserved)
+                {
+                    issuedCard["reservation"] = reserved.Id;
+                    issuedCard["title"] = title;
+                }
+                else
+                {
+                    issuedCard["port"] = listener.Port;
+                    issuedCard["certificate"] = Convert.ToBase64String(certificate.RawData);
+                }
                 if (issuingLan)
                 {
                     issuedCard["host"] = hostAddress;
@@ -150,47 +164,68 @@ lock (owner)
 
         bool reviewingLan = action == "inspect-lan";
         bool joiningLan = action == "join-lan";
+        bool reviewingRelay = action == "inspect-relay";
+        bool joiningRelay = action == "join-relay";
         bool usingLan = reviewingLan || joiningLan;
+        bool usingRelay = reviewingRelay || joiningRelay;
         if ((development && action == "join" && args.Count == 3 ||
-             lan && reviewingLan && args.Count == 2 || lan && joiningLan && args.Count == 4) &&
+             lan && (reviewingLan && args.Count == 2 || joiningLan && args.Count == 4) ||
+             isolatedRelay is { Role: "guest" } && (reviewingRelay && args.Count == 2 || joiningRelay && args.Count == 4)) &&
             args["card"]?.GetValue<string>() is string card && card.Length is > 0 and <= 4096)
         {
             var invitation = System.Text.Json.Nodes.JsonNode.Parse(card)!.AsObject();
-            if (invitation.Count != (usingLan ? 8 : 5) || invitation["version"]?.GetValue<int>() != (usingLan ? 2 : 1) ||
-                invitation["port"]?.GetValue<int>() is not int port || port < (usingLan ? 1024 : 1) || port > 65535 ||
+            if (invitation.Count != (usingLan ? 8 : 5) || invitation["version"]?.GetValue<int>() != (usingRelay ? 3 : usingLan ? 2 : 1) ||
                 invitation["project"]?.GetValue<string>() is not string project || !StableId(project) ||
                 invitation["code"]?.GetValue<string>() is not string code || code.Length != 64 ||
-                System.Linq.Enumerable.Any(code, character => !char.IsAsciiHexDigit(character)) ||
-                invitation["certificate"]?.GetValue<string>() is not string encoded || encoded.Length > 3500)
+                System.Linq.Enumerable.Any(code, character => !char.IsAsciiHexDigit(character)))
                 return Unavailable;
 
-            using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
             object connection;
             Func<bool>? attachedGuest = null;
-            if (usingLan)
+            if (usingRelay)
             {
-                if (invitation["host"]?.GetValue<string>() is not string host ||
-                    invitation["guest"]?.GetValue<string>() is not string guest ||
-                    invitation["title"]?.GetValue<string>() is not string title || title.Length is < 1 or > 128 ||
-                    System.Linq.Enumerable.Any(title, char.IsControl))
-                    return Denied;
-                var route = Route(guest, host);
-                string review = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card)));
-                if (reviewingLan)
-                    return System.Text.Json.JsonSerializer.Serialize(new { status = "review", host, port, guest, project, title,
-                        fingerprint = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(pin.RawData)), review });
+                if (invitation["reservation"]?.GetValue<string>() is not string id || !StableId(id) ||
+                    invitation["title"]?.GetValue<string>() is not string title || !ValidTitle(title) ||
+                    RelayRoute(id) is not { } reserved) return Denied;
+                string fingerprint = Digest(reserved.HostIdentity.RawData);
+                string review = Digest(System.Text.Encoding.UTF8.GetBytes(card + fingerprint + reserved.Endpoint + Digest(reserved.Pin.RawData)));
+                if (reviewingRelay)
+                    return System.Text.Json.JsonSerializer.Serialize(new { status = "review", relay = reserved.Endpoint.ToString(),
+                        project, title, fingerprint, review });
                 if (args["review"]?.GetValue<string>() != review || args["name"]?.GetValue<string>() is not string name ||
                     name.Length is < 1 or > 64) return Denied;
                 life.ThrowIfCancellationRequested();
-                attachedGuest = route.Attached;
-                connection = calls.ConnectProtected.Invoke(LanTlsName(host, project), pin,
-                    ((Func<System.Threading.CancellationToken, System.IO.Stream>)(cancel =>
-                        ConnectLan(route.Local, route.Peer, route.Attached, port, cancel)), life), project, code, name);
+                connection = calls.ConnectRelay.Invoke(ClaimRelay(reserved), reserved.HostIdentity, project, code, name, life);
             }
             else
             {
-                if (args["name"]?.GetValue<string>() is not string name || name.Length is < 1 or > 64) return Denied;
-                connection = calls.Connect.Invoke(port, pin, project, code, name);
+                if (invitation["port"]?.GetValue<int>() is not int port || port < (usingLan ? 1024 : 1) || port > 65535 ||
+                    invitation["certificate"]?.GetValue<string>() is not string encoded || encoded.Length > 3500) return Unavailable;
+                using var pin = System.Security.Cryptography.X509Certificates.X509CertificateLoader.LoadCertificate(Convert.FromBase64String(encoded));
+                if (usingLan)
+                {
+                    if (invitation["host"]?.GetValue<string>() is not string host ||
+                        invitation["guest"]?.GetValue<string>() is not string guest ||
+                        invitation["title"]?.GetValue<string>() is not string title || !ValidTitle(title))
+                        return Denied;
+                    var route = Route(guest, host);
+                    string review = Digest(System.Text.Encoding.UTF8.GetBytes(card));
+                    if (reviewingLan)
+                        return System.Text.Json.JsonSerializer.Serialize(new { status = "review", host, port, guest, project, title,
+                            fingerprint = Digest(pin.RawData), review });
+                    if (args["review"]?.GetValue<string>() != review || args["name"]?.GetValue<string>() is not string name ||
+                        name.Length is < 1 or > 64) return Denied;
+                    life.ThrowIfCancellationRequested();
+                    attachedGuest = route.Attached;
+                    connection = calls.ConnectProtected.Invoke(LanTlsName(host, project), pin,
+                        ((Func<System.Threading.CancellationToken, System.IO.Stream>)(cancel =>
+                            ConnectLan(route.Local, route.Peer, route.Attached, port, cancel)), life), project, code, name);
+                }
+                else
+                {
+                    if (args["name"]?.GetValue<string>() is not string name || name.Length is < 1 or > 64) return Denied;
+                    connection = calls.Connect.Invoke(port, pin, project, code, name);
+                }
             }
             var (request, close) = ((Func<System.Text.Json.Nodes.JsonObject, System.Text.Json.Nodes.JsonObject>, Action))connection;
             (string Message, string Box, string Digest)? prepared = null;
@@ -327,6 +362,39 @@ lock (owner)
         return Unavailable;
     }
     return Unavailable;
+
+    (string Id, System.Net.IPEndPoint Endpoint, string Dns, System.Security.Cryptography.X509Certificates.X509Certificate2 Pin,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 HostIdentity)? RelayRoute(string id) =>
+        isolatedRelay?.Describe(id) as (string, System.Net.IPEndPoint, string, System.Security.Cryptography.X509Certificates.X509Certificate2,
+            System.Security.Cryptography.X509Certificates.X509Certificate2)?;
+
+    object ClaimRelay((string Id, System.Net.IPEndPoint Endpoint, string Dns,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 Pin,
+        System.Security.Cryptography.X509Certificates.X509Certificate2 HostIdentity) reserved)
+    {
+        life.ThrowIfCancellationRequested();
+        string token = isolatedRelay?.Take(reserved.Id) ?? throw new UnauthorizedAccessException("Relay reservation unavailable.");
+        return (reserved.Endpoint, reserved.Dns, reserved.Pin, token);
+    }
+
+    static string Digest(byte[] bytes) => Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes));
+
+    static bool ValidTitle(string title) => title.Length is >= 1 and <= 128 && !System.Linq.Enumerable.Any(title, char.IsControl);
+
+    static System.Security.Cryptography.X509Certificates.X509Certificate2 NewLocalCertificate(string tlsName, bool lan)
+    {
+        using var key = System.Security.Cryptography.RSA.Create(2048);
+        var request = new System.Security.Cryptography.X509Certificates.CertificateRequest(lan ? "CN=Confectory LAN" : "CN=localhost", key,
+            System.Security.Cryptography.HashAlgorithmName.SHA256, System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+        var san = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+        san.AddDnsName(tlsName);
+        request.CertificateExtensions.Add(san.Build());
+        request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension(true, true, 0, true));
+        request.CertificateExtensions.Add(new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+            System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+            System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyCertSign, true));
+        return request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddMinutes(15));
+    }
 
     (System.Net.IPAddress Local, System.Net.IPAddress Peer, Func<bool> Attached) Route(string local, string peer) =>
         ((System.Net.IPAddress, System.Net.IPAddress, Func<bool>))calls.PrivateLanRoute.Invoke(local, peer);

@@ -1,0 +1,4 @@
+function Confectory.EditorHome::IsolatedChatRelay () -> object {
+provide Confectory.EditorHome::IsolatedChatRelay with Confectory.EditorHome::IsolatedChatRelayBody;
+description "Read the native test fixture's pretrusted relay configuration.";
+}

@@ -2,12 +2,13 @@ const yogiDragType = 'application/x-yogibox';
 const messageId = () => crypto.randomUUID().replaceAll('-', '');
 const eyUnsupported = 'EY가 담긴 YogiBox는 게스트가 보낼 수 없습니다. 기존 상자는 그대로 유지됩니다.';
 
-function publicComposer({call, alive, label, refresh, attachment}) {
+function publicComposer({call, alive, label, refresh, attachment, relay}) {
  const form = document.createElement('form');
  form.className = 'chat-compose local-public-compose';
  form.setAttribute('aria-label', label);
  form.innerHTML = '<textarea maxlength="2048" aria-label="공용 메시지 입력" placeholder="로컬 공용 채팅에 보낼 메시지" autocomplete="off"></textarea><button type="submit" class="primary">공용으로 보내기</button><small data-public-send-status aria-live="polite"></small>';
  const input = form.querySelector('textarea'), button = form.querySelector('button');
+ if (relay) input.placeholder = '공용 채팅에 보낼 메시지';
  const status = form.querySelector('[data-public-send-status]');
  let enabled = false, sending = false, retired = false, pending = null, selection = null, selecting = false;
  let attachButton, cancelButton;
@@ -139,18 +140,20 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
  }
 
  function open(mode) {
-  const lan = mode.startsWith('lan-'), issuing = mode.endsWith('issue');
-  const title = lan ? (issuing ? 'LAN 채팅 초대' : 'LAN 초대 참가') : (issuing ? '로컬 채팅 초대' : '로컬 초대 참가');
+  const lan = mode.startsWith('lan-'), relay = mode.startsWith('relay-'), issuing = mode.endsWith('issue');
+  const confirmTarget = lan || relay;
+  const title = relay ? (issuing ? '인터넷 채팅 초대 (시험)' : '인터넷 초대 참가 (시험)') :
+   lan ? (issuing ? 'LAN 채팅 초대' : 'LAN 초대 참가') : (issuing ? '로컬 채팅 초대' : '로컬 초대 참가');
   modal(title, issuing
-   ? `<p class="small">${lan ? '같은 네트워크에서 연결할 두 PC의 사설 IPv4 주소를 입력하세요. 이 초대는 지정한 PC에서 5분 안에 한 번 사용할 수 있습니다. 이 창을 닫으면 초대가 철회되고 연결이 종료됩니다.' : '같은 컴퓨터의 게스트 창에만 이 초대를 전달하세요. 5분 안에 한 번 사용할 수 있습니다. 발급 후 채팅 탭에서 공용으로 보낼 수 있습니다. 이 창을 닫으면 초대와 연결이 종료됩니다.'}</p>
+   ? `<p class="small">${relay ? '사전에 신뢰를 설정한 시험 중계를 사용합니다. 이 초대는 최대 5분 동안 한 번 쓸 수 있습니다. 철회하거나 이 창을 닫으면 연결이 종료됩니다.' : lan ? '같은 네트워크에서 연결할 두 PC의 사설 IPv4 주소를 입력하세요. 이 초대는 지정한 PC에서 5분 안에 한 번 사용할 수 있습니다. 이 창을 닫으면 초대가 철회되고 연결이 종료됩니다.' : '같은 컴퓨터의 게스트 창에만 이 초대를 전달하세요. 5분 안에 한 번 사용할 수 있습니다. 발급 후 채팅 탭에서 공용으로 보낼 수 있습니다. 이 창을 닫으면 초대와 연결이 종료됩니다.'}</p>
       ${lan ? '<div class="field"><label for="lan-host-address">내 PC IPv4</label><input id="lan-host-address" maxlength="15" required autocomplete="off" spellcheck="false"></div><div class="field"><label for="lan-guest-address">참가 PC IPv4</label><input id="lan-guest-address" maxlength="15" required autocomplete="off" spellcheck="false"></div>' : ''}
       <div class="field" data-invite-result hidden><label for="local-issued-invite">일회용 초대</label><textarea id="local-issued-invite" rows="3" readonly spellcheck="false" autocomplete="off"></textarea></div>
       <p data-local-chat-status aria-live="polite"></p>
-      <div class="actions"><button type="button" data-issue class="primary" disabled>일회용 초대 발급</button><button type="button" data-select-invite hidden>초대 텍스트 선택</button></div>`
-   : `<p class="small">${lan ? '원본 프로젝트 호스트에게 직접 받은 초대를 입력하고, 연결 대상과 프로젝트를 확인하세요.' : '이 컴퓨터의 호스트 창에서 직접 전달받은 초대만 입력하세요. 참가 중 읽거나 보낸 메시지는 이 프로젝트의 공용 채팅에 속합니다.'}</p>
+      <div class="actions"><button type="button" data-issue class="primary" disabled>일회용 초대 발급</button><button type="button" data-select-invite hidden>초대 텍스트 선택</button>${relay ? '<button type="button" data-revoke-invite hidden>초대 철회 및 연결 종료</button>' : ''}</div>`
+   : `<p class="small">${relay ? '원본 프로젝트 호스트가 직접 전달한 초대를 입력하고, 이 에디터에 설정된 시험 중계와 호스트를 확인하세요.' : lan ? '원본 프로젝트 호스트에게 직접 받은 초대를 입력하고, 연결 대상과 프로젝트를 확인하세요.' : '이 컴퓨터의 호스트 창에서 직접 전달받은 초대만 입력하세요. 참가 중 읽거나 보낸 메시지는 이 프로젝트의 공용 채팅에 속합니다.'}</p>
       <form autocomplete="off"><div class="field"><label for="local-invite">일회용 초대</label><textarea id="local-invite" rows="3" maxlength="4096" required spellcheck="false" autocomplete="off"></textarea></div>
       <div class="field"><label for="local-guest-name">참가 이름</label><input id="local-guest-name" maxlength="64" required autocomplete="off"></div>
-      ${lan ? '<div data-lan-review aria-live="polite" hidden></div>' : ''}<div class="actions"><button type="submit" class="primary" disabled>${lan ? '연결 대상 확인' : '참가'}</button></div></form>
+      ${confirmTarget ? '<div data-lan-review aria-live="polite" hidden></div>' : ''}<div class="actions"><button type="submit" class="primary" disabled>${confirmTarget ? '연결 대상 확인' : '참가'}</button></div></form>
       <p data-local-chat-status aria-live="polite"></p><section data-local-chat-messages aria-label="참가 중 받은 공용 채팅"></section>`,
   (root, dismiss) => {
    const view = makeView(), abort = new AbortController();
@@ -181,7 +184,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
 
    async function call(input) {
     for (let attempt = 0; alive(); attempt++) {
-     try { return await view.transient(lan ? 'localProjectChat' : 'localChatDevelopment', input, abort.signal); }
+     try { return await view.transient(confirmTarget ? 'localProjectChat' : 'localChatDevelopment', input, abort.signal); }
      catch (error) {
       if (error.message !== 'busy' || attempt >= 5) throw error;
       await new Promise(resolve => setTimeout(resolve, 80));
@@ -287,6 +290,8 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
    if (issuing) {
     const select = root.querySelector('[data-select-invite]');
     select.onclick = () => { input.focus(); input.select(); };
+    const revoke = root.querySelector('[data-revoke-invite]');
+    if (revoke) revoke.onclick = () => dismiss();
     function clearInvitation() {
      input.value = '';
      select.hidden = true;
@@ -304,7 +309,8 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
        owner.hostComposer.enable(false);
        clearTimeout(expiryTimer);
        clearInvitation();
-       status.textContent = '로컬 공용 채팅 연결이 종료되었습니다.';
+       status.textContent = relay ? '공용 채팅 연결이 종료되었습니다.' : '로컬 공용 채팅 연결이 종료되었습니다.';
+       if (revoke) revoke.hidden = true;
        void view.dispose().catch(() => {});
        return;
       }
@@ -312,7 +318,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
      timer = setTimeout(checkHosting, 1500);
     }
     button.onclick = async () => {
-     let request = {action:'issue'};
+     let request = {action:relay ? 'issue-relay' : 'issue'};
      if (lan) {
       const host = root.querySelector('#lan-host-address'), guest = root.querySelector('#lan-guest-address');
       if (!host.reportValidity() || !guest.reportValidity()) return;
@@ -326,9 +332,10 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
       input.value = reply.card;
       root.querySelector('[data-invite-result]').hidden = false;
       select.hidden = false;
-      status.textContent = lan ? '지정한 참가 PC의 사용자에게 초대 텍스트를 직접 전달하세요.' : '게스트 창으로 직접 복사해 전달하세요.';
+      if (revoke) revoke.hidden = false;
+      status.textContent = relay ? '초대 텍스트를 시험 참가자에게 직접 전달하세요.' : lan ? '지정한 참가 PC의 사용자에게 초대 텍스트를 직접 전달하세요.' : '게스트 창으로 직접 복사해 전달하세요.';
       if (lan) for (const field of root.querySelectorAll('#lan-host-address,#lan-guest-address')) field.readOnly = true;
-      owner.hostComposer = publicComposer({call, alive, label:'호스트 공용 채팅', refresh:refreshHost, attachment});
+      owner.hostComposer = publicComposer({call, alive, label:'호스트 공용 채팅', refresh:refreshHost, attachment, relay});
       owner.hostComposer.enable(true);
       update();
       timer = setTimeout(checkHosting, 1500);
@@ -338,7 +345,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
       }, 300000);
      } catch {
       if (alive()) {
-       status.textContent = lan ? '초대를 발급할 수 없습니다. 프로젝트 소유권과 같은 사설망에 연결된 두 IPv4 주소를 확인하세요.' : '초대를 발급할 수 없습니다. 원본 프로젝트를 만든 호스트만 발급할 수 있습니다.';
+       status.textContent = relay ? '초대를 발급할 수 없습니다. 원본 프로젝트와 시험 중계 설정을 확인하세요.' : lan ? '초대를 발급할 수 없습니다. 프로젝트 소유권과 같은 사설망에 연결된 두 IPv4 주소를 확인하세요.' : '초대를 발급할 수 없습니다. 원본 프로젝트를 만든 호스트만 발급할 수 있습니다.';
        button.disabled = false;
       }
      }
@@ -348,27 +355,27 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
     const reviewPanel = root.querySelector('[data-lan-review]');
     let review = null;
     function resetReview() {
-     if (!lan) return;
+     if (!confirmTarget) return;
      review = null;
      reviewPanel.hidden = true;
      reviewPanel.replaceChildren();
      button.textContent = '연결 대상 확인';
     }
-    if (lan) input.oninput = resetReview;
+    if (confirmTarget) input.oninput = resetReview;
     form.onsubmit = async event => {
      event.preventDefault();
      if (button.disabled) return;
      button.disabled = true;
      const name = root.querySelector('#local-guest-name').value;
      const card = input.value.trim();
-     if (lan && !review) {
+     if (confirmTarget && !review) {
       try {
-       const result = await call({action:'inspect-lan', card});
+       const result = await call({action:relay ? 'inspect-relay' : 'inspect-lan', card});
        if (!alive() || card !== input.value.trim()) return;
        if (result.status !== 'review') throw new Error('invitation_unavailable');
        review = result.review;
        for (const text of [
-        '호스트 ' + result.host + ':' + result.port + ' · 내 주소 ' + result.guest,
+        relay ? '사전에 설정한 시험 중계 ' + result.relay : '호스트 ' + result.host + ':' + result.port + ' · 내 주소 ' + result.guest,
         '프로젝트 ' + result.title + ' (' + result.project + ')',
         '호스트 인증서 SHA-256 ' + result.fingerprint
        ]) {
@@ -378,13 +385,13 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
        }
        reviewPanel.hidden = false;
        button.textContent = '이 프로젝트에 참가';
-       status.textContent = '초대를 준 호스트의 주소와 프로젝트가 맞는지 확인하세요.';
+       status.textContent = relay ? '초대를 준 호스트와 프로젝트가 맞는지 확인하세요.' : '초대를 준 호스트의 주소와 프로젝트가 맞는지 확인하세요.';
       } catch {
-       if (alive()) status.textContent = '초대 정보 또는 이 PC의 사설망 연결을 확인해 주세요.';
+       if (alive()) status.textContent = relay ? '초대와 사전에 설정된 시험 중계가 일치하는지 확인해 주세요.' : '초대 정보 또는 이 PC의 사설망 연결을 확인해 주세요.';
       } finally { if (alive()) button.disabled = false; }
       return;
      }
-     const request = lan ? {action:'join-lan', name, card, review} : {action:'join', name, card};
+     const request = confirmTarget ? {action:relay ? 'join-relay' : 'join-lan', name, card, review} : {action:'join', name, card};
      input.value = '';
      resetReview();
      status.textContent = '연결 중…';
@@ -393,7 +400,7 @@ export function createLocalChatDevelopment({modal, makeView, scope, hostTarget, 
       if (!alive()) return;
       if (reply.status !== 'joined') throw new Error('invitation_unavailable');
       form.remove();
-      guestComposer = publicComposer({call, alive, label:'참가 프로젝트 공용 채팅', attachment});
+      guestComposer = publicComposer({call, alive, label:'참가 프로젝트 공용 채팅', attachment, relay});
       owner.guestComposer = guestComposer;
       messages.after(guestComposer.form);
       void poll();

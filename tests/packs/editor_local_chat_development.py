@@ -23,6 +23,7 @@ from editor_navigation import goto_editor
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("checkout", nargs="?", type=Path, default=repo)
 parser.add_argument("--isolated-lan-image", help="local Linux fixture image with .NET system dependencies, sh and Python at /usr/bin/python3")
+parser.add_argument("--isolated-relay-image", help="run the editor on two isolated subnets with a separately provisioned relay")
 args = parser.parse_args()
 tool_repo = args.checkout.resolve()
 dotnet = os.environ.get("CONFECTORY_DOTNET") or shutil.which("dotnet")
@@ -374,6 +375,236 @@ def test_private_lan(root, checkout, seed, command, image):
             print("PASS a separate editor profile opening a project copy does not become host", flush=True)
 
 
+def test_isolated_relay(root, checkout, seed, command, image):
+    import base64
+    from datetime import datetime, timedelta, timezone
+    import errno
+    import secrets
+    import select
+    import uuid
+
+    from cryptography import x509
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from cryptography.hazmat.primitives.serialization import pkcs12
+    from cryptography.x509.oid import NameOID
+    from editor_private_lan_fixture import DOCKER, Peer, internal_network
+
+    def identity(dns):
+        key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+        name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, dns)])
+        now = datetime.now(timezone.utc)
+        certificate = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
+                       .serial_number(x509.random_serial_number()).not_valid_before(now - timedelta(minutes=1))
+                       .not_valid_after(now + timedelta(hours=1))
+                       .add_extension(x509.BasicConstraints(ca=True, path_length=0), critical=True)
+                       .add_extension(x509.SubjectAlternativeName([x509.DNSName(dns)]), critical=False)
+                       .sign(key, hashes.SHA256()))
+        bundle = pkcs12.serialize_key_and_certificates(b"fixture", key, certificate, None, serialization.NoEncryption())
+        der = certificate.public_bytes(serialization.Encoding.DER)
+        return base64.b64encode(bundle).decode(), base64.b64encode(der).decode(), hashlib.sha256(der).hexdigest().upper()
+
+    host_invite, guest_invite = "인터넷 채팅 초대 (시험)", "인터넷 초대 참가 (시험)"
+    left, right = "192.0.2.3", "198.51.100.3"
+    left_relay, right_relay = "192.0.2.2", "198.51.100.2"
+    relay_key, relay_pin, _ = identity("relay.confectory.invalid")
+    host_key, host_pin, fingerprint = identity("chat-host.confectory.invalid")
+
+    def no_listener(peer):
+        return not any(cells[3] == "0A" and not cells[1].startswith("0100007F") and
+                       not cells[1].startswith("0B00007F")
+                       for cells in (row.split() for row in peer.sockets().splitlines()[1:] if row.strip()))
+
+    def trial(browser, guest, profile, project, configuration=None):
+        with guest.editor(command, profile, project, configuration) as (url, _):
+            context, page = route_page(browser, url, [], [])
+            page.locator("#chat").click()
+            expect(page.get_by_role("button", name="LAN 채팅 초대", exact=True)).to_be_visible()
+            expect(page.get_by_role("button", name=host_invite, exact=True)).to_have_count(0)
+            page.locator("#title").click()
+            expect(page.locator(".context-menu").get_by_role("button", name=guest_invite, exact=True)).to_have_count(0)
+            context.close()
+
+    def issue_on(page):
+        page.get_by_role("button", name=host_invite, exact=True).click()
+        panel = page.get_by_role("dialog", name=host_invite, exact=True)
+        panel.get_by_role("button", name="일회용 초대 발급", exact=True).click()
+        expect(panel.get_by_role("button", name="초대 텍스트 선택")).to_be_visible(timeout=20000)
+        card = panel.get_by_label("일회용 초대").input_value()
+        assert set(json.loads(card)) == {"version", "project", "code", "reservation", "title"}
+        assert json.loads(card)["version"] == 3
+        return panel, card
+
+    def review_on(page, card, port=None):
+        menu(page, guest_invite)
+        panel = page.get_by_role("dialog", name=guest_invite, exact=True)
+        panel.get_by_label("일회용 초대").fill(card)
+        panel.get_by_label("참가 이름").fill("격리 중계 참가자")
+        panel.get_by_role("button", name="연결 대상 확인", exact=True).click()
+        if port is None:
+            expect(panel.locator("[data-local-chat-status]")).to_contain_text("사전에 설정된 시험 중계가 일치하는지")
+            expect(panel.get_by_role("button", name="이 프로젝트에 참가", exact=True)).to_have_count(0)
+        else:
+            target = panel.locator("[data-lan-review]")
+            expect(target).to_contain_text(f"{right_relay}:{port}")
+            expect(target).to_contain_text(json.loads(card)["project"])
+            expect(target).to_contain_text("HostOwner")
+            expect(target).to_contain_text(fingerprint)
+        return panel
+
+    with internal_network(image, "192.0.2.0/29") as (a, image_id), \
+         internal_network(image, "198.51.100.0/29") as (b, _), \
+         Peer(a, image_id, "host", left, root/"relay-host", checkout, tool_repo, dotnet) as host, \
+         Peer(b, image_id, "guest", right, root/"relay-guest", checkout, tool_repo, dotnet) as guest, \
+         Peer(a, image_id, "relay", left_relay, root/"relay-service", checkout, tool_repo, dotnet,
+              other_network=(b, right_relay)) as relay:
+        for peer, other in ((host, right), (guest, left)):
+            peer.run(seed, CONFECTORY_DEV_TEST_ROOT=str(peer.directory))
+            peer.run(["/usr/bin/python3", "-c", "import socket,sys; s=socket.socket(); s.settimeout(1); "
+                      "assert s.connect_ex((sys.argv[1],12345)) == int(sys.argv[2])", other, str(errno.ENETUNREACH)])
+        host_project = json.loads((host.directory/"fixture.json").read_text())["HostOwner"]
+        guest_project = json.loads((guest.directory/"fixture.json").read_text())["GuestWorkspace"]
+        host_profile, guest_profile = host.directory/"HostOwner", guest.directory/"GuestWorkspace"
+        before_host, before_guest = Path(host_project).read_bytes(), Path(guest_project).read_bytes()
+        private = guest_profile/"helper-conversations/fixture.json"
+        private.parent.mkdir(exist_ok=True)
+        private.write_bytes(b'{"private_fixture":true}')
+
+        service_command = relay.command(command, CONFECTORY_TEST_PUBLIC_CHAT_RELAY="1")
+        service_command.insert(1, "-i")
+        service_log = relay.directory/"editor-relay-service.log"
+        with service_log.open("w") as errors, subprocess.Popen([*DOCKER, *service_command], text=True,
+                                                               stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=errors) as service:
+            def send_setup(payload):
+                service.stdin.write(json.dumps(payload) + "\n")
+                service.stdin.flush()
+
+            def reserve(seconds):
+                pair, host_grant, guest_grant = uuid.uuid4().hex, secrets.token_hex(32), secrets.token_hex(32)
+                send_setup(dict(seconds=seconds, hostHash=hashlib.sha256(bytes.fromhex(host_grant)).hexdigest(),
+                                guestHash=hashlib.sha256(bytes.fromhex(guest_grant)).hexdigest()))
+                assert select.select([service.stdout], [], [], 15)[0], "Isolated relay did not allocate a port"
+                port = int(service.stdout.readline())
+                return (dict(id=pair, port=port, grant=host_grant), dict(id=pair, port=port, grant=guest_grant))
+
+            try:
+                send_setup(dict(role="relay", identity=relay_key))
+                with sync_playwright() as playwright, playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
+                    trial(browser, guest, guest_profile, guest_project)
+                    # A syntactically valid but out-of-fixture endpoint also
+                    # leaves only the established LAN UI available.
+                    invalid = dict(role="guest", identity=host_pin, relayPin=relay_pin, address="127.0.0.1",
+                                   reservations=[dict(id=uuid.uuid4().hex, port=12345, grant=secrets.token_hex(32))])
+                    trial(browser, guest, guest_profile, guest_project, invalid)
+                    pairs = [reserve(seconds) for seconds in (20, 240, 240)]
+                    config_host = dict(role="host", identity=host_key, relayPin=relay_pin, address=left_relay,
+                                       reservations=[pair[0] for pair in pairs])
+                    config_guest = dict(role="guest", identity=host_pin, relayPin=relay_pin, address=right_relay,
+                                        reservations=[pair[1] for pair in pairs])
+                    with host.editor(command, host_profile, host_project, config_host) as (host_url, host_log), \
+                         guest.editor(command, guest_profile, guest_project, config_guest) as (guest_url, guest_log):
+                        hc, hp = route_page(browser, host_url, [], [])
+                        calls = []
+                        gc, gp = route_page(browser, guest_url, calls, [])
+                        hp.locator("#chat").click()
+                        gp.locator("#chat").click()
+                        assert no_listener(host) and no_listener(guest)
+                        expect(gp.get_by_role("button", name=host_invite, exact=True)).to_have_count(0)
+                        expect(hp.get_by_role("button", name="LAN 채팅 초대", exact=True)).to_be_visible()
+                        expired_panel, expired_card = issue_on(hp)
+                        expect(expired_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다", timeout=26000)
+                        expect(expired_panel.get_by_label("일회용 초대")).to_have_value("")
+                        expired_panel.get_by_role("button", name="닫기", exact=True).click()
+                        expired = review_on(gp, expired_card, pairs[0][1]["port"])
+                        expired.get_by_role("button", name="이 프로젝트에 참가", exact=True).click()
+                        expect(expired.locator("[data-local-chat-status]")).to_contain_text("연결할 수 없습니다")
+                        expired.get_by_role("button", name="닫기", exact=True).click()
+                        print("PASS editor hides unconfigured and untrusted relay, and clears and refuses an expired invitation", flush=True)
+
+                        host_panel, card = issue_on(hp)
+                        host_form = composer(hp, "호스트 공용 채팅")
+                        send(host_form, "중계 참가 전 기록")
+                        fake = review_on(gp, json.dumps(dict(json.loads(card), endpoint="192.0.2.99", certificate=relay_pin)))
+                        assert sum(action == "join-relay" for _, action in calls) == 1  # expired attempt only
+                        fake.get_by_role("button", name="닫기", exact=True).click()
+                        guest_panel = review_on(gp, card, pairs[1][1]["port"])
+                        assert sum(action == "join-relay" for _, action in calls) == 1
+                        guest_panel.get_by_role("button", name="이 프로젝트에 참가", exact=True).click()
+                        expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.", timeout=20000)
+                        expect(guest_panel).not_to_contain_text("중계 참가 전 기록")
+                        expect(guest_panel.get_by_role("button", name="프로젝트 도구", exact=True)).to_have_count(0)
+                        assert no_listener(host) and no_listener(guest)
+                        guest_form = composer(gp, "참가 프로젝트 공용 채팅")
+                        send(host_form, "중계를 통한 호스트 글")
+                        expect(guest_panel.locator("[data-local-chat-messages]")).to_contain_text("중계를 통한 호스트 글")
+                        send(guest_form, "중계를 통한 참가자 글")
+                        expect(hp.locator("[data-public-chat-rows]")).to_contain_text("중계를 통한 참가자 글")
+                        hp.locator("#yogi").click()
+                        sealed = hp.get_by_role("dialog", name="YogiBox", exact=True).locator(".yogi-package")
+                        expect(sealed).to_be_visible()
+                        sealed.get_by_role("button", name="YogiBox 닫기", exact=True).click()
+                        host_form.get_by_role("button", name="봉인 YogiBox 첨부", exact=True).click()
+                        send(host_form, "중계 봉인 첨부")
+                        guest_panel.get_by_role("button", name="YogiBox 보기", exact=True).click()
+                        viewer = guest_panel.get_by_role("region", name="YogiBox 보기")
+                        expect(viewer).to_contain_text("첨부 시점의 봉인 설명")
+                        expect(viewer).to_contain_text("현재 열 수 없는 EY")
+                        verify_captures(viewer, (59, 60))
+                        print("PASS separated editor networks, pretrusted review before join, two-way public text, frozen LaY and no EY or editor access", flush=True)
+
+                        host_panel.get_by_role("button", name="초대 철회 및 연결 종료", exact=True).click()
+                        expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
+                        expect(guest_panel.locator("[data-local-chat-messages]")).to_be_empty()
+                        expect(viewer).to_have_count(0)
+                        guest_panel.get_by_role("button", name="닫기", exact=True).click()
+                        replay = review_on(gp, card, pairs[1][1]["port"])
+                        replay.get_by_role("button", name="이 프로젝트에 참가", exact=True).click()
+                        expect(replay.locator("[data-local-chat-status]")).to_contain_text("연결할 수 없습니다")
+                        replay.get_by_role("button", name="닫기", exact=True).click()
+
+                        host_panel, fresh = issue_on(hp)
+                        guest_panel = review_on(gp, fresh, pairs[2][1]["port"])
+                        guest_panel.get_by_role("button", name="이 프로젝트에 참가", exact=True).click()
+                        expect(guest_panel.locator("[data-local-chat-status]")).to_have_text("새 메시지가 없습니다.")
+                        expect(guest_panel.get_by_role("button", name="YogiBox 보기", exact=True)).to_have_count(0)
+                        host.stop_editor(host_profile)
+                        expect(guest_panel.locator("[data-local-chat-status]")).to_contain_text("연결이 종료되었습니다")
+                        assert no_listener(host)
+                        journal, = (host_profile/"project-chat").glob("*.json")
+                        assert sum(row["text"] == "중계를 통한 참가자 글" for row in json.loads(journal.read_text())["messages"]) == 1
+                        assert not (guest_profile/"project-chat").exists() and private.read_bytes() == b'{"private_fixture":true}'
+                        assert Path(host_project).read_bytes() == before_host and Path(guest_project).read_bytes() == before_guest
+                        observable = journal.read_text() + host_log.read_text() + guest_log.read_text() + service_log.read_text()
+                        assert all(json.loads(value)["code"] not in observable for value in (expired_card, card, fresh))
+                        assert all(reservation["grant"] not in observable for pair in pairs for reservation in pair)
+                        hc.close()
+                        gc.close()
+                        print("PASS explicit revoke, one-use replay, empty re-entry, host shutdown, and host-only history without credentials in logs", flush=True)
+
+                        # The role configuration is available, but a copied project
+                        # still does not earn an issuance control in the host UI.
+                        source = Path(host_project)
+                        copy = guest.directory/"relay-copy"
+                        shutil.copytree(source.parent, copy, ignore=shutil.ignore_patterns(".confectory"))
+                        copied = copy/source.name
+                        identity_file = source.parent/".confectory/project-identity.json"
+                        project_identity = json.loads(identity_file.read_text())
+                        project_identity["manifest"] = str(copied)
+                        (copy/".confectory").mkdir()
+                        (copy/".confectory/project-identity.json").write_text(json.dumps(project_identity))
+                        with guest.editor(command, guest.directory/"RelayCopy", str(copied), config_host) as (copy_url, _):
+                            cc, cp = route_page(browser, copy_url, [], [])
+                            cp.locator("#chat").click()
+                            expect(cp.get_by_role("button", name=host_invite, exact=True)).to_have_count(0)
+                            assert no_listener(guest)
+                            cc.close()
+                        print("PASS configured fixture profile still cannot host a copy of the original project", flush=True)
+            finally:
+                service.stdin.close()
+                service.wait(timeout=20)
+                assert service.returncode == 0, "Isolated relay did not shut down cleanly"
+
+
 with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     root = Path(temp)
     checkout = root / "checkout"
@@ -386,6 +617,16 @@ with tempfile.TemporaryDirectory(prefix="confectory-dev-invite-") as temp:
     manifest.write_text(original.replace("entry Confectory.EditorHome::Main;", "entry Confectory.EditorHome::VerifyShell;"))
     (home / "VerifyShell.csbody").write_text(seed_body)
     seed_command = build(manifest)["run"]
+    if args.isolated_relay_image:
+        manifest.write_text(original)
+        main_body = home / "MainBody.celem"
+        main_body.write_text(main_body.read_text().replace('body common "Main.csbody";',
+            'import Confectory.ProjectChat::OpenOpaqueChatRelay as FixtureRelay (object) -> object;\nbody common "Main.csbody";'))
+        entry = home / "Main.csbody"
+        fixture = repo / "tests/fixtures/isolated-relay-editor/Setup.csbody"
+        entry.write_text(fixture.read_text() + entry.read_text())
+        test_isolated_relay(root, checkout, seed_command, build(manifest)["run"], args.isolated_relay_image)
+        raise SystemExit(0)
     if args.isolated_lan_image:
         manifest.write_text(original)
         test_private_lan(root, checkout, seed_command, build(manifest)["run"], args.isolated_lan_image)

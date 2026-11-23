@@ -577,7 +577,7 @@ function editor(){if(!actualWorkspace.shouldRender('source'))return;let w=window
 function keepInput(){if(current?.projectId&&$('#source'))retained.set(current.projectId,{draft,dirty,text:$('#source').value});}
 function showStartupReady(){if(!$('.welcome[data-startup-ready]'))v508.start();v508.startupStateChanged();}
 function v508PackContents(){const t=document.createElement('template');t.innerHTML=inventoryUI.home();return t.content.querySelector('#home-packs')?.innerHTML||t.innerHTML;}
-function drawHome(){workspaceFinder.close();yogiSelectionCleanup?.();for(const w of windows.values())if(w.overlay)w.el.remove();$$('.participant-expanded-card').forEach(c=>c.remove());if(!v508.retainProjectSurface()){v508.dismissModal();$('#overlays').replaceChildren();}windows.clear();workspaceRuntime.state.workspaceNodes.clear();workspaceRuntime.state.selectedWorkspaceNodeKeys.clear();$('.coworker-hover-card')?.remove();syncParticipants();page='home';$('#app').innerHTML=`<header class="topbar">${brand()}<div class="right"></div></header><div class="home-grid">${participantSidebarMarkup()}<main class="home-main"><div class="home-heading"><div class="home-tabs" role="tablist" aria-label="작업실 보기"><button type="button" id="home-tab-projects" role="tab" aria-controls="home-projects" aria-selected="true">프로젝트</button><button type="button" id="home-tab-packs" role="tab" aria-controls="home-packs" aria-selected="false" tabindex="-1">팩</button></div><div class="row spread home-section-title"><h1 id="home-title">프로젝트</h1><div class="home-project-controls"><input id="home-project-search" type="search" aria-label="프로젝트 검색" placeholder="프로젝트 검색" autocomplete="off"><div class="home-project-actions">${current.developmentLocalChat?'<button type="button" class="secondary" id="home-local-chat">로컬 초대 참가</button>':''}${current.lanChat?'<button type="button" class="secondary" id="home-lan-chat">LAN 초대 참가</button>':''}<button type="button" class="secondary" id="open-project" title="기존 프로젝트 열기">열기</button><button type="button" class="primary" id="new-project" title="새 프로젝트 만들기">＋ 만들기</button></div></div></div></div><div class="project-grid home-tab-panel" id="home-projects" role="tabpanel" aria-labelledby="home-tab-projects"></div><section class="home-tab-panel" id="home-packs" role="tabpanel" aria-labelledby="home-tab-packs" hidden>${v508PackContents()}</section></main></div>`;bindParticipantSidebar();$('#new-project').onclick=createProject;$('#open-project').onclick=openProjectPicker;if($('#home-local-chat'))$('#home-local-chat').onclick=()=>localChatDevelopment.open('join');if($('#home-lan-chat'))$('#home-lan-chat').onclick=()=>localChatDevelopment.open('lan-join');inventoryUI.bindHome();$('#home-project-search').value=homePreferences.value.projectQuery;$('#home-project-search').oninput=e=>{homePreferences.value.projectQuery=e.target.value;homePreferences.changed();renderHomeProjects();};renderHomeProjects();homePreferences.render();refreshHomeSummaries();mcpUI.update();}
+function drawHome(){workspaceFinder.close();yogiSelectionCleanup?.();for(const w of windows.values())if(w.overlay)w.el.remove();$$('.participant-expanded-card').forEach(c=>c.remove());if(!v508.retainProjectSurface()){v508.dismissModal();$('#overlays').replaceChildren();}windows.clear();workspaceRuntime.state.workspaceNodes.clear();workspaceRuntime.state.selectedWorkspaceNodeKeys.clear();$('.coworker-hover-card')?.remove();syncParticipants();page='home';$('#app').innerHTML=`<header class="topbar">${brand()}<div class="right"></div></header><div class="home-grid">${participantSidebarMarkup()}<main class="home-main"><div class="home-heading"><div class="home-tabs" role="tablist" aria-label="작업실 보기"><button type="button" id="home-tab-projects" role="tab" aria-controls="home-projects" aria-selected="true">프로젝트</button><button type="button" id="home-tab-packs" role="tab" aria-controls="home-packs" aria-selected="false" tabindex="-1">팩</button></div><div class="row spread home-section-title"><h1 id="home-title">프로젝트</h1><div class="home-project-controls"><input id="home-project-search" type="search" aria-label="프로젝트 검색" placeholder="프로젝트 검색" autocomplete="off"><div class="home-project-actions">${current.developmentLocalChat?'<button type="button" class="secondary" id="home-local-chat">로컬 초대 참가</button>':''}${current.lanChat?'<button type="button" class="secondary" id="home-lan-chat">LAN 초대 참가</button>':''}${current.relayChat==='guest'?'<button type="button" class="secondary" id="home-relay-chat">인터넷 초대 참가 (시험)</button>':''}<button type="button" class="secondary" id="open-project" title="기존 프로젝트 열기">열기</button><button type="button" class="primary" id="new-project" title="새 프로젝트 만들기">＋ 만들기</button></div></div></div></div><div class="project-grid home-tab-panel" id="home-projects" role="tabpanel" aria-labelledby="home-tab-projects"></div><section class="home-tab-panel" id="home-packs" role="tabpanel" aria-labelledby="home-tab-packs" hidden>${v508PackContents()}</section></main></div>`;bindParticipantSidebar();$('#new-project').onclick=createProject;$('#open-project').onclick=openProjectPicker;if($('#home-local-chat'))$('#home-local-chat').onclick=()=>localChatDevelopment.open('join');if($('#home-lan-chat'))$('#home-lan-chat').onclick=()=>localChatDevelopment.open('lan-join');if($('#home-relay-chat'))$('#home-relay-chat').onclick=()=>localChatDevelopment.open('relay-join');inventoryUI.bindHome();$('#home-project-search').value=homePreferences.value.projectQuery;$('#home-project-search').oninput=e=>{homePreferences.value.projectQuery=e.target.value;homePreferences.changed();renderHomeProjects();};renderHomeProjects();homePreferences.render();refreshHomeSummaries();mcpUI.update();}
 let homeCardsSnapshot='',homeCardsIdentity='',homeSummaryTimer=null,homeSummaryRead=null;
 function refreshHomeSummaries(){
  clearTimeout(homeSummaryTimer);if(!current.cards.length)return;
@@ -824,7 +824,7 @@ async function saveHelperGlobalDraft(h){
  if(result.conflict){const error=Error('helper_draft_changed');error.saved=result;throw error;}draft.revision=result.revision;draft.draftRevision=result.draftRevision;if(draft.value.globalDraft===text){draft.dirty=false;draft.value=result.value;}return result;
 }
 function renderGlobalHelperDraft(root,h){helperAgentsUI.renderGlobal(root,h);}
-function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[...((current.developmentLocalChat)?[['로컬 채팅 초대',()=>localChatDevelopment.open('issue')],['로컬 초대 참가',()=>localChatDevelopment.open('join')]]:[]),...(current.lanChat?[['LAN 초대 참가',()=>localChatDevelopment.open('lan-join')]]:[]),['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[['이름 변경',()=>work(()=>showProjectInformation(p.id,{focusTitle:true}))]]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
+function projectMenu(p,event,escapeAnchor){if(!p)return;const rect=$('#title')?.getBoundingClientRect();contextMenu(event?.clientX??rect?.left??240,event?.clientY??rect?.bottom??100,[['프로젝트 정보',()=>work(()=>showProjectInformation(p.id),'프로젝트 정보 조회됨')],...(current.projectId?[...((current.developmentLocalChat)?[['로컬 채팅 초대',()=>localChatDevelopment.open('issue')],['로컬 초대 참가',()=>localChatDevelopment.open('join')]]:[]),...(current.lanChat?[['LAN 초대 참가',()=>localChatDevelopment.open('lan-join')]]:[]),...(current.relayChat==='guest'?[['인터넷 초대 참가 (시험)',()=>localChatDevelopment.open('relay-join')]]:[]),['프로젝트 설정',()=>showProjectSettings(p.id,escapeAnchor)],['프로젝트 도구',()=>toggleNav()],['프로젝트 브라우저',()=>browser()],['팩 관리',()=>showPackInventory()],...(current.canRun&&!document.body.classList.contains('is-mobile-editor')?[['실행 화면 열기',()=>showRun()]]:[])]:[['이름 변경',()=>work(()=>showProjectInformation(p.id,{focusTitle:true}))]]),['폴더 열기',()=>unsupported('폴더 열기','현재 호스트는 폴더 표시를 지원하지 않습니다.')],...(current.projectId?[['프로젝트 나가기',()=>work(()=>leaveActiveProject(),'프로젝트 숨김 · 작업 유지')],['프로젝트 완전 종료',()=>closeActiveProject()]]:[['목록에서 삭제',()=>modal('프로젝트를 목록에서 삭제할까요?',`<p>${esc(p.title)}을 목록에서 제거합니다. 프로젝트 파일과 진행 중인 작업은 유지됩니다.</p><div class="actions"><button id="remove-project" class="danger secondary">목록에서 삭제</button></div>`,(r,close)=>{$('#remove-project',r).onclick=()=>work(async()=>{await view.call('removeListing',{id:p.id});close();},'목록에서 제거됨');})]])],{escapeAnchor});}
 
 async function flushProjectChatDraft(){
  const scope=current.projectId,generation=view.generation;
@@ -1222,17 +1222,22 @@ function closeActiveProject(){
  modal('작업 중인 프로젝트 종료',`<p>이 프로젝트의 실행 중인 AI·Worker 또는 프로젝트 실행을 종료하고 완전히 닫을까요?</p><p>계속 작업을 선택하면 현재 작업이 유지됩니다.</p><div class="actions"><button data-keep-project>계속 작업</button><button class="danger" data-confirm-project-close>작업 종료 후 닫기</button></div>`,(root,dismiss)=>{$('[data-keep-project]',root).onclick=dismiss;$('[data-confirm-project-close]',root).onclick=()=>{dismiss();close();};});
 }
 
-function showLanChatInvite(container, permitted){
- const existing=container.querySelector('[data-lan-chat-invite]');
- if(!permitted||!current.lanChat){existing?.remove();return;}
- if(existing)return;
- const button=document.createElement('button');
- button.type='button';
- button.className='tag amber';
- button.dataset.lanChatInvite='';
- button.textContent='LAN 채팅 초대';
- button.onclick=()=>localChatDevelopment.open('lan-issue');
- container.prepend(button);
+function showPublicChatInvites(container, permitted){
+ for(const [mode, enabled, label] of [
+  ['lan',current.lanChat,'LAN 채팅 초대'],
+  ['relay',current.relayChat==='host','인터넷 채팅 초대 (시험)']
+ ]){
+  const existing=container.querySelector(`[data-${mode}-chat-invite]`);
+  if(!permitted||!enabled){existing?.remove();continue;}
+  if(existing)continue;
+  const button=document.createElement('button');
+  button.type='button';
+  button.className='tag amber';
+  button.setAttribute(`data-${mode}-chat-invite`,'');
+  button.textContent=label;
+  button.onclick=()=>localChatDevelopment.open(`${mode}-issue`);
+  container.prepend(button);
+ }
 }
 function clearPublicChatRows(){
  publicChat.container?.querySelector('[data-public-chat-rows]')?.remove();
@@ -1241,7 +1246,7 @@ function clearPublicChatRows(){
 function retirePublicChat(){
  publicChat.flight?.abort();publicChat.flight=null;
  publicChat.viewer?.close();
- if(publicChat.container)showLanChatInvite(publicChat.container,false);
+ if(publicChat.container)showPublicChatInvites(publicChat.container,false);
  clearPublicChatRows();
  publicChat.container=null;publicChat.activation='';publicChat.lastCheck=0;
 }
@@ -1262,9 +1267,9 @@ function syncPublicChat(force=false){
  view.observe('readPublicChatHistory',{},flight.signal).then(result=>{
   if(!active())return;
   if(result.status!=='available'||result.projectActivation!==activation){
-   publicChat.viewer?.close();showLanChatInvite(container,false);clearPublicChatRows();return;
+   publicChat.viewer?.close();showPublicChatInvites(container,false);clearPublicChatRows();return;
   }
-  showLanChatInvite(container,true);
+  showPublicChatInvites(container,true);
   if(publicChat.viewer&&!result.messages.some(row=>
      row.id===publicChat.viewer.messageId&&row.attachmentId===publicChat.viewer.attachmentId))
    publicChat.viewer.close();

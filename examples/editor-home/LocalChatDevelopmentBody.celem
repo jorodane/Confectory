@@ -9,5 +9,8 @@ import Confectory.ProjectChat::PrivateLanRoute as PrivateLanRoute (string,string
 import Confectory.EditorHome::StartPublicChat as StartProtected (string,string,object,object) -> object;
 import Confectory.ProjectChat::OpenProtectedChat as ListenProtected (object) -> object;
 import Confectory.ProjectChat::ConnectProtectedChat as ConnectProtected (string,object,object,string,string,string) -> object;
+import Confectory.EditorHome::IsolatedChatRelay as IsolatedRelay () -> object;
+import Confectory.EditorHome::StartPublicChatRelay as StartRelay (string,string,object,object) -> object;
+import Confectory.ProjectChat::ConnectRelayedProtectedChat as ConnectRelay (object,object,string,string,string,object) -> object;
 body common "LocalChatDevelopment.csbody";
 }

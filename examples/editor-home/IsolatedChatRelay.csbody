@@ -1,0 +1,38 @@
+if ((!OperatingSystem.IsLinux() && !OperatingSystem.IsWindows()) ||
+    Environment.GetEnvironmentVariable("CONFECTORY_UI") is not ("embedded" or "web") ||
+    Environment.GetEnvironmentVariable("CONFECTORY_TEST_PUBLIC_CHAT_RELAY") != "1" ||
+    AppDomain.CurrentDomain.GetData("Confectory.EditorHome.IsolatedChatRelay") is not
+        (string role, Func<string, object?> describe, Func<string, string?> take) || role is not ("host" or "guest"))
+    return null!;
+
+object? Route(string id)
+{
+    try
+    {
+        if (describe(id) is not (string reservation, System.Net.IPEndPoint endpoint, string dns,
+            System.Security.Cryptography.X509Certificates.X509Certificate2 relayPin,
+            System.Security.Cryptography.X509Certificates.X509Certificate2 hostIdentity) ||
+            endpoint is null || relayPin is null || hostIdentity is null ||
+            !Guid.TryParseExact(reservation, "N", out var parsed) || parsed == Guid.Empty || parsed.ToString("N") != reservation ||
+            (id.Length != 0 && id != reservation) || endpoint.Port < 1024 ||
+            endpoint.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork ||
+            dns != "relay.confectory.invalid" || relayPin.HasPrivateKey || hostIdentity.HasPrivateKey != (role == "host") ||
+            System.MemoryExtensions.SequenceEqual<byte>(relayPin.RawData, hostIdentity.RawData) ||
+            !relayPin.MatchesHostname(dns, allowWildcards: false, allowCommonName: false) ||
+            !hostIdentity.MatchesHostname("chat-host.confectory.invalid", allowWildcards: false, allowCommonName: false) ||
+            !ValidNow(relayPin) || !ValidNow(hostIdentity)) return null;
+        var address = endpoint.Address.GetAddressBytes();
+        // The opt-in editor surface accepts only the three IPv4 documentation networks.
+        if (address[3] is 0 or 255 ||
+            (address[0], address[1], address[2]) is not ((192, 0, 2) or (198, 51, 100) or (203, 0, 113))) return null;
+        return (reservation, endpoint, dns, relayPin, hostIdentity);
+    }
+    catch (Exception error) when (error is ArgumentException or InvalidOperationException or
+        System.Security.Cryptography.CryptographicException) { return null; }
+}
+
+static bool ValidNow(System.Security.Cryptography.X509Certificates.X509Certificate2 certificate) =>
+    DateTime.Now >= certificate.NotBefore && DateTime.Now <= certificate.NotAfter;
+
+// The fixture owns certificates and the one-shot credential supplier in memory.
+return Route("") is null ? null! : (role, (Func<string, object?>)Route, take);
