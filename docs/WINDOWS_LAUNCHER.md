@@ -166,3 +166,91 @@ Linux에서 win-x64 apphost를 게시하고 별도 작업 디렉터리에서 패
 [WebView2 Runtime 배포 문서](https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution)를 따릅니다.
 
 A package built into an existing checkout’s `Builds/Windows-x64` reuses its existing `.confectory/editor-home` profile when present and no explicit storage override is set. Standalone distributions use the LocalAppData default. The profile stays outside the package; no user settings are copied into the ZIP. An owned checkout/profile fixture verifies reuse and unchanged sentinel bytes.
+
+## 표준 사용자 Windows 수락 시험
+
+두 PC에서 같은 `win-x64` 결과 폴더 전체를 사용합니다. 표준 사용자에게 허용된
+Windows x64 환경에 **.NET Desktop Runtime 10.0 x64**와 **Microsoft Edge WebView2
+Evergreen Runtime**이 준비되어 있어야 합니다. 프로젝트 실행까지 시험할 PC에는
+[`global.json`](../global.json)이 선택할 수 있는 .NET 10 SDK x64도 필요합니다.
+준비되지 않은 런타임이나 조직 정책으로 막힌 단계는 사유와 함께 미실행으로 기록합니다.
+[Windows .NET 요구 사항](https://learn.microsoft.com/en-us/dotnet/core/install/windows) ·
+[WebView2 Runtime](https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution)
+
+각 PC의 표준 사용자 PowerShell에서 `$package`를 실제 결과 폴더로 바꿉니다. 두 PC의
+`--check-package`가 `ok: true`, `rid: win-x64`인지 확인하고 매니페스트 SHA-256을
+비교합니다. 검사가 실패하거나 매니페스트가 다르면 실행 단계로 넘어가지 않습니다.
+`--check-package`는 파일 해시와 시작 경로를 검사합니다. Windows 앱 시작은 이어지는
+exe 명령으로 확인합니다. 재시작할 때는 같은 PowerShell에서 마지막 명령만 다시 실행합니다.
+
+```powershell
+$package = 'C:\path\to\Builds\Windows-x64'
+dotnet --info
+dotnet (Join-Path $package 'Confectory.dll') --check-package $package
+Get-FileHash -Algorithm SHA256 (Join-Path $package 'confectory-desktop-package.json')
+
+$lab = Join-Path $env:LOCALAPPDATA ('Confectory-Acceptance-' + [guid]::NewGuid().ToString('N'))
+$env:CONFECTORY_HOME_STORAGE = Join-Path $lab 'EditorHome'
+New-Item -ItemType Directory -Path (Join-Path $lab 'Projects') -Force | Out-Null
+& (Join-Path $package 'Confectory.exe')
+```
+
+### ① 한 PC에서 만들기·저장·재시작·실행
+
+1. 첫 화면에서 `나중에`를 선택합니다. `＋ 만들기`로 `Projects` 아래에 폐기용
+   프로젝트를 생성합니다. 별도 시험 프로필에 이미 오프라인 또는 대화 권한 없는
+   첫 Agent가 등록된 경우에도 `AI 없이 만들기`를 선택해 반복합니다. Helper를
+   배치하거나 Agent 제안을 쓰지 않고, 등록 상태가 그대로인지 확인합니다. 해당 시험
+   프로필이 준비되지 않았다면 등록된 Agent 조건은 미실행으로 남깁니다.
+2. 작업실 검색의 `글자`에서 `return 0;`을 찾아 `MainBody`의 C# 본문을 엽니다.
+   `return 0;` 앞에 `System.Console.WriteLine("win-local-acceptance");`을 추가하고
+   `Save`합니다. 원본 `main.csbody`에는 아직 문구가 없어야 합니다. 프로젝트 Chat에
+   시험 문구를 쓰고 전송 없이 에디터 창을 정상 종료합니다. 새 프로세스로 같은
+   프로젝트를 열어 저장된 C# 초안과 전송하지 않은 채팅 문구가 복원되는지 확인합니다.
+3. `Review`에서 변경을 확인한 뒤 `Confirm`하고 `▶`로 실행합니다. 실행 로그에서
+   `win-local-acceptance`와 종료 코드 `0`을 확인합니다. 초대 없이 시작한 뒤, 프로젝트를
+   열었을 때, 실행하는 동안 각각 작업 관리자의 시험 에디터·엔진 PID를 `netstat -ano`와
+   대조합니다. 사설망 또는 와일드카드 TCP 수신 소켓이 없어야 합니다. 로컬 루프백은
+   따로 기록합니다.
+
+### ② 같은 사설 LAN에서 두 PC
+
+1. 승인된 같은 사설망에서 PC A는 에디터로 직접 만든 프로젝트를 엽니다. PC B는
+   자체 폐기용 프로젝트를 엽니다. 초대 창을 열기 전에 양쪽에서 자기 프로젝트의 보이는
+   편집창 안을 `Ctrl+Y`로 드래그해 LaY를 만들고 `설명 적용` 후 `확정`으로 봉인합니다.
+   각 PC의 기존 Chat 입력에 서로 다른 미전송 문구를 적습니다. A의 Chat에서 `LAN 채팅
+   초대`를 열고 발급 전 닫아 봅니다. 리스너가 생기지 않고 기존 문구를 이어 쓸 수 있어야 합니다.
+2. A에서 두 PC의 사설 IPv4를 입력해 `일회용 초대 발급`을 누릅니다. B는 프로젝트
+   메뉴의 `LAN 초대 참가`에서 A가 직접 전달한 초대 텍스트와 시험 이름을 입력합니다. `연결 대상 확인`
+   화면에서 호스트 주소·프로젝트·인증서 지문을 A의 시험 정보와 대조합니다. 참가 전
+   `닫기`로 취소하고 입력을 계속 편집할 수 있는지 확인합니다. 5분 안에 같은 초대로
+   다시 검토하여 `이 프로젝트에 참가`가 가능한지 확인합니다. A는 초대 창을 유지합니다.
+3. B의 첫 공용 목록은 비어 있어야 합니다. 양쪽에서 구분되는 텍스트로 `공용으로 보내기`를
+   누릅니다. 공용 작성란의 `봉인 YogiBox 첨부` 뒤 취소하면 공용 행이 생기지 않아야 합니다.
+   다시 첨부해 명시적으로 보낸 뒤 상대쪽 `YogiBox 보기`에서 전송 당시 선택 영역과 설명을 확인합니다.
+   B에 호스트 프로젝트 편집이나 EY 열람 권한이 생기지 않아야 합니다.
+4. B가 떠난 뒤 이미 쓴 초대는 거절되어야 합니다. A의 초대 창을 닫아 연결과 수신이
+   끝나는 것을 확인하고 새 초대로 B를 합류시킵니다. 이전 글과 첨부는 보이지 않아야
+   합니다. A를 재시작하면 공용 이력은 A의 `EditorHome\project-chat`에 남아 다시 열려야
+   합니다. B 재시작 뒤에는 B가 보낸 글과 첨부까지 포함해 공용 기록이 없어야 합니다.
+   두 PC의 비공개 초안은 유지되고 공용 글이 `helper-conversations`에 들어가지 않아야 합니다.
+   B에서 A의 폐기용 프로젝트 복사본을 열어도 그 복사본으로 초대를 발급할 수 없어야 합니다.
+
+### ③ 사전 신뢰가 구성된 격리 중계
+
+일반 패키지는 중계를 구성하지 않으므로 시험용 인터넷 초대 메뉴가 숨겨져 있어야 합니다.
+서로 직접 라우팅되지 않는 두 시험망과, 호스트·참가 역할 및 중계 TLS 신뢰가 사전에
+구성된 승인된 Windows 시험 호스트가 있는 경우에만 진행합니다. 기존 격리 fixture는
+[Linux 편집기 시험](../tests/packs/editor_local_chat_development.py)을 위한 것입니다.
+Windows 시험 호스트가 없으면 이 단계는 미실행입니다.
+
+호스트의 `인터넷 채팅 초대 (시험)`과 참가자의 `인터넷 초대 참가 (시험)`에서 ②와 같은
+텍스트·LaY·취소 후 포커스·권한·저장·재입장 검사를 합니다. 연결 대상 확인에는 사전
+설정된 시험 중계와 원본 호스트·프로젝트가 표시되어야 합니다. 초대가 사전 설정과
+일치하지 않거나 만료·재사용된 경우 참가가 거절되어야 합니다. `초대 철회 및 연결 종료`
+후에는 공용 연결이 끝나야 합니다. 중계 자격과 프로젝트 초대는 서로 다른 시험 자격으로
+취급합니다.
+
+각 단계의 성공·실패·미실행, 빌드 커밋과 매니페스트 해시, Windows·.NET·WebView2 버전을
+기록합니다. 시작 오류는 폐기용 `EditorHome\logs\launch-*.log`에서 해당 오류만 확인합니다.
+초대 텍스트와 시험 중계 자격은 시험 기록에 남기지 않습니다.
