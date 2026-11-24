@@ -63,13 +63,16 @@ string layReturnScreen="project";
 (string Screen,string Activation,string View,int X,int Y)? layBoxPress=null;
 (string Screen,string Activation,string View,int X,int Y,long Time)? layBoxClick=null;
 bool layBoxDragging=false;
+const int DraftYogiOpen=447,DraftYogiRemove=448;
+(string Activation,System.Text.Json.Nodes.JsonNode Package)? draftYogi=null;
+bool showingDraftYogi=false;
 var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,32),System.Linq.Enumerable.Range(100,96)));allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Range(33,32)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,49),System.Linq.Enumerable.Range(500,32))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -90,7 +93,7 @@ string homeTileMenu="",iconListing="",iconRevision="",iconImage="";
 int iconCardControl=0;
 var homeTiles=new System.Collections.Generic.List<(string Id,int Control,int[] Bounds)>();
 var iconPixels=new System.Collections.Generic.Dictionary<string,int[]?>(StringComparer.Ordinal);
-void Change(string next){if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";folderOpenPending=false;ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
+void Change(string next){if(next=="home"||draftYogi is { } staged&&staged.Activation!=LanCurrentActivation()){draftYogi=null;showingDraftYogi=false;}if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";folderOpenPending=false;ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
 void Start(string op,object args,int focus=0){if(job is not null)return;operation=op;jobContext=model["selected"]?["context"]?.ToString()??"";jobFocus=focus;string payload=System.Text.Json.JsonSerializer.Serialize(args);var completion=new System.Threading.Tasks.TaskCompletionSource<string>();job=completion.Task;string token=Guid.NewGuid().ToString("N");AppContext.SetData("Confectory.HostLoop.Job."+token,new object[]{(Func<string>)(()=>calls.Command.Invoke(session,op,payload)),completion});try{calls.HostSchedule.Invoke(token);}catch(Exception error){AppContext.SetData("Confectory.HostLoop.Job."+token,null);completion.TrySetException(error);throw;}}
 string informationId="",informationReturn="home",profileReturn="home",profileId="";
 int profileIndex=0;
@@ -690,8 +693,9 @@ var layNativeBounds=new System.Collections.Generic.List<int[]>();
 string LayUnit()=>model["workspace"]?["unit"]?["id"]?.ToString()??"";
 string LayRevision()=>model["workspace"]?["unit"]?["revision"]?.ToString()??"";
 bool LaySealed()=>model["yogi"]?["sealed"]?.GetValue<bool>()==true;
+System.Text.Json.Nodes.JsonNode? YogiPanelPackage()=>showingDraftYogi?draftYogi?.Package:model["yogi"];
 System.Text.Json.Nodes.JsonNode[] YogiItems()=>System.Linq.Enumerable.ToArray(
- System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(model["yogi"]?["items"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),
+ System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(YogiPanelPackage()?["items"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),
  item=>item?["kind"]?.ToString()=="image"||layReturnScreen=="project"&&item?["kind"]?.ToString()=="semantic"),item=>item!));
 int LastYogiPage(int count)=>Math.Max(0,(count-1)/YogiItemsPerPage);
 bool LayWorkspaceAvailable()=>OperatingSystem.IsLinux()&&screen=="project"&&!appClosePending&&!nativePickerPending&&!storagePending&&
@@ -792,13 +796,13 @@ bool HandleLayGesture(int type,int x,int y,int key,int flags,bool fromNative)
 }
 void CloseLayPanel()
 {
- layPreview=null;Change(layReturnScreen);pendingFocus=layReturnFocus;
+ layPreview=null;showingDraftYogi=false;Change(layReturnScreen);pendingFocus=layReturnFocus;
 }
 void LayPanelAction(int id)
 {
  if(job is not null)return;
  if(id==LayClose){CloseLayPanel();return;}
- if(id==LayCaptureAnother&&layReturnScreen=="project"){CloseLayPanel();BeginLaySelection(layReturnFocus);return;}
+ if(id==LayCaptureAnother&&layReturnScreen=="project"&&!showingDraftYogi){CloseLayPanel();BeginLaySelection(layReturnFocus);return;}
  var items=YogiItems();yogiPage=Math.Min(yogiPage,LastYogiPage(items.Length));
  if(id is YogiPreviousItems or YogiNextItems){
   yogiPage=Math.Clamp(yogiPage+(id==YogiPreviousItems?-1:1),0,LastYogiPage(items.Length));
@@ -806,7 +810,7 @@ void LayPanelAction(int id)
  }
  int index=yogiPage*YogiItemsPerPage+(id is LayFirst or LayRemoveFirst?0:1);
  string context=Context(),activation=LanCurrentActivation();
- if(id==LaySeal&&layReturnScreen=="project")
+ if(id==LaySeal&&layReturnScreen=="project"&&!showingDraftYogi)
  {
   bool seal=!LaySealed();
   Start("yogi-native",new{context,activation,action="seal",@sealed=seal,text=seal?calls.TextSnapshot.Invoke(LayDescriptionBuffer())[1]:null},LaySeal);
@@ -817,7 +821,7 @@ void LayPanelAction(int id)
   catch(ArgumentException){layPreview=null;message="LaY preview unavailable.";}
   catch(FormatException){layPreview=null;message="LaY preview unavailable.";}
  }
- else if(id is LayRemoveFirst or LayRemoveSecond&&index<items.Length&&!LaySealed()&&layReturnScreen=="project")
+ else if(id is LayRemoveFirst or LayRemoveSecond&&index<items.Length&&!LaySealed()&&layReturnScreen=="project"&&!showingDraftYogi)
  {
   layPreview=null;
   Start("yogi-native",new{context,activation,action="remove",item=items[index]["item"]!.GetValue<string>()},LayDescription);
@@ -845,6 +849,18 @@ void OpenLayIcon()
  layReturnScreen=screen;layReturnFocus=LayEntry;yogiPage=0;
  Start("yogi-native",new{context=Context(),activation=LanCurrentActivation(),action="show"});
 }
+bool DraftYogiCurrent()=>draftYogi is { } staged&&staged.Activation==LanCurrentActivation();
+void StageDraftYogi()
+{
+ if(screen!="project"||model["shell"]?["tab"]?.ToString()!="chat"||!LaySealed())return;
+ string activation=LanCurrentActivation();
+ try{
+  var package=J(calls.Command.Invoke(session,"yogi-sealed-preview",System.Text.Json.JsonSerializer.Serialize(new{context=Context(),activation})));
+  if(package["items"]?.AsArray().Count>0)draftYogi=(activation,package);
+ }
+ catch(Exception error) when(error is InvalidOperationException or UnauthorizedAccessException or ArgumentException)
+ {message="The sealed YogiBox is unavailable.";}
+}
 bool HandleYogiPointer(int type,int x,int y,int key,bool fromNative)
 {
  if(layBoxPress is { } press)
@@ -865,6 +881,7 @@ bool HandleYogiPointer(int type,int x,int y,int key,bool fromNative)
   {
    layBoxClick=null;
    if(screen=="lan-chat"&&YogiIconHit(LanInput,x,y))PrepareLanAttachment();
+   else if(screen=="project"&&YogiIconHit(38,x,y))StageDraftYogi();
    return true;
   }
   if(!YogiIconHit(LayEntry,x,y)){layBoxClick=null;return true;}
@@ -965,6 +982,12 @@ void SwitchToLogicCode(){
 }
 void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPending=job is not null});if(appClosePending||nativePickerPending||storagePending)return;if(id==20&&screen=="project"&&ProjectMenu()=="project"){SwitchToLogicCode();return;}if(screen=="lan-chat"){LanControl(id);return;}
  if(screen=="yogi"){LayPanelAction(id);return;}
+ if(screen=="project"&&id is DraftYogiOpen or DraftYogiRemove){
+  if(!DraftYogiCurrent()||model["shell"]?["tab"]?.ToString()!="chat")return;
+  if(id==DraftYogiRemove){draftYogi=null;pendingFocus=38;return;}
+  showingDraftYogi=true;layReturnScreen="project";layReturnFocus=DraftYogiOpen;yogiPage=0;
+  Change("yogi");pendingFocus=LayClose;return;
+ }
  if(id==LayEntry&&screen=="project"){OpenLayIcon();return;}if(OperatingSystem.IsLinux()&&id==LanEntry&&screen is "home" or "project"&&job is null){OpenLanPanel();return;}if(screen=="actions"){NativeActionAction(id);return;}if(screen=="project"&&id==324&&job is null){OpenNativeActions();return;}if(screen=="fields"&&(job is null||NativeFieldReading())){if(job is not null&&id==430){CancelNativeFields(false);queuedAction=id;queuedActionPin=ActionPin(id);return;}NativeFieldAction(id);return;}if(screen=="project"&&id==82&&job is null){OpenNativeFields();return;}if(job is not null&&id!=7){if(operation=="poll"&&queuedAction==0){queuedAction=id;queuedActionPin=ActionPin(id);deferredActions++;TraceFlow("action-deferred",new{id,queuedActionPin});}return;}
  if(screen=="project-icon"){HomeIconAction(id);return;}
  if(DetailsScreen()){DetailsAction(id);return;}
@@ -1129,10 +1152,10 @@ void Render(){homeTiles.Clear();
   if(screen!="project")Label(new[]{left,10,showLanLayIcon?area-104:area,44},screen=="information"?"Project information":screen=="project-icon"?"Change project icon":screen=="profile"?"Helper display profile":screen=="home"?"Projects":screen=="create"?"New project":screen=="manage"?"AI management":screen=="remove"?"Remove listing":model["selected"]?["title"]?.ToString()??"Project");
   if(screen=="yogi"){
  int width=Math.Min(520,area);
- Label(new[]{left,60,width,34},LaySealed()?"Sealed YogiBox":"YogiBox");
- bool fromChat=layReturnScreen=="lan-chat";
- Button(LayClose,new[]{left,104,150,30},fromChat?"Back to messages":"Back to workspace");
- if(!fromChat)Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture EY or LaY",LayUnit().Length!=0);
+ Label(new[]{left,60,width,34},showingDraftYogi?"YogiBox local preview":LaySealed()?"Sealed YogiBox":"YogiBox");
+ bool fromChat=layReturnScreen=="lan-chat",readOnly=fromChat||showingDraftYogi;
+ Button(LayClose,new[]{left,104,150,30},fromChat?"Back to messages":showingDraftYogi?"Back to draft":"Back to workspace");
+ if(!readOnly)Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture EY or LaY",LayUnit().Length!=0);
  var items=YogiItems();yogiPage=Math.Min(yogiPage,LastYogiPage(items.Length));
  if(items.Length==0)Label(new[]{left,152,width,30},"No captured regions");
  int offset=yogiPage*YogiItemsPerPage;
@@ -1142,12 +1165,12 @@ void Render(){homeTiles.Clear();
   var bounds=new[]{left,y,Math.Max(1,width-96),30};
   if(item["capture"] is { } capture)
    Button(LayFirst+index,bounds,"LaY "+(++imageNumber)+" · "+capture["width"]+" × "+capture["height"]);
-  else Label(bounds,"EY · "+item["id"]+" · "+(item["availability"]?.ToString()??"unavailable"));
-  if(!fromChat&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"× Remove");
+  else Label(bounds,"EY · "+item["id"]+" · "+(showingDraftYogi?item["elementKind"]?.ToString():item["availability"]?.ToString()??"unavailable"));
+  if(!readOnly&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"× Remove");
  }
- if(fromChat||LaySealed())WrappedLabel(new[]{left,232,width,58},model["yogi"]?["text"]?.ToString()??"");
+ if(readOnly||LaySealed())WrappedLabel(new[]{left,232,width,58},YogiPanelPackage()?["text"]?.ToString()??"");
  else Field(LayDescription,new[]{left,232,width,58},"Description saved when you seal the box");
- if(!fromChat)Button(LaySeal,new[]{left,302,170,34},LaySealed()?"Unseal YogiBox":"Seal YogiBox",LaySealed()||items.Length>0);
+ if(!readOnly)Button(LaySeal,new[]{left,302,170,34},LaySealed()?"Unseal YogiBox":"Seal YogiBox",LaySealed()||items.Length>0);
  if(items.Length>YogiItemsPerPage){
   Button(YogiPreviousItems,new[]{left+178,302,82,34},"Previous",yogiPage>0);
   Button(YogiNextItems,new[]{left+266,302,66,34},"Next",yogiPage<LastYogiPage(items.Length));
@@ -1328,7 +1351,13 @@ else if(screen=="fields"){
  }}
    foreach(var view in Views())if(view["open"]!.GetValue<bool>()){int slot=view["slot"]!.GetValue<int>(),first=400+slot*4;layer=30+slot;var b=layoutBounds[layer];var projection=ViewProjection(slot);var owned=projection?["workspace"]?["unit"];Box(b,0x1B2E3B);Label(new[]{b[0]+8,b[1]+10,b[2]-16,28},view["id"]+" | "+view["mode"]);string detail=view["mode"]!.ToString()=="source"?"Shared source draft; final sources unchanged":view["path"]!.ToJsonString()+" | "+(ViewProperty(view)?["schemaOrigin"]?.ToString()??"schema unavailable");Label(new[]{b[0]+8,b[1]+42,b[2]-16,48},projection?["error"]?.ToString()??detail);if(owned is not null)Field(first,new[]{b[0]+8,b[1]+92,b[2]-16,Math.Max(8,b[3]-140)},"Shared draft view",(job is null||operation=="poll"&&queuedAction==0)&&projection?["error"] is null);var actionsView=calls.Stack.Invoke(new[]{b[0]+8,b[1]+b[3]-40,b[2]-16,32},0,4,new[]{0,0,0});bool canEdit=view["mode"]!.ToString()=="source"?owned?["kind"]?.ToString() is not ("project" or "pack"):owned?["kind"]?.ToString()=="object"&&ViewProperty(view)?["pathWritable"]?.GetValue<bool>()==true;Button(first+1,actionsView[..4],view["mode"]!.ToString()=="source"?"Save draft":"Set value",owned is not null&&canEdit&&projection?["error"] is null);Button(first+2,actionsView[4..8],"Inspect",owned is not null);Button(first+3,actionsView[8..12],"Close view");}
    layer=1;Box(new[]{left-4,panelY-4,area+8,panelHeight+8},0x213644);var rows=calls.Stack.Invoke(new[]{left,panelY,area,panelHeight},1,8,new[]{34,28,0,44});int[] tabs=rows[..4],latest=rows[4..8],content=rows[8..12],actions=rows[12..];
-   var tabBoxes=calls.Stack.Invoke(tabs,0,8,new[]{112,80,96,0});Button(39,tabBoxes[..4],"Project chat",true);if(OperatingSystem.IsLinux())Button(LanEntry,new[]{left+Math.Max(0,area-105),tabBoxes[1],Math.Min(105,area),tabBoxes[3]},"Public chat");Button(40,tabBoxes[4..8],"Logs",true);Button(30,tabBoxes[8..12],"AI output",model["ai"] is not null);var chatNotice=tabBoxes[12..];if(OperatingSystem.IsLinux())chatNotice[2]=Math.Max(0,chatNotice[2]-112);Label(chatNotice,shell["tab"]!.ToString()=="chat"?(model["helperContext"] is null?shell["notice"]!.ToString():(model["aiBindings"]?[Context()] is null?"Helper selected; no connection":"AI: "+(model["ai"]?["state"]?.ToString()??"configured")+(SelectedWorker() is null?"":" | Worker "+SelectedWorker()!["status"]))):"Execution logs");Label(latest,AIRecovery().Length>0?AIRecovery():model["ai"]?["output"]?.ToString() is string outputAI&&outputAI.Length>0?outputAI:shell["latestLog"]!.ToString());
+   var tabBoxes=calls.Stack.Invoke(tabs,0,8,new[]{112,80,96,0});Button(39,tabBoxes[..4],"Project chat",true);if(OperatingSystem.IsLinux())Button(LanEntry,new[]{left+Math.Max(0,area-105),tabBoxes[1],Math.Min(105,area),tabBoxes[3]},"Public chat");Button(40,tabBoxes[4..8],"Logs",true);Button(30,tabBoxes[8..12],"AI output",model["ai"] is not null);var chatNotice=tabBoxes[12..];if(OperatingSystem.IsLinux())chatNotice[2]=Math.Max(0,chatNotice[2]-112);Label(chatNotice,shell["tab"]!.ToString()=="chat"?(model["helperContext"] is null?shell["notice"]!.ToString():(model["aiBindings"]?[Context()] is null?"Helper selected; no connection":"AI: "+(model["ai"]?["state"]?.ToString()??"configured")+(SelectedWorker() is null?"":" | Worker "+SelectedWorker()!["status"]))):"Execution logs");if(DraftYogiCurrent()&&shell["tab"]!.ToString()=="chat"){
+    var attachment=calls.Stack.Invoke(latest,0,4,new[]{0,150,90});
+    latest=attachment[..4];
+    Button(DraftYogiOpen,attachment[4..8],"YogiBox local preview");
+    Button(DraftYogiRemove,attachment[8..],"× Remove");
+   }
+   Label(latest,AIRecovery().Length>0?AIRecovery():model["ai"]?["output"]?.ToString() is string outputAI&&outputAI.Length>0?outputAI:shell["latestLog"]!.ToString());
    if(shell["tab"]!.ToString()=="chat")Field(38,content,model["helperContext"] is null?"Project chat draft - no Helper connected":"Project chat draft - local only; Helper memory requires explicit Save",true);else Field(53,content,"Execution logs - select and copy",true);
    bool dockWide=area>=640;var actionBoxes=calls.Stack.Invoke(actions,0,8,dockWide?new[]{0,88,128,44,84,108}:new[]{0,44,84,108});int dockOffset=dockWide?8:0;if(dockWide){Button(17,actionBoxes[4..8],"Augment",true,12);Button(317,actionBoxes[8..12],"Object browser",true,12);}if(shell["tab"]!.ToString()=="chat")Button(model["ai"]?["state"]?.ToString()=="running"?29:41,actionBoxes[..4],model["ai"]?["state"]?.ToString()=="running"?"Stop AI":model["aiBindings"]?[Context()] is not null&&model["helperContext"] is not null?"Review AI message":"Keep local draft",true);else Label(actionBoxes[..4],model["execution"]!["state"]!.ToString());string execution=model["execution"]!["state"]!.ToString();bool running=execution is "building" or "running";Button(43,actionBoxes[(4+dockOffset)..(8+dockOffset)],"?",true,22);Button(running?37:36,actionBoxes[(8+dockOffset)..(12+dockOffset)],running?"Stop":"Run",running||canRun&&project["standalone"]?.GetValue<bool>()==true&&project["kind"]?.ToString()=="project",22);Button(44,actionBoxes[(12+dockOffset)..],"Navigate",true,22);
    if(menu.Length>0){layer=menuLayer;int width=menuPanel[2],height=menuPanel[3];Box(new[]{left,58,width,height},0x2A4253);if(menu is "helpers" or "helper"){

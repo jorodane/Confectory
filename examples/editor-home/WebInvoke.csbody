@@ -229,6 +229,26 @@ if(endpoint=="inspectPanels"){Command("inspect-panels",new(){["context"]=selecte
 if(endpoint=="savePresentation"){Command("presentation-save",new(){["context"]=selected["context"]!.DeepClone(),["presentation"]=args["presentation"]!.DeepClone()});return "{\"accepted\":true}";}
 if(endpoint=="leaveProject"){Command("leave",new(){["context"]=selected["context"]!.DeepClone()});return "{\"accepted\":true}";}
 string Target(){string target=args["target"]?.GetValue<string>()??(OperatingSystem.IsWindows()?"windows":"linux");if(args["target"] is not null&&selected["targets"]?.AsArray().Count>0&&!System.Linq.Enumerable.Any(selected["targets"]!.AsArray(),item=>item?.ToString()==target))throw new ArgumentException("Target must be declared by the selected project");return target;}
+if(endpoint=="readLocalYogiPreview"){
+ if(args.Count!=0&&(args.Count!=1||args["item"] is not System.Text.Json.Nodes.JsonValue))
+  throw new UnauthorizedAccessException("sealed_yogi_preview_fields");
+ var activation=selected["activation"]?.ToString()??throw new InvalidOperationException("Active project required");
+ var previewRequest=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["activation"]=activation};
+ var package=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,"yogi-sealed-preview",previewRequest.ToJsonString()))!;
+ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+ if(args["item"] is { } requested){
+  string itemId=requested.GetValue<string>();
+  if(!Guid.TryParseExact(itemId,"N",out _))throw new ArgumentException("Invalid YogiBox item");
+  var image=System.Linq.Enumerable.Single(package["items"]!.AsArray(),
+   item=>item!["kind"]!.ToString()=="image"&&item["item"]!.ToString()==itemId);
+  return image!["capture"]!.ToJsonString(new System.Text.Json.JsonSerializerOptions{
+   Encoder=System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+  });
+ }
+ foreach(var item in package["items"]!.AsArray())
+  if(item?["capture"] is System.Text.Json.Nodes.JsonObject capture)capture.Remove("pixels");
+ return package.ToJsonString();
+}
 if(endpoint=="yogiImage"){var snapshot=Command("yogi",new(){["context"]=selected["context"]!.DeepClone(),["action"]="show"});var item=System.Linq.Enumerable.Single(snapshot["yogi"]!["items"]!.AsArray(),row=>row!["item"]!.ToString()==args["item"]!.ToString()&&row["kind"]?.ToString()=="image");return item!["capture"]!.ToJsonString();}
 if(endpoint=="runHistory"){Command("run-history",new(){["context"]=selected["context"]!.DeepClone(),["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0)});return "{\"accepted\":true}";}
 if(endpoint=="runControl"){Command("run-control",new(){["context"]=selected["context"]!.DeepClone(),["handle"]=args["handle"]!.DeepClone(),["action"]=args["action"]!.DeepClone(),["runtime"]=args["runtime"]?.DeepClone(),["ack"]=args["ack"]?.DeepClone(),["sequence"]=args["sequence"]?.DeepClone()});return "{\"accepted\":true}";}

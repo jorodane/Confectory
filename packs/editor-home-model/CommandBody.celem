@@ -93,6 +93,7 @@ import Confectory.YogiBox::Text as YogiText (string,string) -> void;
 import Confectory.YogiBox::Seal as YogiSeal (string,bool) -> void;
 import Confectory.YogiBox::Remove as YogiRemove (string,string) -> bool;
 import Confectory.YogiBox::Snapshot as YogiSnapshot (string) -> string;
+import Confectory.YogiBox::HandoffSnapshot as YogiHandoffSnapshot (string,string,string,string) -> string;
 import Confectory.YogiBox::Discard as YogiDiscard (string) -> void;
 import Confectory.YogiBox::ReserveCapture as YogiReserve (string,string,int,int,int,int,int) -> string;
 import Confectory.YogiBox::CompleteCapture as YogiComplete (string,string,string) -> bool;
