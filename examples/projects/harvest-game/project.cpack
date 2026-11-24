@@ -31,6 +31,7 @@ element Timber object "Timber.celem";
 element Bomb object "Bomb.celem";
 element PowderPlant object "PowderPlant.celem";
 element BombRecipe object "BombRecipe.celem";
+element Supply object "Supply.celem";
 element Main function "Main.celem";
 element MainBody implementation "MainBody.celem";
 element Throw function "Throw.celem";

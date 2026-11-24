@@ -5,3 +5,10 @@ PowderPlant extends the reusable Harvest.Plant declaration. Its qualified resour
 Set CONFECTORY_GAME_PROJECT to this source ProjectPack and configure the built SchemaEditing host/installed SDK. Build through the ordinary CLI using target linux or windows and execute the report's run command. H / Harvest collects, C / Craft crafts, T / Throw or a scene click throws. Independent invocations have separate world, plant, inventory and projectile IDs. Closing the window or SIGINT releases owned instances. CONFECTORY_GAME_MODE=mechanics-test runs the deterministic non-UI gate. The native Linux script checks actual intermediate projectile pixels, landing/fuse/effect, repetition and interruption.
 
 CONFECTORY_COMPARISON_INPUT is used only when an explicit consumer routes a local bounded intent log. Commands have stable unique IDs; each instance consumes each ID once, rejects conflicting reuse, and keeps its own model. Rendering interpolates previous/current fixed-update snapshots; it never advances the simulation by interpolation. RealTimeUpdate's bounded fixed catch-up policy remains separate. Android named-profile compilation is not APK/surface/app execution; its native provider/tool prerequisites remain an open gate.
+
+The sample owns its resource rules in `Supply.celem`. Standard `use object`
+references choose what its inventory accepts; `startingStock` is a separate
+set of initial amounts. A listed resource can start at zero. The game reads
+these declarations through the existing authoring inspector and instantiates
+its ordinary runtime inventory. The shared editor and inventory API do not
+know what this sample's resources or recipes mean.

@@ -1,0 +1,8 @@
+object Example.HarvestGame::Supply {
+    description "The sample game's inventory membership and separate starting quantities.";
+    use object Example.HarvestGame::Bomb;
+    use object Example.HarvestGame::Herb;
+    use object Example.HarvestGame::Powder;
+    use object Example.HarvestGame::Timber;
+    value startingStock = "{\"Example.HarvestGame::Herb\":5,\"Example.HarvestGame::Timber\":5}";
+}

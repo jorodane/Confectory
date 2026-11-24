@@ -61,10 +61,7 @@ provide Confectory.RealTimeUpdate::QueueCameraIntent with Confectory.RealTimeUpd
 provide Confectory.RealTimeUpdate::Register with Confectory.RealTimeUpdate::RegisterBody;
 provide Confectory.RealTimeUpdate::ResolveDispatch with Confectory.RealTimeUpdate::ResolveDispatchBody;
 provide Confectory.RealTimeUpdate::Unregister with Confectory.RealTimeUpdate::UnregisterBody;
-use object Example.HarvestGame::Powder;
-use object Example.HarvestGame::Herb;
-use object Example.HarvestGame::Timber;
-use object Example.HarvestGame::Bomb;
+use object Example.HarvestGame::Supply;
 use object Example.HarvestGame::PowderPlant;
 use object Example.HarvestGame::BombRecipe;
 provide Example.HarvestGame::Throw with Example.HarvestGame::ThrowBody;
