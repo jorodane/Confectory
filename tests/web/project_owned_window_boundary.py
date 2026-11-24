@@ -350,6 +350,76 @@ def card_refresh_workflow(report, root, browser):
     print("PASS two local Chromium editor sessions: cancel keeps the card; Confirm and manual menu refresh remove it")
 
 
+def main_view_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    (alpha, bravo), originals, proof = seed(report, root, checkout=checkout)
+    path = Path(alpha["path"]).with_name("StockDesk.celem")
+    initial = path.read_text().replace(" }", ' value editorWindow = "element-view-card"; }', 1)
+    path.write_text(initial)
+    # Bravo has the same View ID on disk and a registered but invalid main View.
+    bravo_manifest = Path(bravo["path"])
+    bravo_manifest.write_text(bravo_manifest.read_text().rstrip()[:-1] +
+                              'element InvalidMain view "InvalidMain.celem";\n}\n')
+    invalid = bravo_manifest.with_name("InvalidMain.celem")
+    invalid.write_text(f'view {NS}::InvalidMain {{ use object {NS}::Missing; value editorName = "Invalid"; '
+                       'value editorMain = "element-view-card"; }\n')
+    originals[bravo_manifest] = bravo_manifest.read_bytes()
+    originals[invalid] = invalid.read_bytes()
+
+    with editor(report, root, "project-main-view", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        surface = page.locator("#workspace > [data-project-main-view]")
+
+        def enter(title):
+            with page.expect_response(lambda response: response.request.method == "POST"
+                                      and response.url.endswith("/api/request")
+                                      and (response.request.post_data_json or {}).get("endpoint")
+                                      == "readProjectMainView") as pending:
+                open_project(page, title)
+            return pending.value.json()["result"]
+
+        assert enter(alpha["title"])["status"] == "unavailable"
+        expect(surface).to_have_count(0)
+        project_menu(page, approved=True).get_by_role("button", name="팩 관리", exact=True).click()
+        packs = page.locator('[data-key="packs"]')
+        packs.get_by_text("프로젝트 창 선언", exact=True).click()
+        packs.get_by_role("button", name=WINDOW, exact=True).click()
+        proposal = initial.replace(" }", ' value editorMain = "element-view-table"; }', 1)
+        page.locator("#source").fill(proposal)
+        review = open_review(page)
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        expect(page.locator("#source")).to_have_value(proposal)
+        assert path.read_text() == initial
+        expect(surface).to_have_count(0)
+
+        confirm_review(page)
+        assert path.read_text() == proposal
+        home(page)
+        expect(surface).to_have_count(0)
+        assert enter(bravo["title"])["status"] == "unavailable"
+        expect(surface).to_have_count(0)
+        home(page)
+        assert enter(alpha["title"])["window"]["renderer"] == "element-view-table"
+        expect(surface).to_be_visible()
+        expect(surface).to_have_attribute("data-project-main-view", WINDOW)
+        expect(surface.locator("table")).to_contain_text("Local Alpha only")
+        expect(surface.locator("input, textarea, button")).to_have_count(0)
+        assert surface.locator("h2").evaluate("""heading => {
+            const bounds = heading.getBoundingClientRect();
+            return document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2)
+                ?.closest('[data-project-main-view]') === heading.parentElement;
+        }"""), "The main View must be on the visible workspace surface"
+        open_window(page, "card")
+        expect(surface.locator("table")).to_be_visible()
+        assert not proof.exists() and not errors, errors
+        page.close()
+
+    originals[path] = proposal.encode()
+    assert all(file.read_bytes() == value for file, value in originals.items())
+    print("PASS declared main View is independent of the menu, confirmed-only, read-only and project-scoped")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -401,7 +471,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -409,6 +479,8 @@ if __name__ == "__main__":
                         card_run_workflow(package, Path(directory), browser)
                     elif "--card-refresh" in sys.argv[2:]:
                         card_refresh_workflow(package, Path(directory), browser)
+                    elif "--main-view" in sys.argv[2:]:
+                        main_view_workflow(package, Path(directory), browser)
                     else:
                         settings_workflow(package, Path(directory), browser)
         else:

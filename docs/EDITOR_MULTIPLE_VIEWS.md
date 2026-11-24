@@ -72,6 +72,22 @@ cancels Review. After the writer Confirms, opening ≡ in the reader withdraws
 both the menu entry and the open card.
 
 
+## Confirmed browser workspace opening View
+
+The browser editor can open the root Workspace with one directly owned and
+registered View. In that View's source draft set `value editorMain =
+"element-view-card";` or `value editorMain = "element-view-table";`, then use
+the existing Review and Confirm controls. The selection is read when opening
+the project. It uses the same read-only object and string-field projection as
+project windows. The `editorMain` value is independent of `editorWindow`.
+Absent, invalid, or ambiguous assignments use the standard workspace.
+
+Run the focused check with a Linux EditorHome build report from the checkout:
+
+```sh
+python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --main-view
+```
+
 ## Reproduce the affected gates
 
 Use the ordinary .NET 10 SDK, wasm-tools and existing native prerequisites. `CONFECTORY_DOTNET` names the installed SDK executable; private XDG/entry paths are useful when the host home is read-only. This environment's four-CPU quota required ordinary browser tool parallelism to be bounded with `DOTNET_PROCESSOR_COUNT=4 EMCC_CORES=4`.

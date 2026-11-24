@@ -97,9 +97,10 @@ System.Text.Json.Nodes.JsonNode ProjectWindowSetting(string context){
  return result;
 }
 if(operation=="project-window-setting-read")return ProjectWindowSetting(Active()).ToJsonString();
-if(operation=="project-window-read"){
+if(operation is "project-window-read" or "project-main-view-read"){
+ bool main=operation=="project-main-view-read";
  const string unavailable="{\"status\":\"unavailable\"}";
- if(args.Count is <2 or >3||System.Linq.Enumerable.Any(args,p=>p.Key is not ("context" or "activation" or "id")))
+ if((main?args.Count!=2:args.Count is <2 or >3)||System.Linq.Enumerable.Any(args,p=>p.Key is not ("context" or "activation" or "id")||main&&p.Key=="id"))
   throw new ArgumentException("Project window request fields");
  if(model["selected"] is not System.Text.Json.Nodes.JsonObject selected||
     selected["activation"]?.ToString()!=Value("activation")||selected["context"]?.ToString()!=Value("context"))
@@ -107,7 +108,7 @@ if(operation=="project-window-read"){
  string context=Active();
  var owner=calls.Context.Invoke(manager,context);
  if(owner[5]!="open"||owner[2]=="Confectory.AISettings")return unavailable;
- var request=new System.Text.Json.Nodes.JsonObject{["action"]="project-windows"};
+ var request=new System.Text.Json.Nodes.JsonObject{["action"]=main?"project-main-view":"project-windows"};
  if(args.ContainsKey("id")){
   if(args["id"] is not System.Text.Json.Nodes.JsonValue id||!id.TryGetValue<string>(out var identifier)||
      identifier.Length is <1 or >512)return unavailable;

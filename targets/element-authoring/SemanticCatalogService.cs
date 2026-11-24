@@ -6,6 +6,7 @@ internal static class SemanticCatalogService
   try{
    project=scope(System.IO.Path.GetFullPath(project));string root=System.IO.Path.GetDirectoryName(project)!;
    if(request["action"]?.GetValue<string>()=="inclusion")return Confectory.Core.HomeInclusion.Query(project);
+   if(request["action"]?.GetValue<string>()=="project-main-view")return ProjectWindowCatalog.Query(project,null,scope,main:true);
    if(request["action"]?.GetValue<string>()=="project-windows")return ProjectWindowCatalog.Query(project,request["id"]?.GetValue<string>(),scope);
    if(request["action"]?.GetValue<string>()=="project-window-setting")return ProjectWindowCatalog.Query(project,request["id"]!.GetValue<string>(),scope,request);
    var statistics=new Confectory.Core.BuildStatistics();string cache=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-semantic-catalog-v1",Confectory.Core.JsonData.Digest(project));

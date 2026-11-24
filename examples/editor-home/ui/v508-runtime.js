@@ -283,7 +283,7 @@ const openActiveProjectMenu=e=>{const anchor=e.currentTarget;loadProjectWindowMe
 $('#title').onclick=openActiveProjectMenu;
 $('#augment').onclick=()=>work(async()=>{await readCurrentView('augmentShow',{});showAugment();},'증강 상태');$('#chat').onclick=showChat;$('#logs-tab').onclick=()=>{retirePublicChat();$('#chat-inner').hidden=true;$('#execution-logs').hidden=false;$('#chat').classList.remove('selected');$('#logs-tab').classList.add('selected');};$('#yogi').onclick=()=>openLocalYogi();$('#worker-finder-bubble').onclick=()=>workspaceFinder.open();$('#nav').onclick=toggleNav;$('#build-target').onclick=showTargets;const projectRun=$('#run'),projectMenuButton=$('#project-menu');
 if(projectRun)projectRun.onclick=()=>showRun({launch:!document.body.classList.contains('is-mobile-editor')});
-if(projectMenuButton)projectMenuButton.onclick=openActiveProjectMenu;$('#conflict-log').onclick=()=>battleLogUI.open();$('#issues').onclick=()=>unsupported('신문고','신문고 수신·전송 계약은 연결되지 않았습니다.');setupChatResize();actualWorkspace.attach(current);showChat();}
+if(projectMenuButton)projectMenuButton.onclick=openActiveProjectMenu;$('#conflict-log').onclick=()=>battleLogUI.open();$('#issues').onclick=()=>unsupported('신문고','신문고 수신·전송 계약은 연결되지 않았습니다.');setupChatResize();actualWorkspace.attach(current);showChat();if(current.kind==='project')void showProjectMainView($('#workspace'));}
 
 function controls(){actualWorkspace.updateOffice();workspaceFinder.update();resourceBrowser.update();resourcePreviews.update();if(!busy){for(const resolve of idleWaiters)resolve();idleWaiters.clear();}for(const tab of $$('[data-window-tab]'))tab.disabled=actualWorkspace.loading;for(const b of $$('[data-profile-save]')){const id=b.closest('[data-helper-settings]')?.dataset.helperSettingsId;b.dataset.supported=String(!!current?.helpers?.find(h=>h.id===id)?.presentation?.revision);}const blocked=busy||actualWorkspace.loading||inventoryLoadScheduled||Boolean(inventoryRequest)||Boolean(windows.get('browser')?.browserFilterRequest);for(const button of $$('[data-helper-stop]')){const owner=button.closest('[data-helper-id]');button.dataset.supported=String(owner?.dataset.projectId===current?.projectId&&owner?.dataset.helperId===current?.aiHelperId&&current?.aiState==='running');}for(const b of $$('[data-tab],[data-mobile-files],[data-mobile-more],.app-settings-button,[data-new],[data-add],#browser-actions,#object-search,.folder-tree-name,.helper-window-settings,.helper-window-pin,.yogi-type,.sd-character,.sd-edit,[data-operation],[data-review-id],[data-id],[data-worker-status],[data-agent],[data-helper],[data-enter],[data-manage],[data-favorite],[data-add-helper-agent],#schema,#apply,#save,#review,#add-agent,#add-helper,#new-project,#open-project,#title,#nav,#project-menu,#yogi,#augment,#build-target,#conflict-log,#issues,#worker-finder-bubble,#open-local,#objects-refresh,#reconnect,#object-kind'))b.disabled=blocked||b.dataset.supported==='false';$('#source')?.toggleAttribute('disabled',blocked);for(const input of $$('[data-schema-field]'))input.disabled=blocked||input.dataset.supported==='false';if($('#run')){$('#run').disabled=blocked||!current?.canRun;}if($('#open-local'))$('#open-local').disabled=blocked||!globalThis.confectoryWebUI?.pickFile;if($('#create-project'))$('#create-project').disabled=blocked||!globalThis.confectoryWebUI?.createProject;previewControls();if($('#confirm'))$('#confirm').disabled=blocked||$('#confirm').dataset.supported==='false'||current.review?.status!=='ready'||current.review?.token!==$('#confirm').dataset.token;for(const row of $$('[data-object]'))row.setAttribute('aria-disabled',String(blocked));$('.yogi-package')?.setAttribute('aria-disabled',String(blocked));if($('#yogi-seal'))$('#yogi-seal').disabled=blocked||(current.yogi?.pending||[]).length>0||(current.yogi?.interrupted||[]).length>0||!(current.yogi?.items?.length||String(yogiText.get(current.projectId)??current.yogi?.text??'').trim());$('.brand')?.toggleAttribute('disabled',blocked);updateHelperPresentations();elementEditors.controls(busy);elementInstances.controls(busy);for(const w of windows.values())if(w.browserCommitStatus!==undefined)updateBrowserCommitActions(w,w.browserCommitStatus,busy||w.browserCommitPending||w.browserActionQueued);renderRun();const confirmation=$('#confirm');if(confirmation&&(current?.review?.status!=='ready'||confirmation.dataset.token!==current?.review?.token||current?.review?.units?.some(unit=>conflictInputs.has(current.projectId+'|'+unit.id))))confirmation.disabled=true;
  const workerReview=windows.get('worker-review'),adopt=workerReview?.body.querySelector('#worker-adopt');
@@ -1003,6 +1003,35 @@ async function loadProjectWindowMenu(menu,anchor){
   menu.style.top=Math.max(8,Math.min(parseFloat(menu.style.top),innerHeight-menu.offsetHeight-8))+'px';
  }catch{/* The existing project menu remains available. */}
 }
+function projectViewContent(row,card){
+ const value=card?document.createElement('dl'):document.createElement('table');
+ value.dataset.projectWindowRenderer=card?'card':'table';
+ value.setAttribute('aria-label',row.title);
+ value.style.overflowWrap='anywhere';
+ if(card){
+  const label=document.createElement('dt'),text=document.createElement('dd');
+  label.textContent=row.field;text.textContent=row.value;value.append(label,text);
+ }else{
+  const label=value.createTHead().insertRow().appendChild(document.createElement('th'));
+  label.scope='col';label.textContent=row.field;
+  value.createTBody().insertRow().insertCell().textContent=row.value;
+ }
+ return value;
+}
+async function showProjectMainView(workspace){
+ const {activation,alive}=projectWindowScope(workspace);
+ try{
+  const result=await observeProjectWindow('readProjectMainView',{},alive);
+  if(!alive()||result?.status!=='available'||result.projectActivation!==activation)return;
+  const row=result.window;
+  if(!['element-view-card','element-view-table'].includes(row?.renderer))return;
+  const surface=document.createElement('section'),title=document.createElement('h2');
+  surface.dataset.projectMainView=row.id;
+  title.textContent=row.title;
+  surface.append(title,projectViewContent(row,row.renderer==='element-view-card'));
+  workspace.prepend(surface);
+ }catch{/* Keep the standard workspace if the confirmed declaration is unavailable. */}
+}
 async function openProjectOwnedWindow(id,anchor){
  const {activation,alive}=projectWindowScope(anchor);
  if(!alive())return;
@@ -1018,18 +1047,7 @@ async function openProjectOwnedWindow(id,anchor){
   const card=row.renderer==='element-view-card';
   modal(row.title,'<div class="window-content" data-project-owned-window-body><p class="small">읽기 전용</p></div>',(root,close)=>{
    const body=root.querySelector('[data-project-owned-window-body]');
-   const value=card?document.createElement('dl'):document.createElement('table');
-   value.dataset.projectWindowRenderer=card?'card':'table';
-   value.setAttribute('aria-label',row.title);
-   value.style.overflowWrap='anywhere';
-   if(card){
-    const label=document.createElement('dt'),text=document.createElement('dd');
-    label.textContent=row.field;text.textContent=row.value;value.append(label,text);
-   }else{
-    const label=value.createTHead().insertRow().appendChild(document.createElement('th'));
-    label.scope='col';label.textContent=row.field;
-    value.createTBody().insertRow().insertCell().textContent=row.value;
-   }
+   const value=projectViewContent(row,card);
    body.append(value);
    const opened={id,close,alive};
    ownedProjectWindow=opened;

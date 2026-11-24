@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 internal static class ProjectWindowCatalog
 {
     internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope,
-        JsonObject? setting = null)
+        JsonObject? setting = null, bool main = false)
     {
         const int maxViews = 32;
         const int maxDocumentBytes = 1048576;
@@ -70,7 +70,7 @@ internal static class ProjectWindowCatalog
                 value.GetString() is not { Length: <= 4096 } text)
                 return null;
             var window = new JsonObject { ["id"] = declaration.Id, ["title"] = title };
-            if (requestedId is not null)
+            if (main || requestedId is not null)
             {
                 window["field"] = key;
                 window["value"] = text;
@@ -114,7 +114,24 @@ internal static class ProjectWindowCatalog
         JsonObject? opened = requestedId is null ? null :
             setting is null ? ConfirmedWindow(requestedId) : EditSetting(requestedId);
         var windows = new JsonArray();
-        if (requestedId is null)
+        if (main)
+        {
+            // Refuse ambiguous assignments, including assignments beyond the discovery budget.
+            var views = manifest.Elements.Where(row => row.Value.Kind == "view").Take(maxViews + 1).ToArray();
+            if (views.Length <= maxViews)
+            {
+                var declared = views.Select(row => Owned(prefix + row.Key, "view"))
+                    .Where(view => view?.Values.ContainsKey("editorMain") == true).ToArray();
+                if (declared.Length == 1 &&
+                    declared[0]!.Values["editorMain"].Value is { ValueKind: JsonValueKind.String } choice &&
+                    choice.GetString() is "element-view-card" or "element-view-table")
+                {
+                    opened = Project(declared[0]!);
+                    if (opened is not null) opened["renderer"] = choice.GetString();
+                }
+            }
+        }
+        else if (requestedId is null)
         {
             foreach (var (name, _) in manifest.Elements.Where(row => row.Value.Kind == "view")
                          .OrderBy(row => row.Key, StringComparer.Ordinal).Take(maxViews))
@@ -132,7 +149,7 @@ internal static class ProjectWindowCatalog
                 throw new IOException("Project window source changed during discovery.");
 
         if (setting is not null) return opened ?? new JsonObject { ["status"] = "unavailable" };
-        return requestedId is null ? new JsonObject { ["status"] = "available", ["windows"] = windows } :
+        return !main && requestedId is null ? new JsonObject { ["status"] = "available", ["windows"] = windows } :
             opened is null ? new JsonObject { ["status"] = "unavailable" } :
             new JsonObject { ["status"] = "available", ["window"] = opened };
     }
