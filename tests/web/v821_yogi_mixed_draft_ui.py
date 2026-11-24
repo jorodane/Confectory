@@ -11,6 +11,7 @@ from v821_project_browser_search_labels import NS, browser_window, search
 
 TARGET = f"{NS}::CaptureSubject"
 NOTE = "  유지할 영역 설명\n한 줄 더  "
+PENDING_NOTE = "두 번째 영역을 취소해도 남길 설명"
 CAPTURING = re.compile(r"\byogi-capturing\b")
 BOX_ROOT = fixture.projects[0].parent / ".confectory" / "yogi"
 
@@ -91,6 +92,36 @@ def run(page):
     assert (image["capture"]["width"], image["capture"]["height"]) == (47, 32)
     assert not both["sealed"]
     fixture.checked("Explicit Ctrl+Y and actual pointer gestures add an EY and a LaY to one unsealed local box")
+
+    description = box.get_by_role("textbox", name="설명", exact=True)
+    description.fill(PENDING_NOTE)
+    page.evaluate("() => confectoryFlushPresentation()")
+    before_cancel = packages()
+    before_shortcut = {path: path.stat().st_mtime_ns for path in before_cancel}
+    mark = len(fixture.requests)
+    capture_mode(page)
+    assert packages() == before_cancel
+    before_drag = {path: path.stat().st_mtime_ns for path in before_cancel}
+    if before_drag != before_shortcut:
+        print("OBSERVED Chromium's shortcut show rewrote the same package bytes before the canceled drag", flush=True)
+    page.mouse.move(x + 63, y)
+    page.mouse.down()
+    try:
+        page.mouse.move(x + 105, y + 27, steps=7)
+        expect(page.locator(".yogi-selection")).to_be_visible()
+        page.keyboard.press("Escape")
+        expect(page.locator("body")).not_to_have_class(CAPTURING)
+    finally:
+        page.mouse.up()
+    expect(description).to_have_value(PENDING_NOTE)
+    count(ey, 1)
+    count(lay, 1)
+    assert actions(mark) == [{"action": "show"}]
+    assert not any(row["endpoint"] in {"select", "saveDraft"} for row in fixture.requests[mark:])
+    assert packages() == before_cancel
+    assert {path: path.stat().st_mtime_ns for path in before_cancel} == before_drag
+    fixture.original()
+    fixture.checked("Escape during a second LaY drag retains the first pixels and pending description without a write")
 
     ey.click()
     row = box.locator('#yogi-items [data-kind="semantic"]')

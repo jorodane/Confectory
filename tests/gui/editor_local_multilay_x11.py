@@ -10,9 +10,10 @@ import os
 from pathlib import Path
 import sys
 import tempfile
+import time
 
-from editor_create_lay_x11 import double_box, drag_region, packages, pixels, start_drag
-from editor_lan_chat_x11 import NativeEditor, repo, ui
+from editor_create_lay_x11 import double_box, drag_region, hold, move, packages, pixels, start_drag
+from editor_lan_chat_x11 import NativeEditor, eventually, repo, ui
 
 
 TITLE = "Local GTK two regions"
@@ -56,6 +57,27 @@ def check_image(item, area, expected):
     assert base64.b64decode(capture["pixels"]) == b"".join(pixel.to_bytes(3, "big") for pixel in expected)
 
 
+def cancel_drag(editor, area):
+    ui.key(editor.window, "y", (0xFFE3,))
+    editor.wait(lambda row: row["laySelecting"], "Ctrl+Y starts the second capture")
+    x, y, width, height = area
+    before_drag = pixels(editor, area)
+    move(editor.window, x, y)
+    hold(True)
+    try:
+        time.sleep(.04)
+        move(editor.window, x + width, y + height)
+        eventually(lambda: pixels(editor, area) != before_drag, "Active LaY outline before Escape", timeout=5)
+        ui.key(editor.window, 0xFF1B)
+        editor.wait(lambda row: row["screen"] == "project" and not row["laySelecting"],
+                    "Escape cancels the drag before pointer release")
+    finally:
+        hold(False)
+    editor.click(470)
+    return editor.wait(lambda row: row["screen"] == "yogi" and editor.field(row, 473).get("visible"),
+                       "Read the original unsealed draft after releasing the mouse")
+
+
 def run(editor, projects):
     opened = editor.create(TITLE, CHAT_DRAFT, projects)
     manifest = Path(opened["path"])
@@ -83,6 +105,20 @@ def run(editor, projects):
     first_item, = saved(package)["items"]
     check_image(first_item, first, first_pixels)
     editor.fill(473, PRELIMINARY)
+    before_cancel = package.read_bytes()
+    saved_at = package.stat().st_mtime_ns
+    editor.click(471)
+    editor.wait(lambda row: row["screen"] == "project", "Return to the same workspace with an unsealed draft")
+    row = cancel_drag(editor, second)
+    assert row["model"]["selected"]["projectId"] == opened["projectId"]
+    assert editor.field(row, 473)["text"] == PRELIMINARY
+    assert [item["item"] for item in row["model"]["yogi"]["items"]] == [first_item["item"]]
+    assert packages(editor) == [package] and package.read_bytes() == before_cancel
+    assert package.stat().st_mtime_ns == saved_at
+    assert not (editor.profile / "project-chat").exists() and not (editor.profile / "helper-conversations").exists()
+    assert all(path.read_bytes() == before for path, before in original.items())
+    print("PASS Escape during the second drag keeps the original LaY and pending description without a storage write or send", flush=True)
+
     editor.click(472)
     editor.wait(lambda row: row["screen"] == "project" and row["laySelecting"], "Capture LaY adds from the same draft")
     second_pixels = pixels(editor, second)
@@ -96,6 +132,19 @@ def run(editor, projects):
     assert first_item["item"] != remaining["item"]
     check_image(remaining, second, second_pixels)
     print("PASS native Ctrl+Y and Capture LaY add two distinct workspace regions to one draft", flush=True)
+
+    editor.click(474)
+    editor.wait(lambda row: "Sealed YogiBox" in row["texts"] and PRELIMINARY in row["texts"],
+                "Seal both original and retried captures")
+    editor.click(471)
+    editor.wait(lambda row: row["screen"] == "project", "Return to the workspace to reopen the box")
+    double_box(editor)
+    editor.wait(lambda row: PRELIMINARY in row["texts"] and {475, 476} <= set(row["hits"][::5]),
+                "Reopened sealed box shows both captures")
+    assert saved(package)["items"] == [first_item, remaining]
+    assert saved(package)["text"] == PRELIMINARY
+    editor.click(474)
+    editor.wait(lambda row: editor.field(row, 473).get("visible"), "Explicitly reopen the draft for removal")
 
     editor.click(477)
     row = editor.wait(lambda row: row["screen"] == "yogi" and 475 in row["hits"][::5]
