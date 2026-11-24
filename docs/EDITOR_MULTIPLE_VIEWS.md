@@ -45,12 +45,15 @@ A project manifest can register a qualified `view` ID. An entry function can rea
 
 The browser project's ≡ menu lists directly owned, confirmed View declarations whose `editorWindow` value is `"element-view-card"` or `"element-view-table"`. Edit a registered view through **팩 관리 → 프로젝트 창 선언**, then use the existing source **Review** and **Confirm**. The view's `editorName` labels the menu entry. The initial read-only card and one-row table support one direct `use object` target with a directly owned schema declaring a single string field. The existing `value` declaration syntax carries the option.
 
+On Linux GTK, choose **≡ → Project windows** to open the same confirmed card or table. A registered View can be edited in **Edit sources** by selecting its exact ID with **Prev** or **Next**, then using the existing **Review** and **Confirm**. There is no separate View authoring surface.
+
 The host resolves the active project again for each menu listing and click and reads only confirmed files in that project. Browser responses are tied to the current project activation. The first projection sends the field label and literal string to the built-in presentation, with no declaration file paths, provider execution or object editing.
 
 The installed Linux regression uses Alpha and Bravo with the same namespace and View source bytes. Only Alpha registers the View. It exercises a linked-only declaration, canceled Review, explicit Confirm for each renderer, unsupported renderers, project and Home isolation, ordinary concept and function editors and the existing ▶ action.
 
 ```sh
 python tests/web/project_owned_window_boundary.py Builds/Linux-x64
+python tests/gui/editor_project_windows_x11.py Builds/Linux-x64
 ```
 
 ## Reproduce the affected gates
