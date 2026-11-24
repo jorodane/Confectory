@@ -24,6 +24,17 @@ if(endpoint=="returnToGtk"){
  Command("save-chat-drafts",new());
  return returning.Item2(returnRequest)?"{\"accepted\":true}":"{\"accepted\":false}";
 }
+if(endpoint is "listProjectWindows" or "readProjectWindow"){
+ bool list=endpoint=="listProjectWindows";
+ if(list?args.Count!=0:args.Count!=1||args["id"] is null)
+  throw new UnauthorizedAccessException("project_window_fields");
+ var active=before["selected"];
+ var request=new System.Text.Json.Nodes.JsonObject{["context"]=active?["context"]?.DeepClone(),["activation"]=active?["activation"]?.DeepClone()};
+ if(!list)request["id"]=args["id"]!.DeepClone();
+ string result=calls.Command.Invoke(context,"project-window-read",request.ToJsonString());
+ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+ return result;
+}
 if(endpoint is "readPublicChatHistory" or "readPublicChatAttachment" or "readPublicChatFirstImage" or "readPublicChatSecondImage"){
  bool history=endpoint=="readPublicChatHistory";
  if(history ? args.Count!=0 : args.Count!=2||args["messageId"] is null||args["attachmentId"] is null)

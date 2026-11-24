@@ -1,4 +1,4 @@
-"""A packaged project can link an owned view without granting it an EditorHome renderer."""
+"""Confirmed project-owned card and table in the installed Linux editor."""
 
 import json
 from pathlib import Path
@@ -16,6 +16,7 @@ from editor_navigation import open_project_tools
 NS = "Recent.Alpha"
 WINDOW = NS + "::StockDesk"
 WINDOW_TITLE = "Project-owned Stock Desk"
+UNSUPPORTED = NS + "::OtherDesk"
 
 
 def seed(package, root):
@@ -44,6 +45,10 @@ def seed(package, root):
             'value nodeIDs = "stock"; }\n')
         if name == "Alpha":
             source += 'element StockDesk view "StockDesk.celem";\n'
+            source += 'element OtherDesk view "OtherDesk.celem";\n'
+            (directory / "OtherDesk.celem").write_text(
+                f'view {UNSUPPORTED} {{ use object {NS}::Stock; value editorName = "Unsupported renderer"; '
+                'value editorWindow = "external-script"; }\n')
             entry_text = entry_text.replace("{", f"{{ use view {WINDOW};", 1)
         project.write_text(source + "}\n")
         entry.write_text(entry_text)
@@ -81,21 +86,89 @@ def state(address):
         assert send({"op": "dispose", "view": mounted["view"]})["ok"]
 
 
-def check_project_menu(page):
-    page.locator("#project-menu").click()
+def project_menu(page, approved=False):
+    def lookup(response):
+        if not response.url.endswith("/api/request") or response.request.method != "POST":
+            return False
+        body = response.request.post_data_json
+        return body.get("endpoint") == "listProjectWindows" and response.json().get("ok") is True
+
+    with page.expect_response(lookup) as pending:
+        page.locator("#project-menu").click()
+    reply = pending.value.json()
+    assert reply.get("ok"), reply
     menu = page.locator(".context-menu")
     expect(menu.get_by_role("button", name="프로젝트 정보", exact=True)).to_be_visible()
-    expect(menu).not_to_contain_text(WINDOW_TITLE)
-    expect(menu).not_to_contain_text("StockDesk")
+    expect(menu.get_by_role("button", name="Unsupported renderer", exact=True)).to_have_count(0)
+    slot = menu.locator(f'[data-project-owned-window="{WINDOW}"]')
+    if approved:
+        expect(slot).to_have_text(WINDOW_TITLE)
+    else:
+        assert not reply["result"].get("windows")
+        expect(slot).to_have_count(0)
+    return menu
+
+
+def check_project_tools(page):
+    menu = project_menu(page)
     menu.get_by_role("button", name="프로젝트 도구", exact=True).click()
     tools = page.get_by_role("navigation", name="프로젝트 작업 공간")
     expect(tools).to_be_visible()
     for label in ("개념", "기능"):
         expect(tools.get_by_role("button", name=label, exact=True)).to_be_enabled()
     expect(tools).not_to_contain_text(WINDOW_TITLE)
-    expect(tools).not_to_contain_text("StockDesk")
     open_project_tools(page)
     expect(tools).to_be_hidden()
+
+
+def change_renderer(page, renderer, *, cancel_first=False):
+    page.locator("#project-menu").click()
+    page.locator(".context-menu").get_by_role("button", name="팩 관리", exact=True).click()
+    packs = page.locator('[data-key="packs"]')
+    packs.get_by_text("프로젝트 창 선언", exact=True).click()
+    packs.get_by_role("button", name=WINDOW, exact=True).click()
+    expect(page.locator("#selection")).to_have_text(WINDOW)
+    source = page.locator("#source")
+    expect(source).to_be_visible()
+    text = source.input_value()
+    if 'value editorWindow = "element-view-card";' in text:
+        edited = text.replace('value editorWindow = "element-view-card";', f'value editorWindow = "{renderer}";')
+    else:
+        edited = text.rstrip()[:-1] + f'value editorWindow = "{renderer}"; }}\n'
+    source.fill(edited)
+    page.locator("#review").click()
+    review = page.locator('[data-key="review"]')
+    expect(review.locator("#confirm")).to_be_visible()
+    if cancel_first:
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        project_menu(page)
+        page.keyboard.press("Escape")
+        page.locator("#review").click()
+        expect(review.locator("#confirm")).to_be_visible()
+    advanced = review.locator("[data-review-advanced]")
+    if advanced.is_visible() and review.locator("#confirm").is_disabled():
+        advanced.click()
+        ack = review.locator("[data-advanced-reviewed]")
+        if ack.is_visible():
+            ack.check()
+    review.locator("#confirm").click()
+    expect(review).to_have_count(0)
+    expect(page.locator("#status")).to_contain_text("최종 소스에 반영")
+    return edited
+
+
+def open_window(page, renderer, *, close=True):
+    project_menu(page, approved=True).get_by_role("button", name=WINDOW_TITLE, exact=True).click()
+    dialog = page.get_by_role("dialog", name=WINDOW_TITLE, exact=True)
+    content = dialog.locator(f'[data-project-window-renderer="{renderer}"]')
+    expect(content).to_contain_text("Note")
+    expect(content).to_contain_text("Local Alpha only")
+    expect(content).not_to_contain_text("Local Bravo only")
+    expect(dialog.locator("textarea, input")).to_have_count(0)
+    if close:
+        dialog.get_by_role("button", name="닫기", exact=True).click()
+        expect(dialog).to_have_count(0)
 
 
 def check_builtins(page, title):
@@ -148,20 +221,31 @@ def workflow(package, root):
                     ids.append(current["projectId"])
                     registered = index == 0
                     assert not any(row["id"] == WINDOW for row in current["editorViews"])
-                    check_project_menu(page)
+                    check_project_tools(page)
+                    if registered:
+                        change_renderer(page, "element-view-card", cancel_first=True)
+                        open_window(page, "card")
+                        path = Path(project["path"]).with_name("StockDesk.celem")
+                        expect_bytes = change_renderer(page, "element-view-table").encode()
+                        assert path.read_bytes() == expect_bytes
+                        originals[path] = expect_bytes
+                        open_window(page, "table")
                     check_builtins(page, project["title"])
                     expected = ["Alpha", "Bravo"][:index]
                     assert (proof.read_text().splitlines() if proof.exists() else []) == expected
                     check_run(page, project, registered)
                     assert proof.read_text().splitlines() == ["Alpha", "Bravo"][:index + 1]
                     expect(page.locator('body')).not_to_contain_text(str(root))
+                    if registered:
+                        open_window(page, "table", close=False)
                     home(page)
+                    expect(page.get_by_role("dialog", name=WINDOW_TITLE, exact=True)).to_have_count(0)
                 assert all(ids) and len(set(ids)) == 2
                 assert not errors, errors
                 page.close()
 
     assert all(path.read_bytes() == data for path, data in originals.items())
-    print("PASS packaged Chromium A/B/Home, project view registration and build linkage, project menus, built-in views and real Run")
+    print("PASS packaged Chromium confirmed card and table only in A, canceled review, Home/B scope, built-in editors and real Run")
 
 
 if __name__ == "__main__":
