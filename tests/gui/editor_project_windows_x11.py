@@ -536,7 +536,7 @@ def workflow_recipe_view(report, root):
     print("PASS GTK recipe: cancel keeps it hidden; Confirm displays exact ingredients and result; Bravo and opening Workspace remain isolated")
 
 
-def workflow_recipe_editor(report, root):
+def workflow_recipe_editor(report, root, *, quantities=False):
     from editor_local_multilay_x11 import LocalEditor, repo
     from project_owned_window_boundary import NS, seed_recipe
 
@@ -553,7 +553,7 @@ def workflow_recipe_editor(report, root):
         folders = Path(project["path"]).parent.glob(".confectory/edit-workspaces/*/draft.json")
         return {path: path.read_bytes() for path in folders}
 
-    def recipe(count):
+    def recipe(count, output=4):
         menu(app, True)
         app.click(480)
         app.wait(lambda row: title in row["texts"] and 484 in row["hits"][::5],
@@ -562,7 +562,8 @@ def workflow_recipe_editor(report, root):
         row = app.wait(lambda row: not row["job"] and row["focus"] == 481 and 498 in row["hits"][::5],
                        "GTK focuses Back on opening the recipe")
         value = app.field(row, 487)
-        assert value["readonly"] and f"{NS}::Fiber × {count}" in value["text"]
+        assert value["readonly"] and value["text"] == (
+            f"Ingredients\n{NS}::Fiber × {count}\n{NS}::Tile × 3\n\nResult\n{NS}::Panel × {output}")
 
     def focus_link():
         for _ in range(4):
@@ -603,7 +604,58 @@ def workflow_recipe_editor(report, root):
             assert selected["text"] == Path(project["path"]).with_name("Assembly.celem").read_text()
             assert not app.field(row, 487).get("visible") and snapshots(project) == before
             assert all(path.read_bytes() == data for path, data in originals.items())
+            if quantities:
+                app.wait(lambda row: app.field(row, 532).get("text") == str(count), "Render editable quantity")
             if project == alpha:
+                if quantities:
+                    source = Path(alpha["path"]).with_name("Assembly.celem")
+                    for invalid in ("0", "101", "3.5"):
+                        app.fill(532, invalid[0])
+                        app.key(532, 0xFF57)  # End
+                        for length, character in enumerate(invalid[1:], start=2):
+                            app.key(532, ord(character))
+                            app.wait(lambda row: app.field(row, 532).get("text") == invalid[:length],
+                                     "Type a quantity at native input pace")
+                        app.click(533)
+                        rejected = app.wait(lambda row: row["message"] == "Enter a whole quantity from 1 to 100.",
+                                            "Reject invalid recipe quantity in GTK")
+                        assert rejected["model"]["workspace"]["unit"]["text"] == selected["text"]
+                        app.click(536)
+                        app.wait(lambda row: app.field(row, 532).get("text") == str(count),
+                                 "Reset invalid quantity before the next check")
+
+                    def apply_quantity(amount):
+                        app.fill(532, str(amount))
+                        app.click(533)
+                        app.wait(lambda row: not row["job"] and
+                                 row["message"] == "Recipe quantity applied to the draft." and
+                                 app.field(row, 532).get("text") == str(amount), "Stage recipe quantity")
+                        assert source.read_bytes() == originals[source]
+
+                    apply_quantity(5)
+                    app.click(535)
+                    app.wait(lambda row: app.field(row, 532).get("text") == "3", "Other ingredient retains its quantity")
+                    app.click(535)
+                    app.wait(lambda row: app.field(row, 532).get("text") == "4" and "Result" in row["texts"],
+                             "Show the result separately")
+                    apply_quantity(6)
+                    app.click(58)
+                    app.wait(lambda row: not row["job"] and b"outputCount = 6" in b"".join(snapshots(alpha).values()),
+                             "Save recipe draft with result quantity")
+                    assert b"Existing independent draft for the View." in b"".join(snapshots(alpha).values())
+                    ready = review(app)
+                    assert [unit["id"] for unit in ready["model"]["workspace"]["review"]["units"]] == [target]
+                    app.click(66)
+                    app.wait(lambda row: not row["job"] and not row["model"]["workspace"].get("review"), "Cancel recipe Review")
+                    recipe(2)
+                    app.click(33)
+                    review(app)
+                    app.click(65)
+                    app.wait(lambda row: not row["job"] and "outputCount = 6;" in source.read_text(), "Confirm recipe only")
+                    recipe(5, 6)
+                    app.click(33)
+                    assert b"Existing independent draft for the View." in b"".join(snapshots(alpha).values())
+                    originals[source] = source.read_bytes()
                 close_project(app)
                 open_project(app, bravo)
 
@@ -632,6 +684,8 @@ def workflow_recipe_editor(report, root):
 
     assert not proof.exists()
     assert all(path.read_bytes() == data for path, data in originals.items())
+    if quantities:
+        print("PASS GTK recipe quantities: range, draft Save, Review cancel/Confirm, unaffected ingredient and Bravo")
     print("PASS GTK recipe editor link: same-ID isolation, Tab/Enter focus, unchanged source/drafts, stale target and Back")
 
 
@@ -641,6 +695,8 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     if "--worker-opening-review" in sys.argv[2:]:
         workflow_worker_opening_review(package, root)
+    elif "--recipe-quantity" in sys.argv[2:]:
+        workflow_recipe_editor(package, root, quantities=True)
     elif "--recipe-editor" in sys.argv[2:]:
         workflow_recipe_editor(package, root)
     elif "--recipe-view" in sys.argv[2:]:

@@ -86,8 +86,11 @@ card and table settings. On Linux GTK, select the owned declaration under
 After Review and Confirm, open it through **≡ → Project windows**.
 In the browser, **레시피 편집기 열기** selects the same registered recipe in
 the existing editor. On Linux GTK, **Open recipe editor** opens its ordinary
-Properties View. Return to the read-only recipe via **≡ → Project windows**. The host rechecks the current project and View when that
-button is used. In Chromium, the editor opened from this button groups existing
+Properties View with a quantity editor. Use **Previous** and **Next** to move
+through the ingredients and result, and **Apply quantity** to stage the current
+row. Return to the read-only recipe via **≡ → Project windows**. The host
+rechecks the current project and View when opening the editor. In Chromium,
+the editor opened from this button groups existing
 ingredient and result quantities. Apply each changed group to the draft, then
 use the existing draft save or Review and Confirm controls. The read-only
 window continues to show confirmed quantities until Confirm.
@@ -98,6 +101,7 @@ python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --
 python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --recipe-quantity
 python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --recipe-view
 python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --recipe-editor
+python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --recipe-quantity
 ```
 
 ## Confirmed workspace opening View

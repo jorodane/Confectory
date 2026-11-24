@@ -39,7 +39,7 @@ string session=Own("session",calls.CreateSession.Invoke(repo,storage),value=>cal
 // Register the 128 controls used by the project surface; home-only and unused IDs stay out.
 string homeControl=control,shellControl=Own("shell-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Where(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,99),System.Linq.Enumerable.Range(200,29)),id=>Array.IndexOf(new[]{1,2,3,9,10,11,12,13,14,18,19,31,32,70,71,72,200},id)<0),System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)))),value=>calls.CloseControls.Invoke(value));var aiOutputViews=new System.Collections.Generic.HashSet<string>();var chatBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);var logBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
 string viewControls=Own("view-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12)))),value=>calls.CloseControls.Invoke(value));
-string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,69),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
+string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,69),System.Linq.Enumerable.Range(500,37)))),value=>calls.CloseControls.Invoke(value));
 var owner=Own("owner",calls.CreateOwner.Invoke(1),value=>calls.DisposeOwner.Invoke(value));var surfaces=Own("surfaces",calls.CreateSurfaces.Invoke(new[]{"Confectory - Projects"},960,700),value=>calls.Close.Invoke(value,-1));
 string nativeHome=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeShell=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeHost=nativeHome;bool nativePickerPending=false,archivePending=false,storagePending=false;int pickerFocus=0;
 bool canRun=System.Linq.Enumerable.Contains(calls.ExecutionCapabilities.Invoke(),"build-and-run",StringComparer.Ordinal),canOpenFolder=J(calls.NativeCapabilities.Invoke())["openFolder"]?.GetValue<bool>()==true;
@@ -69,6 +69,10 @@ const int OpenProjectWindows=480,ProjectWindowsBack=481,ProjectWindowsPrevious=4
 const int FirstProjectWindow=484,ProjectWindowsPageSize=3,ProjectWindowValue=487;
 const int ViewMenuSetting=488,ViewMenuHidden=489,ViewMenuCard=490,ViewMenuTable=491;
 const int ViewMainSetting=492,ViewMainDefault=493,ViewMainCard=494,ViewMainTable=495,ProjectMainValue=496,ViewMenuRecipe=497,OpenRecipeEditor=498;
+const int RecipeQuantity=532,RecipeApply=533,RecipePrevious=534,RecipeNext=535,RecipeReset=536;
+(string Activation,string Id,string View,System.Text.Json.Nodes.JsonNode Recipe)? recipeEditor=null;
+int recipeRow=0;
+string recipeInput="",recipeBasis="",recipeBaseline="",recipeBuffer="";
 string projectMainActivation="",projectMainBuffer="";
 System.Text.Json.Nodes.JsonNode? projectMainView=null;
 (string Activation,string Key,int Control,string Renderer,string Conflict,System.Text.Json.Nodes.JsonArray? Choices)? viewMenuSetting=null;
@@ -86,9 +90,9 @@ var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.L
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
-allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,69),System.Linq.Enumerable.Range(500,32))));
+allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,69),System.Linq.Enumerable.Range(500,37))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=OpenRecipeEditor:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=OpenRecipeEditor||id>=RecipeQuantity&&id<=RecipeReset:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -109,7 +113,7 @@ string homeTileMenu="",iconListing="",iconRevision="",iconImage="";
 int iconCardControl=0;
 var homeTiles=new System.Collections.Generic.List<(string Id,int Control,int[] Bounds)>();
 var iconPixels=new System.Collections.Generic.Dictionary<string,int[]?>(StringComparer.Ordinal);
-void Change(string next){RetireProjectWindows();if(next=="home"){projectMainActivation="";projectMainView=null;if(projectMainBuffer.Length>0)calls.ReplaceText.Invoke(projectMainBuffer,"",0,0);}if(next=="home"||draftYogi is { } staged&&staged.Activation!=LanCurrentActivation()){draftYogi=null;draftYogiMessage=draftYogiText="";showingDraftYogi=false;}if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";folderOpenPending=false;ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
+void Change(string next){if(next=="home")recipeEditor=null;RetireProjectWindows();if(next=="home"){projectMainActivation="";projectMainView=null;if(projectMainBuffer.Length>0)calls.ReplaceText.Invoke(projectMainBuffer,"",0,0);}if(next=="home"||draftYogi is { } staged&&staged.Activation!=LanCurrentActivation()){draftYogi=null;draftYogiMessage=draftYogiText="";showingDraftYogi=false;}if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";folderOpenPending=false;ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
 void Start(string op,object args,int focus=0,Func<string>? invoke=null){if(job is not null)return;operation=op;jobContext=model["selected"]?["context"]?.ToString()??"";jobFocus=focus;string payload=System.Text.Json.JsonSerializer.Serialize(args);var completion=new System.Threading.Tasks.TaskCompletionSource<string>();job=completion.Task;string token=Guid.NewGuid().ToString("N");AppContext.SetData("Confectory.HostLoop.Job."+token,new object[]{invoke??(()=>calls.Command.Invoke(session,op,payload)),completion});try{calls.HostSchedule.Invoke(token);}catch(Exception error){AppContext.SetData("Confectory.HostLoop.Job."+token,null);completion.TrySetException(error);throw;}}
 string informationId="",informationReturn="home",profileReturn="home",profileId="";
 int profileIndex=0;
@@ -237,7 +241,16 @@ var sourceBuffers=new System.Collections.Generic.Dictionary<string,string>(Strin
 string SourceKey()=>Context()+"/"+model["workspace"]!["unit"]!["id"]!.ToString();
 string SourceBuffer()=>SourceBufferFor(model["workspace"]!["unit"]!);
 string SourceBufferFor(System.Text.Json.Nodes.JsonNode unit){string key=Context()+"/"+unit["id"]!.ToString(),value=unit["text"]!.ToString();long revision=unit["revision"]!.GetValue<long>();if(!sourceBuffers.TryGetValue(key,out string? buffer)){buffer=OwnProjectText(Context(),calls.CreateText.Invoke("project-source-"+key,value));sourceBuffers.Add(key,buffer);sourceVersions[key]=(revision,value);}else{var known=sourceVersions[key];var text=calls.TextSnapshot.Invoke(buffer);if(text[1]==value&&revision>=known.Revision)sourceVersions[key]=(revision,value);else if(known.Revision<revision&&text[1]==known.Text){calls.ReplaceText.Invoke(buffer,value,Math.Min(int.Parse(text[2]),value.Length),Math.Min(int.Parse(text[4]),value.Length));sourceVersions[key]=(revision,value);}}return buffer;}
-void WorkspaceAction(string action,string id="",int page=0){message="";var payload=new System.Text.Json.Nodes.JsonObject{["context"]=Context(),["action"]=action,["id"]=id,["page"]=page};var unit=model["workspace"]?["unit"];if(action is not ("confirm" or "cancel-review")&&unit is not null&&unit["kind"]!.ToString() is not ("project" or "pack")){string buffer=SourceBuffer();payload["text"]=calls.TextSnapshot.Invoke(buffer)[1];payload["expectedRevision"]=sourceVersions[SourceKey()].Revision;}if(action=="confirm"){payload["token"]=model["workspace"]!["review"]!["token"]!.ToString();var reviewed=model["workspace"]!["review"]!["units"]!.AsArray();if(reviewed.Count>1)payload["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(reviewed,r=>r!["id"]!.ToString())));}Start("workspace",payload,action=="review"?66:54);}
+bool refreshSchema=false;
+void WorkspaceAction(string action,string id="",int page=0){message="";
+ if(RecipeEditorCurrent()&&RecipeInputPending()&&action is "select" or "page" or "hide"){
+  message="Apply or reset the quantity before leaving this editor.";return;
+ }
+ if(RecipeEditorCurrent()&&action is "save" or "review"){
+ if(RecipeInputPending()||calls.TextSnapshot.Invoke(SourceBuffer())[1]!=model["workspace"]!["unit"]!["text"]!.ToString()){
+  message="Apply or reset the pending recipe or source input before saving or reviewing.";return;
+ }
+ }var payload=new System.Text.Json.Nodes.JsonObject{["context"]=Context(),["action"]=action,["id"]=id,["page"]=page};var unit=model["workspace"]?["unit"];if(action is not ("confirm" or "cancel-review")&&unit is not null&&unit["kind"]!.ToString() is not ("project" or "pack")){string buffer=SourceBuffer();payload["text"]=calls.TextSnapshot.Invoke(buffer)[1];payload["expectedRevision"]=sourceVersions[SourceKey()].Revision;}if(RecipeEditorCurrent()&&action is "save" or "cancel-review" or "confirm")refreshSchema=true;if(action=="confirm"){payload["token"]=model["workspace"]!["review"]!["token"]!.ToString();var reviewed=model["workspace"]!["review"]!["units"]!.AsArray();if(reviewed.Count>1)payload["ids"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(reviewed,r=>r!["id"]!.ToString())));}Start("workspace",payload,action=="review"?66:54);}
 // Presentation keys are scoped to the borrowed project/element; no model belongs to a table.
 var presentationFocus=new System.Collections.Generic.Dictionary<string,int>(StringComparer.Ordinal);
 var viewModes=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
@@ -266,7 +279,7 @@ string HelperKey()=>Context()+"/helper/"+(model["helperContext"]?["helper"]?.ToS
 System.Text.Json.Nodes.JsonNode[] HelperWorkers()=>System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(model["ai"]?["workers"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),pair=>pair.Value?["ownerHelper"]?.ToString()==model["helperContext"]?["helper"]?.ToString()&&pair.Value?["project"]?.ToString()==model["selected"]?["projectId"]?.ToString()),pair=>pair.Value!));
 string HelperSummaryBuffer(){string value="";var worker=System.Linq.Enumerable.FirstOrDefault(HelperWorkers(),row=>row["task"]?.ToString()==model["selectedTask"]?.ToString());if(worker is not null)value="Worker: "+worker["task"]+" | "+worker["status"]+"\nGoal: "+worker["specification"]?["goal"]+"\n"+worker["progress"]+"\n"+WorkerRecovery(worker)+"\n\n";if(model["ai"]?["context"]?["helper"]?.ToString()==model["helperContext"]?["helper"]?.ToString())value+="Helper output: "+(model["ai"]?["output"]?.ToString()??"");if(value.Length==0)value="No output for this Helper in this project";var buffer=FormBuffer(313);if(calls.TextSnapshot.Invoke(buffer)[1]!=value)calls.ReplaceText.Invoke(buffer,value,0,0);return buffer;}
 
-System.Text.Json.Nodes.JsonObject? queuedWorkspace=null;string queuedSource="",queuedContext="";bool refreshSchema=false;
+System.Text.Json.Nodes.JsonObject? queuedWorkspace=null;string queuedSource="",queuedContext="";
 string PresentationFocusKey()=>Context()+"/"+(model["workspace"]?["selected"]?.ToString()??"")+"/"+WorkspaceMode()+(WorkspaceMode()=="properties"?"/"+(propertySections.TryGetValue(SourceKey(),out var section)?section:model["workspace"]!["unit"]!["kind"]!.ToString()=="schema"?1:0):"");
 int PresentationFocus(){if(presentationFocus.TryGetValue(PresentationFocusKey(),out int focused))return focused;if(WorkspaceMode()=="source")return 54;if(WorkspaceMode()=="explorer")return 77;int section=propertySections.TryGetValue(SourceKey(),out var saved)?saved:model["workspace"]!["unit"]!["kind"]!.ToString()=="schema"?1:0;return section==1?208:section==2?95:89;}
 string WorkspaceMode()=>viewModes.TryGetValue(Context(),out var mode)?mode:"source";
@@ -1176,10 +1189,83 @@ void CompleteViewMenuEdit(){
  Render();
 }
 
+bool RecipeEditorCurrent()=>recipeEditor is { } editor&&screen=="project"&&WorkspaceMode()=="properties"&&
+ editor.Activation==ProjectWindowActivation()&&editor.Id==model["workspace"]?["unit"]?["id"]?.ToString();
+(string Id,int Count)[] RecipeRows(System.Text.Json.Nodes.JsonNode? recipe,System.Text.Json.Nodes.JsonNode? values){
+ if(recipe is null||values?["concept"]?.ToString()!="recipe"||values["output"]?.ToString()!=recipe["output"]?["id"]?.ToString())return [];
+ try{
+  var ingredients=J(values["ingredients"]!.GetValue<string>()).AsObject();
+  var rows=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(recipe["ingredients"]!.AsArray(),row=>{
+   string id=row!["id"]!.ToString();return (Id:id,Count:ingredients[id]!.GetValue<int>());
+  }));
+  int result=values["outputCount"]!.GetValue<int>();
+  if(rows.Length!=ingredients.Count||result is <1 or >100||System.Linq.Enumerable.Any(rows,r=>r.Count is <1 or >100))return [];
+  return [..rows,(values["output"]!.GetValue<string>(),result)];
+ }catch(Exception error) when(error is System.Text.Json.JsonException or InvalidOperationException or FormatException or NullReferenceException){return [];}
+}
+string RecipeInput()=>calls.TextSnapshot.Invoke(recipeBuffer)[1];
+bool RecipeInputPending()=>recipeBuffer.Length>0&&recipeInput.Length>0&&RecipeInput()!=recipeBaseline;
+void PrepareRecipeInput((string Id,int Count)[] rows,bool reset=false){
+ var unit=model["workspace"]!["unit"]!;
+ string key=recipeEditor!.Value.Activation+"/"+recipeEditor.Value.Id+"/"+recipeRow;
+ string current=rows[recipeRow].Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+ if(recipeBuffer.Length==0)
+  recipeBuffer=Own("recipe-quantity",calls.CreateText.Invoke("recipe-quantity",""),value=>calls.CloseText.Invoke(value));
+ if(reset||recipeInput!=key||recipeBasis!=unit["text"]!.ToString()&&!RecipeInputPending()){
+  if(RecipeInput()!=current)calls.ReplaceText.Invoke(recipeBuffer,current,0,0);
+  recipeInput=key;recipeBaseline=current;recipeBasis=unit["text"]!.ToString();
+ }
+}
+void RecipeQuantityAction(int control){
+ if(job is not null||!RecipeEditorCurrent()||recipeEditor is not { } editor)return;
+ var workspace=model["workspace"]!;
+ var values=workspace["inspection"]?["values"];
+ var rows=RecipeRows(editor.Recipe,values);
+ if(rows.Length==0||recipeRow>=rows.Length)return;
+ if(control==RecipeReset){
+  message="";PrepareRecipeInput(rows,true);pendingFocus=RecipeQuantity;Render();return;
+ }
+ if(control is RecipePrevious or RecipeNext){
+  if(RecipeInputPending()){message="Apply or reset this quantity before changing rows.";return;}
+  recipeRow=Math.Clamp(recipeRow+(control==RecipePrevious?-1:1),0,rows.Length-1);return;
+ }
+ if(control!=RecipeApply||!RecipeInputPending())return;
+ if(!int.TryParse(RecipeInput(),System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out int count)||count is <1 or >100){
+  message="Enter a whole quantity from 1 to 100.";pendingFocus=RecipeQuantity;return;
+ }
+ var unit=workspace["unit"]!;
+ string text=unit["text"]!.ToString();
+ if(text!=recipeBasis||calls.TextSnapshot.Invoke(SourceBuffer())[1]!=text){
+  message="Recipe source changed or has unapplied input. Quantity input retained; reset before editing again.";return;
+ }
+ bool output=recipeRow==rows.Length-1;
+ string context=Context();
+ System.Text.Json.Nodes.JsonNode? editValue=System.Text.Json.Nodes.JsonValue.Create(count);
+ if(!output){
+  var ingredients=J(values!["ingredients"]!.GetValue<string>()).AsObject();
+  ingredients[rows[recipeRow].Id]=count;
+  editValue=System.Text.Json.Nodes.JsonValue.Create(ingredients.ToJsonString());
+ }
+ var request=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=editor.Activation,
+  ["action"]="value",["id"]=editor.Id,["recipeView"]=editor.View,
+  ["field"]=output?"outputCount":"ingredients",["value"]=editValue,
+  ["expectedRevision"]=unit["revision"]!.DeepClone(),
+  ["expectedHash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant()};
+ Start("native-recipe-quantity",request,RecipeQuantity,()=>{
+  string result=calls.Command.Invoke(session,"workspace",request.ToJsonString());
+  if(J(result)["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)return result;
+  return calls.Command.Invoke(session,"workspace",System.Text.Json.JsonSerializer.Serialize(new{context,action="schema-view"}));
+ });
+}
+
 void RequestRecipeEditor(){
  if(job is not null||!ProjectWindowsCurrent()||!projectWindowsPanel||
     projectWindow?["renderer"]?.ToString()!="element-view-recipe"||
     projectWindow["editId"]?.ToString() is not { Length: >0 } id)return;
+ if(RecipeInputPending()&&recipeEditor is { } existing&&
+    (existing.Id!=id||existing.View!=projectWindow["id"]?.ToString()||existing.Activation!=projectWindowsActivation)){
+  message="Apply or reset the pending quantity before opening another recipe.";return;
+ }
  string context=Context();
  var request=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=projectWindowsActivation,
   ["action"]="select",["id"]=id,["recipeView"]=projectWindow["id"]!.DeepClone()};
@@ -1216,7 +1302,7 @@ void ProjectWindowAction(int id){
   RequestProjectWindow(projectWindows[projectWindowOffset+index]!["id"]!.ToString(),id);
 }
 
-string TextToken(int id)=>id==ProjectMainValue?projectMainBuffer:id==ProjectWindowValue?projectWindowBuffer:screen=="yogi"&&id==LayDescription?LayDescriptionBuffer():screen=="lan-chat"&&id is >=451 and <=461?LanBuffer(id):screen=="actions"&&id>=430?NativeActionBuffer(id):screen=="fields"&&id>=430?NativeFieldBuffer(id):screen=="project"&&WorkspaceMode()=="explorer"&&id==208&&model["workspace"]?["review"] is null?TreeDetailBuffer():id>=430?DetailBuffer(id):id>=400&&id<412?ViewBuffer((id-400)/4):id is 67 or 68?ReviewBuffer(id):id==38?ChatBuffer():id==53?LogBuffer():id==54?SourceBuffer():id==313?HelperSummaryBuffer():id>=73?FormBuffer(id):buffers[id];
+string TextToken(int id)=>id==RecipeQuantity?recipeBuffer:id==ProjectMainValue?projectMainBuffer:id==ProjectWindowValue?projectWindowBuffer:screen=="yogi"&&id==LayDescription?LayDescriptionBuffer():screen=="lan-chat"&&id is >=451 and <=461?LanBuffer(id):screen=="actions"&&id>=430?NativeActionBuffer(id):screen=="fields"&&id>=430?NativeFieldBuffer(id):screen=="project"&&WorkspaceMode()=="explorer"&&id==208&&model["workspace"]?["review"] is null?TreeDetailBuffer():id>=430?DetailBuffer(id):id>=400&&id<412?ViewBuffer((id-400)/4):id is 67 or 68?ReviewBuffer(id):id==38?ChatBuffer():id==53?LogBuffer():id==54?SourceBuffer():id==313?HelperSummaryBuffer():id>=73?FormBuffer(id):buffers[id];
 void ShellAction(string action,string value){if(job is not null||nativePickerPending)return;TraceFlow("shell-command",new{action,requested=action is "menu" or "navigation" or "navigate"?value:null,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});if(action=="menu"&&value!="project")RetireProjectWindows();if(action=="menu"&&value.Length==0&&ProjectMenu()=="ai-preview"){model=J(calls.Command.Invoke(session,"ai-cancel-preview",System.Text.Json.JsonSerializer.Serialize(new{context=Context()})));return;}if(action is not ("menu" or "navigation" or "navigate" or "tab" or "draft"))throw new ArgumentException("UI shell action must be a bounded state change");model=J(calls.Command.Invoke(session,"shell",System.Text.Json.JsonSerializer.Serialize(new{context=Context(),action,value})));if(action=="navigation")pendingFocus=value.Length==0?44:value=="project"?50:45;else if(action=="menu")pendingFocus=value.Length==0?43:value=="project"?34:42;else if(action=="navigate")pendingFocus=value is "info" or "settings"?42:44;}
 void Browse(string directory,string purpose,string back){if(nativePickerPending)return;pickerMode=purpose;pickerFocus=calls.ControlState.Invoke(control,"query",0)[0];calls.NativeRequest.Invoke(nativeHost,purpose=="project-icon"?"icon-begin":"folder-begin",System.Text.Json.JsonSerializer.Serialize(new{initial=System.IO.Path.GetFullPath(System.IO.Directory.Exists(directory)?directory:storage)}),0);nativePickerPending=true;}
 void OpenFolder(string directory){
@@ -1354,6 +1440,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==12){parent=calls.TextSnapshot.Invoke(buffers[30])[1];Browse(parent,"parent","create");return;}
  if(id==13){string title=calls.TextSnapshot.Invoke(buffers[10])[1];if(string.IsNullOrWhiteSpace(title)){message="Project name is required";pendingFocus=10;return;}parent=calls.TextSnapshot.Invoke(buffers[30])[1];Start("create",new{title,description=calls.TextSnapshot.Invoke(buffers[11])[1],directory=parent},10);return;}
  if(id==14){Change("home");return;}
+ if(id is 15 or 52&&RecipeEditorCurrent()&&RecipeInputPending()){message="Apply or reset the quantity before leaving this project.";return;}
  if(id==52){Start("close-project",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}
  if(model["closeRequest"] is not null&&id is 65 or 66){if(id==65)Start("close-project",new{context=Context(),confirmed=true,draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});else Start("cancel-close",new{});return;}
  if(id==15){Start("leave",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}
@@ -1373,6 +1460,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
   }
   return;
  }
+ if(screen=="project"&&id is >=RecipeQuantity and <=RecipeReset){RecipeQuantityAction(id);return;}
  if(screen=="project"&&id==OpenRecipeEditor){RequestRecipeEditor();return;}
  if(screen=="project"&&id>=OpenProjectWindows&&id<ProjectWindowValue){ProjectWindowAction(id);return;}
  if(id is >=ViewMenuSetting and <=ViewMainTable or ViewMenuRecipe){ConfigureViewMenu(id);return;}
@@ -1382,7 +1470,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==41){if(model["aiBindings"]?[Context()] is not null&&model["helperContext"] is not null)Start("ai-prepare",new{context=Context(),message=calls.TextSnapshot.Invoke(ChatBuffer())[1]});else ShellAction("draft",calls.TextSnapshot.Invoke(ChatBuffer())[1]);return;}if(id==42){ShellAction("menu","");return;}
  if(id==43){ShellAction("menu","grievance");return;}if(id==44){ShellAction("navigation",model["shell"]!["navigation"]!.ToString().Length>0?"":"main");return;}if(id==48){ShellAction("navigation","project");return;}if(id==49){ShellAction("navigation","main");return;}if(id==50){OpenInformation(ListingId(model["selected"]!),"project");return;}if(id is 45 or 46 or 47 or 51){ShellAction("navigate",id==45?"workspace":id==46?"chat":id==47?"logs":id==50?"info":"settings");return;}
  if(screen=="project"&&WorkspaceMode()=="explorer"&&(id is 76 or 78 or 79 or 80 or 81 or 83 or 87 or 201 or 202 or 203 or 204 or 226 or 227||id>=210&&id<226)){NativeTreeAction(id);return;}
- if(id is 73 or 74 or 75){viewModes[Context()]=id==73?"explorer":id==74?"properties":"source";pendingFocus=PresentationFocus();if(id==74)TypedWorkspace(new(){["action"]="schema-view"},pendingFocus);if(id==73)ReadNativeTree();return;}
+ if(id is 73 or 74 or 75){if(RecipeEditorCurrent()&&RecipeInputPending()){message="Apply or reset the quantity before leaving this editor.";return;}recipeEditor=null;viewModes[Context()]=id==73?"explorer":id==74?"properties":"source";pendingFocus=PresentationFocus();if(id==74)TypedWorkspace(new(){["action"]="schema-view"},pendingFocus);if(id==73)ReadNativeTree();return;}
  if(id is 76 or 201 or 202 or 203 or 204){TypedWorkspace(new(){["action"]="filter",["query"]=FormText(77),["kind"]=id==201?"concept":id==202?"function":id==203?"module":id==76?"category":""},77);return;}
  if(id==78){TypedWorkspace(new(){["action"]="filter",["query"]=FormText(77),["kind"]=model["workspace"]?["kind"]?.ToString()??""},77);return;}
 
@@ -1784,12 +1872,27 @@ else if(screen=="fields"){
 
  int createY=Math.Max(contentY+126,contentY+contentHeight-88);Button(85,new[]{left+8,createY,contentWidth,26},"New "+createKinds[createKind]+" (change kind)");FormRow(createY+30,84,"Namespace::NewID",86,"Create draft");FormRow(createY+60,207,"Review IDs: [] selects current; include new unit + manifest",206,"Review group",canRun);
  }else if(WorkspaceMode()=="properties"&&unit is not null){
+ if(RecipeEditorCurrent()&&recipeEditor is { } recipe){
+  var quantityRows=RecipeRows(recipe.Recipe,workspace["inspection"]?["values"]);
+  if(quantityRows.Length>0&&contentHeight>=134){
+   recipeRow=Math.Clamp(recipeRow,0,quantityRows.Length-1);PrepareRecipeInput(quantityRows);
+   bool result=recipeRow==quantityRows.Length-1;
+   var nav=calls.Stack.Invoke(new[]{left+8,contentY,contentWidth,28},0,4,new[]{78,78,0});
+   Button(RecipePrevious,nav[..4],"Previous",recipeRow>0&&!RecipeInputPending());
+   Button(RecipeNext,nav[4..8],"Next",recipeRow+1<quantityRows.Length&&!RecipeInputPending());
+   Label(nav[8..12],result?"Result":"Ingredients "+(recipeRow+1)+" / "+(quantityRows.Length-1));
+   Label(new[]{left+8,contentY+34,contentWidth,24},quantityRows[recipeRow].Id);
+   FormRow(contentY+62,RecipeQuantity,"Whole quantity (1–100)",RecipeApply,"Apply quantity");
+   Button(RecipeReset,new[]{left+8,contentY+96,120,28},"Reset quantity",RecipeInputPending());
+  }else Label(new[]{left+8,contentY,contentWidth,32},quantityRows.Length==0?"Recipe quantities unavailable. Reopen the registered recipe editor.":"Enlarge the window to edit recipe quantities.");
+ }else{
  int propertySection=propertySections.TryGetValue(SourceKey(),out int section)?section:unit["kind"]!.ToString()=="schema"?1:0;var sections=calls.Stack.Invoke(new[]{left+8,contentY,contentWidth,28},0,4,new[]{0,0,0});Button(226,sections[..4],"Data");Button(227,sections[4..8],"Schema");Button(228,sections[8..12],"Function");
  var row=Property();var schemaRows=workspace["schemaView"]?["rows"]?.AsArray();int rowCount=schemaRows?.Count??0;if(rowCount>0&&PropertyIndex()>=rowCount)PickProperty(0);row=Property();PrepareProperty();
  Button(98,new[]{left+8,contentY+32,48,26},"Prev",PropertyIndex()>0);Button(99,new[]{left+60,contentY+32,48,26},"Next",PropertyIndex()+1<rowCount);var schemaNav=calls.Stack.Invoke(new[]{left+112,contentY+32,Math.Max(1,contentWidth-104),26},0,4,new[]{0,0,0});Button(87,schemaNav[..4],"Refresh");Button(307,schemaNav[4..8],"Open schema",row?["schemaOrigin"] is not null&&row["schemaOrigin"]!.ToString()!=unit["id"]!.ToString());Button(308,schemaNav[8..12],"Back to object",schemaReturns.TryGetValue(Context(),out var parentID)&&parentID!=unit["id"]!.ToString());Label(new[]{left+8,contentY+62,contentWidth,28},row is null?"No schema fields; declare a field or apply a schema in Source":row["name"]+" | "+row["type"]+" | "+row["cardinality"]+" | "+row["state"]);
  if(propertySection==0){Field(88,new[]{left+8,contentY+94,contentWidth,28},"Field path: [field, list index, member]");FormRow(contentY+126,89,row?["inputKind"]?.ToString()=="text"?"Text value (empty is explicit)":"Value: number, true/false, list, compound or {$ref: ID}",90,"Set value",row is not null&&unit["kind"]!.ToString()=="object"&&row["pathWritable"]!.GetValue<bool>());Button(69,new[]{left+8,contentY+158,96,26},"Follow",row?["datum"]?["reference"] is not null);Label(new[]{left+108,contentY+158,Math.Max(1,contentWidth-100),Math.Max(1,contentHeight-158)},row is null?"Refresh resolves current owned drafts":("Schema: "+row["schemaOrigin"]+" | Value: "+(row["valueOrigin"]?.ToString()??"unset")+(row["requiresExplicitParentOverride"]!.GetValue<bool>()?" | Set the whole parent explicitly before a nested edit":"")));}
  else if(propertySection==1){Field(208,new[]{left+8,contentY+94,contentWidth,28},"Field name");var kinds=calls.Stack.Invoke(new[]{left+8,contentY+126,contentWidth,26},0,4,new[]{0,0});Button(91,kinds[..4],fieldKinds[fieldKind]);Button(92,kinds[4..8],cardinality==0?"single":"multiple");FormRow(contentY+158,93,"Primitive type or Namespace::Type",94,"Set field",unit["kind"]!.ToString()=="schema");}
  else{Field(95,new[]{left+8,contentY+94,contentWidth,28},"Arguments in signature order: []");FormRow(contentY+126,96,"Target (linux / windows / android / browser)",97,"Check inputs",row?["kind"]?.ToString()=="function");Button(209,new[]{left+8,contentY+158,96,26},"Execute",false);Label(new[]{left+108,contentY+158,Math.Max(1,contentWidth-100),26},"Runtime-call provider unavailable");Label(new[]{left+8,contentY+190,contentWidth,Math.Max(1,contentHeight-190)},workspace["callCheck"]?.ToJsonString()??row?["callInputs"]?.ToJsonString()??"Select a function field to describe ordered inputs; no function execution");}
+ }
  }
 
  int page=workspace["page"]!.GetValue<int>(),size=workspace["pageSize"]!.GetValue<int>(),total=workspace["total"]!.GetValue<int>();if(canRun)Button(64,new[]{left+8,panelY-40,100,28},"Review",unit is not null);Label(new[]{left+(canRun?116:8),panelY-40,Math.Max(1,area-(canRun?284:176)),28},"Source page "+(page+1)+" / "+Math.Max(1,(total+size-1)/size)+" - final sources unchanged");Button(62,new[]{left+Math.Max(0,area-164),panelY-40,76,28},"Page -",page>0);Button(63,new[]{left+Math.Max(0,area-84),panelY-40,76,28},"Page +",(page+1)*size<total);
@@ -1992,8 +2095,18 @@ bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invok
    prepared["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)!=true&&
    prepared["workspace"]?["schemaView"] is not null&&
    prepared["workspace"]?["selected"]?.ToString()==projectWindow?["editId"]?.ToString();
-  if(recipeEditorReady)model=prepared;
+  if(recipeEditorReady){
+   if(recipeEditor?.Id!=projectWindow!["editId"]?.ToString()||recipeEditor?.Activation!=projectWindowsActivation||
+      recipeEditor?.View!=projectWindow["id"]?.ToString()){recipeRow=0;recipeInput="";}
+   recipeEditor=(projectWindowsActivation,projectWindow["editId"]!.ToString(),projectWindow["id"]!.ToString(),projectWindow["recipe"]!.DeepClone());
+   model=prepared;
+  }
   else{message="This project window is no longer available.";pendingFocus=OpenRecipeEditor;}
+ }else if(operation=="native-recipe-quantity"){
+  var changed=J(completed);
+  if(changed["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)message=changed["status"]!.ToString();
+  else{model=changed;recipeInput="";message="Recipe quantity applied to the draft.";}
+  pendingFocus=RecipeQuantity;
  }else if(operation=="read-view-menu-setting")CompleteViewMenuRead(completed);else{
  var submitted=operation=="ai-start"&&model["aiPreview"]?["kind"]?.ToString()=="chat"?model["aiPreview"]?["message"]?.ToString():null;
  model=J(completed);
