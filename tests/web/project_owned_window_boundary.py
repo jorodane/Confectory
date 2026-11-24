@@ -750,6 +750,121 @@ def recipe_quantity_workflow(report, root, browser):
     print("PASS Chromium recipe quantity draft, validation, Review cancel/Confirm and other-project isolation")
 
 
+
+def recipe_conflict_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, checkout, both=True)
+    for project in (alpha, bravo):
+        registration = Path(project["path"]).with_name("RecipeDesk.celem")
+        registration.write_text(registration.read_text().replace(" }", ' value editorWindow = "element-view-recipe"; }', 1))
+        originals[registration] = registration.read_bytes()
+    peer_root = root / "peer"
+    (peer_root / "profile").mkdir(parents=True)
+    (peer_root / "profile" / "projects.json").write_text(json.dumps([alpha, bravo]))
+
+    def amounts(page, launch=False):
+        project_menu(page, True, identifier=identifier, title=title).get_by_role("button", name=title, exact=True).click()
+        dialog = page.get_by_role("dialog", name=title, exact=True)
+        if not launch:
+            return dialog
+        dialog.get_by_role("button", name="레시피 편집기 열기", exact=True).click()
+        expect(dialog).to_have_count(0)
+        return page.locator('[data-key="schema"]')
+
+    def edit(window, item, count):
+        window.get_by_role("spinbutton", name=f"{NS}::{item} 수량").fill(count)
+        window.get_by_role("button", name="재료 수량을 초안에 적용").click()
+        expect(window.page.locator("#status")).to_contain_text("재료 수량을 초안에 적용했습니다.")
+
+    def activate(window, action, endpoint):
+        control = window.locator(f'[data-element-action="{action}"]')
+        expect(control).to_be_enabled()
+
+        def requested(response):
+            return (response.url.endswith("/api/request") and response.request.method == "POST"
+                    and response.request.post_data_json.get("endpoint") == endpoint)
+
+        with window.page.expect_response(requested):
+            control.press("Enter")
+
+    def prepare(window):
+        activate(window, "confirm", "reviewDraft")
+        review = window.page.locator('[data-key="review"]')
+        expect(review.locator("#confirm")).to_be_enabled()
+        return review
+
+    def publish(window):
+        review = prepare(window)
+        review.locator("#confirm").click()
+        expect(review).to_have_count(0)
+        expect(window.page.locator("#status")).to_contain_text("최종 소스에 반영했습니다")
+
+    def assert_confirmed(page, fiber, tile):
+        dialog = amounts(page)
+        expect(dialog.get_by_role("listitem")).to_have_text(
+            [f"{NS}::Fiber × {fiber}", f"{NS}::Tile × {tile}", f"{NS}::Panel × 4"])
+        dialog.get_by_role("button", name="닫기", exact=True).click()
+
+    with editor(report, peer_root, "recipe-peer", checkout=checkout) as peer_address:
+        peer, peer_errors = attach(browser, peer_address)
+        open_project(peer, alpha["title"])
+        right = amounts(peer, True)
+        edit(right, "Fiber", "8")
+        peer_review = prepare(right)
+        old_draft = state(peer_address)["draft"]["text"]
+
+        # Review persists a checkpoint. A later opener can legitimately adopt that
+        # checkpoint, edit it, and publish while the first editor still shows its Review.
+        with editor(report, root, "recipe-owner", checkout=checkout) as owner_address:
+            assert owner_address.split("/#")[0] != peer_address.split("/#")[0]
+            owner, owner_errors = attach(browser, owner_address)
+            open_project(owner, alpha["title"])
+            left = amounts(owner, True)
+            expect(left.get_by_role("spinbutton", name=f"{NS}::Fiber 수량")).to_have_value("8")
+            edit(left, "Fiber", "5")
+            publish(left)
+            alpha_source = Path(alpha["path"]).with_name("Assembly.celem")
+            winner = alpha_source.read_bytes()
+            peer_review.locator("#confirm").click()
+            expect(peer_review.locator("[data-review-conflict-notice]")).to_be_visible()
+            expect(peer_review.locator("#confirm")).to_be_disabled()
+            assert state(peer_address)["draft"]["text"] == old_draft
+            assert alpha_source.read_bytes() == winner
+            peer_review.locator("[data-reject]").click()
+            assert_confirmed(peer, 5, 3)
+
+            home(owner)
+            home(peer)
+            open_project(owner, bravo["title"])
+            open_project(peer, bravo["title"])
+            left, right = amounts(owner, True), amounts(peer, True)
+            tile = right.get_by_role("spinbutton", name=f"{NS}::Tile 수량")
+            tile.fill("9")
+            edit(left, "Fiber", "6")
+            publish(left)
+            bravo_source = Path(bravo["path"]).with_name("Assembly.celem")
+            winner = bravo_source.read_bytes()
+            expect(tile).to_have_value("9")
+            right.get_by_role("button", name="재료 수량을 초안에 적용").click()
+            expect(peer.locator("#status")).to_contain_text("재료 수량을 초안에 적용했습니다.")
+            old_draft = state(peer_address)["draft"]["text"]
+            expect(tile).to_have_value("9")
+            for action, endpoint in (("save", "saveDraft"), ("confirm", "reviewDraft")):
+                activate(right, action, endpoint)
+                expect(peer.locator("#status")).to_contain_text("다른 창에서 저장한 초안이 있어요")
+                assert bravo_source.read_bytes() == winner
+                assert state(peer_address)["draft"]["text"] == old_draft
+                expect(tile).to_have_value("9")
+            assert_confirmed(peer, 6, 3)
+            assert not proof.exists() and not owner_errors and not peer_errors
+            assert all(path.read_bytes() == data for path, data in originals.items()
+                       if path not in (alpha_source, bravo_source))
+            owner.close()
+        peer.close()
+
+    print("PASS Chromium recipe peers retain losing input after stale Confirm and stale checkpoint Save/Review")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -801,7 +916,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view", "--recipe-editor", "--recipe-quantity"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view", "--recipe-editor", "--recipe-quantity", "--recipe-conflict"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -815,6 +930,8 @@ if __name__ == "__main__":
                         worker_opening_review_workflow(package, Path(directory), browser)
                     elif "--recipe-view" in sys.argv[2:]:
                         recipe_view_workflow(package, Path(directory), browser)
+                    elif "--recipe-conflict" in sys.argv[2:]:
+                        recipe_conflict_workflow(package, Path(directory), browser)
                     elif "--recipe-quantity" in sys.argv[2:]:
                         recipe_quantity_workflow(package, Path(directory), browser)
                     elif "--recipe-editor" in sys.argv[2:]:
