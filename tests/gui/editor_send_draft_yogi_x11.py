@@ -126,6 +126,15 @@ def native(package, root):
         assert any("EY · " + identity in line for line in viewed["texts"])
         left, _, _, _ = app.bounds(468)
         assert pixels(app, [left, 294, 36, 10]) == expected
+        observed = {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in (*sources, journal, sealed)}
+        assert 475 in viewed["hits"][::5]
+        app.click(475)
+        opened = app.wait(lambda row: row["screen"] == "project" and not row["job"]
+                          and app.field(row, 54).get("visible"), "Open the EY from saved public history")
+        assert opened["model"]["selected"]["projectId"] == project["projectId"]
+        assert opened["model"]["workspace"]["selected"] == identity
+        assert "Synthetic EY" in app.field(opened, 54)["text"]
+        assert all((path.read_bytes(), path.stat().st_mtime_ns) == before for path, before in observed.items())
         assert not tcp_listeners(app.child.pid)
     return identity, journal, sealed, exact, sources
 

@@ -64,6 +64,7 @@ string layReturnScreen="project";
 (string Screen,string Activation,string View,int X,int Y,long Time)? layBoxClick=null;
 bool layBoxDragging=false;
 const int DraftYogiOpen=447,DraftYogiRemove=448,DraftYogiSend=440,LanSavedHistory=479;
+const int LanOpenEy=475,LanNextEy=476;
 (string Activation,System.Text.Json.Nodes.JsonNode Package,string Fingerprint,bool Creator)? draftYogi=null;
 string draftYogiMessage="",draftYogiText="";
 bool showingDraftYogi=false;
@@ -73,7 +74,7 @@ allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,Syste
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,50),System.Linq.Enumerable.Range(500,32))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Append(System.Linq.Enumerable.Range(451,20),LanSavedHistory)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -407,7 +408,9 @@ var lanAttachments = new System.Collections.Generic.List<string>();
 var lanImages = new System.Collections.Generic.List<(int Width, int Height, int[] Pixels)>();
 int lanAttachmentIndex = 0, lanImageIndex = 0;
 bool lanHasHiddenEy = false;
-string lanRelayRole = "", lanOwnedEy = "";
+string lanRelayRole = "";
+var lanEyItems = new System.Collections.Generic.List<(string Item,string Id)>();
+int lanEyIndex=0;
 string LanCurrentActivation() => model["selected"]?["activation"]?.ToString() ?? "";
 string LanBuffer(int id)
 {
@@ -425,7 +428,8 @@ void SetLanText(int id,string text)
 }
 void CloseLanAttachment()
 {
- lanViewerId=lanDescription=lanOwnedEy="";lanImages.Clear();lanImageIndex=0;lanHasHiddenEy=false;
+ lanViewerId=lanDescription="";lanImages.Clear();lanImageIndex=0;lanHasHiddenEy=false;
+ lanEyItems.Clear();lanEyIndex=0;
  if(lanQueuedAction=="attachment")lanQueuedAction=lanQueuedId="";
 }
 void RetireLan()
@@ -527,7 +531,13 @@ void LanControl(int id)
  {
   if(id==LanCloseAttachment){CloseLanAttachment();return;}
   if(id==LanNextImage&&lanImages.Count>1){lanImageIndex=(lanImageIndex+1)%lanImages.Count;return;}
-  if(lanViewerId.Length!=0)return;
+  if(lanViewerId.Length!=0){
+   if(lanMode=="history"&&lanCanHost&&lanReturn=="project"&&lanEyItems.Count>0){
+    if(id==LanNextEy)lanEyIndex=(lanEyIndex+1)%lanEyItems.Count;
+    if(id==LanOpenEy)OpenEy(lanEyItems[lanEyIndex].Item,LanOpenEy,lanViewerId);
+   }
+   return;
+  }
   if(id==LanOlderAttachment&&lanAttachmentIndex>0){lanAttachmentIndex--;return;}
   if(id==LanNewerAttachment&&lanAttachmentIndex+1<lanAttachments.Count){lanAttachmentIndex++;return;}
   if(!LanCanRequest())return;
@@ -672,11 +682,13 @@ void PollLanPanel()
      if(result["description"] is not System.Text.Json.Nodes.JsonValue description||
         !description.TryGetValue<string>(out string? text)||text.Length>4096)throw new ArgumentException("Invalid YogiBox description");
      lanDescription=text;
-     var references=System.Linq.Enumerable.Where(result["items"]!.AsArray(),item=>item?["kind"]?.ToString()=="semantic");
-     lanHasHiddenEy=System.Linq.Enumerable.Any(references,item=>item!["availability"]?.ToString()!="available");
-     lanOwnedEy=string.Join("  ",System.Linq.Enumerable.Select(
-      System.Linq.Enumerable.Where(references,item=>item!["availability"]?.ToString()=="available"&&item["id"] is not null),
-      item=>"EY · "+item!["id"]!.ToString()));
+     foreach(var item in result["items"]!.AsArray()){
+      if(item?["kind"]?.ToString()!="semantic")continue;
+      if(lanMode=="history"&&lanCanHost&&lanReturn=="project"&&
+         item["availability"]?.ToString()=="available"&&YogiEyKind(item)&&item["id"] is not null)
+       lanEyItems.Add((item["item"]!.ToString(),item["id"]!.ToString()));
+      else lanHasHiddenEy=true;
+     }
     }catch(ArgumentException){lanImages.Clear();lanDescription="Attachment unavailable.";}
     catch(FormatException){lanImages.Clear();lanDescription="Attachment unavailable.";}
     break;
@@ -822,6 +834,41 @@ void CloseLayPanel()
 {
  layPreview=null;showingDraftYogi=false;Change(layReturnScreen);pendingFocus=layReturnFocus;
 }
+bool YogiEyKind(System.Text.Json.Nodes.JsonNode item)=>
+ item["elementKind"]?.ToString() is "concept" or "object" or "function" or "module";
+const string EyUnavailable="This EY cannot be opened in the current project.";
+void OpenEy(string item,int focus,string attachment="")
+{
+ string context=Context(),activation=LanCurrentActivation();
+ var lifetime=attachment.Length==0?System.Threading.CancellationToken.None:lanLifetime!.Token;
+ Start("yogi-ey-open",new{},focus,()=>{
+  // Resolve and select under one editor lock. A viewer snapshot is never used
+  // as selection authority, even if its displayed name still exists.
+  if(AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) is not object[] owner)
+   throw new InvalidOperationException(EyUnavailable);
+  lock(owner){
+   var live=(System.Text.Json.Nodes.JsonObject)owner[3];
+   if((bool)owner[6]||lifetime.IsCancellationRequested||live["selected"]?["activation"]?.ToString()!=activation||
+      live["selected"]?["context"]?.ToString()!=context||live["workspace"]?["review"] is not null)
+    throw new InvalidOperationException(EyUnavailable);
+   System.Text.Json.Nodes.JsonNode? reference;
+   if(attachment.Length==0){
+    var resolved=J(calls.Command.Invoke(session,"yogi-ey-resolve",System.Text.Json.JsonSerializer.Serialize(new{context,activation,item})));
+    reference=resolved["status"]?.ToString()=="available"?resolved:null;
+   }else{
+    var resolved=J(calls.PublicHistory.Invoke(session,activation,"attachment",attachment,attachment));
+    reference=resolved["status"]?.ToString()=="available"&&resolved["projectActivation"]?.ToString()==activation&&
+       resolved["messageId"]?.ToString()==attachment&&resolved["attachmentId"]?.ToString()==attachment?
+     System.Linq.Enumerable.SingleOrDefault(resolved["items"]!.AsArray(),row=>row?["item"]?.ToString()==item&&
+      row["kind"]?.ToString()=="semantic"&&row["availability"]?.ToString()=="available"):null;
+   }
+   if(lifetime.IsCancellationRequested||reference is null||!YogiEyKind(reference)||reference["id"] is null)
+    throw new InvalidOperationException(EyUnavailable);
+   return calls.Command.Invoke(session,"workspace",System.Text.Json.JsonSerializer.Serialize(
+    new{context,action="select",id=reference["id"]!.ToString()}));
+  }
+ });
+}
 void LayPanelAction(int id)
 {
  if(job is not null)return;
@@ -845,6 +892,9 @@ void LayPanelAction(int id)
   catch(ArgumentException){layPreview=null;message="LaY preview unavailable.";}
   catch(FormatException){layPreview=null;message="LaY preview unavailable.";}
  }
+ else if(id is LayFirst or LaySecond&&index<items.Length&&layReturnScreen=="project"&&!showingDraftYogi&&
+         items[index]["kind"]?.ToString()=="semantic"&&YogiEyKind(items[index]))
+  OpenEy(items[index]["item"]!.ToString(),id);
  else if(id is LayRemoveFirst or LayRemoveSecond&&index<items.Length&&!LaySealed()&&layReturnScreen=="project"&&!showingDraftYogi)
  {
   layPreview=null;
@@ -1232,7 +1282,11 @@ void Render(){homeTiles.Clear();
   var bounds=new[]{left,y,Math.Max(1,width-96),30};
   if(item["capture"] is { } capture)
    Button(LayFirst+index,bounds,"LaY "+(++imageNumber)+" · "+capture["width"]+" × "+capture["height"]);
-  else Label(bounds,"EY · "+item["id"]+" · "+(showingDraftYogi?item["elementKind"]?.ToString():item["availability"]?.ToString()??"unavailable"));
+  else{
+   string label="EY · "+item["id"]+" · "+(showingDraftYogi?item["elementKind"]?.ToString():item["availability"]?.ToString()??"unavailable");
+   if(!readOnly&&YogiEyKind(item))Button(LayFirst+index,bounds,label);
+   else Label(bounds,label);
+  }
   if(!readOnly&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"× Remove");
  }
  if(readOnly||LaySealed())WrappedLabel(new[]{left,232,width,58},YogiPanelPackage()?["text"]?.ToString()??"");
@@ -1280,8 +1334,13 @@ void Render(){homeTiles.Clear();
   Button(LanCloseAttachment,new[]{left,146,180,32},"Back to messages");
   if(lanImages.Count>1)Button(LanNextImage,new[]{left+190,146,170,32},"Image "+(lanImageIndex+1)+" / "+lanImages.Count+" · Next");
   WrappedLabel(new[]{left,188,area,68},lanDescription);
-  if(lanHasHiddenEy||lanOwnedEy.Length>0)
-   WrappedLabel(new[]{left,258,area,34},lanOwnedEy+(lanHasHiddenEy?"  EY unavailable in public chat":""));
+  if(lanEyItems.Count>0){
+   int next=lanEyItems.Count>1?Math.Min(98,area/4):0;
+   int hidden=lanHasHiddenEy?Math.Min(190,area/3):0;
+   Button(LanOpenEy,new[]{left,258,area-next-hidden,30},"EY · "+lanEyItems[lanEyIndex].Id);
+   if(next>0)Button(LanNextEy,new[]{left+area-next-hidden,258,next,30},"Next EY");
+   if(hidden>0)Label(new[]{left+area-hidden,258,hidden,30},"Other EY unavailable");
+  }else if(lanHasHiddenEy)WrappedLabel(new[]{left,258,area,34},"EY unavailable in public chat");
   if(lanImages.Count>0&&h>340){
    var image=lanImages[lanImageIndex];
    double scale=Math.Min(1d,Math.Min((double)area/image.Width,(double)(h-340)/image.Height));
@@ -1537,13 +1596,22 @@ bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invok
  if(submitted is not null&&model["status"]?.ToString()=="AI running for this project"&&
     chatBuffers.TryGetValue(jobContext,out var chat)&&calls.TextSnapshot.Invoke(chat)[1]==submitted)
   calls.ReplaceText.Invoke(chat,"",0,0);
- TraceFlow("job-completed",new{operation,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});if(model["status"]!.ToString().StartsWith("Error:")){if(operation=="project-information"&&screen=="home")iconListing="";message=model["status"]!.ToString();pendingFocus=jobFocus;}else if(operation=="yogi-native"){
+ TraceFlow("job-completed",new{operation,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});if(operation=="yogi-ey-open"){
+  if(model["status"]!.ToString().StartsWith("Error:"))throw new InvalidOperationException(EyUnavailable);
+  if(Context()!=jobContext)throw new InvalidOperationException(EyUnavailable);
+  if(screen=="yogi")CloseLayPanel();
+  else if(screen=="lan-chat")CloseLanPanel();
+  viewModes[Context()]="source";pendingFocus=54;
+ }else if(model["status"]!.ToString().StartsWith("Error:")){if(operation=="project-information"&&screen=="home")iconListing="";message=model["status"]!.ToString();pendingFocus=jobFocus;}else if(operation=="yogi-native"){
   if(screen is "project" or "lan-chat"){Change("yogi");pendingFocus=layReturnScreen=="lan-chat"||LaySealed()?LayClose:LayDescription;}
   else if(jobFocus!=0)pendingFocus=jobFocus;
  }else if(operation=="ai-bind"){RememberRecruitmentChoice(jobContext);}else if(operation=="project-information-save"&&screen=="project-icon"){CloseHomeIcon();message="Project icon saved locally.";}else if(operation=="project-information"&&iconListing.Length>0){LoadHomeIcon();}else if(operation is "project-information" or "project-information-save"){Change("information");LoadInformation(operation=="project-information-save");pendingFocus=jobFocus;}else if(operation=="helper-display-list"||operation=="helper-recruit"&&screen=="profile"){Change("profile");var rows=ProfileRows();int index=Array.FindIndex(rows,row=>row["helper"]!.ToString()==profileId);profileIndex=index>=0?index:0;profileId=rows.Length>0?rows[profileIndex]["helper"]!.ToString():"";LoadProfile();}else if(operation=="helper-presentation-save"){LoadProfile(true);message="Display profile and local input saved; template and project context retained";}else if(operation is "open" or "open-request" or "create" or "connection-settings"){Change("project");if(operation=="connection-settings")viewModes[Context()]="properties";}else if(operation is "leave" or "remove"||operation=="close-project"&&model["selected"] is null){Change("home");if(operation=="close-project")ReleaseProjectUI(jobContext);}else if(operation=="workspace"){
  if(model["archive"] is System.Text.Json.Nodes.JsonNode archive){calls.NativeRequest.Invoke(nativeHost,"archive-begin",archive.ToJsonString(),surfaces[1]);model["archive"]=null;archivePending=true;nativePickerPending=true;}
  else if(model["status"]!.ToString().StartsWith("Local source draft saved")){calls.NativeRequest.Invoke(nativeHost,"storage-flush","{}",0);storagePending=true;message="Local draft written; waiting for storage acknowledgement";}
- }}}catch(Exception error){if(NativeActionJob()){if(NativeActionCurrentJob()){nativeActionStatus=error is OperationCanceledException?"Canceled; inputs retained.":"Failed: "+error.Message;SetNativeAction(433,nativeActionStatus);}}else if(NativeFieldJob()){if(NativeFieldCurrentJob()){nativeFieldStatus[Context()]=error is OperationCanceledException?"Cancelled; original inputs and edit versions retained.":"Read/save unavailable; previous observations, settings and inputs retained. Reload saved explicitly after a state error.";if(operation=="native-fields-load")nativeFieldAvailable.Remove(Context());}}else{if(operation=="project-information"&&screen=="home")iconListing="";message=error.Message;}}if(NativeFieldJob())cancelNativeField=null;if(NativeActionJob())cancelNativeAction=null;job=null;if(operation=="native-tree"&&model["status"]!.ToString().StartsWith("Native tree view explicitly saved")&&NativeTreeData()?["storage"]?["revision"] is System.Text.Json.Nodes.JsonNode treeSavedBase)nativeTreeBases[Context()]=treeSavedBase.ToString();if(operation=="native-tree"&&nativeTreeReload){nativeTreeReload=false;if(!model["status"]!.ToString().StartsWith("Error:")&&NativeTreeData()?["storage"]?["status"]?.ToString()=="available"){nativeTreeStates.Remove(Context());nativeTreeBases.Remove(Context());TreeState();}else message="Saved tree unavailable; current view and inputs retained";}if(queuedWorkspace is not null){var next=queuedWorkspace;queuedWorkspace=null;if(model["status"]!.ToString().StartsWith("Error:")||model["workspace"]?["conflict"]?.GetValue<bool>()==true){message=model["status"]!.ToString();}else if(model["selected"]?["context"]?.ToString()!=queuedContext||model["workspace"]?["selected"]?.ToString()!=queuedSource){message="Selection changed; retained typed input was not applied";}else{if(next["action"]!.ToString()!="data-path")next["expectedRevision"]=model["workspace"]!["unit"]!["revision"]!.DeepClone();Start("workspace",next,89);}}if(job is null&&refreshSchema){refreshSchema=false;if(!model["status"]!.ToString().StartsWith("Error:")&&WorkspaceMode()=="properties")TypedWorkspace(new(){["action"]="schema-view"},89);}if(entryRequestID.Length>0){calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id=entryRequestID,status=message.Length==0?"opened":"failed",message}));entryRequestID="";}}
+ }}}catch(Exception error){if(operation=="yogi-ey-open"){
+  if(screen=="lan-chat")lanStatus=EyUnavailable;else message=EyUnavailable;
+  pendingFocus=jobFocus;
+ }else if(NativeActionJob()){if(NativeActionCurrentJob()){nativeActionStatus=error is OperationCanceledException?"Canceled; inputs retained.":"Failed: "+error.Message;SetNativeAction(433,nativeActionStatus);}}else if(NativeFieldJob()){if(NativeFieldCurrentJob()){nativeFieldStatus[Context()]=error is OperationCanceledException?"Cancelled; original inputs and edit versions retained.":"Read/save unavailable; previous observations, settings and inputs retained. Reload saved explicitly after a state error.";if(operation=="native-fields-load")nativeFieldAvailable.Remove(Context());}}else{if(operation=="project-information"&&screen=="home")iconListing="";message=error.Message;}}if(NativeFieldJob())cancelNativeField=null;if(NativeActionJob())cancelNativeAction=null;job=null;if(operation=="native-tree"&&model["status"]!.ToString().StartsWith("Native tree view explicitly saved")&&NativeTreeData()?["storage"]?["revision"] is System.Text.Json.Nodes.JsonNode treeSavedBase)nativeTreeBases[Context()]=treeSavedBase.ToString();if(operation=="native-tree"&&nativeTreeReload){nativeTreeReload=false;if(!model["status"]!.ToString().StartsWith("Error:")&&NativeTreeData()?["storage"]?["status"]?.ToString()=="available"){nativeTreeStates.Remove(Context());nativeTreeBases.Remove(Context());TreeState();}else message="Saved tree unavailable; current view and inputs retained";}if(queuedWorkspace is not null){var next=queuedWorkspace;queuedWorkspace=null;if(model["status"]!.ToString().StartsWith("Error:")||model["workspace"]?["conflict"]?.GetValue<bool>()==true){message=model["status"]!.ToString();}else if(model["selected"]?["context"]?.ToString()!=queuedContext||model["workspace"]?["selected"]?.ToString()!=queuedSource){message="Selection changed; retained typed input was not applied";}else{if(next["action"]!.ToString()!="data-path")next["expectedRevision"]=model["workspace"]!["unit"]!["revision"]!.DeepClone();Start("workspace",next,89);}}if(job is null&&refreshSchema){refreshSchema=false;if(!model["status"]!.ToString().StartsWith("Error:")&&WorkspaceMode()=="properties")TypedWorkspace(new(){["action"]="schema-view"},89);}if(entryRequestID.Length>0){calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id=entryRequestID,status=message.Length==0?"opened":"failed",message}));entryRequestID="";}}
  if(appClosePending&&job is null&&model["closeRequest"] is not null)appClosePending=false;
  if(appClosePending&&job is null){
   var drafts=new System.Text.Json.Nodes.JsonObject();

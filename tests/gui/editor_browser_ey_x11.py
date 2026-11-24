@@ -84,6 +84,26 @@ def return_to_browser(app):
     return app.wait(lambda state: state["screen"] == "project" and state.get("nativeTree"), "Back in browser")
 
 
+def open_reference(app, control, project, identity, description):
+    row = app.state()
+    assert control in row["hits"][::5], f"No open action for {identity}"
+    app.click(control)
+    row = app.wait(lambda row: row["screen"] == "project" and not row["job"]
+                   and app.field(row, 54).get("visible"), f"Open EY {identity}")
+    assert row["model"]["selected"]["path"] == project["path"]
+    assert row["model"]["workspace"]["selected"] == identity
+    assert description in app.field(row, 54)["text"]
+
+
+def file_state(path):
+    return path.read_bytes(), path.stat().st_mtime_ns
+
+
+def next_page(app, page):
+    app.click(442)
+    box(app, lambda row: f"{page} / 3" in row["texts"])
+
+
 def open_project(app, project):
     cards = app.state()["model"]["cards"]
     index = next(i for i, card in enumerate(cards) if card["path"] == project["path"])
@@ -175,8 +195,33 @@ def workflow(package, root):
         assert row["model"]["yogi"]["sealed"] and row["model"]["yogi"]["text"] == "Browser selections stay local"
         assert [item.get("id") for item in row["model"]["yogi"]["items"]] == [MODULE, FUNCTION, CONCEPT, OBJECT, None]
         assert file.read_bytes() == sealed
-        return_to_browser(app)
+        untouched = file_state(file)
+        for page, control, identity, description in (
+            (0, 475, MODULE, "Alpha owned Twin"),
+            (0, 476, FUNCTION, "Alpha function"),
+            (1, 475, CONCEPT, "Alpha concept"),
+            (1, 476, OBJECT, "Alpha semantic source"),
+        ):
+            if identity != MODULE:
+                double_box(app)
+                finish(app, 5)
+            if page:
+                next_page(app, 2)
+            open_reference(app, control, alpha, identity, description)
+            assert file_state(file) == untouched
+
+        double_box(app)
+        finish(app, 5)
+        next_page(app, 2)
+        next_page(app, 3)
+        left, _, _, _ = app.bounds(475)
+        app.click(475)
+        box(app, lambda row: pixels(app, [left, 350, crop[2], crop[3]]) == original_pixels)
+        assert file_state(file) == untouched
+        app.click(471)
+        app.wait(lambda row: row["screen"] == "project", "Back to the workspace")
         close_project(app)
+        assert not {470, 475, 476}.intersection(app.state()["hits"][::5])
 
         open_project(app, bravo)
         assert not package_files(bravo["path"])
@@ -201,6 +246,28 @@ def workflow(package, root):
         item, = saved(other)["items"]
         assert item["id"] == MODULE and item["metadata"]["description"] == "Bravo owned Twin"
         assert file.read_bytes() == sealed
+        open_reference(app, 475, bravo, MODULE, "Bravo owned Twin")
+        close_project(app)
+
+        open_project(app, alpha)
+        result = search(app, 203, "Twin")
+        assert {"decl:" + MODULE, "decl:" + FOREIGN} <= {row["key"] for row in result["nativeTree"]["rows"]}
+        double_box(app)
+        finish(app, 5)
+        assert "1 / 3" in app.state()["texts"]
+        manifest = Path(alpha["path"])
+        # Simulate a different editor removing the exact registration while the box is open.
+        # The visible name Twin still exists in the referenced Library.
+        registration = 'element Twin module "declaration-Twin.celem"; '
+        revised = manifest.read_text().replace(registration, "")
+        assert revised.encode() != originals[manifest]
+        manifest.write_text(revised)
+        originals[manifest] = manifest.read_bytes()
+        untouched = {path: file_state(path) for path in (*originals, file, other)}
+        app.click(475)
+        box(app, lambda row: "This EY cannot be opened in the current project." in row["texts"])
+        assert app.state()["model"]["workspace"]["selected"] != FOREIGN
+        assert all(file_state(path) == before for path, before in untouched.items())
     assert all(path.read_bytes() == data for path, data in originals.items())
     for project in (alpha, bravo):
         directory = Path(project["path"]).parent
@@ -208,7 +275,7 @@ def workflow(package, root):
             path for path in originals if path.parent == directory
         }
     assert all(not (root / "profile" / name).exists() for name in ("project-chat", "helper-conversations"))
-    print("PASS packaged GTK browser row EY for four kinds, foreign/category/draft rejection, LaY, sealed reopen and exact project isolation")
+    print("PASS packaged GTK EY capture and open for four kinds, exact project scope, deleted EY rejection, sealed reopen and LaY pixels")
 
 
 if __name__ == "__main__":

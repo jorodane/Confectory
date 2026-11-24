@@ -76,6 +76,33 @@ if(operation=="save-chat-drafts"){
 }
 void Refresh(){var background=new System.Text.Json.Nodes.JsonArray();foreach(var item in shells){if(model["selected"]?["context"]?.ToString()==item.Key)continue;var shell=System.Text.Json.Nodes.JsonNode.Parse(calls.ShellSnapshot.Invoke(item.Value))!;background.Add(new System.Text.Json.Nodes.JsonObject{["context"]=item.Key,["project"]=shell["project"]!.DeepClone(),["ai"]=aiRows[item.Key]?.DeepClone(),["execution"]=executionRows[item.Key]?.DeepClone()??new System.Text.Json.Nodes.JsonObject{["state"]="idle"}});}model["backgroundProjects"]=background;var selected=model["selected"];if(selected is null){model["chatDraftBasis"]=null;model["shell"]=null;model["execution"]=null;model["runHistory"]=null;model["workspace"]=null;model["catalog"]=null;model["yogi"]=null;model["helperContext"]=null;model["helperPanel"]=null;model["ai"]=null;model["aiOwnerAvailable"]=false;model["planningOwnerAvailable"]=false;return;}string context=selected["context"]!.ToString();var boxes=(System.Collections.Generic.Dictionary<string,string>)state[12];model["yogi"]=boxes.TryGetValue(context,out string? box)?System.Text.Json.Nodes.JsonNode.Parse(calls.YogiSnapshot.Invoke(box)):null;if(model["helperPanel"]?["context"]?.ToString()!=context)model["helperPanel"]=null;model["shell"]=System.Text.Json.Nodes.JsonNode.Parse(calls.ShellSnapshot.Invoke(shells[context]));var chatBasis=chatDrafts[context];model["chatDraftBasis"]=System.IO.Path.GetFileNameWithoutExtension(chatBasis.File)+":"+chatBasis.Revision;model["ai"]=aiRows[context]?.DeepClone();model["aiOwnerAvailable"]=aiSessions.ContainsKey(context)&&aiRows[context]?["providerBound"]?.GetValue<bool>()!=false;model["planningOwnerAvailable"]=aiSessions.ContainsKey(context);model["executionCapabilities"]=System.Text.Json.JsonSerializer.SerializeToNode(calls.ExecutionCapabilities.Invoke());model["execution"]=executionRows[context]?.DeepClone()??new System.Text.Json.Nodes.JsonObject{["state"]="idle",["handle"]=""};model["runHistory"]=System.Text.Json.Nodes.JsonNode.Parse(calls.RunHistory.Invoke(calls.Executions.Invoke(manager),selected["path"]!.ToString(),"history",new System.Text.Json.Nodes.JsonObject{["page"]=model["runHistoryPages"]?[context]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0),["current"]=executions.TryGetValue(context,out string? currentExecution)?currentExecution:""}.ToJsonString()));model["helperContext"]=null;var choice=ConversationChoice();if(choice is not null){try{if(choice["manifest"]?.ToString()!=selected["path"]!.ToString())throw new InvalidOperationException("Helper selection belongs to another manifest; explicit rebind required");model["helperContext"]=System.Text.Json.Nodes.JsonNode.Parse(calls.HelperContext.Invoke(Helpers(),choice["helper"]!.ToString(),"local-user",selected["projectId"]!.ToString(),choice["allowCommon"]?.GetValue<bool>()==true));}catch(Exception error){model["status"]="Helper unavailable: "+error.Message;}}if(model["helperContext"] is not null)model["helpers"]=HelperRows();}
 string Workspace(string context,string view=""){string key=context+(view.Length==0?"":"/view/"+view);if(!workspaces.TryGetValue(key,out string? handle)){handle=calls.PackOpen.Invoke(calls.Context.Invoke(manager,context)[1],"local-user","editor");workspaces.Add(key,handle);}return handle;}
+// Navigation reads the already-open local box and current project without saving either.
+if(operation=="yogi-ey-resolve"){
+ const string unavailable="{\"status\":\"unavailable\"}";
+ string context=Active();
+ var selected=model["selected"]!;
+ var boxes=(System.Collections.Generic.Dictionary<string,string>)state[12];
+ if(selected["activation"]?.ToString()!=Value("activation")||
+    !Guid.TryParseExact(Value("item"),"N",out _)||
+    !boxes.TryGetValue(context,out var box)||!workspaces.TryGetValue(context,out var workspace))
+  return unavailable;
+ string draft=calls.ProposalDraft.Invoke(workspace);
+ var package=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiRevalidate.Invoke(box,draft))!;
+ var ey=System.Linq.Enumerable.SingleOrDefault(package["items"]!.AsArray(),
+  row=>row?["kind"]?.ToString()=="semantic"&&row["item"]?.ToString()==Value("item"));
+ if(ey?["availability"]?.ToString() is not ("current" or "stale")||
+    ey["elementKind"]?.ToString() is not ("concept" or "object" or "function" or "module"))
+  return unavailable;
+ string id=ey["id"]!.ToString(),kind=ey["elementKind"]!.ToString();
+ // A cached workspace can still describe a removed declaration. Check the
+ // confirmed registration and exact kind before handing navigation its ID.
+ var catalog=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(selected["path"]!.ToString(),
+  System.Text.Json.JsonSerializer.Serialize(new{action="read",id})));
+ if(catalog?["status"]?.ToString()!="available"||catalog["element"]?["id"]?.ToString()!=id||
+    catalog["element"]?["kind"]?.ToString()!=kind||calls.ProposalRead.Invoke(draft,id)[1]!=kind)
+  return unavailable;
+ return System.Text.Json.JsonSerializer.Serialize(new{status="available",id,elementKind=kind});
+}
 // Inspect the existing sealed package without preparing a message or opening a receiver.
 if(operation=="yogi-sealed-preview"){
  string context=Active();
