@@ -8,6 +8,7 @@ import sys
 
 from playwright.sync_api import expect, sync_playwright
 
+from editor_navigation import choose_project_tool
 import v666_node_branch_exit_fixture as fixture
 
 f = fixture.f
@@ -83,6 +84,29 @@ def check_previous(new_id, changed):
     f.page.set_viewport_size({'width': 1800, 'height': 1400})
     expect(doc()).to_be_visible()
     f.checked('The previous editor reads the same saved version-1 exit, source edits and history.')
+
+
+def check_saved_history(changed):
+    history = checkpoint_content()[1]
+    assert history['undo'][:-1] == prior_history['undo']
+    assert [unit['id'] for unit in history['undo'][-1]['units']] == [t.root]
+    choose_project_tool(f.page, '의미 편집 이력')
+    window = f.page.locator('.window[data-key=history]')
+    expect(window.locator('[data-history-tip=undo]')).to_contain_text(t.root)
+    window.locator('[data-history-move=undo]').click()
+    f.idle()
+    assert fixture.read()['edges'] == shared_plan['edges']
+    expect(window.locator('[data-history-tip=undo]')).to_contain_text(other_id)
+    expect(window.locator('[data-history-tip=redo]')).to_contain_text(t.root)
+    window.locator('[data-history-move=redo]').click()
+    f.idle()
+    assert fixture.read()['edges'] == changed['edges']
+    window.locator('[data-close]').first.click()
+    f.invoke('saveDraft', {})
+    assert checkpoint_content()[0][other_id] == other_draft
+    assert checkpoint_content()[1]['undo'] == history['undo']
+    x.original()
+    f.checked('One saved return edit is reversible after process restart and retains the preceding source edit.')
 
 
 def run():
@@ -224,6 +248,8 @@ def run_insert():
     f.checked('Cancel, one Undo/Redo, both views and cold Save retain exactly the selected return insertion.')
 
     check_previous(new_id, changed)
+    if t.nested:
+        check_saved_history(changed)
     saved = checkpoint_content()
     review().locator('[data-reject]').click()
     x.original()
@@ -314,7 +340,9 @@ try:
         t.rpc('source', id=other_graph, node='body', basis=other['basis'],
               text='slotCount=amount+7;slotReady=true;return amount+3;')
         f.invoke('saveDraft', {})
-        other_draft = checkpoint_content()[0][other_id]
+        other_changes, prior_history = checkpoint_content()
+        other_draft = other_changes[other_id]
+        assert [unit['id'] for unit in prior_history['undo'][-1]['units']] == [other_id]
     before = checkpoint.read_bytes()
     with sync_playwright() as playwright:
         expect.set_options(timeout=30000)
