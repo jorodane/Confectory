@@ -2,8 +2,9 @@
 """Exercise the installed project's ≡ → Browser → function editor path.
 
 Pass a Linux x64 package directory and the local GTK fixture image. A fresh
-GTK profile creates both projects. The packaged Chromium shell is exercised
-in the same unprivileged container, with no repository or external network.
+GTK profile creates both projects and opens each native browser through the
+project menu. The packaged Chromium shell is exercised in the same unprivileged
+container, with no repository or external network.
 """
 
 import json
@@ -20,6 +21,23 @@ from editor_project_chat_scope_x11 import gtk_home, gtk_menu, project_files
 
 FIRST, SECOND = 'Browser Meadow', 'Browser Orchard'
 CATEGORY, MODULE = 'MeadowCategory', 'MeadowModule'
+
+
+def gtk_open_project_browser(app):
+    app.click(33)  # Native project title menu.
+    menu = app.wait(lambda row: row['model']['shell']['menu'] == 'project', 'GTK project menu')
+    hits = menu['hits']
+    assert hits[::5].count(317) == 1
+    entry = hits[::5].index(317) * 5
+    # The menu entry is at the top of the project, above the dock shortcut.
+    assert hits[entry + 2] < 200
+    app.click(317)
+    state = app.wait(lambda row: row.get('nativeTree') and not row['job'] and
+                     row['model']['shell']['menu'] == '', 'GTK project menu opens semantic browser')
+    assert state['nativeTreeState']['group'] == 'concept'
+    assert {201, 202, 203}.issubset(state['hits'][::5])
+    assert app.field(state, 77).get('visible') and not app.field(state, 54).get('visible')
+    return state
 
 
 def browser_workflow(projects):
@@ -184,6 +202,7 @@ def test_package(package, image):
             projects = {}
             for title in (FIRST, SECOND):
                 projects[title] = app.create(title, '', roots)
+                gtk_open_project_browser(app)
                 gtk_menu(app, 52)
                 gtk_home(app)
             app.close()
