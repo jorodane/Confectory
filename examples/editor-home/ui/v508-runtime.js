@@ -87,7 +87,7 @@ const {openWindow,placeWindow,clampWindow,setupWindowDrag,snapWindow,closeWindow
 const resourcePreviews=createResourcePreviews({modal,flush:()=>actualWorkspace.flush(),accept:reply=>resourceBrowser.acceptContent(reply),work:async(...args)=>{await whenIdle();while(busy)await whenIdle();return work(...args);},get current(){return current},get view(){return view},windows,openWindow,close:w=>closeWindow(w.key),persist:()=>actualWorkspace.schedule()});
 const resourceBrowser=createResourceBrowser({modal,flush:()=>actualWorkspace.flush(),close:w=>closeWindow(w.key),metadata:(items,revision)=>resourcePreviews.metadata(items,revision),open:(row,owns)=>resourcePreviews.open(row,owns),esc,get current(){return current},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},windows,projectBrowser:key=>workspaceRuntime.isProjectBrowserKey(key),trackDrag:(...args)=>workspaceRuntime.trackWorkspaceDrag(...args),scale:()=>actualWorkspace.project?.workspaceView.scale||1,persist:()=>actualWorkspace.schedule(),contextMenu,toast,openParent:openResourceParent,switchGroup:switchBrowserGroup,idle:whenIdle,work:async(...args)=>{await whenIdle();while(busy)await whenIdle();return work(...args);}});
 const browserReferences=createBrowserReferenceHover({get projectId(){return current?.projectId},projection:browserProjection});
-const elementEditorAPI={editInformationBodies:(...args)=>declarationEditors.editInformationBodies(...args),moduleAuthor:(...args)=>declarationEditors.moduleAuthor(...args),raw:{selectionSource:(...args)=>rawOwnerSaves.selectionSource(...args),pending:id=>rawOwnerSaves.pending(id),has:id=>rawOwnerSaves.has(id),save:(...args)=>rawOwnerSaves.save(...args),discard:(...args)=>rawOwnerSaves.discard(...args)},ownerAuthorInputs:blueprintInputs,persistOwnerInputs:()=>actualWorkspace.flushInputs(),recoverOwnerEditsInWork:(...args)=>declarationEditors.recoverOwnerEditsInWork(...args),saveOwnerEditsInWork:(...args)=>declarationEditors.saveOwnerEditsInWork(...args),hasOwnerAttempt:(...args)=>declarationEditors.hasOwnerAttempt(...args),discardOwnerAttemptInWork:(...args)=>declarationEditors.discardOwnerAttemptInWork(...args),$, $$,esc,modal,inputs:schemaInputs,projection:browserProjection,classificationPending:(ids,except)=>blueprintPending(ids,true,except),otherPending:(ids,except)=>blueprintPending(ids,false,except),openSlotInWork:(...args)=>declarationEditors.openSlotInWork(...args),openCopyInWork:(...args)=>declarationEditors.openCopyInWork(...args),copyDrafts:(...args)=>declarationEditors.copyDrafts(...args),copyDiscardSnapshot:(...args)=>declarationEditors.copyDiscardSnapshot(...args),validateCopyDiscard:(...args)=>declarationEditors.validateCopyDiscard(...args),discardCopies:(...args)=>declarationEditors.discardCopies(...args),discardCopiesInWork:(...args)=>declarationEditors.discardCopiesInWork(...args),saveCopiesInWork:(...args)=>declarationEditors.saveCopiesInWork(...args),recoverCopiesInWork:(...args)=>declarationEditors.recoverCopiesInWork(...args),hasCopyAttempt:(...args)=>declarationEditors.hasCopyAttempt(...args),get current(){return current},get view(){return view},get busy(){return busy},get dirty(){return dirty},windows,openWindow,setupWindowDrag,work,whenIdle,readStatus:readElementStatus,toast,persist:()=>actualWorkspace.schedule(),valueJson:schemaValueJson,valueText:schemaValueText,reference:openDefinitionTarget,open:id=>openElementInstance(id),readElements:readBrowserElements,editElement:editBrowserCell,browserSaved:id=>{browserData.saved(id);for(const w of windows.values())if(w.elementScope===current.projectId)w.elementBrowser?.saved?.();},captureBrowserDiscard,finishBrowserDiscard,classify:(moves,alive)=>moveBrowserFolders(moves,alive,moves[0].id),refreshClassification:removalRefresh,rename:renameBrowserElement,remove:requestBrowserRemoval,removeOwnFunction,removeOwnImplementation,removeModuleImplementation,undoOwnFunction,archiveAction:informationArchiveAction,move:(input,alive)=>input.moves?moveBrowserElements(input.moves,alive):moveBrowserElement(input,alive),dragSelection:()=>workspaceRuntime.state.workspaceDragPayload,startDrag:(e,rows,alive)=>{if(alive()){workspaceRuntime.startObjectEditorDrag(e,rows[0],rows,current.projectId);workspaceRuntime.state.workspaceDragPayload.sourceProofs=rows.map(value=>{const row=browserProjection.rows().find(row=>row.id===value.id);return {id:value.id,revision:row?.revision,hash:row?.textHash};});}},endDrag:()=>workspaceRuntime.endWorkspaceDrag(),detail:openElementDetail,createVariation:createBrowserVariation,contextMenu,review:id=>{let target=targetChoices.get(current.projectId)||current.runTarget;if(!(current.targets||[]).includes(target)){if(current.targets?.length===1)targetChoices.set(current.projectId,current.targets[0]);else{showTargets();throw Error('프로젝트가 선언한 검증 대상을 선택해 주세요.');}}return reviewSelected(id);},trackDrag:(...args)=>workspaceRuntime.trackWorkspaceDrag(...args)};
+const elementEditorAPI={recipeQuantityEditor,editInformationBodies:(...args)=>declarationEditors.editInformationBodies(...args),moduleAuthor:(...args)=>declarationEditors.moduleAuthor(...args),raw:{selectionSource:(...args)=>rawOwnerSaves.selectionSource(...args),pending:id=>rawOwnerSaves.pending(id),has:id=>rawOwnerSaves.has(id),save:(...args)=>rawOwnerSaves.save(...args),discard:(...args)=>rawOwnerSaves.discard(...args)},ownerAuthorInputs:blueprintInputs,persistOwnerInputs:()=>actualWorkspace.flushInputs(),recoverOwnerEditsInWork:(...args)=>declarationEditors.recoverOwnerEditsInWork(...args),saveOwnerEditsInWork:(...args)=>declarationEditors.saveOwnerEditsInWork(...args),hasOwnerAttempt:(...args)=>declarationEditors.hasOwnerAttempt(...args),discardOwnerAttemptInWork:(...args)=>declarationEditors.discardOwnerAttemptInWork(...args),$, $$,esc,modal,inputs:schemaInputs,projection:browserProjection,classificationPending:(ids,except)=>blueprintPending(ids,true,except),otherPending:(ids,except)=>blueprintPending(ids,false,except),openSlotInWork:(...args)=>declarationEditors.openSlotInWork(...args),openCopyInWork:(...args)=>declarationEditors.openCopyInWork(...args),copyDrafts:(...args)=>declarationEditors.copyDrafts(...args),copyDiscardSnapshot:(...args)=>declarationEditors.copyDiscardSnapshot(...args),validateCopyDiscard:(...args)=>declarationEditors.validateCopyDiscard(...args),discardCopies:(...args)=>declarationEditors.discardCopies(...args),discardCopiesInWork:(...args)=>declarationEditors.discardCopiesInWork(...args),saveCopiesInWork:(...args)=>declarationEditors.saveCopiesInWork(...args),recoverCopiesInWork:(...args)=>declarationEditors.recoverCopiesInWork(...args),hasCopyAttempt:(...args)=>declarationEditors.hasCopyAttempt(...args),get current(){return current},get view(){return view},get busy(){return busy},get dirty(){return dirty},windows,openWindow,setupWindowDrag,work,whenIdle,readStatus:readElementStatus,toast,persist:()=>actualWorkspace.schedule(),valueJson:schemaValueJson,valueText:schemaValueText,reference:openDefinitionTarget,open:id=>openElementInstance(id),readElements:readBrowserElements,editElement:editBrowserCell,browserSaved:id=>{browserData.saved(id);for(const w of windows.values())if(w.elementScope===current.projectId)w.elementBrowser?.saved?.();},captureBrowserDiscard,finishBrowserDiscard,classify:(moves,alive)=>moveBrowserFolders(moves,alive,moves[0].id),refreshClassification:removalRefresh,rename:renameBrowserElement,remove:requestBrowserRemoval,removeOwnFunction,removeOwnImplementation,removeModuleImplementation,undoOwnFunction,archiveAction:informationArchiveAction,move:(input,alive)=>input.moves?moveBrowserElements(input.moves,alive):moveBrowserElement(input,alive),dragSelection:()=>workspaceRuntime.state.workspaceDragPayload,startDrag:(e,rows,alive)=>{if(alive()){workspaceRuntime.startObjectEditorDrag(e,rows[0],rows,current.projectId);workspaceRuntime.state.workspaceDragPayload.sourceProofs=rows.map(value=>{const row=browserProjection.rows().find(row=>row.id===value.id);return {id:value.id,revision:row?.revision,hash:row?.textHash};});}},endDrag:()=>workspaceRuntime.endWorkspaceDrag(),detail:openElementDetail,createVariation:createBrowserVariation,contextMenu,review:id=>{let target=targetChoices.get(current.projectId)||current.runTarget;if(!(current.targets||[]).includes(target)){if(current.targets?.length===1)targetChoices.set(current.projectId,current.targets[0]);else{showTargets();throw Error('프로젝트가 선언한 검증 대상을 선택해 주세요.');}}return reviewSelected(id);},trackDrag:(...args)=>workspaceRuntime.trackWorkspaceDrag(...args)};
 const elementEditors=createElementEditors(elementEditorAPI);
 const browserData=createStandaloneBrowserData(Object.assign(Object.create(elementEditorAPI),{render:key=>renderObjects(key),open:row=>row&&openBrowserDefinition(row)}));
 const elementInstances=createElementInstances({base:elementEditorAPI,get current(){return current},get view(){return view},open:id=>openElementInstance(id),review:async(id,alive)=>{if(dirty)throw Error('원래 소스의 미적용 입력을 먼저 처리해 주세요.');alive();if(current.draft?.id!==id)for(let attempt=0;attempt<3;attempt++){await view.update();alive();if(dirty)throw Error('원래 소스의 미적용 입력을 먼저 처리해 주세요.');try{await view.call('select',{id});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}}alive();await elementEditorAPI.review(id);}});
@@ -804,7 +804,8 @@ async function readCurrentView(endpoint,input={},alive=()=>true){
 const operationFailures={project_chat_failed:'프로젝트 대화를 준비하거나 전송하지 못했어요. 입력과 프로젝트는 유지됩니다.',authoring_host_missing:'연결 설정 도구가 없습니다. 현재 배포의 element-authoring 실행 파일과 .NET 10 준비 상태를 확인한 뒤 다시 시도하세요.',authoring_runtime_unavailable:'연결 설정 도구를 시작할 수 없습니다. .NET 10 실행 경로와 이 앱의 실행 권한을 확인한 뒤 다시 시도하세요.',connection_access_denied:'연결 설정 또는 선언을 읽을 권한이 없습니다. 현재 앱의 설정 폴더 접근 권한을 확인하세요.',connection_settings_incomplete:'기존 연결 설정 파일이 일부만 남아 있습니다. 파일을 지우거나 덮어쓰지 않았습니다. 설정 사본에서 project.cpack과 Settings.celem을 함께 복구한 뒤 다시 시도하세요.',connection_declarations_unavailable:'설치된 Agent 팩의 선언·스키마를 읽지 못했습니다. 설치 팩의 경로와 선언을 확인한 뒤 다시 시도하세요.',connection_settings_invalid:'설정 사본의 선언·스키마를 읽지 못했습니다. 설치 팩의 경로와 Settings 선언을 확인한 뒤 다시 시도하세요.'};
 function failureMessage(error,options={}){if(error.message!=='consumer_error')return error.message;if(current.sourceError==='checkpoint_changed')return '다른 창에서 저장한 초안이 있어요. 현재 입력은 유지됩니다. 입력을 따로 보관한 뒤 프로젝트를 다시 열어 저장된 초안을 확인하세요.';const diagnostic=current.operationError;if(diagnostic&&operationFailures[diagnostic.code])return operationFailures[diagnostic.code]+' ['+diagnostic.code+' / '+diagnostic.stage+(diagnostic.code==='project_chat_failed'?' / '+diagnostic.cause:'')+']';return options.failureMessage||({no_source_changes:'검토할 소스 변경이 없습니다. 미적용 입력이 있다면 먼저 적용하세요.',creation_registration_required:'새 선언은 프로젝트 등록 변경과 함께 검토해야 합니다. 다시 Confirm…을 눌러 생성 변경을 선택하세요.',confirm_host_required:'최종 Confirm에는 컴파일 가능한 데스크톱 호스트가 필요합니다. 작업 사본은 유지됩니다.',source_operation_failed:'소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.'})[current.sourceError]||'작업을 완료하지 못했습니다. 입력은 유지됩니다.';}
 async function work(action,message,options={}){if(busy)return;busy=true;controls();try{if(runtimeStatusRead)await runtimeStatusRead.catch(()=>{});if(homeSummaryRead)await homeSummaryRead;await view.update();await homePreferences.flush();if(options.flushWorkspace!==false)await actualWorkspace.flushInputs();const result=await action();if(options.flushWorkspace!==false)await actualWorkspace.flushInputs();if(result!==false&&message)toast(message);return result;}catch(e){if(['scope_changed','view_closed'].includes(e.message)){await recover();toast('Ready');}else toast(failureMessage(e,options));return false;}finally{busy=false;controls();if(options.flushWorkspace!==false){renderObjects();restoreBrowserFilter();}}}
-function act(endpoint,input,recipeAlive=null){
+function act(endpoint,input,recipeAccess=null){
+ const recipeAlive=recipeAccess?.alive;
  if(dirty&&['select','objects','page'].includes(endpoint)&&!(endpoint==='select'&&input.id===draft?.id)){
   toast('Apply local input before changing selection');return;
  }
@@ -825,7 +826,7 @@ function act(endpoint,input,recipeAlive=null){
     if(recipeAlive&&!recipeAlive())return false;
     await view.call('schema',{id:input.id});
     if(recipeAlive&&!recipeAlive())return false;
-    const opened=showSchema();if(opened)focusWindow(opened);
+    const opened=elementEditors.show(view.state.schema,recipeAccess?{view:input.recipeView,recipe:recipeAccess.recipe,activation:view.scope?.projectActivation,generation}:null);if(opened)focusWindow(opened);
     return !!opened;
    }
    await inspectDeclaration(input.id);declarationEditors.open();
@@ -1096,6 +1097,77 @@ function recipeViewContent(recipe){
  group('결과',[recipe.output]);
  return content;
 }
+function recipeQuantityEditor(w,schema,session){
+ const id=schema.id,scope=w.elementScope,{activation,generation}=session;
+ const alive=()=>current.projectId===scope&&view.generation===generation&&view.scope?.projectActivation===activation&&current.draft?.id===id&&
+  windows.get('schema')===w&&w.recipeSession===session&&!w.el.hidden;
+ const valid=count=>Number.isInteger(count)&&count>=1&&count<=100;
+ let ingredients;
+ try{ingredients=JSON.parse(schema.values?.ingredients);}catch{return;}
+ const output=schema.values?.output,outputCount=schema.values?.outputCount;
+ if(schema.values?.concept!=='recipe'||!ingredients||Array.isArray(ingredients)||typeof ingredients!=='object'||
+    typeof output!=='string'||!valid(outputCount))return;
+ const rows=Object.entries(ingredients);
+ const sameReferences=recipe=>recipe?.output?.id===output&&recipe.ingredients.length===rows.length&&
+  recipe.ingredients.every(row=>Object.hasOwn(ingredients,row.id));
+ if(!sameReferences(session.recipe)||!rows.every(([,count])=>valid(count)))return;
+ const section=document.createElement('section');
+ section.dataset.recipeQuantities='';
+ function group(title,field,values){
+  const form=document.createElement('form'),heading=document.createElement('h3');
+  heading.textContent=title;
+  form.append(heading);
+  const baseline=JSON.stringify(values);
+  const previous=session.pending.get(field);
+  const inputs=values.map(([resource,count],index)=>{
+   const label=document.createElement('label'),input=document.createElement('input');
+   input.type='number';
+   input.dataset.operation='';
+   input.disabled=busy;
+   input.min='1';
+   input.max='100';
+   input.step='1';
+   input.required=true;
+   input.value=previous?.baseline===baseline?previous.values[index]:count;
+   label.textContent=resource+' 수량 ';
+   label.append(input);
+   form.append(label,document.createElement('br'));
+   return input;
+  });
+  form.oninput=()=>{
+   if(inputs.every((input,index)=>input.valueAsNumber===values[index][1]))session.pending.delete(field);
+   else session.pending.set(field,{baseline,values:inputs.map(input=>input.value)});
+   elementEditors.controls(busy);
+  };
+  const apply=button(title+' 수량을 초안에 적용');
+  apply.type='submit';
+  apply.dataset.operation='';
+  form.append(apply);
+  form.onsubmit=async event=>{
+   event.preventDefault();
+   const counts=inputs.map(input=>input.valueAsNumber);
+   if(!counts.every(valid)||counts.every((count,index)=>count===values[index][1]))return;
+   while(busy)await whenIdle();
+   if(!alive())return;
+   work(async()=>{
+    const registered=await observeProjectWindow('readProjectWindow',{id:session.view},alive);
+    const recipe=registered?.window?.recipe;
+    if(!alive()||dirty||registered?.status!=='available'||registered.projectActivation!==activation||
+       registered.window.editId!==id||!sameReferences(recipe))
+     throw Error('현재 프로젝트에서 이 레시피 편집기를 다시 열어 주세요.');
+    const value=field==='ingredients'?JSON.stringify(Object.fromEntries(values.map(([resource],index)=>[resource,counts[index]]))):counts[0];
+    await view.call('editMetadata',{id,field,valueJson:JSON.stringify(value),revision:schema.revision,hash:schema.textHash});
+    session.pending.delete(field);
+    await readCurrentView('schema',{id},alive);
+    if(alive())elementEditors.show(current.schema);
+   },title+' 수량을 초안에 적용했습니다.');
+  };
+  section.append(form);
+ }
+ group('재료','ingredients',rows);
+ group('결과','outputCount',[[output,outputCount]]);
+ w.body.querySelector('.window-content').prepend(section);
+}
 async function openProjectOwnedWindow(id,anchor){
  const {activation,alive}=projectWindowScope(anchor);
  if(!alive())return;
@@ -1120,7 +1192,7 @@ async function openProjectOwnedWindow(id,anchor){
     const edit=button('레시피 편집기 열기',async()=>{
      const canNavigate=()=>alive()&&ownedProjectWindow===opened&&edit.isConnected;
      if(!canNavigate())return;
-     if(await act('select',{id:row.editId,recipeView:id},canNavigate)===true&&canNavigate())close();
+     if(await act('select',{id:row.editId,recipeView:id},{alive:canNavigate,recipe:row.recipe})===true&&canNavigate())close();
     });
     edit.dataset.openRecipeEditor='';
     body.append(edit);

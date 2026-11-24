@@ -673,6 +673,83 @@ def recipe_editor_workflow(report, root, browser):
     print("PASS recipe editor link opens only the current registered object, keeps saved drafts, and rejects revocation")
 
 
+
+def recipe_quantity_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, checkout, both=True)
+    target = NS + "::Assembly"
+    alpha_recipe = Path(alpha["path"]).with_name("Assembly.celem")
+    for project in (alpha, bravo):
+        path = Path(project["path"]).with_name("RecipeDesk.celem")
+        path.write_text(path.read_text().replace(" }", ' value editorWindow = "element-view-recipe"; }', 1))
+        originals[path] = path.read_bytes()
+
+    def recipe_dialog(page, fiber, panel):
+        project_menu(page, True, identifier=identifier, title=title).get_by_role(
+            "button", name=title, exact=True).click()
+        dialog = page.get_by_role("dialog", name=title, exact=True)
+        expect(dialog.get_by_role("listitem")).to_have_text(
+            [f"{NS}::Fiber × {fiber}", f"{NS}::Tile × 3", f"{NS}::Panel × {panel}"])
+        expect(dialog.locator("input")).to_have_count(0)
+        return dialog
+
+    with editor(report, root, "recipe-quantity", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        dialog = recipe_dialog(page, 2, 4)
+        dialog.get_by_role("button", name="레시피 편집기 열기", exact=True).click()
+        fallback = page.locator('.window[data-key="schema"]')
+        expect(fallback.get_by_role("heading", name="Assembly", exact=True)).to_be_visible()
+        quantities = fallback.locator("[data-recipe-quantities]")
+        fiber = quantities.get_by_role("spinbutton", name=f"{NS}::Fiber 수량")
+        tile = quantities.get_by_role("spinbutton", name=f"{NS}::Tile 수량")
+        panel = quantities.get_by_role("spinbutton", name=f"{NS}::Panel 수량")
+        apply_ingredients = quantities.get_by_role("button", name="재료 수량을 초안에 적용")
+        expect(fiber).to_have_value("2")
+        expect(fallback.locator('[data-element-action="save"]')).to_be_disabled()
+        for invalid in ("0", "101", "2.5"):
+            fiber.fill(invalid)
+            apply_ingredients.click()
+            assert not fiber.evaluate("(input) => input.validity.valid")
+            assert not state(address)["draft"]["dirty"]
+        fiber.fill("5")
+        panel.fill("6")
+        apply_ingredients.click()
+        expect(page.locator("#status")).to_contain_text("재료 수량을 초안에 적용했습니다.")
+        expect(panel).to_have_value("6")
+        expect(tile).to_have_value("3")
+        quantities.get_by_role("button", name="결과 수량을 초안에 적용").click()
+        expect(page.locator("#status")).to_contain_text("결과 수량을 초안에 적용했습니다.")
+        assert "value outputCount = 6;" in state(address)["draft"]["text"]
+        save = fallback.locator('[data-element-action="save"]')
+        save.click()
+        expect(page.locator("#project-menu")).to_be_enabled()
+        expect(save).to_be_disabled()
+        assert any(Path(alpha["path"]).parent.glob(".confectory/edit-workspaces/*/draft.json"))
+        assert alpha_recipe.read_bytes() == originals[alpha_recipe]
+        recipe_dialog(page, 2, 4).get_by_role("button", name="닫기", exact=True).click()
+        fallback.locator('[data-element-action="confirm"]').click()
+        review = page.locator('[data-key="review"]')
+        expect(review.locator("#confirm")).to_be_enabled()
+        review.locator("[data-reject]").click()
+        recipe_dialog(page, 2, 4).get_by_role("button", name="닫기", exact=True).click()
+        fallback.locator('[data-element-action="confirm"]').click()
+        review.locator("#confirm").click()
+        expect(review).to_have_count(0)
+        dialog = recipe_dialog(page, 5, 6)
+        dialog.get_by_role("button", name="닫기", exact=True).click()
+        assert all(path.read_bytes() == value for path, value in originals.items() if path != alpha_recipe)
+        assert state(address)["draft"]["id"] == target
+        home(page)
+        open_project(page, bravo["title"])
+        recipe_dialog(page, 7, 4)
+        expect(page.locator("[data-recipe-quantities]")).to_have_count(0)
+        assert not proof.exists() and not errors, errors
+        page.close()
+
+    print("PASS Chromium recipe quantity draft, validation, Review cancel/Confirm and other-project isolation")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -724,7 +801,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view", "--recipe-editor"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view", "--recipe-editor", "--recipe-quantity"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -738,6 +815,8 @@ if __name__ == "__main__":
                         worker_opening_review_workflow(package, Path(directory), browser)
                     elif "--recipe-view" in sys.argv[2:]:
                         recipe_view_workflow(package, Path(directory), browser)
+                    elif "--recipe-quantity" in sys.argv[2:]:
+                        recipe_quantity_workflow(package, Path(directory), browser)
                     elif "--recipe-editor" in sys.argv[2:]:
                         recipe_editor_workflow(package, Path(directory), browser)
                     else:
