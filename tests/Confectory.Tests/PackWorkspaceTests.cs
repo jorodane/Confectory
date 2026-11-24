@@ -266,4 +266,122 @@ public sealed class PackWorkspaceTests : TestCase
   try{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);var built=new Builder(project,"portable").Build();True(!Strings(built,"includedPacks").Contains("Confectory.Agent"));Output(built,"Development tools scope/shared draft/CAS/dedup/no Confirm/cleanup PASS");File.AppendAllText(Path.Combine(f.Root,"packs","development-tools","Invoke.csbody"),"\n// development tool provider locality\n");var changed=new Builder(project,"portable").Build();PackRebuilt(changed,new[]{"Confectory.DevelopmentTools::InvokeBody"});Equal(0,Strings(changed,"statistics","compiledContracts").Length);File.AppendAllText(Path.Combine(f.Root,"packs","development-tools","Snapshot.csbody"),"\n// retained draft snapshot locality\n");var snapshotChange=new Builder(project,"portable").Build();PackRebuilt(snapshotChange,new[]{"Confectory.DevelopmentTools::SnapshotBody"});Equal(0,Strings(snapshotChange,"statistics","compiledContracts").Length);}
   finally{Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);}
  }
+ public void test_worker_origin_opening_view_draft_requires_human_confirm()
+ {
+  string sample=Path.Combine(f.Root,"opening-view-consumer");
+  Fixture.CopyTree(Path.Combine(Fixture.Repo,"examples","edit-workspace"),sample);
+  foreach(string name in new[]{"file-stream","schema-editing","edit-workspace","save","change-set",
+   "pack-workspace","development-tools","semantic-catalog"})
+   Fixture.CopyTree(Path.Combine(Fixture.Repo,"packs",name),Path.Combine(f.Root,"packs",name));
+  string project=Path.Combine(sample,"project.cpack");
+  string registrations=string.Join("\n",new[]{
+   ("Confectory.PackWorkspace","pack-workspace"),("Confectory.DevelopmentTools","development-tools"),
+   ("Confectory.SemanticCatalog","semantic-catalog")
+  }.Select(pack=>$"registry {pack.Item1} \"../packs/{pack.Item2}/pack.cpack\"; dependency {pack.Item1} version \"0.1.0\";"));
+  File.WriteAllText(project,File.ReadAllText(project).Replace("../../packs/","../packs/")
+   .Replace("../../targets/dotnet/pack.cpack","../target/pack.cpack")
+   .Replace("element Main function",registrations+"\nelement Main function"));
+  string entry=Path.Combine(sample,"main.celem");
+  string declaration=File.ReadAllText(entry);
+  File.WriteAllText(entry,declaration.Insert(declaration.LastIndexOf('}'),
+   "provide Confectory.DevelopmentTools::BindOrigin with Confectory.DevelopmentTools::BindOriginBody;\n"+
+   "provide Confectory.FileStream::BrowseDirectory with Confectory.FileStream::BrowseDirectoryBody;\n"+
+   "provide Confectory.SemanticCatalog::Query with Confectory.SemanticCatalog::QueryBody;\n"));
+  f.Add("App","schema","OpeningSchema","schema App::OpeningSchema {field Note single general string;}");
+  f.Add("App","object","OpeningData","object App::OpeningData {use schema App::OpeningSchema; data Note = \"Alpha only\";}");
+  f.Add("App","view","OpeningCard","view App::OpeningCard {use object App::OpeningData; value editorName = \"Alpha card\";}");
+  f.Sync();
+  File.WriteAllText(Path.Combine(sample,"main_body.celem"),"""
+  implementation Example.EditWorkspace::MainBody for Example.EditWorkspace::Main () -> int {
+   import Confectory.DevelopmentTools::Open as ToolsOpen (string,string,string,string,string) -> string;
+   import Confectory.DevelopmentTools::Invoke as Tool (string,string,string,string) -> string;
+   import Confectory.DevelopmentTools::BindOrigin as BindOrigin (string,string,string,string) -> void;
+   import Confectory.DevelopmentTools::Snapshot as ToolSnapshot (string) -> string;
+   import Confectory.DevelopmentTools::Close as ToolsClose (string) -> void;
+   import Confectory.PackWorkspace::Open as Open (string,string,string) -> string;
+   import Confectory.PackWorkspace::Command as Command (string,string,string) -> string;
+   import Confectory.PackWorkspace::Close as Close (string) -> void;
+   import Confectory.SemanticCatalog::Query as Catalog (string,string) -> string;
+   body common "main.csbody";
+  }
+  """);
+  File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
+  string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!;
+  const string id="App::OpeningCard",projectId="alpha-fixture",actor="local-user",task="task-opening-view";
+  System.Text.Json.Nodes.JsonNode Json(string text)=>System.Text.Json.Nodes.JsonNode.Parse(text)!;
+  string Encode(object value)=>System.Text.Json.JsonSerializer.Serialize(value);
+  void Check(bool result,string message){if(!result)throw new InvalidOperationException(message);}
+  System.Text.Json.Nodes.JsonNode Opening()=>Json(calls.Catalog.Invoke(project,Encode(new{action="project-main-view"})));
+  string owner=calls.Open.Invoke(project,actor,"editor");
+  string tool=calls.ToolsOpen.Invoke(project,projectId,"App",actor,"editor");
+  string phase="stage";
+  try{
+   calls.BindOrigin.Invoke(tool,task,"synthetic-worker","opening-view-request");
+   var current=Json(calls.Tool.Invoke(tool,"read-opening-view","workspace_read",Encode(new{projectId,id})));
+   string file=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"OpeningCard.celem");
+   string confirmed=System.IO.File.ReadAllText(file);
+   string draft=confirmed.Insert(confirmed.LastIndexOf('}')," value editorMain = \"element-view-card\"; ");
+   var staged=Json(calls.Tool.Invoke(tool,"propose-opening-view","workspace_stage",Encode(new{
+    projectId,id,expectedRevision=current["revision"]!.GetValue<long>(),text=draft
+   })));
+   Check(staged["applied"]!.GetValue<bool>()&&!staged["finalSourceChanged"]!.GetValue<bool>(),"Owned View proposal must be draft-only");
+   phase="origin";
+   Check(System.IO.File.ReadAllText(file)==confirmed&&Opening()["status"]!.ToString()=="unavailable",
+    "Staging must not change the opening workspace");
+   var origins=Json(calls.ToolSnapshot.Invoke(tool))["dirty"]?[id]?["origins"]?.AsArray();
+   Check(origins?.Count==1,"Editable View must record exactly one Worker contribution");
+   var contribution=origins![0]!;
+   Check(contribution["task"]!.ToString()==task&&contribution["matchesCurrentHash"]!.GetValue<bool>(),"Draft must retain matching tool origin");
+   phase="tool permission";
+   bool denied=false;
+   try{calls.Tool.Invoke(tool,"forbidden-confirm","workspace_confirm",Encode(new{projectId,id}));}
+   catch(UnauthorizedAccessException){denied=true;}
+   Check(denied,"Draft tool must not be able to Confirm");
+
+   phase="review";
+   calls.Command.Invoke(owner,"select",Encode(new{id}));
+   System.Text.Json.Nodes.JsonNode Review(){
+    var review=Json(calls.Command.Invoke(owner,"review",Encode(new{ids=new[]{id},target="portable"})))["review"]!;
+    var row=System.Linq.Enumerable.Single(review["units"]!.AsArray())!;
+    Check(review["status"]!.ToString()=="ready"&&row["id"]!.ToString()==id&&
+     row["before"]!.ToString()==confirmed&&row["after"]!.ToString()==draft,"Review must show the exact attributed proposal");
+    return review;
+   }
+   Review();
+   phase="cancel";
+   var cancelled=Json(calls.Command.Invoke(owner,"cancel-review","{}"));
+   Check(cancelled["review"] is null&&System.IO.File.ReadAllText(file)==confirmed&&
+    Opening()["status"]!.ToString()=="unavailable","Canceled Review must not change the opening workspace");
+
+   phase="confirm";
+   var accepted=Review();
+   var outcome=Json(calls.Command.Invoke(owner,"confirm",Encode(new{ids=new[]{id},token=accepted["token"]!.ToString()})));
+   Check(outcome["confirmation"]![0]!.ToString()=="confirmed"&&System.IO.File.ReadAllText(file)==draft,"Human Confirm must publish the reviewed View");
+   phase="reopen";
+   calls.ToolsClose.Invoke(tool);tool="";
+   calls.Close.Invoke(owner);owner="";
+   owner=calls.Open.Invoke(project,actor,"editor");
+   var result=Opening();
+   Check(result["window"]?["id"]?.ToString()==id&&result["window"]?["renderer"]?.ToString()=="element-view-card"&&
+    result["window"]?["value"]?.ToString()=="Alpha only","Reopened projection must use the confirmed Alpha card");
+   Console.WriteLine("Worker-origin opening View host Review: cancel, human Confirm, cold projection PASS");
+   return 0;
+  }catch(Exception error){throw new InvalidOperationException("Opening View fixture phase: "+phase,error);}
+  finally{if(tool.Length!=0)calls.ToolsClose.Invoke(tool);if(owner.Length!=0)calls.Close.Invoke(owner);}
+  """);
+  string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST");
+  string? selected=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT");
+  try{
+   Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",
+    Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));
+   Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
+   var built=new Builder(project,"portable").Build();
+   True(!Strings(built,"includedPacks").Contains("Confectory.Agent"));
+   Output(built,"Worker-origin opening View host Review: cancel, human Confirm, cold projection PASS");
+  }finally{
+   Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);
+   Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);
+  }
+ }
+
 }
