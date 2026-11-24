@@ -5,7 +5,7 @@ import {captureMixedCell} from './mixed-declaration.js';
 import {createFunctionPresentation,openFunctionSignatureEditor} from './element-functions.js';
 import {createFeatureAuthoring} from './feature-authoring.js';
 import {createElementAuthorSurface} from './element-author-surface.js';
-export function createFeatureEditors(api){
+export function createFeatureEditors(api,resetDeclarationHeader){
  const {$,$$,esc,inputs}=api,short=id=>id?.split('::').at(-1)||'Root';
  const author=createFeatureAuthoring(api),moduleAuthors=new Map();
  function moduleAuthor({slot,id,mode='properties'}){const scope=api.current.projectId,row=api.current.editorViews?.find(r=>r.view===slot&&r.id===id&&r.mode===mode),key=scope+'|'+slot+'|'+id+'|'+mode+'|'+(row?.authorBinding||'restore');if(!moduleAuthors.has(key))moduleAuthors.set(key,createFeatureAuthoring(createElementAuthorSurface(api,{scope,slot,id,mode})));return moduleAuthors.get(key);}
@@ -61,8 +61,16 @@ export function createFeatureEditors(api){
  }
 
  function show(info,force=false){
-  if(!info||info.kind!=='function')return;const scope=api.current.projectId,key=cacheKey(scope,info.id);let w=api.windows.get('declaration');if(w?.featureScope===scope&&w.featureStamp===JSON.stringify(info)&&!force)return w;
-  w?.featureClose?.();w?.elementClosePopover?.();w?.featureGlyphEvents?.abort();w&&presentation.cleanup(w);w=api.openWindow('declaration',short(info.id),460,510,{refresh:!!w});if(w.featureScope!==scope||w.meta.id!==info.id){w.featureGeneration=(w.featureGeneration||0)+1;w.featureMetaUndo=[];w.featureMetaRedo=[];}w.featureScope=scope;w.meta.id=info.id;w.title=short(info.id);w.el.setAttribute('aria-label',w.title);w.featureStamp=JSON.stringify(info);w.el.classList.add('object-editor','feature-object-editor');
+  if(!info||info.kind!=='function')return;
+  const scope=api.current.projectId,key=cacheKey(scope,info.id),stamp=JSON.stringify(info),old=api.windows.get('declaration');
+  if(old?.featureScope===scope&&old.featureStamp===stamp&&!force)return old;
+  const w=api.openWindow('declaration',short(info.id),460,510,{refresh:!!old});
+  // Opening can recover a detached window with another declaration's header.
+  resetDeclarationHeader(w);
+  delete w.meta.declarationStamp;
+  w.featureClose?.();w.elementClosePopover?.();w.featureGlyphEvents?.abort();presentation.cleanup(w);
+  if(w.featureScope!==scope||w.meta.id!==info.id){w.featureGeneration=(w.featureGeneration||0)+1;w.featureMetaUndo=[];w.featureMetaRedo=[];}
+  w.featureScope=scope;w.meta.id=info.id;w.title=short(info.id);w.el.setAttribute('aria-label',w.title);w.featureStamp=stamp;w.el.classList.add('object-editor','feature-object-editor');
   if(!w.featureHeader){w.featureHeader=w.el.querySelector(':scope>.window-title');const header=document.createElement('div');header.className='object-header window-title has-object-parent';header.innerHTML='<div class="object-icon-control"><span class="obj-icon">◇</span><button class="object-icon-edit" type="button" aria-label="아이콘 편집">편집</button></div><div class="object-title-info"></div>';header.append(w.featureHeader.querySelector('.row'));w.featureHeader.replaceWith(header);api.setupWindowDrag?.(w);}
   $('.object-title-info',w.el).innerHTML='<div class="object-parent-reference"><small>부모</small><button type="button" class="'+(info.parent?'object-parent-open':'object-parent-empty')+'">'+(info.parent?'<span aria-hidden="true">◇</span><strong>'+esc(short(info.parent))+'</strong>':'Root')+'</button><button type="button" class="object-parent-change" aria-label="부모 변경">↔</button></div><div class="object-title-name-line"><h2 class="object-title-name">'+esc(short(info.id))+'</h2><button type="button" class="object-info-button" aria-label="객체 정보"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="4" r="1" fill="currentColor"/><path d="M8 7v5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div>';
   $('.object-icon-control>.obj-icon',w.el).innerHTML=browserIconMarkup({kind:'function',icon:api.ownerInputs.get(ownerPrefix(scope,info.id)+'icon')?.text??info.values?.editorIcon??'◇'},esc);

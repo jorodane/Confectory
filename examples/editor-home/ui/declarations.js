@@ -3,7 +3,7 @@ import {createDeclarationIcons} from './declaration-icons.js';
 import {createFeatureEditors} from './feature-editor.js';
 // Human declaration editing over the consumer's scoped draft operations.
 export function createDeclarationEditors(api){
- const features=createFeatureEditors(api),headerIcons=createDeclarationIcons(api,features);
+ const features=createFeatureEditors(api,w=>headerIcons.reset(w)),headerIcons=createDeclarationIcons(api,features);
  const inputEpochs=new WeakMap();
  const {$,$$,esc,inputs}=api,types=['bool','int','long','float','double','string','object'],returns=['void',...types,...types.map(t=>t+'[]')],argumentsTypes=returns.filter(t=>t!=='void');
  const roleNames={module:'적용 모듈',include:'포함 모듈',require:'필요 기능',default:'기본 구현',provide:'제공 구현',use:'사용 관계',contain:'소속 관계',import:'가져온 기능'};
@@ -16,9 +16,14 @@ export function createDeclarationEditors(api){
  function local(info,row,section,value){const id=key(info,row),record=inputs.get(id)||{};record[section]??={revision:info.revision,hash:info.textHash,value:structuredClone(value)};inputEpochs.set(record,(inputEpochs.get(record)||0)+1);inputs.set(id,record);return record[section];}
  function persist(){api.persist();}
  function show(info=api.current.declaration,row=null,force=false){
-  if(!info)return null;if(info.kind==='function'&&!row){headerIcons.reset(api.windows.get('declaration'));return features.show(info,force);}features.reset(api.windows.get(row?'editor-'+row.view:'declaration'));const scope=api.current.projectId,cacheKey=key(info,row),panelKey=row?'editor-'+row.view:'declaration',old=api.windows.get(panelKey),stamp=JSON.stringify(info);
+  if(!info)return null;if(info.kind==='function'&&!row)return features.show(info,force);const scope=api.current.projectId,cacheKey=key(info,row),panelKey=row?'editor-'+row.view:'declaration',old=api.windows.get(panelKey),stamp=JSON.stringify(info);
   if(old&&!force&&old.meta.declarationStamp===stamp)return old;
-  const w=api.openWindow(panelKey,(info.values?.editorName||info.id.split('::').at(-1))+(info.kind==='module'?' · 인터페이스':' · 선언'),['module','object'].includes(info.kind)?850:640,['module','object'].includes(info.kind)?620:510,{refresh:!!old});w.meta.id=info.id;w.meta.view=row?.view||'';w.meta.mode='declaration';w.meta.declarationStamp=stamp;w.meta.revision=info.revision;const title=(info.values?.editorName||info.id.split('::').at(-1))+(info.kind==='module'?' · 인터페이스':' · 선언');w.title=title;if($('.caption strong',w.el))$('.caption strong',w.el).textContent=title;w.el.setAttribute('aria-label',title);
+  const title=(info.values?.editorName||info.id.split('::').at(-1))+(info.kind==='module'?' · 인터페이스':' · 선언');
+  const wide=['module','object'].includes(info.kind);
+  const w=api.openWindow(panelKey,title,wide?850:640,wide?620:510,{refresh:!!old});
+  features.reset(w);
+  Object.assign(w.meta,{id:info.id,view:row?.view||'',mode:'declaration',declarationStamp:stamp,revision:info.revision});
+  w.title=title;const caption=$('.caption strong',w.el);if(caption)caption.textContent=title;w.el.setAttribute('aria-label',title);
   const cache=inputs.get(cacheKey)||{},common=cache.properties?.value||{},display={displayName:info.values?.editorName||'',icon:info.values?.editorIcon||'',description:info.description||'',parent:info.parent||''};
   w.body.innerHTML=`<div class="window-content" data-declaration-kind="${esc(info.kind)}"><h2 data-declaration-id>${esc(info.id)}</h2><p>${esc(info.kind)} · revision ${esc(info.revision)} · 선언에 직접 설정하는 내용</p><p data-declaration-notice></p>${info.kind==='module'?'<section data-module-interface></section>':info.kind==='object'?'<section data-applied-modules></section>':''}<form data-declaration-properties class="stack"><div class="fields"><label>표시 이름<input data-decl-property="displayName" maxlength="256" placeholder="${esc(info.id.split('::').at(-1))}"></label><label>아이콘 문자<input data-decl-property="icon" maxlength="64"></label></div><label>직접 설명<textarea data-decl-property="description" rows="3" maxlength="16384"></textarea></label><label>부모 선언 ID<input data-decl-property="parent" placeholder="Namespace::Declaration"></label><div class="actions"><button data-operation type="submit" data-properties-apply>내용을 공유 초안에 적용</button><button data-operation type="button" data-unset-description data-supported="${info.descriptionDefined===true}">직접 설명 지우기</button></div><p class="small">표시 이름은 선언 ID를 유지합니다. 부모를 비우면 직접 설정한 상속 관계가 제거됩니다.</p></form>${info.signature?'<section data-signature-editor></section>':''}<section data-relation-editor></section><div class="actions"><button data-operation data-declaration-save>Save · 작업 사본</button><button data-operation data-declaration-review ${row?'hidden':''}>Review</button><button data-operation data-declaration-current>현재 초안 다시 읽기</button>${row?'<button data-operation data-declaration-release>창 해제</button>':'<button data-operation data-declaration-keep>독립 선언창 유지</button>'}</div><p class="small">Apply와 Save 후에도 최종 파일은 유지됩니다. 최종 반영은 별도의 묶음 Review / Confirm을 사용합니다.</p></div>`;
   let header=null;
