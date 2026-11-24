@@ -18,11 +18,11 @@ def call(endpoint, **body):
     return fixture.invoke(endpoint, body)["result"]["result"]
 
 
-def register(page):
+def register(page, endpoint="http://127.0.0.1:9"):
     page.locator("#add-agent").click()
     dialog = page.get_by_role("dialog", name="Agent 추가", exact=True)
     dialog.get_by_role("button", name="OpenAI Responses", exact=True).click()
-    for field, value in (("model", "worker-tooltip-no-inference"), ("endpoint", "http://127.0.0.1:9"),
+    for field, value in (("model", "worker-tooltip-no-inference"), ("endpoint", endpoint),
                          ("credentialReference", "")):
         dialog.locator(f'[data-connection-field="{field}"]').fill(value)
     dialog.locator("[data-agent-register]").click()
