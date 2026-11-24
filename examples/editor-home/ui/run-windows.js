@@ -179,8 +179,10 @@ export function createRunWindows(api){
   $('[data-run-export]',header).disabled=blocked||!api.current.canBuild;
   const scene=w.body.querySelector('.run-scene');if(scene)scene.hidden=!!w.runSurface&&!w.runError;
   $('[data-run-project]',w.body).textContent=api.current.title||'프로젝트 실행';const label=$('[data-run-surface]',w.body);
-  label.textContent=w.runError?'실행 상태를 확인하지 못했어요. 실행을 반복하지 않고 먼저 상태를 다시 확인해 주세요.':!d?'실행 상태를 확인하고 있어요.':d.state==='failed'?'빌드 또는 실행에 실패했어요. 최종 소스와 실행 구성을 확인한 뒤 다시 재생할 수 있어요.':d.state==='building'?'확정된 소스를 빌드하고 있어요. 이 창의 중단 버튼으로 중지할 수 있어요.':d.state==='running'?(w.runSurfaceError?'프로젝트 출력을 확인할 수 없어요. 실행 제어는 계속 사용할 수 있어요.':(w.runSurface?'프로젝트 소프트웨어 출력':'별도 프로세스 실행 중 · 내장 렌더 화면 미지원')):!d.canRun?'이 프로젝트 또는 호스트에서는 실행을 지원하지 않아요.':'별도 프로세스 실행 · 초안 자동 확정 없음';
-  const fact=$('[data-run-frame]',w.body);fact.textContent=c.connected?'프레임 '+c.frame+(paused?' · 일시 정지':''):d?.state==='running'?'프레임 제어 연결을 확인할 수 없어요.':d?.exit!==null&&d?.exit!==undefined?'종료 코드 '+d.exit:'';
+  const buildError=d?.state==='failed'&&d.buildError;
+  const failure=buildError?`빌드에 실패했어요 (${buildError}). 최종 소스를 수정한 뒤 다시 실행해 주세요.`:'빌드 또는 실행에 실패했어요. 최종 소스와 실행 구성을 확인한 뒤 다시 재생할 수 있어요.';
+  label.textContent=w.runError?'실행 상태를 확인하지 못했어요. 실행을 반복하지 않고 먼저 상태를 다시 확인해 주세요.':!d?'실행 상태를 확인하고 있어요.':d.state==='failed'?failure:d.state==='building'?'확정된 소스를 빌드하고 있어요. 이 창의 중단 버튼으로 중지할 수 있어요.':d.state==='running'?(w.runSurfaceError?'프로젝트 출력을 확인할 수 없어요. 실행 제어는 계속 사용할 수 있어요.':(w.runSurface?'프로젝트 소프트웨어 출력':'별도 프로세스 실행 중 · 내장 렌더 화면 미지원')):!d.canRun?'이 프로젝트 또는 호스트에서는 실행을 지원하지 않아요.':'별도 프로세스 실행 · 초안 자동 확정 없음';
+  const fact=$('[data-run-frame]',w.body);fact.textContent=buildError?'':c.connected?'프레임 '+c.frame+(paused?' · 일시 정지':''):d?.state==='running'?'프레임 제어 연결을 확인할 수 없어요.':d?.exit!==null&&d?.exit!==undefined?'종료 코드 '+d.exit:'';
   const retry=$('[data-run-retry]',w.body);retry.hidden=!w.runError;retry.disabled=blocked;retry.onclick=()=>query(w,d?.lease?'read':'open',{},true);w.runDeveloper?.paint();api.persistTitle?.();schedule();
  }
  async function query(w,operation,extra={},explicit=true){const passive=operation==='read'&&!explicit;if(!owns(w)||w.runPending||passive&&w.runReading)return false;if(passive)w.runReading=true;else w.runPending=true;if(['start','stop','close'].includes(operation))clearAudio(w);render(w);let succeeded=false;

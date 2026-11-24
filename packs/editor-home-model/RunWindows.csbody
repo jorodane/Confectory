@@ -11,9 +11,16 @@ lock(owner){
  string Text(string field)=>input[field]?.GetValue<string>()??"";
  var manager=(string[])owner[0];
  string[] Execution()=>calls.Executions.Invoke(manager);
- void Observe(System.Text.Json.Nodes.JsonObject row){if(row["handle"]?.ToString() is not string handle||handle.Length==0)return;var observed=calls.Observe.Invoke(Execution(),handle);row["state"]=observed[1];row["exit"]=int.TryParse(observed[5],out int exit)?System.Text.Json.Nodes.JsonValue.Create(exit):null;row["failed"]=observed[6].Length>0;row["control"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Control.Invoke(Execution(),handle,"observe"));}
+ void Observe(System.Text.Json.Nodes.JsonObject row){
+  if(row["handle"]?.ToString() is not string handle||handle.Length==0)return;
+  var observed=calls.Observe.Invoke(Execution(),handle);
+  row["state"]=observed[1];row["exit"]=int.TryParse(observed[5],out int exit)?System.Text.Json.Nodes.JsonValue.Create(exit):null;
+  row["failed"]=observed[6].Length>0;
+  row["buildError"]=observed[1]=="failed"&&observed.Length>7&&observed[7].Length>0?observed[7]:null;
+  row["control"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Control.Invoke(Execution(),handle,"observe"));
+ }
  System.Text.Json.Nodes.JsonObject Public(System.Text.Json.Nodes.JsonObject row){
-  var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"view","lease","handle","state","target","exit","closed","failed","lastCommand"})result[field]=row[field]?.DeepClone();
+  var result=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"view","lease","handle","state","target","exit","closed","failed","buildError","lastCommand"})result[field]=row[field]?.DeepClone();
   var c=row["control"];var control=new System.Text.Json.Nodes.JsonObject();foreach(string field in new[]{"available","connected","runtime","sequence","ack","frame","pending","mode","outcome","action"})if(c?[field] is not null)control[field]=c[field]!.DeepClone();result["control"]=control;
   result["canRun"]=row["canRun"]?.GetValue<bool>()==true;result["surfaceSupported"]=row["surfaceObserved"]?.GetValue<bool>()==true&&row["state"]?.ToString()=="running"&&row["closed"]?.GetValue<bool>()!=true;result["fpsSupported"]=false;return result;
  }

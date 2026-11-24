@@ -20,8 +20,23 @@ try
  string[] command;
  using(lease)
  {
-  var builder=new Builder(project,args[3]);builder.Registry.Project.Entry=args[2]; // in-memory selection; source unchanged
-  command=builder.Build()["run"]!.Deserialize<string[]>()!;
+  try
+  {
+   var builder=new Builder(project,args[3]);builder.Registry.Project.Entry=args[2]; // in-memory selection; source unchanged
+   command=builder.Build()["run"]!.Deserialize<string[]>()!;
+  }
+  catch(BuildError error)
+  {
+   string code=error.Diagnostic.Code;
+   if(code=="TARGET_FAILURE")
+   {
+    var diagnostic=System.Text.RegularExpressions.Regex.Match(error.Message,@": error (CS[0-9]{4}):");
+    if(diagnostic.Success)code=diagnostic.Groups[1].Value;
+   }
+   // Report only the diagnostic code to the Run view. Details remain on stderr.
+   Console.WriteLine(JsonSerializer.Serialize(new{state="build-failed",code}));Console.Out.Flush();
+   throw;
+  }
  }
  var start=new ProcessStartInfo(command[0]){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(project)!};
  foreach(string arg in command.Skip(1))start.ArgumentList.Add(arg);
