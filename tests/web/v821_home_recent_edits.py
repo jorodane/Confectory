@@ -19,13 +19,15 @@ from editor_logic_workflow import review
 
 
 @contextmanager
-def editor(package, root, label):
+def editor(package, root, label, *, loopback=False):
     env = dict(os.environ, CONFECTORY_HOME_STORAGE=str(root / "profile"),
                CONFECTORY_ENTRY_STORAGE=str(root / "profile"),
                CONFECTORY_MCP_DIRECTORY=str(root / "instances"))
     for setting in ("CONFECTORY_WEB_PROJECT", "CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK",
                     "CONFECTORY_TEST_PUBLIC_CHAT_RELAY"):
         env.pop(setting, None)
+    if loopback:
+        env["CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK"] = "1"
     log = root / (label + ".log")
     with log.open("w") as stream:
         host = subprocess.Popen(["/bin/sh", str(package / "run"), "--logic-code"],

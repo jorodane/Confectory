@@ -10,13 +10,18 @@ bool sendText = operation == "send-text";
 bool attachment = operation is "attachment" or "first-image" or "second-image";
 bool prepare = operation == "prepare-attachment";
 bool cancel = operation == "cancel-attachment";
-bool sendAttachment = operation == "send-attachment";
+bool sendSelection = operation == "send-attachment";
+bool sendPreview = operation == "send-preview-attachment";
+bool sendAttachment = sendSelection || sendPreview;
 bool issue = operation == "issue-invitation";
 // This journal uses the owning message UUID as its attachment UUID.
 if ((!history && !sendText && !attachment && !prepare && !cancel && !sendAttachment && !issue) ||
     (attachment && (!StableId(messageId) || messageId != attachmentId)) ||
     ((sendText || prepare) && (!StableId(messageId) || attachmentId.Length != 0)) ||
-    ((cancel || sendAttachment) && (!StableId(messageId) || !StableId(attachmentId))) ||
+    ((cancel || sendSelection) && (!StableId(messageId) || !StableId(attachmentId))) ||
+    (sendPreview && (!StableId(messageId) || attachmentId.Length != 64 ||
+        !System.Linq.Enumerable.All(attachmentId, character => character is >= '0' and <= '9' or >= 'A' and <= 'F') ||
+        string.IsNullOrWhiteSpace(text) || text.Length > 2048 || text.Contains('\0'))) ||
     ((prepare || cancel) && text.Length != 0) ||
     (issue && (messageId.Length != 0 || attachmentId.Length != 0 || text.Length != 0)) || activation.Length == 0 ||
     AppDomain.CurrentDomain.GetData("Confectory.EditorHome." + session) is not object[] owner)
@@ -36,7 +41,7 @@ lock (owner)
         owner[PendingAttachment] = null!;
         pending = null;
     }
-    if (cancel || sendAttachment)
+    if (cancel || sendSelection)
     {
         if (pending is not { } chosen || chosen.Message != messageId || chosen.Selection != attachmentId) return Unavailable;
         if (cancel)
@@ -78,7 +83,7 @@ lock (owner)
         if (prepare || sendAttachment)
         {
             var boxes = (System.Collections.Generic.Dictionary<string, string>)owner[12];
-            if (!boxes.TryGetValue(context, out box) || (sendAttachment && pending!.Value.Box != box))
+            if (!boxes.TryGetValue(context, out box) || (sendSelection && pending!.Value.Box != box))
                 return Unavailable;
 
             // Yogi commands and the handoff both hold the owning editor lock. The
@@ -93,7 +98,9 @@ lock (owner)
                 owner[PendingAttachment] = (activation, messageId, selection, box, digest);
                 return System.Text.Json.JsonSerializer.Serialize(new { status = "ready", selection });
             }
-            if (pending!.Value.Digest != digest) return Unavailable;
+            // A local draft supplies only the fingerprint of the preview drawn by
+            // this editor. The actual bytes are obtained again under the owner lock.
+            if ((sendPreview ? attachmentId : pending!.Value.Digest) != digest) return Unavailable;
         }
 
         string journal = System.IO.Path.Combine(storage, "project-chat", project + ".json");

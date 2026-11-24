@@ -84,7 +84,9 @@ if(operation=="yogi-sealed-preview"){
  if(selected["activation"]?.ToString()!=Value("activation")||!boxes.TryGetValue(context,out var box))
   throw new InvalidOperationException("The selected sealed YogiBox is unavailable");
  string sealedBox=calls.YogiHandoffSnapshot.Invoke(box,selected["projectId"]!.ToString(),"local-user",selected["path"]!.ToString());
- return System.Text.Json.Nodes.JsonNode.Parse(sealedBox)!["package"]!.ToJsonString();
+ var preview=System.Text.Json.Nodes.JsonNode.Parse(sealedBox)!.AsObject();
+ preview["fingerprint"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(sealedBox)));
+ return preview.ToJsonString();
 }
 // Native chat can select a previously sealed private box without creating or saving one.
 if(operation=="yogi-chat-open"){

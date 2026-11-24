@@ -1585,7 +1585,7 @@ const input=$('#chat-input'),form=$('#chat-form');
  input.addEventListener('compositionstart',()=>{composing=true;});
  input.addEventListener('compositionend',()=>{composing=false;});
  projectChatKeys(input,form,()=>composing);
- form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing)return;const value=input.value;work(()=>prepareHelperMessage(current.helperProfile?.helper,scope,value),'');};controls();syncPublicChat(true);}
+ form.onsubmit=e=>{e.preventDefault();if(composing||e.isComposing||draftYogi?.sending)return;const value=input.value;work(()=>prepareHelperMessage(current.helperProfile?.helper,scope,value),'');};controls();syncPublicChat(true);}
 
 // Present the existing per-request Codex policy without changing its grant or checks.
 function projectChatReview(preview,projectTitle,helperName){
@@ -1669,7 +1669,7 @@ function startDraftYogiDrag(box){
  return !!draftYogiDrag;
 }
 async function attachDraftYogi(drag){
- if(sealedYogiKey(current.yogi)!==drag.key)return;
+ if(draftYogi?.sending||sealedYogiKey(current.yogi)!==drag.key)return;
  clearDraftYogi();
  const owner={...drag,abort:new AbortController()};draftYogi=owner;
  const alive=()=>draftYogi===owner&&draftYogiAlive(owner);
@@ -1680,7 +1680,7 @@ async function attachDraftYogi(drag){
   }
  };
  try{
-  const packagePreview=await read({});
+  const {package:packagePreview,fingerprint,creator}=await read({});
   if(!alive()||sealedYogiKey(packagePreview)!==owner.key)throw Error('sealed_yogi_changed');
   for(const item of packagePreview.items){
    if(item.kind!=='image')continue;
@@ -1711,7 +1711,47 @@ async function attachDraftYogi(drag){
    });
   };
   remove.onclick=()=>{clearDraftYogi();owner.input.focus({preventScroll:true});};
-  chip.append(button,remove);tray.replaceChildren(chip);
+  chip.append(button,remove);
+  if(creator){
+   const send=document.createElement('button');
+   send.type='button';send.className='primary';send.textContent='공용으로 보내기';
+   send.onclick=()=>work(async()=>{
+    if(!alive()||owner.sending)return false;
+    const text=owner.input.value;
+    if(!text.trim()||text.length>2048||text.includes('\0')){
+     toast('공용 메시지는 1자 이상, 2048자 이하로 입력해 주세요.');return false;
+    }
+    if(owner.submission?.text!==text)
+     owner.submission={id:crypto.randomUUID().replaceAll('-',''),fingerprint,text};
+    owner.sending=send.disabled=remove.disabled=true;
+    try{
+     let reply;
+     for(let attempt=0;alive();attempt++){
+      try{reply=await view.transient('sendLocalYogiPreview',owner.submission,owner.abort.signal);break;}
+      catch(error){
+       if(error.message!=='busy'||attempt===3)throw error;
+       await new Promise(resolve=>setTimeout(resolve,35));
+      }
+     }
+     if(!alive())return false;
+     if(reply?.status!=='committed')throw Error('public_yogi_not_committed');
+     clearDraftYogi();
+     if(owner.input.value===text){
+      owner.input.value='';conversations.set(owner.project,'');actualWorkspace.schedule();
+      try{await flushProjectChatDraft();}catch{
+       toast('공용 메시지는 저장됐습니다. 로컬 초안 정리를 확인하지 못했어요.');
+       syncPublicChat(true);return false;
+      }
+     }
+     syncPublicChat(true);
+    }catch{
+     if(alive())toast('공용 전송을 확인하지 못했어요. 본문과 첨부는 유지됩니다.');
+     return false;
+    }finally{owner.sending=send.disabled=remove.disabled=false;}
+   },'공용 메시지와 YogiBox를 저장했습니다.',{flushWorkspace:false});
+   chip.append(send);
+  }
+  tray.replaceChildren(chip);
  }catch{
   if(draftYogi===owner){const show=alive();clearDraftYogi();if(show)toast('봉인된 YogiBox 미리보기를 읽지 못했어요.');}
  }

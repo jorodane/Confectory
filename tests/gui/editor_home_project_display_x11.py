@@ -71,11 +71,12 @@ class InstalledGtk(NativeEditor):
 
 
 @contextmanager
-def gtk(package, root, label):
+def gtk(package, root, label, *, with_listings=True):
     app = InstalledGtk(package, root, label)
     try:
         app.launch(['/bin/sh', str(package / 'run')])
-        app.wait(lambda row: row['screen'] == 'home' and row['model'].get('homeActivity'), 'GTK Home ready')
+        if with_listings:
+            app.wait(lambda row: row['screen'] == 'home' and row['model'].get('homeActivity'), 'GTK Home ready')
         yield app
         app.close()
     finally:
