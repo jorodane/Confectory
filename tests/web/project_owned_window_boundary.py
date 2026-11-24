@@ -121,7 +121,8 @@ def check_project_tools(page):
     expect(tools).to_be_hidden()
 
 
-def change_renderer(page, renderer, *, cancel_first=False):
+def stage_renderer(page, path, renderer, previous, *, add_input=False):
+    before = path.read_bytes()
     page.locator("#project-menu").click()
     page.locator(".context-menu").get_by_role("button", name="팩 관리", exact=True).click()
     packs = page.locator('[data-key="packs"]')
@@ -131,21 +132,36 @@ def change_renderer(page, renderer, *, cancel_first=False):
     source = page.locator("#source")
     expect(source).to_be_visible()
     text = source.input_value()
-    if 'value editorWindow = "element-view-card";' in text:
-        edited = text.replace('value editorWindow = "element-view-card";', f'value editorWindow = "{renderer}";')
+    if add_input:
+        text += "// Preserve this unconfirmed comment beside the menu setting.\n"
+        source.fill(text)
+    property_text = f'value editorWindow = "{previous}";'
+    if previous:
+        edited = text.replace(property_text,
+                              f'value editorWindow = "{renderer}";' if renderer else "", 1)
     else:
-        edited = text.rstrip()[:-1] + f'value editorWindow = "{renderer}"; }}\n'
-    source.fill(edited)
+        edited = text.replace(" }", f' value editorWindow = "{renderer}"; }}', 1)
+    panel = page.locator("[data-project-window-setting]")
+    panel.get_by_role("button", name="메뉴 표시 설정", exact=True).click()
+    choices = panel.get_by_label("메뉴에 표시", exact=True)
+    expect(choices).to_have_value(previous)
+    assert choices.locator("option").all_text_contents() == ["표시 안 함", "읽기 전용 카드", "읽기 전용 표"]
+    choices.select_option(renderer)
+    panel.get_by_role("button", name="초안에 적용", exact=True).click()
+    expect(source).to_have_value(edited)
+    assert path.read_bytes() == before
+    return edited
+
+
+def open_review(page):
     page.locator("#review").click()
     review = page.locator('[data-key="review"]')
     expect(review.locator("#confirm")).to_be_visible()
-    if cancel_first:
-        review.locator("[data-reject]").click()
-        expect(review).to_have_count(0)
-        project_menu(page)
-        page.keyboard.press("Escape")
-        page.locator("#review").click()
-        expect(review.locator("#confirm")).to_be_visible()
+    return review
+
+
+def confirm_review(page):
+    review = open_review(page)
     advanced = review.locator("[data-review-advanced]")
     if advanced.is_visible() and review.locator("#confirm").is_disabled():
         advanced.click()
@@ -155,6 +171,21 @@ def change_renderer(page, renderer, *, cancel_first=False):
     review.locator("#confirm").click()
     expect(review).to_have_count(0)
     expect(page.locator("#status")).to_contain_text("최종 소스에 반영")
+
+
+def change_renderer(page, path, renderer, previous, *, cancel_first=False):
+    edited = stage_renderer(page, path, renderer, previous, add_input=cancel_first)
+    if cancel_first:
+        before = path.read_bytes()
+        review = open_review(page)
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        expect(page.locator("#source")).to_have_value(edited)
+        assert path.read_bytes() == before
+        project_menu(page)
+        page.keyboard.press("Escape")
+    confirm_review(page)
+    assert path.read_text() == edited
     return edited
 
 
@@ -223,10 +254,10 @@ def workflow(package, root):
                     assert not any(row["id"] == WINDOW for row in current["editorViews"])
                     check_project_tools(page)
                     if registered:
-                        change_renderer(page, "element-view-card", cancel_first=True)
-                        open_window(page, "card")
                         path = Path(project["path"]).with_name("StockDesk.celem")
-                        expect_bytes = change_renderer(page, "element-view-table").encode()
+                        change_renderer(page, path, "element-view-card", "", cancel_first=True)
+                        open_window(page, "card")
+                        expect_bytes = change_renderer(page, path, "element-view-table", "element-view-card").encode()
                         assert path.read_bytes() == expect_bytes
                         originals[path] = expect_bytes
                         open_window(page, "table")
@@ -248,8 +279,61 @@ def workflow(package, root):
     print("PASS packaged Chromium confirmed card and table only in A, canceled review, Home/B scope, built-in editors and real Run")
 
 
+def settings_workflow(package, root, browser):
+    (alpha, bravo), originals, proof = seed(package, root)
+    path = Path(alpha["path"]).with_name("StockDesk.celem")
+    with editor(package, root, "window-settings") as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        card = change_renderer(page, path, "element-view-card", "", cancel_first=True)
+        open_window(page, "card")
+        table = stage_renderer(page, path, "element-view-table", "element-view-card")
+        review = open_review(page)
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        assert path.read_text() == card
+        expect(page.locator("#source")).to_have_value(table)
+        open_window(page, "card")
+        confirm_review(page)
+        assert path.read_text() == table
+        open_window(page, "table")
+        assert not proof.exists() and not errors, errors
+        print("PASS Chromium picker, draft preservation, canceled Review and confirmed card and table", flush=True)
+        page.close()
+
+    with editor(package, root, "window-settings-restart") as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        open_window(page, "table", close=False)
+        check_run(page, alpha, registered=True)
+        assert proof.read_bytes() == b"Alpha\n"
+        page.get_by_role("dialog", name=WINDOW_TITLE, exact=True).get_by_role("button", name="닫기", exact=True).click()
+        print("PASS cold editor reopen: confirmed table and real Alpha Run with the view still open", flush=True)
+        hidden = stage_renderer(page, path, "", "element-view-table")
+        open_window(page, "table")
+        confirm_review(page)
+        project_menu(page)
+        page.keyboard.press("Escape")
+        assert path.read_text() == hidden
+        originals[path] = hidden.encode()
+        home(page)
+        open_project(page, bravo["title"])
+        project_menu(page)
+        assert not errors, errors
+        page.close()
+
+    assert all(path.read_bytes() == value for path, value in originals.items())
+    print("PASS Chromium hide takes effect only after Confirm, Bravo remains isolated and unrelated sources are unchanged")
+
+
 if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        workflow(package, Path(directory))
+        if "--settings" in sys.argv[2:]:
+            with sync_playwright() as playwright:
+                with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
+                                                ignore_default_args=["--disable-dev-shm-usage"]) as browser:
+                    settings_workflow(package, Path(directory), browser)
+        else:
+            workflow(package, Path(directory))

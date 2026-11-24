@@ -84,7 +84,7 @@ System.Text.Json.Nodes.JsonNode ProjectWindowSetting(string context){
  var workspace=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(handle))!;
  var unit=workspace["unit"];
  string id=Value("id");
- if(unit?["kind"]?.ToString()!="view"||unit["id"]?.ToString()!=id||workspace["review"] is not null||
+ if(unit?["kind"]?.ToString()!="view"||unit["id"]?.ToString()!=id||
     workspace["selected"]?.ToString()!=id||unit["revision"]?.GetValue<long>()!=args["expectedRevision"]?.GetValue<long>())
   throw new InvalidOperationException("The View selection or source revision changed. Your input was kept.");
  var owner=calls.Context.Invoke(manager,context);

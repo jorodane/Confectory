@@ -24,14 +24,33 @@ if(endpoint=="returnToGtk"){
  Command("save-chat-drafts",new());
  return returning.Item2(returnRequest)?"{\"accepted\":true}":"{\"accepted\":false}";
 }
+if(endpoint is "readProjectWindowSetting" or "setProjectWindowSetting"){
+ bool edit=endpoint=="setProjectWindowSetting";
+ if(args.Count!=(edit?4:3)||args["id"] is null||args["text"] is null||args["revision"] is null||
+    edit&&args["renderer"] is null)
+  throw new UnauthorizedAccessException("project_window_setting_fields");
+ var active=before["selected"]??throw new InvalidOperationException("Project scope unavailable");
+ var windowRequest=new System.Text.Json.Nodes.JsonObject{["context"]=active["context"]!.DeepClone(),
+  ["activation"]=active["activation"]!.DeepClone(),["id"]=args["id"]!.GetValue<string>(),
+  ["text"]=args["text"]!.GetValue<string>(),["expectedRevision"]=args["revision"]!.GetValue<long>()};
+ if(edit){
+  windowRequest["action"]="project-window-setting";
+  windowRequest["renderer"]=args["renderer"]!.GetValue<string>();
+  Command("workspace",windowRequest);
+  return "{\"accepted\":true}";
+ }
+ string result=calls.Command.Invoke(context,"project-window-setting-read",windowRequest.ToJsonString());
+ if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+ return result;
+}
 if(endpoint is "listProjectWindows" or "readProjectWindow"){
  bool list=endpoint=="listProjectWindows";
  if(list?args.Count!=0:args.Count!=1||args["id"] is null)
   throw new UnauthorizedAccessException("project_window_fields");
  var active=before["selected"];
- var request=new System.Text.Json.Nodes.JsonObject{["context"]=active?["context"]?.DeepClone(),["activation"]=active?["activation"]?.DeepClone()};
- if(!list)request["id"]=args["id"]!.DeepClone();
- string result=calls.Command.Invoke(context,"project-window-read",request.ToJsonString());
+ var windowRequest=new System.Text.Json.Nodes.JsonObject{["context"]=active?["context"]?.DeepClone(),["activation"]=active?["activation"]?.DeepClone()};
+ if(!list)windowRequest["id"]=args["id"]!.DeepClone();
+ string result=calls.Command.Invoke(context,"project-window-read",windowRequest.ToJsonString());
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
  return result;
 }
