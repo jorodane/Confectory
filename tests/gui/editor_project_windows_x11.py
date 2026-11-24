@@ -288,7 +288,17 @@ def workflow_window_revocation(package, root, reader_package):
             row = reload_window(reader, False)
             if row["model"]["shell"]["menu"] == "project":
                 reader.click(33)
-            assert "487" not in menu(reader, False)["fields"]
+                reader.wait(lambda row: row["model"]["shell"]["menu"] != "project",
+                            "Close the reader's Project menu before reopening")
+            reader.click(33)
+            reopened = reader.wait(
+                lambda row: row["model"]["shell"]["menu"] == "project"
+                and row["operation"] == "native-project-windows-list" and not row["job"]
+                and "Close menu" in row["texts"],
+                "Reopen the reader's Project menu after confirmed Hide",
+            )
+            assert 480 not in reopened["hits"][::5] and WINDOW_TITLE not in reopened["texts"]
+            assert "487" not in reopened["fields"]
             assert not proof.exists()
             print("PASS confirmed Hide retired the held panel on Reload source and the entry could not reopen", flush=True)
     originals[source] = hidden.encode()
