@@ -39,6 +39,18 @@ The remaining storage choice is who owns the selection.
 
 The Linux EditorHome boundary test registers the in-tree pack as a local dependency, verifies the default editor and separate properties window, and checks that the existing `viewMode` rejects a card mode and pack function identifier. It repeats the check after restart and opens the same qualified ID in a second project with independent data. The stand-alone ElementView test covers card and table lifetime. [EditorHome boundary test](../tests/web/v821_editor_view_registration_boundary_ui.py) · [ElementView test](../tests/Confectory.Tests/ElementViewTests.cs)
 
+## Project-owned windows in the project menu
+
+A project manifest can register a qualified `view` ID. An entry function can reach it with `use view`, and the build records the declaration and its metadata in the public linkage catalog. EditorHome's project-tools menu adds shortcuts for objects. Its independent editor windows accept the built-in `source`, `properties` and `declaration` modes. ElementView's stand-alone runner supplies its own workspace, selected element, render calls and input loop. [Linkage catalog](../src/Confectory.Core/Generation.cs) · [Project-tools menu](../examples/editor-home/ui/v508-runtime.js) · [EditorHome view modes](../packs/editor-home-model/Command.csbody) · [ElementView sample](../examples/element-view/main.csbody)
+
+The missing contract is the mapping from a confirmed project-owned View ID, explicitly offered in that project's menu, to a renderer the host already trusts. Registration and build reachability establish declaration identity. Context action registration has its own fixed SchemaEditing route. [Context action declaration reader](../targets/element-authoring/EditorMenuDeclarations.cs)
+
+The installed Linux regression gives both projects the same namespace and View source bytes. Project A alone registers the View and links it from its entry function. It checks both project menus and Home, opens the ordinary concept and function editors, runs each active project through ▶, and compares the actual build catalogues and source bytes. It exercises the current boundary without introducing a launcher.
+
+```sh
+python tests/web/project_owned_window_boundary.py Builds/Linux-x64
+```
+
 ## Reproduce the affected gates
 
 Use the ordinary .NET 10 SDK, wasm-tools and existing native prerequisites. `CONFECTORY_DOTNET` names the installed SDK executable; private XDG/entry paths are useful when the host home is read-only. This environment's four-CPU quota required ordinary browser tool parallelism to be bounded with `DOTNET_PROCESSOR_COUNT=4 EMCC_CORES=4`.
