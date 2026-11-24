@@ -46,8 +46,9 @@ def await_window():
     raise AssertionError('Game surface not mapped')
 
 def press(window,key):
+    stamp = int(time.monotonic() * 1000) & 0xffffffff
     for kind in (2,3):
-        event=Event(kind,0,1,display,window,root,0,100,0,0,0,0,0,keycode(display,ord(key)),1)
+        event=Event(kind,0,1,display,window,root,0,stamp,0,0,0,0,0,keycode(display,ord(key)),1)
         buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buffer)
     flush(display)
 
@@ -82,18 +83,31 @@ for repetition in range(2):
         window=await_window();time.sleep(.05)
         # A rejected craft must not acquire an item or display a projectile.
         press(window,'c');time.sleep(.03);assert not colored(window,0xF4D12D)
-        press(window,'h');time.sleep(.03);press(window,'c');time.sleep(.03);press(window,'t')
+        press(window,'h');time.sleep(.03);press(window,'h')  # Second harvest occurs during the declared cooldown.
+        time.sleep(.03);press(window,'c');time.sleep(.03);press(window,'t')
         intermediate=wait_color(window,0xF4D12D,lambda p:110<sum(x for x,y in p)/len(p)<285 and sum(y for x,y in p)/len(p)<180,.65)
         landed=wait_color(window,0xF4D12D,lambda p:315<=sum(x for x,y in p)/len(p)<=325 and 185<=sum(y for x,y in p)/len(p)<=195,.9)
         assert not colored(window,0xEB7130),'Effect appeared before fuse interval'
         effect=wait_color(window,0xEB7130,lambda p:len(p)>10,.6)
-        time.sleep(.7);assert not colored(window,0xEB7130),'Effect lifetime did not end'
+        deadline=time.monotonic()+2
+        while colored(window,0xEB7130) and time.monotonic()<deadline:
+            time.sleep(.01)
+        assert not colored(window,0xEB7130),'Effect lifetime did not end'
         close(window);out,err=process.communicate(timeout=10);assert process.returncode==0,err+out
         traces=[json.loads(line) for line in out.splitlines() if line.startswith('{')]
         events=[t['event'] for t in traces]
         for event in ('craft-rejected','harvest-applied','craft-applied','throw-applied','phase-landed','phase-burst','phase-spent','closed'):assert event in events,event
+        feedback = {
+            ('craft-rejected', 'Missing: Powder 2', False),
+            ('harvest-rejected', 'Plant is growing. Wait until ready.', False),
+            ('harvest-applied', 'Harvested Powder.', True),
+            ('craft-applied', 'Crafted Bomb.', True),
+            ('throw-applied', 'Item used.', True),
+        }
+        observed = {(row['event'], row.get('feedback'), row.get('feedbackSuccess')) for row in traces}
+        assert feedback <= observed, feedback - observed
         assert 'game owner cleanup complete' in out
-        print(f'PASS actual X11 game repetition {repetition+1}: motion pixels, landing/fuse/effect, cleanup')
+        print(f'PASS actual X11 game repetition {repetition+1}: action feedback, motion pixels, landing/fuse/effect, cleanup')
     finally:
         if process.poll() is None:process.kill();process.communicate(timeout=5)
 process=subprocess.Popen(report['run'],env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
