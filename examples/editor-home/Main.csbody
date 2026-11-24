@@ -1405,6 +1405,36 @@ void Render(){homeTiles.Clear();
  void Register(int id,int[] b,bool enabled,int radius=0){int[] lb=layerBounds[layer];layerControls[layer].Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["bounds"]=System.Text.Json.JsonSerializer.SerializeToNode(new[]{b[0]-lb[0],b[1]-lb[1],b[2],b[3]}),["enabled"]=enabled,["radius"]=radius});}
  void TextRun(int[] box,int[] origin,string text,string role){var regions=Visible(box);for(int n=0;n<regions.Length;n+=4){clips.AddRange(regions[n..(n+4)]);origins.AddRange(origin);texts.Add(text);emittedRoles[role]=(emittedRoles.TryGetValue(role,out int count)?count:0)+1;}}
  void Label(int[] box,string text,string role="other"){if(Folded(layer))return;box=Position(box);if(box[2]<=0||box[3]<=0||text.Length==0)return;var m=J(calls.MeasureText.Invoke(surfaces,0,text));int y=box[1]+m["insetY"]!.GetValue<int>();int lineHeight=m["lineHeight"]!.GetValue<int>();foreach(var line in m["lines"]!.AsArray()){if(y>=box[1]+box[3])break;TextRun(new[]{box[0],Math.Max(box[1],y),box[2],Math.Min(lineHeight,box[1]+box[3]-y)},new[]{box[0]+m["insetX"]!.GetValue<int>(),y},line!["text"]!.ToString(),role);y+=lineHeight;}}
+ string FitHomeText(int width,string text,string suffix="")
+ {
+  if(!OperatingSystem.IsLinux())return text+suffix;
+  string line=text.Split('\n',2)[0].TrimEnd('\r');
+  bool Fits(string value)
+  {
+   var metrics=J(calls.MeasureText.Invoke(surfaces,0,value));
+   var positions=metrics["lines"]![0]!["positions"]!.AsArray();
+   int min=0,max=0;
+   foreach(var position in positions)
+   {
+    int x=position!.GetValue<int>();
+    if(x<0)continue;
+    min=Math.Min(min,x);max=Math.Max(max,x);
+   }
+   return max-min+metrics["insetX"]!.GetValue<int>()+2<=width;
+  }
+  if(line.Length==text.Length&&Fits(line+suffix))return line+suffix;
+  string end="…"+suffix;
+  if(!Fits(end))return Fits("…")?"…":"";
+  int[] breaks=System.Globalization.StringInfo.ParseCombiningCharacters(line);
+  int low=0,high=breaks.Length;
+  while(low<high)
+  {
+   int mid=(low+high+1)/2;
+   string prefix=line[..(mid==breaks.Length?line.Length:breaks[mid])].TrimEnd();
+   if(Fits(prefix+end))low=mid;else high=mid-1;
+  }
+  return line[..(low==breaks.Length?line.Length:breaks[low])].TrimEnd()+end;
+ }
  void WrappedLabel(int[] box,string text,string role="other"){if(box[2]<24||box[3]<16)return;var metrics=J(calls.MeasureText.Invoke(surfaces,0,text));var output=new System.Collections.Generic.List<string>();int available=Math.Max(1,box[2]-2*metrics["insetX"]!.GetValue<int>());foreach(var line in metrics["lines"]!.AsArray()){string value=line!["text"]!.ToString();int[] positions=System.Text.Json.JsonSerializer.Deserialize<int[]>(line["positions"]!.ToJsonString())!;int start=0;if(value.Length==0)output.Add("");while(start<value.Length){int end=start+1,lastSpace=-1;while(end<=value.Length&&(positions[end]<0||positions[end]-positions[start]<=available)){if(char.IsWhiteSpace(value[end-1]))lastSpace=end;end++;}end=Math.Min(value.Length,end-1);if(end<=start)end=start+(char.IsHighSurrogate(value[start])&&start+1<value.Length?2:1);else if(end<value.Length&&lastSpace>start)end=lastSpace;output.Add(value[start..end].TrimEnd());start=end;while(start<value.Length&&char.IsWhiteSpace(value[start]))start++;}}Label(box,string.Join("\n",output),role);}
  void ProjectIcon(int[] bounds,string icon){
   Box(bounds,0x213644);
@@ -1422,7 +1452,7 @@ void Render(){homeTiles.Clear();
   if(intro>.9){Button(6,new[]{Math.Max(12,w/2-150),h/2+22,Math.Min(300,w-24),42},"Agent connection");Button(1,new[]{Math.Max(12,w/2-150),h/2+74,Math.Min(300,w-24),42},"Later");}
  }else{
   Box(new[]{0,0,side,h},0x1D303E);Label(new[]{8,8,Math.Max(1,side-16),44},sidebar?"Confectory":"C");if(!DetailsScreen()){Button(7,new[]{8,58,Math.Max(1,side-16),36},sidebar?"Collapse":"Expand");
-  if(sidebar){Label(new[]{8,114,side-16,32},screen=="project"?"Participants":"AI management");Button(6,new[]{8,150,side-16,42},"Agent  "+(screen=="project"&&model["aiBindings"]?[Context()] is not null?(model["ai"]?["state"]?.ToString()??"configured"):"unbound"));if(screen=="project"){Box(new[]{8,202,side-16,112},0x263C4B);Button(8,new[]{16,210,side-32,36},"Helper  "+(model["helperContext"] is null?"0":"1"));WrappedLabel(new[]{12,250,side-24,58},model["helperContext"] is null?"Choose a Helper for this project":HelperDisplayName(model["helperContext"]!["helper"]!.ToString())+"\n"+(model["ai"]?["state"]?.ToString()??"local draft"),"helper-participant");Label(new[]{8,320,side-16,26},"Player  "+model["shell"]!["players"]);if(area<640){Button(17,new[]{8,356,side-16,32},"Augment");Button(317,new[]{8,396,side-16,32},"Object browser");}}else Button(8,new[]{8,210,side-16,42},"Helper  0");if(h>=620)Label(new[]{8,h-90,side-16,70},"Local workspace\nAI is optional");}
+  if(sidebar){Label(new[]{8,114,side-16,32},screen=="project"?"Participants":screen=="home"?FitHomeText(side-16,"AI management"):"AI management");Button(6,new[]{8,150,side-16,42},screen=="home"?FitHomeText(side-16,"Agent  unbound"):"Agent  "+(screen=="project"&&model["aiBindings"]?[Context()] is not null?(model["ai"]?["state"]?.ToString()??"configured"):"unbound"));if(screen=="project"){Box(new[]{8,202,side-16,112},0x263C4B);Button(8,new[]{16,210,side-32,36},"Helper  "+(model["helperContext"] is null?"0":"1"));WrappedLabel(new[]{12,250,side-24,58},model["helperContext"] is null?"Choose a Helper for this project":HelperDisplayName(model["helperContext"]!["helper"]!.ToString())+"\n"+(model["ai"]?["state"]?.ToString()??"local draft"),"helper-participant");Label(new[]{8,320,side-16,26},"Player  "+model["shell"]!["players"]);if(area<640){Button(17,new[]{8,356,side-16,32},"Augment");if(ProjectMenu()!="project")Button(317,new[]{8,396,side-16,32},"Object browser");}}else Button(8,new[]{8,210,side-16,42},"Helper  0");if(h>=620)Label(new[]{8,h-90,side-16,70},screen=="home"?FitHomeText(side-16,"Local workspace")+"\n"+FitHomeText(side-16,"AI is optional"):"Local workspace\nAI is optional");}
   }else Label(new[]{8,64,Math.Max(1,side-16),180},"Local display details\nProject context retained\nNo AI request");
   if(!DetailsScreen()&&screen!="project"&&model["backgroundProjects"] is System.Text.Json.Nodes.JsonArray hiddenProjects&&hiddenProjects.Count>0)Button(19,new[]{8,Math.Max(270,h-140),Math.Max(1,side-16),36},sidebar?"Hidden projects ("+hiddenProjects.Count+")":"("+hiddenProjects.Count+")");
   bool showLanLayIcon=screen=="lan-chat"&&area>=286&&LanSealedIconAvailable();
@@ -1592,9 +1622,10 @@ else if(screen=="fields"){
     if(OperatingSystem.IsLinux())homeTiles.Add((id,500+index,b));
     if(OperatingSystem.IsLinux())ProjectIcon(new[]{b[0]+8,b[1]+10,30,30},card["icon"]?.ToString()??"");
     else Label(new[]{b[0]+8,b[1]+6,30,38},"P");
-    Button(500+index,new[]{b[0]+42,b[1]+6,Math.Max(1,b[2]-50),38},card["title"]+" | Info");
-    Label(Row(44,24),card["description"]!.ToString());
-    Label(Row(69,22),HomeEditLabel(card));
+    int titleWidth=Math.Max(1,b[2]-50);
+    Button(500+index,new[]{b[0]+42,b[1]+6,titleWidth,38},FitHomeText(titleWidth,card["title"]!.ToString()," | Info"));
+    Label(Row(44,24),FitHomeText(width,card["description"]!.ToString()));
+    Label(Row(69,22),FitHomeText(width,HomeEditLabel(card)));
     var actions=calls.Stack.Invoke(Row(stacked?160:128,stacked?58:26),stacked?1:0,6,new[]{0,0});
     if(homeTileMenu==id){
      var menu=calls.Stack.Invoke(Row(96,stacked?58:26),stacked?1:0,6,new[]{0,stacked?0:76});
@@ -1763,7 +1794,10 @@ else if(screen=="fields"){
     Button(42,new[]{left+8,58+height-44,Math.Min(140,Math.Max(1,width-16)),36},"Close menu");layer=1;}
   }
   if(navPanel.Length>0){layer=3;void Panel(int[] p){var r=calls.RoundedBox.Invoke(p[..4],22,0x2A4253);Paint(r);}Panel(navPanel);int x=navPanel[0]+8,y=navPanel[1]+8,width=navPanel[2]-16;Button(45,new[]{x,y,width,40},"Workspace",true,10);Button(46,new[]{x,y+50,width,40},"Project chat",true,10);Button(47,new[]{x,y+100,width,40},"Logs",true,10);Button(48,new[]{x,y+150,width,40},"Project >",true,10);if(subPanel.Length>0){layer=4;Panel(subPanel);x=subPanel[0]+8;y=subPanel[1]+8;width=subPanel[2]-16;Button(50,new[]{x,y,width,36},"Information",true,10);Button(51,new[]{x,y+42,width,36},"Settings",true,10);Button(49,new[]{x,y+84,width,36},"Back",true,10);}layer=1;}
-  if(laySelection is null)Label(new[]{left,h-34,area,32},screen=="fields"?"Read-only comparison. Source/chat/cell inputs remain in their original views.":job is not null?"Working...":message.Length>0?message:model["status"]!.ToString());
+  if(laySelection is null){
+   string status=screen=="fields"?"Read-only comparison. Source/chat/cell inputs remain in their original views.":job is not null?"Working...":message.Length>0?message:model["status"]!.ToString();
+   Label(new[]{left,h-34,area,32},screen=="home"?FitHomeText(area,status):status);
+  }
  }
  if(screen=="project"&&model["closeRequest"] is null&&model["workspace"]?["review"] is System.Text.Json.Nodes.JsonNode reviewed){layer=5;Box(new[]{0,0,w,h},0x14212B);bool workerReview=model["selectedTaskContext"]?.ToString()==Context()&&model["ai"]?["workers"]?[model["selectedTask"]?.ToString()??""]?["status"]?.ToString()=="awaiting-verification";int x=24,width=Math.Max(1,w-48),half=Math.Max(1,(width-8)/2),height=Math.Max(1,h-(workerReview?264:220));Label(new[]{x,16,width,36},"Review sources - "+reviewed["status"]!.ToString());var reviewUnits=reviewed["units"]!.AsArray();reviewIndex=Math.Clamp(reviewIndex,0,reviewUnits.Count-1);var reviewUnit=reviewUnits[reviewIndex]!;Label(new[]{x,52,Math.Max(1,width-150),48},reviewUnit["path"]!.ToString()+" | "+reviewUnit["id"]!.ToString()+" | target "+reviewed["target"]!.ToString());Button(205,new[]{x+width-146,52,146,36},"Source "+(reviewIndex+1)+" / "+reviewUnits.Count,reviewUnits.Count>1);Label(new[]{x,102,half,28},"Current final file");Label(new[]{x+half+8,102,half,28},"Reviewed local draft");Field(67,new[]{x,134,half,height},"Current final source");Field(68,new[]{x+half+8,134,half,height},"Reviewed draft");Button(65,new[]{x,h-76,164,36},"Confirm reviewed",reviewed["status"]!.ToString()=="ready"&&canRun);Button(66,new[]{x+172,h-76,140,36},"Cancel review");if(workerReview){Field(208,new[]{x,h-120,width,32},"Required: verified task outcome and remaining test/runtime limits");Button(209,new[]{x+320,h-76,Math.Max(1,width-320),36},"Accept source + task outcome",reviewed["status"]!.ToString()=="ready"&&canRun);}Label(new[]{x,h-34,width,30},job is not null?"Validating reviewed candidate...":message.Length>0?message:reviewed["status"]!.ToString()=="conflict"?"Final source changed externally; no overwrite. Cancel to retain draft.":model["status"]!.ToString());layer=1;}
  if(screen=="project"&&model["closeRequest"] is not null){layer=5;Box(new[]{0,0,w,h},0x14212B);Label(new[]{24,40,Math.Max(1,w-48),110},"Work is active in "+model["closeRequest"]!["title"]!.ToString()+".\nClose this project and safely cancel its work?\nDrafts and project files are retained.");Button(65,new[]{24,170,Math.Min(220,Math.Max(1,w/2-32)),40},"Close project");Button(66,new[]{Math.Max(24,w/2),170,Math.Min(220,Math.Max(1,w/2-24)),40},"Keep working");layer=1;}

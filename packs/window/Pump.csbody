@@ -42,6 +42,7 @@ try
    if(kind==2||kind==3)
    {
     int level=(I(80)&1)!=0?1:0;int key=(int)XLookupKeysym(buffer,level);int modifiers=((I(80)&4)!=0?2:0)|((I(80)&1)!=0?4:0)|((I(80)&8)!=0?8:0);
+    if(key==0xFE20)key=0xFF09; // X11 reports Shift+Tab as ISO_Left_Tab.
     int TextCode(int symbol)=>symbol>=32&&symbol<=126||symbol>=160&&symbol<=255?symbol:(symbol&unchecked((int)0xFF000000))==0x01000000?symbol&0x00FFFFFF:0;
     if(kind==3&&XPending(d)>0)
     {
