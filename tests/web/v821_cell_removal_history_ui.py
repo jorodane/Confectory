@@ -20,7 +20,7 @@ mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
                 "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly",
                 "compound", "compound-readonly", "compound-views", "compound-deep-guard", "compound-child-draft",
-                "compound-confirm-interruption"}
+                "compound-confirm-interruption", "compound-independent-draft"}
 case = mode.startswith("case")
 child_case = mode.startswith("child")
 compound_case = mode.startswith("compound")
@@ -28,7 +28,7 @@ interruption = sys.argv[4] if mode == "compound-confirm-interruption" else None
 assert interruption in {None, "before", "after", "after-restore", "unverified"}
 frame_path = "other" if mode == "child-first" else "body"
 sibling_path = "body" if frame_path == "other" else "other"
-positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound", "compound-views", "compound-confirm-interruption"}
+positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound", "compound-views", "compound-confirm-interruption", "compound-independent-draft"}
 helper = Path(__file__).with_name("v821_function_document_ui.py")
 functions = [node for node in ast.parse(helper.read_text()).body if isinstance(node, ast.FunctionDef)]
 exec(compile(ast.Module(body=functions, type_ignores=[]), str(helper), "exec"), globals())
@@ -321,6 +321,53 @@ def confirm():
     f.idle()
 
 
+def compound_independent_draft_roundtrip(remove, checkpoint, held_text):
+    draft_id = f.n + "Slime"
+
+    def independent_draft():
+        rows = json.loads(checkpoint.read_bytes())["changes"]
+        return next(row for row in rows if row["id"] == draft_id)
+
+    held = independent_draft()
+    assert held["draft"] == held_text
+    click_remove(remove)
+    expect_cell(False)
+    save()
+    confirm()
+    committed = graph.read_bytes()
+    assert json.loads(committed) == removed
+    assert independent_draft() == held
+    real_files_unchanged()
+
+    restart(1)
+    expect_cell(False)
+    assert independent_draft() == held
+    undo_or_redo("undo", definition)
+    select_frame("other")
+    assert order() == ["$entry", "inner", "tail"]
+    panel().locator(".bp-breadcrumbs button").first.click()
+    f.idle()
+    expect_cell(True)
+    panel().locator("[data-bp-save]").click()
+    f.idle()
+    assert independent_draft() == held and graph.read_bytes() == committed
+
+    restart(2)
+    expect_cell(True)
+    assert_compound_sources(True)
+    assert independent_draft() == held
+    undo_or_redo("redo", removed)
+    panel().locator("[data-bp-save]").click()
+    f.idle()
+    restart(3)
+    expect_cell(False)
+    assert_compound_sources(False)
+    assert independent_draft() == held and graph.read_bytes() == committed
+    real_files_unchanged()
+    assert not f.errors and not f.external, (f.errors, f.external)
+    f.checked("Cold Undo restores both shallow children in one step and cold Redo removes only that group; independent saved draft is unchanged")
+
+
 def compound_confirm_interruption(remove, checkpoint):
     click_remove(remove)
     expect_cell(False)
@@ -606,12 +653,12 @@ try:
     f.invoke("saveDraft", {})
     checkpoint = next(f.project.glob(".confectory/edit-workspaces/*/draft.json"))
     baseline_checkpoint = checkpoint.read_bytes()
-    if interruption and interruption != "after-restore":
+    if (interruption and interruption != "after-restore") or mode == "compound-independent-draft":
         # An unrelated saved draft must survive publication and cold load.
         draft_id = f.n + "Slime"
         f.invoke("select", {"id": draft_id})
         draft = f.state()["draft"]
-        held_text = f'object {draft_id} extends {f.n}Monster {{ description "Independent interrupted Confirm draft"; }}'
+        held_text = f'object {draft_id} extends {f.n}Monster {{ description "Independent Confirm draft"; }}'
         f.invoke("editDraft", {"id": draft_id, "revision": draft["revision"], "text": held_text})
         f.invoke("saveDraft", {})
     with sync_playwright() as playwright:
@@ -633,6 +680,8 @@ try:
             expect(doc().locator("[data-document-remove=choose],[data-document-remove=after]")).to_have_count(0)
         if mode == "compound-child-draft":
             compound_child_draft_roundtrip(checkpoint)
+        elif mode == "compound-independent-draft":
+            compound_independent_draft_roundtrip(remove, checkpoint, held_text)
         elif mode not in positive_modes:
             expect(remove).to_have_count(0)
             expect(doc().locator("[data-document-remove-blocked]")).to_have_count(0)
