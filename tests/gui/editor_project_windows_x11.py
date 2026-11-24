@@ -295,10 +295,108 @@ def workflow_window_revocation(package, root, reader_package):
     assert all(path.read_bytes() == value for path, value in originals.items())
 
 
+def workflow_opening_view(report, root):
+    from editor_local_multilay_x11 import LocalEditor, repo
+
+    app = LocalEditor(root)
+    (alpha, bravo), originals, proof = seed(report, root, checkout=repo)
+    view = Path(alpha["path"]).with_name("StockDesk.celem")
+    initial = view.read_text().replace(" }", ' value editorWindow = "element-view-card"; }', 1)
+    view.write_text(initial)
+    invalid = Path(bravo["path"])
+    invalid.write_text(invalid.read_text().rstrip()[:-1] + 'element Invalid view "Invalid.celem";\n}\n')
+    invalid_view = invalid.with_name("Invalid.celem")
+    invalid_view.write_text('view Recent.Alpha::Invalid { use object Recent.Alpha::Missing; '
+                            'value editorName = "Invalid"; value editorMain = "element-view-table"; }')
+    originals[invalid] = invalid.read_bytes()
+    originals[invalid_view] = invalid_view.read_bytes()
+
+    def opening_state(project, expected):
+        open_project(app, project)
+        row = app.wait(lambda row: not row["job"] and row["operation"] == "native-project-main-view"
+                       and 55 in row["hits"][::5], "GTK opening View lookup finished")
+        assert bool(app.field(row, 496).get("visible")) is expected
+        assert 36 in row["hits"][::5] and 33 in row["hits"][::5] and app.field(row, 38).get("visible")
+        if expected:
+            assert WINDOW_TITLE in row["texts"] and "Read-only table" in row["texts"]
+            assert app.field(row, 496)["readonly"] and app.field(row, 496)["text"] == "Local Alpha only"
+
+    def stage(button, prior, draft):
+        app.click(492)
+        app.wait(lambda row: not row["job"] and "✓ " + prior in row["texts"], "Read opening View setting")
+        app.click(button)
+        app.wait(lambda row: not row["job"] and app.field(row, 54).get("text") == draft,
+                 "Stage opening View and retain other input")
+
+    def confirm(expected):
+        review(app)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and view.read_text() == expected,
+                 "Confirm the opening View through GTK", timeout=150)
+
+    build = json.loads(report.read_text())
+    assert build["target"] == "linux" and build["tool"]["ok"]
+    try:
+        app.launch(build["run"])
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: (row["width"], row["height"]) == (1080, 760), "Resize isolated GTK")
+        opening_state(alpha, False)
+        pending = source_view(app) + "// Keep the unsaved source comment.\n"
+        app.fill(54, pending)
+        proposed = pending.replace(" }", ' value editorMain = "element-view-table"; }', 1)
+        stage(495, "Default workspace", proposed)
+        review(app)
+        app.click(66)
+        row = app.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None,
+                       "Cancel opening View Review")
+        assert view.read_text() == initial and app.field(row, 54)["text"] == proposed
+        close_project(app)
+        opening_state(alpha, False)
+
+        assert source_view(app) == proposed
+        confirm(proposed)
+        close_project(app)
+        opening_state(bravo, False)
+        close_project(app)
+        opening_state(alpha, True)
+        open_window(app, "card")
+        app.click(33)
+        app.wait(lambda row: app.field(row, 496).get("visible") and not app.field(row, 487).get("visible"),
+                 "Independent menu card closes, leaving the opening table")
+        assert not proof.exists()
+        app.click(36)
+        run = app.wait(lambda row: (row["model"].get("execution") or {}).get("state") in ("exited", "failed"),
+                       "Run Alpha from its opening workspace", timeout=150)
+        assert run["model"]["execution"]["state"] == "exited" and str(run["model"]["execution"]["exit"]) == "0"
+        assert proof.read_bytes() == b"Alpha\n"
+
+        assert source_view(app) == proposed
+        assert not app.field(app.state(), 496).get("visible")
+        cleared = proposed.replace('value editorMain = "element-view-table";', "", 1)
+        stage(493, "Read-only table", cleared)
+        confirm(cleared)
+        close_project(app)
+        assert not app.field(app.state(), 496).get("visible")
+        opening_state(alpha, False)
+        app.close()
+    finally:
+        if hasattr(app, "child") and app.child.poll() is None:
+            app.child.terminate()
+            app.child.wait(timeout=15)
+        if hasattr(app, "stream") and not app.stream.closed:
+            app.stream.close()
+    originals[view] = cleared.encode()
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    print("PASS GTK opening View: cancel, confirm, read-only table, menu card, Alpha Run, sources, reset and Bravo isolation")
+
+
 if __name__ == "__main__":
     root = Path(mkdtemp(prefix="gtk-project-windows-", dir=os.environ.get("TMPDIR")))
     package = Path(sys.argv[1]).resolve()
-    if len(sys.argv) > 2 and sys.argv[2] == "--revocation":
+    if "--opening-view" in sys.argv[2:]:
+        workflow_opening_view(package, root)
+    elif len(sys.argv) > 2 and sys.argv[2] == "--revocation":
         reader_package = Path(sys.argv[3]).resolve() if len(sys.argv) > 3 else package
         workflow_window_revocation(package, root, reader_package)
     else:

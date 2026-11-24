@@ -20,7 +20,7 @@ UNSUPPORTED = NS + "::OtherDesk"
 
 
 def seed(package, root, *, checkout=None):
-    (root / "profile").mkdir()
+    (root / "profile").mkdir(exist_ok=True)
     catalog = []
     proof = root / "run-proof.txt"
     originals = {}

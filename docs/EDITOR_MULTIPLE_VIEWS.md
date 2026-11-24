@@ -72,22 +72,26 @@ cancels Review. After the writer Confirms, opening ≡ in the reader withdraws
 both the menu entry and the open card.
 
 
-## Confirmed browser workspace opening View
+## Confirmed workspace opening View
 
-The browser editor can open the root Workspace with one directly owned and
+The browser and Linux GTK editors can open the root Workspace with one directly owned and
 registered View. Go to **팩 관리 → 프로젝트 창 선언**, select the View,
 and open **프로젝트 시작 화면 설정**. Choose the standard workspace, a read-only
 card, or a read-only table. **초안에 적용** stages the selection with the existing
 source input. Review and Confirm publish it for the next project open.
 To change the designated View, first clear the current View's assignment and
 Confirm that change. The independent **≡ 메뉴에 표시** setting stays intact.
-Both surfaces use the same read-only object and string-field projection.
+On Linux GTK, use **Edit sources**, select the registered View with **Prev** or
+**Next**, and choose **Project opening view**. Use the ordinary Review and
+Confirm, then reopen the project. Both surfaces use the same read-only
+object and string-field projection.
 Absent, invalid, or ambiguous assignments use the standard workspace.
 
 Run the focused check with a Linux EditorHome build report from the checkout:
 
 ```sh
 python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --main-view
+python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --opening-view
 ```
 
 ## Reproduce the affected gates
