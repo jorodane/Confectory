@@ -68,8 +68,8 @@ allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,Syste
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,49),System.Linq.Enumerable.Range(500,32))));
-const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(471,8)):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose)))});
+const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(471,8)):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -85,12 +85,12 @@ void CancelInput(long identity){calls.ButtonInput.Invoke(control,identity,Array.
 int RoundedInput(long identity,int[] records,int[] corners,int type,int x,int y,int activation){var indexes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(0,records.Length/5),n=>ControlFor(records[n*5])==control));return calls.RoundedInput.Invoke(control,identity,InputHits(records),System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(indexes,n=>corners[n])),InputButtons(),type,x,y,activation);}
 void UseControl(int id){if(id<=0)return;string next=ControlFor(id);if(control==next)return;calls.ControlState.Invoke(control,"cancel",0);calls.ControlState.Invoke(control,"focus",0);control=next;}
 void Focus(int id){UseControl(id);if(traceFlow)TraceFlow("focus-before",new{id,state=calls.ControlState.Invoke(control,"query",0)[..3]});calls.NativeFocus.Invoke(nativeHost,control,id);if(traceFlow)TraceFlow("focus-after",new{id,state=calls.ControlState.Invoke(control,"query",0)[..3]});}
-bool homeActivityPending=false;
+bool homeActivityPending=false,folderOpenPending=false;
 string homeTileMenu="",iconListing="",iconRevision="",iconImage="";
 int iconCardControl=0;
 var homeTiles=new System.Collections.Generic.List<(string Id,int Control,int[] Bounds)>();
 var iconPixels=new System.Collections.Generic.Dictionary<string,int[]?>(StringComparer.Ordinal);
-void Change(string next){if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
+void Change(string next){if(next=="home"){homeActivityPending=true;rowsOffset=0;}homeTileMenu="";folderOpenPending=false;ClearYogiPointer();if(screen=="actions"){RetireNativeActionWidgets();}if(screen=="fields"){CancelNativeFields(false);RetireNativeFieldWidgets();}dragWindow=0;lastHeader=0;orderFrame="";calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);Focus(0);screen=next;control=next is "information" or "project-icon" or "profile" or "fields" or "actions" or "lan-chat" or "yogi"?detailControl:next=="project"?shellControl:homeControl;nativeHost=next=="project"?nativeShell:nativeHome;Focus(0);shown=new();hits=Array.Empty<int>();radii=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();message="";}
 void Start(string op,object args,int focus=0){if(job is not null)return;operation=op;jobContext=model["selected"]?["context"]?.ToString()??"";jobFocus=focus;string payload=System.Text.Json.JsonSerializer.Serialize(args);var completion=new System.Threading.Tasks.TaskCompletionSource<string>();job=completion.Task;string token=Guid.NewGuid().ToString("N");AppContext.SetData("Confectory.HostLoop.Job."+token,new object[]{(Func<string>)(()=>calls.Command.Invoke(session,op,payload)),completion});try{calls.HostSchedule.Invoke(token);}catch(Exception error){AppContext.SetData("Confectory.HostLoop.Job."+token,null);completion.TrySetException(error);throw;}}
 string informationId="",informationReturn="home",profileReturn="home",profileId="";
 int profileIndex=0;
@@ -880,7 +880,41 @@ System.Text.Json.Nodes.JsonNode TraceFields()
 string TextToken(int id)=>screen=="yogi"&&id==LayDescription?LayDescriptionBuffer():screen=="lan-chat"&&id is >=451 and <=461?LanBuffer(id):screen=="actions"&&id>=430?NativeActionBuffer(id):screen=="fields"&&id>=430?NativeFieldBuffer(id):screen=="project"&&WorkspaceMode()=="explorer"&&id==208&&model["workspace"]?["review"] is null?TreeDetailBuffer():id>=430?DetailBuffer(id):id>=400&&id<412?ViewBuffer((id-400)/4):id is 67 or 68?ReviewBuffer(id):id==38?ChatBuffer():id==53?LogBuffer():id==54?SourceBuffer():id==313?HelperSummaryBuffer():id>=73?FormBuffer(id):buffers[id];
 void ShellAction(string action,string value){if(job is not null||nativePickerPending)return;TraceFlow("shell-command",new{action,requested=action is "menu" or "navigation" or "navigate"?value:null,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString()});if(action=="menu"&&value.Length==0&&ProjectMenu()=="ai-preview"){model=J(calls.Command.Invoke(session,"ai-cancel-preview",System.Text.Json.JsonSerializer.Serialize(new{context=Context()})));return;}if(action is not ("menu" or "navigation" or "navigate" or "tab" or "draft"))throw new ArgumentException("UI shell action must be a bounded state change");model=J(calls.Command.Invoke(session,"shell",System.Text.Json.JsonSerializer.Serialize(new{context=Context(),action,value})));if(action=="navigation")pendingFocus=value.Length==0?44:value=="project"?50:45;else if(action=="menu")pendingFocus=value.Length==0?43:value=="project"?34:42;else if(action=="navigate")pendingFocus=value is "info" or "settings"?42:44;}
 void Browse(string directory,string purpose,string back){if(nativePickerPending)return;pickerMode=purpose;pickerFocus=calls.ControlState.Invoke(control,"query",0)[0];calls.NativeRequest.Invoke(nativeHost,purpose=="project-icon"?"icon-begin":"folder-begin",System.Text.Json.JsonSerializer.Serialize(new{initial=System.IO.Path.GetFullPath(System.IO.Directory.Exists(directory)?directory:storage)}),0);nativePickerPending=true;}
-void OpenFolder(string path){if(!canOpenFolder){message="OS folder opening is unavailable on this runtime";return;}try{var result=J(calls.NativeRequest.Invoke(nativeHost,"open-folder",System.Text.Json.JsonSerializer.Serialize(new{path}),surfaces[1]));message=result["message"]?.ToString()??"";}catch(Exception error){message="Unable to open folder: "+error.Message;}}
+void OpenFolder(string directory){
+ folderOpenPending=false;
+ if(!canOpenFolder){message="OS folder opening is unavailable on this runtime";return;}
+ try{
+  var result=J(calls.NativeRequest.Invoke(nativeHost,"open-folder",System.Text.Json.JsonSerializer.Serialize(new{path=directory}),surfaces[1]));
+  folderOpenPending=result["state"]?.ToString()=="pending";
+  message="Folder request sent to the file manager.";
+ }catch(Exception error){message="Unable to open folder: "+error.Message;}
+}
+void OpenHomeFolder(string listing){
+ folderOpenPending=false;
+ if(screen!="home"||model["selected"] is not null)return;
+ string? manifest=HomeCard(listing)?["path"]?.GetValue<string>();
+ try{
+  // Resolve against the trusted native listing and check that the exact registration still exists.
+  var saved=calls.FileSnapshot.Invoke(System.IO.Path.Combine(storage,"projects.json"));
+  if(manifest is null||saved[0]!="exists"||!System.Linq.Enumerable.Any(J(saved[1]).AsArray(),
+     card=>card?["path"]?.GetValue<string>()==manifest)){
+   message="Unable to open folder: The project is no longer registered.";
+   return;
+  }
+ }catch{message="Unable to open folder: The local project list could not be read.";return;}
+ string? directory=System.IO.Path.IsPathFullyQualified(manifest)?System.IO.Path.GetDirectoryName(manifest):null;
+ if(!System.IO.Directory.Exists(directory)){message="Unable to open folder: The registered project folder is no longer available.";return;}
+ OpenFolder(directory!);
+}
+void PollOpenFolder(){
+ if(!folderOpenPending)return;
+ try{
+  var result=J(calls.NativeRequest.Invoke(nativeHost,"open-folder-poll","{}",0));
+  string status=result["state"]!.ToString();
+  folderOpenPending=status=="pending";
+  if(status=="error")message="Unable to open folder: "+result["message"]!.ToString();
+ }catch(Exception error){folderOpenPending=false;message="Unable to open folder: "+error.Message;}
+}
 string ProjectMenu()=>model["helperPanel"]?["context"]?.ToString()==Context()&&model["helperPanel"]?["mode"]?.ToString()=="augment"&&model["shell"]?["menu"]?.ToString()=="providers"&&directionTargets.ContainsKey(Context())?"direction":model["shell"]!["menu"]!.ToString()=="providers"&&model["helperPanel"]?["context"]?.ToString()==Context()?model["helperPanel"]!["mode"]!.ToString():model["shell"]!["menu"]!.ToString();
 string ActionPin(int id)=>nativeActionGeneration+"|"+screen+"|"+model["selected"]?["context"]+"|"+model["selectedTask"]+"|"+model["workspace"]?["selected"]+"|"+model["aiPreview"]?["token"]+"|"+model["closeRequest"]?["context"]+"|"+model["shell"]?["menu"]+"|"+model["shell"]?["navigation"]+"|"+model["helperPanel"]?["mode"]+"|"+model["helperContext"]?["helper"]+"|"+model["helperContext"]?["membership"]+"|"+(id==27?SelectedWorker()?["status"]?.ToString():"")+"|"+(screen=="project"&&id==24&&ProjectMenu()=="helpers"?RecruitmentAgent():"");
 bool LogicProject()=>installedGtk&&model["selected"]?["kind"]?.ToString()=="project"&&model["selected"]?["entry"]?.ToString().Length>0;
@@ -904,11 +938,12 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==LayEntry&&screen=="project"){OpenLayIcon();return;}if(OperatingSystem.IsLinux()&&id==LanEntry&&screen is "home" or "project"&&job is null){OpenLanPanel();return;}if(screen=="actions"){NativeActionAction(id);return;}if(screen=="project"&&id==324&&job is null){OpenNativeActions();return;}if(screen=="fields"&&(job is null||NativeFieldReading())){if(job is not null&&id==430){CancelNativeFields(false);queuedAction=id;queuedActionPin=ActionPin(id);return;}NativeFieldAction(id);return;}if(screen=="project"&&id==82&&job is null){OpenNativeFields();return;}if(job is not null&&id!=7){if(operation=="poll"&&queuedAction==0){queuedAction=id;queuedActionPin=ActionPin(id);deferredActions++;TraceFlow("action-deferred",new{id,queuedActionPin});}return;}
  if(screen=="project-icon"){HomeIconAction(id);return;}
  if(DetailsScreen()){DetailsAction(id);return;}
- if(screen=="home"&&OperatingSystem.IsLinux()&&id is HomeRename or HomeChangeIcon or HomeMenuClose){
+ if(screen=="home"&&OperatingSystem.IsLinux()&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder){
   var tile=homeTiles.Find(item=>item.Id==homeTileMenu);
   CloseHomeTileMenu();
   if(tile.Id is not null&&id==HomeRename)OpenInformation(tile.Id,"home",431);
   if(tile.Id is not null&&id==HomeChangeIcon)BeginHomeIcon(tile.Id,tile.Control);
+  if(tile.Id is not null&&id==HomeOpenFolder)OpenHomeFolder(tile.Id);
   return;
  }
  if(screen=="home"&&id>=500&&id<532){var cards=model["cards"]!.AsArray();if(id-500<cards.Count)OpenInformation(ListingId(cards[id-500]!),"home");return;}
@@ -968,9 +1003,10 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(model["closeRequest"] is not null&&id is 65 or 66){if(id==65)Start("close-project",new{context=Context(),confirmed=true,draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});else Start("cancel-close",new{});return;}
  if(id==15){Start("leave",new{context=Context(),draft=calls.TextSnapshot.Invoke(ChatBuffer())[1]});return;}
  if(id==16){
-  string? manifest=model["selected"]?["path"]?.ToString();
-  if(manifest is null||!System.IO.Directory.Exists(System.IO.Path.GetDirectoryName(manifest))){message="Unable to open folder: The active project folder is no longer available.";return;}
-  OpenFolder(manifest);return;
+  folderOpenPending=false;
+  string? directory=System.IO.Path.GetDirectoryName(model["selected"]?["path"]?.ToString());
+  if(!System.IO.Directory.Exists(directory)){message="Unable to open folder: The active project folder is no longer available.";return;}
+  OpenFolder(directory!);return;
  }
  if(id==33){ShellAction("menu",model["shell"]!["menu"]!.ToString()=="project"?"":"project");return;}
  if(id==34){OpenInformation(ListingId(model["selected"]!),"project");return;}if(id==35){ShellAction("menu","settings");return;}
@@ -1006,7 +1042,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==61){var unit=model["workspace"]!["unit"]!;string value=unit["text"]!.ToString(),buffer=SourceBuffer();calls.ReplaceText.Invoke(buffer,value,0,0);sourceVersions[SourceKey()]=(unit["revision"]!.GetValue<long>(),value);message="Current source revision loaded explicitly";return;}
  if(id is 62 or 63){WorkspaceAction("page",page:Math.Max(0,model["workspace"]!["page"]!.GetValue<int>()+(id==62?-1:1)));return;}
  if(id==17){Start("remove",new{path=removePath});return;}if(id==18){Change("home");return;}
- if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;string path=cards[index]!["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenFolder(path);else{removePath=path;Change("remove");}return;}}
+ if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;var card=cards[index]!;string path=card["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenHomeFolder(ListingId(card));else{removePath=path;Change("remove");}return;}}
 void Render(){homeTiles.Clear();
  var homeImages=new System.Collections.Generic.List<(int[] Bounds,int[] Pixels)>();
  int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Empty<int>();layNativeBounds.Clear();layBounds=Array.Empty<int>();var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
@@ -1188,11 +1224,13 @@ else if(screen=="fields"){
     int width=Math.Max(1,b[2]-16);
     var actions=calls.Stack.Invoke(new[]{b[0]+8,b[1]+128,width,26},0,6,new[]{0,0});
     if(homeTileMenu==id){
-     Button(HomeMenuClose,new[]{b[0]+8,b[1]+96,width,26},"Close menu");
+     var menu=calls.Stack.Invoke(new[]{b[0]+8,b[1]+96,width,26},0,6,new[]{0,76});
+     Button(HomeOpenFolder,menu[..4],"Open in File Manager",canOpenFolder);
+     Button(HomeMenuClose,menu[4..],"Close");
      Button(HomeRename,actions[..4],"Rename");Button(HomeChangeIcon,actions[4..],"Change icon");
     }else{
      Button(100+index*3,new[]{b[0]+8,b[1]+96,width,26},"Open");
-     Button(101+index*3,actions[..4],"Folder",canOpenFolder);Button(102+index*3,actions[4..],"Remove");
+     Button(101+index*3,actions[..4],"Open folder",canOpenFolder);Button(102+index*3,actions[4..],"Remove");
     }
    }}
    Button(5,new[]{left,h-72,Math.Min(110,area/2),36},"Previous",rowsOffset>0);Button(4,new[]{left+Math.Min(120,area/2),h-72,Math.Min(110,area/2),36},"Next",rowsOffset<maxOffset);
@@ -1345,7 +1383,7 @@ bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invok
  if(!appClosePending&&job is null&&queuedAction!=0){int deferred=queuedAction;string pinned=queuedActionPin;queuedAction=0;queuedActionPin="";if(ActionPin(deferred)==pinned){TraceFlow("action-resumed",new{id=deferred});Action(deferred);}else{message="Selection or action changed during refresh; please review and choose again";TraceFlow("action-discarded",new{id=deferred});}}
  if(!appClosePending&&job is null&&nativeFieldNext is not null)BeginNativeField();
  if(!appClosePending&&job is null&&screen=="project"&&WorkspaceMode()=="explorer"&&!nativeTreeRequested.Contains(Context()))ReadNativeTree();
- if(!appClosePending)PollLanPanel();
+ if(!appClosePending){PollLanPanel();PollOpenFolder();}
  var entry=J(calls.EntryRequest.Invoke(entrySession,"poll","{}"));if(entry["id"] is not null){string id=entry["id"]!.ToString(),path=entry["path"]!.ToString();if(appClosePending||job is not null||nativePickerPending||laySelection is not null||screen is "create" or "lan-chat" or "yogi" or "project-icon")calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id,status="busy",message="Finish the current editor action before opening another file"}));else if(model["selected"] is System.Text.Json.Nodes.JsonNode selected&&string.Equals(selected["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))calls.EntryRequest.Invoke(entrySession,"reply",System.Text.Json.JsonSerializer.Serialize(new{id,status="already-open",message="Current project and drafts retained"}));else{entryRequestID=id;Start("open-request",new{path});}}
  if(storagePending){var stored=J(calls.NativeRequest.Invoke(nativeHost,"storage-poll","{}",0));string state=stored["state"]!.ToString();if(state is "saved" or "error"){storagePending=false;message=state=="saved"?"Local source draft saved; final sources unchanged":"Storage acknowledgement failed: "+stored["error"]!.ToString();}}
  if(archivePending){var archive=J(calls.NativeRequest.Invoke(nativeHost,"archive-poll","{}",0));string state=archive["state"]!.ToString();if(state is "saved" or "offered" or "cancelled" or "error"){archivePending=false;nativePickerPending=false;message=state=="saved"?"Working-copy ZIP saved":state=="offered"?"Working-copy ZIP download offered":state=="cancelled"?"Working-copy export cancelled":"Source export failed: "+archive["error"]!.ToString();}}

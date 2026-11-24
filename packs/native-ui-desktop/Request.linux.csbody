@@ -1,4 +1,3 @@
-if(operation=="open-folder"){var request=System.Text.Json.Nodes.JsonNode.Parse(payload)??throw new ArgumentException("Missing folder request");string path=request["path"]?.ToString()??throw new ArgumentException("Missing path");var info=new System.Diagnostics.ProcessStartInfo{FileName="xdg-open",UseShellExecute=false};info.ArgumentList.Add(System.IO.Directory.Exists(path)?path:System.IO.Path.GetDirectoryName(path)!);System.Diagnostics.Process.Start(info)?.Dispose();return "{\"state\":\"opened\"}";}
 [System.Runtime.InteropServices.DllImport("libgobject-2.0.so.0",CharSet=System.Runtime.InteropServices.CharSet.Ansi)]static extern void g_signal_stop_emission_by_name(IntPtr instance,string signal);
 [System.Runtime.InteropServices.DllImport("libgdk-3.so.0")]static extern IntPtr gdk_x11_display_get_xdisplay(IntPtr display);
 [System.Runtime.InteropServices.DllImport("libX11.so.6")]static extern int XGetInputFocus(IntPtr display,out nuint focused,out int revert);
@@ -83,9 +82,37 @@ void Drain(){int n=0;while(n++<4096&&gtk_events_pending()!=0)gtk_main_iteration_
 if(operation=="create"){
  if(parent==0)throw new ArgumentException("Native parent required");if(AppDomain.CurrentDomain.GetData("Confectory.NativeUI.GtkThread") is int gtkThread&&gtkThread!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("GTK native UI requires its initializing UI thread");
  if(gtk_init_check(IntPtr.Zero,IntPtr.Zero)==0)throw new PlatformNotSupportedException("GTK display unavailable; no custom fallback");AppDomain.CurrentDomain.SetData("Confectory.NativeUI.GtkThread",Environment.CurrentManagedThreadId);
- var foreign=gdk_x11_window_foreign_new_for_display(gdk_display_get_default(),(nuint)parent);if(foreign==IntPtr.Zero)throw new InvalidOperationException("Native parent is not an open X11 window");string token=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.NativeUI."+token,new object[]{Environment.CurrentManagedThreadId,parent,new System.Collections.Generic.Dictionary<string,object[]>(),false,foreign,null!,new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.HashSet<int>()});return token;
+ var foreign=gdk_x11_window_foreign_new_for_display(gdk_display_get_default(),(nuint)parent);if(foreign==IntPtr.Zero)throw new InvalidOperationException("Native parent is not an open X11 window");string token=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.NativeUI."+token,new object[]{Environment.CurrentManagedThreadId,parent,new System.Collections.Generic.Dictionary<string,object[]>(),false,foreign,null!,new System.Collections.Generic.Queue<int[]>(),new System.Collections.Generic.HashSet<int>(),null!});return token;
 }
 var state=AppDomain.CurrentDomain.GetData("Confectory.NativeUI."+host) as object[]??throw new ObjectDisposedException("Native UI host");if((int)state[0]!=Environment.CurrentManagedThreadId)throw new InvalidOperationException("Native UI requires creating UI thread");if(operation=="close"&&(bool)state[3])return "{}";if(operation=="close")AppDomain.CurrentDomain.SetData("Confectory.NativeUI.Storage."+host,null);if((bool)state[3])throw new ObjectDisposedException("Native UI host");if(payload.Length>(operation=="archive-begin"?12600000:8388608))throw new ArgumentException("Native service payload budget");var args=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();var fields=(System.Collections.Generic.Dictionary<string,object[]>)state[2];Drain();
+if(operation=="open-folder"){
+ // The handle observes dispatch only. The external file manager belongs to the desktop.
+ (state[8] as System.Diagnostics.Process)?.Dispose();state[8]=null!;
+ string directory=args["path"]?.GetValue<string>()??"";
+ if(!System.IO.Path.IsPathFullyQualified(directory)||!System.IO.Directory.Exists(directory))
+  throw new InvalidOperationException("The project folder is no longer available.");
+ var info=new System.Diagnostics.ProcessStartInfo{FileName="xdg-open",UseShellExecute=false};
+ // The generic launcher must not fall back to a web browser for a project directory.
+ info.Environment["BROWSER"]="/bin/false";
+ info.ArgumentList.Add(directory);
+ try{state[8]=System.Diagnostics.Process.Start(info)??throw new InvalidOperationException();}
+ catch(Exception error) when(error is System.ComponentModel.Win32Exception or InvalidOperationException){
+  throw new InvalidOperationException("The Linux file-manager launcher (xdg-open) could not be started.",error);
+ }
+ return "{\"state\":\"pending\"}";
+}
+if(operation=="open-folder-poll"){
+ if(state[8] is not System.Diagnostics.Process child)return "{\"state\":\"idle\"}";
+ if(!child.HasExited)return "{\"state\":\"pending\"}";
+ int code=child.ExitCode;child.Dispose();state[8]=null!;
+ if(code==0)return "{\"state\":\"requested\"}";
+ string error=code switch{
+  2=>"The project folder is no longer available.",
+  3=>"No Linux file manager is available.",
+  _=>$"The Linux file manager could not open this folder (launcher exit {code})."
+ };
+ return new System.Text.Json.Nodes.JsonObject{["state"]="error",["message"]=error}.ToJsonString();
+}
 var eventQueue=(System.Collections.Generic.Queue<int[]>)state[6];
 var blockedDrops=(System.Collections.Generic.HashSet<int>)state[7];
 if(operation=="block-drop")
@@ -148,5 +175,5 @@ if(operation is "folder-begin" or "archive-begin" or "icon-begin"){
 }
 if(operation is "folder-poll" or "archive-poll"){if(state[5] is not object[] result)return "{\"state\":\"idle\"}";string status=(string)result[1];if(status=="pending")return "{\"state\":\"pending\"}";state[5]=null!;return new System.Text.Json.Nodes.JsonObject{["state"]=status,[status=="error"?"error":"path"]=(string)result[2]}.ToJsonString();}
 if(operation is "folder-cancel" or "archive-cancel"){if(state[5] is object[] result&&(IntPtr)result[0]!=IntPtr.Zero)gtk_dialog_response((IntPtr)result[0],-6);return "{}";}
-if(operation=="close"){state[3]=true;if(state[5] is object[] result&&(IntPtr)result[0]!=IntPtr.Zero)gtk_dialog_response((IntPtr)result[0],-6);foreach(var row in fields.Values){gtk_widget_destroy((IntPtr)row[0]);if((IntPtr)row[2]!=IntPtr.Zero)g_object_unref((IntPtr)row[2]);}fields.Clear();g_object_unref((IntPtr)state[4]);state[3]=true;Drain();return "{}";}
+if(operation=="close"){(state[8] as System.Diagnostics.Process)?.Dispose();state[8]=null!;state[3]=true;if(state[5] is object[] result&&(IntPtr)result[0]!=IntPtr.Zero)gtk_dialog_response((IntPtr)result[0],-6);foreach(var row in fields.Values){gtk_widget_destroy((IntPtr)row[0]);if((IntPtr)row[2]!=IntPtr.Zero)g_object_unref((IntPtr)row[2]);}fields.Clear();g_object_unref((IntPtr)state[4]);state[3]=true;Drain();return "{}";}
 throw new ArgumentException("Unknown native UI operation");

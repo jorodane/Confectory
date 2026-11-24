@@ -34,6 +34,16 @@ GTK 홈 타일의 **Change icon**은 정적 PNG·JPEG·WebP(최대 5 MB, 32 메�
 [GTK·Chromium 홈 타일 회귀](../tests/gui/editor_home_project_display_x11.py)에는 격리 X11,
 Chromium·Playwright, Pillow 및 ImageMagick의 `import`가 필요하다. 패키지 경로를 인수로 실행한다.
 
+GTK 홈 타일의 **Open in File Manager**는 등록된 폴더를 로컬 `xdg-open`으로 연다.
+로컬 브라우저 홈과 원격 참가 화면에서는 이 동작을 제공하지 않는다.
+[폴더 열기 회귀](../tests/gui/editor_home_open_folder_x11.py)는 같은 격리 X11·Chromium 환경에
+Thunar와 전용 D-Bus 세션을 사용한다.
+
+```sh
+dbus-run-session -- python tests/gui/editor_home_open_folder_x11.py Builds/Linux-x64
+```
+
+
 대상을 생략한 `package` 명령은 기존 Windows x64 패키지를 만든다.
 체크아웃에서 개발할 때는 계속 `examples/editor-home/run-home.sh`를 사용할 수 있다.
 
