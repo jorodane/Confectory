@@ -30,16 +30,15 @@ def issue(host):
     host.issue()
     address, port = next(iter(host.listeners()))
     assert address == HOST
-    return port, host.copy_invite()['code']
+    return {'port': port, 'code': host.copy_invite()['code']}
 
 
-def admit(host, guest, port):
-    guest.review(host, port, HOST_TITLE)
+def admit(guest):
     guest.click(458)
     state = guest.wait(lambda row: row['lanMode'] == 'joined' and
                        guest.field(row, 461).get('text') == 'No messages yet.' and 465 not in row['hits'][::5],
                        'An admitted guest has no earlier messages or attachments')
-    assert 38 not in state['hits'][::5] and 452 not in state['hits'][::5]
+    assert not {38, 317, 324, 452, 462}.intersection(state['hits'][::5])
     return state['model']['selected']['projectId']
 
 
@@ -89,9 +88,8 @@ def retained_attachment(row, box, description, remote=False):
         assert capture[field] == original['capture'][field]
 
 
-def exercise(host, guest, command):
-    host.launch(command)
-    guest.launch(command)
+def exercise(host, guest, launch, publish_invite, review_invite):
+    launch()
     for editor in (host, guest):
         model = editor.state()['model']
         assert not model['cards'] and not model['helperAgents']['agents']
@@ -105,9 +103,10 @@ def exercise(host, guest, command):
                  for path in Path(project['path']).parent.iterdir() if path.is_file()}
     assert not host.listeners() and not guest.listeners()
 
-    port, original = issue(host)
+    original = publish_invite()
     host.send(BEFORE_ADMISSION)
-    assert admit(host, guest, port) == participant['projectId']
+    review_invite(original, owner)
+    assert admit(guest) == participant['projectId']
     assert not guest.listeners()
 
     send_capture(host, HOST_MESSAGE)
@@ -124,8 +123,7 @@ def exercise(host, guest, command):
 
     guest.click(451)
     guest.wait(lambda row: row['screen'] == 'project', 'Guest left the first connection')
-    assert host.copy_invite()['code'] == original
-    guest.review(host, port, HOST_TITLE)
+    review_invite(original, owner)
     guest.click(458)
     guest.wait(lambda row: 'Could not join' in row['lanStatus'], 'The first consumed invitation is rejected')
     assert not (guest.profile / 'project-chat').exists()
@@ -141,22 +139,22 @@ def exercise(host, guest, command):
     retained_attachment(rows[1], host_box, HOST_DESCRIPTION)
     retained_attachment(rows[2], guest_box, GUEST_DESCRIPTION, remote=True)
     owner_and_drafts(host, guest, owner, participant)
-    assert original.encode() not in saved + host.log.read_bytes() + guest.log.read_bytes()
+    assert original['code'].encode() not in saved + host.log.read_bytes() + guest.log.read_bytes()
     print('PASS consumed invite refused and only the host persisted the original messages and LaY', flush=True)
 
-    host.launch(command)
-    guest.launch(command)
+    launch()
     assert open_project(host, HOST_TITLE)['projectId'] == owner['projectId']
     assert open_project(guest, GUEST_TITLE)['projectId'] == participant['projectId']
     assert not host.listeners() and not guest.listeners()
-    port, fresh = issue(host)
-    assert fresh != original
+    fresh = publish_invite()
+    assert fresh['code'] != original['code']
     host.wait(lambda row: GUEST_MESSAGE + '  [YogiBox 2]' in host.field(row, 461).get('text', ''),
               'The restarted host restored history from its journal')
     see_capture(host, HOST_DESCRIPTION, host_box, 1)
     see_capture(host, GUEST_DESCRIPTION, guest_box, 2)
     assert journal.read_bytes() == saved
-    assert admit(host, guest, port) == participant['projectId']
+    review_invite(fresh, owner)
+    assert admit(guest) == participant['projectId']
 
     host.send(AFTER_RESTART)
     latest = guest.wait(lambda row: AFTER_RESTART in guest.field(row, 461).get('text', ''),
@@ -172,12 +170,13 @@ def exercise(host, guest, command):
     final_rows = json.loads(final)['messages']
     assert final_rows[:-1] == rows and len(final_rows) == len(rows) + 1
     assert final_rows[-1]['text'] == AFTER_RESTART and 'attachment' not in final_rows[-1]
-    assert all(code.encode() not in final + host.log.read_bytes() + guest.log.read_bytes()
-               for code in (original, fresh))
+    codes = (original['code'], fresh['code'])
+    assert all(code.encode() not in final + host.log.read_bytes() + guest.log.read_bytes() for code in codes)
     owner_and_drafts(host, guest, owner, participant)
     assert all(path.read_bytes() == content for path, content in originals.items())
     print('PASS cold host restored both attachments, fresh guest saw only new text, and private records stayed separate',
           flush=True)
+    return codes
 
 
 if __name__ == '__main__':
@@ -188,4 +187,12 @@ if __name__ == '__main__':
     print('Evidence:', root, flush=True)
     with internal_network(image) as (network, image_id), \
          peer(root, network, image_id, HOST) as host, peer(root, network, image_id, GUEST) as guest:
-        exercise(host, guest, report['run'])
+        def launch():
+            host.launch(report['run'])
+            guest.launch(report['run'])
+
+        def review(invite, owner):
+            assert host.copy_invite()['code'] == invite['code']
+            guest.review(host, invite['port'], owner['title'])
+
+        exercise(host, guest, launch, lambda: issue(host), review)

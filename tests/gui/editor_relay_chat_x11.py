@@ -115,6 +115,17 @@ def review(guest, endpoint, fingerprint, owner):
     assert guest.field(row, 456)["text"] == ""
 
 
+def assert_isolated_routes(host, guest, relay, left, right):
+    # Each editor has only its own network and loopback, no default route or
+    # published ports. The dual-attached fixture must not forward IP packets.
+    assert docker("exec", relay.container, "cat", "/proc/sys/net/ipv4/ip_forward").stdout.strip() == "0"
+    for editor, destination in ((host, right), (guest, left)):
+        result = subprocess.run([*DOCKER, "exec", editor.container, "/bin/bash", "-c",
+                                 'exec 3<>"/dev/tcp/$1/12345"', "probe", destination],
+                                text=True, capture_output=True, timeout=5)
+        assert result.returncode != 0 and "Network is unreachable" in result.stderr, "Direct editor route was not rejected"
+
+
 def test(root, image, checkout, command):
     left, right = "192.0.2.19", "198.51.100.19"
     left_relay, right_relay = "192.0.2.18", "198.51.100.18"
@@ -126,14 +137,7 @@ def test(root, image, checkout, command):
          peer(root, b, image_id, right, checkout) as guest, \
          peer(root, a, image_id, left_relay, checkout, other_network=(b, right_relay)) as relay, \
          reservations(relay, command, relay_key) as reserve:
-        # Each editor has only its own network and loopback, no default route or
-        # published ports. The dual-attached fixture must not forward IP packets.
-        assert docker("exec", relay.container, "cat", "/proc/sys/net/ipv4/ip_forward").stdout.strip() == "0"
-        for editor, destination in ((host, right), (guest, left)):
-            result = subprocess.run([*DOCKER, "exec", editor.container, "/bin/bash", "-c",
-                                     'exec 3<>"/dev/tcp/$1/12345"', "probe", destination],
-                                    text=True, capture_output=True, timeout=5)
-            assert result.returncode != 0 and "Network is unreachable" in result.stderr, "Direct editor route was not rejected"
+        assert_isolated_routes(host, guest, relay, left, right)
         guest.launch(command)
         guest.click(450)
         state = guest.wait(lambda row: row["lanMode"] == "start", "Default public chat picker")
