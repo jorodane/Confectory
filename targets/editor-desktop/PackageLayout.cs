@@ -107,7 +107,7 @@ internal static class PackageLayout
             storage??=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"Confectory","EditorHome");
         }
         start.Environment["CONFECTORY_HOME_STORAGE"]=storage;
-        foreach(string key in new[]{"CONFECTORY_WEB_PROJECT","CONFECTORY_BROWSER_PROJECT","CONFECTORY_WINDOWLESS_EDIT","CONFECTORY_ELEMENT_UI"})start.Environment.Remove(key);
+        foreach(string key in new[]{"CONFECTORY_WEB_PROJECT","CONFECTORY_BROWSER_PROJECT","CONFECTORY_WINDOWLESS_EDIT","CONFECTORY_ELEMENT_UI","CONFECTORY_INSTALLED_LOGIC_CODE"})start.Environment.Remove(key);
         return start;
     }
 }

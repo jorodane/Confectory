@@ -26,21 +26,32 @@ internal static class Program
                 check["environment"]=environment;
                 Console.WriteLine(check.ToJsonString());return 0;
             }
-            if(args.Length!=0)throw new ArgumentException("Usage: package <repository> <output-folder> [win-x64|linux-x64] | --check-package [folder]");
+            bool logicCode=args is ["--logic-code"];
+            if(args.Length!=0&&!logicCode)throw new ArgumentException("Usage: package <repository> <output-folder> [win-x64|linux-x64] | --check-package [folder] | --logic-code (Linux package)");
             string root=Path.GetFullPath(AppContext.BaseDirectory);
             string rid=PackageLayout.Check(root)["rid"]!.GetValue<string>();
             string runtime=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..",".."));
             if(PackageLayout.IsLinux(rid))
             {
                 if(!PackageLayout.IsLinuxX64)throw new PlatformNotSupportedException("Run this Confectory package on Linux x64.");
-                var native=PackageLayout.EngineStart(root,Path.Combine(runtime,"dotnet"),rid);
-                Directory.CreateDirectory(native.Environment["CONFECTORY_HOME_STORAGE"]!);
-                using var engine=Process.Start(native)??throw new IOException("Confectory engine did not start");
+                var startLinux=PackageLayout.EngineStart(root,Path.Combine(runtime,"dotnet"),rid);
+                using var interrupt=logicCode?PosixSignalRegistration.Create(PosixSignal.SIGINT,signal=>signal.Cancel=true):null;
+                if(logicCode)
+                {
+                    startLinux.Environment["CONFECTORY_UI"]="web";
+                    startLinux.Environment["CONFECTORY_INSTALLED_LOGIC_CODE"]="1";
+                    startLinux.Environment.Remove("CONFECTORY_WEB_PORT");
+                    Console.Error.WriteLine("Logic Code uses your browser on this machine. Open the address printed below and keep this terminal open. Press Ctrl+C here to close the editor.");
+                }
+                Directory.CreateDirectory(startLinux.Environment["CONFECTORY_HOME_STORAGE"]!);
+                using var engine=Process.Start(startLinux)??throw new IOException("Confectory engine did not start");
                 await engine.WaitForExitAsync();
-                if(engine.ExitCode!=0)Console.Error.WriteLine("Confectory GTK exited with code "+engine.ExitCode+
-                    ". See the error above. The Linux editor requires X11, GTK 3 and GtkSourceView 4.");
+                if(engine.ExitCode!=0)Console.Error.WriteLine(logicCode?
+                    "Logic Code could not start or close normally. Check the error above and close any other Confectory window from this installation.":
+                    "Confectory GTK exited with code "+engine.ExitCode+". See the error above. The Linux editor requires X11, GTK 3 and GtkSourceView 4.");
                 return engine.ExitCode;
             }
+            if(logicCode)throw new PlatformNotSupportedException("On Windows, open Logic Code in the normal Confectory.exe window.");
             if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Run Confectory.exe on Windows. Package verification is available with --check-package.");
             string desktop=Path.Combine(runtime,"shared","Microsoft.WindowsDesktop.App");
             if(!Directory.Exists(desktop)||!Directory.EnumerateDirectories(desktop,"10.0.*").Any())throw new InvalidOperationException("Microsoft .NET Desktop Runtime 10.0 (x64) is required. Install it separately; Confectory does not install runtimes.");

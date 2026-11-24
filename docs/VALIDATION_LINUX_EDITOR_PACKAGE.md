@@ -32,6 +32,31 @@ dotnet targets/editor-desktop/bin/Release/net10.0/Confectory.dll package . Build
 대상을 생략한 `package` 명령은 기존 Windows x64 패키지를 만든다.
 체크아웃에서 개발할 때는 계속 `examples/editor-home/run-home.sh`를 사용할 수 있다.
 
+### 수직 셀 논리 코드
+
+1. 묶음의 `./run`으로 GTK 창을 열고 ‘나중에’를 선택한다. 새 로컬 프로젝트를 만들고 GTK 창을 닫는다.
+2. 같은 묶음에서 `./run --logic-code`를 실행한다. 터미널의 `CONFECTORY_WEB_UI` 뒤에 표시된 주소 전체를 같은 컴퓨터의 브라우저에서 열고, 최근 목록에서 프로젝트를 선택한다.
+3. 작업을 마치면 런처를 실행한 터미널에서 Ctrl+C로 에디터를 종료한다.
+
+브라우저 경로에는 설치된 브라우저가 필요하다. 현재 새 프로젝트의 폴더 선택은 GTK에서 한다.
+두 화면은 같은 로컬 프로필과 최근 목록을 쓰므로 한 화면을 닫고 다른 화면으로 전환한다.
+논리 코드 모드는 기존 루프백 호스트의 `127.0.0.1` 임시 포트와 세션 검사를 사용한다.
+터미널에 표시된 주소는 현재 세션에만 사용한다.
+
+[`editor_linux_package_logic_x11.py`](../tests/gui/editor_linux_package_logic_x11.py)는 아래 GTK 시험과
+같은 로컬 이미지·Xorg·SDK에 Chromium과 Playwright를 더해 두 진입점을 이어서 검증한다.
+
+```sh
+python tests/gui/editor_linux_package_logic_x11.py Builds/Linux-x64 "$FIXTURE_IMAGE"
+```
+
+압축에서 푼 읽기 전용 묶음, 빈 HOME, 비관리자 UID와 외부 연결을 차단한 컨테이너를 사용했다.
+GTK에서 실제 폴더를 골라 프로젝트를 만들었고, GTK가 열려 있는 동안 같은 설치의 논리 코드
+모드는 시작이 거절됐다. GTK 종료 후 Chromium의 최근 목록에서 그 프로젝트를 열었다.
+실제 화면에서 기본 `Main`을 수직 셀로 변환하고 본문 카드 수정·Save·검토 취소·확정·실행을
+통과했다. 새 호스트와 브라우저를 실행해 같은 카드를 확인하고 같은 결과를 다시 생성했다.
+세션 키 없는 요청은 거절됐고, 브라우저 모드의 리스너는 루프백 하나였으며 종료 후 사라졌다.
+
 ### 설치 사용자 회귀 시험
 
 [`editor_linux_package_x11.py`](../tests/gui/editor_linux_package_x11.py)는 위 결과 폴더와

@@ -42,7 +42,7 @@ class InstalledEditor(NativeEditor):
 
 
 @contextmanager
-def installed_editor(case, package, image, *, sdk):
+def installed_editor(case, package, image, *, sdk, extra_mounts=(), shm_size="64m"):
     home = case / 'home'
     projects, work, temporary = case / 'projects', case / 'work', case / 'tmp'
     for directory in (home, projects, work, temporary):
@@ -63,6 +63,7 @@ def installed_editor(case, package, image, *, sdk):
     for path in ('/usr/lib/x86_64-linux-gnu', '/usr/share/fonts', '/usr/share/glib-2.0/schemas',
                  '/usr/share/mime', '/usr/share/icons', '/etc/fonts'):
         mounts.append((path, path, True))
+    mounts.extend(extra_mounts)
     if sdk:
         mounts.append((dotnet.parent, '/opt/dotnet', True))
     else:
@@ -72,7 +73,7 @@ def installed_editor(case, package, image, *, sdk):
                for part in ('--mount', f'type=bind,src={src},dst={dst}' + (',readonly' if ro else ''))]
     container = f'confectory-package-{case.parent.name}-{case.name}'.lower()
     docker('run', '--pull=never', '--detach', '--name', container, '--network', 'none', '--cap-drop', 'ALL',
-           '--security-opt', 'no-new-privileges', '--user', f'{os.getuid()}:{os.getgid()}',
+           '--security-opt', 'no-new-privileges', '--shm-size', shm_size, '--user', f'{os.getuid()}:{os.getgid()}',
            '--workdir', str(work), *options, image, '/usr/bin/sleep', '600')
     app = InstalledEditor(container, home / '.local/share/Confectory/EditorHome', package)
     app.home, app.log, app.sdk = home, case / 'gtk.log', sdk
@@ -171,14 +172,18 @@ def test_package(package, image, case):
     print('PASS full packaged GTK restart, Recent, confirmed source, local draft and second Run', flush=True)
 
 
+def extracted_package(package, case):
+    archive = case / 'linux.tar.gz'
+    with tarfile.open(archive, 'w:gz') as bundle:
+        bundle.add(package, arcname='extract')
+    with tarfile.open(archive) as bundle:
+        bundle.extractall(case, filter='data')
+    archive.unlink()
+    return case / 'extract'
+
+
 if __name__ == '__main__':
     package, image = Path(sys.argv[1]).resolve(), sys.argv[2]
     with tempfile.TemporaryDirectory(prefix='cf-install-') as scratch:
         case = Path(scratch)
-        archive = case / 'linux.tar.gz'
-        with tarfile.open(archive, 'w:gz') as bundle:
-            bundle.add(package, arcname='extract')
-        with tarfile.open(archive) as bundle:
-            bundle.extractall(case, filter='data')
-        archive.unlink()
-        test_package(case / 'extract', image, case)
+        test_package(extracted_package(package, case), image, case)

@@ -4,7 +4,7 @@
 
 Windows entry: **[Confectory.bat](Confectory.bat)**. After a Windows package build, open **`Builds/Windows-x64/Confectory.exe`** with its complete output folder; see [exe package prerequisites and commands](docs/WINDOWS_LAUNCHER.md#빌드-후-exe-실행). See [direct startup and developer tools](docs/WINDOWS_LAUNCHER.md). Windows defaults to the embedded HTML editor. The v196 integration is partial; see [verified and remaining features](docs/EMBEDDED_WEB_UI.md). External-browser use remains developer diagnostics.
 
-Linux x64 entry: open **`run`** from the complete Linux desktop package in an X11 session. See [Linux prerequisites and package commands](docs/VALIDATION_LINUX_EDITOR_PACKAGE.md#linux-x64-독립-패키지).
+Linux x64 entry: use **`./run`** for GTK or **`./run --logic-code`** for Logic Code in a local browser. See [Linux prerequisites and package commands](docs/VALIDATION_LINUX_EDITOR_PACKAGE.md#linux-x64-독립-패키지).
 
 
 A .NET 10 build core for **ProjectPack + target**. It resolves namespace-qualified pack elements, generates C# contracts, compiles owned implementations locally, and links actual providers through a build-target pack. The core, CLI, target tool and tests are implemented in C#; Python is not required. Runtime and UI are assembled from ordinary packs, including the current small draft-authoring slice. Full editor, physics and mod loading are later packs.

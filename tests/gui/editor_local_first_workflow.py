@@ -23,7 +23,8 @@ from playwright.sync_api import expect, sync_playwright
 from editor_lan_chat_x11 import NativeEditor, eventually, repo
 
 sys.path.insert(0, str(repo / 'tests/web'))
-from editor_navigation import goto_editor, open_workspace_menu
+from editor_navigation import goto_editor
+from editor_logic_workflow import edit_body, find_project_item, open_main, review, run_from_dock
 
 
 TITLE = 'Local First Workflow'
@@ -128,90 +129,6 @@ def web(browser, label):
                     raise
 
 
-def find_project_item(page, item, tab):
-    menu = open_workspace_menu(page)
-    menu.get_by_role('button', name='프로젝트 브라우저', exact=True).click()
-    browser = page.locator('.window[data-key^="browser:project:"]')
-    browser.get_by_role('button', name=tab, exact=True).click()
-    browser.locator('[data-browser-control=object-query]').fill(item.split('::')[-1])
-    browser.locator('[data-browser-control=object-search]').click()
-    browser.locator(f'[data-object="{item}"]').press('Enter')
-    browser.locator('[data-close]').first.click()
-
-
-def open_main(page, feature):
-    panel = page.locator('.window[data-key=blueprint]')
-    if panel.is_visible():
-        # Recent restores both floating windows. Dismiss the separate
-        # declaration window through its normal control before editing.
-        declaration = page.locator('.window[data-key=declaration]')
-        if declaration.is_visible():
-            declaration.locator(':scope > .object-header [data-close]').click()
-        return panel
-    find_project_item(page, feature, '기능')
-    page.locator('[data-operation=feature-author-open]').first.click()
-    expect(panel).to_be_visible()
-    return panel
-
-
-def edit_body(page, panel, text=None):
-    expect(panel.get_by_role('tab', name='논리 코드', exact=True)).to_have_attribute('aria-selected', 'true')
-    panel.locator('[data-document-code=body]').click()
-    dialog = page.locator('.bp-script-dialog')
-    editor = dialog.locator('[data-code-source]')
-    expect(editor).to_be_visible()
-    body = dialog.locator('[data-code-highlight] > [data-code-region=body]')
-    if text is not None:
-        assert body.text_content() == 'return 0;\n'
-        editor.evaluate('''el => {
-            const parts = Array.from(el.closest('.bp-script-editor').querySelectorAll('[data-code-highlight] > span'));
-            const body = parts.findIndex(part => part.dataset.codeRegion === 'body');
-            if (body < 0) throw Error('Missing editable body');
-            const start = parts.slice(0, body).reduce((offset, part) => offset + part.textContent.length, 0);
-            el.focus();
-            el.setSelectionRange(start, start + parts[body].textContent.length);
-        }''')
-        page.keyboard.insert_text(text)
-        dialog.locator('[data-code-save]').click()
-    else:
-        assert body.text_content() == SOURCE
-        dialog.locator('[data-code-cancel]').click()
-    expect(dialog).to_be_hidden()
-
-
-def review(page, submit):
-    creation = page.locator('#review-creation')
-    def request():
-        submit.click()
-        page.locator('#review-creation:visible,.window[data-key=review]:visible,.window[data-key=targets]:visible').first.wait_for(timeout=120000)
-        if creation.is_visible():
-            creation.click()
-    request()
-    targets = page.locator('.window[data-key=targets]')
-    if targets.is_visible():
-        targets.locator('[data-target-choice]').select_option('linux')
-        targets.locator('[data-close]').click()
-        request()
-    result = page.locator('.window[data-key=review]')
-    expect(result).to_be_visible(timeout=120000)
-    if result.locator('[data-review-advanced]').is_visible():
-        result.locator('[data-review-advanced]').click()
-    if result.locator('[data-advanced-reviewed]').count():
-        result.locator('[data-advanced-reviewed]').check()
-    return result
-
-
-def run_from_dock(page):
-    MARKER.unlink(missing_ok=True)
-    page.get_by_role('button', name='프로젝트 실행', exact=True).click()
-    deadline = time.monotonic() + 120
-    while not MARKER.is_file() and time.monotonic() < deadline:
-        page.wait_for_timeout(100)
-    assert MARKER.is_file(), 'Confirmed code did not run'
-    expect(page.locator('.run-window:visible [data-run-frame]')).to_have_text('종료 코드 0', timeout=120000)
-    assert MARKER.read_text() == 'confirmed local code'
-
-
 def forward_open(manifest, app):
     # The production launcher must reach the already-running, same-profile inbox.
     launcher = repo / 'targets/desktop-entry/bin/Release/net10.0/Confectory.DesktopEntry.dll'
@@ -265,7 +182,7 @@ def workflow():
             expect(panel.get_by_role('tab', name='논리 코드', exact=True)).to_be_visible(timeout=120000)
             assert (source.read_bytes(), body.read_bytes(), manifest.read_bytes()) == (*original[:2], published_manifest)
             print('PASS explicit ProjectInfo Review/Confirm and native-to-document draft conversion', flush=True)
-            edit_body(page, panel, SOURCE)
+            edit_body(page, panel, SOURCE, change=True)
             panel.locator('[data-bp-save]').click()
             expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
             assert (source.read_bytes(), body.read_bytes(), manifest.read_bytes()) == (*original[:2], published_manifest)
@@ -280,15 +197,15 @@ def workflow():
             expect(final_review).to_be_hidden(timeout=120000)
             assert source.read_bytes() == original[0] and info.read_bytes() == info_original
             assert 'blueprint common' in body.read_text()
-            run_from_dock(page)
+            run_from_dock(page, MARKER, 'confirmed local code')
             print('PASS Logic Code edit and Save, Review cancel and Confirm, first Run produced the edited result', flush=True)
         browser.close()
 
         browser = playwright.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'])
         with web(browser, 'cold') as page:
             panel = open_main(page, feature)
-            edit_body(page, panel)
-            run_from_dock(page)
+            edit_body(page, panel, SOURCE, change=False)
+            run_from_dock(page, MARKER, 'confirmed local code')
         browser.close()
     print('PASS fresh host and browser opened Recent, read the same code and ran it again', flush=True)
 
