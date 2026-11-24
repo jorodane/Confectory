@@ -88,23 +88,66 @@ internal static class ProjectWindowCatalog
             return window;
         }
 
+        Element?[]? RegisteredViews()
+        {
+            var views = manifest.Elements.Where(row => row.Value.Kind == "view").Take(maxViews + 1).ToArray();
+            return views.Length <= maxViews ? views.Select(row => Owned(prefix + row.Key, "view")).ToArray() : null;
+        }
+
+        Element? OtherOpeningView(string id, Element?[] views) =>
+            views.FirstOrDefault(view => view is not null && view.Id != id &&
+                Renderer(view, "editorMain") is { Length: > 0 });
+
+        JsonObject ValidateOpeningAssignment(string id)
+        {
+            var prior = new Parser(setting!["original"]!.GetValue<string>(), "<opening-view-original>").ParseElement();
+            var draft = new Parser(setting["text"]!.GetValue<string>(), "<opening-view-draft>").ParseElement();
+            if (JsonNode.DeepEquals(MainValue(prior), MainValue(draft)) || !draft.Values.ContainsKey("editorMain"))
+                return new JsonObject { ["status"] = "available" };
+            if (draft.Id != id || draft.Kind != "view" || Owned(id, "view") is null ||
+                Renderer(draft, "editorMain") is not { Length: > 0 } || Project(draft) is null ||
+                RegisteredViews() is not { } views)
+                throw new ArgumentException("Use one directly owned, supported project opening View.");
+            if (OtherOpeningView(id, views) is { } conflict)
+                throw new ArgumentException($"First clear and confirm the opening View {conflict.Id}.");
+            var checks = new JsonArray();
+            foreach (var (path, value) in observed)
+                checks.Add(new JsonObject { ["path"] = path, ["hash"] =
+                    Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(value)).ToLowerInvariant() });
+            return new JsonObject { ["status"] = "available", ["assignment"] = true, ["checks"] = checks };
+        }
+
+        static JsonNode? MainValue(Element view) => view.Values.TryGetValue("editorMain", out var value)
+            ? JsonNode.Parse(value.Value.GetRawText()) : null;
+
         JsonObject? EditSetting(string id)
         {
+            bool mainSetting = setting!["placement"]?.GetValue<string>() == "main";
+            string property = mainSetting ? "editorMain" : "editorWindow";
             var confirmed = Owned(id, "view");
-            if (confirmed is null || Renderer(confirmed) is null || Project(confirmed) is null)
+            if (confirmed is null || (!mainSetting && Renderer(confirmed) is null) || Project(confirmed) is null)
                 return null;
             string text = setting!["text"]!.GetValue<string>();
             if (text.Length > maxDocumentBytes) return null;
             var draft = new Parser(text, "<project-window-draft>").ParseElement();
             if (draft.Id != id || draft.Kind != "view" || draft.Parent is not null ||
-                Renderer(draft) is not { } current || Project(draft) is null)
+                Renderer(draft, property) is not { } current || Project(draft) is null)
                 return null;
             var result = new JsonObject { ["status"] = "available", ["renderer"] = current };
+            if (mainSetting)
+            {
+                var views = RegisteredViews();
+                if (views is null) return null;
+                var conflict = OtherOpeningView(id, views);
+                if (conflict is not null) result["conflict"] = conflict.Id;
+            }
             if (setting["renderer"] is { } choice)
             {
                 string next = choice.GetValue<string>();
                 if (!Supported(next)) return null;
-                result["text"] = next == current ? text : ReplaceSetting(text, draft, next);
+                if (next.Length != 0 && result["conflict"] is not null)
+                    return new JsonObject { ["status"] = "conflict", ["conflict"] = result["conflict"]!.DeepClone() };
+                result["text"] = next == current ? text : ReplaceSetting(text, draft, property, next);
             }
             return result;
         }
@@ -112,15 +155,15 @@ internal static class ProjectWindowCatalog
         // Resolve the exact requested ID again on open. Menu discovery is bounded and
         // reads only direct declarations in the current manifest.
         JsonObject? opened = requestedId is null ? null :
-            setting is null ? ConfirmedWindow(requestedId) : EditSetting(requestedId);
+            setting is null ? ConfirmedWindow(requestedId) :
+            setting["action"]?.ToString() == "validate-project-main-view" ? ValidateOpeningAssignment(requestedId) : EditSetting(requestedId);
         var windows = new JsonArray();
         if (main)
         {
             // Refuse ambiguous assignments, including assignments beyond the discovery budget.
-            var views = manifest.Elements.Where(row => row.Value.Kind == "view").Take(maxViews + 1).ToArray();
-            if (views.Length <= maxViews)
+            if (RegisteredViews() is { } views)
             {
-                var declared = views.Select(row => Owned(prefix + row.Key, "view"))
+                var declared = views
                     .Where(view => view?.Values.ContainsKey("editorMain") == true).ToArray();
                 if (declared.Length == 1 &&
                     declared[0]!.Values["editorMain"].Value is { ValueKind: JsonValueKind.String } choice &&
@@ -157,32 +200,36 @@ internal static class ProjectWindowCatalog
     private static bool Supported(string value) => value is "" or "element-view-card" or "element-view-table";
 
     // An absent property is the existing opt-out. Unknown values are outside this editor's contract.
-    private static string? Renderer(Element view)
+    private static string? Renderer(Element view, string property = "editorWindow")
     {
-        if (!view.Values.TryGetValue("editorWindow", out var value)) return "";
+        if (!view.Values.TryGetValue(property, out var value)) return "";
         return value.Value.ValueKind == JsonValueKind.String &&
             value.Value.GetString() is { Length: > 0 } renderer && Supported(renderer) ? renderer : null;
     }
 
-    private static string ReplaceSetting(string text, Element draft, string renderer)
+    private static string ReplaceSetting(string text, Element draft, string property, string renderer)
     {
         const string trivia = @"(?:\s|//[^\n]*)*";
         string literal = JsonSerializer.Serialize(renderer);
-        if (!draft.Values.TryGetValue("editorWindow", out var previous))
+        if (!draft.Values.TryGetValue(property, out var previous))
         {
             var closing = Regex.Match(text, @"\}" + trivia + @"\z", RegexOptions.NonBacktracking);
             if (!closing.Success) throw new InvalidOperationException("Missing View terminator.");
-            return text.Insert(closing.Index, "value editorWindow = " + literal + "; ");
+            return text.Insert(closing.Index, "value " + property + " = " + literal + "; ");
         }
 
         // The parsed location identifies the exact statement even if its spelling occurs in comments or strings.
         int offset = 0;
         for (int line = 1; line < previous.Loc.Line; line++) offset = text.IndexOf('\n', offset) + 1;
         offset += previous.Loc.Column - 1;
-        var clause = new Regex(@"\Gvalue" + trivia + "editorWindow" + trivia + "=" + trivia +
-            "(?<literal>\"(?:[^\"\\\\]|\\\\.)*\")" + trivia + ";").Match(text, offset);
+        string gap = property == "editorMain" ? "(?<gap>" + trivia + ")" : trivia;
+        var clause = new Regex(@"\Gvalue" + gap + property + gap + "=" + gap +
+            "(?<literal>\"(?:[^\"\\\\]|\\\\.)*\")" + gap + ";").Match(text, offset);
         if (!clause.Success) throw new InvalidOperationException("Missing View menu setting.");
         var span = renderer.Length == 0 ? clause : clause.Groups["literal"];
-        return text.Remove(span.Index, span.Length).Insert(span.Index, renderer.Length == 0 ? "" : literal);
+        string replacement = renderer.Length == 0
+            ? string.Concat(clause.Groups["gap"].Captures.Where(g => g.Value.Contains("//", StringComparison.Ordinal)).Select(g => g.Value))
+            : literal;
+        return text.Remove(span.Index, span.Length).Insert(span.Index, replacement);
     }
 }

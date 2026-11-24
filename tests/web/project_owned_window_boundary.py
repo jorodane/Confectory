@@ -121,16 +121,21 @@ def check_project_tools(page, *, approved=False):
     expect(tools).to_be_hidden()
 
 
-def stage_renderer(page, path, renderer, previous, *, add_input=False):
-    before = path.read_bytes()
+def select_registered_view(page, identifier):
     page.locator("#project-menu").click()
     page.locator(".context-menu").get_by_role("button", name="팩 관리", exact=True).click()
     packs = page.locator('[data-key="packs"]')
     packs.get_by_text("프로젝트 창 선언", exact=True).click()
-    packs.get_by_role("button", name=WINDOW, exact=True).click()
-    expect(page.locator("#selection")).to_have_text(WINDOW)
+    packs.get_by_role("button", name=identifier, exact=True).click()
+    expect(page.locator("#selection")).to_have_text(identifier)
     source = page.locator("#source")
     expect(source).to_be_visible()
+    return source
+
+
+def stage_renderer(page, path, renderer, previous, *, add_input=False):
+    before = path.read_bytes()
+    source = select_registered_view(page, WINDOW)
     text = source.input_value()
     if add_input:
         text += "// Preserve this unconfirmed comment beside the menu setting.\n"
@@ -143,7 +148,7 @@ def stage_renderer(page, path, renderer, previous, *, add_input=False):
         edited = text.replace(" }", f' value editorWindow = "{renderer}"; }}', 1)
     panel = page.locator("[data-project-window-setting]")
     panel.get_by_role("button", name="메뉴 표시 설정", exact=True).click()
-    choices = panel.get_by_role("combobox", name="메뉴에 표시", exact=True)
+    choices = panel.get_by_role("combobox", name="≡ 메뉴에 표시", exact=True)
     expect(choices).to_have_value(previous)
     assert choices.locator("option").all_text_contents() == ["표시 안 함", "읽기 전용 카드", "읽기 전용 표"]
     choices.select_option(renderer)
@@ -380,12 +385,22 @@ def main_view_workflow(report, root, browser):
 
         assert enter(alpha["title"])["status"] == "unavailable"
         expect(surface).to_have_count(0)
-        project_menu(page, approved=True).get_by_role("button", name="팩 관리", exact=True).click()
-        packs = page.locator('[data-key="packs"]')
-        packs.get_by_text("프로젝트 창 선언", exact=True).click()
-        packs.get_by_role("button", name=WINDOW, exact=True).click()
-        proposal = initial.replace(" }", ' value editorMain = "element-view-table"; }', 1)
-        page.locator("#source").fill(proposal)
+        source = select_registered_view(page, WINDOW)
+        pending_text = initial + "// Pending workspace explanation must survive.\n"
+        source.fill(pending_text)
+
+        def opening_picker(previous, tab=page):
+            tab.get_by_role("button", name="프로젝트 시작 화면 설정", exact=True).click()
+            picker = tab.get_by_role("combobox", name="프로젝트 시작 화면", exact=True)
+            expect(picker).to_have_value(previous)
+            assert picker.locator("option").all_text_contents() == ["기본 화면", "읽기 전용 카드", "읽기 전용 표"]
+            return picker
+
+        opening_picker("").select_option("element-view-table")
+        page.get_by_role("button", name="초안에 적용", exact=True).click()
+        proposal = pending_text.replace(" }", ' value editorMain = "element-view-table"; }', 1)
+        expect(source).to_have_value(proposal)
+        assert path.read_text() == initial
         review = open_review(page)
         review.locator("[data-reject]").click()
         expect(review).to_have_count(0)
@@ -395,6 +410,23 @@ def main_view_workflow(report, root, browser):
 
         confirm_review(page)
         assert path.read_text() == proposal
+        other_root = root / "opening-conflict"
+        (other_root / "profile").mkdir(parents=True)
+        (other_root / "profile" / "projects.json").write_text(json.dumps([alpha]))
+        with editor(report, other_root, "opening-conflict", checkout=checkout) as other_address:
+            other_page, other_errors = attach(browser, other_address)
+            open_project(other_page, alpha["title"])
+            other = select_registered_view(other_page, UNSUPPORTED)
+            original_other = other.input_value()
+            blocked = opening_picker("", other_page)
+            expect(other_page.get_by_text(WINDOW + "의 시작 화면 지정을 먼저 해제하고 확정하세요.",
+                                          exact=True)).to_be_visible()
+            assert blocked.locator('option[value="element-view-card"]').evaluate("option => option.disabled")
+            assert blocked.locator('option[value="element-view-table"]').evaluate("option => option.disabled")
+            expect(other).to_have_value(original_other)
+            assert not other_errors, other_errors
+            other_page.close()
+
         home(page)
         expect(surface).to_have_count(0)
         assert enter(bravo["title"])["status"] == "unavailable"
@@ -412,12 +444,24 @@ def main_view_workflow(report, root, browser):
         }"""), "The main View must be on the visible workspace surface"
         open_window(page, "card")
         expect(surface.locator("table")).to_be_visible()
+        source = select_registered_view(page, WINDOW)
+        picker = opening_picker("element-view-table")
+        picker.select_option("")
+        page.get_by_role("button", name="초안에 적용", exact=True).click()
+        cleared = proposal.replace('value editorMain = "element-view-table";', '', 1)
+        expect(source).to_have_value(cleared)
+        assert path.read_text() == proposal
+        confirm_review(page)
+        home(page)
+        assert enter(alpha["title"])["status"] == "unavailable"
+        expect(surface).to_have_count(0)
+        open_window(page, "card")
         assert not proof.exists() and not errors, errors
         page.close()
 
-    originals[path] = proposal.encode()
+    originals[path] = cleared.encode()
     assert all(file.read_bytes() == value for file, value in originals.items())
-    print("PASS declared main View is independent of the menu, confirmed-only, read-only and project-scoped")
+    print("PASS Chromium opening View picker: cancellation, confirmation, conflict, reset, menu independence and draft retention")
 
 
 def settings_workflow(package, root, browser):

@@ -75,11 +75,13 @@ both the menu entry and the open card.
 ## Confirmed browser workspace opening View
 
 The browser editor can open the root Workspace with one directly owned and
-registered View. In that View's source draft set `value editorMain =
-"element-view-card";` or `value editorMain = "element-view-table";`, then use
-the existing Review and Confirm controls. The selection is read when opening
-the project. It uses the same read-only object and string-field projection as
-project windows. The `editorMain` value is independent of `editorWindow`.
+registered View. Go to **팩 관리 → 프로젝트 창 선언**, select the View,
+and open **프로젝트 시작 화면 설정**. Choose the standard workspace, a read-only
+card, or a read-only table. **초안에 적용** stages the selection with the existing
+source input. Review and Confirm publish it for the next project open.
+To change the designated View, first clear the current View's assignment and
+Confirm that change. The independent **≡ 메뉴에 표시** setting stays intact.
+Both surfaces use the same read-only object and string-field projection.
 Absent, invalid, or ambiguous assignments use the standard workspace.
 
 Run the focused check with a Linux EditorHome build report from the checkout:

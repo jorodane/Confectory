@@ -17,6 +17,23 @@ try
  var paths=new string[changes.Length/4];var hashes=new string[paths.Length];var texts=new string[paths.Length];var accepted=new string[paths.Length];for(int i=0;i<paths.Length;i++){accepted[i]=changes[i*4];paths[i]=changes[i*4+1];hashes[i]=changes[i*4+2];texts[i]=changes[i*4+3];}
  if(paths.Length>0){var activity=calls.Activity.Invoke(identity[0],"confirm");paths=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Append(paths,activity[0]));hashes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Append(hashes,activity[1]));texts=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Append(texts,activity[2]));}
  var draftState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;var writes=new System.Text.Json.Nodes.JsonArray();var checks=new System.Text.Json.Nodes.JsonArray();for(int n=0;n<paths.Length;n++){bool retained=n<accepted.Length&&draftState?["units"]?[accepted[n]]?["hierarchyGroup"] is not null&&draftState["units"]![accepted[n]]!["draft"]!.ToString()==draftState["units"]![accepted[n]]!["original"]!.ToString();if(n<accepted.Length)foreach(var operation in draftState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject()){var receipt=operation.Value!;if(receipt["entries"]?[accepted[n]] is null)continue;retained=receipt["state"]?.ToString()=="pending"||receipt["state"]?.ToString()=="restoring"&&draftState?["units"]?[accepted[n]]?["draft"]?.ToString()==draftState?["units"]?[accepted[n]]?["original"]?.ToString();}var row=new System.Text.Json.Nodes.JsonObject{["path"]=paths[n],["hash"]=hashes[n]};if(retained)checks.Add(row);else{row["text"]=texts[n];writes.Add(row);}}
+ // Bind a new opening View to the exact manifest and View sources read at Confirm.
+ int openingAssignments=0;
+ foreach(string id in selected){
+  var unit=draftState?["units"]?[id];
+  if(unit?["kind"]?.ToString()!="view"||unit["draft"]?.ToString().Contains("editorMain",StringComparison.Ordinal)!=true)continue;
+  var guard=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("catalog",new System.Text.Json.Nodes.JsonObject{
+   ["project"]=identity[0],["request"]=new System.Text.Json.Nodes.JsonObject{["action"]="validate-project-main-view",
+    ["id"]=id,["text"]=unit["draft"]!.DeepClone(),["original"]=unit["original"]!.DeepClone()}
+  }.ToJsonString()))!;
+  if(guard["status"]?.ToString()!="available")return new[]{"invalid",guard["message"]?.ToString()??"Clear any conflicting project opening View before confirming a new one."};
+  if(guard["assignment"]?.GetValue<bool>()!=true)continue;
+  if(++openingAssignments>1)return new[]{"invalid","Confirm only one project opening View."};
+  foreach(var read in guard["checks"]!.AsArray()){
+   string path=System.IO.Path.GetRelativePath(root,read!["path"]!.ToString());
+   if(Array.IndexOf(paths,path)<0)checks.Add(new System.Text.Json.Nodes.JsonObject{["path"]=path,["hash"]=read["hash"]!.DeepClone()});
+  }
+ }
  if(System.Linq.Enumerable.Any(draftState!["units"]!.AsObject(),u=>u.Value?["asyncTransition"] is not null))foreach(var guard in System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintAsyncGuards",new System.Text.Json.Nodes.JsonObject{["namespace"]=draftState["namespace"]!.DeepClone(),["units"]=draftState["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["checks"]!.AsArray())if(!System.Linq.Enumerable.Any(writes,w=>w!["path"]!.ToString()==guard!["path"]!.ToString())&&!System.Linq.Enumerable.Any(checks,c=>c!["path"]!.ToString()==guard!["path"]!.ToString()))checks.Add(guard!.DeepClone());
  // Property observation checks share the final source lease with every write.
  foreach(var guard in System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintPropertyObservations",new System.Text.Json.Nodes.JsonObject{["namespace"]=draftState["namespace"]!.DeepClone(),["units"]=draftState["units"]!.DeepClone(),["selected"]=System.Text.Json.JsonSerializer.SerializeToNode(selected)}.ToJsonString()))!["checks"]!.AsArray())if(!System.Linq.Enumerable.Any(writes,w=>w!["path"]!.ToString()==guard!["path"]!.ToString())&&!System.Linq.Enumerable.Any(checks,c=>c!["path"]!.ToString()==guard!["path"]!.ToString()))checks.Add(guard!.DeepClone());

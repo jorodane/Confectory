@@ -621,44 +621,59 @@ function renderProjectWindowSetting(w){
  panel.settingId=id;
  panel.replaceChildren();
  if(!id)return;
- const open=button('메뉴 표시 설정',()=>work(async()=>{
-  const scope=projectWindowScope(open);
-  const alive=()=>scope.alive()&&windows.get('source')===w&&!w.el.hidden&&
-   draft?.id===id&&current.draft?.id===id;
-  if(!alive())return false;
-  const basis={id,text:source.value,revision:draft.revision};
-  const result=await observeProjectWindow('readProjectWindowSetting',basis,alive);
-  if(!result||!alive()||source.value!==basis.text||draft.revision!==basis.revision)return false;
-  const choices=new Map([['','표시 안 함'],['element-view-card','읽기 전용 카드'],['element-view-table','읽기 전용 표']]);
-  if(!choices.has(result.renderer))throw Error('이 View는 프로젝트 창 메뉴 표시를 지원하지 않아요.');
-  const label=document.createElement('label'),select=document.createElement('select');
-  label.textContent='메뉴에 표시 ';
-  for(const [mode,name] of choices)select.add(new Option(name,mode));
-  select.value=result.renderer;
-  label.append(select);
-  const applySetting=button('초안에 적용',()=>{
-   const renderer=select.value;
-   return work(async()=>{
-    if(!alive()||!select.isConnected)return false;
-    if(source.value!==basis.text||draft.revision!==basis.revision){
-     label.remove();applySetting.remove();open.hidden=false;
-     throw Error('소스 입력이 바뀌었어요. 메뉴 표시 설정을 다시 열어 주세요.');
-    }
-    await view.call('setProjectWindowSetting',{...basis,renderer});
-    if(!alive())return false;
-    if(dirty&&source.value!==basis.text)return false;
-    dirty=false;draft=current.draft;source.value=draft.text;
-    label.remove();applySetting.remove();open.hidden=false;
-    editor();open.focus();
-   },'메뉴 표시를 초안에 적용했어요. Review와 Confirm 뒤 메뉴에 반영됩니다.');
-  });
-  applySetting.dataset.operation='project-window-setting';
-  open.hidden=true;
-  panel.append(label,applySetting);
-  select.focus();
- },null,{failureMessage:'이 View의 메뉴 표시 설정을 읽을 수 없어요. 등록과 기존 창 형식을 확인해 주세요.'}));
- open.dataset.operation='project-window-setting';
- panel.append(open);
+ let dismissSetting;
+ function addSetting(main){
+  const field=document.createElement('div');
+  const open=button(main?'프로젝트 시작 화면 설정':'메뉴 표시 설정',()=>work(async()=>{
+   dismissSetting?.();
+   const scope=projectWindowScope(open);
+   const alive=()=>scope.alive()&&windows.get('source')===w&&!w.el.hidden&&
+    draft?.id===id&&current.draft?.id===id;
+   if(!alive())return false;
+   const basis={id,text:source.value,revision:draft.revision,...(main?{placement:'main'}:{})};
+   const result=await observeProjectWindow('readProjectWindowSetting',basis,alive);
+   if(!result||!alive()||source.value!==basis.text||draft.revision!==basis.revision)return false;
+   const choices=new Map([['',main?'기본 화면':'표시 안 함'],['element-view-card','읽기 전용 카드'],['element-view-table','읽기 전용 표']]);
+   if(!choices.has(result.renderer))throw Error('이 View는 프로젝트 창 메뉴 표시를 지원하지 않아요.');
+   const label=document.createElement('label'),select=document.createElement('select');
+   label.textContent=main?'프로젝트 시작 화면 ':'≡ 메뉴에 표시 ';
+   for(const [mode,name] of choices)select.add(new Option(name,mode));
+   select.value=result.renderer;
+   label.append(select);
+   const notice=document.createElement('p');
+   if(result.conflict){
+    notice.textContent=result.conflict+'의 시작 화면 지정을 먼저 해제하고 확정하세요.';
+    for(const option of select.options)if(option.value)option.disabled=true;
+   }
+   const dismiss=()=>{label.remove();applySetting.remove();notice.remove();open.hidden=false;dismissSetting=null;};
+   const applySetting=button('초안에 적용',()=>{
+    const renderer=select.value;
+    return work(async()=>{
+     if(!alive()||!select.isConnected)return false;
+     if(source.value!==basis.text||draft.revision!==basis.revision){
+      dismiss();
+      throw Error('소스 입력이 바뀌었어요. 메뉴 표시 설정을 다시 열어 주세요.');
+     }
+     await view.call('setProjectWindowSetting',{...basis,renderer});
+     if(!alive())return false;
+     if(dirty&&source.value!==basis.text)return false;
+     dirty=false;draft=current.draft;source.value=draft.text;
+     dismiss();
+     editor();open.focus();
+    },'View 설정을 초안에 적용했어요. Review와 Confirm 뒤 반영됩니다.');
+   });
+   applySetting.dataset.operation='project-window-setting';
+   dismissSetting=dismiss;
+   open.hidden=true;
+   field.append(label,applySetting);
+   if(result.conflict)field.append(notice);
+   select.focus();
+  },null,{failureMessage:'이 View의 설정을 읽을 수 없어요. 등록과 기존 창 형식을 확인해 주세요.'}));
+  open.dataset.operation='project-window-setting';
+  field.append(open);panel.append(field);
+ }
+ addSetting(false);
+ addSetting(true);
 }
 function editor(){if(!actualWorkspace.shouldRender('source'))return;let w=windows.get('source');if(!w){w=openWindow('source','고급 소스 작업 사본',520,450,{x:740,y:115});w.el.hidden=true;workspaceRuntime.unregisterWorkspaceNode(w.key);saveLayouts();}if(!$('#source')){w.body.innerHTML='<div class="window-content"><h2 id="selection"></h2><p id="source-notice" class="small"></p><div class="actions" data-project-window-setting hidden></div><textarea id="source" class="consumer-source" aria-label="Source draft"></textarea><div class="actions"><button data-operation id="schema">스키마</button><button data-operation id="apply">Apply to shared draft</button><button data-operation id="source-conflict">충돌 비교</button><button data-operation id="save">Save</button><button data-operation id="review">Review</button></div><div class="editor-note">Save는 작업 사본 저장입니다. 최종 소스 반영은 별도 Review / Confirm이 필요합니다.</div></div>';if(dirty){const pending=retained.get(current.projectId);if(pending?.dirty)$('#source').value=pending.text;}$('#source').oninput=()=>{dirty=true;actualWorkspace.schedule();};$('#schema').onclick=()=>work(async()=>{await apply();await view.call('schema',{id:draft.id});showSchema();},'Schema loaded for selected object');$('#apply').onclick=()=>work(apply,'Shared draft updated');$('#source-conflict').onclick=()=>conflictsUI.open(current.draft?.id);$('#save').onclick=()=>work(async()=>{if(draft&&['object','schema'].includes(draft.kind)&&(dirty||rawOwnerSaves.has(draft.id))){const owner=draft.id,scope=current.projectId;await rawOwnerSaves.save(owner,{rawSurface:'primary'},()=>current.projectId===scope&&draft?.id===owner);if(rawOwnerSaves.pending(owner))throw Error('저장 후 새 소스 입력이 남아 있어요. 입력은 유지됩니다.');}else{await apply();await view.call('saveDraft',{});}},'Draft saved; final sources unchanged');$('#review').onclick=()=>work(async()=>{await apply();return reviewSelected(draft.id);},'변경 검토가 준비되었습니다. 최종 소스는 유지됩니다.');}if(current.draft&&(!draft||!dirty)){draft=current.draft;$('#source').value=draft.text;$('#selection').textContent=draft.id;w.meta.id=draft.id;}if(draft){w.meta.id=draft.id;$('#selection').textContent=draft.id;}$('#source-notice').textContent=dirty&&draft?.id!==current.draft?.id?'다른 뷰에서 선택이 바뀌었습니다. 입력을 유지했습니다. 이 객체를 브라우저에서 다시 선택한 뒤 적용하세요.':'';renderProjectWindowSetting(w);controls();}
 function keepInput(){if(current?.projectId&&$('#source'))retained.set(current.projectId,{draft,dirty,text:$('#source').value});}
