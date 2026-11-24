@@ -12,18 +12,35 @@ export function createReferenceGestures(api){
  return {source,target,link};
 }
 
-// v536 hover is declared inheritance, not generic project or account access.
+// The browser shows declared data references separately from inheritance.
 export function createBrowserReferenceHover(api){
  let active=null,shift=false;
  function close(){active?.tip?.remove();active=null;}
+ const ownedObject=row=>row?.kind==='object'&&row.owned===true&&row.valid===true;
  function draw(){
   if(!active)return;const {anchor,id,scope}=active;
   if(api.projectId!==scope||!anchor.isConnected||!anchor.getClientRects().length){close();return;}
-  active.tip?.remove();const rows=api.projection.rows(),row=rows.find(row=>row.id===id),name=id=>rows.find(row=>row.id===id)?.title||id?.split('::').at(-1)||'Root';
-  if(!row){close();return;}const refs=shift?api.projection.children(id):rows.filter(value=>value.id===api.projection.parent(id));
+  active.tip?.remove();
+  const {rows,edges=[]}=api.projection.snapshot(),byId=new Map(rows.map(row=>[row.id,row]));
+  const row=byId.get(id),name=id=>byId.get(id)?.title||id?.split('::').at(-1)||'Root';
+  if(!row){close();return;}
   const tip=document.createElement('div');tip.className='object-ref floating-object-ref';tip.setAttribute('role','tooltip');
-  const title=document.createElement('strong');title.textContent=shift?'역참조 · Shift + Hover':'참조 · Hover';const info=document.createElement('small');info.textContent='분류: '+name(api.projection.folder(id))+' · ID: '+id.slice(0,12);
-  tip.append(title,document.createElement('br'),document.createTextNode(refs.map(row=>name(row.id)).join(' · ')||'연결된 상속 참조 없음'),document.createElement('br'),info);document.body.append(tip);active.tip=tip;
+  const title=document.createElement('strong');title.textContent=shift?'역참조 · Shift + Hover':'참조 · Hover';
+  tip.append(title,document.createElement('br'));
+  if(ownedObject(row)){
+   const direct=new Set();
+   for(const edge of edges){
+    if(edge.role!=='data'||(shift?edge.target:edge.source)!==id)continue;
+    const other=shift?edge.source:edge.target;
+    if(ownedObject(byId.get(other)))direct.add(other);
+   }
+   const label=shift?'직접 역참조':'직접 참조';
+   tip.append(document.createTextNode(direct.size?label+': '+[...direct].map(name).join(' · '):label+' 없음'),document.createElement('br'));
+  }
+  const parent=api.projection.parent(id),family=shift?api.projection.children(id).map(child=>child.id):parent?[parent]:[];
+  const origin=shift?'상속 바리에이션: ':'상속 부모: ';
+  const info=document.createElement('small');info.textContent='분류: '+name(api.projection.folder(id))+' · ID: '+id.slice(0,12);
+  tip.append(document.createTextNode(family.length?origin+family.map(name).join(' · '):'연결된 상속 참조 없음'),document.createElement('br'),info);document.body.append(tip);active.tip=tip;
   const r=anchor.getBoundingClientRect(),t=tip.getBoundingClientRect();tip.style.left=Math.max(8,Math.min(r.left,innerWidth-t.width-8))+'px';tip.style.top=Math.max(8,Math.min(r.top-t.height-8>=8?r.top-t.height-8:r.bottom+8,innerHeight-t.height-8))+'px';
  }
  for(const event of ['keydown','keyup'])document.addEventListener(event,e=>{if(shift!==e.shiftKey){shift=e.shiftKey;draw();}});
