@@ -52,6 +52,13 @@ def press(window,key):
         buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buffer)
     flush(display)
 
+def click(window,x,y):
+    stamp = int(time.monotonic() * 1000) & 0xffffffff
+    for kind in (4,5):
+        event=Event(kind,0,1,display,window,root,0,stamp,x,y,x,y,0,1,1)
+        buffer=c.create_string_buffer(192);c.memmove(buffer,c.byref(event),c.sizeof(event));assert send(display,window,0,0,buffer)
+    flush(display)
+
 def colored(window,color):
     bitmap=image(display,window,0,0,400,240,U(-1).value,2);assert bitmap
     try:
@@ -83,7 +90,8 @@ for repetition in range(2):
         window=await_window();time.sleep(.05)
         # A rejected craft must not acquire an item or display a projectile.
         press(window,'c');time.sleep(.03);assert not colored(window,0xF4D12D)
-        press(window,'h');time.sleep(.03);press(window,'h')  # Second harvest occurs during the declared cooldown.
+        press(window,'t');time.sleep(.03)  # No result yet.
+        click(window,60,268);time.sleep(.03);press(window,'h')  # Second harvest occurs during the declared cooldown.
         time.sleep(.03);press(window,'c');time.sleep(.03);press(window,'t')
         intermediate=wait_color(window,0xF4D12D,lambda p:110<sum(x for x,y in p)/len(p)<285 and sum(y for x,y in p)/len(p)<180,.65)
         landed=wait_color(window,0xF4D12D,lambda p:315<=sum(x for x,y in p)/len(p)<=325 and 185<=sum(y for x,y in p)/len(p)<=195,.9)
@@ -93,6 +101,7 @@ for repetition in range(2):
         while colored(window,0xEB7130) and time.monotonic()<deadline:
             time.sleep(.01)
         assert not colored(window,0xEB7130),'Effect lifetime did not end'
+        press(window,'h');time.sleep(.03)  # Continue playing after completion.
         close(window);out,err=process.communicate(timeout=10);assert process.returncode==0,err+out
         traces=[json.loads(line) for line in out.splitlines() if line.startswith('{')]
         events=[t['event'] for t in traces]
@@ -106,6 +115,16 @@ for repetition in range(2):
         }
         observed = {(row['event'], row.get('feedback'), row.get('feedbackSuccess')) for row in traces}
         assert feedback <= observed, feedback - observed
+        actions = [row for row in traces if row["event"].endswith(("-applied", "-rejected"))]
+        assert [(row["event"], row["goalStep"]) for row in actions] == [
+            ("craft-rejected", 0), ("throw-rejected", 0),
+            ("harvest-applied", 1), ("harvest-rejected", 1),
+            ("craft-applied", 2), ("throw-applied", 3), ("harvest-applied", 3),
+        ]
+        assert traces[0]["event"] == "ready" and traces[0]["goalStep"] == 0
+        goals = ["Goal 1/3: Harvest [H]", "Goal 2/3: Craft [C]",
+                 "Goal 3/3: Use item [T]", "Goals complete! Keep playing."]
+        assert all(row["goal"] == goals[row["goalStep"]] for row in traces)
         assert 'game owner cleanup complete' in out
         print(f'PASS actual X11 game repetition {repetition+1}: action feedback, motion pixels, landing/fuse/effect, cleanup')
     finally:
