@@ -986,10 +986,13 @@ async function loadProjectWindowMenu(menu,anchor){
  const {activation,alive}=projectWindowScope(anchor);
  if(!menu||!alive())return;
  projectWindowMenu=menu;
+ const opened=ownedProjectWindow;
  try{
   const result=await observeProjectWindow('listProjectWindows',{},()=>alive()&&menu.isConnected);
   if(!alive()||projectWindowMenu!==menu||!menu.isConnected||result?.status!=='available'||
-     result.projectActivation!==activation||!result.windows.length)return;
+     result.projectActivation!==activation)return;
+  if(opened&&ownedProjectWindow===opened&&!result.windows.some(row=>row.id===opened.id))opened.close();
+  if(!result.windows.length)return;
   const close=menu.querySelector('[data-mobile-popup-close]');
   for(const {id,title} of result.windows){
    const item=button(title,()=>{menu._close();void openProjectOwnedWindow(id,anchor);});
@@ -1028,7 +1031,7 @@ async function openProjectOwnedWindow(id,anchor){
     value.createTBody().insertRow().insertCell().textContent=row.value;
    }
    body.append(value);
-   const opened={close,alive};
+   const opened={id,close,alive};
    ownedProjectWindow=opened;
    root._ownedCleanup=()=>{if(ownedProjectWindow===opened)ownedProjectWindow=null;};
   },{presentation:'floating'});
