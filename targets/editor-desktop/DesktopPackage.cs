@@ -81,7 +81,10 @@ internal static class DesktopPackage
             No source checkout, build cache or credentials are required.
             In a local project with a declared entry, choose Open Logic Code in Browser from the GTK
             project menu. This closes the native editor and opens the entry function in your default
-            browser. Close the small Logic Code window to end the local editor session.
+            browser. To return to the same GTK project, choose Return to GTK in the small Logic Code
+            window, then confirm GTK로 돌아가기 in the browser. Finish any open review or pending edits
+            before trying again. Closing the small window ends the session. Closing only the browser
+            tab does not return to GTK.
             If the default browser cannot open, GTK keeps or reopens the same project and its draft.
             To use Logic Code manually, close GTK and run ./run --logic-code. Open the printed
             loopback address, choose the project from Recent, and use Ctrl+C to stop.
