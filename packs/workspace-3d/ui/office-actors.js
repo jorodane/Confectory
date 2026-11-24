@@ -50,9 +50,15 @@ export const actorMethods={
  buildActor(helper,id,role,workerId,workerLabel=workerId){
   const rig=createCharacter(helper,this.source.skins[helper.id]||helper.voxelCharacter),actor={...rig,id,role,helper,helperId:helper.id,workerId,workerLabel,path:[],speed:role==='worker'?7.2:3.1,carrying:false,taskStarted:null};
   actor.group.scale.setScalar(role==='worker'?.5:1);this.model.add(actor.group);this.actorProps(actor);
+  actor.marker=this.box(actor.group,0,.55,0,.8,.9,.8,role==='worker'?'#91b8d0':'#96c5ae');
+  this.paintActorAppearance(actor);
   const pick={kind:role,id};actor.group.traverse(mesh=>{if(mesh.isMesh){mesh.userData.pick=pick;this.pickables.push(mesh)}});
   actor.shadow=new THREE.Mesh(this.shadowGeometry,this.shadowMaterial);actor.shadow.rotation.x=-Math.PI/2;actor.shadow.position.y=.08;actor.group.add(actor.shadow);
   this.label(role==='worker'?helper.name+' · '+workerLabel:helper.name,role,id,()=>actor.group.position.clone().add(new THREE.Vector3(0,role==='worker'?1.42:2.8,0)),'준비 중',role==='helper'?helper.image:'');this.actors.push(actor);return actor;
+ },
+ paintActorAppearance(actor){
+  actor.body.visible=this.showHelperCharacters;
+  actor.marker.visible=!this.showHelperCharacters;
  },
  placeActor(actor,old,fallback){
   let start=fallback;
@@ -164,7 +170,9 @@ export const actorMethods={
   const theme=zones[this.rooms.get(job.roomId)?.zone];return (job.access==='read'?theme?.read||'읽기':theme?.write||'쓰기')+' 중';
  },
  actorAction(actor){
-  if(actor.activity?.hiddenTarget||actor.role==='helper'&&actor.workers?.some(worker=>worker.activity.hiddenTarget))return '작업 중';const visual=this.visualAction(actor);
+  if(actor.activity?.hiddenTarget||actor.role==='helper'&&actor.workers?.some(worker=>worker.activity.hiddenTarget))return '작업 중';
+  if(!this.showHelperCharacters)return actor.role==='worker'?this.jobAction(actor):actor.helper.status||'도우미';
+  const visual=this.visualAction(actor);
   if(actor.role==='helper'){const running=actor.workers.filter(worker=>worker.job.state==='running').length;return running?'작업 '+running+'건 진행 · '+visual:visual}
   if(actor.job.state==='idle')return visual;
   const job=this.jobAction(actor);return !actor.path.length&&['work','read'].includes(actor.task.kind)?job:job+' · '+visual;

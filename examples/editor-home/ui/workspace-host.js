@@ -56,6 +56,7 @@ export function createActualWorkspace(api) {
   import('./workspace-3d/adapter.js').then(({createOfficeView})=>{
     office=createOfficeView({canvas:()=>api.$('#workspace'),owner:()=>project?runtime.workspaceRecord():null,
       identity:()=>scope+'|'+runtime.state.activeWorkspaceId,visible:()=>!!project&&!host.activeFixedTab,
+      showHelperCharacters:()=>api.current?.homePreferences?.showHelperCharacters!==false,
       persist:()=>schedule('layout'),toast:api.toast,steppedZoom:createSteppedZoomWheel,observe:()=>api.observeOffice(),
       arrangementAvailable:()=>!!project&&!loading&&!project.recoveryFailed,
       snapshotOwner:(value,record)=>record===project?value:project?.workspaces?.includes(record)?value.workspaces.find(row=>row.id===record.id):null,

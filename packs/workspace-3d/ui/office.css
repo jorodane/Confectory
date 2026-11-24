@@ -387,3 +387,6 @@
 .voxel-office.is-transforming .office-label:not(.is-transform-target){opacity:.24;filter:saturate(.2);pointer-events:none}
 .workspace-view-controls{z-index:51}
 .workspace.is-voxel-office>.workspace-world-layer>.workspace-window-layer>.window.is-placed{visibility:hidden;pointer-events:none}
+
+.voxel-office.is-neutral-actors :is(.office-label-face,.office-radial-helper-bust,.office-character-activity){display:none}
+.voxel-office.is-neutral-actors :is(.office-helper-label,.office-worker-label):not(.is-map-pin) small{display:block}

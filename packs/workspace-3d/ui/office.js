@@ -53,7 +53,17 @@ class VoxelOffice{
   this.outlineMasks.focus=new THREE.WebGLRenderTarget(1,1,{minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:true});this.focusComposite=new THREE.ShaderMaterial({transparent:true,depthTest:false,depthWrite:false,uniforms:{focusMask:{value:this.outlineMasks.focus.texture}},vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',fragmentShader:'varying vec2 vUv;uniform sampler2D focusMask;void main(){float focus=texture2D(focusMask,vUv).a;gl_FragColor=vec4(1.,1.,1.,(1.-focus)*.32);}'});
   this.root.insertAdjacentHTML('beforeend','<div class="office-sign-tooltip" role="tooltip" hidden></div>');
   this.boxGeometry=new THREE.BoxGeometry(1,1,1);this.shadowGeometry=new THREE.CircleGeometry(.48,20);this.shadowMaterial=new THREE.MeshBasicMaterial({color:'#0d1317',transparent:true,opacity:.3,depthWrite:false});this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.groundPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0);this.observer=new ResizeObserver(()=>this.resize());this.observer.observe(this.root.querySelector('.office-scene'));
+  this.setCharacterPresentation(bridge.showHelperCharacters!==false);
   this.initTransformGizmo();this.bind();this.rebuild();this.resize();if(this.bridge.canArrange?.()!==false)this.initCatalogPreviews();
+ }
+ setCharacterPresentation(show){
+  if(this.showHelperCharacters===show)return;
+  this.showHelperCharacters=show;
+  this.root.classList.toggle('is-neutral-actors',!show);
+  const actors=show?'캐릭터':'도우미·워커 표식';
+  this.canvas.setAttribute('aria-label','복셀 작업실 · 드래그로 이동, 휠로 확대. '+actors+', 가구, 방을 클릭하면 조작 메뉴가 열립니다.');
+  for(const actor of this.actors)this.paintActorAppearance(actor);
+  this.updateLabels();
  }
  get layout(){const owner=this.bridge.owner();owner.officeLayout??={rooms:{},stations:{},props:[],camera:{x:0,z:0,scale:1}};owner.officeLayout.rooms??={};owner.officeLayout.stations??={};owner.officeLayout.storages??={};owner.officeLayout.decorations??={};owner.officeLayout.signs??={};owner.officeLayout.props??=[];owner.officeLayout.camera??={x:0,z:0,scale:1};return owner.officeLayout}
  saveOffice(){if(!this.edit)this.bridge.save()}
@@ -217,7 +227,7 @@ class VoxelOffice{
    label.el.style.left=x.toFixed(2)+'px';label.el.style.top=y.toFixed(2)+'px';label.el.style.transform='translate(-50%,'+(label.kind==='room'?'-50%':'-100%')+') scale(var(--office-label-scale,1))';
    if(['helper','worker'].includes(label.kind)){
     const actor=this.actors.find(a=>a.id===label.id);if(!actor)continue;const far=this.layout.camera.scale<=.7;label.el.classList.toggle('is-map-pin',far);label.el.hidden||=actor.suspended||actor.role==='worker'&&!far&&(this.layout.camera.scale<1||actor.task.kind==='standby'&&actor.job.state==='idle');label.el.dataset.state=actor.activity.state;if(actor.role==='worker'&&actor.activity.nativeStatus){label.el.dataset.nativeStatus=actor.activity.nativeStatus;label.el.dataset.nativeTask=actor.workerId;}
-    const action=this.actorAction(actor),object=this.objectsById.get(actor.activity.objectId),observed=this.objectsById.get(actor.task.kind==='observe'?actor.task.objectId:null),phase=observed?'작업 구경 중 · '+observed.name:this.visualAction(actor),text=actor.role==='worker'?this.jobAction(actor)+(object?' · '+object.name:'')+' / '+phase:action,small=label.el.querySelector('small');
+    const action=this.actorAction(actor),object=this.objectsById.get(actor.activity.objectId),observed=this.objectsById.get(actor.task.kind==='observe'?actor.task.objectId:null),phase=observed?'작업 구경 중 · '+observed.name:this.visualAction(actor),text=actor.role==='worker'?this.jobAction(actor)+(object?' · '+object.name:'')+(this.showHelperCharacters?' / '+phase:''):action,small=label.el.querySelector('small');
     if(small&&small.textContent!==text){small.textContent=text;label.el.setAttribute('aria-label',(actor.role==='worker'?actor.helper.name+' · '+actor.workerLabel:actor.helper.name)+' · '+text)}
     const chip=this.root.querySelector('[data-office-actor="'+CSS.escape(label.id)+'"] span'),chipText=actor.role==='worker'?this.jobAction(actor):action;if(chip&&chip.textContent!==chipText)chip.textContent=chipText;
     const live=this.inspector.querySelector('[data-helper-live-action="'+CSS.escape(label.id)+'"]'),liveText=actor.role==='worker'?phase:text;if(live&&live.textContent!==liveText)live.textContent=liveText;
@@ -297,7 +307,7 @@ class VoxelOffice{
    // The connected-room radial menu contains the room hierarchy.
   }else if(kind==='helper'||kind==='worker'){
    const actor=this.actors.find(a=>a.id===id);if(!actor)return;title=actor.role==='worker'?actor.helper.name+' · '+actor.workerLabel:actor.helper.name;chatId=actor.helperId;
-   const object=this.objectsById.get(actor.activity.objectId);if(actor.role==='worker')detail='작업 상태 · <strong data-worker-job-state="'+escapeHTML(id)+'">'+escapeHTML(this.jobAction(actor))+'</strong><br>캐릭터 · <span data-helper-live-action="'+escapeHTML(id)+'">'+escapeHTML(this.visualAction(actor))+'</span>';
+   const object=this.objectsById.get(actor.activity.objectId);if(actor.role==='worker')detail='작업 상태 · <strong data-worker-job-state="'+escapeHTML(id)+'">'+escapeHTML(this.jobAction(actor))+'</strong><span class="office-character-activity"><br>캐릭터 · <span data-helper-live-action="'+escapeHTML(id)+'">'+escapeHTML(this.visualAction(actor))+'</span></span>';
    else{const helper=actor.helper,title=this.source.helperTitles?.[helper.id]||helper.shortDescription||helper.description||helper.role||'도우미',workerStates=(helper.workers||[]).map(raw=>{const [name,state]=Array.isArray(raw)?['Worker '+raw[0],raw[1]]:[raw.label||raw.id,raw.state],tone=raw.jobLabel||(['error','conflict'].includes(state)?'문제 발생':['working','writing','review','reading'].includes(state)?'작업 중':'대기 중');return '<span class="office-helper-worker-state" title="'+escapeHTML(name)+' · '+tone+'" aria-label="'+escapeHTML(name)+' · '+tone+'" data-state="'+escapeHTML(state)+'"></span>'}).join('');detail='<div class="office-helper-profile"><strong>'+escapeHTML(title)+'</strong><p>'+escapeHTML(helper.status||'함께할 작업을 기다리고 있습니다.')+'</p><div class="office-helper-worker-states" role="group" aria-label="소유한 Worker">'+workerStates+'</div></div>'}
    buttons=(this.bridge.canChat?.(chatId)!==false?'<button type="button" data-inspect-chat>'+ (actor.role==='worker'?'담당 도우미에게 대화':'대화 열기')+'</button>':'')+'<button type="button" data-inspect-follow aria-pressed="'+String(this.following===id)+'">'+(this.following===id?'따라가기 해제':'따라가기')+'</button>'+(actor.role==='worker'&&object?'<button type="button" data-inspect-object="'+escapeHTML(object.id)+'">작업 요소 열기</button>':'');
    if(actor.activity?.hiddenTarget){detail='<p>작업 중</p>';buttons=buttons.replace(/<button[^>]*data-inspect-object[^>]*>.*?<\/button>/g,'')}

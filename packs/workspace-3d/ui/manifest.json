@@ -5,8 +5,8 @@
     "mime": "application/json"
   },
   "adapter.js": {
-    "size": 8911,
-    "sha256": "7528aaa6e9c6b6fcd9a30abf0fe6d9da94c492577986875fe3bf9e3ac3423e71",
+    "size": 9023,
+    "sha256": "bb7a87c4e2c3d6ae89fb66946eabbfe9654cf72675588c958d1c86c1ddcdc808",
     "mime": "text/javascript"
   },
   "arrangement.js": {
@@ -20,8 +20,8 @@
     "mime": "text/javascript"
   },
   "office-actors.js": {
-    "size": 27712,
-    "sha256": "4ad4e09d69a5e33b354a7ff4cdb534916b739b363401b79b406ad17c88833c16",
+    "size": 28092,
+    "sha256": "a0d6a1baafcde5b60227fcbcc6c2ed35f5d73ee63c104106debbc16816132c20",
     "mime": "text/javascript"
   },
   "office-world.js": {
@@ -30,13 +30,13 @@
     "mime": "text/javascript"
   },
   "office.css": {
-    "size": 40144,
-    "sha256": "4f19a77398958c41226b2bc0c649c3a890ec50eca67f941f9b8f36d3f1d632d0",
+    "size": 40386,
+    "sha256": "7683159c8fa1cafe436ea5d6f19f48409c60e1c4d44ad49b1914645f1afaaac1",
     "mime": "text/css"
   },
   "office.js": {
-    "size": 167455,
-    "sha256": "59617a3d7cbbfafa57df0506297ac31f33781045293e3555930cefcc6bd8bf83",
+    "size": 168097,
+    "sha256": "4209da42eab67860ddabe47fd71ebae6b27c53dfc47767f925bce9374da1eea3",
     "mime": "text/javascript"
   },
   "voxel-character.js": {
