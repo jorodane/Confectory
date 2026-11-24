@@ -20,9 +20,10 @@ try
  string[] command;
  using(lease)
  {
+  Builder? builder=null;
   try
   {
-   var builder=new Builder(project,args[3]);builder.Registry.Project.Entry=args[2]; // in-memory selection; source unchanged
+   builder=new Builder(project,args[3]);builder.Registry.Project.Entry=args[2]; // in-memory selection; source unchanged
    command=builder.Build()["run"]!.Deserialize<string[]>()!;
   }
   catch(BuildError error)
@@ -33,8 +34,10 @@ try
     var diagnostic=System.Text.RegularExpressions.Regex.Match(error.Message,@": error (CS[0-9]{4}):");
     if(diagnostic.Success)code=diagnostic.Groups[1].Value;
    }
-   // Report only the diagnostic code to the Run view. Details remain on stderr.
-   Console.WriteLine(JsonSerializer.Serialize(new{state="build-failed",code}));Console.Out.Flush();
+   // Send only the code and an optional owned diagnostic subject to the Run view.
+   string? feature=StaleBlueprintFeature(error,builder?.Registry.Project);
+   Console.WriteLine(feature is null?JsonSerializer.Serialize(new{state="build-failed",code}):
+    JsonSerializer.Serialize(new{state="build-failed",code,feature}));Console.Out.Flush();
    throw;
   }
  }
@@ -46,3 +49,24 @@ try
  child.BeginOutputReadLine();child.BeginErrorReadLine();child.WaitForExit();return child.ExitCode;
 }
 catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
+
+static string? StaleBlueprintFeature(BuildError error,Manifest? project)
+{
+ if(project is null||error.Diagnostic.Code!="BLUEPRINT_NOT_READY"||error.Message.Length>4096)return null;
+ try
+ {
+  // BlueprintCompilation preserves FeatureBlueprint's JSON refusal in this error.
+  // GRAPH_CONTRACT_STALE uses the parsed function ID as its subject.
+  using var refusal=JsonDocument.Parse(error.Message);
+  var root=refusal.RootElement;
+  if(!root.TryGetProperty("state",out var state)||state.GetString()!="invalid"||
+     !root.TryGetProperty("diagnostics",out var diagnostics)||diagnostics.GetArrayLength()!=1)return null;
+  var diagnostic=diagnostics[0];
+  if(!diagnostic.TryGetProperty("code",out var code)||code.GetString()!="GRAPH_CONTRACT_STALE"||
+     !diagnostic.TryGetProperty("subject",out var subject)||subject.GetString() is not string id||id.Length>384)return null;
+  string prefix=project.Namespace+"::";
+  return id.StartsWith(prefix,StringComparison.Ordinal)&&project.Elements.TryGetValue(id[prefix.Length..],out var element)&&
+   element.Kind=="function"?id:null;
+ }
+ catch(Exception failure) when(failure is JsonException or InvalidOperationException){return null;}
+}

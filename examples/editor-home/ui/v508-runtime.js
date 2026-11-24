@@ -174,7 +174,12 @@ function showReferenceDefinition(data=null,meta={}){
  $('[data-reference-reload]',w.body).onclick=()=>readReferenceDefinition(request);$('[data-reference-source]',w.body).onclick=()=>act('select',{id:request.sourceId});controls();return w;
 }
 
-const runWindowsUI=createRunWindows({$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},whenIdle,work,backgroundRead:backgroundRuntimeRead,openWindow,reveal:key=>actualWorkspace.reveal(key),fit:w=>workspaceRuntime.clampWindow(w),focus:w=>actualWorkspace.windowDocuments.open(w),persist:()=>actualWorkspace.schedule(),target:()=>targetChoices.get(current.projectId)||current.runTarget,toast,export:(event,w)=>runExportsUI.menu(event,w)});
+function openRunFeature(id,ownsFailure){
+ if(!ownsFailure())return;
+ if(windows.has('review')){toast('변경 검토를 닫은 뒤 이 기능을 열어 주세요.');return;}
+ return openDeclaration(id,()=>ownsFailure()&&!windows.has('review'));
+}
+const runWindowsUI=createRunWindows({$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},whenIdle,work,backgroundRead:backgroundRuntimeRead,openWindow,openRunFeature,reveal:key=>actualWorkspace.reveal(key),fit:w=>workspaceRuntime.clampWindow(w),focus:w=>actualWorkspace.windowDocuments.open(w),persist:()=>actualWorkspace.schedule(),target:()=>targetChoices.get(current.projectId)||current.runTarget,toast,export:(event,w)=>runExportsUI.menu(event,w)});
 const runExportsUI=createRunExports({$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},whenIdle,work,backgroundRead:backgroundRuntimeRead,openWindow,reveal:key=>actualWorkspace.reveal(key),focus:focusWindow,persist:()=>actualWorkspace.schedule(),toast,contextMenu});
 const battleLogUI=createBattleLog({$, $$,esc,windows,get current(){return current},get generation(){return view.generation},get view(){return view},get busy(){return busy},whenIdle,work,openWindow,reveal:key=>actualWorkspace.reveal(key),focus:w=>actualWorkspace.windowDocuments.open(w),persist:()=>actualWorkspace.schedule(),openRelated:id=>openDeclaration(id)});
 const buildsUI=createBuildJobs({$, $$,esc,backgroundRead:backgroundRuntimeRead,get current(){return current},get view(){return view},get busy(){return busy},get restoring(){return actualWorkspace.loading},windows,openWindow,work,controls,toast,reveal:key=>actualWorkspace.reveal(key),focus:focusWindow,persist:()=>actualWorkspace.schedule(),target:()=>targetChoices.get(current.projectId)||current.runTarget});
@@ -250,7 +255,14 @@ function restoreDeclarationWindow(requestedId=current.draft?.id){
  if(w.meta.loading)return w;w.meta.loading=true;w.body.innerHTML='<div class="window-content"><p>현재 선언 정보를 다시 읽습니다. 미적용 입력은 유지됩니다.</p><button data-operation data-reload-declaration>다시 읽기</button></div>';
  const load=()=>{if(current.projectId!==scope||view.generation!==generation||current.draft?.id!==id){w.meta.loading=false;return;}if(busy||actualWorkspace.loading){setTimeout(load,100);return;}w.meta.loading=false;work(async()=>{await inspectDeclaration(id);declarationEditors.show();},'선언 정보 복원됨',{flushWorkspace:false});};$('[data-reload-declaration]',w.body).onclick=load;setTimeout(load,0);return w;
 }
-function openDeclaration(id=current.draft?.id){const scope=current.projectId,generation=view.generation,alive=()=>current.projectId===scope&&view.generation===generation&&!dirty;return work(async()=>{if(!id)throw Error('선언을 먼저 선택하세요.');if(dirty)throw Error('소스 미적용 입력을 먼저 Apply하세요.');if(!alive())throw Error('scope_changed');if(current.draft?.id!==id)await readCurrentView('select',{id},alive);await inspectDeclaration(id);declarationEditors.open();},'실제 선언 내용');}
+function openDeclaration(id=current.draft?.id,stillAvailable=null){
+ const scope=current.projectId,generation=view.generation;
+ const alive=()=>current.projectId===scope&&view.generation===generation&&!dirty&&(!stillAvailable||stillAvailable());
+ return work(async()=>{if(!id)throw Error('선언을 먼저 선택하세요.');if(dirty)throw Error('소스 미적용 입력을 먼저 Apply하세요.');
+  if(!alive())throw Error('scope_changed');if(current.draft?.id!==id)await readCurrentView('select',{id},alive);
+  if(!alive())return false;await inspectDeclaration(id);if(!alive())return false;declarationEditors.open();
+ },'실제 선언 내용',stillAvailable?{flushWorkspace:false}:{});
+}
 function clampWindows(){$$('.participant-expanded-card').forEach(clampHelperChat);workspaceRuntime.clampWindows();const menu=$('.nav-menu'),space=$('#workspace');if(menu&&space)menu.style.maxHeight=Math.max(100,space.clientHeight-100)+'px';}
 function focusWindow(w){if(!actualWorkspace.loading){if(w.documentDocked)actualWorkspace.windowDocuments.activate(w.key);else if(w.placed!==false){actualWorkspace.noteDocuments.deactivate();actualWorkspace.windowDocuments.deactivate();}}if(!w.overlay&&!w.documentDocked){w.el.hidden=false;workspaceRuntime.registerWorkspaceNode(w);}workspaceRuntime.focusWindow(w);workspaceRuntime.ensureWindowVisible(w);}
 function draftBadge(w,unit){const mark=w&&$('[data-dirty]',w.body);if(!mark||w.meta.id!==unit?.id)return;mark.textContent=unit.dirty?'최종 반영 전 초안':'작업 사본';mark.classList.toggle('amber',!!unit.dirty);mark.classList.toggle('green',!unit.dirty);}
