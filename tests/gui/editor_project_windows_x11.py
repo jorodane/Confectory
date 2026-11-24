@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Exercise the confirmed project-window menu and existing GTK source review."""
+import json
 import os
 from pathlib import Path
 import sys
@@ -209,7 +210,97 @@ def workflow_menu_setting(package, root):
     print("PASS GTK View menu settings: draft preservation, cancel, confirm card and table, hide, and project scope")
 
 
+def workflow_window_revocation(package, root, reader_package):
+    (alpha, bravo), originals, proof = seed(package, root)
+    source = Path(alpha["path"]).with_name("StockDesk.celem")
+    reader_root = root / "reader"
+    (reader_root / "profile").mkdir(parents=True)
+    (reader_root / "profile" / "projects.json").write_text(json.dumps([alpha, bravo]))
+
+    def prepare(app):
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: (row["width"], row["height"]) == (1080, 760), "Resize the test window")
+        open_project(app, alpha)
+        return source_view(app)
+
+    def confirm_setting(app, expected):
+        review(app)
+        app.click(65)
+        row = app.wait(lambda row: not row["job"] and row["model"]["status"].startswith("Confirm "),
+                       "Confirm the View from the other window", timeout=180)
+        assert source.read_text() == expected, row["model"]["status"]
+
+    def reload_window(app, retained):
+        assert "487" in app.state()["fields"]
+        app.click(61)
+        message = ("Current source revision loaded explicitly" if retained
+                   else "This project window is no longer available.")
+        row = app.wait(lambda row: not row["job"] and row["operation"] == "native-project-windows-list"
+                       and row["message"] == message, "Reload source with the panel already open")
+        # Clicking the source toolbar may put it in front of the menu. The panel
+        # still owns its field while behind it, so test existence as well as data.
+        assert ("487" in row["fields"]) is retained
+        assert row["model"]["selected"]["path"] == alpha["path"]
+        if retained:
+            assert app.field(row, 487)["text"] == "Local Alpha only"
+        else:
+            assert not {480, 481, 484, 487}.intersection(row["hits"][::5])
+        return row
+
+    with gtk(package, root, "author") as author:
+        text = prepare(author)
+        card = text.replace(" }", ' value editorWindow = "element-view-card"; }', 1)
+        choose_menu_setting(author, "Hidden", 490, card)
+        confirm_setting(author, card)
+        with gtk(reader_package, reader_root, "reader") as reader:
+            prepare(reader)
+            open_window(reader, "card")
+            # Hide each project through the normal menu and retain its workspace.
+            reader.click(33)
+            menu(reader, True)
+            reader.click(15)
+            reader.wait(lambda row: row["screen"] == "home", "Hide Alpha")
+            open_project(reader, bravo)
+            assert "487" not in menu(reader, False)["fields"]
+            reader.click(15)
+            reader.wait(lambda row: row["screen"] == "home", "Hide Bravo")
+            open_project(reader, alpha)
+            assert "487" not in reader.state()["fields"]
+            source_view(reader)
+            open_window(reader, "card")
+            print("PASS A → B → A cleared the old panel and required a fresh explicit open", flush=True)
+
+            hidden = card.replace('value editorWindow = "element-view-card";', "", 1)
+            choose_menu_setting(author, "Read-only card", 489, hidden)
+            assert source.read_text() == card
+            reload_window(reader, True)
+
+            review(author)
+            author.click(66)
+            author.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None,
+                        "Cancel the author's Review")
+            assert source.read_text() == card
+            reload_window(reader, True)
+            print("PASS unconfirmed Hide and canceled Review preserve the reader's card", flush=True)
+
+            confirm_setting(author, hidden)
+            row = reload_window(reader, False)
+            if row["model"]["shell"]["menu"] == "project":
+                reader.click(33)
+            assert "487" not in menu(reader, False)["fields"]
+            assert not proof.exists()
+            print("PASS confirmed Hide retired the held panel on Reload source and the entry could not reopen", flush=True)
+    originals[source] = hidden.encode()
+    assert all(path.read_bytes() == value for path, value in originals.items())
+
+
 if __name__ == "__main__":
     root = Path(mkdtemp(prefix="gtk-project-windows-", dir=os.environ.get("TMPDIR")))
-    scenario = workflow_menu_setting if "--menu-setting" in sys.argv[2:] else workflow
-    scenario(Path(sys.argv[1]).resolve(), root)
+    package = Path(sys.argv[1]).resolve()
+    if len(sys.argv) > 2 and sys.argv[2] == "--revocation":
+        reader_package = Path(sys.argv[3]).resolve() if len(sys.argv) > 3 else package
+        workflow_window_revocation(package, root, reader_package)
+    else:
+        scenario = workflow_menu_setting if "--menu-setting" in sys.argv[2:] else workflow
+        scenario(package, root)

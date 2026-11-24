@@ -1068,7 +1068,13 @@ void CompleteProjectWindow(string result){
  bool available=response["status"]?.ToString()=="available"&&
   response["projectActivation"]?.ToString()==projectWindowsActivation;
  if(operation=="native-project-windows-list"){
-  if(available&&response["windows"] is System.Text.Json.Nodes.JsonArray rows)projectWindows=rows;
+  projectWindows=available&&response["windows"] is System.Text.Json.Nodes.JsonArray rows?rows:new();
+  if(projectWindow is { } opened&&!System.Linq.Enumerable.Any(projectWindows,row=>row?["id"]?.ToString()==opened["id"]?.ToString())){
+   CloseProjectWindow();
+   message="This project window is no longer available.";
+   pendingFocus=projectWindows.Count>0?ProjectWindowsBack:317;
+  }
+  if(projectWindows.Count==0)projectWindowsPanel=false;
   return;
  }
  if(!projectWindowsPanel)return;
@@ -1349,7 +1355,15 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id==205){reviewIndex=(reviewIndex+1)%model["workspace"]!["review"]!["units"]!.AsArray().Count;return;}
  if(id==64){WorkspaceAction("review");return;}if(id==65){WorkspaceAction("confirm");return;}if(id==66){WorkspaceAction("cancel-review");return;}
  if(id==58){WorkspaceAction("save");return;}if(id==59){WorkspaceAction("export");return;}if(id==60){WorkspaceAction("hide");return;}
- if(id==61){var unit=model["workspace"]!["unit"]!;string value=unit["text"]!.ToString(),buffer=SourceBuffer();calls.ReplaceText.Invoke(buffer,value,0,0);sourceVersions[SourceKey()]=(unit["revision"]!.GetValue<long>(),value);message="Current source revision loaded explicitly";return;}
+ if(id==61){
+  var unit=model["workspace"]!["unit"]!;
+  string value=unit["text"]!.ToString();
+  calls.ReplaceText.Invoke(SourceBuffer(),value,0,0);
+  sourceVersions[SourceKey()]=(unit["revision"]!.GetValue<long>(),value);
+  message="Current source revision loaded explicitly";
+  if(ProjectWindowsCurrent())RequestProjectWindow();
+  return;
+ }
  if(id is 62 or 63){WorkspaceAction("page",page:Math.Max(0,model["workspace"]!["page"]!.GetValue<int>()+(id==62?-1:1)));return;}
  if(id==17){Start("remove",new{path=removePath});return;}if(id==18){Change("home");return;}
  if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;var card=cards[index]!;string path=card["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenHomeFolder(ListingId(card));else{removePath=path;Change("remove");}return;}}
