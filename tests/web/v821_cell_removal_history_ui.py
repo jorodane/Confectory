@@ -17,7 +17,7 @@ f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
                 "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly",
-                "compound", "compound-readonly", "compound-views", "compound-deep-guard"}
+                "compound", "compound-readonly", "compound-views", "compound-deep-guard", "compound-child-draft"}
 case = mode.startswith("case")
 child_case = mode.startswith("child")
 compound_case = mode.startswith("compound")
@@ -120,6 +120,87 @@ def real_files_unchanged():
     for path, content in x.physical.items():
         if path != graph:
             assert path.read_bytes() == content, path
+
+
+def compound_child_draft_roundtrip(checkpoint):
+    def remove():
+        return doc().locator("[data-document-remove=other]")
+
+    def notice():
+        return doc().locator("[data-document-remove-blocked=other]")
+
+    def root():
+        breadcrumbs = panel().locator(".bp-breadcrumbs button")
+        if breadcrumbs.count():
+            breadcrumbs.first.click()
+            f.idle()
+        expect(doc().locator("[data-document-cell=other]")).to_be_visible()
+
+    expect(remove()).to_be_enabled()
+    expect(notice()).to_have_count(0)
+    select_frame("other")
+    doc().locator("[data-document-code=inner]").click()
+    editor = f.page.locator(".bp-script-dialog")
+    before = editor.locator("[data-code-region=body]").text_content()
+    assert before and '"peer-inner"' in before
+    editor.locator("[data-code-source]").evaluate(
+        "(field, body) => { const start = field.value.indexOf(body); if (start < 0) throw Error('Missing body'); "
+        "field.focus(); field.setSelectionRange(start, start + body.length); }", before)
+    f.page.keyboard.insert_text(before.replace('"peer-inner"', '"child-draft"'))
+    editor.locator("[data-code-save]").click()
+    expect(editor).to_be_hidden()
+    panel().locator("[data-bp-save]").click()
+    expect(panel().locator(".bp-status")).to_have_text("저장됨", timeout=120000)
+    assert not pending()
+    saved = checkpoint.read_bytes()
+    saved_draft = json.loads(saved)
+    assert [(entry["id"], entry["kind"]) for entry in saved_draft["changes"]] == [
+        (f"{t.graph}/node:other/node:inner", "blueprint-node")]
+    assert '"child-draft"' in json.loads(saved_draft["changes"][0]["draft"])["source"]
+    restart(1)
+    root()
+    expect(remove()).to_have_count(0)
+    expect(notice()).to_be_visible()
+    expect(notice()).to_contain_text("자식 셀의 코드 변경을 먼저 검토하고 확정하세요")
+    assert read_graph()["documentRemovalBlockedByChildDraft"] == ["other"]
+    assert checkpoint.read_bytes() == saved and graph.read_bytes() == initial
+    real_files_unchanged()
+
+    sibling = f.project / "Pair.other.tail.node.json"
+    permissions = stat.S_IMODE(sibling.stat().st_mode)
+    sibling.chmod(permissions & ~0o222)
+    try:
+        restart(2)
+        root()
+        expect(remove()).to_have_count(0)
+        expect(doc().locator("[data-document-remove-blocked]")).to_have_count(0)
+        assert not read_graph()["documentRemovalBlockedByChildDraft"]
+        assert checkpoint.read_bytes() == saved
+    finally:
+        sibling.chmod(permissions)
+
+    restart(3)
+    root()
+    expect(notice()).to_be_visible()
+    select_frame("other")
+    review().locator("[data-reject]").click()
+    cancelled = json.loads(checkpoint.read_bytes())
+    assert [(row["id"], row["draft"]) for row in cancelled["changes"]] == [
+        (row["id"], row["draft"]) for row in saved_draft["changes"]]
+    assert all(cancelled["history"][direction] == saved_draft["history"][direction]
+               for direction in ("undo", "redo"))
+    assert graph.read_bytes() == initial
+    real_files_unchanged()
+    confirm()
+    root()
+    expect(remove()).to_be_enabled()
+    expect(notice()).to_have_count(0)
+    assert '"child-draft"' in json.loads(leaf.read_bytes())["source"]
+    assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != leaf)
+    click_remove(remove(), cancel=True)
+    expect(remove()).to_be_enabled()
+    assert not pending()
+    f.checked("Only a removable compound with a saved child draft explains the blocker; review cancel preserves it, and confirming that child restores deletion")
 
 
 def graph_view(blueprint):
@@ -431,8 +512,11 @@ try:
         assert doc().locator("[data-document-remove=body]").count() == 0
         if case:
             expect(doc().locator("[data-document-remove=choose],[data-document-remove=after]")).to_have_count(0)
-        if mode not in positive_modes:
+        if mode == "compound-child-draft":
+            compound_child_draft_roundtrip(checkpoint)
+        elif mode not in positive_modes:
             expect(remove).to_have_count(0)
+            expect(doc().locator("[data-document-remove-blocked]")).to_have_count(0)
             if mode in {"case-shared", "case-implicit"}:
                 expect(doc().locator("[data-document-remove]")).to_have_count(0)
             if mode == "compound-deep-guard":

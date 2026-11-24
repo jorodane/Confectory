@@ -936,8 +936,9 @@ function blueprintNormalizeControls(scope){
   };
   mobile=mountMobileBlueprint(root,surface);
   applySidebar();
-  const canRemoveDocumentCell=id=>canvasOwns()&&!api.busy&&!data.privateCopy&&!data.slotContext&&(!data.privatePath||!!frameRemovalBinding(data))&&
-   !w.meta.copyDraft&&!document.body.classList.contains('is-mobile-editor')&&!saveEntries(w).length&&frameInputsClear()&&
+  const documentRemovalContext=()=>canvasOwns()&&!data.privateCopy&&!data.slotContext&&(!data.privatePath||!!frameRemovalBinding(data))&&
+   !w.meta.copyDraft&&!document.body.classList.contains('is-mobile-editor');
+  const canRemoveDocumentCell=id=>documentRemovalContext()&&!api.busy&&!saveEntries(w).length&&frameInputsClear()&&
    (data.documentRemovableCells||[]).includes(id);
   const flowDocument=documentFlowPreview(w,data),flowChild=flowDocument==='child';
   const callsNeedingReview=new Map(rows.filter(row=>row.kind==='call'&&row.postCallStale===true).map(row=>[row.id,row]));
@@ -1260,7 +1261,8 @@ function blueprintNormalizeControls(scope){
     }
     const serial=linearCells(id),chain=buttonOrderCells(id,serial),index=chain?.order.indexOf(id)??-1,orderable=canContinueOrder(chain,held)&&(!chain?.frame||frameInputsClear()),drag=cellDrag(id);
     const insertion=insertionCells(id,serial);
-    return {propertyAdd,remove:canRemoveDocumentCell(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:insertion?.order.includes(id)&&caseInsertionAvailable(insertion)&&(!insertion.compound||canInsertAfterCompound(id,insertion))&&!held.length&&data.nodes.length<63&&(!(insertion.frame||insertion.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':insertion?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
+    return {propertyAdd,remove:canRemoveDocumentCell(id),
+     removalBlockedByChildDraft:documentRemovalContext()&&data.documentRemovalBlockedByChildDraft?.includes(id),drag:!!drag,transfer:!!drag?.transfer,cross:!!drag?.cross,up:index>0&&orderable,down:index>=0&&index<chain.order.length-1&&orderable,add:insertion?.order.includes(id)&&caseInsertionAvailable(insertion)&&(!insertion.compound||canInsertAfterCompound(id,insertion))&&!held.length&&data.nodes.length<63&&(!(insertion.frame||insertion.compound)||frameInputsClear()),reason:chain?.frame?'소유한 자식 frame의 순서 또는 일반 동작 하나만 편집합니다. 다른 frame의 입력은 먼저 확인해 주세요.':insertion?.compound?'기존 입력과 복합 호출의 다음 연결을 먼저 확인해 주세요.':chain?'':'공유·복합·슬롯 또는 지원하지 않는 분기 셀은 기존 흐름을 유지합니다.'};
   };
   function undoSavedCellRemoval(redo){
    if(!canvasOwns()||api.busy||data.privateConversion||data.privatePath&&!frameRemovalBinding(data)||

@@ -118,7 +118,8 @@ internal static class BlueprintCellRemovalHistory
         public IEnumerable<KeyValuePair<string, (string Hash, string Text)>> Reads => observed;
     }
 
-    static JsonArray Observe(JsonObject request, JsonNode entry, bool prepare, out JsonArray verifiedLocators)
+    static JsonArray Observe(JsonObject request, JsonNode entry, bool prepare, out JsonArray verifiedLocators,
+        bool checkingChildDraftBlocker = false)
     {
         var receipt = entry["cellRemoval"]!.AsObject();
         var edited = entry["units"]![0]!;
@@ -248,6 +249,7 @@ internal static class BlueprintCellRemovalHistory
             else if (receipt["version"]?.GetValue<int>() is 2 or 3)
                 Need(!Retains(path), "A retained cell path now belongs to another locator");
             if (member.Key == graphId || unit["draft"] is null || JsonNode.DeepEquals(unit["draft"], unit["original"])) continue;
+            if (checkingChildDraftBlocker && byId.ContainsKey(member.Key)) continue;
             Need(!files.Reads.Any(read => files.Same(read.Key, S(unit, "path"))),
                 "Resolve other pending ownership or source changes before applying the cell edit");
         }
@@ -280,7 +282,8 @@ internal static class BlueprintCellRemovalHistory
                 ["locator"] = entry["cellRemoval"]!["version"]!.GetValue<int>() != 2 ? locators[0]!.DeepClone() : null };
         }
         var units = request["units"]!.AsObject();
-        if (action == "prepare") {
+        if (action is "prepare" or "checkChildDraftBlocker") {
+            bool checkingChildDraftBlocker = action == "checkChildDraftBlocker";
             string id = S(request, "id"), node = S(request, "node");
             var graph = units[id]!;
             string before = S(graph, "draft");
@@ -292,14 +295,19 @@ internal static class BlueprintCellRemovalHistory
             string after = BlueprintCellRemoval.Remove(original, node).ToJsonString();
             var keys = BlueprintCellRemoval.SourceKeys(original, node);
             bool compound = keys[0] != node;
+            bool hasChildDraft = false;
             var retained = new JsonArray();
             foreach (string key in keys) {
                 string leafId = BlueprintTree.SourceId(id, key);
                 var leaf = units[leafId];
+                bool dirty = !JsonNode.DeepEquals(leaf?["draft"], leaf?["original"]);
                 Need(leaf?["kind"]?.ToString() == "blueprint-node" && leaf["baseline"]?.ToString() != "missing" &&
-                    JsonNode.DeepEquals(leaf["draft"], leaf["original"]), "An existing clean cell source is required");
+                    (!dirty || checkingChildDraftBlocker && compound), "An existing clean cell source is required");
+                hasChildDraft |= dirty;
                 retained.Add(new JsonObject { ["id"] = leafId, ["path"] = S(leaf!, "path") });
             }
+            if (checkingChildDraftBlocker)
+                Need(compound && hasChildDraft, "An existing compound child draft is required");
             var entry = new JsonObject {
                 ["id"] = Guid.NewGuid().ToString("N"), ["label"] = "source-edit",
                 ["units"] = new JsonArray(new JsonObject {
@@ -314,10 +322,12 @@ internal static class BlueprintCellRemovalHistory
             var receipt = entry["cellRemoval"]!.AsObject();
             if (compound) receipt["sources"] = retained;
             else receipt["source"] = retained[0]!["path"]!.DeepClone();
-            Observe(request, entry, true, out var locators);
+            Observe(request, entry, true, out var locators, checkingChildDraftBlocker);
             Transition(entry);
             foreach (var source in RetainedSources(receipt))
                 Need(S(units[source.Id]!, "baseline") == S(receipt["proof"]!, source.Path), "Cell observation changed");
+            // The read check can explain the blocker but cannot issue a removal receipt.
+            if (checkingChildDraftBlocker) return new() { ["blocked"] = entry.ToJsonString().Length <= 1048576 };
             return new() { ["entry"] = entry, ["locators"] = locators };
         }
         Need(action is "pending" or "restore", "Explicit cell history action required");
