@@ -2,7 +2,10 @@
 
 최신: Git에 추가된 v196 원본의 해시와 실제 화면을 확인했습니다. 기본 시작은 내장 HTML EditorHome입니다. 홈·프로젝트 생성·기존 프로젝트·의미 객체 속성·초안·Save/Review/Confirm·Helper·AI 설정/권한 검토·증강/Worker·로컬 YogiBox를 연결했으며 나머지 기능은 [지원 범위](EMBEDDED_WEB_UI.md)에 구분했습니다. Windows OS 실행 검증은 보류입니다.
 
-저장소 루트의 **Confectory.bat 하나**를 엽니다. 기존 .NET 10 SDK와 Windows에
+저장소 밖에 푼 Windows 배포 묶음의 진입점은 **Confectory.exe**입니다.
+[표준 사용자 수락 시험](#표준-사용자-windows-수락-시험)의 절차를 사용합니다.
+
+개발 체크아웃에서는 저장소 루트의 **Confectory.bat**를 엽니다. 기존 .NET 10 SDK와 Windows에
 있는 Windows PowerShell을 사용하며, 도구를 설치하거나 전역 환경변수/setx를
 설정하지 않습니다. `CONFECTORY_DOTNET`을 이미 지정했다면 해당 실행 파일을
 사용하고, 아니면 PATH의 `dotnet`을 사용합니다.
@@ -46,8 +49,8 @@ SDK 경로, 프로젝트 경로는 명령 문자열로 조립하거나 Invoke-Ex
 
 모든 이동은 Git rename으로 추적하며 원본 팩과 사용자 데이터는 삭제하지 않습니다.
 내부 배치는 위치에서 `../../..`를 계산하고 호출/문서/테스트 참조도 갱신했습니다.
-기존 체크포인트 문서의 직접 실행 경로는 역사적/진단용입니다. 일반 사용자는
-루트 Confectory.bat를 사용합니다.
+기존 체크포인트 문서의 직접 실행 경로는 역사적/진단용입니다. 개발 체크아웃의
+기본 진입점은 루트 `Confectory.bat`입니다.
 
 새 파일 연결 등록 파일은 `Confectory.bat "%1"`을 가리킵니다. 파일을 누르면 빌드 후 기존 열기 경로로 바로 연결됩니다. 이미 이 루트 파일을 가리키는 연결은 재등록할 필요가 없습니다. **이미 Windows 레지스트리에 저장된
 옛 `open-project-windows.bat` 경로는 자동 변경할 수 없습니다.** 기존 설치는
@@ -55,9 +58,9 @@ SDK 경로, 프로젝트 경로는 명령 문자열로 조립하거나 Invoke-Ex
 바로 가기도 새 루트 진입점으로 변경합니다. 사용자 PC/레지스트리는 건드리지
 않았고, 제거한 루트 경로에 두 번째 사용자용 호환 런처를 남기지는 않았습니다.
 
-## 창 내부 HTML 연결 조사 — 구현하지 않음
+## WebView2 도입 전의 창 내부 HTML 연결 조사
 
-현재 `packs/web-ui/Client.csbody`의 `WebView`는 JS 상태/요청 클라이언트이며 OS
+아래는 현재 Windows 내장 호스트를 도입하기 전의 조사 기록입니다. 당시 `packs/web-ui/Client.csbody`의 `WebView`는 JS 상태/요청 클라이언트이며 OS
 WebView가 아닙니다. BrowserHost는 loopback HTTP, BrowserRuntime은 WASM 브리지입니다.
 저장소에는 WebView2/CEF 같은 내장 렌더러 제공자가 없습니다.
 
@@ -169,49 +172,79 @@ A package built into an existing checkout’s `Builds/Windows-x64` reuses its ex
 
 ## 표준 사용자 Windows 수락 시험
 
-두 PC에서 같은 `win-x64` 결과 폴더 전체를 사용합니다. 표준 사용자에게 허용된
-Windows x64 환경에 **.NET Desktop Runtime 10.0 x64**와 **Microsoft Edge WebView2
-Evergreen Runtime**이 준비되어 있어야 합니다. 프로젝트 실행까지 시험할 PC에는
-[`global.json`](../global.json)이 선택할 수 있는 .NET 10 SDK x64도 필요합니다.
-준비되지 않은 런타임이나 조직 정책으로 막힌 단계는 사유와 함께 미실행으로 기록합니다.
+처음에는 깨끗한 표준 사용자 Windows x64 계정 한 곳에서 ①을 검증합니다. 저장소 밖의
+로컬 폴더에 푼 `win-x64` 묶음 전체와 승인된 기존 **.NET Desktop Runtime 10.0 x64** 및
+**Microsoft Edge WebView2 Evergreen Runtime**을 사용합니다. 아래의 검토·확정·실행까지
+검사하려면 [`global.json`](../global.json)이 선택할 수 있는 .NET 10 SDK x64도 필요합니다.
+런타임이나 조직 정책으로 진행이 막히면 해당 단계와 오류를 기록합니다. ②부터는 별도의
+승인된 시험 환경을 사용하고, 두 PC에 같은 묶음과 같은 매니페스트 해시를 사용합니다.
 [Windows .NET 요구 사항](https://learn.microsoft.com/en-us/dotnet/core/install/windows) ·
 [WebView2 Runtime](https://learn.microsoft.com/microsoft-edge/webview2/concepts/distribution)
 
-각 PC의 표준 사용자 PowerShell에서 `$package`를 실제 결과 폴더로 바꿉니다. 두 PC의
-`--check-package`가 `ok: true`, `rid: win-x64`인지 확인하고 매니페스트 SHA-256을
-비교합니다. 검사가 실패하거나 매니페스트가 다르면 실행 단계로 넘어가지 않습니다.
-`--check-package`는 파일 해시와 시작 경로를 검사합니다. Windows 앱 시작은 이어지는
-exe 명령으로 확인합니다. 재시작할 때는 같은 PowerShell에서 마지막 명령만 다시 실행합니다.
+표준 사용자 PowerShell에서 `$package`를 압축 해제한 실제 폴더로 바꿉니다.
+`--check-package`는 파일 해시, x64 바이너리 구성과 시작 경로를 검사합니다. 출력의
+`windowsExecuted: false`는 이 검사 자체의 범위입니다. 실제 첫 실행은 이어지는
+`Confectory.exe`에서 확인합니다. 수락 시험에 사용할 빌드의 매니페스트 해시와 일치해야 합니다.
+위치가 다른 폴더에 새 `EditorHome`과 시험 프로젝트 폴더를 두고, 그 위치를 작업 디렉터리로 실행합니다.
 
 ```powershell
-$package = 'C:\path\to\Builds\Windows-x64'
-dotnet --info
-dotnet (Join-Path $package 'Confectory.dll') --check-package $package
-Get-FileHash -Algorithm SHA256 (Join-Path $package 'confectory-desktop-package.json')
-
+$package = (Resolve-Path -LiteralPath 'C:\Test Bundles\Confectory Windows x64').Path
 $lab = Join-Path $env:LOCALAPPDATA ('Confectory-Acceptance-' + [guid]::NewGuid().ToString('N'))
 $env:CONFECTORY_HOME_STORAGE = Join-Path $lab 'EditorHome'
-New-Item -ItemType Directory -Path (Join-Path $lab 'Projects') -Force | Out-Null
-& (Join-Path $package 'Confectory.exe')
+$env:CONFECTORY_ENTRY_STORAGE = $env:CONFECTORY_HOME_STORAGE
+$projects = Join-Path $lab 'Projects'
+New-Item -ItemType Directory -Path $projects -Force | Out-Null
+Set-Location -LiteralPath $lab
+
+dotnet --list-runtimes
+dotnet --list-sdks
+$checkJson = & dotnet (Join-Path $package 'Confectory.dll') --check-package $package
+if ($LASTEXITCODE -ne 0) { throw 'Package check failed' }
+$check = $checkJson | ConvertFrom-Json
+if (-not $check.ok -or $check.rid -ne 'win-x64' -or $check.environment.CONFECTORY_UI -ne 'embedded') {
+    throw 'Expected a Windows x64 embedded editor package'
+}
+$check
+Get-FileHash -Algorithm SHA256 (Join-Path $package 'confectory-desktop-package.json')
+
+$startEditor = { Start-Process -FilePath (Join-Path $package 'Confectory.exe') -WorkingDirectory $lab -PassThru }
+$editor = & $startEditor
 ```
 
-### ① 한 PC에서 만들기·저장·재시작·실행
+### ① 한 PC에서 만들기·논리 코드·재시작
 
-1. 첫 화면에서 `나중에`를 선택합니다. `＋ 만들기`로 `Projects` 아래에 폐기용
-   프로젝트를 생성합니다. 별도 시험 프로필에 이미 오프라인 또는 대화 권한 없는
-   첫 Agent가 등록된 경우에도 `AI 없이 만들기`를 선택해 반복합니다. Helper를
-   배치하거나 Agent 제안을 쓰지 않고, 등록 상태가 그대로인지 확인합니다. 해당 시험
-   프로필이 준비되지 않았다면 등록된 Agent 조건은 미실행으로 남깁니다.
-2. 작업실 검색의 `글자`에서 `return 0;`을 찾아 `MainBody`의 C# 본문을 엽니다.
-   `return 0;` 앞에 `System.Console.WriteLine("win-local-acceptance");`을 추가하고
-   `Save`합니다. 원본 `main.csbody`에는 아직 문구가 없어야 합니다. 프로젝트 Chat에
-   시험 문구를 쓰고 전송 없이 에디터 창을 정상 종료합니다. 새 프로세스로 같은
-   프로젝트를 열어 저장된 C# 초안과 전송하지 않은 채팅 문구가 복원되는지 확인합니다.
-3. `Review`에서 변경을 확인한 뒤 `Confirm`하고 `▶`로 실행합니다. 실행 로그에서
-   `win-local-acceptance`와 종료 코드 `0`을 확인합니다. 초대 없이 시작한 뒤, 프로젝트를
-   열었을 때, 실행하는 동안 각각 작업 관리자의 시험 에디터·엔진 PID를 `netstat -ano`와
-   대조합니다. 사설망 또는 와일드카드 TCP 수신 소켓이 없어야 합니다. 로컬 루프백은
-   따로 기록합니다.
+1. Windows 에디터 창의 첫 화면에서 **나중에**를 선택합니다. 홈의 **＋ 만들기**에서
+   `WinLogicAcceptance`처럼 고유한 시험 이름을 입력하고 **폴더 선택**으로 위 `$projects`를 고른 뒤
+   **프로젝트 생성**을 누릅니다. Agent가 없는 시험 프로필에서는 Helper와 제안 없이
+   로컬 프로젝트가 생성되어야 합니다. 별도 시험 프로필에 이미 오프라인 또는 대화 권한 없는
+   Agent가 등록된 경우에는 **AI 없이 만들기**를 선택해 같은 동작을 확인합니다. 실제 Agent
+   등록을 변경하지 않으며 그 시험 프로필이 없으면 해당 변형은 미실행으로 기록합니다.
+2. 작업실 빈 곳의 우클릭 메뉴에서 **프로젝트 브라우저**를 엽니다. **개념** 탭에서
+   `ProjectInfo`를 찾아 엽니다. 아직 등록 초안이 있으면 해당 창의 **확정**으로 검토를
+   열고 **검토한 변경 Confirm**을 눌러 초기 등록을 확정합니다. 기능 전환은 저장된
+   등록을 기준으로 하므로 이 확인을 먼저 마칩니다. 확인이 끝나면 `ProjectInfo` 창을 닫습니다.
+3. 같은 브라우저의 **기능** 탭에서 `Main`을 찾아 열고 함수 창의 **직접 작성**을 선택합니다.
+   새 프로젝트의 진입 기능에는 기본 C# 본문이 있습니다. **네이티브 코드** 탭에서
+   **블루프린트로 변환…**을 누르고 미리보기를 확인한 뒤 **저장**을 누릅니다. Windows
+   에디터 창 안의 **논리 코드** 탭에서 시작·동작·종료가 위에서 아래로 배치되고, 동작 카드의
+   **네이티브 코드 편집**이 열려야 합니다. 기본 C# 텍스트나 **블루프린트 보기**만 표시되면
+   논리 코드 진입 단계의 실패 또는 미실행으로 기록합니다.
+4. 같은 동작 카드에서 `return 0;` 앞에 `System.Console.WriteLine("win-local-acceptance");`을
+   추가하고 **코드 저장** 후 함수 창의 **저장**을 누릅니다. **기능 완성**으로 검토를 연 뒤
+   **취소**를 눌러도 원본 `main.csbody`와 `main_body.celem`이 바뀌지 않아야 합니다.
+   프로젝트 채팅에 시험 문구를 쓰고, 전송하지 않은 채 Windows 에디터 창을 정상 종료합니다.
+5. 같은 PowerShell에서 `$editor.WaitForExit()`를 호출하고 `$editor.ExitCode`가 `0`인지 확인합니다.
+   시험 창과 엔진이 종료된 뒤 `$editor = & $startEditor`로 다시 시작합니다. 홈 목록에서 위와
+   같은 프로젝트를 열어 미전송 채팅과 저장한 논리 코드 카드 입력이 복원되는지 확인합니다.
+   같은 `Main`에서 카드를 다시 열어 시험 문구를 확인합니다.
+6. 컴파일과 실행도 검증할 때는 **기능 완성**으로 재검토한 뒤 **검토한 변경 Confirm**을 누르고
+   `▶`로 실행합니다. 실행 로그에서 `win-local-acceptance`와 종료 코드 `0`을 확인합니다.
+   초대 없이 시작한 뒤, 프로젝트를 열었을 때, 실행하는 동안 작업 관리자의 시험 에디터·엔진
+   PID를 `netstat -ano`와 대조합니다. 사설망 또는 와일드카드 TCP 수신 소켓이 없어야 합니다.
+   로컬 루프백은 따로 기록합니다.
+
+검토에서 대상 선택이 열리면 `windows`를 고릅니다. 추가 변경 확인이 요구되면 **고급 검토 · 소스 변경 보기**에서
+변경 목록을 확인한 뒤 확인란을 선택합니다.
 
 ### ② 같은 사설 LAN에서 두 PC
 
@@ -254,3 +287,16 @@ Windows 시험 호스트가 없으면 이 단계는 미실행입니다.
 각 단계의 성공·실패·미실행, 빌드 커밋과 매니페스트 해시, Windows·.NET·WebView2 버전을
 기록합니다. 시작 오류는 폐기용 `EditorHome\logs\launch-*.log`에서 해당 오류만 확인합니다.
 초대 텍스트와 시험 중계 자격은 시험 기록에 남기지 않습니다.
+
+### 2026-11-24 교차 패키지 확인
+
+엔진 기준 `a1e3e81f48b1e5c78bb85cc506cd6e085e439e96`에서 Release `win-x64` 묶음을
+생성했다. 저장소 밖 작업 디렉터리에서 `--check-package`가 2,857개 파일의 해시와 x64 PE,
+묶음 내부의 WebView2 호스트 및 `embedded` 시작 경로를 확인했다. 이 결과물의
+`confectory-desktop-package.json` SHA-256은
+`e9cdd6734ec034e7d2f11e1be818143bf3620afeaffdf06511a1fc62f9e5d18d`다.
+
+[패키지 회귀](../tests/probes/desktop_package.py)는 변조·누락 파일의 거절과 Linux에서 SDK 없는
+런타임으로 묶음의 관리 엔진·Chromium 시작 및 등록된 웹 리소스 309개의 바이트를 확인했다.
+Windows `Confectory.exe`와 내장 WebView2는 실행하지 않았다. 위 ①의 첫 시작·프로젝트 생성·
+수직 셀 편집·정상 종료·최근 프로젝트 재열기와 ②·③의 Windows 실행은 실기 확인 대기다.
