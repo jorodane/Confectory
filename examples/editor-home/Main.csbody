@@ -1,6 +1,6 @@
 if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_UI") is null)Environment.SetEnvironmentVariable("CONFECTORY_UI","embedded");
 if(Environment.GetEnvironmentVariable("CONFECTORY_UI")is "web" or "embedded")return calls.WebStart.Invoke();
-(string Manifest,string Project)? returnToGtk=null;
+(string Manifest,string Project,bool BrowserFailed)? returnToGtk=null;
 while(true){
 // All acquired product resources remain owned until their individual release succeeds.
 var resources=new System.Collections.Generic.List<(string Name,Action Release)>();
@@ -1190,8 +1190,8 @@ if(returnToGtk is { } recovery){
  returnToGtk=null;
  model=J(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=recovery.Manifest,expectedProjectId=recovery.Project})));
  if(model["selected"]?["projectId"]?.ToString()==recovery.Project&&model["selected"]?["path"]?.ToString()==recovery.Manifest){
-  Change("project");message="Could not open the browser; this project is still open.";pendingFocus=38;
- }else{Change("home");message="Could not open the browser or reopen the original project. Its saved draft was kept.";}
+  Change("project");message=recovery.BrowserFailed?"Could not open the browser; this project is still open.":"Returned from Logic Code.";pendingFocus=38;
+ }else{Change("home");message="Could not reopen the original project. Its saved draft was kept.";}
 }
 bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invoke(surfaces)[0]==0){cancelNativeField?.Invoke();cancelNativeAction?.Invoke();return job is not null&&!job.IsCompleted;}
  if(logicHandoff is not null&&operation=="close-project"&&job?.IsCompleted==true){
@@ -1265,13 +1265,24 @@ if(logicHostExit!=0||!IsClosed()||logicHandoff is not { } handoff)return logicHo
 // These surfaces own the browser lifetime only. The native editing session is closed.
 var statusWindow=calls.CreateSurfaces.Invoke(new[]{"Confectory - Logic Code"},480,144);
 long statusFrame=-100;
-bool Status(string line,string detail){
+int returnRequest=0;
+bool returnHeld=false,returnAccepted=false;
+bool Status(string line,string detail,bool returnAvailable=false){
  long now=Environment.TickCount64;if(now-statusFrame<16)return true;statusFrame=now;
-  var events=calls.Pump.Invoke(statusWindow);
-  for(int at=0;at<events.Length;at+=6)if(events[at+1]==8||events[at+1]==5&&events[at+4]==0xFF1B)return false;
-  var size=calls.SurfaceInfo.Invoke(statusWindow);if(size[0]==0)return false;
-  calls.Draw.Invoke(statusWindow,0,new[]{0,0,480,144,0x14212B},new[]{""});
-  calls.DrawText.Invoke(statusWindow,0,new[]{16,22,448,30,16,65,448,48},new[]{16,22,16,65},new[]{line,detail});
+ var events=calls.Pump.Invoke(statusWindow);
+ for(int at=0;at<events.Length;at+=6){
+  int type=events[at+1],key=events[at+4];
+  if(type==8||type==5&&key==0xFF1B)return false;
+  if(!returnAvailable)continue;
+  bool inside=events[at+2] is >=16 and <184&&events[at+3] is >=98 and <132;
+  if(type==1)returnHeld=inside;
+  if(type==2){if(returnHeld&&inside)returnRequest++;returnHeld=false;}
+  if(type is 7 or 9 or 11)returnHeld=false;
+  if(type==5&&key==0xFF0D)returnRequest++;
+ }
+ var size=calls.SurfaceInfo.Invoke(statusWindow);if(size[0]==0)return false;
+ calls.Draw.Invoke(statusWindow,0,returnAvailable?new[]{0,0,480,144,0x14212B,16,98,168,34,0x2A4253}:new[]{0,0,480,144,0x14212B},returnAvailable?new[]{"",""}:new[]{""});
+ calls.DrawText.Invoke(statusWindow,0,new[]{16,22,448,30,16,58,448,34,26,105,150,24},new[]{16,22,16,58,26,105},new[]{line,detail,returnAvailable?"Return to GTK":""});
  return true;
 }
 System.IO.DirectoryInfo? browserBootstrap=null;
@@ -1304,23 +1315,29 @@ try{
  };
  void BrowserReady(){RetireBootstrap();browserReady=true;}
  bool Alive(){
-  if(!Status(browserReady?"Logic Code is open in the browser.":"Opening Logic Code…",
-      browserReady?"Close this window to end the local editor session.":"Waiting for the default browser."))return false;
+  if(returnAccepted)return false;
+  if(!Status(browserReady?"Logic Code is open in the browser.":"Opening Logic Code…",!browserReady?"Waiting for the default browser.":
+      returnRequest>0?"Continue in the Logic Code browser tab to return.":"Return to the original project or close to exit.",browserReady))return false;
   if(!browserReady&&launchDeadline!=0&&Environment.TickCount64>=launchDeadline){
    Console.Error.WriteLine("The default browser did not connect to Logic Code.");
    browserLaunchFailed=true;
   }
   return !browserLaunchFailed;
  }
- AppContext.SetData("Confectory.EditorHome.LogicHandoff",(handoff.Manifest,handoff.Project,open,(Func<bool>)Alive,(Action)BrowserReady));
+ int ReadReturnRequest()=>returnAccepted?-1:returnRequest;
+ bool AcceptReturn(int request){
+  if(!browserReady||returnAccepted||request<=0||request!=returnRequest)return false;
+  returnAccepted=true;return true;
+ }
+ AppContext.SetData("Confectory.EditorHome.LogicHandoff",(handoff.Manifest,handoff.Project,open,(Func<bool>)Alive,(Action)BrowserReady,(Func<int>)ReadReturnRequest,(Func<int,bool>)AcceptReturn));
  string? priorUi=Environment.GetEnvironmentVariable("CONFECTORY_UI");
  Environment.SetEnvironmentVariable("CONFECTORY_UI","web");
  try{
   int result=calls.WebStart.Invoke();
-  if(result!=0||!browserLaunchFailed)return result;
+  if(result!=0||!browserLaunchFailed&&!returnAccepted)return result;
   // WebStart has closed the listener, view and model before GTK reacquires
   // the same installation lease. Reopen only the original project.
-  returnToGtk=handoff;
+  returnToGtk=(handoff.Manifest,handoff.Project,browserLaunchFailed);
  }catch(Exception error) when(!browserLaunchFailed){
   Console.Error.WriteLine("Logic Code could not open: "+error.Message);
   RetireBootstrap();

@@ -1,8 +1,29 @@
 if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();
+var logicReturn=AppDomain.CurrentDomain.GetData("Confectory.EditorHome.LogicReturn."+context);
+if(logicReturn is ValueTuple<Func<int>,Func<int,bool>> completedReturn&&completedReturn.Item1()<0)throw new OperationCanceledException();
 if(endpoint is "localChatDevelopment" or "localProjectChat")return calls.LocalChatDevelopment.Invoke(context,input,cancellation);
 var args=System.Text.Json.Nodes.JsonNode.Parse(input)!.AsObject();
 System.Text.Json.Nodes.JsonNode Command(string operation,System.Text.Json.Nodes.JsonObject payload){var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,operation,payload.ToJsonString()))!;if(result["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected operation");return result;}
 var before=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+if(endpoint=="returnToGtk"){
+ var selectedProject=before["selected"];
+ bool eligible=AppDomain.CurrentDomain.GetData("Confectory.EditorHome.StartupLogic."+context) is ValueTuple<string,string,string> intent&&
+  intent.Item1==selectedProject?["projectId"]?.ToString()&&intent.Item2==selectedProject?["activation"]?.ToString()&&
+  before["closeRequest"] is null&&before["backgroundProjects"]?.AsArray().Count is null or 0;
+ if(!eligible||logicReturn is not ValueTuple<Func<int>,Func<int,bool>> returning||args.Count!=1||
+    args["request"] is not System.Text.Json.Nodes.JsonValue value||!value.TryGetValue<int>(out int returnRequest)||
+    returnRequest<=0||returning.Item1()!=returnRequest)
+  return "{\"accepted\":false}";
+ string projectContext=selectedProject!["context"]!.ToString();
+ if(before["executions"]?[projectContext]?["state"]?.ToString() is "building" or "running"||
+    before["aiRuns"]?[projectContext]?["state"]?.ToString()=="running"||
+    System.Linq.Enumerable.Any(before["buildJobs"]?.AsObject()??new(),row=>row.Value?["summary"]?["state"]?.ToString() is "queued" or "building" or "stopping"))
+  return "{\"accepted\":false}";
+ // The browser flushed its input to the shell. Commit the local profile draft
+ // with the same check used at normal close before relinquishing the editor.
+ Command("save-chat-drafts",new());
+ return returning.Item2(returnRequest)?"{\"accepted\":true}":"{\"accepted\":false}";
+}
 if(endpoint is "readPublicChatHistory" or "readPublicChatAttachment" or "readPublicChatFirstImage" or "readPublicChatSecondImage"){
  bool history=endpoint=="readPublicChatHistory";
  if(history ? args.Count!=0 : args.Count!=2||args["messageId"] is null||args["attachmentId"] is null)

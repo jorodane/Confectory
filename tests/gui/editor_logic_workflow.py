@@ -31,7 +31,7 @@ def open_main(page, feature):
     return panel
 
 
-def edit_body(page, panel, text, *, change):
+def edit_body(page, panel, text, *, change, original='return 0;\n'):
     expect(panel.get_by_role('tab', name='논리 코드', exact=True)).to_have_attribute('aria-selected', 'true')
     panel.locator('[data-document-code=body]').click()
     dialog = page.locator('.bp-script-dialog')
@@ -39,7 +39,7 @@ def edit_body(page, panel, text, *, change):
     expect(editor).to_be_visible()
     body = dialog.locator('[data-code-highlight] > [data-code-region=body]')
     if change:
-        assert body.text_content() == 'return 0;\n'
+        assert body.text_content() == original
         editor.evaluate('''el => {
             const parts = Array.from(el.closest('.bp-script-editor').querySelectorAll('[data-code-highlight] > span'));
             const body = parts.findIndex(part => part.dataset.codeRegion === 'body');

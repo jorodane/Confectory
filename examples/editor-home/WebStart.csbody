@@ -1,6 +1,6 @@
 string root=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")??Environment.CurrentDirectory;
 if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST") is null)Environment.SetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST",System.IO.Path.Combine(root,"targets","webview-windows","bin","Release","net10.0-windows","Confectory.WebView.Windows.dll"));
-(string Manifest,string Project,Action<string> Open,Func<bool> Alive,Action Retire) handoff=AppContext.GetData("Confectory.EditorHome.LogicHandoff") is ValueTuple<string,string,Action<string>,Func<bool>,Action> pending?pending:default;
+(string Manifest,string Project,Action<string> Open,Func<bool> Alive,Action Retire,Func<int> ReturnRequest,Func<int,bool> AcceptReturn) handoff=AppContext.GetData("Confectory.EditorHome.LogicHandoff") is ValueTuple<string,string,Action<string>,Func<bool>,Action,Func<int>,Func<int,bool>> pending?pending:default;
 bool switched=handoff.Open is not null;
 string? project=switched?handoff.Manifest:Environment.GetEnvironmentVariable("CONFECTORY_WEB_PROJECT");
 string storage=Environment.GetEnvironmentVariable("CONFECTORY_HOME_STORAGE")??Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE")??System.IO.Path.Combine(root,".confectory","editor-home");
@@ -21,6 +21,7 @@ try{
   if(selected["projectId"]?.ToString()!=handoff.Project||selected["path"]?.ToString()!=handoff.Manifest||selected["entry"]?.GetValue<string>() is not {Length:>0} feature)
    throw new InvalidOperationException("The selected project changed before Logic Code could open.");
   AppDomain.CurrentDomain.SetData("Confectory.EditorHome.StartupLogic."+session,(handoff.Project,selected["activation"]!.ToString(),feature));
+  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.LogicReturn."+session,(handoff.ReturnRequest,handoff.AcceptReturn));
  }
  var shown=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"open\"}"))!;
  if(shown["workspace"] is null)throw new InvalidOperationException("Project workspace unavailable");
@@ -43,6 +44,7 @@ try{
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebPoll."+session,null);
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,null);
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.StartupLogic."+session,null);
+   AppDomain.CurrentDomain.SetData("Confectory.EditorHome.LogicReturn."+session,null);
    if(switched&&owner.Length>0)AppContext.SetData("Confectory.BrowserHost.Desktop."+owner,null);
    if(embedded&&entry.Length>0)calls.EntryRequest.Invoke(entry,"close","{}");
    if(owner.Length>0)while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);

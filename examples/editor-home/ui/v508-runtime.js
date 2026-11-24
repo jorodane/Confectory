@@ -668,7 +668,7 @@ function act(endpoint,input){if(dirty&&['select','objects','page'].includes(endp
 async function apply(){if(!draft||!dirty)return;if(view.state.draft?.id!==draft.id)throw Error('브라우저에서 편집 중인 객체를 다시 선택하세요. 입력은 유지되었습니다.');await view.call('editDraft',{id:draft.id,text:$('#source').value,revision:draft.revision});dirty=false;draft=view.state.draft;$('#source').value=draft.text;await view.update();}
 function bindCommon(){const objects=$('#objects-refresh');if(objects)objects.onclick=()=>{browser();act('objects',{});};const reconnect=$('#reconnect');if(reconnect)reconnect.onclick=()=>{if(dirty){toast('Apply local input before reconnecting');return;}return work(async()=>{await view.dispose();await view.mount();},'Reconnected; shared draft retained');};}
 setInterval(()=>syncPublicChat(),1500);
-let updating=false;setInterval(async()=>{if(updating||!view.active)return;updating=true;try{await view.update();}catch(e){if(e.message==='scope_changed')await recover();else toast(failureMessage(e));}finally{updating=false;}},100);
+let updating=false;setInterval(async()=>{if(updating||!view.active||logicReturning)return;updating=true;try{await view.update();offerLogicReturn();}catch(e){if(e.message==='scope_changed')await recover();else toast(failureMessage(e));}finally{updating=false;}},100);
 addEventListener('resize',clampWindows);addEventListener('keydown',e=>{workspaceRuntime.state.shiftHeld=e.shiftKey;if(!e.defaultPrevented&&e.key==='Delete'&&page==='work'&&!e.target.closest('.feature-author-document')&&!actualWorkspace.noteDocuments.active&&!actualWorkspace.windowDocuments.active&&!e.target.closest('input,textarea,select,[contenteditable=true]')&&!$('.modal')){const nodes=workspaceRuntime.selectedWorkspaceNodes();if(nodes.length){e.preventDefault();workspaceRuntime.deleteWorkspaceNodes(nodes);}}});addEventListener('keyup',e=>{workspaceRuntime.state.shiftHeld=e.shiftKey;});
 
 // Production presentation with v508 startup/creation layout. Prototype databases and mock actions are not used.
@@ -845,6 +845,57 @@ async function flushProjectChatDraft(){
    return;
   }
  }
+}
+let lastLogicReturnRequest=0,logicReturning=false;
+function logicReturnBlocker(){
+ const state=view.state;
+ if(!state?.startupLogic)return '논리 코드를 연 원래 프로젝트에서만 GTK로 돌아갈 수 있습니다.';
+ if(busy||actualWorkspace.loading)return '진행 중인 편집 또는 저장이 끝난 뒤 다시 요청하세요.';
+ const review=windows.get('review');
+ if(review&&!review.el.hidden)return '열린 검토를 확정하거나 취소한 뒤 다시 요청하세요.';
+ const prefix=state.projectId+'|';
+ if(dirty||[schemaInputs,declarationInputs,viewInputs,conflictInputs,blueprintInputs].some(map=>[...map.keys()].some(key=>key.startsWith(prefix))))
+  return '미적용 입력을 저장하거나 취소한 뒤 다시 요청하세요.';
+ if(runWindowsUI.active||state.hasActiveBuilds||state.aiState==='running'||
+    state.workers?.some(row=>['running','dispatching'].includes(row.status))||['building','running'].includes(state.executionState))
+  return '실행 또는 작업이 끝난 뒤 다시 요청하세요.';
+ return '';
+}
+function offerLogicReturn(){
+ const request=view.state?.logicReturnRequest;
+ if(!request||request===lastLogicReturnRequest||logicReturning)return;
+ lastLogicReturnRequest=request;
+ if($('[data-logic-return-confirm]'))return;
+ const blocked=logicReturnBlocker();
+ if(blocked||$('#overlays .modal,.participant-expanded-card.modal')){
+  toast(blocked||'열린 대화 상자를 마친 뒤 다시 요청하세요.');return;
+ }
+ const generation=view.generation,scope=view.scope.projectActivation;
+ const owns=()=>view.generation===generation&&view.scope.projectActivation===scope&&view.state?.logicReturnRequest===request&&!!view.state?.startupLogic;
+ modal('GTK 작업공간으로 돌아가기',`<p>${esc(current.title)} · 편집 상태와 미전송 채팅을 유지합니다.</p><p role="status" data-logic-return-status></p><div class="actions"><button data-logic-return-cancel>계속 편집</button><button class="primary" data-logic-return-confirm>GTK로 돌아가기</button></div>`,(root,close)=>{
+  const confirm=$('[data-logic-return-confirm]',root),cancel=$('[data-logic-return-cancel]',root),dismiss=$('[data-close]',root),status=$('[data-logic-return-status]',root);
+  const keyboard=root.onkeydown;
+  root.onkeydown=event=>{if(event.key==='Escape'&&confirm.disabled){event.stopPropagation();return;}keyboard(event);};
+  cancel.onclick=close;
+  confirm.onclick=async()=>{
+   const blocked=logicReturnBlocker();
+   if(blocked||!owns()){status.textContent=blocked||'복귀 요청이 바뀌었습니다. 세션 창에서 다시 요청하세요.';return;}
+   confirm.disabled=cancel.disabled=dismiss.disabled=true;status.textContent='편집 상태를 보존하는 중…';
+   const accepted=await work(async()=>{
+    if(!owns())throw Error('복귀 요청이 바뀌었습니다.');
+    await resourcePreviews.flushDrafts();
+    await actualWorkspace.flush();
+    await flushProjectChatDraft();
+    if(!owns())throw Error('복귀 요청이 바뀌었습니다.');
+    const result=await view.transient('returnToGtk',{request});
+    if(!result?.accepted)throw Error('현재 프로젝트에서 복귀할 수 없습니다.');
+    logicReturning=true;status.textContent='원래 GTK 작업공간을 여는 중…';
+    return true;
+   },'',{flushWorkspace:false});
+   if(!accepted){status.textContent='아직 복귀하지 못했습니다. 편집을 계속하거나 다시 시도하세요.';confirm.disabled=cancel.disabled=dismiss.disabled=false;}
+  };
+  cancel.focus();
+ });
 }
 async function leaveActiveProject(){
  const scope=current.projectId,generation=view.generation;if(!scope)return;

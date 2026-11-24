@@ -23,6 +23,9 @@ import urllib.request
 INSTALL = '/opt/Confectory Linux'
 TITLE = 'Packaged Logic Code'
 OUTPUT = 'Packaged Logic Code ran'
+GTK_CHAT = 'Unsent GTK handoff draft'
+BROWSER_CHAT = GTK_CHAT + ' · edited in Logic Code'
+RETURN_MODAL = 'GTK 작업공간으로 돌아가기'
 
 
 def listeners():
@@ -138,9 +141,12 @@ def exercise(page, manifest, namespace, marker, *, cold, dispatched=False):
     else:
         open_recent(page)
     source_text = f'System.IO.File.WriteAllText({json.dumps(str(marker))}, "{OUTPUT}");\nreturn 0;'
+    pending_source = source_text.replace(OUTPUT, 'Unconfirmed draft must not run')
     if cold:
+        if dispatched:
+            page.get_by_role('tab', name='Workspace', exact=True).click()
         panel = open_main(page, namespace + '::Main')
-        edit_body(page, panel, source_text, change=False)
+        edit_body(page, panel, pending_source if dispatched else source_text, change=False)
         run_from_dock(page, marker, OUTPUT)
         return
     source, body = manifest.parent / 'main.csbody', manifest.parent / 'main_body.celem'
@@ -180,11 +186,24 @@ def exercise(page, manifest, namespace, marker, *, cold, dispatched=False):
     assert (source.read_bytes(), body.read_bytes()) == original
     assert manifest.read_bytes() == confirmed_manifest
     final_review = review(page, submit)
+    if dispatched:
+        expect(final_review.locator('#confirm')).to_be_enabled()
+        (marker.parent / 'logic-return-stage').write_text('review')
+        expect(page.locator('#status')).to_contain_text('열린 검토를 확정하거나 취소', timeout=30000)
+        expect(final_review).to_be_visible()
+        assert (source.read_bytes(), body.read_bytes()) == original
     final_review.locator('#confirm').click()
     expect(final_review).to_be_hidden(timeout=120000)
     assert source.read_bytes() == original[0] and info.read_bytes() == confirmed_info
     assert 'blueprint common' in body.read_text()
     run_from_dock(page, marker, OUTPUT)
+    if dispatched:
+        page.get_by_role('tab', name='Workspace', exact=True).click()
+        confirmed = (source.read_bytes(), body.read_bytes(), manifest.read_bytes(), info.read_bytes())
+        edit_body(page, panel, pending_source, change=True, original=source_text)
+        panel.locator('[data-bp-save]').click()
+        expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
+        assert (source.read_bytes(), body.read_bytes(), manifest.read_bytes(), info.read_bytes()) == confirmed
 
 
 def browser_workflow(manifest, namespace, marker):
@@ -230,9 +249,25 @@ def dispatched_browser(manifest, namespace, marker, cold):
     with sync_playwright() as playwright, playwright.chromium.launch(**browser_options()) as browser, \
             owned_page(browser, local[1], bootstrap=bootstrap.as_uri()) as page:
         assert not bootstrap.exists(), 'Authenticated browser startup must retire the bootstrap'
+        chat = page.locator('#chat-input')
+        if not chat.is_visible():
+            page.locator('#chat').click()
+        expect(chat).to_have_value(BROWSER_CHAT if cold else GTK_CHAT)
         exercise(page, manifest, namespace, marker, cold=cold, dispatched=True)
-    print('PASS reopened the same entry card and ran it again' if cold
-          else 'PASS GTK-dispatched Logic Code edit, Review cancel, Confirm and actual Run', flush=True)
+        if not cold:
+            chat.fill(BROWSER_CHAT)
+            dialog = page.get_by_role('dialog', name=RETURN_MODAL)
+            stage = marker.parent / 'logic-return-stage'
+            stage.write_text('cancel')
+            dialog.locator('[data-logic-return-cancel]').click()
+            expect(dialog).to_be_hidden()
+            expect(chat).to_have_value(BROWSER_CHAT)
+            stage.write_text('accept')
+            expect(dialog).to_contain_text(TITLE)
+            dialog.locator('[data-logic-return-confirm]').click()
+            expect(dialog.locator('[data-logic-return-status]')).to_have_text('원래 GTK 작업공간을 여는 중…')
+    print('PASS reopened saved unconfirmed card draft and ran the confirmed version again' if cold
+          else 'PASS GTK-dispatched edit, Review blocked return, Confirm, Run, return cancellation and acceptance', flush=True)
 
 
 def test_package(package, image, switch=False, failure=False):
@@ -295,7 +330,7 @@ def test_package(package, image, switch=False, failure=False):
 
 def test_switch(app, projects):
     import re
-    from editor_lan_chat_x11 import eventually, native_windows
+    from editor_lan_chat_x11 import eventually, native_windows, ui
     from editor_lay_chat_x11 import open_project
 
     def no_listener():
@@ -311,25 +346,54 @@ def test_switch(app, projects):
         app.click(20)
 
     def dispatch(created, cold):
+        def redact(text):
+            return re.sub(r'(http://127\.0\.0\.1:\d+/#)[0-9a-f]{32}', r'\1[redacted]', text)
+
         prior = app.window
         switch_command()
         window, = eventually(lambda: native_windows(b'Confectory - Logic Code'), 'Native Logic Code lifetime window')
         assert prior not in native_windows() and app.child.poll() is None
-        result = subprocess.run(app.command([sys.executable, '/test/' + Path(__file__).name, '--dispatched',
-                                              created['path'], created['namespace'],
-                                              str(app.home / 'logic-result.txt'), str(int(cold))],
-                                             PLAYWRIGHT_NODEJS_PATH='/test/node'),
-                                capture_output=True, text=True, timeout=280)
-        assert result.returncode == 0, re.sub(r'(http://127\.0\.0\.1:\d+/#)[0-9a-f]{32}', r'\1[redacted]', result.stderr)
-        print(result.stdout, end='', flush=True)
-        app.window = window
-        app.close()
+        stage = app.home / 'logic-return-stage'
+        stage.unlink(missing_ok=True)
+        with subprocess.Popen(app.command([sys.executable, '/test/' + Path(__file__).name, '--dispatched',
+                                           created['path'], created['namespace'],
+                                           str(app.home / 'logic-result.txt'), str(int(cold))],
+                                          PLAYWRIGHT_NODEJS_PATH='/test/node'),
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as browser:
+            if not cold:
+                for expected in ('review', 'cancel', 'accept'):
+                    def ready():
+                        assert browser.poll() is None, redact(browser.stderr.read())
+                        return stage.is_file() and stage.read_text() == expected
+                    eventually(ready, f'Logic Code reached {expected}', timeout=160)
+                    if expected == 'review':
+                        duplicate = subprocess.run(app.command([INSTALL + '/run', '--logic-code']),
+                                                   capture_output=True, text=True, timeout=20)
+                        assert duplicate.returncode and 'owner.lock' in duplicate.stderr
+                    assert window in native_windows(b'Confectory - Logic Code')
+                    ui.click(window, 90, 115)
+            stdout, stderr = browser.communicate(timeout=280)
+        assert browser.returncode == 0, redact(stderr)
+        print(stdout, end='', flush=True)
+        if cold:
+            assert window in native_windows(b'Confectory - Logic Code') and app.child.poll() is None
+            app.window = window
+            app.close()
+        else:
+            def returned(row):
+                return (row['screen'] == 'project' and row['message'] == 'Returned from Logic Code.' and
+                        row['model']['selected']['projectId'] == created['projectId'] and
+                        row['model']['selected']['path'] == created['path'] and native_windows())
+            app.wait(returned, 'Returned directly to the original project')
+            app.window, = native_windows()
+            app.wait(lambda row: app.field(row, 38).get('text') == BROWSER_CHAT, 'Unsent browser chat restored in GTK')
+            assert not (app.profile / 'project-chat').exists()
         assert not native_windows(b'Confectory - Logic Code')
         no_listener()
 
     app.launch([INSTALL + '/run'])
     assert not app.state()['model']['cards'] and not app.state()['model']['helperAgents']['agents']
-    created = app.create(TITLE, 'Unsent GTK handoff draft', projects)
+    created = app.create(TITLE, GTK_CHAT, projects)
     close_project()
     other = app.create('Unrelated Local Project', '', projects)
     close_project()
@@ -360,13 +424,18 @@ def test_switch(app, projects):
     app.click(42)
     app.fill(54, 'return 0;\n')
     dispatch(created, cold=False)
+    marker = app.home / 'logic-result.txt'
+    marker.unlink()
+    app.click(36)
+    eventually(lambda: marker.is_file() and marker.read_text() == OUTPUT, 'Confirmed Logic Code runs in GTK', timeout=120)
+    app.close()
 
     app.launch([INSTALL + '/run'])
     assert open_project(app, TITLE)['projectId'] == created['projectId']
-    app.wait(lambda row: app.field(row, 38).get('text') == 'Unsent GTK handoff draft', 'Local GTK draft restored')
+    app.wait(lambda row: app.field(row, 38).get('text') == BROWSER_CHAT, 'Local GTK draft restored')
     dispatch(created, cold=True)
     assert other_manifest.read_bytes() == other_original
-    print('PASS fallback and unsaved guard, exact active project, unrelated project and draft retained, exit removed listener', flush=True)
+    print('PASS direct GTK return, restart, executable output, unsent chat, independent project, and exclusive session cleanup', flush=True)
 
 
 def test_launch_failure(app, projects):
