@@ -184,6 +184,15 @@ bool PollPreparation(){
 }
 
 void Persist()=>calls.WriteAtomic.Invoke((string)state[2],cards.ToJsonString());
+void HomeEdit(string path,System.Text.Json.Nodes.JsonObject summary){
+ try{
+  var activity=calls.Activity.Invoke(path,"read");summary["lastEditStatus"]=activity[0];
+  if(activity[0]=="available"){
+   var receipt=System.Text.Json.Nodes.JsonNode.Parse(activity[1])!;
+   summary["lastEdit"]=new System.Text.Json.Nodes.JsonObject{["at"]=receipt["at"]!.DeepClone(),["kind"]=receipt["kind"]!.DeepClone(),["sequence"]=receipt["sequence"]!.DeepClone()};
+  }
+ }catch{ /* Isolate a corrupt or unreadable receipt to its own card. */ }
+}
 // Private presentation storage is independent of project source drafts and Confirm.
 string PresentationPath(string id)=>System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"presentations",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(id)))+".json");
 void ValidatePrivateViews(System.Text.Json.Nodes.JsonObject value){
@@ -210,6 +219,7 @@ void Register(string context,string title,string description,string? checkedIden
  var saved=chatDrafts[context];
  if(saved.Revision!="missing")Shell(context,"draft",saved.Text);
  }LoadPresentation(model["selected"]!["projectId"]!.ToString());Persist();}
+var retainedHomeStatus=operation=="home-activity"?model["status"]?.DeepClone():null;
 var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.DeepClone():null;var retainedBadgeError=operation=="worker-badges-inspect"?model["operationError"]?.DeepClone():null;var retainedBadgeArchive=operation=="worker-badges-inspect"?model["archive"]?.DeepClone():null;try{model["status"]="";model["archive"]=null;
  if(operation=="home-preferences-save"){var candidate=args["preferences"]?.AsObject()??throw new ArgumentException("Home preferences required");var saved=calls.HomePreferences.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,"save",candidate.ToJsonString());model["homePreferences"]=System.Text.Json.Nodes.JsonNode.Parse(saved);model["status"]="Home preferences saved locally";}
  else if(operation=="helper-characters-save"){
@@ -218,6 +228,17 @@ var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.Deep
   model["homePreferences"]=System.Text.Json.Nodes.JsonNode.Parse(saved);
   model["status"]="Helper character preference saved locally";
  }
+ else if(operation=="home-activity"){
+  if(model["selected"] is not null)throw new InvalidOperationException("Home activity requires Home");
+  var edits=new System.Text.Json.Nodes.JsonObject();
+  foreach(var card in cards){
+   string path=card!["path"]!.ToString();
+   var summary=new System.Text.Json.Nodes.JsonObject{["lastEditStatus"]="unavailable"};
+   if(System.IO.File.Exists(path))HomeEdit(path,summary);
+   edits[Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(path)))[..32]]=summary;
+  }
+  model["homeActivity"]=edits;model["status"]=retainedHomeStatus??System.Text.Json.Nodes.JsonValue.Create("");
+ }
  else if(operation=="home-summaries"){
   if(model["selected"] is not null)throw new InvalidOperationException("Home summary requires Home");var summaries=new System.Text.Json.Nodes.JsonObject();foreach(var card in cards){string id=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card!["path"]!.ToString())))[..32];var summary=new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["objectScope"]="confirmed-project-object-declarations",["packsStatus"]="unavailable",["lastEditStatus"]="unavailable"};
    try{var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(card["path"]!.ToString(),"{\"action\":\"list\",\"kind\":\"object\",\"query\":\"\",\"page\":0}"))!;if(result["status"]?.ToString()=="available"&&result["sourceScope"]?.ToString()=="confirmed-files"&&result["kind"]?.ToString()=="object"&&result["total"]?.GetValue<int>()>=0){summary["status"]="available";summary["objects"]=result["total"]!.DeepClone();}}
@@ -225,8 +246,7 @@ var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.Deep
    if(summary["status"]?.ToString()=="available"){
     try{var inclusion=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(card["path"]!.ToString(),"{\"action\":\"inclusion\"}"))!;if(inclusion["status"]?.ToString()=="available"&&inclusion["sourceScope"]?.ToString()=="confirmed-files"){summary["packsStatus"]=inclusion["packsStatus"]!.DeepClone();summary["packs"]=inclusion["packs"]?.DeepClone();summary["packTargets"]=inclusion["targets"]?.DeepClone();summary["packsScope"]=inclusion["scope"]!.DeepClone();}}
     catch{ /* Inclusion failures do not discard an independently available object count. */ }
-    try{var activity=calls.Activity.Invoke(card["path"]!.ToString(),"read");summary["lastEditStatus"]=activity[0];if(activity[0]=="available"){var receipt=System.Text.Json.Nodes.JsonNode.Parse(activity[1])!;summary["lastEdit"]=new System.Text.Json.Nodes.JsonObject{["at"]=receipt["at"]!.DeepClone(),["kind"]=receipt["kind"]!.DeepClone(),["sequence"]=receipt["sequence"]!.DeepClone()};}}
-    catch{ /* Preserve corrupt receipts and keep per-card failures private. */ }
+    HomeEdit(card["path"]!.ToString(),summary);
    }
    summaries[id]=summary;
   }model["homeSummaries"]=summaries;model["status"]="Home confirmed inclusion and persisted edit summaries refreshed";
