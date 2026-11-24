@@ -303,6 +303,53 @@ def card_run_workflow(report, root, browser):
     print("PASS Chromium canceled Review leaves no menu; confirmed card stays open during the one real Alpha Run")
 
 
+def card_refresh_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    (alpha, _), originals, proof = seed(report, root, checkout=checkout)
+    path = Path(alpha["path"]).with_name("StockDesk.celem")
+    initial = path.read_text().replace(" }", ' value editorWindow = "element-view-card"; }', 1)
+    path.write_text(initial)
+    writer_root = root / "writer"
+    writer_profile = writer_root / "profile"
+    writer_profile.mkdir(parents=True)
+    (writer_profile / "projects.json").write_text(json.dumps([alpha]))
+
+    with editor(report, root, "card-reader", checkout=checkout) as reader_address, \
+            editor(report, writer_root, "card-writer", checkout=checkout) as writer_address:
+        assert reader_address.split("/#")[0] != writer_address.split("/#")[0]
+        reader, reader_errors = attach(browser, reader_address)
+        writer, writer_errors = attach(browser, writer_address)
+        open_project(reader, alpha["title"])
+        open_project(writer, alpha["title"])
+        assert state(reader_address)["projectId"] == state(writer_address)["projectId"]
+        open_window(reader, "card", close=False)
+        card = reader.get_by_role("dialog", name=WINDOW_TITLE, exact=True)
+
+        hidden = stage_renderer(writer, path, "", "element-view-card")
+        review = open_review(writer)
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        expect(writer.locator("#source")).to_have_value(hidden)
+        assert path.read_text() == initial
+        project_menu(reader, approved=True)
+        reader.keyboard.press("Escape")
+        expect(card).to_be_visible()
+
+        confirm_review(writer)
+        assert path.read_text() == hidden
+        expect(card).to_be_visible()
+        project_menu(reader)
+        expect(card).to_have_count(0)
+        assert not reader_errors and not writer_errors, (reader_errors, writer_errors)
+        reader.close()
+        writer.close()
+
+    assert not proof.exists()
+    originals[path] = hidden.encode()
+    assert all(file.read_bytes() == value for file, value in originals.items())
+    print("PASS two local Chromium editor sessions: cancel keeps the card; Confirm and manual menu refresh remove it")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -354,12 +401,14 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
                     if "--card-run" in sys.argv[2:]:
                         card_run_workflow(package, Path(directory), browser)
+                    elif "--card-refresh" in sys.argv[2:]:
+                        card_refresh_workflow(package, Path(directory), browser)
                     else:
                         settings_workflow(package, Path(directory), browser)
         else:

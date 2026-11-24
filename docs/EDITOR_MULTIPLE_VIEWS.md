@@ -66,6 +66,11 @@ python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --
 
 This mode confirms the read-only card after canceling one Review, opens it through
 ≡ and checks that it stays visible while Alpha's real entry runs exactly once.
+Use `--card-refresh` with the same build report for two separate local editor
+processes in one Chromium. The reader keeps its card open after the writer
+cancels Review. After the writer Confirms, opening ≡ in the reader withdraws
+both the menu entry and the open card.
+
 
 ## Reproduce the affected gates
 
