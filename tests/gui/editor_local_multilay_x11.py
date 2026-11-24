@@ -94,9 +94,9 @@ def run(editor, projects):
     editor.wait(lambda row: row["laySelecting"], "Native shortcut enters region selection")
     ui.click(editor.window, first[0], first[1])
     editor.wait(lambda row: row["screen"] == "project" and not row["laySelecting"]
-                and "painted workspace" in row["message"], "A plain click cannot create a GTK capture")
+                and "painted workspace" in row["message"], "A click outside the semantic target cannot create a GTK capture")
     assert not packages(editor)
-    print("PASS a click during native capture does not create an EY or write a package", flush=True)
+    print("PASS a click outside the native EY target leaves the package untouched", flush=True)
 
     first_pixels = pixels(editor, first)
     start_drag(editor, first)

@@ -69,7 +69,7 @@ allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,Syste
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,49),System.Linq.Enumerable.Range(500,32))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(471,8)):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(451,20)):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -678,18 +678,22 @@ void PollLanPanel()
 }
 // The private package belongs to the active project. Capture mode never opens or saves it.
 const int LayFirst=475, LaySecond=476, LayRemoveFirst=477, LayRemoveSecond=478;
-(string Activation,string Unit,string Mode,int Focus)? laySelection=null;
+const int YogiPreviousItems=441, YogiNextItems=442, YogiItemsPerPage=2;
+(string Activation,string Unit,string Revision,string Mode,int Focus)? laySelection=null;
 (int X,int Y)? layAnchor=null;
-int layPointerX=0,layPointerY=0,layReturnFocus=0;
-int[] layBounds=Array.Empty<int>();
+bool layDragged=false;
+int layPointerX=0,layPointerY=0,layReturnFocus=0,yogiPage=0;
+int[] layBounds=Array.Empty<int>(),eyBounds=Array.Empty<int>();
 var layNativeBounds=new System.Collections.Generic.List<int[]>();
 (int[] Rectangles,string[] Labels,int[] Clips,int[] Origins,string[] Text)? layFrame=null;
 (int Width,int Height,int[] Pixels)? layPreview=null;
 string LayUnit()=>model["workspace"]?["unit"]?["id"]?.ToString()??"";
+string LayRevision()=>model["workspace"]?["unit"]?["revision"]?.ToString()??"";
 bool LaySealed()=>model["yogi"]?["sealed"]?.GetValue<bool>()==true;
-System.Text.Json.Nodes.JsonNode[] LayItems()=>System.Linq.Enumerable.ToArray(
+System.Text.Json.Nodes.JsonNode[] YogiItems()=>System.Linq.Enumerable.ToArray(
  System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(model["yogi"]?["items"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),
- item=>item?["kind"]?.ToString()=="image"),item=>item!));
+ item=>item?["kind"]?.ToString()=="image"||layReturnScreen=="project"&&item?["kind"]?.ToString()=="semantic"),item=>item!));
+int LastYogiPage(int count)=>Math.Max(0,(count-1)/YogiItemsPerPage);
 bool LayWorkspaceAvailable()=>OperatingSystem.IsLinux()&&screen=="project"&&!appClosePending&&!nativePickerPending&&!storagePending&&
  job is null&&model["closeRequest"] is null&&model["workspace"]?["review"] is null&&ProjectMenu().Length==0&&
  model["shell"]?["navigation"]?.ToString()==""&&LayUnit().Length!=0&&
@@ -704,19 +708,19 @@ string LayDescriptionBuffer()
 bool BeginLaySelection(int focus)
 {
  if(!LayWorkspaceAvailable()){
-  if(screen=="project"&&LayUnit().Length==0&&job is null)message="Select a workspace item before capturing a LaY.";
+  if(screen=="project"&&LayUnit().Length==0&&job is null)message="Select a workspace item before capturing an EY or LaY.";
   return false;
  }
  CancelInput(eventID++);pendingFocus=0;Focus(0);layReturnScreen="project";layReturnFocus=focus;
- laySelection=(LanCurrentActivation(),LayUnit(),WorkspaceMode(),focus);
- layAnchor=null;layFrame=null;
+ laySelection=(LanCurrentActivation(),LayUnit(),LayRevision(),WorkspaceMode(),focus);
+ layAnchor=null;layFrame=null;layDragged=false;
  Render();
  return true;
 }
 void EndLaySelection(bool restoreFocus)
 {
  if(restoreFocus&&laySelection is { } pick)pendingFocus=pick.Focus;
- laySelection=null;layAnchor=null;layFrame=null;CancelInput(eventID++);
+ laySelection=null;layAnchor=null;layFrame=null;layDragged=false;CancelInput(eventID++);
 }
 int[] LayDrag(int x,int y)
 {
@@ -731,6 +735,14 @@ bool LayCanCapture(int[] area)
  return !System.Linq.Enumerable.Any(layNativeBounds,field=>
   area[0]<field[0]+field[2]&&area[0]+area[2]>field[0]&&area[1]<field[1]+field[3]&&area[1]+area[3]>field[1]);
 }
+bool EyAt(int x,int y)
+{
+ for(int i=0;i<eyBounds.Length;i+=4)
+  if(x>=eyBounds[i]&&x<eyBounds[i]+eyBounds[i+2]&&y>=eyBounds[i+1]&&y<eyBounds[i+1]+eyBounds[i+3])return true;
+ return false;
+}
+// Use the browser's five-pixel click threshold. A drag that returns to its start still counts as a drag.
+bool PastYogiClick(int[] area)=>(long)area[2]*area[2]+(long)area[3]*area[3]>25;
 bool HandleLayGesture(int type,int x,int y,int key,int flags,bool fromNative)
 {
  bool shortcut=!fromNative&&type==5&&(key is 'y' or 'Y')&&(flags&14)==2;
@@ -741,18 +753,31 @@ bool HandleLayGesture(int type,int x,int y,int key,int flags,bool fromNative)
  if(!fromNative&&type==1)
  {
   if(LayCanCapture(new[]{x,y,1,1}))layAnchor=(x,y);
-  else {EndLaySelection(true);message="LaY needs a painted region inside the selected workspace.";return true;}
+  else {EndLaySelection(true);message="Capture needs a painted region inside the selected workspace.";return true;}
  }
- if(!fromNative&&type is 1 or 3){layPointerX=x;layPointerY=y;}
- if(!fromNative&&type==2&&layAnchor is not null)
+ if(!fromNative&&type is 1 or 3){
+  layPointerX=x;layPointerY=y;
+  if(layAnchor is not null)layDragged|=PastYogiClick(LayDrag(x,y));
+ }
+ if(!fromNative&&type==2&&layAnchor is { } anchor)
  {
   int[] area=LayDrag(x,y);
   var pick=laySelection.Value;
   var frame=layFrame;
-  bool valid=LayWorkspaceAvailable()&&pick.Activation==LanCurrentActivation()&&pick.Unit==LayUnit()&&
-   pick.Mode==WorkspaceMode()&&LayCanCapture(area)&&frame is not null;
+  bool current=LayWorkspaceAvailable()&&pick.Activation==LanCurrentActivation()&&pick.Unit==LayUnit()&&pick.Mode==WorkspaceMode();
+  bool drag=layDragged||PastYogiClick(area);
+  bool ey=current&&!drag&&pick.Revision==LayRevision()&&EyAt(anchor.X,anchor.Y)&&EyAt(x,y);
+  bool imageArea=current&&drag&&LayCanCapture(area)&&frame is not null;
   EndLaySelection(true);
-  if(!valid){message="Select up to 512 × 512 inside the painted workspace, clear of text fields.";return true;}
+  if(ey){
+   Start("yogi-native",new{context=Context(),activation=pick.Activation,action="exactly",id=pick.Unit,revision=pick.Revision});
+   return true;
+  }
+  if(!imageArea){
+   message=drag?"Select up to 512 × 512 inside the painted workspace, clear of text fields.":
+    "Click the selected object ID for EY, or drag inside the painted workspace for LaY.";
+   return true;
+  }
   try
   {
    var savedFrame=frame!.Value;
@@ -774,14 +799,19 @@ void LayPanelAction(int id)
  if(job is not null)return;
  if(id==LayClose){CloseLayPanel();return;}
  if(id==LayCaptureAnother&&layReturnScreen=="project"){CloseLayPanel();BeginLaySelection(layReturnFocus);return;}
- var items=LayItems();int index=id is LayFirst or LayRemoveFirst?0:1;
+ var items=YogiItems();yogiPage=Math.Min(yogiPage,LastYogiPage(items.Length));
+ if(id is YogiPreviousItems or YogiNextItems){
+  yogiPage=Math.Clamp(yogiPage+(id==YogiPreviousItems?-1:1),0,LastYogiPage(items.Length));
+  layPreview=null;return;
+ }
+ int index=yogiPage*YogiItemsPerPage+(id is LayFirst or LayRemoveFirst?0:1);
  string context=Context(),activation=LanCurrentActivation();
  if(id==LaySeal&&layReturnScreen=="project")
  {
   bool seal=!LaySealed();
   Start("yogi-native",new{context,activation,action="seal",@sealed=seal,text=seal?calls.TextSnapshot.Invoke(LayDescriptionBuffer())[1]:null},LaySeal);
  }
- else if(id is LayFirst or LaySecond&&index<items.Length)
+ else if(id is LayFirst or LaySecond&&index<items.Length&&items[index]["kind"]?.ToString()=="image")
  {
   try{layPreview=DecodeLayCapture(items[index]["capture"]!);}
   catch(ArgumentException){layPreview=null;message="LaY preview unavailable.";}
@@ -812,7 +842,7 @@ bool LanSealedIconAvailable()=>lanHasSealedBox&&lanLifetime is not null&&lanActi
 void OpenLayIcon()
 {
  if(!CanOpenLayIcon())return;
- layReturnScreen=screen;layReturnFocus=LayEntry;
+ layReturnScreen=screen;layReturnFocus=LayEntry;yogiPage=0;
  Start("yogi-native",new{context=Context(),activation=LanCurrentActivation(),action="show"});
 }
 bool HandleYogiPointer(int type,int x,int y,int key,bool fromNative)
@@ -1045,7 +1075,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;var card=cards[index]!;string path=card["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenHomeFolder(ListingId(card));else{removePath=path;Change("remove");}return;}}
 void Render(){homeTiles.Clear();
  var homeImages=new System.Collections.Generic.List<(int[] Bounds,int[] Pixels)>();
- int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Empty<int>();layNativeBounds.Clear();layBounds=Array.Empty<int>();var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
+ int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Empty<int>();layNativeBounds.Clear();layBounds=eyBounds=Array.Empty<int>();var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
  int workspaceSide=sidebar?Math.Min(200,Math.Max(120,w/4)):54,workspaceLeft=workspaceSide+16,workspaceWidth=Math.Max(1,w-workspaceLeft-16);
  int chatHeight=Math.Min(188,Math.Max(148,h/4)),chatTop=h-chatHeight-40;
  int[] workarea=new[]{Math.Min(w-1,workspaceLeft),Math.Min(h-1,58),Math.Max(1,workspaceWidth),Math.Max(1,chatTop-70)};
@@ -1102,18 +1132,27 @@ void Render(){homeTiles.Clear();
  Label(new[]{left,60,width,34},LaySealed()?"Sealed YogiBox":"YogiBox");
  bool fromChat=layReturnScreen=="lan-chat";
  Button(LayClose,new[]{left,104,150,30},fromChat?"Back to messages":"Back to workspace");
- if(!fromChat)Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture LaY",LayUnit().Length!=0);
- var items=LayItems();
+ if(!fromChat)Button(LayCaptureAnother,new[]{left+158,104,Math.Max(1,Math.Min(width-158,210)),30},"Capture EY or LaY",LayUnit().Length!=0);
+ var items=YogiItems();yogiPage=Math.Min(yogiPage,LastYogiPage(items.Length));
  if(items.Length==0)Label(new[]{left,152,width,30},"No captured regions");
- for(int index=0;index<items.Length;index++){
-  int y=150+index*38;
-  var capture=items[index]["capture"]!;
-  Button(LayFirst+index,new[]{left,y,Math.Max(1,width-96),30},"LaY "+(index+1)+" · "+capture["width"]+" × "+capture["height"]);
-  if(!fromChat&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"Remove");
+ int offset=yogiPage*YogiItemsPerPage;
+ int imageNumber=System.Linq.Enumerable.Count(System.Linq.Enumerable.Take(items,offset),item=>item["kind"]?.ToString()=="image");
+ for(int index=0;index<Math.Min(YogiItemsPerPage,items.Length-offset);index++){
+  int y=150+index*38;var item=items[offset+index];
+  var bounds=new[]{left,y,Math.Max(1,width-96),30};
+  if(item["capture"] is { } capture)
+   Button(LayFirst+index,bounds,"LaY "+(++imageNumber)+" · "+capture["width"]+" × "+capture["height"]);
+  else Label(bounds,"EY · "+item["id"]+" · "+(item["availability"]?.ToString()??"unavailable"));
+  if(!fromChat&&!LaySealed())Button(LayRemoveFirst+index,new[]{left+width-90,y,90,30},"× Remove");
  }
  if(fromChat||LaySealed())WrappedLabel(new[]{left,232,width,58},model["yogi"]?["text"]?.ToString()??"");
  else Field(LayDescription,new[]{left,232,width,58},"Description saved when you seal the box");
  if(!fromChat)Button(LaySeal,new[]{left,302,170,34},LaySealed()?"Unseal YogiBox":"Seal YogiBox",LaySealed()||items.Length>0);
+ if(items.Length>YogiItemsPerPage){
+  Button(YogiPreviousItems,new[]{left+178,302,82,34},"Previous",yogiPage>0);
+  Button(YogiNextItems,new[]{left+266,302,66,34},"Next",yogiPage<LastYogiPage(items.Length));
+  Label(new[]{left+340,302,86,34},(yogiPage+1)+" / "+(LastYogiPage(items.Length)+1));
+ }
  if(layPreview is { } image&&h>402){
   double scale=Math.Min(1d,Math.Min((double)width/image.Width,(double)(h-402)/image.Height));
   layPreviewBounds=new[]{left,350,Math.Max(1,(int)(image.Width*scale)),Math.Max(1,(int)(image.Height*scale))};
@@ -1247,7 +1286,16 @@ else if(screen=="fields"){
    Button(33,new[]{left,10,Math.Min(420,Views().Length>0?Math.Max(1,headerArea/2-8):headerArea),42},project["title"]!.ToString()+"  - Menu");
    var viewLaunchers=calls.Stack.Invoke(new[]{left+Math.Min(428,headerArea/2),10,Math.Max(1,headerArea-Math.Min(428,headerArea/2)),42},0,4,new[]{0,0,0});foreach(var view in Views()){int slot=view["slot"]!.GetValue<int>();Button(319+slot,viewLaunchers[(slot*4)..(slot*4+4)],(view["open"]!.GetValue<bool>()?"View ":"Reopen ")+(slot+1));}
    int panelHeight=chatHeight,panelY=chatTop;layer=6;Box(new[]{left,66,area,Math.Max(1,panelY-78)},0x1B2E3B);{var workspace=model["workspace"];if(workspace is null){Label(new[]{left+8,76,Math.Max(1,area-160),44},"Workspace","workspace");Button(55,new[]{left+Math.Max(0,area-148),76,Math.Min(140,area),36},"Edit sources");Label(new[]{left+8,124,Math.Max(1,area-16),Math.Max(1,panelY-146)},project["description"]!.ToString(),"project-description");}else{
- bool narrow=area<460;int toolbarHeight=narrow?68:32;int toolbarWidth=Math.Max(1,area-16);if(narrow){var browse=calls.Stack.Invoke(new[]{left+8,76,toolbarWidth,32},0,4,new[]{0,0,0});Button(56,browse[..4],"Prev");Button(57,browse[4..8],"Next");Button(60,browse[8..12],"Hide");var edits=calls.Stack.Invoke(new[]{left+8,112,toolbarWidth,32},0,4,new[]{0,0});Button(58,edits[..4],"Save draft");Button(59,edits[4..8],"Export ZIP");}else{var toolbar=calls.Stack.Invoke(new[]{left+8,76,toolbarWidth,32},0,4,new[]{48,48,100,140,64});Button(56,toolbar[..4],"Prev");Button(57,toolbar[4..8],"Next");Button(58,toolbar[8..12],"Save draft");Button(59,toolbar[12..16],"Export ZIP");Button(60,toolbar[16..20],"Hide");}int unitY=80+toolbarHeight,sourceY=unitY+32;var unit=workspace["unit"];if(unit is not null){Label(new[]{left+8,unitY,Math.Max(1,area-140),24},unit["id"]!.ToString()+(unit["dirty"]!.GetValue<bool>()?" *":""));Button(61,new[]{left+Math.Max(0,area-124),unitY,Math.Min(116,area),26},"Reload source");}
+ bool narrow=area<460;int toolbarHeight=narrow?68:32;int toolbarWidth=Math.Max(1,area-16);if(narrow){var browse=calls.Stack.Invoke(new[]{left+8,76,toolbarWidth,32},0,4,new[]{0,0,0});Button(56,browse[..4],"Prev");Button(57,browse[4..8],"Next");Button(60,browse[8..12],"Hide");var edits=calls.Stack.Invoke(new[]{left+8,112,toolbarWidth,32},0,4,new[]{0,0});Button(58,edits[..4],"Save draft");Button(59,edits[4..8],"Export ZIP");}else{var toolbar=calls.Stack.Invoke(new[]{left+8,76,toolbarWidth,32},0,4,new[]{48,48,100,140,64});Button(56,toolbar[..4],"Prev");Button(57,toolbar[4..8],"Next");Button(58,toolbar[8..12],"Save draft");Button(59,toolbar[12..16],"Export ZIP");Button(60,toolbar[16..20],"Hide");}int unitY=80+toolbarHeight,sourceY=unitY+32;var unit=workspace["unit"];if(unit is not null){
+ string label=unit["id"]!.ToString()+(unit["dirty"]!.GetValue<bool>()?" *":"");
+ var labelBox=new[]{left+8,unitY,Math.Max(1,area-140),24};
+ if(laySelection is not null&&unit["kind"]?.ToString()=="object"&&!Folded(layer)){
+  var metrics=J(calls.MeasureText.Invoke(surfaces,0,label));
+  var widths=metrics["lines"]![0]!["positions"]!.AsArray();
+  labelBox[2]=Math.Min(labelBox[2],widths[^1]!.GetValue<int>()+2*metrics["insetX"]!.GetValue<int>());
+  eyBounds=Visible(Position(labelBox));
+ }
+ Label(labelBox,label);Button(61,new[]{left+Math.Max(0,area-124),unitY,Math.Min(116,area),26},"Reload source");}
  // Geometry only: these controls dispatch the existing public Model commands.
  int contentY=sourceY+36,contentWidth=Math.Max(1,area-16),contentHeight=Math.Max(1,panelY-contentY-44);
  var modeBoxes=calls.Stack.Invoke(new[]{left+8,sourceY,contentWidth,30},0,4,new[]{0,0,0,0,0,100});
@@ -1322,19 +1370,28 @@ else if(screen=="fields"){
  bool traceComposition=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_TRACE")=="1";if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="begin",frames,screen,nativeHost,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString(),nativePickerPending,jobPending=job is not null,emittedRoles,nativeFields=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>new{id=J(x)["id"]!.GetValue<int>(),visible=J(x)["visible"]!.GetValue<bool>(),enabled=J(x)["enabled"]!.GetValue<bool>()})),rectangles=draw.Count/5,textRuns=texts.Count}));
  if(laySelection is not null){
   layFrame=(draw.ToArray(),labels.ToArray(),clips.ToArray(),origins.ToArray(),texts.ToArray());
+  if(!layDragged){
+   for(int i=0;i<eyBounds.Length;i+=4){
+    var label=eyBounds[i..(i+4)];int x=label[0],y=label[1],width=label[2],height=label[3];
+    // The target outline is display-only and must not enter the saved crop.
+    const int color=0xFFE0A0;
+    draw.AddRange(new[]{x,y,width,1,color,x,y+height-1,width,1,color,x,y,1,height,color,x+width-1,y,1,height,color});
+    labels.AddRange(new[]{"","","",""});
+   }
+  }
   if(layAnchor is not null){
    int[] selection=LayDrag(layPointerX,layPointerY);int x=selection[0],y=selection[1],width=selection[2],height=selection[3];
-   if(width>0&&height>0){int color=LayCanCapture(selection)?0xFFE0A0:0xD88784;
+   if(width>0&&height>0&&layDragged){int color=LayCanCapture(selection)?0xFFE0A0:0xD88784;
     Paint(new[]{x,y,width,1,color,x,y+height-1,width,1,color,x,y,1,height,color,x+width-1,y,1,height,color});}
   }
-  WrappedLabel(new[]{left,h-34,area,32},"Drag on the painted workspace to capture LaY. Esc cancels.");
+  WrappedLabel(new[]{left,h-34,area,32},"Click the selected object ID for EY. Drag on the painted workspace for LaY. Esc cancels.");
  }
  calls.NativeFrame.Invoke(nativeHost,System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>J(x)["key"]!.ToString())));calls.Draw.Invoke(surfaces,0,draw.ToArray(),labels.ToArray());if(texts.Count>0)calls.DrawText.Invoke(surfaces,0,clips.ToArray(),origins.ToArray(),texts.ToArray());
  foreach(var image in homeImages)calls.DrawChatCapture.Invoke(surfaces,image.Bounds,128,128,image.Pixels);
  if(layPreviewBounds.Length==4&&layPreview is { } localImage)calls.DrawChatCapture.Invoke(surfaces,layPreviewBounds,localImage.Width,localImage.Height,localImage.Pixels);
  if(lanImageBounds.Length==4){var image=lanImages[lanImageIndex];calls.DrawChatCapture.Invoke(surfaces,lanImageBounds,image.Width,image.Height,image.Pixels);}
  if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="end",frames}));
- if(Environment.GetEnvironmentVariable("CONFECTORY_HOME_TRACE")=="1"&&frames%15==0)Console.WriteLine("HOME_UI "+new System.Text.Json.Nodes.JsonObject{["screen"]=screen,["width"]=w,["height"]=h,["sidebar"]=sidebar,["job"]=job is not null,["operation"]=operation,["queuedAction"]=queuedAction,["deferredActions"]=deferredActions,["pointer"]=calls.ControlState.Invoke(control,"query",0)[1],["nativePickerPending"]=nativePickerPending,["focus"]=calls.ControlState.Invoke(control,"query",0)[0],["hits"]=System.Text.Json.JsonSerializer.SerializeToNode(hits),["radii"]=System.Text.Json.JsonSerializer.SerializeToNode(radii),["orderFrame"]=J(orderFrame),["navigationPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(navPanel),["submenuPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(subPanel),["fields"]=TraceFields(),["lanMode"]=lanMode,["lanStatus"]=lanStatus,["lanImageBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(lanImageBounds),["laySelecting"]=laySelection is not null,["layBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(layBounds),["model"]=TraceModel(),["message"]=message,["controls"]=control,["homeControls"]=homeControl,["projectControls"]=shellControl,["retainedViews"]=screen=="project"?System.Text.Json.JsonSerializer.SerializeToNode(Views()):null,["chatBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(chatBuffers),["texts"]=System.Text.Json.JsonSerializer.SerializeToNode(texts),["textClips"]=System.Text.Json.JsonSerializer.SerializeToNode(clips),["detailBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(detailBuffers),["detailKey"]=DetailsScreen()?DetailKey():"",["nativeTree"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeProjection()?.DeepClone():null,["nativeTreeState"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeState().DeepClone():null,["sourceInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(sourceVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["propertyInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(propertyVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["nativeAction"]=screen=="actions"?new System.Text.Json.Nodes.JsonObject{["status"]=nativeActionStatus,["object"]=nativeActionObject,["selection"]=nativeActionSelection,["token"]=nativeActionList?["token"]?.DeepClone(),["actions"]=nativeActionList?["actions"]?.DeepClone(),["chosen"]=nativeActionChosen,["generation"]=nativeActionGeneration}:null,["nativeFieldState"]=screen=="fields"?NativeFieldState().DeepClone():null,["nativeFieldResult"]=screen=="fields"?NativeFieldResult()?.DeepClone():null,["nativeFieldChoosing"]=screen=="fields"&&nativeFieldChoosing,["nativeFieldCandidates"]=screen=="fields"?System.Text.Json.JsonSerializer.SerializeToNode(nativeFieldCandidates):null,["nativeFieldObjects"]=screen=="fields"?nativeFieldObjects?.DeepClone():null,["nativeFieldObjectOffset"]=nativeFieldObjectOffset,["nativeFieldStatus"]=screen=="fields"&&nativeFieldStatus.TryGetValue(Context(),out var fieldStatus)?fieldStatus:"",["buffers"]=System.Text.Json.JsonSerializer.SerializeToNode(buffers)}.ToJsonString());}
+ if(Environment.GetEnvironmentVariable("CONFECTORY_HOME_TRACE")=="1"&&frames%15==0)Console.WriteLine("HOME_UI "+new System.Text.Json.Nodes.JsonObject{["screen"]=screen,["width"]=w,["height"]=h,["sidebar"]=sidebar,["job"]=job is not null,["operation"]=operation,["queuedAction"]=queuedAction,["deferredActions"]=deferredActions,["pointer"]=calls.ControlState.Invoke(control,"query",0)[1],["nativePickerPending"]=nativePickerPending,["focus"]=calls.ControlState.Invoke(control,"query",0)[0],["hits"]=System.Text.Json.JsonSerializer.SerializeToNode(hits),["radii"]=System.Text.Json.JsonSerializer.SerializeToNode(radii),["orderFrame"]=J(orderFrame),["navigationPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(navPanel),["submenuPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(subPanel),["fields"]=TraceFields(),["lanMode"]=lanMode,["lanStatus"]=lanStatus,["lanImageBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(lanImageBounds),["laySelecting"]=laySelection is not null,["layBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(layBounds),["eyBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(eyBounds),["model"]=TraceModel(),["message"]=message,["controls"]=control,["homeControls"]=homeControl,["projectControls"]=shellControl,["retainedViews"]=screen=="project"?System.Text.Json.JsonSerializer.SerializeToNode(Views()):null,["chatBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(chatBuffers),["texts"]=System.Text.Json.JsonSerializer.SerializeToNode(texts),["textClips"]=System.Text.Json.JsonSerializer.SerializeToNode(clips),["detailBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(detailBuffers),["detailKey"]=DetailsScreen()?DetailKey():"",["nativeTree"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeProjection()?.DeepClone():null,["nativeTreeState"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeState().DeepClone():null,["sourceInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(sourceVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["propertyInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(propertyVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["nativeAction"]=screen=="actions"?new System.Text.Json.Nodes.JsonObject{["status"]=nativeActionStatus,["object"]=nativeActionObject,["selection"]=nativeActionSelection,["token"]=nativeActionList?["token"]?.DeepClone(),["actions"]=nativeActionList?["actions"]?.DeepClone(),["chosen"]=nativeActionChosen,["generation"]=nativeActionGeneration}:null,["nativeFieldState"]=screen=="fields"?NativeFieldState().DeepClone():null,["nativeFieldResult"]=screen=="fields"?NativeFieldResult()?.DeepClone():null,["nativeFieldChoosing"]=screen=="fields"&&nativeFieldChoosing,["nativeFieldCandidates"]=screen=="fields"?System.Text.Json.JsonSerializer.SerializeToNode(nativeFieldCandidates):null,["nativeFieldObjects"]=screen=="fields"?nativeFieldObjects?.DeepClone():null,["nativeFieldObjectOffset"]=nativeFieldObjectOffset,["nativeFieldStatus"]=screen=="fields"&&nativeFieldStatus.TryGetValue(Context(),out var fieldStatus)?fieldStatus:"",["buffers"]=System.Text.Json.JsonSerializer.SerializeToNode(buffers)}.ToJsonString());}
 entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??repo,"listen","{}"),value=>calls.EntryRequest.Invoke(value,"close","{}"));
 if(returnToGtk is { } recovery){
  returnToGtk=null;

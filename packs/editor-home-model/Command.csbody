@@ -343,9 +343,14 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  else if(operation=="helper-remember"){string context=Active(),project=model["selected"]!["projectId"]!.ToString();var choice=helperSelections[project]??throw new InvalidOperationException("Select a Helper first");string scope=Value("scope");if(scope is not ("project" or "common"))throw new ArgumentException("Choose project or common memory explicitly");calls.HelperRemember.Invoke(Helpers(),choice["helper"]!.ToString(),"local-user",Guid.NewGuid().ToString("N"),scope,scope=="project"?project:"",Value("text"));Shell(context,"log","User saved "+scope+" Helper memory locally; no content was sent");model["status"]="Saved "+scope+" memory locally; sharing permission remains separate";}
 
  else if(operation is "yogi" or "yogi-native"){
- string context=Active();bool nativeLay=operation=="yogi-native";
- if(nativeLay&&(model["selected"]?["activation"]?.ToString()!=Value("activation")||Value("action") is not ("show" or "capture" or "remove" or "seal" or "text")))throw new InvalidOperationException("Local LaY workspace changed");
- var boxes=(System.Collections.Generic.Dictionary<string,string>)state[12];string action=Value("action");model["yogiError"]=null;
+ string context=Active(),action=Value("action");bool nativeYogi=operation=="yogi-native";
+ if(nativeYogi&&(model["selected"]?["activation"]?.ToString()!=Value("activation")||action is not ("show" or "exactly" or "capture" or "remove" or "seal" or "text")))throw new InvalidOperationException("Local Yogi workspace changed");
+ if(nativeYogi&&action=="exactly"){
+  var selectedUnit=model["workspace"]?["unit"];
+  if(selectedUnit?["kind"]?.ToString()!="object"||selectedUnit["id"]?.ToString()!=Value("id")||
+     selectedUnit["revision"]?.ToString()!=Value("revision"))throw new InvalidOperationException("Select the current owned object for EY");
+ }
+ var boxes=(System.Collections.Generic.Dictionary<string,string>)state[12];model["yogiError"]=null;
  if(action=="discard"){if(boxes.TryGetValue(context,out string? previous)){calls.YogiClear.Invoke(previous);calls.YogiClose.Invoke(previous);boxes.Remove(context);}model["yogi"]=null;}
  else{if(!boxes.TryGetValue(context,out string? box)){box=calls.YogiOpen.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(model["selected"]!["path"]!.ToString())!,".confectory","yogi"),model["selected"]!["projectId"]!.ToString(),"local-user",calls.ProposalDraft.Invoke(Workspace(context)));boxes.Add(context,box);}switch(action){case "show":calls.YogiRevalidate.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context)));break;case "save":break;case "exactly":string id=Value("id");if(model["workspace"]?["unit"]?["id"]?.ToString()!=id)throw new InvalidOperationException("Yogi object selection changed");calls.YogiExactly.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context)),new[]{id},new[]{"description"});break;case "capture":
  string captureView=Value("view"),captureId=Value("id");
@@ -359,14 +364,13 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  break;
  case "text":calls.YogiText.Invoke(box,Value("text"));break;case "seal":
  bool seal=args["sealed"]?.GetValue<bool>()??throw new ArgumentException("Explicit seal choice required");
- if(nativeLay&&seal&&args["text"] is not null){
+ if(nativeYogi&&seal&&args["text"] is not null){
   var package=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiSnapshot.Invoke(box))!;
-  if(!System.Linq.Enumerable.Any(package["items"]!.AsArray(),item=>item?["kind"]?.ToString()=="image")||
-     package["pending"]!.AsArray().Count!=0||package["interrupted"]!.AsArray().Count!=0)
-   throw new InvalidOperationException("Finish at least one LaY capture before sealing");
+  if(package["items"]!.AsArray().Count==0||package["pending"]!.AsArray().Count!=0||package["interrupted"]!.AsArray().Count!=0)
+   throw new InvalidOperationException("Finish at least one EY or LaY capture before sealing");
   calls.YogiText.Invoke(box,Value("text"));
  }
- calls.YogiSeal.Invoke(box,seal);break;case "remove":calls.YogiRemove.Invoke(box,Value("item"));break;default:throw new ArgumentException("Unknown local Yogi action");}if(!nativeLay||action!="show")calls.YogiSave.Invoke(box);model["yogi"]=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiRevalidate.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context))));}
+ calls.YogiSeal.Invoke(box,seal);break;case "remove":calls.YogiRemove.Invoke(box,Value("item"));break;default:throw new ArgumentException("Unknown local Yogi action");}if(!nativeYogi||action!="show")calls.YogiSave.Invoke(box);model["yogi"]=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiRevalidate.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context))));}
  model["status"]="Local semantic Yogi package and bounded owned capture; no external recipient";
  }
  else if(operation=="connection-setup"){string connection=Value("connection");model["agentUseFormOpen"]=connection==Codex;if(connection!=Codex)Onboarding("cancel",new());CancelPreparation();SetupSnapshot(connection,SetupView(connection));if(connection==Codex){Onboarding("snapshot",new());RestoreRegisteredCodex();}model["status"]="Connection configuration opened in place; selected project and work unchanged";}
