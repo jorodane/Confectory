@@ -46,7 +46,7 @@ Exact version expectations and `*`, primitive C# contract types, synchronous fun
 | GRAPH01 | C `test_transitive_stage_view_inheritance_and_always`, `test_unused_documents_are_not_read`; I `test_actual_linked_output_and_public_catalog` |
 | VERSION01 | I `test_selected_versions_warn_without_breaking_executable`, `test_addition_of_a_newer_pack_does_not_change_project_selected_version` |
 | LOCAL01 | I `test_unchanged_build_and_provider_only_change` |
-| LOCAL02 | I `test_unchanged_build_and_provider_only_change`, `test_contract_change_rechecks_consumers_and_rebuilds_only_affected_packs` |
+| LOCAL02 | I `test_unchanged_build_and_provider_only_change`, `test_contract_change_rechecks_consumers_and_rebuilds_only_affected_packs`, [transitive public type CLI probe](../tests/probes/incremental_transitive_types.py) |
 | LOCAL03 | I `test_local_compilation_reads_do_not_grow_with_unrelated_element_documents`, `test_unrelated_contract_in_same_pack_does_not_invalidate_consumers` |
 | CACHE01 | I `test_corrupted_local_artifact_is_rebuilt`, `test_tool_binary_change_invalidates_local_artifacts`, `test_failure_preserves_latest_successful_runnable_output`; C `test_changed_text_with_restored_mtime_is_not_a_stale_document_hit`, `test_corrupted_document_cache_is_reparsed` |
 | META01 | I `test_actual_linked_output_and_public_catalog`; pending loader requirements MOD01–MOD06 are documented separately |
