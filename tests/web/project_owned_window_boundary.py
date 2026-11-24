@@ -466,6 +466,18 @@ def main_view_workflow(report, root, browser):
     print("PASS Chromium opening View picker: cancellation, confirmation, conflict, reset, menu independence and draft retention")
 
 
+def stage_worker_opening_fixture(checkout, alpha):
+    test_host = checkout / "tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll"
+    result = subprocess.run(
+        [os.environ.get("CONFECTORY_DOTNET", "dotnet"), str(test_host), "--require-runtime",
+         "test_worker_origin_opening_view_draft_requires_human_confirm"],
+        env=dict(os.environ, CONFECTORY_TEST_OPENING_VIEW_BROWSER_FIXTURE="1",
+                 CONFECTORY_TEST_AUTHOR_PROJECT=alpha["path"]),
+        capture_output=True, text=True, timeout=180,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def worker_opening_review_workflow(report, root, browser):
     checkout = Path(__file__).resolve().parents[2]
     (alpha, _), originals, proof = seed(report, root, checkout=checkout)
@@ -477,15 +489,7 @@ def worker_opening_review_workflow(report, root, browser):
         assert not errors
         page.close()
 
-    test_host = checkout / "tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll"
-    result = subprocess.run(
-        [os.environ.get("CONFECTORY_DOTNET", "dotnet"), str(test_host), "--require-runtime",
-         "test_worker_origin_opening_view_draft_requires_human_confirm"],
-        env=dict(os.environ, CONFECTORY_TEST_OPENING_VIEW_BROWSER_FIXTURE="1",
-                 CONFECTORY_TEST_AUTHOR_PROJECT=alpha["path"]),
-        capture_output=True, text=True, timeout=180,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
+    stage_worker_opening_fixture(checkout, alpha)
     assert path.read_text() == initial
 
     with editor(report, root, "opening-review-browser", checkout=checkout) as address:

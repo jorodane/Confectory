@@ -1837,7 +1837,48 @@ else if(screen=="fields"){
    Label(new[]{left,h-34,area,32},screen=="home"?FitHomeText(area,status):status);
   }
  }
- if(screen=="project"&&model["closeRequest"] is null&&model["workspace"]?["review"] is System.Text.Json.Nodes.JsonNode reviewed){layer=5;Box(new[]{0,0,w,h},0x14212B);bool workerReview=model["selectedTaskContext"]?.ToString()==Context()&&model["ai"]?["workers"]?[model["selectedTask"]?.ToString()??""]?["status"]?.ToString()=="awaiting-verification";int x=24,width=Math.Max(1,w-48),half=Math.Max(1,(width-8)/2),height=Math.Max(1,h-(workerReview?264:220));Label(new[]{x,16,width,36},"Review sources - "+reviewed["status"]!.ToString());var reviewUnits=reviewed["units"]!.AsArray();reviewIndex=Math.Clamp(reviewIndex,0,reviewUnits.Count-1);var reviewUnit=reviewUnits[reviewIndex]!;Label(new[]{x,52,Math.Max(1,width-150),48},reviewUnit["path"]!.ToString()+" | "+reviewUnit["id"]!.ToString()+" | target "+reviewed["target"]!.ToString());Button(205,new[]{x+width-146,52,146,36},"Source "+(reviewIndex+1)+" / "+reviewUnits.Count,reviewUnits.Count>1);Label(new[]{x,102,half,28},"Current final file");Label(new[]{x+half+8,102,half,28},"Reviewed local draft");Field(67,new[]{x,134,half,height},"Current final source");Field(68,new[]{x+half+8,134,half,height},"Reviewed draft");Button(65,new[]{x,h-76,164,36},"Confirm reviewed",reviewed["status"]!.ToString()=="ready"&&canRun);Button(66,new[]{x+172,h-76,140,36},"Cancel review");if(workerReview){Field(208,new[]{x,h-120,width,32},"Required: verified task outcome and remaining test/runtime limits");Button(209,new[]{x+320,h-76,Math.Max(1,width-320),36},"Accept source + task outcome",reviewed["status"]!.ToString()=="ready"&&canRun);}Label(new[]{x,h-34,width,30},job is not null?"Validating reviewed candidate...":message.Length>0?message:reviewed["status"]!.ToString()=="conflict"?"Final source changed externally; no overwrite. Cancel to retain draft.":model["status"]!.ToString());layer=1;}
+ if(screen=="project"&&model["closeRequest"] is null&&model["workspace"]?["review"] is System.Text.Json.Nodes.JsonNode reviewed){
+  layer=5;
+  Box(new[]{0,0,w,h},0x14212B);
+  bool workerReview=model["selectedTaskContext"]?.ToString()==Context()&&
+   model["ai"]?["workers"]?[model["selectedTask"]?.ToString()??""]?["status"]?.ToString()=="awaiting-verification";
+  int x=24,width=Math.Max(1,w-48),half=Math.Max(1,(width-8)/2);
+  int sourceBottom=h-(workerReview?130:86);
+  Label(new[]{x,16,width,36},"Review sources - "+reviewed["status"]!.ToString());
+  var reviewUnits=reviewed["units"]!.AsArray();
+  reviewIndex=Math.Clamp(reviewIndex,0,reviewUnits.Count-1);
+  var reviewUnit=reviewUnits[reviewIndex]!;
+  Label(new[]{x,52,Math.Max(1,width-150),48},reviewUnit["path"]!.ToString()+" | "+reviewUnit["id"]!.ToString()+" | target "+reviewed["target"]!.ToString());
+  Button(205,new[]{x+width-146,52,146,36},"Source "+(reviewIndex+1)+" / "+reviewUnits.Count,reviewUnits.Count>1);
+  int sourceTop=102;
+  var opening=System.Linq.Enumerable.FirstOrDefault(
+   reviewUnit["semantic"]?["changes"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),
+   row=>row?["label"]?.ToString()=="프로젝트 시작 화면");
+  if(opening is not null){
+   WrappedLabel(new[]{x,sourceTop,width,40},opening["label"]!.ToString()+" · "+
+    opening["before"]!.ToString()+" → "+opening["after"]!.ToString());
+   sourceTop+=42;
+   if(reviewUnit["openingViewOrigin"] is { } origin){
+    WrappedLabel(new[]{x,sourceTop,width,60},"작업자 제안 · "+origin["worker"]!.ToString()+" · 작업 "+origin["task"]!.ToString());
+    sourceTop+=62;
+   }
+  }
+  Label(new[]{x,sourceTop,half,28},"Current final file");
+  Label(new[]{x+half+8,sourceTop,half,28},"Reviewed local draft");
+  sourceTop+=32;
+  int height=Math.Max(1,sourceBottom-sourceTop);
+  Field(67,new[]{x,sourceTop,half,height},"Current final source");
+  Field(68,new[]{x+half+8,sourceTop,half,height},"Reviewed draft");
+  Button(65,new[]{x,h-76,164,36},"Confirm reviewed",reviewed["status"]!.ToString()=="ready"&&canRun);
+  Button(66,new[]{x+172,h-76,140,36},"Cancel review");
+  if(workerReview){
+   Field(208,new[]{x,h-120,width,32},"Required: verified task outcome and remaining test/runtime limits");
+   Button(209,new[]{x+320,h-76,Math.Max(1,width-320),36},"Accept source + task outcome",reviewed["status"]!.ToString()=="ready"&&canRun);
+  }
+  Label(new[]{x,h-34,width,30},job is not null?"Validating reviewed candidate...":message.Length>0?message:
+   reviewed["status"]!.ToString()=="conflict"?"Final source changed externally; no overwrite. Cancel to retain draft.":model["status"]!.ToString());
+  layer=1;
+ }
  if(screen=="project"&&model["closeRequest"] is not null){layer=5;Box(new[]{0,0,w,h},0x14212B);Label(new[]{24,40,Math.Max(1,w-48),110},"Work is active in "+model["closeRequest"]!["title"]!.ToString()+".\nClose this project and safely cancel its work?\nDrafts and project files are retained.");Button(65,new[]{24,170,Math.Min(220,Math.Max(1,w/2-32)),40},"Close project");Button(66,new[]{Math.Max(24,w/2),170,Math.Min(220,Math.Max(1,w/2-24)),40},"Keep working");layer=1;}
  foreach(var pair in layerBounds)if(Folded(pair.Key)){layer=pair.Key;var b=pair.Value;Paint(new[]{b[0],b[1],b[2],b[3],0x2A4253});TextRun(b,new[]{b[0]+8,b[1]+4},"Double-click to expand", "window-handle");}layer=1;
  foreach(int id in shown)if(!present.Contains(id))calls.ControlState.Invoke(ControlFor(id),"hide",id);shown=present;hits=hit.ToArray();radii=hitRadii.ToArray();buttons=widget.ToArray();foreach(var pair in layerControls)scene=calls.OrderUpdate.Invoke(scene,"controls",new System.Text.Json.Nodes.JsonObject{["id"]=pair.Key,["controls"]=pair.Value}.ToJsonString());windowScenes[sceneKey]=scene;orderFrame=calls.OrderCompose.Invoke(scene,new[]{0,0,w,h});var composed=J(orderFrame);var nextEligible=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.SelectMany(composed["windows"]!.AsArray(),row=>row!["active"]!.GetValue<bool>()?System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(row["controls"]!.AsArray(),c=>c!["input"]!.GetValue<bool>()),c=>c!["id"]!.GetValue<int>()):System.Linq.Enumerable.Empty<int>()));bool changed=J(nav)["active"]!.ToString()!=screen||!System.Linq.Enumerable.SequenceEqual(eligible,nextEligible);eligible=nextEligible;if(changed&&screen=="home"){

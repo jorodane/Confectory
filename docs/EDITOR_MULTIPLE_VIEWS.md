@@ -94,13 +94,14 @@ python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --
 python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --opening-view
 ```
 
-The same browser Review shows the opening screen before and after the proposal.
+The browser and Linux GTK Review show the opening screen before and after the proposal.
 When a local Worker contribution matches the exact reviewed View text, the
 Review also shows the recorded Worker and task. To check that path without
 dispatching a Worker, build `tests/Confectory.Tests` in Release and run:
 
 ```sh
 python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --worker-opening-review
+python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --worker-opening-review
 ```
 
 ## Reproduce the affected gates

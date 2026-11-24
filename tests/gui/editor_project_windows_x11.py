@@ -391,10 +391,89 @@ def workflow_opening_view(report, root):
     print("PASS GTK opening View: cancel, confirm, read-only table, menu card, Alpha Run, sources, reset and Bravo isolation")
 
 
+def workflow_worker_opening_review(report, root):
+    from editor_local_multilay_x11 import LocalEditor, repo
+    from project_owned_window_boundary import stage_worker_opening_fixture
+
+    app = LocalEditor(root)
+    (alpha, _), originals, proof = seed(report, root, checkout=repo)
+    source = Path(alpha["path"]).with_name("StockDesk.celem")
+    initial = source.read_text()
+    build = json.loads(report.read_text())
+    assert build["target"] == "linux" and build["tool"]["ok"]
+
+    def launch():
+        app.launch(build["run"])
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: (row["width"], row["height"]) == (1080, 760), "Resize isolated GTK")
+
+    def opening(expected):
+        open_project(app, alpha)
+        row = app.wait(lambda row: row["operation"] == "native-project-main-view" and not row["job"],
+                       "GTK read the confirmed opening View")
+        assert bool(app.field(row, 496).get("visible")) is expected
+        if expected:
+            assert app.field(row, 496)["readonly"] and app.field(row, 496)["text"] == "Local Alpha only"
+
+    def verify_review(row, summary, *, worker):
+        assert summary in row["texts"], row["texts"]
+        attribution = [text for text in row["texts"] if "작업자 제안" in text]
+        assert attribution == (["작업자 제안 · synthetic-worker · 작업 task-opening-view"] if worker else [])
+        assert app.field(row, 67).get("visible") and app.field(row, 68).get("visible")
+
+    try:
+        launch()
+        opening(False)
+        app.close()
+        stage_worker_opening_fixture(repo, alpha)
+        assert source.read_text() == initial
+        launch()
+        opening(False)
+        draft = source_view(app)
+        assert draft != initial and 'editorMain = "element-view-card"' in draft
+        summary = "프로젝트 시작 화면 · 기본 화면 → 읽기 전용 카드"
+        verify_review(review(app), summary, worker=True)
+        app.click(66)
+        app.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None, "Cancel Review")
+        assert source.read_text() == initial
+        close_project(app)
+        opening(False)
+        assert source_view(app) == draft
+        verify_review(review(app), summary, worker=True)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and source.read_text() == draft, "Confirm Worker proposal", timeout=150)
+        close_project(app)
+        opening(True)
+
+        assert source_view(app) == draft
+        direct = draft.replace('"element-view-card"', '"element-view-table"', 1)
+        app.fill(54, direct)
+        verify_review(review(app), "프로젝트 시작 화면 · 읽기 전용 카드 → 읽기 전용 표", worker=False)
+        app.click(66)
+        app.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None,
+                 "Cancel direct edit Review")
+        assert source.read_text() == draft
+        app.close()
+    finally:
+        if hasattr(app, "child") and app.child.poll() is None:
+            app.child.terminate()
+            app.child.wait(timeout=15)
+        if hasattr(app, "stream") and not app.stream.closed:
+            app.stream.close()
+    assert not proof.exists()
+    originals[source] = draft.encode()
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    print("PASS GTK opening View Review shows exact Worker origin, cancels, confirms and reopens; direct edit has no attribution")
+
+
 if __name__ == "__main__":
-    root = Path(mkdtemp(prefix="gtk-project-windows-", dir=os.environ.get("TMPDIR")))
+    prefix = "project-owned-view-" if "--worker-opening-review" in sys.argv[2:] else "gtk-project-windows-"
+    root = Path(mkdtemp(prefix=prefix, dir=os.environ.get("TMPDIR")))
     package = Path(sys.argv[1]).resolve()
-    if "--opening-view" in sys.argv[2:]:
+    if "--worker-opening-review" in sys.argv[2:]:
+        workflow_worker_opening_review(package, root)
+    elif "--opening-view" in sys.argv[2:]:
         workflow_opening_view(package, root)
     elif len(sys.argv) > 2 and sys.argv[2] == "--revocation":
         reader_package = Path(sys.argv[3]).resolve() if len(sys.argv) > 3 else package
