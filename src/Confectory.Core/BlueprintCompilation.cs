@@ -116,9 +116,15 @@ internal sealed class BlueprintCompilation(Registry registry, string target, Tar
             ["operation"] = nodeId is null ? "featureBlueprintAssemble" : "featureBlueprintNodeProbe", ["node"] = nodeId, ["featureSource"] = Contract(implementation.Function!),
             ["implementationContext"] = bodyContext, ["bodyTarget"] = implementation.Bodies.First(p=>p.Value==body).Key, ["graph"] = graph, ["featureContracts"] = contracts, ["propertyContracts"] = propertyContracts, ["implementations"] = implementations
         };
-        var result = FeatureBlueprint.Execute(request);
+        var result = FeatureBlueprint.Execute(request, out string? repairFeature);
         if (result["state"]?.ToString() != (nodeId is null ? "source-assembled" : "node-source-assembled"))
-            throw new BuildError("BLUEPRINT_NOT_READY", result.ToJsonString(), new(path));
+        {
+            bool owned = repairFeature is not null && repairFeature == implementation.Function &&
+                implementation.Parent is null && body.Origin == implementation.Id &&
+                PackPaths.Namespace(implementation.Id) == registry.Project.Namespace;
+            throw new BuildError("BLUEPRINT_NOT_READY", result.ToJsonString(), new(path))
+            { BlueprintRepairFeature = owned ? repairFeature : null };
+        }
         foreach (var import in result["imports"]!.AsArray())
         {
             string alias = import!["alias"]!.GetValue<string>(), feature = import["feature"]!.GetValue<string>();

@@ -52,7 +52,12 @@ catch(Exception ex){Console.Error.WriteLine(ex);return 1;}
 
 static string? StaleBlueprintFeature(BuildError error,Manifest? project)
 {
- if(project is null||error.Diagnostic.Code!="BLUEPRINT_NOT_READY"||error.Message.Length>4096)return null;
+ if(project is null||error.Diagnostic.Code!="BLUEPRINT_NOT_READY")return null;
+ string prefix=project.Namespace+"::";
+ string? Owned(string id)=>id.Length<=384&&id.StartsWith(prefix,StringComparison.Ordinal)&&
+  project.Elements.TryGetValue(id[prefix.Length..],out var element)&&element.Kind=="function"?id:null;
+ if(error.BlueprintRepairFeature is string caller)return Owned(caller);
+ if(error.Message.Length>4096)return null;
  try
  {
   // BlueprintCompilation preserves FeatureBlueprint's JSON refusal in this error.
@@ -63,10 +68,8 @@ static string? StaleBlueprintFeature(BuildError error,Manifest? project)
      !root.TryGetProperty("diagnostics",out var diagnostics)||diagnostics.GetArrayLength()!=1)return null;
   var diagnostic=diagnostics[0];
   if(!diagnostic.TryGetProperty("code",out var code)||code.GetString()!="GRAPH_CONTRACT_STALE"||
-     !diagnostic.TryGetProperty("subject",out var subject)||subject.GetString() is not string id||id.Length>384)return null;
-  string prefix=project.Namespace+"::";
-  return id.StartsWith(prefix,StringComparison.Ordinal)&&project.Elements.TryGetValue(id[prefix.Length..],out var element)&&
-   element.Kind=="function"?id:null;
+     !diagnostic.TryGetProperty("subject",out var subject)||subject.GetString() is not string id)return null;
+  return Owned(id);
  }
  catch(Exception failure) when(failure is JsonException or InvalidOperationException){return null;}
 }

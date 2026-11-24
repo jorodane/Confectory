@@ -21,9 +21,10 @@ public static partial class FeatureBlueprint
         return Hash(CanonicalText(contract));
     }
     public static string ImportAlias(string featureId) => "fg_call_" + Hash(featureId)[..24];
-    sealed class Refusal(string code, string subject) : Exception(code)
+    sealed class Refusal(string code, string subject, string? repairFeature = null) : Exception(code)
     {
         public string Code = code, Subject = subject;
+        public string? RepairFeature { get; } = repairFeature;
     }
 
     sealed record Node(string Id, string Kind, string Control, FunctionSignature Signature, JsonObject Definition, JsonObject Arguments, string DefinitionHash, string? Feature);
@@ -61,8 +62,11 @@ public static partial class FeatureBlueprint
         return parsed.Signature!;
     }
 
-    public static JsonObject Execute(JsonObject request)
+    public static JsonObject Execute(JsonObject request) => Execute(request, out _);
+
+    internal static JsonObject Execute(JsonObject request, out string? repairFeature)
     {
+        repairFeature = null;
         try
         {
             Need(!request.ContainsKey("sourcePath")&&!request.ContainsKey("sourceOwner")&&!request.ContainsKey("privateChildren")&&!request.ContainsKey("executionForward"),"GRAPH_REQUEST_FIELD","private compiler context");
@@ -79,6 +83,7 @@ public static partial class FeatureBlueprint
         }
         catch (Refusal error)
         {
+            repairFeature = error.RepairFeature;
             return new()
             {
                 ["state"] = "invalid",
@@ -204,8 +209,18 @@ public static partial class FeatureBlueprint
                 Need(kind == "call" && (control == "next" || control == "switch" && switchFlow) && SupportsMethods(profile), "GRAPH_POST_CALL_PROFILE", id);
                 var after = value["postCall"] as JsonObject;
                 Need(after is not null && after.All(p => p.Key is "contractHash" or "source" or "helpers" or "mode" or "returnMapping" or "originalExecution") && after["contractHash"] is JsonValue && after["source"] is JsonValue && (!after.ContainsKey("helpers") || after["helpers"] is JsonValue), "GRAPH_POST_CALL_SHAPE", id);
-                string snapshot = BlueprintCallWrapper.ContractHash(Import(called!).Element, after!["originalExecution"] is not null);
-                Need(after["contractHash"]!.ToString() == snapshot || inspectStalePostCalls, "GRAPH_PUBLIC_OUTPUT_CONTRACT_STALE", id);
+                var callee = Import(called!).Element;
+                string snapshot = BlueprintCallWrapper.ContractHash(callee, after!["originalExecution"] is not null);
+                if (after["contractHash"]!.ToString() != snapshot && !inspectStalePostCalls)
+                {
+                    // The editor already supports explicit remapping for this root, synchronous rename.
+                    var rename = operation == "featureBlueprintAssemble" && request["sourcePath"] is null &&
+                        profile == SwitchProfile && control == "switch" && !executionExitMode
+                        ? BlueprintCallWrapper.InputRename(callee, signature, after) : null;
+                    bool bound = rename?["before"]?.GetValue<string>() is string input &&
+                        value["arguments"] is JsonObject arguments && arguments[input] is not null;
+                    throw new Refusal("GRAPH_PUBLIC_OUTPUT_CONTRACT_STALE", id, bound ? feature.Id : null);
+                }
                 Need(control == "switch" ? after["mode"]?.ToString() == "execution-enum" : !after.ContainsKey("mode") && !after.ContainsKey("returnMapping") && !after.ContainsKey("originalExecution"), "GRAPH_POST_CALL_MODE", id);
                 if (control == "switch") _ = BlueprintCallWrapper.Editor(Import(called!).Element, value["executionEnum"]!.AsObject(), after, inspectStalePostCalls);
                 else _ = BlueprintCallAfter.Prepare(Import(called!).Element, inspectStalePostCalls ? null : after["contractHash"]!.GetValue<string>(), after["source"]!.GetValue<string>(), after.ContainsKey("helpers") ? after["helpers"]!.GetValue<string>() : "");

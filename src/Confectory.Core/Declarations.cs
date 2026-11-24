@@ -12,6 +12,7 @@ public sealed class BuildError : Exception
 {
     public Diagnostic Diagnostic { get; }
     public NamespaceResolutionDiagnostic? NamespaceDiagnostic { get; init; }
+    public string? BlueprintRepairFeature { get; internal init; }
     public BuildError(string code, string message, SourceLocation? location = null) : base(message)
         => Diagnostic = new("error", code, message, location ?? new());
     public override string ToString() => $"{Diagnostic.Location.File}({Diagnostic.Location.Line},{Diagnostic.Location.Column}): {Diagnostic.Code}: {Message}";

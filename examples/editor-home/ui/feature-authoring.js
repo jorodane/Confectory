@@ -1002,7 +1002,7 @@ function blueprintNormalizeControls(scope){
   function documentRenameBinding(call){
    const rename=call?.callInputRename,remap=call?.callAbiRemap;
    if(!rename||!remap||!canRefreshAfter(w,call)||data.profile!=='sync-acyclic-switch-v1'||
-      call.callAbiReceipt||call.callAbiGroupBinding||call.callAbiUseGroupBinding||saveEntries(w).length||!frameInputsClear())return null;
+      call.callAbiGroupBinding||call.callAbiUseGroupBinding||saveEntries(w).length||!frameInputsClear())return null;
    if(remap.inputs[rename.after]!==null||Object.entries(remap.inputs).some(([name,old])=>name!==rename.after&&name!==old)||
       Object.entries(remap.outputs).some(([name,next])=>name!==next))return null;
    return call.arguments.find(arg=>arg.name===rename.before&&arg.valueJson&&arg.valueJson!=='null')??null;
