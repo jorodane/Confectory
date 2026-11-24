@@ -61,12 +61,14 @@ public static class BlueprintCellRegion
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
-        int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null)
+        int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null,
+        JsonObject? nestedSwitchFrame=null)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
-            bool switchChild=allowSwitchChild&&depth==1&&S(g,"profile")==FeatureBlueprint.SwitchProfile;
+            bool switchChild=allowSwitchChild&&(depth==1||depth==2&&ReferenceEquals(g,nestedSwitchFrame))
+                &&S(g,"profile")==FeatureBlueprint.SwitchProfile;
             bool methodLeaf=S(g,"profile")==FeatureBlueprint.MethodsProfile
                 && (depth>0&&depth<=methodPreviewDepth || depth==0&&methodFrameOrder);
             Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
@@ -262,7 +264,6 @@ public static class BlueprintCellRegion
     }
     static JsonObject FrameCaseReconnect(JsonObject root, string path, JsonObject child, JsonArray edits)
     {
-        Need(!path.Contains('/'), "Select one directly owned switch child");
         var options = BranchReconnect(child, new JsonArray());
         var choices = options.SelectMany(owner => owner.Value!.AsObject().SelectMany(port =>
             port.Value!.AsArray().Select(target => new JsonObject
@@ -275,7 +276,7 @@ public static class BlueprintCellRegion
         // The same planner already used for child switch edits must accept it.
         var candidate = root.DeepClone().AsObject();
         BlueprintTree.Select(candidate,path)["edges"] = plan["edges"]!.DeepClone();
-        OwnedSwitchFrame(candidate,path);
+        OwnedSwitchFrame(candidate,path, allowNested: true);
         if (edits.Count==0) return options;
         Need(JsonNode.DeepEquals(edits[0],choices[0]), "Exact observed child case target required");
         plan["entry"] = child["entry"]!.DeepClone();
@@ -695,12 +696,14 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
     }
 
-    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path)
+    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path, bool allowNested = false)
     {
-        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true);
-        Need(path.Length > 0 && !path.Contains('/'), "One directly owned switch child required");
+        var segments = path.Split('/');
+        Need(segments.All(part => part.Length > 0) && (segments.Length == 1 || allowNested && segments.Length == 2),
+            "One switch child within the supported owned depth required");
         var child = BlueprintTree.Select(root, path);
-        Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Direct switch child required");
+        Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Owned switch child required");
+        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null);
         return child;
     }
 
