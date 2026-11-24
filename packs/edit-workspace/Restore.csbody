@@ -108,8 +108,14 @@ lock(state)
  if(history["boundary"] is not null&&history["boundary"]!.ToString() is not ("ENTRY_BUDGET" or "OWNERSHIP_CHANGED" or "CONFLICT_REBASED"))throw new ArgumentException("Saved history boundary invalid");
  if(System.Linq.Enumerable.Any(staged,row=>row.Value?["cellRemovalPending"] is not null)){
   var reconciliation=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRemovalHistory",new System.Text.Json.Nodes.JsonObject{
-   ["action"]="restore",["units"]=staged.DeepClone(),["project"]=state["project"]!.DeepClone(),["namespace"]=state["namespace"]!.DeepClone()
+   ["action"]="restore",["units"]=staged.DeepClone(),["history"]=history.DeepClone(),["project"]=state["project"]!.DeepClone(),["namespace"]=state["namespace"]!.DeepClone()
   }.ToJsonString()))!;
+  if(reconciliation["published"] is System.Text.Json.Nodes.JsonObject publishedGraphs)foreach(var published in publishedGraphs){
+   var unit=staged[published.Key]!.AsObject();
+   unit["baseline"]=published.Value!.DeepClone();
+   unit["original"]=unit["draft"]!.DeepClone();
+   unit.Remove("cellRemovalPending");
+  }
   foreach(var row in reconciliation["detached"]!.AsArray()){
    string leafId=row!["id"]!.ToString();
    if(staged[leafId] is not System.Text.Json.Nodes.JsonObject leaf)continue;

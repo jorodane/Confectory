@@ -4,7 +4,7 @@ export function createSourceConflicts(api){
  const key=(scope,id)=>scope+'|'+id;
  const same=(record,data)=>!!record&&record.revision===data?.revision&&record.draftHash===data?.draftHash&&record.fileHash===data?.fileHash;
  const binding=data=>({revision:data.revision,draftHash:data.draftHash,fileHash:data.fileHash});
- const reasons={PREVIEW_BUDGET:'이 파일은 전체 비교 표시 예산을 초과했습니다.',CREATION_WORKFLOW_REQUIRED:'새 선언은 생성과 등록부 검토 흐름에서 처리하세요.',FILE_MISSING:'현재 파일이 없습니다. 공유 초안은 유지했습니다.',SOURCE_KIND:'이 소스 종류의 충돌 해결은 지원하지 않습니다.',SOURCE_VERSION_CHANGED:'파일 또는 공유 초안이 바뀌었습니다. 입력은 유지했습니다. 다시 읽고 비교 기준을 선택하세요.',DRAFT_CHANGED_DURING_READ:'읽는 동안 공유 초안이 바뀌었습니다. 다시 읽으세요.',FILE_CHANGED_DURING_READ:'읽는 동안 파일이 바뀌었습니다. 다시 읽으세요.'};
+ const reasons={COMPOUND_REVIEW_REQUIRED:'복합 셀의 저장 상태를 확인할 수 없습니다. 현재 파일과 보존된 초안을 비교할 수 있습니다.',PREVIEW_BUDGET:'이 파일은 전체 비교 표시 예산을 초과했습니다.',CREATION_WORKFLOW_REQUIRED:'새 선언은 생성과 등록부 검토 흐름에서 처리하세요.',FILE_MISSING:'현재 파일이 없습니다. 공유 초안은 유지했습니다.',SOURCE_KIND:'이 소스 종류의 충돌 해결은 지원하지 않습니다.',SOURCE_VERSION_CHANGED:'파일 또는 공유 초안이 바뀌었습니다. 입력은 유지했습니다. 다시 읽고 비교 기준을 선택하세요.',DRAFT_CHANGED_DURING_READ:'읽는 동안 공유 초안이 바뀌었습니다. 다시 읽으세요.',FILE_CHANGED_DURING_READ:'읽는 동안 파일이 바뀌었습니다. 다시 읽으세요.'};
  function show(id,data=null,meta={}){
   const scope=api.current.projectId,k=key(scope,id),w=api.openWindow('conflict','소스 비교 · '+id.split('::').at(-1),880,430,{refresh:true});Object.assign(w.meta,meta,{conflictSourceId:id});w.title='소스 비교 · '+id.split('::').at(-1);$('.caption strong',w.el).textContent=w.title;w.el.setAttribute('aria-label',w.title);w.conflictData=data;
   const raw=api.sourceInput();if(raw.dirty&&raw.id===id&&!inputs.has(k))inputs.set(k,{text:raw.text,revision:raw.revision,draftHash:null,fileHash:null,rawOrigin:{text:raw.text,revision:raw.revision}});

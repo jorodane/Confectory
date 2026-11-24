@@ -11,19 +11,24 @@ from pathlib import Path
 
 from playwright.sync_api import expect, sync_playwright
 
+from editor_navigation import choose_project_tool
+
 import v666_node_names_recovery_fixture as t
 
 f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
 assert mode in {"normal", "readonly", "shared", "value", "case", "case-empty", "case-exit",
                 "case-shared", "case-implicit", "case-readonly", "case-value", "child-first", "child-last", "child-readonly",
-                "compound", "compound-readonly", "compound-views", "compound-deep-guard", "compound-child-draft"}
+                "compound", "compound-readonly", "compound-views", "compound-deep-guard", "compound-child-draft",
+                "compound-confirm-interruption"}
 case = mode.startswith("case")
 child_case = mode.startswith("child")
 compound_case = mode.startswith("compound")
+interruption = sys.argv[4] if mode == "compound-confirm-interruption" else None
+assert interruption in {None, "before", "after", "after-restore", "unverified"}
 frame_path = "other" if mode == "child-first" else "body"
 sibling_path = "body" if frame_path == "other" else "other"
-positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound", "compound-views"}
+positive_modes = {"normal", "case", "case-empty", "case-exit", "child-first", "child-last", "compound", "compound-views", "compound-confirm-interruption"}
 helper = Path(__file__).with_name("v821_function_document_ui.py")
 functions = [node for node in ast.parse(helper.read_text()).body if isinstance(node, ast.FunctionDef)]
 exec(compile(ast.Module(body=functions, type_ignores=[]), str(helper), "exec"), globals())
@@ -315,6 +320,109 @@ def confirm():
     expect(window).to_be_hidden(timeout=120000)
     f.idle()
 
+
+def compound_confirm_interruption(remove, checkpoint):
+    click_remove(remove)
+    expect_cell(False)
+    save()
+    expected_present = interruption == "after-restore"
+    if expected_present:
+        confirm()
+        press_history_shortcut("undo")
+        expect_cell(True)
+        panel().locator("[data-bp-save]").click()
+        f.idle()
+        # Restart with only this next Confirm instrumented.
+        f.env["CONFECTORY_TEST_CONFIRM_STOP"] = "after"
+        restart(1)
+
+    f.invoke("reviewGroup", {"ids": [t.graph], "target": "portable"})
+    reviewed = f.state()["review"]
+    assert reviewed["status"] == "ready"
+    saved = checkpoint.read_bytes()
+    graph_row = next(row for row in json.loads(saved)["changes"] if row["id"] == t.graph)
+    assert graph_row["cellRemovalPending"]["restoring"] == expected_present
+    original, intended = (graph_row[name].encode() for name in ("original", "draft"))
+    assert graph.read_bytes() == original
+    mounted = f.mount()
+    assert f.raw({"op": "invoke", "view": mounted["view"], "scope": mounted["scope"],
+                  "expectedRevision": mounted["revision"], "requestId": "confirm-interruption",
+                  "endpoint": "confirmGroup", "input": {"ids": [t.graph], "token": reviewed["token"]}})["ok"]
+    assert f.host.wait(timeout=120) == (71 if interruption == "before" else 72)
+    assert checkpoint.read_bytes() == saved
+    published = original if interruption == "before" else intended
+    assert graph.read_bytes() == published
+    real_files_unchanged()
+
+    if interruption == "unverified":
+        # Model a retained-file modification between source publication and reopen.
+        leaf.write_bytes(leaf_bytes + b" ")
+    f.page.unroute_all(behavior="ignoreErrors")
+    f.page.close()
+    f.stop()
+    f.env.pop("CONFECTORY_TEST_CONFIRM_STOP", None)
+    f.start(2)
+    f.page = f.setup()
+    f.page.set_viewport_size({"width": 1800, "height": 1400})
+    open_document()
+    expect_cell(expected_present)
+    assert checkpoint.read_bytes() == saved and graph.read_bytes() == published
+    if interruption != "after-restore":
+        f.invoke("select", {"id": draft_id})
+        assert f.state()["draft"]["text"] == held_text
+    history = f.invoke("draftHistory", {"action": "inspect"})["result"]["result"]
+    if interruption == "unverified":
+        assert not history["undo"]["available"]
+        f.invoke("select", {"id": t.graph})
+        comparison = f.invoke("inspectSourceConflict", {"id": t.graph})["result"]["result"]
+        assert comparison["baseText"].encode() == original
+        assert comparison["draftText"].encode() == comparison["fileText"].encode() == intended
+        assert comparison["code"] == "COMPOUND_REVIEW_REQUIRED" and not comparison["canResolve"]
+        refused = f.invoke("resolveSourceConflict", {
+            "id": t.graph, "text": comparison["fileText"], **{
+                name: comparison[name] for name in ("revision", "draftHash", "fileHash")
+            },
+        })["result"]["result"]
+        assert not refused["accepted"]
+        f.invoke("reviewGroup", {"ids": [t.graph], "target": "portable"})
+        current_review = f.state()["review"]
+        assert current_review["status"] == "conflict" and not current_review["token"]
+        f.invoke("confirmGroup", {"ids": [t.graph], "token": current_review["token"]}, success=False)
+        # Complete performs an ordinary Save and is not the read-only comparison.
+        choose_project_tool(f.page, "소스 충돌 비교")
+        comparison_window = f.page.locator('.window[data-key="conflict"]')
+        for field, contents in (("baseText", original), ("fileText", published), ("draftText", intended)):
+            expect(comparison_window.locator(f"[data-conflict-version={field}]")).to_have_value(contents.decode())
+        expect(comparison_window.locator("[data-conflict-apply]")).to_be_disabled()
+        assert checkpoint.read_bytes() == saved and graph.read_bytes() == published
+        assert leaf.read_bytes() == leaf_bytes + b" "
+    elif interruption == "before":
+        assert history["undo"]["available"]
+        confirm()
+        assert graph.read_bytes() == intended
+        x.build("confirmed-after-reopen", exit_code, "\n".join(output_after))
+    else:
+        direction = "redo" if expected_present else "undo"
+        assert history[direction]["available"], history[direction]
+        x.build("already-published", exit_code, "\n".join(output_before if expected_present else output_after))
+        press_history_shortcut(direction)
+        expect_cell(not expected_present)
+        assert graph.read_bytes() == published
+        panel().locator("[data-bp-save]").click()
+        f.idle()
+        window = review()
+        window.locator("[data-reject]").click()
+        assert graph.read_bytes() == published
+        confirm()
+        assert graph.read_bytes() == original
+        x.build("confirmed-inverse", exit_code, "\n".join(output_after if expected_present else output_before))
+        real_files_unchanged()
+    assert not f.external, f.external
+    f.page.unroute_all(behavior="ignoreErrors")
+    f.page.close()
+    f.checked(f"compound Confirm interruption {interruption}: physical sources and exact checkpoint inspected after cold reopen")
+
+
 def rejected_confirm(window):
     mark = len(f.traffic)
     window.locator("#confirm").click()
@@ -491,14 +599,25 @@ if mode in positive_modes:
         output_before, output_after, exit_code = ["body", "after", "10"], ["body", "10"], 10
 
 try:
+    if interruption and interruption != "after-restore":
+        f.env["CONFECTORY_TEST_CONFIRM_STOP"] = "before" if interruption == "before" else "after"
     f.start(0)
     f.invoke("select", {"id": t.feature})
     f.invoke("saveDraft", {})
     checkpoint = next(f.project.glob(".confectory/edit-workspaces/*/draft.json"))
     baseline_checkpoint = checkpoint.read_bytes()
+    if interruption and interruption != "after-restore":
+        # An unrelated saved draft must survive publication and cold load.
+        draft_id = f.n + "Slime"
+        f.invoke("select", {"id": draft_id})
+        draft = f.state()["draft"]
+        held_text = f'object {draft_id} extends {f.n}Monster {{ description "Independent interrupted Confirm draft"; }}'
+        f.invoke("editDraft", {"id": draft_id, "revision": draft["revision"], "text": held_text})
+        f.invoke("saveDraft", {})
     with sync_playwright() as playwright:
         expect.set_options(timeout=45000)
-        f.browser = playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"])
+        f.browser = playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
+                                             ignore_default_args=["--disable-dev-shm-usage"] if interruption else None)
         f.page = f.setup()
         f.page.set_viewport_size({"width": 1800, "height": 1400})
         open_document()
@@ -534,6 +653,8 @@ try:
             f.checked(mode + " prevents document deletion, without changing the isolated original")
         elif mode == "compound-views":
             compound_view_roundtrip(remove, checkpoint, baseline_checkpoint)
+        elif interruption:
+            compound_confirm_interruption(remove, checkpoint)
         else:
             expect(remove).to_be_enabled()
             if compound_case:

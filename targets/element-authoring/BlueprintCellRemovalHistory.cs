@@ -119,7 +119,7 @@ internal static class BlueprintCellRemovalHistory
     }
 
     static JsonArray Observe(JsonObject request, JsonNode entry, bool prepare, out JsonArray verifiedLocators,
-        bool checkingChildDraftBlocker = false)
+        bool checkingChildDraftBlocker = false, bool published = false)
     {
         var receipt = entry["cellRemoval"]!.AsObject();
         var edited = entry["units"]![0]!;
@@ -135,8 +135,9 @@ internal static class BlueprintCellRemovalHistory
         Need(graphUnit?["path"]?.ToString() == graphPath && graphUnit["kind"]?.ToString() == "blueprint",
             "Existing owned root locator required");
         string onDisk = files.Read(graphPath);
-        string original = S(graphUnit!, "original");
-        Need(onDisk == original && files.Hash(graphPath) == S(graphUnit!, "baseline") &&
+        string expected = S(graphUnit!, published ? "draft" : "original");
+        string expectedHash = published ? Digest(expected) : S(graphUnit!, "baseline");
+        Need(onDisk == expected && files.Hash(graphPath) == expectedHash &&
             (onDisk == S(edited, "before") || !prepare && onDisk == S(edited, "after")),
             "The original Blueprint connections changed");
         int marker = graphId.IndexOf("/body:", StringComparison.Ordinal);
@@ -335,6 +336,7 @@ internal static class BlueprintCellRemovalHistory
         var checksByPath = new Dictionary<string, JsonNode>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
         var detached = new JsonArray();
         var restored = new JsonArray();
+        var published = new JsonObject();
         foreach (var row in units) {
             if (row.Value?["cellRemovalPending"] is not JsonNode pending) continue;
             var receipt = pending["receipt"]!.AsObject();
@@ -349,19 +351,34 @@ internal static class BlueprintCellRemovalHistory
             };
             Transition(entry);
             var retained = RetainedSources(receipt);
-            bool legacySingle = receipt["version"]?.GetValue<int>() == 1;
+            int version = receipt["version"]!.GetValue<int>();
             if (action == "restore") {
+                // A compound Confirm writes only its owned graph. After a process stop,
+                // verify its exact outgoing bytes and the existing retained-source proof
+                // before treating the graph as physically current in memory.
+                if (version == 2 && request["history"]?[restoring ? "redo" : "undo"] is JsonArray history &&
+                    history.Any(item => JsonNode.DeepEquals(item?["cellRemoval"], receipt))) {
+                    try {
+                        Observe(request, entry, false, out _, published: true);
+                        published.Add(row.Key, Digest(draft));
+                        // The physical graph already supplied its current child locators.
+                        continue;
+                    }
+                    catch (Exception e) when (e is IOException or ArgumentException or InvalidOperationException or BuildError or UnauthorizedAccessException) { }
+                }
                 if (!restoring)
                     foreach (var source in retained)
                         detached.Add(new JsonObject { ["id"] = source.Id, ["path"] = source.Path });
                 else {
                     // Newer receipts verify their original observation before
-                    // staging restored locators. Legacy single-cell behavior remains.
+                    // staging restored locators. If a compound observation is no longer
+                    // provable, keep the saved candidate and only the physical locators.
                     try {
                         Observe(request, entry, false, out var locators);
                         foreach (var locator in locators) restored.Add(locator!.DeepClone());
                     }
-                    catch (Exception e) when (legacySingle && e is (IOException or ArgumentException or InvalidOperationException or BuildError)) { }
+                    catch (Exception e) when ((version is 1 or 2 && e is (IOException or ArgumentException or InvalidOperationException or BuildError)) ||
+                                              (version == 2 && e is UnauthorizedAccessException)) { }
                 }
                 continue;
             }
@@ -379,6 +396,6 @@ internal static class BlueprintCellRemovalHistory
                 else checksByPath.Add(path, check!.DeepClone());
             }
         }
-        return new() { ["checks"] = new JsonArray(checksByPath.Values.ToArray()), ["detached"] = detached, ["restored"] = restored };
+        return new() { ["checks"] = new JsonArray(checksByPath.Values.ToArray()), ["detached"] = detached, ["restored"] = restored, ["published"] = published };
     }
 }
