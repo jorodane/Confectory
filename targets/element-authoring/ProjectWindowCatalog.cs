@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 internal static class ProjectWindowCatalog
 {
     internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope,
-        JsonObject? setting = null, bool main = false)
+        JsonObject? setting = null, bool main = false, bool web = false)
     {
         const int maxViews = 32;
         const int maxDocumentBytes = 1048576;
@@ -52,14 +52,23 @@ internal static class ProjectWindowCatalog
             return element.Id == id && element.Kind == kind && element.Parent is null ? element : null;
         }
 
-        JsonObject? Project(Element declaration)
+        JsonObject? Project(Element declaration, string? renderer = null)
         {
             if (!declaration.Values.TryGetValue("editorName", out var name) || name.Value.ValueKind != JsonValueKind.String ||
                 name.Value.GetString() is not { Length: > 0 and <= 160 } title || string.IsNullOrWhiteSpace(title))
                 return null;
             if (declaration.Uses.Count != 1 || declaration.Uses[0].Kind != "object") return null;
             var target = Owned(declaration.Uses[0].Id, "object");
-            if (target is null || target.Uses.Count != 1 || target.Uses[0].Kind != "schema") return null;
+            if (target is null) return null;
+            if (renderer == RecipeRenderer)
+            {
+                var recipe = ReadRecipe(target, id => Owned(id, "object") is not null);
+                if (recipe is null) return null;
+                var projected = new JsonObject { ["id"] = declaration.Id, ["title"] = title };
+                if (requestedId is not null) projected["recipe"] = recipe;
+                return projected;
+            }
+            if (target.Uses.Count != 1 || target.Uses[0].Kind != "schema") return null;
             var schema = Owned(target.Uses[0].Id, "schema");
             // Initial projection borrows one explicitly declared field and value.
             if (schema is null || schema.Fields.Count != 1) return null;
@@ -81,9 +90,9 @@ internal static class ProjectWindowCatalog
         JsonObject? ConfirmedWindow(string id)
         {
             var declaration = Owned(id, "view");
-            if (declaration is null || Renderer(declaration) is not { Length: > 0 } renderer)
+            if (declaration is null || Renderer(declaration, web: web) is not { Length: > 0 } renderer)
                 return null;
-            var window = Project(declaration);
+            var window = Project(declaration, renderer);
             if (requestedId is not null && window is not null) window["renderer"] = renderer;
             return window;
         }
@@ -124,16 +133,30 @@ internal static class ProjectWindowCatalog
         {
             bool mainSetting = setting!["placement"]?.GetValue<string>() == "main";
             string property = mainSetting ? "editorMain" : "editorWindow";
+            bool recipeMenu = web && !mainSetting;
             var confirmed = Owned(id, "view");
-            if (confirmed is null || (!mainSetting && Renderer(confirmed) is null) || Project(confirmed) is null)
+            if (confirmed is null || (!mainSetting && Renderer(confirmed, web: recipeMenu) is null))
+                return null;
+            bool card = Project(confirmed) is not null;
+            bool recipe = recipeMenu && Project(confirmed, RecipeRenderer) is not null;
+            if (!card && !recipe)
                 return null;
             string text = setting!["text"]!.GetValue<string>();
             if (text.Length > maxDocumentBytes) return null;
             var draft = new Parser(text, "<project-window-draft>").ParseElement();
             if (draft.Id != id || draft.Kind != "view" || draft.Parent is not null ||
-                Renderer(draft, property) is not { } current || Project(draft) is null)
+                Renderer(draft, property, recipeMenu) is not { } current)
                 return null;
+            card = card && Project(draft) is not null;
+            recipe = recipe && Project(draft, RecipeRenderer) is not null;
+            bool Allowed(string value) => value == "" ||
+                (value == RecipeRenderer ? recipe : card && Supported(value));
+            if ((!card && !recipe) || !Allowed(current)) return null;
             var result = new JsonObject { ["status"] = "available", ["renderer"] = current };
+            if (recipe)
+                result["choices"] = card
+                    ? new JsonArray("", "element-view-card", "element-view-table", RecipeRenderer)
+                    : new JsonArray("", RecipeRenderer);
             if (mainSetting)
             {
                 var views = RegisteredViews();
@@ -144,7 +167,7 @@ internal static class ProjectWindowCatalog
             if (setting["renderer"] is { } choice)
             {
                 string next = choice.GetValue<string>();
-                if (!Supported(next)) return null;
+                if (!Allowed(next)) return null;
                 if (next.Length != 0 && result["conflict"] is not null)
                     return new JsonObject { ["status"] = "conflict", ["conflict"] = result["conflict"]!.DeepClone() };
                 result["text"] = next == current ? text : ReplaceSetting(text, draft, property, next);
@@ -185,6 +208,7 @@ internal static class ProjectWindowCatalog
                 }
                 catch (BuildError) { /* An unavailable declaration grants no menu entry. */ }
                 catch (IOException) { /* A removed declaration grants no menu entry. */ }
+                catch (JsonException) { /* Malformed recipe metadata grants no menu entry. */ }
             }
         }
         foreach (var (path, value) in observed)
@@ -197,14 +221,45 @@ internal static class ProjectWindowCatalog
             new JsonObject { ["status"] = "available", ["window"] = opened };
     }
 
+    private const string RecipeRenderer = "element-view-recipe";
+
     private static bool Supported(string value) => value is "" or "element-view-card" or "element-view-table";
 
     // An absent property is the existing opt-out. Unknown values are outside this editor's contract.
-    private static string? Renderer(Element view, string property = "editorWindow")
+    private static string? Renderer(Element view, string property = "editorWindow", bool web = false)
     {
         if (!view.Values.TryGetValue(property, out var value)) return "";
         return value.Value.ValueKind == JsonValueKind.String &&
-            value.Value.GetString() is { Length: > 0 } renderer && Supported(renderer) ? renderer : null;
+            value.Value.GetString() is { Length: > 0 } renderer && (Supported(renderer) || web && renderer == RecipeRenderer) ? renderer : null;
+    }
+
+    // Read the existing Recipe metadata without creating a runtime or touching stock.
+    private static JsonObject? ReadRecipe(Element target, Func<string, bool> ownsResource)
+    {
+        if (target.Values.GetValueOrDefault("concept")?.Value is not { ValueKind: JsonValueKind.String } concept ||
+            concept.GetString() != "recipe" ||
+            target.Values.GetValueOrDefault("ingredients")?.Value is not { ValueKind: JsonValueKind.String } input ||
+            input.GetString() is not { Length: > 0 and <= 8192 } ingredients ||
+            target.Values.GetValueOrDefault("output")?.Value is not { ValueKind: JsonValueKind.String } output ||
+            output.GetString() is not { Length: > 0 and <= 512 } outputId ||
+            target.Values.GetValueOrDefault("outputCount")?.Value is not { ValueKind: JsonValueKind.Number } count ||
+            !count.TryGetInt32(out int outputCount) || outputCount is <1 or >100)
+            return null;
+
+        using var document = JsonDocument.Parse(ingredients);
+        if (document.RootElement.ValueKind != JsonValueKind.Object) return null;
+        var rows = new JsonArray();
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var row in document.RootElement.EnumerateObject())
+        {
+            if (rows.Count == 16 || row.Name.Length is <1 or >512 || !ids.Add(row.Name) ||
+                row.Value.ValueKind != JsonValueKind.Number || !row.Value.TryGetInt32(out int amount) ||
+                amount is <1 or >100 || !ownsResource(row.Name)) return null;
+            rows.Add(new JsonObject { ["id"] = row.Name, ["count"] = amount });
+        }
+        if (rows.Count == 0 || !ownsResource(outputId)) return null;
+        return new JsonObject { ["ingredients"] = rows,
+            ["output"] = new JsonObject { ["id"] = outputId, ["count"] = outputCount } };
     }
 
     private static string ReplaceSetting(string text, Element draft, string property, string renderer)

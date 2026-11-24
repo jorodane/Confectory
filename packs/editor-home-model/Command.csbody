@@ -93,6 +93,7 @@ System.Text.Json.Nodes.JsonNode ProjectWindowSetting(string context){
   ["text"]=args["text"]?.DeepClone()??throw new ArgumentException("The current View source is required.")};
  if(args["renderer"] is { } renderer)request["renderer"]=renderer.DeepClone();
  if(Value("placement")=="main")request["placement"]="main";
+ if(Value("surface")=="web")request["web"]=true;
  var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(owner[1],request.ToJsonString()))!;
  if(result["status"]?.ToString()=="conflict")throw new InvalidOperationException("Clear the confirmed project opening View before assigning another.");
  if(result["status"]?.ToString()!="available")throw new InvalidOperationException(unavailable);
@@ -102,7 +103,7 @@ if(operation=="project-window-setting-read")return ProjectWindowSetting(Active()
 if(operation is "project-window-read" or "project-main-view-read"){
  bool main=operation=="project-main-view-read";
  const string unavailable="{\"status\":\"unavailable\"}";
- if((main?args.Count!=2:args.Count is <2 or >3)||System.Linq.Enumerable.Any(args,p=>p.Key is not ("context" or "activation" or "id")||main&&p.Key=="id"))
+ if(args.Count is <2 or >4||System.Linq.Enumerable.Any(args,p=>p.Key is not ("context" or "activation" or "id" or "surface")||main&&p.Key=="id"))
   throw new ArgumentException("Project window request fields");
  if(model["selected"] is not System.Text.Json.Nodes.JsonObject selected||
     selected["activation"]?.ToString()!=Value("activation")||selected["context"]?.ToString()!=Value("context"))
@@ -111,6 +112,7 @@ if(operation is "project-window-read" or "project-main-view-read"){
  var owner=calls.Context.Invoke(manager,context);
  if(owner[5]!="open"||owner[2]=="Confectory.AISettings")return unavailable;
  var request=new System.Text.Json.Nodes.JsonObject{["action"]=main?"project-main-view":"project-windows"};
+ if(!main&&Value("surface")=="web")request["web"]=true;
  if(args.ContainsKey("id")){
   if(args["id"] is not System.Text.Json.Nodes.JsonValue id||!id.TryGetValue<string>(out var identifier)||
      identifier.Length is <1 or >512)return unavailable;

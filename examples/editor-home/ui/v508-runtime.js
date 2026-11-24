@@ -634,6 +634,10 @@ function renderProjectWindowSetting(w){
    const result=await observeProjectWindow('readProjectWindowSetting',basis,alive);
    if(!result||!alive()||source.value!==basis.text||draft.revision!==basis.revision)return false;
    const choices=new Map([['',main?'기본 화면':'표시 안 함'],['element-view-card','읽기 전용 카드'],['element-view-table','읽기 전용 표']]);
+   if(!main&&result.choices){
+    choices.set('element-view-recipe','읽기 전용 레시피');
+    for(const value of choices.keys())if(!result.choices.includes(value))choices.delete(value);
+   }
    if(!choices.has(result.renderer))throw Error('이 View는 프로젝트 창 메뉴 표시를 지원하지 않아요.');
    const label=document.createElement('label'),select=document.createElement('select');
    label.textContent=main?'프로젝트 시작 화면 ':'≡ 메뉴에 표시 ';
@@ -1047,6 +1051,24 @@ async function showProjectMainView(workspace){
   workspace.prepend(surface);
  }catch{/* Keep the standard workspace if the confirmed declaration is unavailable. */}
 }
+function recipeViewContent(recipe){
+ const content=document.createElement('div');
+ content.dataset.projectWindowRenderer='recipe';
+ function group(title,rows){
+  const section=document.createElement('section'),heading=document.createElement('h3'),list=document.createElement('ul');
+  heading.textContent=title;
+  for(const row of rows){
+   const item=document.createElement('li');
+   item.textContent=row.id+' × '+row.count;
+   list.append(item);
+  }
+  section.append(heading,list);
+  content.append(section);
+ }
+ group('재료',recipe.ingredients);
+ group('결과',[recipe.output]);
+ return content;
+}
 async function openProjectOwnedWindow(id,anchor){
  const {activation,alive}=projectWindowScope(anchor);
  if(!alive())return;
@@ -1058,11 +1080,11 @@ async function openProjectOwnedWindow(id,anchor){
   if(!alive()||projectWindowFlight!==request)return;
   const row=result.window;
   if(result.status!=='available'||result.projectActivation!==activation||row?.id!==id||
-     !['element-view-card','element-view-table'].includes(row.renderer))throw Error('project_window_unavailable');
+     !['element-view-card','element-view-table','element-view-recipe'].includes(row.renderer))throw Error('project_window_unavailable');
   const card=row.renderer==='element-view-card';
   modal(row.title,'<div class="window-content" data-project-owned-window-body><p class="small">읽기 전용</p></div>',(root,close)=>{
    const body=root.querySelector('[data-project-owned-window-body]');
-   const value=projectViewContent(row,card);
+   const value=row.renderer==='element-view-recipe'?recipeViewContent(row.recipe):projectViewContent(row,card);
    body.append(value);
    const opened={id,close,alive};
    ownedProjectWindow=opened;

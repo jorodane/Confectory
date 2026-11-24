@@ -88,7 +88,7 @@ def state(address):
         assert send({"op": "dispose", "view": mounted["view"]})["ok"]
 
 
-def project_menu(page, approved=False):
+def project_menu(page, approved=False, *, identifier=WINDOW, title=WINDOW_TITLE):
     def lookup(response):
         if not response.url.endswith("/api/request") or response.request.method != "POST":
             return False
@@ -102,9 +102,9 @@ def project_menu(page, approved=False):
     menu = page.locator(".context-menu")
     expect(menu.get_by_role("button", name="프로젝트 정보", exact=True)).to_be_visible()
     expect(menu.get_by_role("button", name="Unsupported renderer", exact=True)).to_have_count(0)
-    slot = menu.locator(f'[data-project-owned-window="{WINDOW}"]')
+    slot = menu.locator(f'[data-project-owned-window="{identifier}"]')
     if approved:
-        expect(slot).to_have_text(WINDOW_TITLE)
+        expect(slot).to_have_text(title)
     else:
         assert not reply["result"].get("windows")
         expect(slot).to_have_count(0)
@@ -527,6 +527,81 @@ def worker_opening_review_workflow(report, root, browser):
     print("PASS Chromium shows the exact Worker-origin opening View Review; Cancel keeps the default, Confirm opens the Alpha card")
 
 
+def recipe_view_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    (alpha, bravo), originals, proof = seed(report, root, checkout=checkout)
+    title, identifier = "Assembly recipe", NS + "::RecipeDesk"
+    for project, amount in ((alpha, 2), (bravo, 7)):
+        manifest = Path(project["path"])
+        directory = manifest.parent
+        ingredients = json.dumps({NS + "::Fiber": amount, NS + "::Tile": 3})
+        declarations = {
+            "Fiber": ("object", f"object {NS}::Fiber {{}}"),
+            "Tile": ("object", f"object {NS}::Tile {{}}"),
+            "Panel": ("object", f"object {NS}::Panel {{}}"),
+            "Assembly": ("object", f'object {NS}::Assembly {{ value concept = "recipe"; '
+                         f'value ingredients = {json.dumps(ingredients)}; value output = "{NS}::Panel"; value outputCount = 4; }}'),
+            "RecipeDesk": ("view", f'view {identifier} {{ use object {NS}::Assembly; value editorName = "{title}"; }}'),
+        }
+        source = manifest.read_text().rstrip()[:-1]
+        for name, (kind, body) in declarations.items():
+            path = directory / (name + ".celem")
+            path.write_text(body + "\n")
+            originals[path] = path.read_bytes()
+            if name != "RecipeDesk" or project == alpha:
+                source += f'element {name} {kind} "{name}.celem";\n'
+        manifest.write_text(source + "}\n")
+        originals[manifest] = manifest.read_bytes()
+
+    path = Path(alpha["path"]).with_name("RecipeDesk.celem")
+    initial = path.read_text()
+    with editor(report, root, "recipe-view", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        source = select_registered_view(page, identifier)
+        scope = page.locator("[data-project-window-setting]")
+        scope.get_by_role("button", name="메뉴 표시 설정", exact=True).click()
+        choices = scope.get_by_role("combobox", name="≡ 메뉴에 표시", exact=True)
+        expect(choices).to_have_value("")
+        assert choices.locator("option").all_text_contents() == ["표시 안 함", "읽기 전용 레시피"]
+        choices.select_option("element-view-recipe")
+        scope.get_by_role("button", name="초안에 적용", exact=True).click()
+        draft = initial.replace(" }", ' value editorWindow = "element-view-recipe"; }', 1)
+        expect(source).to_have_value(draft)
+        review = open_review(page)
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        assert path.read_text() == initial
+        project_menu(page, identifier=identifier)
+        page.keyboard.press("Escape")
+        confirm_review(page)
+        assert path.read_text() == draft
+
+        project_menu(page, True, identifier=identifier, title=title).get_by_role(
+            "button", name=title, exact=True).click()
+        dialog = page.get_by_role("dialog", name=title, exact=True)
+        recipe = dialog.locator('[data-project-window-renderer="recipe"]')
+        inputs = recipe.locator("section").filter(has=page.get_by_role("heading", name="재료", exact=True))
+        results = recipe.locator("section").filter(has=page.get_by_role("heading", name="결과", exact=True))
+        expect(inputs.locator("li")).to_have_text([NS + "::Fiber × 2", NS + "::Tile × 3"])
+        expect(results.locator("li")).to_have_text([NS + "::Panel × 4"])
+        expect(recipe.locator("input, button, textarea, select")).to_have_count(0)
+        home(page)
+        expect(dialog).to_have_count(0)
+        open_project(page, alpha["title"])
+        expect(page.locator("#workspace > [data-project-main-view]")).to_have_count(0)
+        home(page)
+        open_project(page, bravo["title"])
+        project_menu(page, identifier=identifier)
+        expect(page.locator("[data-project-main-view], [data-project-window-renderer=recipe]")).to_have_count(0)
+        assert not proof.exists() and not errors, errors
+        page.close()
+
+    originals[path] = draft.encode()
+    assert all(file.read_bytes() == value for file, value in originals.items())
+    print("PASS confirmed recipe shows owned ingredients and result separately; cancel, Home, Bravo and default Workspace remain isolated")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -578,7 +653,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -590,6 +665,8 @@ if __name__ == "__main__":
                         main_view_workflow(package, Path(directory), browser)
                     elif "--worker-opening-review" in sys.argv[2:]:
                         worker_opening_review_workflow(package, Path(directory), browser)
+                    elif "--recipe-view" in sys.argv[2:]:
+                        recipe_view_workflow(package, Path(directory), browser)
                     else:
                         settings_workflow(package, Path(directory), browser)
         else:
