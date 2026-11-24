@@ -284,7 +284,16 @@ function openResourceParent(item,parent){const parentId=parent?.id||null,key=wor
 function openHierarchyBrowser(group,at,restoring,key='browser',parent=null,spot){const w=browser(key);Object.assign(w.meta,{group,catalogue:true,parent,namespace:parent?.split('::')[0]||current.namespace,kind:null,query:'',queryInput:''});browser(key,true);if(spot){Object.assign(w,{x:spot.x,y:spot.y,placed:true});placeWindow(w);}actualWorkspace.schedule();return w;}
 function openBrowserDefinition(row){if(row.owned!==false&&['object','schema'].includes(row.kind)&&row.valid!==false&&(current.editorViews?.some(value=>value.id===row.id&&value.mode==='properties')||actualWorkspace.windowDocuments.active||document.body.classList.contains('is-mobile-editor')))return openElementInstance(row.id);if(row.owned!==false){if(row.valid===false)return work(async()=>{if(dirty&&draft?.id!==row.id)throw Error('미적용 소스 입력을 먼저 Apply하세요.');await view.call('select',{id:row.id});editor();const w=windows.get('source');w.el.hidden=false;focusWindow(w);},'현재 선언 소스');return act('select',{id:row.id});}const source=browserProjection.source(row.id);if(source)return openDefinitionTarget(source,row.id);modal('등록 팩 선언',`<h3>${esc(row.id)}</h3><p>${esc(row.kind)} · 읽기 전용 목록</p><p>이 소유 작업 사본에 직접 선언한 참조가 없습니다. 정의 조회 권한을 확대하지 않습니다.</p>`);}
 function decorateBrowserRows(w,root,items){for(const el of $$('[data-object]',root)){const row=browserProjection.rows().find(row=>row.id===el.dataset.object)||items.find(row=>row.id===el.dataset.object);if(!row)continue;
- el.querySelectorAll('[data-browser-enter]').forEach(button=>button.remove());const children=browserProjection.browserChildren(row.id);if(children.length||row.kind==='category'){const button=document.createElement('button');button.type='button';button.className=w.meta.density<=0||w.meta.density>=100?'list-expand':'concept-expand';button.dataset.browserEnter=row.id;button.textContent='▸';button.setAttribute('aria-label',browserObjectName(row.id)+' 바리에이션으로 이동');button.onclick=e=>{e.stopPropagation();enterBrowserParent(w,row.id);};const identity=el.querySelector('.browser-data-identity')||el;identity.querySelector('.obj-icon')?.after(button);}
+ el.querySelectorAll('[data-browser-enter]').forEach(button=>button.remove());
+ const category=row.kind==='category';
+ if(category||browserProjection.browserChildren(row.id).length){
+  const button=document.createElement('button');button.type='button';button.className=w.meta.density<=0||w.meta.density>=100?'list-expand':'concept-expand';button.dataset.browserEnter=row.id;button.textContent='▸';
+  const label=browserObjectName(row.id);
+  const action=category?'카테고리 '+label+' 열기':label+' 바리에이션으로 이동';
+  button.setAttribute('aria-label',action);button.title=action;
+  button.onclick=e=>{e.stopPropagation();enterBrowserParent(w,row.id);};
+  const identity=el.querySelector('.browser-data-identity')||el;identity.querySelector('.obj-icon')?.after(button);
+ }
  const name=el.querySelector('[data-inline-name]');if(name)name.onclick=e=>{e.stopPropagation();openBrowserDefinition(row);};
  el.draggable=row.owned!==false;el.ondragstart=e=>{if(e.target.closest('input,button')||row.owned===false){e.preventDefault();return;}workspaceRuntime.startObjectEditorDrag(e,{id:row.id,name:browserObjectName(row.id)},[{id:row.id,name:browserObjectName(row.id)}],current.projectId);workspaceRuntime.state.workspaceDragPayload.sourceProofs=[{id:row.id,revision:row.revision,hash:row.textHash}];};el.ondragend=()=>workspaceRuntime.endWorkspaceDrag();
 }browserReferences.bind(root,items);}
