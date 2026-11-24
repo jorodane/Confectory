@@ -307,18 +307,34 @@ public sealed class PackWorkspaceTests : TestCase
   """);
   File.WriteAllText(Path.Combine(sample,"main.csbody"),"""
   string project=Environment.GetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT")!;
-  const string id="App::OpeningCard",projectId="alpha-fixture",actor="local-user",task="task-opening-view";
+  bool browserFixture=Environment.GetEnvironmentVariable("CONFECTORY_TEST_OPENING_VIEW_BROWSER_FIXTURE")=="1";
+  const string actor="local-user",task="task-opening-view";
+  string ns=browserFixture?"Recent.Alpha":"App",id=ns+"::"+(browserFixture?"StockDesk":"OpeningCard");
+  string directory=System.IO.Path.GetDirectoryName(project)!;
+  string projectId="alpha-fixture";
+  if(browserFixture){
+   string temp=System.IO.Path.GetFullPath(System.IO.Path.GetTempPath());
+   string fixture=System.IO.Path.GetDirectoryName(directory)!;
+   if(System.IO.Path.GetDirectoryName(fixture)!=temp.TrimEnd(System.IO.Path.DirectorySeparatorChar)||
+      !System.IO.Path.GetFileName(fixture).StartsWith("project-owned-view-",StringComparison.Ordinal)||
+      System.IO.Path.GetFileName(directory)!="Alpha"||System.IO.Path.GetFileName(project)!="project.cproj"||
+      new System.IO.DirectoryInfo(fixture).LinkTarget is not null||new System.IO.DirectoryInfo(directory).LinkTarget is not null||
+      new System.IO.FileInfo(project).LinkTarget is not null)
+    throw new InvalidOperationException("Use the disposable browser Alpha fixture.");
+   projectId=System.Text.Json.Nodes.JsonNode.Parse(System.IO.File.ReadAllText(
+    System.IO.Path.Combine(directory,".confectory/project-identity.json")))!["projectId"]!.ToString();
+  }
   System.Text.Json.Nodes.JsonNode Json(string text)=>System.Text.Json.Nodes.JsonNode.Parse(text)!;
   string Encode(object value)=>System.Text.Json.JsonSerializer.Serialize(value);
   void Check(bool result,string message){if(!result)throw new InvalidOperationException(message);}
   System.Text.Json.Nodes.JsonNode Opening()=>Json(calls.Catalog.Invoke(project,Encode(new{action="project-main-view"})));
   string owner=calls.Open.Invoke(project,actor,"editor");
-  string tool=calls.ToolsOpen.Invoke(project,projectId,"App",actor,"editor");
+  string tool=calls.ToolsOpen.Invoke(project,projectId,ns,actor,"editor");
   string phase="stage";
   try{
    calls.BindOrigin.Invoke(tool,task,"synthetic-worker","opening-view-request");
    var current=Json(calls.Tool.Invoke(tool,"read-opening-view","workspace_read",Encode(new{projectId,id})));
-   string file=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(project)!,"OpeningCard.celem");
+   string file=System.IO.Path.Combine(directory,browserFixture?"StockDesk.celem":"OpeningCard.celem");
    string confirmed=System.IO.File.ReadAllText(file);
    string draft=confirmed.Insert(confirmed.LastIndexOf('}')," value editorMain = \"element-view-card\"; ");
    var staged=Json(calls.Tool.Invoke(tool,"propose-opening-view","workspace_stage",Encode(new{
@@ -338,6 +354,11 @@ public sealed class PackWorkspaceTests : TestCase
    catch(UnauthorizedAccessException){denied=true;}
    Check(denied,"Draft tool must not be able to Confirm");
 
+   if(browserFixture){
+    calls.Command.Invoke(owner,"save","{}");
+    Console.WriteLine("Worker-origin opening View browser fixture staged PASS");
+    return 0;
+   }
    phase="review";
    calls.Command.Invoke(owner,"select",Encode(new{id}));
    System.Text.Json.Nodes.JsonNode Review(){
@@ -374,10 +395,13 @@ public sealed class PackWorkspaceTests : TestCase
   try{
    Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",
     Path.Combine(Fixture.Repo,"targets","element-authoring","bin","Release","net10.0","Confectory.ElementAuthoring.dll"));
-   Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",f.Project);
+   bool browserFixture=Environment.GetEnvironmentVariable("CONFECTORY_TEST_OPENING_VIEW_BROWSER_FIXTURE")=="1";
+   Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",browserFixture
+    ? selected??throw new InvalidOperationException("Browser fixture path required") :f.Project);
    var built=new Builder(project,"portable").Build();
    True(!Strings(built,"includedPacks").Contains("Confectory.Agent"));
-   Output(built,"Worker-origin opening View host Review: cancel, human Confirm, cold projection PASS");
+   Output(built,browserFixture?"Worker-origin opening View browser fixture staged PASS":
+    "Worker-origin opening View host Review: cancel, human Confirm, cold projection PASS");
   }finally{
    Environment.SetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST",host);
    Environment.SetEnvironmentVariable("CONFECTORY_TEST_AUTHOR_PROJECT",selected);

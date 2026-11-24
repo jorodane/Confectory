@@ -1,6 +1,8 @@
 """Confirmed project-owned card and table in the installed Linux editor."""
 
 import json
+import os
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -464,6 +466,63 @@ def main_view_workflow(report, root, browser):
     print("PASS Chromium opening View picker: cancellation, confirmation, conflict, reset, menu independence and draft retention")
 
 
+def worker_opening_review_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    (alpha, _), originals, proof = seed(report, root, checkout=checkout)
+    path = Path(alpha["path"]).with_name("StockDesk.celem")
+    initial = path.read_text()
+    with editor(report, root, "opening-review-identity", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        assert not errors
+        page.close()
+
+    test_host = checkout / "tests/Confectory.Tests/bin/Release/net10.0/Confectory.Tests.dll"
+    result = subprocess.run(
+        [os.environ.get("CONFECTORY_DOTNET", "dotnet"), str(test_host), "--require-runtime",
+         "test_worker_origin_opening_view_draft_requires_human_confirm"],
+        env=dict(os.environ, CONFECTORY_TEST_OPENING_VIEW_BROWSER_FIXTURE="1",
+                 CONFECTORY_TEST_AUTHOR_PROJECT=alpha["path"]),
+        capture_output=True, text=True, timeout=180,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert path.read_text() == initial
+
+    with editor(report, root, "opening-review-browser", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        surface = page.locator("#workspace > [data-project-main-view]")
+        expect(surface).to_have_count(0)
+        source = select_registered_view(page, WINDOW)
+        draft = source.input_value()
+        assert draft != initial and 'editorMain = "element-view-card"' in draft
+        review = open_review(page)
+        change = review.get_by_role("group", name="프로젝트 시작 화면", exact=True)
+        expect(change.get_by_role("group", name="변경 전")).to_have_text("기본 화면")
+        expect(change.get_by_role("group", name="변경 후")).to_have_text("읽기 전용 카드")
+        expect(review.locator("[data-opening-view-origin]")).to_have_text(
+            "작업자 제안 · synthetic-worker · 작업 task-opening-view")
+        review.locator("[data-reject]").click()
+        expect(review).to_have_count(0)
+        expect(source).to_have_value(draft)
+        assert path.read_text() == initial
+        home(page)
+        open_project(page, alpha["title"])
+        expect(surface).to_have_count(0)
+        select_registered_view(page, WINDOW)
+        confirm_review(page)
+        assert path.read_text() == draft
+        home(page)
+        open_project(page, alpha["title"])
+        expect(surface.locator("dl")).to_contain_text("Local Alpha only")
+        assert not proof.exists() and not errors, errors
+        page.close()
+
+    originals[path] = draft.encode()
+    assert all(file.read_bytes() == value for file, value in originals.items())
+    print("PASS Chromium shows the exact Worker-origin opening View Review; Cancel keeps the default, Confirm opens the Alpha card")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -515,7 +574,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh", "--main-view"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -525,6 +584,8 @@ if __name__ == "__main__":
                         card_refresh_workflow(package, Path(directory), browser)
                     elif "--main-view" in sys.argv[2:]:
                         main_view_workflow(package, Path(directory), browser)
+                    elif "--worker-opening-review" in sys.argv[2:]:
+                        worker_opening_review_workflow(package, Path(directory), browser)
                     else:
                         settings_workflow(package, Path(directory), browser)
         else:
