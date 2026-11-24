@@ -536,12 +536,113 @@ def workflow_recipe_view(report, root):
     print("PASS GTK recipe: cancel keeps it hidden; Confirm displays exact ingredients and result; Bravo and opening Workspace remain isolated")
 
 
+def workflow_recipe_editor(report, root):
+    from editor_local_multilay_x11 import LocalEditor, repo
+    from project_owned_window_boundary import NS, seed_recipe
+
+    app = LocalEditor(root)
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, repo, both=True)
+    for project in (alpha, bravo):
+        path = Path(project["path"]).with_name("RecipeDesk.celem")
+        path.write_text(path.read_text().replace(" }", ' value editorWindow = "element-view-recipe"; }', 1))
+        originals[path] = path.read_bytes()
+    build = json.loads(report.read_text())
+    assert build["target"] == "linux" and build["tool"]["ok"]
+
+    def snapshots(project):
+        folders = Path(project["path"]).parent.glob(".confectory/edit-workspaces/*/draft.json")
+        return {path: path.read_bytes() for path in folders}
+
+    def recipe(count):
+        menu(app, True)
+        app.click(480)
+        app.wait(lambda row: title in row["texts"] and 484 in row["hits"][::5],
+                 "Return to the confirmed Project windows list")
+        app.click(484)
+        row = app.wait(lambda row: not row["job"] and row["focus"] == 481 and 498 in row["hits"][::5],
+                       "GTK focuses Back on opening the recipe")
+        value = app.field(row, 487)
+        assert value["readonly"] and f"{NS}::Fiber × {count}" in value["text"]
+
+    def focus_link():
+        for _ in range(4):
+            focus = app.state()["focus"]
+            if focus == 498:
+                return
+            if focus == 487:
+                app.key(487, 0xFF09)
+            else:
+                ui.key(app.window, 0xFF09)
+            app.wait(lambda row: row["focus"] != focus, "Advance focus in the recipe window", timeout=5)
+        assert app.state()["focus"] == 498
+
+    try:
+        app.launch(build["run"])
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: (row["width"], row["height"]) == (1080, 760), "Resize isolated GTK")
+        open_project(app, alpha)
+        saved = source_view(app, identifier) + "// Existing independent draft for the View.\n"
+        app.fill(54, saved)
+        app.click(58)
+        app.wait(lambda row: not row["job"] and bool(snapshots(alpha)), "Save an independent draft")
+        target = NS + "::Assembly"
+
+        for project, count in ((alpha, 2), (bravo, 7)):
+            before = snapshots(project)
+            recipe(count)
+            focus_link()
+            ui.key(app.window, 0xFF0D)
+            row = app.wait(
+                lambda row: not row["job"] and row["focus"] == 74 and not row["model"]["shell"]["menu"]
+                and row["model"]["workspace"]["selected"] == target and row["model"]["workspace"].get("schemaView"),
+                "Enter opens the existing properties editor and restores project focus",
+            )
+            selected = row["model"]["workspace"]["unit"]
+            assert row["model"]["selected"]["path"] == project["path"]
+            assert selected["text"] == Path(project["path"]).with_name("Assembly.celem").read_text()
+            assert not app.field(row, 487).get("visible") and snapshots(project) == before
+            assert all(path.read_bytes() == data for path, data in originals.items())
+            if project == alpha:
+                close_project(app)
+                open_project(app, bravo)
+
+        recipe(7)
+        focus_link()
+        before = snapshots(bravo)
+        manifest = Path(bravo["path"])
+        # Simulate an external registration change to the disposable Bravo fixture.
+        manifest.write_text(manifest.read_text().replace('element Assembly object "Assembly.celem";\n', ""))
+        originals[manifest] = manifest.read_bytes()
+        ui.key(app.window, 0xFF0D)
+        denied = app.wait(lambda row: not row["job"] and row["message"] == "This project window is no longer available."
+                          and row["focus"] == 498, "Revoked target does not open the editor")
+        assert denied["model"]["shell"]["menu"] == "project" and app.field(denied, 487)["readonly"]
+        assert snapshots(bravo) == before
+        app.click(481)
+        app.wait(lambda row: row["focus"] == 484 and not app.field(row, 487).get("visible"),
+                 "Back returns to the original Project windows row")
+        app.close()
+    finally:
+        if hasattr(app, "child") and app.child.poll() is None:
+            app.child.terminate()
+            app.child.wait(timeout=15)
+        if hasattr(app, "stream") and not app.stream.closed:
+            app.stream.close()
+
+    assert not proof.exists()
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    print("PASS GTK recipe editor link: same-ID isolation, Tab/Enter focus, unchanged source/drafts, stale target and Back")
+
+
 if __name__ == "__main__":
     prefix = "project-owned-view-" if "--worker-opening-review" in sys.argv[2:] else "gtk-project-windows-"
     root = Path(mkdtemp(prefix=prefix, dir=os.environ.get("TMPDIR")))
     package = Path(sys.argv[1]).resolve()
     if "--worker-opening-review" in sys.argv[2:]:
         workflow_worker_opening_review(package, root)
+    elif "--recipe-editor" in sys.argv[2:]:
+        workflow_recipe_editor(package, root)
     elif "--recipe-view" in sys.argv[2:]:
         workflow_recipe_view(package, root)
     elif "--opening-view" in sys.argv[2:]:

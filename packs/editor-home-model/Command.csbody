@@ -722,7 +722,8 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  if(action is "description" or "data-path" or "call-check" or "declaration" or "object-structure"){var current=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(handle))!;if(Value("id")!=current["selected"]!.ToString())throw new InvalidOperationException("Explicit schema source ID differs from the current View.");}
  if(action=="select"&&args["recipeView"] is not null){
   var owner=calls.Context.Invoke(manager,context);
-  if(view.Length!=0||owner[5]!="open"||owner[2]=="Confectory.AISettings")
+  if(view.Length!=0||owner[5]!="open"||owner[2]=="Confectory.AISettings"||
+     Value("activation")!=model["selected"]?["activation"]?.ToString())
    throw new UnauthorizedAccessException("Recipe editor scope unavailable.");
   var confirmed=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(owner[1],
    System.Text.Json.JsonSerializer.Serialize(new{action="project-windows",id=Value("recipeView")})));
