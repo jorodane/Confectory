@@ -527,8 +527,7 @@ def worker_opening_review_workflow(report, root, browser):
     print("PASS Chromium shows the exact Worker-origin opening View Review; Cancel keeps the default, Confirm opens the Alpha card")
 
 
-def recipe_view_workflow(report, root, browser):
-    checkout = Path(__file__).resolve().parents[2]
+def seed_recipe(report, root, checkout):
     (alpha, bravo), originals, proof = seed(report, root, checkout=checkout)
     title, identifier = "Assembly recipe", NS + "::RecipeDesk"
     for project, amount in ((alpha, 2), (bravo, 7)):
@@ -553,6 +552,12 @@ def recipe_view_workflow(report, root, browser):
         manifest.write_text(source + "}\n")
         originals[manifest] = manifest.read_bytes()
 
+    return alpha, bravo, originals, proof, title, identifier
+
+
+def recipe_view_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, checkout)
     path = Path(alpha["path"]).with_name("RecipeDesk.celem")
     initial = path.read_text()
     with editor(report, root, "recipe-view", checkout=checkout) as address:

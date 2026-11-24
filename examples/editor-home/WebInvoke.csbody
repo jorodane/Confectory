@@ -35,7 +35,6 @@ if(endpoint is "readProjectWindowSetting" or "setProjectWindowSetting"){
   ["activation"]=active["activation"]!.DeepClone(),["id"]=args["id"]!.GetValue<string>(),
   ["text"]=args["text"]!.GetValue<string>(),["expectedRevision"]=args["revision"]!.GetValue<long>()};
  if(main)windowRequest["placement"]="main";
- windowRequest["surface"]="web";
  if(edit){
   windowRequest["action"]="project-window-setting";
   windowRequest["renderer"]=args["renderer"]!.GetValue<string>();
@@ -52,7 +51,6 @@ if(endpoint is "listProjectWindows" or "readProjectWindow" or "readProjectMainVi
   throw new UnauthorizedAccessException("project_window_fields");
  var active=before["selected"];
  var windowRequest=new System.Text.Json.Nodes.JsonObject{["context"]=active?["context"]?.DeepClone(),["activation"]=active?["activation"]?.DeepClone()};
- windowRequest["surface"]="web";
  if(!list)windowRequest["id"]=args["id"]!.DeepClone();
  string result=calls.Command.Invoke(context,main?"project-main-view-read":"project-window-read",windowRequest.ToJsonString());
  if(calls.Cancelled.Invoke(cancellation))throw new OperationCanceledException();

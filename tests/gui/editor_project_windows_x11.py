@@ -467,12 +467,83 @@ def workflow_worker_opening_review(report, root):
     print("PASS GTK opening View Review shows exact Worker origin, cancels, confirms and reopens; direct edit has no attribution")
 
 
+def workflow_recipe_view(report, root):
+    from editor_local_multilay_x11 import LocalEditor, repo
+    from project_owned_window_boundary import NS, seed_recipe
+
+    app = LocalEditor(root)
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, repo)
+    source = Path(alpha["path"]).with_name("RecipeDesk.celem")
+    initial = source.read_text()
+    draft = initial.replace(" }", ' value editorWindow = "element-view-recipe"; }', 1)
+    build = json.loads(report.read_text())
+    assert build["target"] == "linux" and build["tool"]["ok"]
+
+    try:
+        app.launch(build["run"])
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: (row["width"], row["height"]) == (1080, 760), "Resize isolated GTK")
+        open_project(app, alpha)
+        assert source_view(app, identifier) == initial
+        app.click(488)
+        choices = app.wait(lambda row: not row["job"] and 497 in row["hits"][::5], "Read-only recipe setting")
+        assert not {490, 491}.intersection(choices["hits"][::5])
+        app.click(497)
+        app.wait(lambda row: not row["job"] and app.field(row, 54).get("text") == draft, "Stage recipe View")
+        review(app)
+        app.click(66)
+        app.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None, "Cancel recipe Review")
+        assert source.read_text() == initial
+        menu(app, False)
+        app.click(42)
+        review(app)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and source.read_text() == draft, "Confirm recipe View", timeout=150)
+        menu(app, True)
+        app.click(480)
+        app.wait(lambda row: title in row["texts"] and 484 in row["hits"][::5], "Confirmed recipe menu entry")
+        app.click(484)
+        row = app.wait(lambda row: not row["job"] and app.field(row, 487).get("visible"), "Open recipe projection")
+        value = f"Ingredients\n{NS}::Fiber × 2\n{NS}::Tile × 3\n\nResult\n{NS}::Panel × 4"
+        assert title in row["texts"] and "Read-only recipe" in row["texts"]
+        assert app.field(row, 487)["readonly"] and app.field(row, 487)["text"] == value
+        app.click(487)
+        app.key(487, "x")
+        app.wait(lambda row: row["focus"] == 487 and app.field(row, 487)["text"] == value, "Recipe text remains read-only")
+        app.click(33)
+        app.wait(lambda row: not app.field(row, 487).get("visible"), "Close recipe projection")
+        close_project(app)
+        open_project(app, alpha)
+        app.wait(lambda row: row["operation"] == "native-project-main-view" and not row["job"],
+                 "Read the independent opening View")
+        assert not app.field(app.state(), 496).get("visible")
+        close_project(app)
+        open_project(app, bravo)
+        menu(app, False)
+        assert not app.field(app.state(), 487).get("visible")
+        app.close()
+    finally:
+        if hasattr(app, "child") and app.child.poll() is None:
+            app.child.terminate()
+            app.child.wait(timeout=15)
+        if hasattr(app, "stream") and not app.stream.closed:
+            app.stream.close()
+
+    originals[source] = draft.encode()
+    assert not proof.exists()
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    print("PASS GTK recipe: cancel keeps it hidden; Confirm displays exact ingredients and result; Bravo and opening Workspace remain isolated")
+
+
 if __name__ == "__main__":
     prefix = "project-owned-view-" if "--worker-opening-review" in sys.argv[2:] else "gtk-project-windows-"
     root = Path(mkdtemp(prefix=prefix, dir=os.environ.get("TMPDIR")))
     package = Path(sys.argv[1]).resolve()
     if "--worker-opening-review" in sys.argv[2:]:
         workflow_worker_opening_review(package, root)
+    elif "--recipe-view" in sys.argv[2:]:
+        workflow_recipe_view(package, root)
     elif "--opening-view" in sys.argv[2:]:
         workflow_opening_view(package, root)
     elif len(sys.argv) > 2 and sys.argv[2] == "--revocation":

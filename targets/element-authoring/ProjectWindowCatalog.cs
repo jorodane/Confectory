@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 internal static class ProjectWindowCatalog
 {
     internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope,
-        JsonObject? setting = null, bool main = false, bool web = false)
+        JsonObject? setting = null, bool main = false)
     {
         const int maxViews = 32;
         const int maxDocumentBytes = 1048576;
@@ -90,7 +90,7 @@ internal static class ProjectWindowCatalog
         JsonObject? ConfirmedWindow(string id)
         {
             var declaration = Owned(id, "view");
-            if (declaration is null || Renderer(declaration, web: web) is not { Length: > 0 } renderer)
+            if (declaration is null || Renderer(declaration, recipeMenu: true) is not { Length: > 0 } renderer)
                 return null;
             var window = Project(declaration, renderer);
             if (requestedId is not null && window is not null) window["renderer"] = renderer;
@@ -133,9 +133,9 @@ internal static class ProjectWindowCatalog
         {
             bool mainSetting = setting!["placement"]?.GetValue<string>() == "main";
             string property = mainSetting ? "editorMain" : "editorWindow";
-            bool recipeMenu = web && !mainSetting;
+            bool recipeMenu = !mainSetting;
             var confirmed = Owned(id, "view");
-            if (confirmed is null || (!mainSetting && Renderer(confirmed, web: recipeMenu) is null))
+            if (confirmed is null || (!mainSetting && Renderer(confirmed, recipeMenu: recipeMenu) is null))
                 return null;
             bool card = Project(confirmed) is not null;
             bool recipe = recipeMenu && Project(confirmed, RecipeRenderer) is not null;
@@ -226,11 +226,11 @@ internal static class ProjectWindowCatalog
     private static bool Supported(string value) => value is "" or "element-view-card" or "element-view-table";
 
     // An absent property is the existing opt-out. Unknown values are outside this editor's contract.
-    private static string? Renderer(Element view, string property = "editorWindow", bool web = false)
+    private static string? Renderer(Element view, string property = "editorWindow", bool recipeMenu = false)
     {
         if (!view.Values.TryGetValue(property, out var value)) return "";
         return value.Value.ValueKind == JsonValueKind.String &&
-            value.Value.GetString() is { Length: > 0 } renderer && (Supported(renderer) || web && renderer == RecipeRenderer) ? renderer : null;
+            value.Value.GetString() is { Length: > 0 } renderer && (Supported(renderer) || recipeMenu && renderer == RecipeRenderer) ? renderer : null;
     }
 
     // Read the existing Recipe metadata without creating a runtime or touching stock.

@@ -72,7 +72,7 @@ cancels Review. After the writer Confirms, opening ≡ in the reader withdraws
 both the menu entry and the open card.
 
 
-## Read-only Recipe View in the browser
+## Read-only Recipe View
 
 In **팩 관리 → 프로젝트 창 선언**, select a registered View that directly
 uses an owned Recipe object. Its **≡ 메뉴에 표시** setting offers **읽기 전용
@@ -81,10 +81,13 @@ and all ingredient and output IDs identify directly owned registered objects.
 After Review and Confirm, open the View from ≡ to see the ingredient and
 result IDs and quantities from confirmed declarations. Crafting and inventory
 continue through their runtime controls. The opening Workspace uses its own
-card and table settings.
+card and table settings. On Linux GTK, select the owned declaration under
+**Edit sources**, then choose **View menu visibility → Read-only recipe**.
+After Review and Confirm, open it through **≡ → Project windows**.
 
 ```sh
 python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --recipe-view
+python tests/gui/editor_project_windows_x11.py "$LINUX_EDITOR_HOME_REPORT" --recipe-view
 ```
 
 ## Confirmed workspace opening View

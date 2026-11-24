@@ -39,7 +39,7 @@ string session=Own("session",calls.CreateSession.Invoke(repo,storage),value=>cal
 // Register the 128 controls used by the project surface; home-only and unused IDs stay out.
 string homeControl=control,shellControl=Own("shell-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Where(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,99),System.Linq.Enumerable.Range(200,29)),id=>Array.IndexOf(new[]{1,2,3,9,10,11,12,13,14,18,19,31,32,70,71,72,200},id)<0),System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)))),value=>calls.CloseControls.Invoke(value));var aiOutputViews=new System.Collections.Generic.HashSet<string>();var chatBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);var logBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
 string viewControls=Own("view-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12)))),value=>calls.CloseControls.Invoke(value));
-string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,67),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
+string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,68),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
 var owner=Own("owner",calls.CreateOwner.Invoke(1),value=>calls.DisposeOwner.Invoke(value));var surfaces=Own("surfaces",calls.CreateSurfaces.Invoke(new[]{"Confectory - Projects"},960,700),value=>calls.Close.Invoke(value,-1));
 string nativeHome=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeShell=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeHost=nativeHome;bool nativePickerPending=false,archivePending=false,storagePending=false;int pickerFocus=0;
 bool canRun=System.Linq.Enumerable.Contains(calls.ExecutionCapabilities.Invoke(),"build-and-run",StringComparer.Ordinal),canOpenFolder=J(calls.NativeCapabilities.Invoke())["openFolder"]?.GetValue<bool>()==true;
@@ -68,10 +68,10 @@ const int LanOpenEy=475,LanNextEy=476;
 const int OpenProjectWindows=480,ProjectWindowsBack=481,ProjectWindowsPrevious=482,ProjectWindowsNext=483;
 const int FirstProjectWindow=484,ProjectWindowsPageSize=3,ProjectWindowValue=487;
 const int ViewMenuSetting=488,ViewMenuHidden=489,ViewMenuCard=490,ViewMenuTable=491;
-const int ViewMainSetting=492,ViewMainDefault=493,ViewMainCard=494,ViewMainTable=495,ProjectMainValue=496;
+const int ViewMainSetting=492,ViewMainDefault=493,ViewMainCard=494,ViewMainTable=495,ProjectMainValue=496,ViewMenuRecipe=497;
 string projectMainActivation="",projectMainBuffer="";
 System.Text.Json.Nodes.JsonNode? projectMainView=null;
-(string Activation,string Key,int Control,string Renderer,string Conflict)? viewMenuSetting=null;
+(string Activation,string Key,int Control,string Renderer,string Conflict,System.Text.Json.Nodes.JsonArray? Choices)? viewMenuSetting=null;
 (string Activation,string Key,string Text,int Control)? viewMenuRequest=null;
 string projectWindowsActivation="",projectWindowRequestedId="",projectWindowBuffer="";
 var projectWindows=new System.Text.Json.Nodes.JsonArray();
@@ -86,9 +86,9 @@ var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.L
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
-allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,67),System.Linq.Enumerable.Range(500,32))));
+allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,68),System.Linq.Enumerable.Range(500,32))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=ProjectMainValue:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=ViewMenuRecipe:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -1083,13 +1083,20 @@ void CompleteProjectWindow(string result){
  if(!projectWindowsPanel)return;
  var row=response["window"];
  if(!available||row?["id"]?.ToString()!=projectWindowRequestedId||
-    row?["renderer"]?.ToString() is not ("element-view-card" or "element-view-table")){
+    row?["renderer"]?.ToString() is not ("element-view-card" or "element-view-table" or "element-view-recipe")){
   message="This project window is no longer available.";
   pendingFocus=jobFocus;return;
  }
  if(projectWindowBuffer.Length==0)
   projectWindowBuffer=Own("project-window-value",calls.CreateText.Invoke("project-window-value",""),value=>calls.CloseText.Invoke(value));
- calls.ReplaceText.Invoke(projectWindowBuffer,row["value"]!.ToString(),0,0);
+ string value;
+ if(row["renderer"]!.ToString()=="element-view-recipe"){
+  var recipe=row["recipe"]!;
+  string Line(System.Text.Json.Nodes.JsonNode? item)=>item!["id"]!.ToString()+" × "+item["count"]!.ToString();
+  value="Ingredients\n"+string.Join("\n",System.Linq.Enumerable.Select(recipe["ingredients"]!.AsArray(),Line))+
+   "\n\nResult\n"+Line(recipe["output"]);
+ }else value=row["value"]!.ToString();
+ calls.ReplaceText.Invoke(projectWindowBuffer,value,0,0);
  projectWindow=row;projectWindowFocus=jobFocus;
  pendingFocus=ProjectWindowsBack;
 }
@@ -1121,7 +1128,7 @@ bool ViewMenuCurrent()=>ViewMenuAvailable()&&viewMenuSetting is { } open&&
 
 void ConfigureViewMenu(int choice){
  if(job is not null||!ViewMenuAvailable())return;
- bool main=choice>=ViewMainSetting;
+ bool main=choice is >=ViewMainSetting and <=ViewMainTable;
  int control=main?ViewMainSetting:ViewMenuSetting;
  if(choice==control&&ViewMenuCurrent()&&viewMenuSetting!.Value.Control==control){viewMenuSetting=null;return;}
  if(choice!=control&&(!ViewMenuCurrent()||viewMenuSetting!.Value.Control!=control))return;
@@ -1138,7 +1145,7 @@ void ConfigureViewMenu(int choice){
    ()=>calls.Command.Invoke(session,"project-window-setting-read",request.ToJsonString()));
   return;
  }
- request["renderer"]=choice switch{ViewMenuCard or ViewMainCard=>"element-view-card",ViewMenuTable or ViewMainTable=>"element-view-table",_=>""};
+ request["renderer"]=choice switch{ViewMenuCard or ViewMainCard=>"element-view-card",ViewMenuTable or ViewMainTable=>"element-view-table",ViewMenuRecipe=>"element-view-recipe",_=>""};
  Start("workspace",request,control);
 }
 
@@ -1148,7 +1155,7 @@ void CompleteViewMenuRead(string result){
  if(!ViewMenuAvailable()||basis.Activation!=ProjectWindowActivation()||basis.Key!=SourceKey()||
     basis.Text!=calls.TextSnapshot.Invoke(SourceBuffer())[1])return;
  var state=J(result);
- viewMenuSetting=(basis.Activation,basis.Key,basis.Control,state["renderer"]!.GetValue<string>(),state["conflict"]?.ToString()??"");
+ viewMenuSetting=(basis.Activation,basis.Key,basis.Control,state["renderer"]!.GetValue<string>(),state["conflict"]?.ToString()??"",state["choices"] as System.Text.Json.Nodes.JsonArray);
  pendingFocus=basis.Control;
 }
 
@@ -1351,7 +1358,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
   return;
  }
  if(screen=="project"&&id>=OpenProjectWindows&&id<ProjectWindowValue){ProjectWindowAction(id);return;}
- if(id>=ViewMenuSetting&&id<=ViewMainTable){ConfigureViewMenu(id);return;}
+ if(id is >=ViewMenuSetting and <=ViewMainTable or ViewMenuRecipe){ConfigureViewMenu(id);return;}
  if(id==34){OpenInformation(ListingId(model["selected"]!),"project");return;}if(id==35){ShellAction("menu","settings");return;}
  if(id==36){Start("run",new{context=Context()});return;}if(id==37){Start("stop",new{context=Context()});return;}
  if(screen=="project"&&id==30){aiOutputViews.Add(Context());ShellAction("tab","logs");return;}if(id==39){ShellAction("tab","chat");return;}if(id==40){aiOutputViews.Remove(Context());ShellAction("tab","logs");return;}
@@ -1716,13 +1723,23 @@ else if(screen=="fields"){
    Button(ViewMainSetting,settings[4..],main?"Close opening settings":"Project opening view");
    sourceTop+=32;
    if(options){
-    var modes=calls.Stack.Invoke(new[]{left+8,sourceTop,contentWidth,28},0,4,new[]{0,0,0});
     var setting=viewMenuSetting!.Value;
-    string current=setting.Renderer;
     bool available=setting.Conflict.Length==0;
-    Button(main?ViewMainDefault:ViewMenuHidden,modes[..4],(current==""?"✓ ":"")+(main?"Default workspace":"Hidden"),current!="");
-    Button(main?ViewMainCard:ViewMenuCard,modes[4..8],(current=="element-view-card"?"✓ ":"")+"Read-only card",available&&current!="element-view-card");
-    Button(main?ViewMainTable:ViewMenuTable,modes[8..12],(current=="element-view-table"?"✓ ":"")+"Read-only table",available&&current!="element-view-table");
+    var choices=new[]{
+     (Id:main?ViewMainDefault:ViewMenuHidden,Value:"",Title:main?"Default workspace":"Hidden"),
+     (Id:main?ViewMainCard:ViewMenuCard,Value:"element-view-card",Title:"Read-only card"),
+     (Id:main?ViewMainTable:ViewMenuTable,Value:"element-view-table",Title:"Read-only table"),
+     (Id:ViewMenuRecipe,Value:"element-view-recipe",Title:"Read-only recipe")
+    };
+    var modes=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(choices,choice=>
+     setting.Choices is null?choice.Id!=ViewMenuRecipe:
+      System.Linq.Enumerable.Any(setting.Choices,value=>value?.ToString()==choice.Value)));
+    var bounds=calls.Stack.Invoke(new[]{left+8,sourceTop,contentWidth,28},0,4,new int[modes.Length]);
+    for(int n=0;n<modes.Length;n++){
+     var choice=modes[n];bool current=setting.Renderer==choice.Value;
+     Button(choice.Id,bounds[(n*4)..(n*4+4)],(current?"✓ ":"")+choice.Title,
+      !current&&(available||choice.Value.Length==0));
+    }
     sourceTop+=32;
     if(!available)message="Clear and confirm the opening View "+setting.Conflict+" first.";
    }
@@ -1801,7 +1818,11 @@ else if(screen=="fields"){
   int x=left+8,bodyWidth=Math.Max(1,width-16);
   Button(ProjectWindowsBack,new[]{x,66,Math.Min(110,bodyWidth),32},"Back");
   if(projectWindow is { } opened){
-   ProjectViewProjection(opened,x,106,bodyWidth,58+height-48,ProjectWindowValue);
+   if(opened["renderer"]?.ToString()=="element-view-recipe"){
+    WrappedLabel(new[]{x,106,bodyWidth,42},opened["title"]!.ToString());
+    Label(new[]{x,150,bodyWidth,24},"Read-only recipe");
+    Field(ProjectWindowValue,new[]{x,177,bodyWidth,58+height-48-177},"Ingredients and result",readOnly:true);
+   }else ProjectViewProjection(opened,x,106,bodyWidth,58+height-48,ProjectWindowValue);
   }else{
    Label(new[]{x,106,bodyWidth,28},"Project windows");
    projectWindowsVisible=Math.Min(ProjectWindowsPageSize,Math.Max(0,(58+height-88-138)/40));
