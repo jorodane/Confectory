@@ -1,10 +1,12 @@
 using Confectory.Core;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 
 internal static class ProjectWindowCatalog
 {
-    internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope)
+    internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope,
+        JsonObject? setting = null)
     {
         const int maxViews = 32;
         const int maxDocumentBytes = 1048576;
@@ -50,13 +52,9 @@ internal static class ProjectWindowCatalog
             return element.Id == id && element.Kind == kind && element.Parent is null ? element : null;
         }
 
-        JsonObject? Project(string id)
+        JsonObject? Project(Element declaration)
         {
-            var declaration = Owned(id, "view");
-            if (declaration is null || !declaration.Values.TryGetValue("editorWindow", out var choice) ||
-                choice.Value.ValueKind != JsonValueKind.String ||
-                choice.Value.GetString() is not ("element-view-card" or "element-view-table") ||
-                !declaration.Values.TryGetValue("editorName", out var name) || name.Value.ValueKind != JsonValueKind.String ||
+            if (!declaration.Values.TryGetValue("editorName", out var name) || name.Value.ValueKind != JsonValueKind.String ||
                 name.Value.GetString() is not { Length: > 0 and <= 160 } title || string.IsNullOrWhiteSpace(title))
                 return null;
             if (declaration.Uses.Count != 1 || declaration.Uses[0].Kind != "object") return null;
@@ -71,19 +69,50 @@ internal static class ProjectWindowCatalog
                 datum.Scalar is not { ValueKind: JsonValueKind.String } value ||
                 value.GetString() is not { Length: <= 4096 } text)
                 return null;
-            var window = new JsonObject { ["id"] = id, ["title"] = title };
+            var window = new JsonObject { ["id"] = declaration.Id, ["title"] = title };
             if (requestedId is not null)
             {
-                window["renderer"] = choice.Value.GetString();
                 window["field"] = key;
                 window["value"] = text;
             }
             return window;
         }
 
+        JsonObject? ConfirmedWindow(string id)
+        {
+            var declaration = Owned(id, "view");
+            if (declaration is null || Renderer(declaration) is not { Length: > 0 } renderer)
+                return null;
+            var window = Project(declaration);
+            if (requestedId is not null && window is not null) window["renderer"] = renderer;
+            return window;
+        }
+
+        JsonObject? EditSetting(string id)
+        {
+            var confirmed = Owned(id, "view");
+            if (confirmed is null || Renderer(confirmed) is null || Project(confirmed) is null)
+                return null;
+            string text = setting!["text"]!.GetValue<string>();
+            if (text.Length > maxDocumentBytes) return null;
+            var draft = new Parser(text, "<project-window-draft>").ParseElement();
+            if (draft.Id != id || draft.Kind != "view" || draft.Parent is not null ||
+                Renderer(draft) is not { } current || Project(draft) is null)
+                return null;
+            var result = new JsonObject { ["status"] = "available", ["renderer"] = current };
+            if (setting["renderer"] is { } choice)
+            {
+                string next = choice.GetValue<string>();
+                if (!Supported(next)) return null;
+                result["text"] = next == current ? text : ReplaceSetting(text, draft, next);
+            }
+            return result;
+        }
+
         // Resolve the exact requested ID again on open. Menu discovery is bounded and
         // reads only direct declarations in the current manifest.
-        JsonObject? opened = requestedId is null ? null : Project(requestedId);
+        JsonObject? opened = requestedId is null ? null :
+            setting is null ? ConfirmedWindow(requestedId) : EditSetting(requestedId);
         var windows = new JsonArray();
         if (requestedId is null)
         {
@@ -92,7 +121,7 @@ internal static class ProjectWindowCatalog
             {
                 try
                 {
-                    if (Project(prefix + name) is { } row) windows.Add(row);
+                    if (ConfirmedWindow(prefix + name) is { } row) windows.Add(row);
                 }
                 catch (BuildError) { /* An unavailable declaration grants no menu entry. */ }
                 catch (IOException) { /* A removed declaration grants no menu entry. */ }
@@ -102,8 +131,41 @@ internal static class ProjectWindowCatalog
             if (!ReadCurrent(path).AsSpan().SequenceEqual(value))
                 throw new IOException("Project window source changed during discovery.");
 
+        if (setting is not null) return opened ?? new JsonObject { ["status"] = "unavailable" };
         return requestedId is null ? new JsonObject { ["status"] = "available", ["windows"] = windows } :
             opened is null ? new JsonObject { ["status"] = "unavailable" } :
             new JsonObject { ["status"] = "available", ["window"] = opened };
+    }
+
+    private static bool Supported(string value) => value is "" or "element-view-card" or "element-view-table";
+
+    // An absent property is the existing opt-out. Unknown values are outside this editor's contract.
+    private static string? Renderer(Element view)
+    {
+        if (!view.Values.TryGetValue("editorWindow", out var value)) return "";
+        return value.Value.ValueKind == JsonValueKind.String &&
+            value.Value.GetString() is { Length: > 0 } renderer && Supported(renderer) ? renderer : null;
+    }
+
+    private static string ReplaceSetting(string text, Element draft, string renderer)
+    {
+        const string trivia = @"(?:\s|//[^\n]*)*";
+        string literal = JsonSerializer.Serialize(renderer);
+        if (!draft.Values.TryGetValue("editorWindow", out var previous))
+        {
+            var closing = Regex.Match(text, @"\}" + trivia + @"\z", RegexOptions.NonBacktracking);
+            if (!closing.Success) throw new InvalidOperationException("Missing View terminator.");
+            return text.Insert(closing.Index, "value editorWindow = " + literal + "; ");
+        }
+
+        // The parsed location identifies the exact statement even if its spelling occurs in comments or strings.
+        int offset = 0;
+        for (int line = 1; line < previous.Loc.Line; line++) offset = text.IndexOf('\n', offset) + 1;
+        offset += previous.Loc.Column - 1;
+        var clause = new Regex(@"\Gvalue" + trivia + "editorWindow" + trivia + "=" + trivia +
+            "(?<literal>\"(?:[^\"\\\\]|\\\\.)*\")" + trivia + ";").Match(text, offset);
+        if (!clause.Success) throw new InvalidOperationException("Missing View menu setting.");
+        var span = renderer.Length == 0 ? clause : clause.Groups["literal"];
+        return text.Remove(span.Index, span.Length).Insert(span.Index, renderer.Length == 0 ? "" : literal);
     }
 }

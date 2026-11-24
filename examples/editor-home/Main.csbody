@@ -39,7 +39,7 @@ string session=Own("session",calls.CreateSession.Invoke(repo,storage),value=>cal
 // Register the 128 controls used by the project surface; home-only and unused IDs stay out.
 string homeControl=control,shellControl=Own("shell-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Where(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(1,99),System.Linq.Enumerable.Range(200,29)),id=>Array.IndexOf(new[]{1,2,3,9,10,11,12,13,14,18,19,31,32,70,71,72,200},id)<0),System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)))),value=>calls.CloseControls.Invoke(value));var aiOutputViews=new System.Collections.Generic.HashSet<string>();var chatBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);var logBuffers=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
 string viewControls=Own("view-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12)))),value=>calls.CloseControls.Invoke(value));
-string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,58),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
+string detailControl=Own("detail-controls",calls.CreateControls.Invoke(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,62),System.Linq.Enumerable.Range(500,32)))),value=>calls.CloseControls.Invoke(value));
 var owner=Own("owner",calls.CreateOwner.Invoke(1),value=>calls.DisposeOwner.Invoke(value));var surfaces=Own("surfaces",calls.CreateSurfaces.Invoke(new[]{"Confectory - Projects"},960,700),value=>calls.Close.Invoke(value,-1));
 string nativeHome=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeShell=Own("native-host",calls.NativeCreate.Invoke(surfaces,0),value=>calls.NativeClose.Invoke(value)),nativeHost=nativeHome;bool nativePickerPending=false,archivePending=false,storagePending=false;int pickerFocus=0;
 bool canRun=System.Linq.Enumerable.Contains(calls.ExecutionCapabilities.Invoke(),"build-and-run",StringComparer.Ordinal),canOpenFolder=J(calls.NativeCapabilities.Invoke())["openFolder"]?.GetValue<bool>()==true;
@@ -67,6 +67,9 @@ const int DraftYogiOpen=447,DraftYogiRemove=448,DraftYogiSend=440,LanSavedHistor
 const int LanOpenEy=475,LanNextEy=476;
 const int OpenProjectWindows=480,ProjectWindowsBack=481,ProjectWindowsPrevious=482,ProjectWindowsNext=483;
 const int FirstProjectWindow=484,ProjectWindowsPageSize=3,ProjectWindowValue=487;
+const int ViewMenuSetting=488,ViewMenuHidden=489,ViewMenuCard=490,ViewMenuTable=491;
+(string Activation,string Key,string Renderer)? viewMenuSetting=null;
+(string Activation,string Key,string Text)? viewMenuRequest=null;
 string projectWindowsActivation="",projectWindowRequestedId="",projectWindowBuffer="";
 var projectWindows=new System.Text.Json.Nodes.JsonArray();
 System.Text.Json.Nodes.JsonNode? projectWindow=null;
@@ -80,9 +83,9 @@ var allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.L
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(65,35),System.Linq.Enumerable.Range(200,29))));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Where(System.Linq.Enumerable.Range(300,18),id=>id!=314)));
 allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(new[]{318,319,320,321,322,323,324},System.Linq.Enumerable.Range(400,12))));
-allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,58),System.Linq.Enumerable.Range(500,32))));
+allIDs=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(allIDs,System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,62),System.Linq.Enumerable.Range(500,32))));
 const int HomeRename=441,HomeChangeIcon=442,HomeMenuClose=443,HomeOpenFolder=449,ChooseIconFile=444,ApplyIcon=445,CancelIcon=446,IconGlyph=448;
-var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=ProjectWindowValue:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
+var groups=new System.Text.Json.Nodes.JsonArray();foreach(string name in new[]{"intro","home","create","project","manage","remove","background","information","project-icon","profile","fields","actions","lan-chat","yogi"})groups.Add(new System.Text.Json.Nodes.JsonObject{["id"]=name,["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(name is "fields" or "actions"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(430,20),System.Linq.Enumerable.Range(500,32))):name=="lan-chat"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(451,20),new[]{LanOpenEy,LanNextEy,LanSavedHistory})):name=="yogi"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(System.Linq.Enumerable.Range(471,8),new[]{441,442})):name is "information" or "project-icon" or "profile"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Range(430,20)):name=="create"?System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Concat(new[]{7,6,10,11,30,12,31,13,14},System.Linq.Enumerable.Where(allIDs,id=>id<318&&Array.IndexOf(new[]{7,6,10,11,30,12,31,13,14},id)<0))):System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(allIDs,id=>name=="project"?id<100||id>=200&&id<430||id is 450 or 470 or DraftYogiOpen or DraftYogiRemove or DraftYogiSend||id>=OpenProjectWindows&&id<=ViewMenuTable:id<=32||id>=100&&id<196||id==450||id>=500||name=="home"&&id is HomeRename or HomeChangeIcon or HomeMenuClose or HomeOpenFolder)))});
 var binding=new System.Text.Json.Nodes.JsonArray();void Bind(string id,int key,string action,bool text,int modifiers=0)=>binding.Add(new System.Text.Json.Nodes.JsonObject{["id"]=id,["group"]="*",["key"]=key,["action"]=action,["text"]=text,["priority"]=0,["modifiers"]=modifiers});Bind("next",Key(9,0xFF09),"next",true);Bind("previous",Key(9,0xFF09),"previous",true,4);Bind("enter",Key(13,0xFF0D),"activate",false);Bind("space",32,"activate",false);
 string nav=calls.NavCreate.Invoke(new System.Text.Json.Nodes.JsonObject{["initial"]="intro",["groups"]=groups,["bindings"]=binding}.ToJsonString());
 string entrySession="",entryRequestID="";
@@ -1081,6 +1084,58 @@ void CompleteProjectWindow(string result){
  projectWindow=row;projectWindowFocus=jobFocus;
  pendingFocus=ProjectWindowsBack;
 }
+bool ViewMenuAvailable()=>OperatingSystem.IsLinux()&&screen=="project"&&
+ WorkspaceMode()=="source"&&model["workspace"]?["unit"]?["kind"]?.ToString()=="view"&&
+ model["workspace"]?["review"] is null;
+bool ViewMenuCurrent()=>ViewMenuAvailable()&&viewMenuSetting is { } open&&
+ open.Activation==ProjectWindowActivation()&&open.Key==SourceKey();
+
+void ConfigureViewMenu(int choice){
+ if(job is not null||!ViewMenuAvailable())return;
+ if(choice==ViewMenuSetting&&ViewMenuCurrent()){viewMenuSetting=null;return;}
+ if(choice!=ViewMenuSetting&&!ViewMenuCurrent())return;
+ var text=calls.TextSnapshot.Invoke(SourceBuffer())[1];
+ viewMenuRequest=(ProjectWindowActivation(),SourceKey(),text);
+ var request=new System.Text.Json.Nodes.JsonObject{["context"]=Context(),["activation"]=ProjectWindowActivation(),
+  ["action"]="project-window-setting",["id"]=model["workspace"]!["unit"]!["id"]!.ToString(),
+  ["text"]=text,["expectedRevision"]=sourceVersions[SourceKey()].Revision};
+ viewMenuSetting=null;
+ message="";
+ if(choice==ViewMenuSetting){
+  Start("read-view-menu-setting",request,ViewMenuSetting,
+   ()=>calls.Command.Invoke(session,"project-window-setting-read",request.ToJsonString()));
+  return;
+ }
+ request["renderer"]=choice switch{ViewMenuCard=>"element-view-card",ViewMenuTable=>"element-view-table",_=>""};
+ Start("workspace",request,ViewMenuSetting);
+}
+
+void CompleteViewMenuRead(string result){
+ if(viewMenuRequest is not { } basis)return;
+ viewMenuRequest=null;
+ if(!ViewMenuAvailable()||basis.Activation!=ProjectWindowActivation()||basis.Key!=SourceKey()||
+    basis.Text!=calls.TextSnapshot.Invoke(SourceBuffer())[1])return;
+ viewMenuSetting=(basis.Activation,basis.Key,J(result)["renderer"]!.GetValue<string>());
+ pendingFocus=ViewMenuSetting;
+}
+
+void CompleteViewMenuEdit(){
+ if(viewMenuRequest is not { } basis||jobFocus!=ViewMenuSetting)return;
+ viewMenuRequest=null;
+ if(!ViewMenuAvailable()||basis.Activation!=ProjectWindowActivation()||basis.Key!=SourceKey()||
+    model["status"]?.ToString().StartsWith("Project window setting staged.",StringComparison.Ordinal)!=true)return;
+ var unit=model["workspace"]!["unit"]!;
+ string text=unit["text"]!.ToString(),buffer=SourceBuffer();
+ var local=calls.TextSnapshot.Invoke(buffer);
+ if(local[1]!=basis.Text&&local[1]!=text)return;
+ if(local[1]!=text)calls.ReplaceText.Invoke(buffer,text,
+  Math.Min(int.Parse(local[2]),text.Length),Math.Min(int.Parse(local[4]),text.Length));
+ sourceVersions[basis.Key]=(unit["revision"]!.GetValue<long>(),text);
+ message=model["status"]!.ToString();
+ // Publish the new buffer to GTK before the next native poll can copy back its old text.
+ Render();
+}
+
 void ProjectWindowAction(int id){
  if(!ProjectWindowsCurrent())return;
  if(id==OpenProjectWindows&&projectWindows.Count>0){
@@ -1263,6 +1318,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
   return;
  }
  if(screen=="project"&&id>=OpenProjectWindows&&id<ProjectWindowValue){ProjectWindowAction(id);return;}
+ if(id>=ViewMenuSetting&&id<=ViewMenuTable){ConfigureViewMenu(id);return;}
  if(id==34){OpenInformation(ListingId(model["selected"]!),"project");return;}if(id==35){ShellAction("menu","settings");return;}
  if(id==36){Start("run",new{context=Context()});return;}if(id==37){Start("stop",new{context=Context()});return;}
  if(screen=="project"&&id==30){aiOutputViews.Add(Context());ShellAction("tab","logs");return;}if(id==39){ShellAction("tab","chat");return;}if(id==40){aiOutputViews.Remove(Context());ShellAction("tab","logs");return;}
@@ -1299,6 +1355,7 @@ void Action(int id){TraceFlow("control-action",new{id,nativePickerPending,jobPen
  if(id>=100){int index=(id-100)/3,part=(id-100)%3;var cards=model["cards"]!.AsArray();if(index>=cards.Count)return;var card=cards[index]!;string path=card["path"]!.ToString();if(part==0)Start("open",new{path});else if(part==1)OpenHomeFolder(ListingId(card));else{removePath=path;Change("remove");}return;}}
 void Render(){homeTiles.Clear();
  if(projectWindowsActivation.Length>0&&!ProjectWindowsCurrent())RetireProjectWindows();
+ if(viewMenuSetting is not null&&!ViewMenuCurrent())viewMenuSetting=null;
  var homeImages=new System.Collections.Generic.List<(int[] Bounds,int[] Pixels)>();
  int[] lanImageBounds=Array.Empty<int>(),layPreviewBounds=Array.Empty<int>();layNativeBounds.Clear();layBounds=Array.Empty<int>();eyTargets.Clear();var dimensions=calls.SurfaceDimensions.Invoke(surfaces,0);if(dimensions.Length<2||dimensions[0]<1||dimensions[1]<1){dragWindow=0;lastHeader=0;if(!presentationSuspended)Console.Error.WriteLine("[Entry/home] Presentation suspended: client="+(dimensions.Length>=2?dimensions[0]+"x"+dimensions[1]:"unavailable")+", platform="+(OperatingSystem.IsWindows()?"windows":"linux"));presentationSuspended=true;calls.NativeFrame.Invoke(nativeHost,Array.Empty<string>());CancelInput(eventID++);foreach(int id in shown)calls.ControlState.Invoke(ControlFor(id),"hide",id);shown.Clear();fields.Clear();hits=Array.Empty<int>();buttons=Array.Empty<int>();eligible=Array.Empty<int>();radii=Array.Empty<int>();Focus(0);nav=calls.NavGroup.Invoke(nav,screen,0,eligible);return;}if(presentationSuspended){Console.Error.WriteLine("[Entry/home] Presentation resumed: client="+dimensions[0]+"x"+dimensions[1]);presentationSuspended=false;}int w=Math.Max(1,dimensions[0]),h=Math.Max(1,dimensions[1]);var draw=new System.Collections.Generic.List<int>();var labels=new System.Collections.Generic.List<string>();var clips=new System.Collections.Generic.List<int>();var origins=new System.Collections.Generic.List<int>();var texts=new System.Collections.Generic.List<string>();var hit=new System.Collections.Generic.List<int>();var widget=new System.Collections.Generic.List<int>();var active=new System.Collections.Generic.List<int>();var present=new System.Collections.Generic.HashSet<int>();fields.Clear();var hitRadii=new System.Collections.Generic.List<int>();int layer=1;int[] menuPanel=Array.Empty<int>();int[] navPanel=Array.Empty<int>(),subPanel=Array.Empty<int>();
  int workspaceSide=sidebar?Math.Min(200,Math.Max(120,w/4)):54,workspaceLeft=workspaceSide+16,workspaceWidth=Math.Max(1,w-workspaceLeft-16);
@@ -1565,7 +1622,26 @@ else if(screen=="fields"){
  var modeBoxes=calls.Stack.Invoke(new[]{left+8,sourceY,contentWidth,30},0,4,new[]{0,0,0,0,0,100});
  Button(73,modeBoxes[..4],"Explore");Button(74,modeBoxes[4..8],"Properties");Button(75,modeBoxes[8..12],"Source");Button(82,modeBoxes[12..16],"Field union");Button(324,modeBoxes[16..20],"Actions",unit?["kind"]?.ToString()=="object");Button(318,modeBoxes[20..24],"Keep view",unit is not null&&WorkspaceMode()!="explorer");
  // Source starts below mode tabs without replacing its retained native control.
- if(WorkspaceMode()=="source"&&unit is not null)Field(54,new[]{left+8,contentY,contentWidth,contentHeight},"Selected owned source; Save stores a local draft",job is null||operation=="poll"&&queuedAction==0);
+ if(WorkspaceMode()=="source"&&unit is not null){
+  int sourceTop=contentY;
+  bool options=ViewMenuCurrent();
+  if(ViewMenuAvailable()&&contentHeight>=96){
+   Button(ViewMenuSetting,new[]{left+8,sourceTop,Math.Min(188,contentWidth),26},
+    options?"Close menu settings":"View menu visibility");
+   sourceTop+=32;
+   if(options){
+    var modes=calls.Stack.Invoke(new[]{left+8,sourceTop,contentWidth,28},0,4,new[]{0,0,0});
+    string current=viewMenuSetting!.Value.Renderer;
+    Button(ViewMenuHidden,modes[..4],(current==""?"✓ ":"")+"Hidden",current!="");
+    Button(ViewMenuCard,modes[4..8],(current=="element-view-card"?"✓ ":"")+"Read-only card",current!="element-view-card");
+    Button(ViewMenuTable,modes[8..12],(current=="element-view-table"?"✓ ":"")+"Read-only table",current!="element-view-table");
+    sourceTop+=32;
+   }
+  }
+  Field(54,new[]{left+8,sourceTop,contentWidth,contentHeight-sourceTop+contentY},
+   "Selected owned source; Save stores a local draft",job is null||operation=="poll"&&queuedAction==0,
+   readOnly:options);
+ }
  void FormRow(int y,int input,string hint,int button,string caption,bool enabled=true){int buttonWidth=Math.Min(110,contentWidth/2);Field(input,new[]{left+8,y,Math.Max(8,contentWidth-buttonWidth-4),28},hint,job is null||operation=="poll"&&queuedAction==0);Button(button,new[]{left+8+contentWidth-buttonWidth,y,buttonWidth,28},caption,enabled);}
  if(WorkspaceMode()=="explorer"){
  var explorerTabs=calls.Stack.Invoke(new[]{left+8,contentY,contentWidth,28},0,4,new[]{0,0,0,0,0});Button(201,explorerTabs[..4],"Concepts");Button(202,explorerTabs[4..8],"Functions");Button(203,explorerTabs[8..12],"Modules");Button(76,explorerTabs[12..16],"Categories");Button(204,explorerTabs[16..20],"All");
@@ -1735,9 +1811,10 @@ bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invok
   }catch(Exception error){message="Project chat drafts could not be saved: "+error.Message;}
   appClosePending=false;
  }
- if(job is not null&&job.IsCompleted){try{string completed=job.GetAwaiter().GetResult();if(NativeActionJob())CompleteNativeAction(completed);else if(NativeFieldJob())CompleteNativeField(completed);else if(operation=="send-draft-yogi")CompleteDraftYogi(completed);else if(ProjectWindowJob())CompleteProjectWindow(completed);else{
+ if(job is not null&&job.IsCompleted){try{string completed=job.GetAwaiter().GetResult();if(NativeActionJob())CompleteNativeAction(completed);else if(NativeFieldJob())CompleteNativeField(completed);else if(operation=="send-draft-yogi")CompleteDraftYogi(completed);else if(ProjectWindowJob())CompleteProjectWindow(completed);else if(operation=="read-view-menu-setting")CompleteViewMenuRead(completed);else{
  var submitted=operation=="ai-start"&&model["aiPreview"]?["kind"]?.ToString()=="chat"?model["aiPreview"]?["message"]?.ToString():null;
  model=J(completed);
+ if(operation=="workspace")CompleteViewMenuEdit();
  if(submitted is not null&&model["status"]?.ToString()=="AI running for this project"&&
     chatBuffers.TryGetValue(jobContext,out var chat)&&calls.TextSnapshot.Invoke(chat)[1]==submitted)
   calls.ReplaceText.Invoke(chat,"",0,0);
@@ -1757,6 +1834,8 @@ bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invok
   if(ProjectWindowsCurrent()&&operation=="native-project-window-open"){
    message="This project window is no longer available.";pendingFocus=jobFocus;
   }
+ }else if(operation=="read-view-menu-setting"){
+  viewMenuRequest=null;message=error.Message;pendingFocus=jobFocus;
  }else if(operation=="yogi-ey-open"){
   if(screen=="lan-chat")lanStatus=EyUnavailable;else message=EyUnavailable;
   pendingFocus=jobFocus;

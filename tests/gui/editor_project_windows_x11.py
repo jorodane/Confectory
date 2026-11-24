@@ -7,7 +7,7 @@ from tempfile import mkdtemp
 
 from editor_home_project_display_x11 import close_project, gtk
 from editor_lan_chat_x11 import ui
-from project_owned_window_boundary import WINDOW, WINDOW_TITLE, seed
+from project_owned_window_boundary import UNSUPPORTED, WINDOW, WINDOW_TITLE, seed
 
 
 def open_project(app, project):
@@ -27,16 +27,16 @@ def menu(app, available):
     return row
 
 
-def source_view(app):
+def source_view(app, target=WINDOW):
     if app.state()["model"]["workspace"] is None:
         app.click(55)
     row = app.wait(lambda row: app.field(row, 54).get("visible") and not row["job"],
                    "Open the existing source editor")
-    while row["model"]["workspace"]["selected"] != WINDOW:
+    while row["model"]["workspace"]["selected"] != target:
         workspace = row["model"]["workspace"]
         ids = [unit["id"] for unit in workspace["units"]]
         current = workspace["selected"]
-        app.click(57 if ids.index(current) < ids.index(WINDOW) else 56)
+        app.click(57 if ids.index(current) < ids.index(target) else 56)
         row = app.wait(lambda row: not row["job"] and row["model"]["workspace"]["selected"] != current,
                        "Select the registered View in the ordinary source editor")
     return app.field(row, 54)["text"]
@@ -131,6 +131,85 @@ def workflow(package, root):
     print("PASS GTK card, table, source Review/Cancel/Confirm, stale menu rejection, A/B/Home and read-only field")
 
 
+def choose_menu_setting(app, current, button, expected):
+    app.click(488)
+    app.wait(lambda row: not row["job"] and "✓ " + current in row["texts"],
+             "Read the current View menu setting")
+    app.click(button)
+    row = app.wait(lambda row: not row["job"]
+                   and row["model"]["status"].startswith("Project window setting staged.")
+                   and row["model"]["workspace"]["unit"]["text"] == expected
+                   and app.field(row, 54)["text"] == expected,
+                   "Stage one setting in the existing View draft and refresh its GTK field")
+    assert row["model"]["workspace"]["review"] is None
+
+
+def workflow_menu_setting(package, root):
+    (alpha, bravo), originals, proof = seed(package, root)
+    source = Path(alpha["path"]).with_name("StockDesk.celem")
+    original = originals[source]
+    with gtk(package, root, "gtk-menu-setting") as app:
+        ui.resize(ui.display, app.window, 1080, 760)
+        ui.flush(ui.display)
+        app.wait(lambda row: row["width"] == 1080 and row["height"] == 760, "Resize the isolated GTK window")
+        open_project(app, alpha)
+        unsupported = source_view(app, UNSUPPORTED)
+        app.click(488)
+        blocked = app.wait(lambda row: not row["job"] and "does not support" in row["message"],
+                           "Reject the unsupported View")
+        assert not {489, 490, 491}.intersection(blocked["hits"][::5])
+        assert app.field(blocked, 54)["text"] == unsupported
+
+        prior_input = source_view(app).replace("{ ", '{ description "Kept across menu editing"; ', 1)
+        prior_input += '// A trailing comment with } and value editorWindow = "ignored";\n'
+        app.fill(54, prior_input)
+        card = prior_input.replace(" }", ' value editorWindow = "element-view-card"; }', 1)
+        choose_menu_setting(app, "Hidden", 490, card)
+        assert source.read_bytes() == original
+        review(app)
+        app.click(66)
+        row = app.wait(lambda row: not row["job"] and row["model"]["workspace"]["review"] is None,
+                       "Cancel the existing Review")
+        assert app.field(row, 54)["text"] == card and source.read_bytes() == original
+        menu(app, False)
+        app.click(42)
+        review(app)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and source.read_text() == card, "Confirm the selected card")
+        open_window(app, "card")
+        app.click(33)
+
+        table = card.replace('editorWindow = "element-view-card"', 'editorWindow = "element-view-table"', 1)
+        choose_menu_setting(app, "Read-only card", 491, table)
+        assert source.read_text() == card
+        review(app)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and source.read_text() == table, "Confirm the selected table")
+        open_window(app, "table")
+        app.click(33)
+
+        hidden = table.replace('value editorWindow = "element-view-table";', "", 1)
+        choose_menu_setting(app, "Read-only table", 489, hidden)
+        assert source.read_text() == table
+        review(app)
+        app.click(65)
+        app.wait(lambda row: not row["job"] and source.read_text() == hidden, "Confirm removal from the menu")
+        menu(app, False)
+        app.click(42)
+        close_project(app)
+        open_project(app, bravo)
+        app.click(55)
+        row = app.wait(lambda row: not row["job"] and row["model"]["workspace"] is not None,
+                       "Open the separate project's owned sources")
+        assert WINDOW not in {unit["id"] for unit in row["model"]["workspace"]["units"]}
+        assert 488 not in row["hits"][::5]
+    originals[source] = hidden.encode()
+    assert not proof.exists()
+    assert all(path.read_bytes() == data for path, data in originals.items())
+    print("PASS GTK View menu settings: draft preservation, cancel, confirm card and table, hide, and project scope")
+
+
 if __name__ == "__main__":
     root = Path(mkdtemp(prefix="gtk-project-windows-", dir=os.environ.get("TMPDIR")))
-    workflow(Path(sys.argv[1]).resolve(), root)
+    scenario = workflow_menu_setting if "--menu-setting" in sys.argv[2:] else workflow
+    scenario(Path(sys.argv[1]).resolve(), root)
