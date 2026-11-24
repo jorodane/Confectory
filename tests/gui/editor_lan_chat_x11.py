@@ -168,12 +168,12 @@ class NativeEditor:
         ui.text(int(self.field(state, control)['nativeHandle']), value)
         self.wait(lambda row: self.field(row, control).get('text') == value, f'GTK input reflected {control}')
 
-    def create(self, title, draft):
+    def create(self, title, draft, parent=None):
         self.click(2)
         self.wait(lambda row: row['screen'] == 'create', 'Create form')
         self.fill(10, title)
         self.click(12)
-        parent = str(self.profile.parent / 'projects')
+        parent = str(self.profile.parent / 'projects' if parent is None else parent)
         def find(title):
             return next(iter(native_windows(title)), None)
         ui.folder(find, lambda title: eventually(lambda: find(title), 'Native folder picker'), parent)

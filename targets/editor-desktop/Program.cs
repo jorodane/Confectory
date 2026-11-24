@@ -9,16 +9,43 @@ internal static class Program
     {
         try
         {
-            if(args.Length==3&&args[0]=="package") { Console.WriteLine(DesktopPackage.Build(args[1],args[2]).ToJsonString());return 0; }
-            if(args.Length is 1 or 2&&args[0]=="--check-package") { string packageRoot=args.Length==2?args[1]:AppContext.BaseDirectory;var check=PackageLayout.Check(packageRoot);var checkStart=PackageLayout.EngineStart(packageRoot,Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet");check["workingDirectory"]=checkStart.WorkingDirectory;check["engineAssembly"]=checkStart.ArgumentList[0];var environment=new JsonObject();foreach(string key in new[]{"CONFECTORY_UI","CONFECTORY_EDITOR_REPO","CONFECTORY_ENTRY_SCOPE","CONFECTORY_WEBVIEW_HOST","CONFECTORY_ELEMENT_AUTHORING_HOST","CONFECTORY_PROJECT_EXECUTION_HOST","CONFECTORY_HOME_STORAGE"})environment[key]=checkStart.Environment[key];check["environment"]=environment;Console.WriteLine(check.ToJsonString());return 0; }
-            if(args.Length!=0)throw new ArgumentException("Usage: package <repository> <output-folder> | --check-package [folder]");
-            if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Run Confectory.exe on Windows. Package verification is available with --check-package.");
-            string root=Path.GetFullPath(AppContext.BaseDirectory);PackageLayout.Check(root);
+            if(args.Length is 3 or 4&&args[0]=="package")
+            {
+                Console.WriteLine(DesktopPackage.Build(args[1],args[2],args.Length==4?args[3]:PackageLayout.WindowsRid).ToJsonString());return 0;
+            }
+            if(args.Length is 1 or 2&&args[0]=="--check-package")
+            {
+                string packageRoot=args.Length==2?args[1]:AppContext.BaseDirectory;
+                var check=PackageLayout.Check(packageRoot);
+                var checkStart=PackageLayout.EngineStart(packageRoot,Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet",check["rid"]!.GetValue<string>());
+                check["workingDirectory"]=checkStart.WorkingDirectory;
+                check["engineAssembly"]=checkStart.ArgumentList[0];
+                var environment=new JsonObject();
+                foreach(string key in new[]{"CONFECTORY_UI","CONFECTORY_EDITOR_REPO","CONFECTORY_ENTRY_SCOPE","CONFECTORY_WEBVIEW_HOST","CONFECTORY_ELEMENT_AUTHORING_HOST","CONFECTORY_PROJECT_EXECUTION_HOST","CONFECTORY_HOME_STORAGE"})
+                    if(checkStart.Environment.TryGetValue(key,out string? value))environment[key]=value;
+                check["environment"]=environment;
+                Console.WriteLine(check.ToJsonString());return 0;
+            }
+            if(args.Length!=0)throw new ArgumentException("Usage: package <repository> <output-folder> [win-x64|linux-x64] | --check-package [folder]");
+            string root=Path.GetFullPath(AppContext.BaseDirectory);
+            string rid=PackageLayout.Check(root)["rid"]!.GetValue<string>();
             string runtime=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..",".."));
+            if(PackageLayout.IsLinux(rid))
+            {
+                if(!PackageLayout.IsLinuxX64)throw new PlatformNotSupportedException("Run this Confectory package on Linux x64.");
+                var native=PackageLayout.EngineStart(root,Path.Combine(runtime,"dotnet"),rid);
+                Directory.CreateDirectory(native.Environment["CONFECTORY_HOME_STORAGE"]!);
+                using var engine=Process.Start(native)??throw new IOException("Confectory engine did not start");
+                await engine.WaitForExitAsync();
+                if(engine.ExitCode!=0)Console.Error.WriteLine("Confectory GTK exited with code "+engine.ExitCode+
+                    ". See the error above. The Linux editor requires X11, GTK 3 and GtkSourceView 4.");
+                return engine.ExitCode;
+            }
+            if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Run Confectory.exe on Windows. Package verification is available with --check-package.");
             string desktop=Path.Combine(runtime,"shared","Microsoft.WindowsDesktop.App");
             if(!Directory.Exists(desktop)||!Directory.EnumerateDirectories(desktop,"10.0.*").Any())throw new InvalidOperationException("Microsoft .NET Desktop Runtime 10.0 (x64) is required. Install it separately; Confectory does not install runtimes.");
             string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??Path.Combine(runtime,"dotnet.exe");
-            var start=PackageLayout.EngineStart(root,dotnet);
+            var start=PackageLayout.EngineStart(root,dotnet,rid);
             string storage=start.Environment["CONFECTORY_HOME_STORAGE"]!;Directory.CreateDirectory(storage);
             string logs=Path.Combine(storage,"logs");Directory.CreateDirectory(logs);
             using var writer=new StreamWriter(Path.Combine(logs,"launch-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff")+".log")){AutoFlush=true};
