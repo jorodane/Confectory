@@ -291,7 +291,7 @@ def prepare_child(root):
         owned = child([compound("nest", owned, signature(amount, "int"), {"amount": {"input": "amount"}})],
                       {"return": {"node": "nest"}})
     if mode == "compound-deep-guard":
-        peer = child([compound("nest", peer)], {"return": None})
+        peer = child([compound("nest", peer), code("finish", "Pair.other.finish.node.json")], {"return": None})
     root["profile"] = "sync-acyclic-nested-v1"
     root["nodes"][0].pop("implementation")
     root["nodes"][0].update(kind="graph", graph=owned)
@@ -309,11 +309,13 @@ def prepare_child(root):
         "other/tail": 'global::System.Console.WriteLine("peer-tail");',
         "after": 'global::System.Console.WriteLine("after");',
     }
+    if mode == "compound-deep-guard":
+        bodies["other/finish"] = 'global::System.Console.WriteLine("peer-finish");'
     for node, source in bodies.items():
         path = node
         if mode == "compound-views" and node.startswith("body/"):
             node = node.replace("body/", "body/nest/")
-        if mode == "compound-deep-guard" and node.startswith("other/"):
+        if mode == "compound-deep-guard" and node in {"other/inner", "other/tail"}:
             node = node.replace("other/", "other/nest/")
         row = next(row for row in definitions["nodes"] + definitions["nestedNodes"] if row["id"] == node)
         file = f.project / f"Pair.{path.replace('/', '.')}.node.json"
@@ -435,11 +437,12 @@ try:
                 expect(doc().locator("[data-document-remove]")).to_have_count(0)
             if mode == "compound-deep-guard":
                 select_frame("other")
+                expect(doc().locator("[data-document-cell=finish]")).to_be_visible()
                 doc().locator("[data-document-internal=nest]").click()
                 f.idle()
                 expect(doc().locator("[data-document-cell=inner]")).to_be_visible()
                 expect(doc().locator("[data-document-cell=tail]")).to_be_visible()
-                x.build("protected-deep-compound", 10, "body\ninside\npeer-inner\npeer-tail\nafter\n10")
+                x.build("protected-deep-compound", 10, "body\ninside\npeer-inner\npeer-tail\npeer-finish\nafter\n10")
                 assert not pending()
             assert checkpoint.read_bytes() == baseline_checkpoint
             assert graph.read_bytes() == initial

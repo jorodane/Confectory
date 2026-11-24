@@ -47,3 +47,13 @@ M11의 원래 소유 구현 편집 범위는 아래 지원과 등록 부모 관�
 B2 다른 사용자·그룹 권한 backend, 종류 C# 실행 표현·사용 중 항목 삭제 대응, M4/M12 및 3D·권한 별도 팩은 별도 고정 잔여다. 3D 이동은 표시 연출이며 실제 실행 선행 조건이 아니다. 교차 패키지는 실제 Windows/WebView2·모바일 기기 실행이나 Library/Space 전달을 뜻하지 않는다.
 
 최신/정상 롤백 실행 패키지를 지속 보관한다. 구버전 실행 파일이 이번 미반영 전환의 `nodeFlowOrigin` 보호를 동일하게 적용하는 호환성은 검증하지 않았으며, 해당 초안의 확정은 검증된 현재 코드 기준으로 제한한다.
+
+### 깊은 복합 삭제와 버전 1 이력
+
+`0e33a1e1`의 Linux 논리 코드에서 직계 자식이 둘이고 그중 하나가 다시 두 셀을 포함하는 복합을 열고 실행했다. 전체 삭제 제어는 기존 소유·이력 검증 범위 밖이므로 표시되지 않았고, 원본과 체크포인트의 바이트가 유지됐다.
+
+- `829c149b`의 실제 `EditWorkspace`로 만든 일반 버전 1 초안을 `829c149b`, `a33e87cd`, `0e33a1e1`의 각 실제 독자에서 새 프로세스로 열었다. 형제 셀의 Undo/Redo 한 번씩이 같은 값을 오갔고, 별도로 저장된 C# 초안과 원본·체크포인트 바이트를 보존했다.
+- 일반 `EditBatch`로 루트 변경과 자손 파일의 관측을 함께 제출하면 이력에는 루트만 남았다. 세 독자는 보존된 자손의 C# 파일이 바뀐 뒤에도 이 후보의 Undo를 허용했다. 확정 후 상태를 모사한 폐기용 사본에서는 루트 Undo가 성공해도 `EditWorkspace.Read`가 자손을 미등록으로 거절했다. 일반 이력 항목에 자손의 읽기 관측을 덧붙인 대조본은 세 독자 모두 `Saved history owner mismatch`로 거절했고 해당 적용 전후 원본과 이력은 동일했다.
+- 현재 호환성을 유지하는 경로는 기존 얕은 삭제와 이전 초안 읽기를 유지하는 것이다. 깊은 삭제를 지원하려면 자손의 전체 위치와 원문 관측을 저장하고 냉간 Undo 및 Review/Confirm에서 검증하는 계약과, 이전 독자에 대한 별도 호환 전략이 필요하다. 호환되지 않는 쓰기나 자동 변환은 이 근거로 활성화하지 않았다.
+
+재현은 `tests/web/v821_cell_removal_history_ui.py`의 `compound-deep-guard`가 만든 폐기용 `owned project`를 사용한다. 각 비교 체크아웃에서 CLI, `Confectory.Build.DotNet`, `Confectory.ElementAuthoring`을 Release로 빌드한 뒤 `python tests/probes/nested_cell_history_v1.py "$fixture" --previous "$reader829" --previous "$readerA33" --diagnose-candidate`로 실행한다. `--diagnose-candidate`를 빼면 이전 초안 읽기 회귀만 실행한다.
