@@ -35,9 +35,48 @@ export function createInventoryUI(api){
   for(const b of $$('[data-pack]',list))b.onclick=()=>{state.selected=b.dataset.pack;api.homeChanged();renderHome()};
   const p=rows.find(p=>p.namespace===state.selected);detail.innerHTML=p?`<header class="home-pack-detail-head"><div class="project-icon">▣</div><div class="home-pack-title"><h2>${esc(p.namespace)}</h2><div class="home-pack-detail-meta"><span class="tag">${esc(p.version)}</span><span class="tag">${p.owned?'현재 ProjectPack':'로컬 등록 팩'}</span></div></div></header><p>${esc(p.description)}</p><p>${p.count} 선언 · ${esc(p.kind)}</p><div class="home-pack-actions"><button class="secondary" disabled>업데이트</button><button class="secondary" disabled>삭제</button></div><small>현재 호스트 ProjectPack의 실제 registry입니다. 설치 목록과 사용자 소유권을 뜻하지 않습니다. 업데이트·삭제·구매 계약은 연결되지 않았습니다.</small><p>의존성</p>${Object.entries(p.dependencies).map(([id,version])=>`<div data-dependency="${esc(id)}">${esc(id)} · ${esc(version)}</div>`).join('')||'<p class="small">선언된 의존성이 없습니다.</p>'}`:'';
  }
- function items(w){if(!w.meta.catalogue)return null;const inventory=api.current.inventory;if(inventory?.status!=='available')return [];
-  const kind=w.meta.kind,q=(w.meta.query||'').toLocaleLowerCase(),owner=w.meta.namespace||'';
-  return api.projection.rows().filter(d=>(w.meta.parent||!owner||d.namespace===owner||d.namespace.startsWith(owner+'.'))&&(kind!==undefined&&kind!==null?(!kind||d.kind===kind):w.meta.parent?(d.group||api.projection.group(d.kind))===w.meta.group:(d.group||api.projection.group(d.kind))===w.meta.group)&&d.id.toLocaleLowerCase().includes(q)&&(w.meta.parent?(api.projection.browserParent||api.projection.parent)(d.id)===w.meta.parent:q||!(api.projection.browserParent||api.projection.parent)(d.id))).map(d=>({...d,...api.current.units.find(u=>u.id===d.id)}));
+ function labelMatcher(snapshot,group,query){
+  const contains=value=>typeof value==='string'&&value.toLocaleLowerCase().includes(query);
+  const byId=new Map(snapshot.rows.map(row=>[row.id,row]));
+  const required=new Set();
+  if(group==='feature')for(const edge of snapshot.edges||[]){
+   if(edge.role!=='require')continue;
+   const module=byId.get(edge.source);
+   if(module?.kind==='module'&&module.owned&&module.valid&&(contains(module.title)||contains(module.id)))required.add(edge.target);
+  }
+  return row=>{
+   if(contains(row.title)||row.kind==='function'&&row.owned&&required.has(row.id))return true;
+   // Walk the display hierarchy, which already checks category ownership and group.
+   let parent=snapshot.browserParents?.get(row.id);
+   for(let depth=0;parent&&depth<64;depth++,parent=snapshot.browserParents.get(parent)){
+    const category=byId.get(parent);
+    if(category?.kind==='category'&&category.owned&&category.valid&&(contains(category.title)||contains(category.id)))return true;
+   }
+   return false;
+  };
+ }
+ function items(w){
+  const {catalogue,group,kind,namespace:owner,parent}=w.meta,q=(w.meta.query||'').toLocaleLowerCase();
+  const workingKind={concept:'object',feature:'function',module:'module'}[group];
+  if(!catalogue&&(!q||!workingKind))return null;
+  if(catalogue&&api.current.inventory?.status!=='available')return [];
+  const snapshot=api.projection.snapshot(),matchesLabel=q&&workingKind?labelMatcher(snapshot,group,q):()=>false;
+  const units=new Map(api.current.units.map(unit=>[unit.id,unit]));
+  if(!catalogue){
+   // Keep the owned working-copy ID filter and supplement it with metadata
+   // already available in this project's declaration projection.
+   const direct=[...units.values()].filter(row=>row.kind===workingKind&&row.id.toLocaleLowerCase().includes(q));
+   const related=snapshot.rows.filter(row=>row.owned&&row.namespace===api.current.namespace&&row.kind===workingKind&&
+    !direct.some(unit=>unit.id===row.id)&&matchesLabel(row));
+   return [...direct,...related];
+  }
+  return snapshot.rows.filter(row=>{
+   if(!parent&&owner&&row.namespace!==owner&&!row.namespace.startsWith(owner+'.'))return false;
+   if(kind!=null?kind&&row.kind!==kind:(row.group||api.projection.group(row.kind))!==group)return false;
+   const location=snapshot.browserParents?.get(row.id);
+   if(parent?location!==parent:!q&&location)return false;
+   return row.id.toLocaleLowerCase().includes(q)||matchesLabel(row);
+  }).map(row=>({...row,...units.get(row.id)}));
  }
  function tree(w){const root=$('.browser-folder-tree',w.body);if(!root)return;const create=$('[data-new]',w.body);if(create){const supported=!w.meta.catalogue||(!w.meta.parent&&(!w.meta.namespace||w.meta.namespace===api.current.namespace));create.dataset.supported=String(supported);create.disabled=!supported;create.title=supported?'현재 소유 namespace에 선언 생성':'다른 namespace와 상속 계층의 생성 계약은 연결되지 않았습니다.';}
   declarationTree.render(w);
