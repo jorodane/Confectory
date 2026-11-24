@@ -121,7 +121,7 @@ if(endpoint=="moveHomeFavorite"){
  Command("home-favorite-move",args);return "{\"accepted\":true}";
 }
 if(endpoint is "projectInformation" or "saveProjectInformation"){
- var informationRequest=new System.Text.Json.Nodes.JsonObject{["id"]=args["id"]!.DeepClone()};foreach(string field in new[]{"title","description","revision"})if(args[field] is not null)informationRequest[field]=args[field]!.DeepClone();return Command(endpoint=="projectInformation"?"project-information":"project-information-save",informationRequest)["projectInformation"]!.ToJsonString();
+ var informationRequest=new System.Text.Json.Nodes.JsonObject{["id"]=args["id"]!.DeepClone()};foreach(string field in new[]{"title","description","revision","icon"})if(args.ContainsKey(field))informationRequest[field]=args[field]?.DeepClone();return Command(endpoint=="projectInformation"?"project-information":"project-information-save",informationRequest)["projectInformation"]!.ToJsonString();
 }
 if(endpoint=="saveHelperPresentation"){
  Command("helper-presentation-save",new(){["helper"]=args["helper"]!.DeepClone(),["revision"]=args["revision"]!.DeepClone(),["value"]=args["value"]!.DeepClone()});return "{\"accepted\":true}";

@@ -127,7 +127,7 @@ string SetupView(string connection){
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
  if(manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection))){
-  var repair=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionRepair.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;
+  var repair=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;
   if(repair["state"]?.ToString()=="repair"){
    string old=manifestFile[1],suffix=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(old))).ToLowerInvariant()[..12],backup="project.cpack.before-"+suffix;var prior=calls.FileSnapshot.Invoke(System.IO.Path.Combine(folder,backup));
    if(prior[0]=="exists"&&prior[1]!=old)throw new InvalidOperationException("Connection recovery backup differs; original retained");
@@ -256,11 +256,28 @@ var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.Deep
   var card=System.Linq.Enumerable.Single(cards,row=>ListingId(row!)==Value("id"))!;
   if(model["selected"] is not null&&card["path"]!.ToString()!=model["selected"]!["path"]!.ToString())throw new InvalidOperationException("Current project owns information editing");
   if(operation=="project-information-save"){
-   string title=Value("title").Trim(),description=Value("description");if(title.Length==0||title.Length>80||description.Length>2048||title.Contains('\0')||description.Contains('\0'))throw new ArgumentException("Listing text budget");
+   bool iconOnly=args.ContainsKey("icon");
    var saved=calls.FileSnapshot.Invoke((string)state[2]);if(saved[2]!=Value("revision")||!System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(saved[1]),cards))throw new InvalidOperationException("Project listing changed; inputs retained");
-   var candidate=cards.DeepClone().AsArray();var edited=System.Linq.Enumerable.Single(candidate,row=>ListingId(row!)==Value("id"))!;edited["title"]=title;edited["description"]=description;
-   if(calls.CommitHome.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,new[]{System.IO.Path.GetFileName((string)state[2])},new[]{saved[2]},new[]{candidate.ToJsonString()})[0]!="applied")throw new InvalidOperationException("Project listing changed; inputs retained");
-   card["title"]=title;card["description"]=description;if(model["selected"] is not null){model["selected"]!["title"]=title;model["selected"]!["description"]=description;}
+   var candidate=cards.DeepClone().AsArray();var edited=System.Linq.Enumerable.Single(candidate,row=>ListingId(row!)==Value("id"))!;
+   if(iconOnly){
+    if(model["selected"] is not null||OperatingSystem.IsBrowser()||OperatingSystem.IsAndroid()||args.ContainsKey("title")||args.ContainsKey("description"))
+     throw new InvalidOperationException("Project icons are edited separately on desktop Home");
+    string icon=args["icon"]?.GetValue<string>()??throw new ArgumentException("Project icon required");
+    if(icon.Length>65500)throw new ArgumentException("Project icon budget");
+    calls.Metadata.Invoke("validatePresentationIcon",new System.Text.Json.Nodes.JsonObject{["icon"]=icon}.ToJsonString());
+    edited["icon"]=icon;
+   }else{
+    string title=Value("title").Trim(),description=Value("description");if(title.Length==0||title.Length>80||description.Length>2048||title.Contains('\0')||description.Contains('\0'))throw new ArgumentException("Listing text budget");
+    edited["title"]=title;edited["description"]=description;
+   }
+   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(card,edited)){
+    if(calls.CommitHome.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,new[]{System.IO.Path.GetFileName((string)state[2])},new[]{saved[2]},new[]{candidate.ToJsonString()})[0]!="applied")throw new InvalidOperationException("Project listing changed; inputs retained");
+    if(iconOnly)card["icon"]=edited["icon"]!.DeepClone();
+    else{
+     card["title"]=edited["title"]!.DeepClone();card["description"]=edited["description"]!.DeepClone();
+     if(model["selected"] is not null){model["selected"]!["title"]=card["title"]!.DeepClone();model["selected"]!["description"]=card["description"]!.DeepClone();}
+    }
+   }
   }model["projectInformation"]=Information(card);model["status"]="Local project information; manifest and editing context retained";
  }
  else if(operation=="helper-presentation-save"){

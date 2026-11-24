@@ -10,6 +10,9 @@ try
     JsonNode? reply;
     switch(S("operation"))
     {
+        case "validatePresentationIcon":
+            DeclarationAuthoring.PresentationIcon(S("icon"));
+            reply=JsonValue.Create(true);break;
         case "editorMenuDeclarations":reply=EditorMenuDeclarations.Query(request);break;
         case "outputsDescribe": case "outputsValidate": case "outputsBuild": case "outputsLast":
             reply=BuildParticipationOperations.Execute(S("operation"),request);break;
