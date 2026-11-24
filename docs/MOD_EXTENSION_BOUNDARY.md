@@ -22,6 +22,16 @@ Windows and Linux are the initial intended runtime targets, conditional on the a
 
 Retain the namespace/ID → contract → actual-provider correspondence in a versioned final public linkage catalog. Record build mode and object policy as future format requirements, but do not add a mod CLI, runtime loader, patch engine, mod discovery or security framework. The current generated function implementation DLL is a function artifact, not a claim that a complete main-game authoring SDK already exists.
 
+## Verified current boundary
+
+On `work/current` at `22eee624523946be2e6adc005b4bd6c9c278c940`, the element parser supports generic Boolean `value` metadata. The ordinary resolver matches the qualified parent ID and kind, requires a direct dependency across packs, and merges parent metadata with local overrides. The proposed checkbox has no dedicated declaration, validation or authoring contract at this revision. [Element and manifest parser](../src/Confectory.Core/Declarations.cs) · [Ordinary dependency and inheritance resolver](../src/Confectory.Core/Resolution.cs)
+
+An isolated Linux project registered an ordinary library pack containing two object parents. The parents carried opposite Boolean values under the proposal's name as generic metadata probes. The Chromium object editor opened both owned children and displayed their respective parents. Each editor snapshot recorded the qualified parent and identified the inherited value as Boolean metadata with its original source. The object editor had no dedicated external-inheritance checkbox. All project and library source bytes were preserved.
+
+The same fixture passed ordinary `validate` and `build` for `linux`. Both child relationships appeared in `public-linkage.json`, with the Boolean values under `metadataValues` and their original parents as their origins. An unreferenced owned object was absent from the catalog. Removing the library dependency while leaving its registry entry produced `UNDECLARED_DEPENDENCY` in a separate probe manifest. Those results describe ordinary pack resolution and the `linked-elements` surface. [Public linkage generation](../src/Confectory.Core/Generation.cs) · [Format and catalog semantics](FORMAT.md#public-linkage-catalog)
+
+The catalog reported `coreProvidesRuntimeModLoader: false` in the ordinary Linux build. The CLI treated `mod-enabled` and `mod-disabled` as target names and reported `MISSING_TARGET` for both on this fixture. MOD01 and MOD03 still require a defined build-mode and object-policy contract, including how the owner identifies an external mod link and where that link is checked. [Target lookup](../src/Confectory.Core/Build.cs)
+
 ## Future acceptance tests
 
 | ID | Required future evidence |
