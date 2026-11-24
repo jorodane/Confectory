@@ -12,11 +12,23 @@ export function createReferenceGestures(api){
  return {source,target,link};
 }
 
+const ownedObject=row=>row?.kind==='object'&&row.owned===true&&row.valid===true;
+
+export function objectDataReferences(id,byId,edges,reverse){
+ if(!ownedObject(byId.get(id)))return null;
+ return edges.filter(edge=>edge.role==='data'&&(reverse?edge.target:edge.source)===id
+  &&ownedObject(byId.get(reverse?edge.source:edge.target)));
+}
+
+export function directReferenceText(reverse,names){
+ const label=reverse?'직접 역참조':'직접 참조';
+ return names.length?label+': '+names.join(' · '):label+' 없음';
+}
+
 // The browser shows declared data references separately from inheritance.
 export function createBrowserReferenceHover(api){
  let active=null,shift=false;
  function close(){active?.tip?.remove();active=null;}
- const ownedObject=row=>row?.kind==='object'&&row.owned===true&&row.valid===true;
  function draw(){
   if(!active)return;const {anchor,id,scope}=active;
   if(api.projectId!==scope||!anchor.isConnected||!anchor.getClientRects().length){close();return;}
@@ -27,15 +39,10 @@ export function createBrowserReferenceHover(api){
   const tip=document.createElement('div');tip.className='object-ref floating-object-ref';tip.setAttribute('role','tooltip');
   const title=document.createElement('strong');title.textContent=shift?'역참조 · Shift + Hover':'참조 · Hover';
   tip.append(title,document.createElement('br'));
-  if(ownedObject(row)){
-   const direct=new Set();
-   for(const edge of edges){
-    if(edge.role!=='data'||(shift?edge.target:edge.source)!==id)continue;
-    const other=shift?edge.source:edge.target;
-    if(ownedObject(byId.get(other)))direct.add(other);
-   }
-   const label=shift?'직접 역참조':'직접 참조';
-   tip.append(document.createTextNode(direct.size?label+': '+[...direct].map(name).join(' · '):label+' 없음'),document.createElement('br'));
+  const direct=objectDataReferences(id,byId,edges,shift);
+  if(direct){
+   const ids=new Set(direct.map(edge=>shift?edge.source:edge.target));
+   tip.append(document.createTextNode(directReferenceText(shift,[...ids].map(name))),document.createElement('br'));
   }
   const parent=api.projection.parent(id),family=shift?api.projection.children(id).map(child=>child.id):parent?[parent]:[];
   const origin=shift?'상속 바리에이션: ':'상속 부모: ';

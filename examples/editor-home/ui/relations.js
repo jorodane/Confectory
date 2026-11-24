@@ -1,12 +1,56 @@
+import {directReferenceText,objectDataReferences} from './references.js';
+
 // A declaration map is a read-only source snapshot; positions/camera/filter are presentation.
 export function createRelationsMap(api){
  const {$,$$,esc}=api,cache=new Map();
+ let hover=null;
  const roleNames={parent:'상속',module:'모듈',include:'포함 모듈',require:'필요 기능',default:'기본 구현',provide:'제공 구현',use:'사용',contain:'소속',import:'가져오기',field:'필드 타입',data:'값 참조'};
  const kinds={object:'개념',schema:'스키마',concept:'개념 선언',category:'분류',function:'기능',module:'모듈',implementation:'구현'};
  const short=id=>id.split('::').at(-1),number=(v,fallback=0)=>Number.isFinite(Number(v))?Math.max(-20000,Math.min(20000,Number(v))):fallback;
  function projection(){return cache.get(api.current?.projectId);}
+ function clearReferenceMarks(){
+  if(!hover)return;
+  for(const line of hover.lines)delete line.dataset.referenceHover;
+  hover.lines=[];
+  hover.tip?.remove();
+  hover.tip=null;
+ }
+ function clearReferenceHover(){clearReferenceMarks();hover=null;}
+ function insideViewport(button,bounds){
+  if(!button)return false;
+  const r=button.getBoundingClientRect();
+  return r.width>0&&r.height>0&&r.left>=bounds.left&&r.right<=bounds.right&&r.top>=bounds.top&&r.bottom<=bounds.bottom;
+ }
+ function drawReferenceHover(){
+  if(!hover)return;
+  const {w,id,reverse}=hover,{buttons,lines,byId,declaredEdges,viewport}=w.mapReferences;
+  const bounds=viewport.getBoundingClientRect();
+  if(api.current?.projectId!==w.meta.mapScope||!viewport.isConnected||!insideViewport(buttons.get(id),bounds)){
+   clearReferenceHover();return;
+  }
+  clearReferenceMarks();
+  const hidden=new Set();
+  for(const edge of objectDataReferences(id,byId,declaredEdges,reverse)||[]){
+   const other=reverse?edge.source:edge.target,line=lines.get(edge.key);
+   if(line&&id!==other&&insideViewport(buttons.get(other),bounds)){
+    line.dataset.referenceHover=reverse?'incoming':'outgoing';
+    hover.lines.push(line);
+   }else hidden.add(other);
+  }
+  if(!hidden.size)return;
+  const tip=document.createElement('div');
+  tip.className='object-ref floating-object-ref relation-map-reference-tip';
+  tip.setAttribute('role','tooltip');
+  tip.textContent=directReferenceText(reverse,[...hidden].map(id=>byId.get(id).title||short(id)));
+  viewport.append(tip);hover.tip=tip;
+ }
+ for(const type of ['keydown','keyup'])document.addEventListener(type,e=>{
+  if(hover&&hover.reverse!==e.shiftKey){hover.reverse=e.shiftKey;drawReferenceHover();}
+ });
+ window.addEventListener('blur',clearReferenceHover);
+ document.addEventListener('pointerdown',clearReferenceHover,true);
  function camera(w){w.meta.mapCamera??={x:16,y:16,scale:1};const c=w.meta.mapCamera;c.x=number(c.x,16);c.y=number(c.y,16);c.scale=Math.max(.15,Math.min(2,number(c.scale,1)));return c;}
- function transform(w){const c=camera(w),scene=$('[data-map-scene]',w.body);if(scene)scene.style.transform=`translate(${c.x}px,${c.y}px) scale(${c.scale})`;const zoom=$('[data-map-zoom]',w.body);if(zoom)zoom.value=String(c.scale);}
+ function transform(w){const c=camera(w),scene=$('[data-map-scene]',w.body);if(scene)scene.style.transform=`translate(${c.x}px,${c.y}px) scale(${c.scale})`;const zoom=$('[data-map-zoom]',w.body);if(zoom)zoom.value=String(c.scale);if(hover?.w===w)drawReferenceHover();}
  function zoom(w,value){const c=camera(w),viewport=$('[data-map-viewport]',w.body),x=viewport.clientWidth/2,y=viewport.clientHeight/2,old=c.scale;c.scale=Math.max(.15,Math.min(2,Number(value)));c.x=x-(x-c.x)*c.scale/old;c.y=y-(y-c.y)*c.scale/old;transform(w);}
  function stale(w,data){const observed=[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[])];return observed.some(row=>data.nodes.some(node=>node.owned&&node.id===row.id&&Number(node.revision)!==Number(row.revision)));}
  function notice(w,data){const output=$('[data-map-notice]',w.body);if(!output)return;output.textContent=w.meta.mapFailed?'관계를 읽지 못했습니다. 다시 읽기를 눌러 재시도하세요.':stale(w,data)?'초안이 바뀌었습니다. 다시 읽으면 현재 작업 사본의 관계가 보입니다.':data.status==='partial'?'일부 선언을 해석하지 못했습니다. 해당 노드의 고급 소스에서 확인하세요.':'마지막으로 읽은 작업 사본의 선언 관계입니다.';}
@@ -15,19 +59,25 @@ export function createRelationsMap(api){
  function select(w,data,id){w.meta.mapSelected=id;for(const node of $$('[data-relation-node]',w.body))node.classList.toggle('selected',node.dataset.relationNode===id);for(const group of $$('[data-relation-edge]',w.body)){const edge=data.edges.find(e=>e.key===group.dataset.relationEdge);$('path',group)?.classList.toggle('selected',edge?.source===id||edge?.target===id);}details(w,data);api.persist();}
  function draw(w,data){
   const scene=$('[data-map-scene]',w.body);if(!scene)return;
+  clearReferenceHover();
   const roles=new Set(w.meta.mapRoles??[...new Set(data.edges.map(e=>e.role))]),query=(w.meta.mapQuery||'').trim().toLocaleLowerCase();
   let edges=data.edges.filter(e=>roles.has(e.role)),nodes=data.nodes;
   if(w.meta.mapFocus&&w.meta.mapFocusId){const ids=new Set([w.meta.mapFocusId]);for(const edge of edges)if(edge.source===w.meta.mapFocusId||edge.target===w.meta.mapFocusId){ids.add(edge.source);ids.add(edge.target);}nodes=nodes.filter(n=>ids.has(n.id));}
   if(query)nodes=nodes.filter(n=>(n.id+' '+(n.title||'')+' '+(n.description||'')).toLocaleLowerCase().includes(query));
   const visible=new Set(nodes.map(n=>n.id));edges=edges.filter(e=>visible.has(e.source)&&visible.has(e.target));
+  w.mapReferences={buttons:new Map(),lines:new Map(),byId:new Map(data.nodes.map(n=>[n.id,n])),
+   declaredEdges:roles.has('data')?data.edges:[],viewport:$('[data-map-viewport]',w.body)};
   const focused=!!(w.meta.mapFocus&&w.meta.mapFocusId),positions=focused?(w.meta.mapFocusPositions??={}):(w.meta.mapPositions??={}),columns=Math.max(1,Math.ceil(Math.sqrt(Math.max(1,data.nodes.length)*.7)));
   const layoutNodes=focused?nodes:data.nodes,outgoing=layoutNodes.filter(n=>n.id!==w.meta.mapFocusId&&edges.some(e=>e.source===w.meta.mapFocusId&&e.target===n.id)),incoming=layoutNodes.filter(n=>n.id!==w.meta.mapFocusId&&!outgoing.includes(n));
   layoutNodes.forEach((node,index)=>{const old=positions[node.id],own=node.id===w.meta.mapFocusId,out=outgoing.includes(node),x=focused?(own?40:out?340:-260):30+index%columns*240,y=focused?(own?80:40+(out?outgoing:incoming).indexOf(node)*110):30+Math.floor(index/columns)*125;positions[node.id]={x:number(old?.x,x),y:number(old?.y,y)};});w.mapPoints=positions;
   const width=Math.max(650,...nodes.map(n=>positions[n.id].x+230)),height=Math.max(330,...nodes.map(n=>positions[n.id].y+115));scene.style.width=width+'px';scene.style.height=height+'px';
   scene.innerHTML='<svg class="relation-map-edges" aria-hidden="true" data-map-edges></svg><div data-map-nodes></div>';const svg=$('[data-map-edges]',scene);const defs=document.createElementNS(svg.namespaceURI,'defs'),marker=document.createElementNS(svg.namespaceURI,'marker'),arrow=document.createElementNS(svg.namespaceURI,'path');marker.id='declared-map-arrow';for(const [key,value] of Object.entries({viewBox:'0 0 8 8',refX:'8',refY:'4',markerWidth:'6',markerHeight:'6',orient:'auto-start-reverse'}))marker.setAttribute(key,value);arrow.setAttribute('d','M 0 0 L 8 4 L 0 8 Z');arrow.setAttribute('fill','#64748b');marker.append(arrow);defs.append(marker);svg.append(defs);svg.setAttribute('width',String(width));svg.setAttribute('height',String(height));
-  for(const edge of edges){const from=positions[edge.source],to=positions[edge.target],x1=from.x+190,y1=from.y+38,x2=to.x,y2=to.y+38;const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.dataset.relationEdge=edge.key;const path=document.createElementNS(svg.namespaceURI,'path'),text=document.createElementNS(svg.namespaceURI,'text');path.setAttribute('d',edge.source===edge.target?`M ${x1} ${y1} C ${x1+85} ${y1-100},${x1-190} ${y1-100},${x1-190} ${y1}`:`M ${x1} ${y1} C ${x1+60} ${y1},${x2-60} ${y2},${x2} ${y2}`);path.setAttribute('marker-end','url(#declared-map-arrow)');path.classList.toggle('selected',edge.source===w.meta.mapSelected||edge.target===w.meta.mapSelected);text.setAttribute('x',String(edge.source===edge.target?from.x+20:(x1+x2)/2));text.setAttribute('y',String(edge.source===edge.target?from.y-18:(y1+y2)/2-7));text.textContent=(roleNames[edge.role]||edge.role)+(edge.count>1?' ×'+edge.count:'');group.append(path,text);svg.append(group);}
+  for(const edge of edges){const from=positions[edge.source],to=positions[edge.target],x1=from.x+190,y1=from.y+38,x2=to.x,y2=to.y+38;const group=document.createElementNS('http://www.w3.org/2000/svg','g');group.dataset.relationEdge=edge.key;const path=document.createElementNS(svg.namespaceURI,'path'),text=document.createElementNS(svg.namespaceURI,'text');path.setAttribute('d',edge.source===edge.target?`M ${x1} ${y1} C ${x1+85} ${y1-100},${x1-190} ${y1-100},${x1-190} ${y1}`:`M ${x1} ${y1} C ${x1+60} ${y1},${x2-60} ${y2},${x2} ${y2}`);path.setAttribute('marker-end','url(#declared-map-arrow)');path.classList.toggle('selected',edge.source===w.meta.mapSelected||edge.target===w.meta.mapSelected);text.setAttribute('x',String(edge.source===edge.target?from.x+20:(x1+x2)/2));text.setAttribute('y',String(edge.source===edge.target?from.y-18:(y1+y2)/2-7));text.textContent=(roleNames[edge.role]||edge.role)+(edge.count>1?' ×'+edge.count:'');group.append(path,text);svg.append(group);w.mapReferences.lines.set(edge.key,group);}
   const holder=$('[data-map-nodes]',scene);
   for(const node of nodes){const pos=positions[node.id],button=document.createElement('button');button.dataset.relationNode=node.id;button.dataset.operation='map-node';button.className='relation-map-node'+(node.owned?'':' external')+(node.valid?'':' invalid')+(w.meta.mapSelected===node.id?' selected':'');button.style.left=pos.x+'px';button.style.top=pos.y+'px';button.title=node.id;button.innerHTML=`<strong>${esc(node.title||short(node.id))}</strong><small>${esc(node.owned?(kinds[node.kind]||node.kind):'소유 View 밖 참조')}${node.dirty?' · 초안':''}</small>`;button.onclick=()=>select(w,data,node.id);button.ondblclick=()=>{if(node.owned&&api.current.projectId===w.meta.mapScope)api.select(node.id,node.valid===false);};
+   w.mapReferences.buttons.set(node.id,button);
+   button.onpointerenter=e=>{if(e.pointerType!=='mouse'||e.buttons)return;clearReferenceHover();hover={w,id:node.id,reverse:e.shiftKey,lines:[],tip:null};drawReferenceHover();};
+   button.onpointerleave=()=>{if(hover?.w===w&&hover.id===node.id)clearReferenceHover();};
    button.onpointerdown=e=>{if(e.button!==0||api.busy)return;e.stopPropagation();let moved=false;const start={x:e.clientX,y:e.clientY,left:pos.x,top:pos.y};button.setPointerCapture(e.pointerId);button.onpointermove=event=>{moved||=Math.abs(event.clientX-start.x)+Math.abs(event.clientY-start.y)>3;positions[node.id]={x:number(start.left+(event.clientX-start.x)/camera(w).scale),y:number(start.top+(event.clientY-start.y)/camera(w).scale)};button.style.left=positions[node.id].x+'px';button.style.top=positions[node.id].y+'px';};button.onpointerup=()=>{button.onpointermove=null;if(moved){w.meta.mapSelected=node.id;draw(w,data);api.persist();}};button.onpointercancel=()=>{button.onpointermove=null;draw(w,data);api.persist();};};holder.append(button);}
   $('[data-map-count]',w.body).textContent=`${nodes.length} / ${data.nodes.length} 노드 · ${edges.length}개 관계`;scene.dataset.sourceVersion=data.version;transform(w);details(w,data);notice(w,data);api.controls();
  }
@@ -42,5 +92,5 @@ export function createRelationsMap(api){
  function update(){const scope=api.current?.projectId;if(!scope)return;if(api.current.relationsMap)cache.set(scope,api.current.relationsMap);const w=api.windows.get('map'),data=cache.get(scope);if(!w||!data||w.meta.mapScope!==scope)return;if(w.meta.mapDataVersion!==data.version)render(w,data);else notice(w,data);}
  function load(w){if(w.meta.mapLoading)return;const scope=api.current?.projectId,generation=api.view.generation;w.meta.mapLoading=true;const ready=()=>{if(api.current?.projectId!==scope||api.view.generation!==generation||api.windows.get('map')!==w){w.meta.mapLoading=false;return;}if(api.busy||api.restoring){setTimeout(ready,100);return;}w.meta.mapLoading=false;api.work(async()=>{try{await api.view.call('relationsMap',{});if(api.current.projectId!==scope)return;w.meta.mapFailed=false;update();if(!w.meta.mapDidFit){fit(w);w.meta.mapDidFit=true;}}catch(error){w.meta.mapFailed=true;const data=projection();if(data)notice(w,data);throw error;}},'실제 선언 관계를 읽었습니다.',{flushWorkspace:false});};setTimeout(ready,0);}
  function open(meta={},explicit=true){if(!meta||typeof meta!=='object'||Array.isArray(meta))meta={};if(!Array.isArray(meta.mapRoles))delete meta.mapRoles;if(meta.mapPositions&&(typeof meta.mapPositions!=='object'||Array.isArray(meta.mapPositions)))delete meta.mapPositions;if(meta.mapCamera&&(typeof meta.mapCamera!=='object'||Array.isArray(meta.mapCamera)))delete meta.mapCamera;if(meta.mapFocusPositions&&(typeof meta.mapFocusPositions!=='object'||Array.isArray(meta.mapFocusPositions)))delete meta.mapFocusPositions;if(Object.hasOwn(meta,'mapQuery'))meta.mapQuery=String(meta.mapQuery||'').slice(0,256);if(explicit)api.reveal?.('map');const w=api.openWindow('map','개념 맵 · 선언 관계',780,Math.max(280,Math.min(540,($('#workspace')?.clientHeight||590)-52)),{meta});Object.assign(w.meta,meta);w.meta.mapScope=api.current.projectId;const data=projection();if(data)render(w,data);else w.body.innerHTML='<div class="window-content"><p>실제 공유 초안에서 선언 관계를 읽습니다.</p><button data-operation data-map-reload>다시 읽기</button></div>';const button=$('[data-map-reload]',w.body);if(button)button.onclick=()=>load(w);load(w);if(explicit)api.focus(w);return w;}
- return {open,update};
+ return {open,update,clearReferenceHover};
 }
