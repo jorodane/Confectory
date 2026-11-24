@@ -15,9 +15,11 @@ f = fixture.f
 x = fixture.x
 feature = fixture.n.feature
 insert_shared = '--insert-shared' in sys.argv[3:]
+same_frame_source = '--same-frame-source' in sys.argv[3:]
 helper = Path(__file__).with_name('v821_function_document_ui.py')
 functions = {'panel', 'doc', 'pending', 'open_document', 'review'}
 t = fixture.n
+assert not same_frame_source or insert_shared and t.nested
 exec(compile(ast.Module(body=[node for node in ast.parse(helper.read_text()).body
                               if isinstance(node, ast.FunctionDef) and node.name in functions],
                         type_ignores=[]), str(helper), 'exec'), globals())
@@ -52,6 +54,37 @@ def checkpoint_content():
     return ({row['id']: {key: value for key, value in row.items() if key != 'revision'}
              for row in saved['changes']},
             {key: value for key, value in saved['history'].items() if key != 'epoch'})
+
+
+def saved_body():
+    return next(node for node in fixture.read()['nodes'] if node['id'] == 'body')
+
+
+def save_inner_source():
+    original = saved_body()
+    doc().locator('[data-document-code=body]').click()
+    dialog = f.page.locator('.bp-script-dialog')
+    body = dialog.locator('[data-code-region=body]').text_content()
+    assert 'EditDelta();' in body
+    edited = body.replace('EditDelta();', 'EditDelta()+7;')
+    dialog.locator('[data-code-source]').evaluate(
+        '(field,body)=>{const at=field.value.indexOf(body);if(at<0)throw Error("Missing body");'
+        'field.focus();field.setSelectionRange(at,at+body.length)}', body)
+    f.page.keyboard.insert_text(edited)
+    dialog.locator('[data-code-save]').click()
+    expect(dialog).to_be_hidden()
+    panel().locator('[data-bp-save]').click()
+    expect(panel().locator('.bp-status')).to_have_text('저장됨', timeout=120000)
+    assert not pending() and saved_body()['source'].splitlines() == edited.splitlines()
+    assert fixture.read()['edges'] == shared_plan['edges']
+    changes, history = checkpoint_content()
+    source_id = original['sourceId']
+    assert source_id == t.root + '/node:frame/node:calculate/node:body'
+    assert set(changes) == {source_id}
+    entry, = history['undo']
+    assert [unit['id'] for unit in entry['units']] == [source_id]
+    x.original()
+    return source_id, changes[source_id], history
 
 
 def check_previous(new_id, changed):
@@ -97,10 +130,23 @@ def check_saved_history(changed):
     f.idle()
     assert fixture.read()['edges'] == shared_plan['edges']
     expect(window.locator('[data-history-tip=undo]')).to_contain_text(other_id)
+    if same_frame_source:
+        assert saved_body()['source'].splitlines() == json.loads(other_draft['draft'])['source'].splitlines()
+        window.locator('[data-history-move=undo]').click()
+        f.idle()
+        assert saved_body()['source'] == json.loads(other_draft['original'])['source']
+        assert fixture.read()['edges'] == shared_plan['edges']
+        expect(window.locator('[data-history-tip=redo]')).to_contain_text(other_id)
+        window.locator('[data-history-move=redo]').click()
+        f.idle()
+        assert saved_body()['source'] == json.loads(other_draft['draft'])['source']
+        assert fixture.read()['edges'] == shared_plan['edges']
     expect(window.locator('[data-history-tip=redo]')).to_contain_text(t.root)
     window.locator('[data-history-move=redo]').click()
     f.idle()
     assert fixture.read()['edges'] == changed['edges']
+    if same_frame_source:
+        assert saved_body()['source'] == json.loads(other_draft['draft'])['source']
     window.locator('[data-close]').first.click()
     f.invoke('saveDraft', {})
     assert checkpoint_content()[0][other_id] == other_draft
@@ -163,6 +209,7 @@ def run():
 
 
 def run_insert():
+    global before, other_id, other_draft, prior_history
     open_document()
     expect(doc().locator('[data-document-branch-return]')).to_have_count(0)
     if t.nested:
@@ -175,6 +222,9 @@ def run_insert():
         panel().locator('.bp-breadcrumbs button').first.click()
         f.idle()
     enter_child()
+    if same_frame_source:
+        other_id, other_draft, prior_history = save_inner_source()
+        before = checkpoint.read_bytes()
     existing = exit_control('shared')
     expect(existing).to_have_text('Alternate')
     show_alternate()
@@ -260,10 +310,15 @@ def run_insert():
     f.idle()
     fixture_graph(expected).update(changed)
     assert json.loads(graph_path.read_text()) == expected
-    assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != graph_path)
-    if t.nested:
+    written = {graph_path}
+    if same_frame_source:
+        leaf = f.project / other_draft['path']
+        assert json.loads(leaf.read_bytes()) == json.loads(other_draft['draft'])
+        written.add(leaf)
+    assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path not in written)
+    if t.nested and not same_frame_source:
         assert checkpoint_content()[0][other_id] == other_draft
-    fixture.run('document-shared-return-split', swapped=True)
+    fixture.run('document-shared-return-split', swapped=True, audit_delta=7 if same_frame_source else 0)
     assert not f.errors and not f.external, (f.errors, f.external)
     f.checked('Confirm adds one new return to the chosen case; real C# returns Continue only there and preserves other paths and outputs.')
 
@@ -333,7 +388,7 @@ try:
     if not insert_shared:
         fixture_graph(expected)['exits'] = fixture.plan(swapped=True)['exits']
     checkpoint = next(f.project.glob('.confectory/edit-workspaces/*/draft.json'))
-    if insert_shared and t.nested:
+    if insert_shared and t.nested and not same_frame_source:
         other_id = f.n + 'SlotBody/body:common/node:body'
         other_graph = f.n + 'SlotBody/body:common'
         other = t.read(other_graph)
