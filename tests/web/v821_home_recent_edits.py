@@ -130,6 +130,30 @@ def assert_facts(page, names):
         expect(tile(page, title).locator("h2")).to_have_text(title)
 
 
+def first_tile(page):
+    return page.locator("#home-projects .project-card:visible").first
+
+
+def assert_home_columns(page):
+    viewport = page.viewport_size
+    try:
+        for width, paired in ((1280, True), (390, False)):
+            page.set_viewport_size({"width": width, "height": 850})
+            expect(first_tile(page)).to_have_attribute("id", "new-project")
+            first = first_tile(page).bounding_box()
+            second = page.locator("#home-projects [data-project]:visible").first.bounding_box()
+            assert first and second and abs(first["width"] - second["width"]) < 2
+            if paired:
+                assert abs(first["y"] - second["y"]) < 2 and first["x"] + first["width"] < second["x"]
+            else:
+                assert abs(first["x"] - second["x"]) < 2 and first["y"] + first["height"] < second["y"]
+            card = page.locator("#home-projects [data-project]:visible").first
+            for control in ("[data-favorite]", "[data-enter]", "[data-manage]"):
+                card.locator(control).click(trial=True)
+    finally:
+        page.set_viewport_size(viewport)
+
+
 def event(page, name, kind):
     result = tile(page, name).locator('time[data-stat="lastEdit"]')
     expect(result).to_be_visible(timeout=90000)
@@ -156,7 +180,8 @@ def workflow(package, root):
                 page, errors = attach(browser, address)
                 expect(titles(page)).to_have_text(names)
                 assert_facts(page, names)
-                new_slot = page.locator("#home-projects > :first-child")
+                assert_home_columns(page)
+                new_slot = first_tile(page)
                 expect(new_slot).to_have_attribute("id", "new-project")
                 expect(new_slot).to_have_text("＋새 프로젝트")
                 new_slot.click()
@@ -208,7 +233,7 @@ def workflow(package, root):
             with editor(package, root, "cold") as address:
                 page, errors = attach(browser, address)
                 assert_facts(page, names)
-                expect(page.locator("#home-projects > :first-child")).to_have_attribute("id", "new-project")
+                expect(first_tile(page)).to_have_attribute("id", "new-project")
                 assert event(page, "Charlie", "초안 Save") == charlie
                 assert event(page, "Alpha", "원본 Confirm") == alpha
                 expect(titles(page)).to_have_text(["Alpha", "Charlie", "Bravo"])

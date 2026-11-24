@@ -1266,7 +1266,9 @@ void Render(){homeTiles.Clear();
   }else Label(new[]{8,64,Math.Max(1,side-16),180},"Local display details\nProject context retained\nNo AI request");
   if(!DetailsScreen()&&screen!="project"&&model["backgroundProjects"] is System.Text.Json.Nodes.JsonArray hiddenProjects&&hiddenProjects.Count>0)Button(19,new[]{8,Math.Max(270,h-140),Math.Max(1,side-16),36},sidebar?"Hidden projects ("+hiddenProjects.Count+")":"("+hiddenProjects.Count+")");
   bool showLanLayIcon=screen=="lan-chat"&&area>=286&&LanSealedIconAvailable();
-  if(screen!="project")Label(new[]{left,10,showLanLayIcon?area-104:area,44},screen=="information"?"Project information":screen=="project-icon"?"Change project icon":screen=="profile"?"Helper display profile":screen=="home"?"Projects":screen=="create"?"New project":screen=="manage"?"AI management":screen=="remove"?"Remove listing":model["selected"]?["title"]?.ToString()??"Project");
+  bool homeJoin=screen=="home"&&OperatingSystem.IsLinux(),joinBelow=homeJoin&&area<266;
+  int headingWidth=showLanLayIcon?area-104:homeJoin&&!joinBelow?area-178:area;
+  if(screen!="project")Label(new[]{left,10,headingWidth,44},screen=="information"?"Project information":screen=="project-icon"?"Change project icon":screen=="profile"?"Helper display profile":screen=="home"?"Projects":screen=="create"?"New project":screen=="manage"?"AI management":screen=="remove"?"Remove listing":model["selected"]?["title"]?.ToString()??"Project");
   if(screen=="yogi"){
  int width=Math.Min(520,area);
  Label(new[]{left,60,width,34},showingDraftYogi?"YogiBox local preview":LaySealed()?"Sealed YogiBox":"YogiBox");
@@ -1400,31 +1402,51 @@ else if(screen=="fields"){
    if(screen=="information"){Label(R(0),"Home listing title (80 characters)");Field(431,R(1),"Listing display title");Label(R(2),"Home listing description (2048 characters)");Field(432,R(3),"Listing display description");Field(433,R(4),"Confirmed project metadata and target reachability (read-only)");}
    else{var row=ProfileRow();var paging=calls.Stack.Invoke(R(0),0,6,new[]{0,100,100});Label(paging[..4],row is null?"No eligible Helper":profileId+" | "+(profileIndex+1)+" / "+ProfileRows().Length);Button(443,paging[4..8],"Previous",profileIndex>0);Button(444,paging[8..12],"Next",profileIndex+1<ProfileRows().Length);Label(R(1),"Display name (80 characters)");Field(435,R(2),"Local display name",row is not null);Label(R(3),"Short description (160 characters)");Field(436,R(4),"Local display short description",row is not null);Label(R(5),"Display description (2048 characters)");Field(437,R(6),"Local display biography",row is not null);Field(438,R(7),"Immutable recruitment template and storage status (read-only)");Label(R(8),"Unsent global input (8192 characters); project chat stays separate");Field(439,R(9),"Global local draft; no AI send",row?["membership"]?["kind"]?.ToString()=="global");}
    var footer=calls.Stack.Invoke(new[]{left,h-112,width,34},0,6,new[]{0,0,0,0});bool canSave=detailData.TryGetValue(DetailKey(),out var displayed)&&displayed["revision"] is not null&&(screen=="information"||ProfileRow() is not null&&model["helperPresentations"]?[profileId]?["revision"] is not null);Button(434,footer[..4],"Save display locally",canSave);Button(440,footer[4..8],"Discard input");Button(430,footer[8..12],"Close; keep input");if(screen=="information")Button(441,footer[12..16],"Helper profile",model["projectInformation"]?["selectedHelper"]?["id"] is not null&&(model["projectInformation"]?["selectedHelper"]?["membership"]?.ToString()=="global"||model["selected"] is not null));else Button(447,footer[12..16],"Recruit global Helper",model["selected"] is null);Label(new[]{left,h-72,width,30},"Explicit local save. Closing retains inputs for this session. No project is opened or created.");
-  }else if(screen=="home"){if(OperatingSystem.IsLinux())Button(LanEntry,new[]{left+Math.Max(0,area-170),10,Math.Min(170,area),36},"Join public chat");
-   var cards=model["cards"]!.AsArray();int cardHeight=160,rowPitch=176,viewport=Math.Max(1,h-154),totalRows=(cards.Count+2)/2,visibleRows=Math.Max(1,viewport/rowPitch),maxOffset=Math.Max(0,totalRows-visibleRows);rowsOffset=Math.Min(rowsOffset,maxOffset);var grid=calls.Grid.Invoke(new[]{left,66,area,viewport},2,16,cardHeight,cards.Count+1,rowsOffset*rowPitch);
+  }else if(screen=="home"){
+   if(homeJoin)Button(LanEntry,new[]{left+(joinBelow?0:area-170),joinBelow?54:10,Math.Min(170,area),36},"Join public chat");
+   var cards=model["cards"]!.AsArray();
+   const int gap=16,minTileWidth=244;
+   int columns=area>=minTileWidth*2+gap?2:1;
+   bool stacked=area<220;
+   int top=joinBelow?106:66,viewport=Math.Max(1,h-top-88);
+   int cardHeight=stacked?224:160,rowPitch=cardHeight+gap,totalRows=(cards.Count+columns)/columns;
+   int visibleRows=Math.Max(1,(viewport+gap)/rowPitch),maxOffset=Math.Max(0,totalRows-visibleRows);
+   rowsOffset=Math.Min(rowsOffset,maxOffset);
+   var grid=calls.Grid.Invoke(new[]{left,top,area,viewport},columns,gap,cardHeight,cards.Count+1,rowsOffset*rowPitch);
    // Sort display positions only. Existing action IDs still point into the catalog.
    var indices=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.OrderByDescending(
     System.Linq.Enumerable.Range(0,cards.Count),index=>HomeEditAt(cards[index]!),StringComparer.Ordinal));
-   for(int n=0;n<cards.Count+1;n++){int[] b=grid[(n*4)..(n*4+4)];if(b[3]<cardHeight)continue;Box(b,0x213644);if(n==0){Label(new[]{b[0]+4,b[1]+4,b[2]-8,42},"New project");var halves=calls.Stack.Invoke(new[]{b[0]+8,b[1]+66,Math.Max(1,b[2]-16),70},0,8,new[]{0,0});Button(2,halves[..4],"New");Button(3,halves[4..],"Open folder");}else{
+   for(int n=0;n<cards.Count+1;n++){
+    int[] b=grid[(n*4)..(n*4+4)];
+    if(b[3]<cardHeight)continue;
+    Box(b,0x213644);
+    int width=Math.Max(1,b[2]-16);
+    int[] Row(int y,int height=26)=>new[]{b[0]+8,b[1]+y,width,height};
+    if(n==0){
+     Label(new[]{b[0]+4,b[1]+4,b[2]-8,42},"New project");
+     var halves=calls.Stack.Invoke(Row(66,stacked?90:70),stacked?1:0,8,new[]{0,0});
+     Button(2,halves[..4],"New");Button(3,halves[4..],"Open folder");
+     continue;
+    }
     int index=indices[n-1];var card=cards[index]!;string id=ListingId(card);
     if(OperatingSystem.IsLinux())homeTiles.Add((id,500+index,b));
     if(OperatingSystem.IsLinux())ProjectIcon(new[]{b[0]+8,b[1]+10,30,30},card["icon"]?.ToString()??"");
     else Label(new[]{b[0]+8,b[1]+6,30,38},"P");
     Button(500+index,new[]{b[0]+42,b[1]+6,Math.Max(1,b[2]-50),38},card["title"]+" | Info");
-    Label(new[]{b[0]+8,b[1]+44,Math.Max(1,b[2]-16),24},card["description"]!.ToString());
-    Label(new[]{b[0]+8,b[1]+69,Math.Max(1,b[2]-16),22},HomeEditLabel(card));
-    int width=Math.Max(1,b[2]-16);
-    var actions=calls.Stack.Invoke(new[]{b[0]+8,b[1]+128,width,26},0,6,new[]{0,0});
+    Label(Row(44,24),card["description"]!.ToString());
+    Label(Row(69,22),HomeEditLabel(card));
+    var actions=calls.Stack.Invoke(Row(stacked?160:128,stacked?58:26),stacked?1:0,6,new[]{0,0});
     if(homeTileMenu==id){
-     var menu=calls.Stack.Invoke(new[]{b[0]+8,b[1]+96,width,26},0,6,new[]{0,76});
+     var menu=calls.Stack.Invoke(Row(96,stacked?58:26),stacked?1:0,6,new[]{0,stacked?0:76});
      Button(HomeOpenFolder,menu[..4],"Open in File Manager",canOpenFolder);
      Button(HomeMenuClose,menu[4..],"Close");
      Button(HomeRename,actions[..4],"Rename");Button(HomeChangeIcon,actions[4..],"Change icon");
     }else{
-     Button(100+index*3,new[]{b[0]+8,b[1]+96,width,26},"Open");
-     Button(101+index*3,actions[..4],"Open folder",canOpenFolder);Button(102+index*3,actions[4..],"Remove");
+     Button(100+index*3,Row(96),"Open");
+     Button(101+index*3,stacked?Row(128):actions[..4],"Open folder",canOpenFolder);
+     Button(102+index*3,stacked?Row(160):actions[4..],"Remove");
     }
-   }}
+   }
    Button(5,new[]{left,h-72,Math.Min(110,area/2),36},"Previous",rowsOffset>0);Button(4,new[]{left+Math.Min(120,area/2),h-72,Math.Min(110,area/2),36},"Next",rowsOffset<maxOffset);
   }else if(screen=="create"){
    int width=Math.Max(1,Math.Min(area,600));Label(new[]{left,60,width,24},"Name *");Field(10,new[]{left,88,width,42},"Project name");Label(new[]{left,138,width,24},"Initial intent");int intentHeight=Math.Max(32,Math.Min(120,h-450));Field(11,new[]{left,166,width,intentHeight},"Describe what you want to build");int y=166+intentHeight+8;Label(new[]{left,y,width,24},"Parent folder");var parentRow=calls.Stack.Invoke(new[]{left,y+28,width,36},0,8,new[]{0,132});Field(30,parentRow[..4],"Parent folder path");Button(12,parentRow[4..],"Choose folder");parent=calls.TextSnapshot.Invoke(buffers[30])[1];string destination;try{destination=calls.PlanCreation.Invoke(calls.TextSnapshot.Invoke(buffers[10])[1],parent)[2];}catch(Exception error){destination="Unavailable: "+error.Message;}var retained=calls.TextSnapshot.Invoke(buffers[31]);if(retained[1]!=destination)calls.ReplaceText.Invoke(buffers[31],destination,Math.Clamp(int.Parse(retained[2]),0,destination.Length),Math.Clamp(int.Parse(retained[4]),0,destination.Length));Label(new[]{left,y+72,width,24},"Destination (read-only)");Field(31,new[]{left,y+100,width,36},"Resulting project folder");var actions=calls.Stack.Invoke(new[]{left,y+148,width,40},0,8,new[]{0,0});Button(13,actions[..4],"Create");Button(14,actions[4..],"Back");
@@ -1539,7 +1561,13 @@ else if(screen=="fields"){
  if(screen=="project"&&model["closeRequest"] is null&&model["workspace"]?["review"] is System.Text.Json.Nodes.JsonNode reviewed){layer=5;Box(new[]{0,0,w,h},0x14212B);bool workerReview=model["selectedTaskContext"]?.ToString()==Context()&&model["ai"]?["workers"]?[model["selectedTask"]?.ToString()??""]?["status"]?.ToString()=="awaiting-verification";int x=24,width=Math.Max(1,w-48),half=Math.Max(1,(width-8)/2),height=Math.Max(1,h-(workerReview?264:220));Label(new[]{x,16,width,36},"Review sources - "+reviewed["status"]!.ToString());var reviewUnits=reviewed["units"]!.AsArray();reviewIndex=Math.Clamp(reviewIndex,0,reviewUnits.Count-1);var reviewUnit=reviewUnits[reviewIndex]!;Label(new[]{x,52,Math.Max(1,width-150),48},reviewUnit["path"]!.ToString()+" | "+reviewUnit["id"]!.ToString()+" | target "+reviewed["target"]!.ToString());Button(205,new[]{x+width-146,52,146,36},"Source "+(reviewIndex+1)+" / "+reviewUnits.Count,reviewUnits.Count>1);Label(new[]{x,102,half,28},"Current final file");Label(new[]{x+half+8,102,half,28},"Reviewed local draft");Field(67,new[]{x,134,half,height},"Current final source");Field(68,new[]{x+half+8,134,half,height},"Reviewed draft");Button(65,new[]{x,h-76,164,36},"Confirm reviewed",reviewed["status"]!.ToString()=="ready"&&canRun);Button(66,new[]{x+172,h-76,140,36},"Cancel review");if(workerReview){Field(208,new[]{x,h-120,width,32},"Required: verified task outcome and remaining test/runtime limits");Button(209,new[]{x+320,h-76,Math.Max(1,width-320),36},"Accept source + task outcome",reviewed["status"]!.ToString()=="ready"&&canRun);}Label(new[]{x,h-34,width,30},job is not null?"Validating reviewed candidate...":message.Length>0?message:reviewed["status"]!.ToString()=="conflict"?"Final source changed externally; no overwrite. Cancel to retain draft.":model["status"]!.ToString());layer=1;}
  if(screen=="project"&&model["closeRequest"] is not null){layer=5;Box(new[]{0,0,w,h},0x14212B);Label(new[]{24,40,Math.Max(1,w-48),110},"Work is active in "+model["closeRequest"]!["title"]!.ToString()+".\nClose this project and safely cancel its work?\nDrafts and project files are retained.");Button(65,new[]{24,170,Math.Min(220,Math.Max(1,w/2-32)),40},"Close project");Button(66,new[]{Math.Max(24,w/2),170,Math.Min(220,Math.Max(1,w/2-24)),40},"Keep working");layer=1;}
  foreach(var pair in layerBounds)if(Folded(pair.Key)){layer=pair.Key;var b=pair.Value;Paint(new[]{b[0],b[1],b[2],b[3],0x2A4253});TextRun(b,new[]{b[0]+8,b[1]+4},"Double-click to expand", "window-handle");}layer=1;
- foreach(int id in shown)if(!present.Contains(id))calls.ControlState.Invoke(ControlFor(id),"hide",id);shown=present;hits=hit.ToArray();radii=hitRadii.ToArray();buttons=widget.ToArray();foreach(var pair in layerControls)scene=calls.OrderUpdate.Invoke(scene,"controls",new System.Text.Json.Nodes.JsonObject{["id"]=pair.Key,["controls"]=pair.Value}.ToJsonString());windowScenes[sceneKey]=scene;orderFrame=calls.OrderCompose.Invoke(scene,new[]{0,0,w,h});var composed=J(orderFrame);var nextEligible=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.SelectMany(composed["windows"]!.AsArray(),row=>row!["active"]!.GetValue<bool>()?System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(row["controls"]!.AsArray(),c=>c!["input"]!.GetValue<bool>()),c=>c!["id"]!.GetValue<int>()):System.Linq.Enumerable.Empty<int>()));bool changed=J(nav)["active"]!.ToString()!=screen||!System.Linq.Enumerable.SequenceEqual(eligible,nextEligible);eligible=nextEligible;if(pendingFocus!=0&&active.Contains(pendingFocus)){Focus(pendingFocus);pendingFocus=0;changed=true;}if(changed){nav=calls.NavGroup.Invoke(nav,screen,calls.ControlState.Invoke(control,"query",0)[0],eligible);if(laySelection is null)Focus(J(nav)["focus"]!.GetValue<int>());}
+ foreach(int id in shown)if(!present.Contains(id))calls.ControlState.Invoke(ControlFor(id),"hide",id);shown=present;hits=hit.ToArray();radii=hitRadii.ToArray();buttons=widget.ToArray();foreach(var pair in layerControls)scene=calls.OrderUpdate.Invoke(scene,"controls",new System.Text.Json.Nodes.JsonObject{["id"]=pair.Key,["controls"]=pair.Value}.ToJsonString());windowScenes[sceneKey]=scene;orderFrame=calls.OrderCompose.Invoke(scene,new[]{0,0,w,h});var composed=J(orderFrame);var nextEligible=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.SelectMany(composed["windows"]!.AsArray(),row=>row!["active"]!.GetValue<bool>()?System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(row["controls"]!.AsArray(),c=>c!["input"]!.GetValue<bool>()),c=>c!["id"]!.GetValue<int>()):System.Linq.Enumerable.Empty<int>()));bool changed=J(nav)["active"]!.ToString()!=screen||!System.Linq.Enumerable.SequenceEqual(eligible,nextEligible);eligible=nextEligible;if(changed&&screen=="home"){
+  // Tile order is driven by the current Home arrangement, including pagination.
+  var navState=J(nav);
+  var homeGroup=System.Linq.Enumerable.Single(navState["config"]!["groups"]!.AsArray(),group=>group!["id"]!.ToString()=="home")!;
+  homeGroup["controls"]=System.Text.Json.JsonSerializer.SerializeToNode(eligible);
+  nav=navState.ToJsonString();
+ }if(pendingFocus!=0&&active.Contains(pendingFocus)){Focus(pendingFocus);pendingFocus=0;changed=true;}if(changed){nav=calls.NavGroup.Invoke(nav,screen,calls.ControlState.Invoke(control,"query",0)[0],eligible);if(laySelection is null)Focus(J(nav)["focus"]!.GetValue<int>());}
  bool traceComposition=Environment.GetEnvironmentVariable("CONFECTORY_NATIVE_TRACE")=="1";if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="begin",frames,screen,nativeHost,menu=model["shell"]?["menu"]?.ToString(),navigation=model["shell"]?["navigation"]?.ToString(),nativePickerPending,jobPending=job is not null,emittedRoles,nativeFields=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(fields.Values,x=>new{id=J(x)["id"]!.GetValue<int>(),visible=J(x)["visible"]!.GetValue<bool>(),enabled=J(x)["enabled"]!.GetValue<bool>()})),rectangles=draw.Count/5,textRuns=texts.Count}));
  if(laySelection is not null){
   layFrame=(draw.ToArray(),labels.ToArray(),clips.ToArray(),origins.ToArray(),texts.ToArray());
