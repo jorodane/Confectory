@@ -65,7 +65,11 @@ internal static class ProjectWindowCatalog
                 var recipe = ReadRecipe(target, id => Owned(id, "object") is not null);
                 if (recipe is null) return null;
                 var projected = new JsonObject { ["id"] = declaration.Id, ["title"] = title };
-                if (requestedId is not null) projected["recipe"] = recipe;
+                if (requestedId is not null)
+                {
+                    projected["recipe"] = recipe;
+                    projected["editId"] = target.Id;
+                }
                 return projected;
             }
             if (target.Uses.Count != 1 || target.Uses[0].Kind != "schema") return null;

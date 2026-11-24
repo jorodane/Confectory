@@ -381,7 +381,15 @@ switch(endpoint){
  case "reviewWorker":if(args["task"]?.ToString()!=before["selectedTask"]?.ToString()||before["selectedTaskContext"]?.ToString()!=selected["context"]!.ToString())throw new InvalidOperationException("Worker selection changed");request["action"]="review";request["target"]=Target();request["ids"]=args["ids"]!.DeepClone();break;
  case "objects":request["action"]="filter";request["kind"]=args["kind"]?.GetValue<string>()??"object";request["query"]=args["query"]?.GetValue<string>()??"";break;
  case "page":request["action"]="page";request["page"]=args["page"]!.GetValue<int>();break;
- case "select":request["action"]="select";request["id"]=args["id"]!.GetValue<string>();break;
+ case "select":
+  request["action"]="select";request["id"]=args["id"]!.GetValue<string>();
+  if(args["recipeView"] is { } recipeView){
+   if(args.Count!=2||recipeView is not System.Text.Json.Nodes.JsonValue key||
+      !key.TryGetValue<string>(out var recipeViewId)||recipeViewId.Length is <1 or >512)
+    throw new UnauthorizedAccessException("recipe_editor_selection_fields");
+   request["recipeView"]=recipeViewId;
+  }
+  break;
  case "editDraft":
   if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Draft selection changed");
   request["action"]="open";request["text"]=args["text"]!.GetValue<string>();request["expectedRevision"]=args["revision"]!.GetValue<long>();break;

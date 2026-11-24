@@ -527,7 +527,7 @@ def worker_opening_review_workflow(report, root, browser):
     print("PASS Chromium shows the exact Worker-origin opening View Review; Cancel keeps the default, Confirm opens the Alpha card")
 
 
-def seed_recipe(report, root, checkout):
+def seed_recipe(report, root, checkout, *, both=False):
     (alpha, bravo), originals, proof = seed(report, root, checkout=checkout)
     title, identifier = "Assembly recipe", NS + "::RecipeDesk"
     for project, amount in ((alpha, 2), (bravo, 7)):
@@ -547,7 +547,7 @@ def seed_recipe(report, root, checkout):
             path = directory / (name + ".celem")
             path.write_text(body + "\n")
             originals[path] = path.read_bytes()
-            if name != "RecipeDesk" or project == alpha:
+            if name != "RecipeDesk" or project == alpha or both:
                 source += f'element {name} {kind} "{name}.celem";\n'
         manifest.write_text(source + "}\n")
         originals[manifest] = manifest.read_bytes()
@@ -607,6 +607,72 @@ def recipe_view_workflow(report, root, browser):
     print("PASS confirmed recipe shows owned ingredients and result separately; cancel, Home, Bravo and default Workspace remain isolated")
 
 
+def recipe_editor_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    alpha, bravo, originals, proof, title, identifier = seed_recipe(report, root, checkout, both=True)
+    target = NS + "::Assembly"
+    for project in (alpha, bravo):
+        path = Path(project["path"]).with_name("RecipeDesk.celem")
+        path.write_text(path.read_text().replace(" }", ' value editorWindow = "element-view-recipe"; }', 1))
+        originals[path] = path.read_bytes()
+
+    def recipe_dialog(page):
+        project_menu(page, True, identifier=identifier, title=title).get_by_role(
+            "button", name=title, exact=True).click()
+        return page.get_by_role("dialog", name=title, exact=True)
+
+    def snapshots(project):
+        folder = Path(project["path"]).parent
+        candidates = folder.glob(".confectory/edit-workspaces/*/draft.json")
+        return {path: path.read_bytes() for path in candidates}
+
+    with editor(report, root, "recipe-editor", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        stock = select_registered_view(page, WINDOW)
+        stock.fill(stock.input_value() + "// Keep this unrelated saved draft.\n")
+        page.locator("#save").click()
+        expect(page.locator("#status")).to_contain_text("Draft saved")
+        assert snapshots(alpha), "The navigation check needs an existing saved draft"
+
+        for project, count in ((alpha, 2), (bravo, 7)):
+            before = snapshots(project)
+            dialog = recipe_dialog(page)
+            expect(dialog.locator('[data-project-window-renderer="recipe"]')).to_contain_text(
+                f"{NS}::Fiber × {count}")
+            dialog.get_by_role("button", name="레시피 편집기 열기", exact=True).click()
+            expect(dialog).to_have_count(0)
+            fallback = page.locator('.window[data-key="schema"]')
+            expect(fallback).to_be_visible()
+            expect(fallback.get_by_role("heading", name="Assembly", exact=True)).to_be_visible()
+            selected = state(address)["draft"]
+            assert selected["id"] == target and not selected["dirty"]
+            assert selected["text"] == Path(project["path"]).with_name("Assembly.celem").read_text()
+            assert snapshots(project) == before
+            assert all(path.read_bytes() == value for path, value in originals.items())
+            if project == alpha:
+                home(page)
+                open_project(page, bravo["title"])
+
+        page.locator('.window[data-key="schema"]').get_by_role("button", name="창 닫기", exact=True).click()
+        dialog = recipe_dialog(page)
+        target_link = dialog.get_by_role("button", name="레시피 편집기 열기", exact=True)
+        expect(target_link).to_be_visible()
+        before = snapshots(bravo)
+        manifest = Path(bravo["path"])
+        # Remove only the disposable target's registration while its old card is open.
+        manifest.write_text(manifest.read_text().replace('element Assembly object "Assembly.celem";\n', ""))
+        originals[manifest] = manifest.read_bytes()
+        target_link.click()
+        expect(page.get_by_text("현재 프로젝트에서 이 창을 열 수 없어요.", exact=True)).to_be_visible()
+        expect(page.locator('.window[data-key="schema"]:visible')).to_have_count(0)
+        assert snapshots(bravo) == before and not proof.exists() and not errors, errors
+        page.close()
+
+    assert all(path.read_bytes() == value for path, value in originals.items())
+    print("PASS recipe editor link opens only the current registered object, keeps saved drafts, and rejects revocation")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -658,7 +724,7 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view"} & set(sys.argv[2:]):
+        if {"--settings", "--card-run", "--card-refresh", "--main-view", "--worker-opening-review", "--recipe-view", "--recipe-editor"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
@@ -672,6 +738,8 @@ if __name__ == "__main__":
                         worker_opening_review_workflow(package, Path(directory), browser)
                     elif "--recipe-view" in sys.argv[2:]:
                         recipe_view_workflow(package, Path(directory), browser)
+                    elif "--recipe-editor" in sys.argv[2:]:
+                        recipe_editor_workflow(package, Path(directory), browser)
                     else:
                         settings_workflow(package, Path(directory), browser)
         else:

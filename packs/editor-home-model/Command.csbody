@@ -720,6 +720,17 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  if(connectionSettings&&action is "browser-drafts" or "object-structure" or "move-objects" or "move-folders" or "plan-removal" or "retirement" or "archive-outcome")throw new InvalidOperationException("Connection settings use their own validation workflow");
  if(connectionSettings){if(args["text"] is not null)calls.CheckSettings.Invoke(Value("text"));string field=Value("field");if(action=="data-path")field=System.Linq.Enumerable.FirstOrDefault(args["path"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())?.ToString()??"";if(System.Text.RegularExpressions.Regex.IsMatch(field,"apiKey|password|accessToken|refreshToken|secret",System.Text.RegularExpressions.RegexOptions.IgnoreCase))throw new ArgumentException("Secrets cannot be ordinary connection setting fields");if(field=="credentialReference")calls.CheckReference.Invoke(args["value"]?.GetValue<string>()??throw new ArgumentException("Credential binding name required"));if(action is "save" or "review" or "confirm")calls.CheckSettings.Invoke(System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(handle))!["unit"]!["text"]!.ToString());}
  if(action is "description" or "data-path" or "call-check" or "declaration" or "object-structure"){var current=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(handle))!;if(Value("id")!=current["selected"]!.ToString())throw new InvalidOperationException("Explicit schema source ID differs from the current View.");}
+ if(action=="select"&&args["recipeView"] is not null){
+  var owner=calls.Context.Invoke(manager,context);
+  if(view.Length!=0||owner[5]!="open"||owner[2]=="Confectory.AISettings")
+   throw new UnauthorizedAccessException("Recipe editor scope unavailable.");
+  var confirmed=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(owner[1],
+   System.Text.Json.JsonSerializer.Serialize(new{action="project-windows",id=Value("recipeView")})));
+  var recipe=confirmed?["window"];
+  if(confirmed?["status"]?.ToString()!="available"||recipe?["renderer"]?.ToString()!="element-view-recipe"||
+     recipe["editId"]?.ToString()!=Value("id"))
+   throw new UnauthorizedAccessException("Recipe editor target unavailable.");
+ }
  bool projectWindowEdit=action=="project-window-setting";
  if(projectWindowEdit){
   args["text"]=ProjectWindowSetting(context)["text"]?.DeepClone()??throw new ArgumentException("Choose a project window menu setting.");
