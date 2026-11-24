@@ -155,14 +155,15 @@ def exercise():
     )]
 
 
-try:
-    with sync_playwright() as playwright:
-        with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
-            fixture.browser = browser
-            exercise()
-finally:
-    fixture.stop()
-    (fixture.case / "worker-tooltip-evidence.json").write_text(json.dumps({
-        "checks": fixture.checks, "errors": fixture.errors, "external": fixture.external,
-    }, ensure_ascii=False, indent=2))
-    print("evidence:", fixture.case)
+if __name__ == "__main__":
+    try:
+        with sync_playwright() as playwright:
+            with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
+                fixture.browser = browser
+                exercise()
+    finally:
+        fixture.stop()
+        (fixture.case / "worker-tooltip-evidence.json").write_text(json.dumps({
+            "checks": fixture.checks, "errors": fixture.errors, "external": fixture.external,
+        }, ensure_ascii=False, indent=2))
+        print("evidence:", fixture.case)
