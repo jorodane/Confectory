@@ -47,6 +47,35 @@ dbus-run-session -- python tests/gui/editor_home_open_folder_x11.py Builds/Linux
 대상을 생략한 `package` 명령은 기존 Windows x64 패키지를 만든다.
 체크아웃에서 개발할 때는 계속 `examples/editor-home/run-home.sh`를 사용할 수 있다.
 
+### 좁은 GTK 홈의 키보드 선택과 프로젝트 메뉴
+
+[좁은 홈 회귀 테스트](../tests/gui/editor_home_narrow_x11.py)는 저장 순서와
+표시 순서가 다른 두 합성 프로젝트로 실행한다. 실제 X11 입력으로 Tab과
+Shift+Tab 포커스 및 Enter가 여는 프로젝트를 확인한 뒤, 440×920 창에서
+프로젝트 메뉴를 열고 프로젝트를 닫아 편집기가 홈으로 돌아오는지 확인한다.
+
+전용 로컬 Xorg 디스플레이와 해당 `DISPLAY` 및 `XAUTHORITY`가 필요하다.
+디스플레이는 960×920 이상이어야 하며 XTEST를 지원해야 한다. Linux x64에
+GTK 3, GtkSourceView 4, X11·Xtst 라이브러리, Python 3, .NET 10 SDK가 필요하다.
+`CONFECTORY_DOTNET`을 SDK 실행 파일로 지정하고 해당 디렉터리를 PATH에 둔다.
+동일 체크아웃에서 만든 Linux EditorHome 빌드 보고서가 있으면 그대로 사용한다.
+처음 실행하는 체크아웃에서는 저장소 루트에서 다음 명령으로 보고서를 만든다.
+
+```sh
+"$CONFECTORY_DOTNET" build src/Confectory.Cli -c Release -m:1
+"$CONFECTORY_DOTNET" build targets/dotnet -c Release -m:1
+"$CONFECTORY_DOTNET" build targets/element-authoring -c Release -m:1
+"$CONFECTORY_DOTNET" build targets/project-execution-host -c Release -m:1
+mkdir -p .confectory
+"$CONFECTORY_DOTNET" src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll \
+  build examples/editor-home/project.cpack linux > .confectory/narrow-home-linux.json
+python3 tests/gui/editor_home_narrow_x11.py .confectory/narrow-home-linux.json
+```
+
+이 테스트는 전용 X11 환경에서 직접 실행하는 통합 테스트다. 화면이 없는 일반
+CI에서는 실행을 생략하며, 실제 GTK에서 두 `PASS` 메시지와 정상 종료를 확인해야
+검증 성공으로 기록한다.
+
 ### 수직 셀 논리 코드
 
 1. 묶음의 `./run`으로 GTK 창을 연다. 로컬 프로젝트를 만들거나 최근 목록에서 연다.
