@@ -2,6 +2,7 @@
 import ast
 import copy
 import json
+import os
 from pathlib import Path
 import sys
 
@@ -35,14 +36,59 @@ def show_alternate():
 
 
 def fixture_graph(graph):
-    return next(node['graph'] for node in graph['nodes'] if node['id'] == 'calculate')
+    return next(node['graph'] for node in t.at(graph)['nodes'] if node['id'] == 'calculate')
+
+
+def enter_child():
+    for segment in t.path.split('/'):
+        doc().locator(f'[data-document-internal="{segment}"]').click()
+        f.idle()
+
+
+def checkpoint_content():
+    saved = json.loads(checkpoint.read_bytes())
+    assert saved['version'] == 1
+    return ({row['id']: {key: value for key, value in row.items() if key != 'revision'}
+             for row in saved['changes']},
+            {key: value for key, value in saved['history'].items() if key != 'epoch'})
+
+
+def check_previous(new_id, changed):
+    report = os.environ.get('CONFECTORY_PREVIOUS_EXIT_EDITOR')
+    if not report:
+        return
+    current_report, current_env = f.report, f.env.copy()
+    saved = checkpoint_content()
+    f.page.close()
+    f.stop()
+    try:
+        f.report = json.loads(Path(report).read_text())
+        f.env['CONFECTORY_EDITOR_REPO'] = os.environ.get('CONFECTORY_PREVIOUS_EXIT_REPO', str(f.repo))
+        f.start(2)
+        loaded = fixture.read()
+        assert loaded['edges'] == changed['edges']
+        f.page = f.setup()
+        f.page.set_viewport_size({'width': 1800, 'height': 1400})
+        expect(doc()).to_be_visible()
+        show_alternate()
+        expect(exit_control(new_id)).to_have_text('Continue')
+        assert checkpoint_content() == saved
+        x.original()
+        f.page.close()
+    finally:
+        f.stop()
+        f.report, f.env = current_report, current_env
+    f.start(3)
+    f.page = f.setup()
+    f.page.set_viewport_size({'width': 1800, 'height': 1400})
+    expect(doc()).to_be_visible()
+    f.checked('The previous editor reads the same saved version-1 exit, source edits and history.')
 
 
 def run():
     open_document()
     assert not doc().locator('[data-document-branch-exit]').count()
-    doc().locator('[data-document-internal="calculate"]').click()
-    f.idle()
+    enter_child()
     expect(doc()).to_be_visible()
     proceed = exit_control('proceed')
     finish = exit_control('finish')
@@ -95,8 +141,16 @@ def run():
 def run_insert():
     open_document()
     expect(doc().locator('[data-document-branch-return]')).to_have_count(0)
-    doc().locator('[data-document-internal="calculate"]').click()
-    f.idle()
+    if t.nested:
+        doc().locator('[data-document-internal="frame"]').click()
+        f.idle()
+        doc().locator('[data-document-internal="peer"]').click()
+        f.idle()
+        expect(doc().locator('[data-document-branch="case:alternate"]')).to_have_text('Alternate')
+        expect(doc().locator('[data-document-branch-return]')).to_have_count(0)
+        panel().locator('.bp-breadcrumbs button').first.click()
+        f.idle()
+    enter_child()
     existing = exit_control('shared')
     expect(existing).to_have_text('Alternate')
     show_alternate()
@@ -136,6 +190,11 @@ def run_insert():
     changed['exits'][new_id] = {'executionBranch': 'next'}
     changed['edges'][1]['to'] = 'exit:' + new_id
     assert plan == changed
+    if t.nested:
+        invalid = copy.deepcopy(plan)
+        invalid['exits'][new_id]['executionBranch'] = 'peer/alternate'
+        fixture.batch(invalid, ok=False)
+        assert pending() == held and checkpoint.read_bytes() == before
     expect(existing).to_have_text('Alternate')
     expect(branch.locator(f'[data-document-branch-exit="$exit:{new_id}"]')).to_have_text('Continue')
     expect(doc().locator('[data-document-branch-return]')).to_have_count(0)
@@ -160,10 +219,15 @@ def run_insert():
     expect(doc().locator('[data-document-panel="case:alternate"]').locator(
         f'[data-document-branch-exit="$exit:{new_id}"]')).to_have_text('Continue')
     assert fixture.read()['edges'] == changed['edges']
+    if t.nested:
+        assert checkpoint_content()[0][other_id] == other_draft
     f.checked('Cancel, one Undo/Redo, both views and cold Save retain exactly the selected return insertion.')
 
+    check_previous(new_id, changed)
+    saved = checkpoint_content()
     review().locator('[data-reject]').click()
     x.original()
+    assert checkpoint_content() == saved
     window = review()
     window.locator('#confirm').click()
     expect(window).to_be_hidden(timeout=120000)
@@ -171,6 +235,8 @@ def run_insert():
     fixture_graph(expected).update(changed)
     assert json.loads(graph_path.read_text()) == expected
     assert all(path.read_bytes() == raw for path, raw in x.physical.items() if path != graph_path)
+    if t.nested:
+        assert checkpoint_content()[0][other_id] == other_draft
     fixture.run('document-shared-return-split', swapped=True)
     assert not f.errors and not f.external, (f.errors, f.external)
     f.checked('Confirm adds one new return to the chosen case; real C# returns Continue only there and preserves other paths and outputs.')
@@ -198,6 +264,13 @@ def seed_same_named_peer():
                            'signature': n.sig([]), 'arguments': {}, 'implementation': peer_source}],
                 'edges': [n.edge('body', 'exit:return')], 'exits': {'return': None},
             }}
+    source = 'return;'
+    if t.nested:
+        peer_graph = peer['graph']
+        peer_graph['profile'] = 'sync-acyclic-switch-v1'
+        peer_graph['nodes'][0].update(control='switch', executionEnum=copy.deepcopy(n.execution))
+        peer_graph['edges'].append(n.edge('body', 'return:body', 'case:alternate'))
+        source = 'return Result.Alternate;'
     parent = n.at(graph)
     parent['nodes'].append(peer)
     after = next((edge for edge in parent['edges'] if edge['from'] == 'after'), None)
@@ -210,7 +283,7 @@ def seed_same_named_peer():
                              implementationContext={'implementation': x.impl}, bodyTarget='common')
     known = next(row for row in definitions['nestedNodes'] if row['id'] == (n.frame+'/' if n.frame else '')+'peer/body')
     (f.project/peer_source).write_text(json.dumps({'schema': 1, 'node': 'body',
-                                                  'definitionHash': known['definitionHash'], 'source': 'return;'}))
+                                                  'definitionHash': known['definitionHash'], 'source': source}))
     file.write_text(json.dumps(graph, ensure_ascii=False))
 
 
@@ -234,10 +307,19 @@ try:
     if not insert_shared:
         fixture_graph(expected)['exits'] = fixture.plan(swapped=True)['exits']
     checkpoint = next(f.project.glob('.confectory/edit-workspaces/*/draft.json'))
+    if insert_shared and t.nested:
+        other_id = f.n + 'SlotBody/body:common/node:body'
+        other_graph = f.n + 'SlotBody/body:common'
+        other = t.read(other_graph)
+        t.rpc('source', id=other_graph, node='body', basis=other['basis'],
+              text='slotCount=amount+7;slotReady=true;return amount+3;')
+        f.invoke('saveDraft', {})
+        other_draft = checkpoint_content()[0][other_id]
     before = checkpoint.read_bytes()
     with sync_playwright() as playwright:
         expect.set_options(timeout=30000)
-        with playwright.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox']) as browser:
+        with playwright.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'],
+                                        ignore_default_args=['--disable-dev-shm-usage']) as browser:
             f.browser = browser
             f.page = f.setup()
             f.page.set_viewport_size({'width': 1800, 'height': 1400})

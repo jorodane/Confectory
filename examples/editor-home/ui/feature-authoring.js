@@ -1055,7 +1055,7 @@ function blueprintNormalizeControls(scope){
    id.startsWith('$exit:')&&Object.hasOwn(branchExitPlan(w).exits,id.slice(6));
   function canAddDocumentBranchReturn(link){
    if(!link?.to?.startsWith('$exit:')||!canvasOwns()||!documentBranchExit(link.to)||
-      data.privatePath.includes('/')||data.profile!=='sync-acyclic-switch-v1'||data.requiresCoupledCopy||
+      data.privatePath.split('/').length>2||data.profile!=='sync-acyclic-switch-v1'||data.requiresCoupledCopy||
       data.slotContext||data.privateCopy||saveEntries(w).length||!frameInputsClear()||
       !['source-ready','source-assembled'].includes(data.diagnostics?.state)||data.exits.length>=64||
       data.nodes.some(row=>nodeAsync(w,row)))return false;
