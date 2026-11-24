@@ -146,7 +146,7 @@ try
             reply=ReferenceDefinition.Query(S("project"),S("manifest"),S("sourceId"),S("text"),S("id"),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Definition unavailable");return File.ReadAllText(path,new System.Text.UTF8Encoding(false,true));});break;
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
-        case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"));break;
+        case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"),request["project"]?.GetValue<string>(),request["path"]?.GetValue<string>());break;
         case "inspectManifest":reply=ManifestMetadata.Inspect(S("text"));break;
         case "inspect":
         {
@@ -294,9 +294,9 @@ static string FormatManifest(Manifest manifest)
     return text.AppendLine("}").ToString();
 }
 
-static JsonObject ReviewSummary(string kind,string before,string after)
+static JsonObject ReviewSummary(string kind,string before,string after,string? project,string? path)
 {
- var changes=new JsonArray();bool additional=false;
+ var changes=new JsonArray();JsonNode? recipeQuantities=null;bool additional=false;
  void Add(string label,JsonNode? oldValue,JsonNode? newValue,bool beforeDefined=true,bool afterDefined=true)=>changes.Add(new JsonObject{["label"]=label,["before"]=oldValue,["after"]=newValue,["beforeDefined"]=beforeDefined,["afterDefined"]=afterDefined});
  string Comments(string text)=>string.Join("\n",System.Text.RegularExpressions.Regex.Matches(text,@"""(?:[^""\\]|\\.)*""|(?<comment>//[^\n]*)").Cast<System.Text.RegularExpressions.Match>().Where(m=>m.Groups["comment"].Success).Select(m=>m.Value));
  JsonNode? Datum(SchemaDatum value)=>value.Kind=="reference"?new JsonObject{["참조 대상"]=value.Reference}:value.Items is not null?new JsonArray(value.Items.Select(Datum).ToArray()):value.Members is not null?new JsonObject(value.Members.Select(x=>new KeyValuePair<string,JsonNode?>(x.Key,Datum(x.Value)))):value.Scalar is not null?JsonNode.Parse(value.Scalar.Value.GetRawText()):null;
@@ -310,6 +310,17 @@ static JsonObject ReviewSummary(string kind,string before,string after)
   }else if(kind is "body" or "blueprint" or "blueprint-node")additional=true;
   else{
    bool created=before.Length==0;var next=new Parser(after,"<review>").ParseElement();var old=created?new Element{Kind=next.Kind,Id=next.Id}:new Parser(before,"<review>").ParseElement();
+   if(!created&&kind=="object"&&project is not null&&path is not null&&
+      old.Values.GetValueOrDefault("concept")?.Value is { ValueKind: JsonValueKind.String } concept&&concept.GetString()=="recipe")
+   {
+    try{
+     string root=Path.GetDirectoryName(Path.GetFullPath(project))!;
+     recipeQuantities=ProjectWindowCatalog.Query(project,null,file=>Owned(root,Path.GetRelativePath(root,file)),
+      recipeReview:(old,next,Owned(root,path)))["recipeQuantities"]?.DeepClone();
+    }catch(Exception error) when(error is IOException or UnauthorizedAccessException or ArgumentException or JsonException or BuildError){
+     // An unavailable recipe projection leaves ordinary Review intact.
+    }
+   }
    if(created)Add(kind=="object"?"개념 생성":kind=="schema"?"스키마 생성":kind=="enum"?"종류 생성":"선언 생성",null,JsonValue.Create(next.Id.Split("::").Last()),false,true);
    // Explain declaration contracts without hiding changes to bodies, tools, identity or comments.
    void Contract(string label,JsonNode? prior,JsonNode? current){if(!JsonNode.DeepEquals(prior,current))Add(label,prior,current,prior is not null,current is not null);}
@@ -343,5 +354,7 @@ static JsonObject ReviewSummary(string kind,string before,string after)
   }
  }catch{additional=true;}
  if(changes.Count==0&&before!=after)additional=true;
- return new JsonObject{["changes"]=changes,["additionalChanges"]=additional};
+ var summary=new JsonObject{["changes"]=changes,["additionalChanges"]=additional};
+ if(recipeQuantities is not null)summary["recipeQuantities"]=recipeQuantities;
+ return summary;
 }

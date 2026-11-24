@@ -731,6 +731,12 @@ def recipe_quantity_workflow(report, root, browser):
         fallback.locator('[data-element-action="confirm"]').click()
         review = page.locator('[data-key="review"]')
         expect(review.locator("#confirm")).to_be_enabled()
+        summary = review.locator("[data-review-recipe]")
+        expect(summary.get_by_role("listitem")).to_have_text(
+            [f"재료 · {NS}::Fiber · 2 → 5", f"결과 · {NS}::Panel · 4 → 6"])
+        review.locator("[data-review-advanced]").click()
+        expect(review.locator("[data-source-before]")).to_contain_text("outputCount = 4")
+        expect(review.locator("[data-source-after]")).to_contain_text("outputCount = 6")
         review.locator("[data-reject]").click()
         recipe_dialog(page, 2, 4).get_by_role("button", name="닫기", exact=True).click()
         fallback.locator('[data-element-action="confirm"]').click()
@@ -811,6 +817,8 @@ def recipe_conflict_workflow(report, root, browser):
         right = amounts(peer, True)
         edit(right, "Fiber", "8")
         peer_review = prepare(right)
+        expect(peer_review.locator("[data-review-recipe]").get_by_role("listitem")).to_have_text(
+            f"재료 · {NS}::Fiber · 2 → 8")
         old_draft = state(peer_address)["draft"]["text"]
 
         # Review persists a checkpoint. A later opener can legitimately adopt that

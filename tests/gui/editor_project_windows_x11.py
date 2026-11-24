@@ -624,26 +624,33 @@ def workflow_recipe_editor(report, root, *, quantities=False):
                         app.wait(lambda row: app.field(row, 532).get("text") == str(count),
                                  "Reset invalid quantity before the next check")
 
-                    def apply_quantity(amount):
+                    def apply_quantity(amount, reflected):
                         app.fill(532, str(amount))
                         app.click(533)
                         app.wait(lambda row: not row["job"] and
                                  row["message"] == "Recipe quantity applied to the draft." and
-                                 app.field(row, 532).get("text") == str(amount), "Stage recipe quantity")
+                                 reflected(row["model"]["workspace"]["inspection"]["values"]),
+                                 "Stage recipe quantity")
                         assert source.read_bytes() == originals[source]
 
-                    apply_quantity(5)
+                    apply_quantity(5, lambda values: json.loads(values["ingredients"])[f"{NS}::Fiber"] == 5)
                     app.click(535)
                     app.wait(lambda row: app.field(row, 532).get("text") == "3", "Other ingredient retains its quantity")
                     app.click(535)
                     app.wait(lambda row: app.field(row, 532).get("text") == "4" and "Result" in row["texts"],
                              "Show the result separately")
-                    apply_quantity(6)
+                    apply_quantity(6, lambda values: values["outputCount"] == 6)
                     app.click(58)
                     app.wait(lambda row: not row["job"] and b"outputCount = 6" in b"".join(snapshots(alpha).values()),
                              "Save recipe draft with result quantity")
                     assert b"Existing independent draft for the View." in b"".join(snapshots(alpha).values())
                     ready = review(app)
+                    summary = app.field(ready, 537)
+                    assert summary["visible"] and summary["readonly"]
+                    assert summary["text"] == (
+                        f"Ingredient · {NS}::Fiber · 2 → 5\nResult · {NS}::Panel · 4 → 6")
+                    assert "outputCount = 4" in app.field(ready, 67)["text"]
+                    assert "outputCount = 6" in app.field(ready, 68)["text"]
                     assert [unit["id"] for unit in ready["model"]["workspace"]["review"]["units"]] == [target]
                     app.click(66)
                     app.wait(lambda row: not row["job"] and not row["model"]["workspace"].get("review"), "Cancel recipe Review")

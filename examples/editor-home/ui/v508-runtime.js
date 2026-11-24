@@ -1625,6 +1625,21 @@ function showReview(){
  const compact=g=>g.ids.length===1&&!dependent.includes(g.ids[0])&&review.units.find(u=>u.id===g.ids[0]).semantic?.changes?.length===1;
  let advancedOpen=false,acknowledged=false;
  w.body.innerHTML=`<div class="window-content"><span class="tag amber">아직 확정하지 않은 변경</span><h2 style="margin-top:15px">${esc(ids.map(id=>id.split('::').at(-1)).join(' · '))}</h2><p class="small">확정할 변경을 선택하십시오. 같은 객체의 변경은 함께 선택됩니다. 최종 소스는 Confirm에서만 반영됩니다.</p>${groups.map((g,index)=>` ${compact(g)?'':`<label class="change-row">${checkbox(g,index)}<strong>${esc(g.label)}</strong></label>`}${g.ids.map(id=>{const u=review.units.find(u=>u.id===id);return `<section data-semantic-review data-review-unit="${esc(id)}">${u.openingViewOrigin?`<p class="small" data-opening-view-origin>작업자 제안 · ${esc(u.openingViewOrigin.worker)} · 작업 ${esc(u.openingViewOrigin.task)}</p>`: ''}${(u.semantic?.changes||[]).map(c=>`<div class="semantic-change" role="group" aria-label="${esc(c.label)}" data-semantic-change>${compact(g)?checkbox(g,index):''}<strong>${esc(c.label)}</strong><del class="semantic-value" role="group" aria-label="변경 전" data-semantic-before>${esc(value(c.before,c.beforeDefined,c.beforeJson))}</del><span aria-hidden="true">→</span><span class="semantic-value" role="group" aria-label="변경 후" data-semantic-after>${esc(value(c.after,c.afterDefined,c.afterJson))}</span></div>`).join('')}${u.semantic?.additionalChanges!==false?'<p class="small" data-additional-changes>위 항목 외에 추가 변경이 있습니다. 고급 검토에서 전체 변경을 확인해야 합니다.</p>':''}</section>`;}).join('')}`).join('')}<p class="small" data-review-selection-status></p><button type="button" class="secondary" data-review-advanced aria-expanded="false">고급 검토 · 소스 변경 보기</button><div data-review-source hidden></div><div class="actions"><button class="secondary" data-reject>취소</button><button class="secondary" data-operation data-rereview>선택한 변경 다시 검토</button><button class="primary" id="confirm" data-operation data-token="${esc(review.token)}">검토한 변경 Confirm</button></div></div>`;
+ for(const unit of review.units){
+  const quantities=unit.semantic?.recipeQuantities;
+  if(!quantities?.length)continue;
+  const summary=document.createElement('section');
+  summary.dataset.reviewRecipe=unit.id;
+  const heading=document.createElement('h3'),list=document.createElement('ul');
+  heading.textContent='레시피 수량 · '+unit.id.split('::').at(-1);
+  for(const row of quantities){
+   const line=document.createElement('li');
+   line.textContent=(row.role==='ingredient'?'재료':'결과')+' · '+row.id+' · '+row.before+' → '+row.after;
+   list.append(line);
+  }
+  summary.append(heading,list);
+  w.body.querySelector('.window-content').prepend(summary);
+ }
  if(review.status==='conflict'){const tools=document.createElement('div');tools.className='actions';const note=document.createElement('p');note.dataset.reviewConflictNotice='';note.textContent='원본 파일이 바뀌었습니다. 실제 내용을 비교하고 새 Review를 만들어 주십시오.';tools.append(note);for(const unit of review.units){const button=document.createElement('button');button.dataset.operation='source-conflict';button.dataset.reviewConflict=unit.id;button.textContent=unit.id.split('::').at(-1)+' · 실제 파일 비교';button.onclick=async()=>{
  const compared=await conflictsUI.open(unit.id);
  if(compared===true&&windows.get('review')===w)closeWindow('review');

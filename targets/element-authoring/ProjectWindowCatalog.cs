@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 internal static class ProjectWindowCatalog
 {
     internal static JsonObject Query(string project, string? requestedId, Func<string, string> scope,
-        JsonObject? setting = null, bool main = false)
+        JsonObject? setting = null, bool main = false, (Element Before, Element After, string Path)? recipeReview = null)
     {
         const int maxViews = 32;
         const int maxDocumentBytes = 1048576;
@@ -50,6 +50,47 @@ internal static class ProjectWindowCatalog
                 return null;
             var element = documents.Element(PackPaths.Owned(root, locator.Path));
             return element.Id == id && element.Kind == kind && element.Parent is null ? element : null;
+        }
+
+        if (recipeReview is { } review)
+        {
+            var summary = new JsonObject();
+            if (review.Before.Kind != "object" || review.After.Kind != "object" ||
+                review.Before.Id != review.After.Id || review.Before.Parent is not null || review.After.Parent is not null ||
+                Owned(review.Before.Id, "object") is null ||
+                PackPaths.Owned(root, manifest.Elements[review.Before.Id[prefix.Length..]].Path) != review.Path)
+                return summary;
+
+            bool OwnsResource(string id) => Owned(id, "object") is not null;
+            var before = ReadRecipe(review.Before, OwnsResource);
+            var after = ReadRecipe(review.After, OwnsResource);
+            if (before is null || after is null) return summary;
+
+            var oldIngredients = before["ingredients"]!.AsArray();
+            var newIngredients = after["ingredients"]!.AsArray()
+                .ToDictionary(row => row!["id"]!.GetValue<string>(), StringComparer.Ordinal);
+            var oldOutput = before["output"]!;
+            var newOutput = after["output"]!;
+            if (oldOutput["id"]!.GetValue<string>() != newOutput["id"]!.GetValue<string>() ||
+                oldIngredients.Count != newIngredients.Count ||
+                oldIngredients.Any(row => !newIngredients.ContainsKey(row!["id"]!.GetValue<string>())))
+                return summary;
+
+            var quantities = new JsonArray();
+            void Changed(string role, JsonNode prior, JsonNode current)
+            {
+                int oldCount = prior["count"]!.GetValue<int>();
+                int newCount = current["count"]!.GetValue<int>();
+                if (oldCount != newCount) quantities.Add(new JsonObject {
+                    ["role"] = role, ["id"] = prior["id"]!.DeepClone(), ["before"] = oldCount, ["after"] = newCount });
+            }
+            foreach (var row in oldIngredients)
+                Changed("ingredient", row!, newIngredients[row!["id"]!.GetValue<string>()]!);
+            Changed("result", oldOutput, newOutput);
+
+            if (quantities.Count > 0 && observed.All(pair => ReadCurrent(pair.Key).AsSpan().SequenceEqual(pair.Value)))
+                summary["recipeQuantities"] = quantities;
+            return summary;
         }
 
         JsonObject? Project(Element declaration, string? renderer = null)
