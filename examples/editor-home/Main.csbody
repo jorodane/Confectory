@@ -1,5 +1,7 @@
 if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_UI") is null)Environment.SetEnvironmentVariable("CONFECTORY_UI","embedded");
 if(Environment.GetEnvironmentVariable("CONFECTORY_UI")is "web" or "embedded")return calls.WebStart.Invoke();
+(string Manifest,string Project)? returnToGtk=null;
+while(true){
 // All acquired product resources remain owned until their individual release succeeds.
 var resources=new System.Collections.Generic.List<(string Name,Action Release)>();
 System.Threading.Tasks.Task<string>? job=null;bool stop=false,appClosePending=false,modelCloseScheduled=false,jobFaultReported=false;int disposalState=0;
@@ -826,7 +828,7 @@ void SwitchToLogicCode(){
  }
  if(model["backgroundProjects"] is System.Text.Json.Nodes.JsonArray background&&background.Count>0){message="Close projects working in the background before opening Logic Code.";return;}
  var browser=g_app_info_get_default_for_uri_scheme("http");
- if(browser==IntPtr.Zero){message="No default browser is available. Close this window and use ./run --logic-code.";return;}
+ if(browser==IntPtr.Zero){message="No default browser is available. This project remains open.";return;}
  g_object_unref(browser);
  var project=model["selected"]!;
  logicHandoff=(project["path"]!.ToString(),project["projectId"]!.ToString());
@@ -1183,7 +1185,15 @@ else if(screen=="fields"){
  if(lanImageBounds.Length==4){var image=lanImages[lanImageIndex];calls.DrawChatCapture.Invoke(surfaces,lanImageBounds,image.Width,image.Height,image.Pixels);}
  if(traceComposition)Console.Error.WriteLine("ENGINE_FRAME "+System.Text.Json.JsonSerializer.Serialize(new{stamp=System.Diagnostics.Stopwatch.GetTimestamp(),phase="end",frames}));
  if(Environment.GetEnvironmentVariable("CONFECTORY_HOME_TRACE")=="1"&&frames%15==0)Console.WriteLine("HOME_UI "+new System.Text.Json.Nodes.JsonObject{["screen"]=screen,["width"]=w,["height"]=h,["sidebar"]=sidebar,["job"]=job is not null,["operation"]=operation,["queuedAction"]=queuedAction,["deferredActions"]=deferredActions,["pointer"]=calls.ControlState.Invoke(control,"query",0)[1],["nativePickerPending"]=nativePickerPending,["focus"]=calls.ControlState.Invoke(control,"query",0)[0],["hits"]=System.Text.Json.JsonSerializer.SerializeToNode(hits),["radii"]=System.Text.Json.JsonSerializer.SerializeToNode(radii),["orderFrame"]=J(orderFrame),["navigationPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(navPanel),["submenuPanel"]=System.Text.Json.JsonSerializer.SerializeToNode(subPanel),["fields"]=TraceFields(),["lanMode"]=lanMode,["lanStatus"]=lanStatus,["lanImageBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(lanImageBounds),["laySelecting"]=laySelection is not null,["layBounds"]=System.Text.Json.JsonSerializer.SerializeToNode(layBounds),["model"]=TraceModel(),["message"]=message,["controls"]=control,["homeControls"]=homeControl,["projectControls"]=shellControl,["retainedViews"]=screen=="project"?System.Text.Json.JsonSerializer.SerializeToNode(Views()):null,["chatBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(chatBuffers),["texts"]=System.Text.Json.JsonSerializer.SerializeToNode(texts),["textClips"]=System.Text.Json.JsonSerializer.SerializeToNode(clips),["detailBuffers"]=System.Text.Json.JsonSerializer.SerializeToNode(detailBuffers),["detailKey"]=DetailsScreen()?DetailKey():"",["nativeTree"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeProjection()?.DeepClone():null,["nativeTreeState"]=screen=="project"&&WorkspaceMode()=="explorer"?TreeState().DeepClone():null,["sourceInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(sourceVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["propertyInputVersions"]=System.Text.Json.JsonSerializer.SerializeToNode(System.Linq.Enumerable.ToDictionary(propertyVersions,p=>p.Key,p=>new{revision=p.Value.Revision,textHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(p.Value.Text)))})),["nativeAction"]=screen=="actions"?new System.Text.Json.Nodes.JsonObject{["status"]=nativeActionStatus,["object"]=nativeActionObject,["selection"]=nativeActionSelection,["token"]=nativeActionList?["token"]?.DeepClone(),["actions"]=nativeActionList?["actions"]?.DeepClone(),["chosen"]=nativeActionChosen,["generation"]=nativeActionGeneration}:null,["nativeFieldState"]=screen=="fields"?NativeFieldState().DeepClone():null,["nativeFieldResult"]=screen=="fields"?NativeFieldResult()?.DeepClone():null,["nativeFieldChoosing"]=screen=="fields"&&nativeFieldChoosing,["nativeFieldCandidates"]=screen=="fields"?System.Text.Json.JsonSerializer.SerializeToNode(nativeFieldCandidates):null,["nativeFieldObjects"]=screen=="fields"?nativeFieldObjects?.DeepClone():null,["nativeFieldObjectOffset"]=nativeFieldObjectOffset,["nativeFieldStatus"]=screen=="fields"&&nativeFieldStatus.TryGetValue(Context(),out var fieldStatus)?fieldStatus:"",["buffers"]=System.Text.Json.JsonSerializer.SerializeToNode(buffers)}.ToJsonString());}
-entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??repo,"listen","{}"),value=>calls.EntryRequest.Invoke(value,"close","{}"));bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invoke(surfaces)[0]==0){cancelNativeField?.Invoke();cancelNativeAction?.Invoke();return job is not null&&!job.IsCompleted;}
+entrySession=Own("entry-listener",calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??repo,"listen","{}"),value=>calls.EntryRequest.Invoke(value,"close","{}"));
+if(returnToGtk is { } recovery){
+ returnToGtk=null;
+ model=J(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=recovery.Manifest,expectedProjectId=recovery.Project})));
+ if(model["selected"]?["projectId"]?.ToString()==recovery.Project&&model["selected"]?["path"]?.ToString()==recovery.Manifest){
+  Change("project");message="Could not open the browser; this project is still open.";pendingFocus=38;
+ }else{Change("home");message="Could not open the browser or reopen the original project. Its saved draft was kept.";}
+}
+bool Step(){if(System.Threading.Volatile.Read(ref stop)||calls.SurfaceInfo.Invoke(surfaces)[0]==0){cancelNativeField?.Invoke();cancelNativeAction?.Invoke();return job is not null&&!job.IsCompleted;}
  if(logicHandoff is not null&&operation=="close-project"&&job?.IsCompleted==true){
   if(job.IsCompletedSuccessfully){
    var result=J(job.Result);
@@ -1265,6 +1275,8 @@ bool Status(string line,string detail){
  return true;
 }
 System.IO.DirectoryInfo? browserBootstrap=null;
+bool browserLaunchFailed=false,browserReady=false;
+long launchDeadline=0;
 void RetireBootstrap(){
  if(browserBootstrap is null)return;
  browserBootstrap.Delete(true);
@@ -1273,7 +1285,7 @@ void RetireBootstrap(){
 try{
  Action<string> open=address=>{
   IntPtr browser=g_app_info_get_default_for_uri_scheme("http");
-  if(browser==IntPtr.Zero)throw new InvalidOperationException("No default browser is available.");
+  if(browser==IntPtr.Zero){Console.Error.WriteLine("No default browser is available at handoff.");browserLaunchFailed=true;return;}
   IntPtr uri=IntPtr.Zero,uris=IntPtr.Zero;
   try{
    // Pass only a file URI to the desktop launcher. The session key stays in
@@ -1283,21 +1295,41 @@ try{
    System.IO.File.WriteAllText(file,"<!doctype html><meta name=referrer content=no-referrer><meta http-equiv=refresh content=\"0;url="+address+"\"><title>Confectory Logic Code</title>");
    uri=System.Runtime.InteropServices.Marshal.StringToCoTaskMemUTF8(new Uri(file).AbsoluteUri);
    uris=g_list_append(IntPtr.Zero,uri);
-   if(g_app_info_launch_uris(browser,uris,IntPtr.Zero,IntPtr.Zero)==0)throw new InvalidOperationException("Could not open the default browser.");
+   if(g_app_info_launch_uris(browser,uris,IntPtr.Zero,IntPtr.Zero)==0){Console.Error.WriteLine("The default browser could not be launched.");browserLaunchFailed=true;}
+   else launchDeadline=Environment.TickCount64+20_000;
   }finally{
    if(uris!=IntPtr.Zero)g_list_free(uris);if(uri!=IntPtr.Zero)System.Runtime.InteropServices.Marshal.FreeCoTaskMem(uri);
    g_object_unref(browser);
   }
  };
- Func<bool> alive=()=>Status("Logic Code is open in the browser.","Close this window to end the local editor session.");
- AppContext.SetData("Confectory.EditorHome.LogicHandoff",(handoff.Manifest,handoff.Project,open,alive,(Action)RetireBootstrap));
+ void BrowserReady(){RetireBootstrap();browserReady=true;}
+ bool Alive(){
+  if(!Status(browserReady?"Logic Code is open in the browser.":"Opening Logic Code…",
+      browserReady?"Close this window to end the local editor session.":"Waiting for the default browser."))return false;
+  if(!browserReady&&launchDeadline!=0&&Environment.TickCount64>=launchDeadline){
+   Console.Error.WriteLine("The default browser did not connect to Logic Code.");
+   browserLaunchFailed=true;
+  }
+  return !browserLaunchFailed;
+ }
+ AppContext.SetData("Confectory.EditorHome.LogicHandoff",(handoff.Manifest,handoff.Project,open,(Func<bool>)Alive,(Action)BrowserReady));
+ string? priorUi=Environment.GetEnvironmentVariable("CONFECTORY_UI");
  Environment.SetEnvironmentVariable("CONFECTORY_UI","web");
- try{return calls.WebStart.Invoke();}
- catch(Exception error){
+ try{
+  int result=calls.WebStart.Invoke();
+  if(result!=0||!browserLaunchFailed)return result;
+  // WebStart has closed the listener, view and model before GTK reacquires
+  // the same installation lease. Reopen only the original project.
+  returnToGtk=handoff;
+ }catch(Exception error) when(!browserLaunchFailed){
   Console.Error.WriteLine("Logic Code could not open: "+error.Message);
   RetireBootstrap();
-  while(Status("Could not open Logic Code.","Close this window and use ./run --logic-code."))System.Threading.Thread.Sleep(16);
+  while(Status("Could not open Logic Code.","Close this window and reopen the project in Confectory."))System.Threading.Thread.Sleep(16);
   return 1;
- }finally{AppContext.SetData("Confectory.EditorHome.LogicHandoff",null);}
+ }finally{
+  Environment.SetEnvironmentVariable("CONFECTORY_UI",priorUi);
+  AppContext.SetData("Confectory.EditorHome.LogicHandoff",null);
+ }
 }finally{try{RetireBootstrap();}finally{calls.Close.Invoke(statusWindow,-1);}}
 }catch{try{Dispose();}catch(Exception error){Console.Error.WriteLine(error);}if(IsClosed())AppContext.SetData("Confectory.HostLoop."+loopToken,null);else Console.Error.WriteLine("Editor cleanup retained for retry: "+loopToken);throw;}
+}

@@ -153,8 +153,12 @@ def exercise(page, manifest, namespace, marker, *, cold, dispatched=False):
     assert not info.exists() and manifest.read_bytes() == manifest_before
     info_review.locator('#confirm').click()
     expect(info_review).to_be_hidden(timeout=120000)
+    # Confirm closes Review before the completion callback refreshes the
+    # schema window. Close its actual header after that refresh finishes.
+    expect(page.locator('#status')).to_have_text('검토한 변경을 최종 소스에 반영했습니다.')
     assert TITLE in info.read_text()
-    info_window.locator('[data-close]').first.click()
+    info_window.locator(':scope > .window-title [data-close]').click()
+    expect(info_window).to_be_hidden()
     confirmed_info, confirmed_manifest = info.read_bytes(), manifest.read_bytes()
 
     panel = open_main(page, namespace + '::Main')
@@ -231,7 +235,7 @@ def dispatched_browser(manifest, namespace, marker, cold):
           else 'PASS GTK-dispatched Logic Code edit, Review cancel, Confirm and actual Run', flush=True)
 
 
-def test_package(package, image, switch=False):
+def test_package(package, image, switch=False, failure=False):
     import re
     from playwright._impl._driver import compute_driver_executable
     from editor_linux_package_x11 import extracted_package, installed_editor
@@ -250,9 +254,20 @@ def test_package(package, image, switch=False):
             opener.write_text('#!/bin/sh\nprintf "%s\\n" "$1" > "$HOME/browser-open"\n')
             opener.chmod(0o700)
             mounts.append((opener, '/test/browser-handler', True))
+        if failure:
+            broken = case / 'unstartable-browser'
+            broken.write_text('#!/test/missing-interpreter\n')
+            broken.chmod(0o700)
+            unloaded = case / 'exits-without-opening'
+            unloaded.write_text('#!/bin/sh\nprintf started > "$HOME/browser-started"\nexit 23\n')
+            unloaded.chmod(0o700)
+            mounts.extend(((broken, '/test/unstartable-browser', True), (unloaded, '/test/exits-without-opening', True)))
         with installed_editor(case / 'sdk', extracted, image, sdk=True, extra_mounts=mounts, shm_size="512m") as (app, projects):
             if switch:
                 test_switch(app, projects)
+                return
+            if failure:
+                test_launch_failure(app, projects)
                 return
             app.launch([INSTALL + '/run'])
             assert not app.state()['model']['cards'] and not app.state()['model']['helperAgents']['agents']
@@ -354,10 +369,100 @@ def test_switch(app, projects):
     print('PASS fallback and unsaved guard, exact active project, unrelated project and draft retained, exit removed listener', flush=True)
 
 
+def test_launch_failure(app, projects):
+    import uuid
+    from editor_lan_chat_x11 import eventually, native_windows
+    from editor_lay_chat_x11 import open_project
+
+    def choose_handler(executable):
+        applications = app.home / '.local/share/applications'
+        applications.mkdir(parents=True, exist_ok=True)
+        (applications / 'confectory-failing-browser.desktop').write_text(
+            '[Desktop Entry]\nType=Application\nName=Owned failing browser fixture\n'
+            f'Exec={executable} %u\nMimeType=x-scheme-handler/http;\n')
+        (app.home / '.config').mkdir(exist_ok=True)
+        (app.home / '.config/mimeapps.list').write_text(
+            '[Default Applications]\nx-scheme-handler/http=confectory-failing-browser.desktop;\n')
+
+    def no_listener():
+        for family in ('tcp', 'tcp6'):
+            rows = app.invoke('cat', '/proc/net/' + family).stdout.splitlines()[1:]
+            assert not any(row.split()[3] == '0A' for row in rows)
+
+    draft = 'Unsent browser recovery ' + uuid.uuid4().hex
+    app.launch([INSTALL + '/run'])
+    assert not app.state()['model']['cards'] and not app.state()['model']['helperAgents']['agents']
+    other = app.create('Unrelated Recovery Project', '', projects)
+    app.click(33)
+    app.click(52)
+    app.wait(lambda row: row['screen'] == 'home', 'Closed the unrelated project')
+    other_file = Path(other['path'])
+    other_original = other_file.read_bytes()
+    project = app.create('Browser Recovery Project', draft, projects)
+    manifest = Path(project['path'])
+    original = manifest.read_bytes()
+    failure_message = 'Could not open the browser; this project is still open.'
+    started = app.home / 'browser-started'
+
+    app.click(33)
+    app.click(20)
+    app.wait(lambda row: 'No default browser' in row['message'] and
+             app.field(row, 38).get('text') == draft, 'No-browser click left the existing GTK project open')
+    assert app.window in native_windows() and not native_windows(b'Confectory - Logic Code')
+    no_listener()
+    app.click(42)
+    print('PASS absent browser leaves GTK and the unsent draft in place', flush=True)
+
+    for executable, launches in (('/test/unstartable-browser', False), ('/test/exits-without-opening', True)):
+        choose_handler(executable)
+        log_start = app.log.stat().st_size
+        app.click(33)
+        app.click(20)
+        if launches:
+            eventually(started.is_file, 'Registered failing browser actually started')
+        def diagnostics():
+            with app.log.open('rb') as stream:
+                stream.seek(log_start)
+                lines = stream.read().decode(errors='replace').splitlines()
+            return [line for line in lines if line in ('The default browser could not be launched.',
+                                                       'The default browser did not connect to Logic Code.')]
+
+        def returned(row):
+            return (row['screen'] == 'project' and row['message'] == failure_message and
+                    row['model']['selected']['projectId'] == project['projectId'] and
+                    app.field(row, 38).get('text') == draft and diagnostics() and
+                    native_windows() and not native_windows(b'Confectory - Logic Code'))
+
+        restored = app.wait(returned, f'Reopen original project after {executable}', timeout=45)
+        window, = native_windows()
+        app.window = window
+        no_listener()
+        assert not list((app.home.parent / 'tmp').glob('confectory-logic-*/open.html'))
+        assert restored['model']['selected']['path'] == str(manifest)
+        assert manifest.read_bytes() == original and other_file.read_bytes() == other_original
+        assert not (app.profile / 'project-chat').exists()
+        diagnostic, = diagnostics()
+        if launches:
+            assert diagnostic == 'The default browser did not connect to Logic Code.'
+        print(f'PASS {diagnostic} GTK reopened the original project with its draft.', flush=True)
+
+    app.fill(38, draft + ' still editable')
+    app.close()
+    no_listener()
+    app.launch([INSTALL + '/run'])
+    assert open_project(app, 'Browser Recovery Project')['projectId'] == project['projectId']
+    app.wait(lambda row: app.field(row, 38).get('text') == draft + ' still editable',
+             'Recovered draft remained editable and persisted on normal close')
+    app.close()
+    no_listener()
+    print('PASS recovered chat stays unsent and editable through a full restart', flush=True)
+
+
 if __name__ == '__main__':
     if sys.argv[1] == '--browser':
         browser_workflow(Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]))
     elif sys.argv[1] == '--dispatched':
         dispatched_browser(Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]), sys.argv[5] == '1')
     else:
-        test_package(Path(sys.argv[1]).resolve(), sys.argv[2], switch='--switch' in sys.argv[3:])
+        test_package(Path(sys.argv[1]).resolve(), sys.argv[2], switch='--switch' in sys.argv[3:],
+                     failure='--browser-failure' in sys.argv[3:])
