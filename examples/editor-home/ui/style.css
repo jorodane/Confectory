@@ -3108,3 +3108,10 @@ body:has(>.run-window.is-run-fullscreen) #toast{z-index:123000!important}
 .relation-map-edges [data-reference-hover]>text{fill:var(--accent)}
 .relation-map-edges marker path{fill:context-stroke}
 .relation-map-reference-tip{position:absolute;top:8px;left:8px;max-width:calc(100% - 16px)}
+
+.sd-plain-name{display:none}
+:root[data-hide-helper-characters] [data-helper-character-visual]{display:none!important}
+:root[data-hide-helper-characters] .helper-sd-panel{height:36px}
+:root[data-hide-helper-characters] .helper-sd-panel .sd-character{height:36px;padding:0 8px;background:#343434!important;border:1px solid #5b5b5b;border-radius:6px;cursor:pointer}
+:root[data-hide-helper-characters] .helper-sd-panel .sd-plain-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-settings-content label:has(#settings-helper-characters){display:flex;align-items:center;gap:6px}

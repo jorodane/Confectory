@@ -212,6 +212,12 @@ void Register(string context,string title,string description,string? checkedIden
  }LoadPresentation(model["selected"]!["projectId"]!.ToString());Persist();}
 var retainedBadgeStatus=operation=="worker-badges-inspect"?model["status"]?.DeepClone():null;var retainedBadgeError=operation=="worker-badges-inspect"?model["operationError"]?.DeepClone():null;var retainedBadgeArchive=operation=="worker-badges-inspect"?model["archive"]?.DeepClone():null;try{model["status"]="";model["archive"]=null;
  if(operation=="home-preferences-save"){var candidate=args["preferences"]?.AsObject()??throw new ArgumentException("Home preferences required");var saved=calls.HomePreferences.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,"save",candidate.ToJsonString());model["homePreferences"]=System.Text.Json.Nodes.JsonNode.Parse(saved);model["status"]="Home preferences saved locally";}
+ else if(operation=="helper-characters-save"){
+  var setting=args["showHelperCharacters"]??throw new ArgumentException("Helper character preference required");
+  var saved=calls.HomePreferences.Invoke(System.IO.Path.GetDirectoryName((string)state[2])!,"save-helper-characters",setting.ToJsonString());
+  model["homePreferences"]=System.Text.Json.Nodes.JsonNode.Parse(saved);
+  model["status"]="Helper character preference saved locally";
+ }
  else if(operation=="home-summaries"){
   if(model["selected"] is not null)throw new InvalidOperationException("Home summary requires Home");var summaries=new System.Text.Json.Nodes.JsonObject();foreach(var card in cards){string id=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(card!["path"]!.ToString())))[..32];var summary=new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["objectScope"]="confirmed-project-object-declarations",["packsStatus"]="unavailable",["lastEditStatus"]="unavailable"};
    try{var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(card["path"]!.ToString(),"{\"action\":\"list\",\"kind\":\"object\",\"query\":\"\",\"page\":0}"))!;if(result["status"]?.ToString()=="available"&&result["sourceScope"]?.ToString()=="confirmed-files"&&result["kind"]?.ToString()=="object"&&result["total"]?.GetValue<int>()>=0){summary["status"]="available";summary["objects"]=result["total"]!.DeepClone();}}

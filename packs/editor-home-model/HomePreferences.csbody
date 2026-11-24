@@ -1,5 +1,7 @@
 // Host-owned display preferences only. No project identity, path, handle or executable is accepted in the value.
 string path=System.IO.Path.Combine(System.IO.Path.GetFullPath(storage),"home-preferences.json");
+// Keep the original version-1 file readable by editors that only accept its original fields.
+string characterPath=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path)!,"helper-character-presentation.json");
 string[] groups={"local","explore","favorite","mine"};
 System.Text.Json.Nodes.JsonObject Defaults(){var packs=new System.Text.Json.Nodes.JsonObject();foreach(string group in groups)packs[group]=new System.Text.Json.Nodes.JsonObject{["draft"]="",["query"]="",["sort"]="default",["selected"]=null};return new(){["version"]=1,["tab"]="projects",["projectQuery"]="",["packGroup"]="local",["packs"]=packs};}
 void Keys(System.Text.Json.Nodes.JsonObject node,string[] names){if(node.Count!=names.Length||System.Linq.Enumerable.Any(node,pair=>!System.Linq.Enumerable.Contains(names,pair.Key)))throw new ArgumentException("Home preference fields");}
@@ -9,12 +11,41 @@ System.Text.Json.Nodes.JsonObject Validate(string raw){
  if(value["version"]?.GetValue<int>()!=1||value["tab"]?.GetValue<string>() is not ("projects" or "packs")||!System.Linq.Enumerable.Contains(groups,value["packGroup"]?.GetValue<string>()))throw new ArgumentException("Home preference version or group");Text(value["projectQuery"]);var packs=value["packs"]!.AsObject();Keys(packs,groups);
  foreach(string group in groups){var row=packs[group]!.AsObject();Keys(row,new[]{"draft","query","sort","selected"});Text(row["draft"]);Text(row["query"]);if(row["selected"] is not null)Text(row["selected"]);if(row["sort"]?.GetValue<string>() is not ("default" or "name" or "version"))throw new ArgumentException("Home preference sort");}return value;
 }
+bool? ReadCharacterPreference(){
+ try{
+  using var file=System.IO.File.OpenRead(characterPath);
+  Span<byte> bytes=stackalloc byte[6];
+  var raw=bytes[..file.ReadAtLeast(bytes,bytes.Length,false)];
+  if(raw.SequenceEqual("true"u8))return true;
+  if(raw.SequenceEqual("false"u8))return false;
+  return null;
+ }catch(System.IO.FileNotFoundException){return true;}
+ catch(System.IO.DirectoryNotFoundException){return true;}
+ catch(System.IO.IOException){return null;}
+ catch(UnauthorizedAccessException){return null;}
+}
+bool? showHelperCharacters=ReadCharacterPreference();
+string Result(string status,System.Text.Json.Nodes.JsonObject value){
+ var result=new System.Text.Json.Nodes.JsonObject{["status"]=status,["value"]=value,["showHelperCharacters"]=showHelperCharacters};
+ if(status=="unavailable")result["code"]="home_preferences_unavailable";
+ return result.ToJsonString();
+}
 System.Text.Json.Nodes.JsonObject? saved=null;
+string status="ready";
 try{
  if(System.IO.Directory.Exists(path))throw new System.IO.IOException("Home preference file unavailable");
  if(System.IO.File.Exists(path)){if(new System.IO.FileInfo(path).Length>16384)throw new ArgumentException("Home preference byte budget");saved=Validate(System.IO.File.ReadAllText(path,new System.Text.UTF8Encoding(false,true)));}
-}catch{if(operation=="load")return new System.Text.Json.Nodes.JsonObject{["status"]="unavailable",["code"]="home_preferences_unavailable",["value"]=Defaults()}.ToJsonString();throw new InvalidOperationException("Home preference storage unavailable; existing file retained");}
-if(operation=="load")return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["value"]=saved??Defaults()}.ToJsonString();
+}catch{status="unavailable";}
+if(operation=="load")return Result(status,saved??Defaults());
+if(operation=="save-helper-characters"){
+ if(showHelperCharacters is null)throw new InvalidOperationException("Helper character preference unavailable; existing file retained");
+ if(payload is not ("true" or "false"))throw new ArgumentException("Helper character preference must be boolean");
+ bool show=payload=="true";
+ if(show!=showHelperCharacters)calls.WriteAtomic.Invoke(characterPath,payload);
+ showHelperCharacters=show;
+ return Result(status,saved??Defaults());
+}
+if(status!="ready")throw new InvalidOperationException("Home preference storage unavailable; existing file retained");
 if(operation!="save")throw new ArgumentException("Unknown Home preference operation");var candidate=Validate(payload);
 if(saved is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(saved,candidate))calls.WriteAtomic.Invoke(path,candidate.ToJsonString());
-return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["value"]=candidate}.ToJsonString();
+return Result(status,candidate);
