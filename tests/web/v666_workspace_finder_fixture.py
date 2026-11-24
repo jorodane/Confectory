@@ -65,7 +65,7 @@ def control(row,action,ok=True):
  c=row['control'];return run('control',row,ok,action=action,**{k:str(c[k]) for k in ['runtime','ack','sequence']})
 
 errors=[];external=[];traffic=[];requests=[]
-def setup(browser):
+def setup(browser, *, welcome=False):
  page=browser.new_page(viewport={'width':1440,'height':1000});page.on('pageerror',lambda e:errors.append(str(e)))
  def intercept(route):
   if not route.request.url.startswith(origin+'/'):external.append(route.request.url);route.abort();return
@@ -82,7 +82,10 @@ def setup(browser):
     for row in response.json().get('results',[]):
      if row.get('ok')and isinstance(row.get('result'),dict)and'lease'in row['result']:traffic.append(row['result'])
   except Exception:pass
- page.route('**/*',intercept);page.on('response',observe);goto_editor(page,url);page.locator('.work-body').wait_for();return page
+ page.route('**/*',intercept);page.on('response',observe)
+ if welcome:page.goto(url);page.locator('.welcome').wait_for()
+ else:goto_editor(page,url);page.locator('.work-body').wait_for()
+ return page
 def original():assert all(pathlib.Path(p).read_bytes()==raw for p,raw in before.items())
 def data(key):return [row for row in traffic if row['view']==key[13:]][-1]
 def save_evidence():
