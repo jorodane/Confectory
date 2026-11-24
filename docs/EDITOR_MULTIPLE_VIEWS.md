@@ -26,6 +26,19 @@ New actual acceptance scripts are `tests/gui/editor_home_multiview_x11.py` and `
 
 The three retained compact views do not each reproduce every primary toolbar or arbitrary independent explorer. Schema definition editing remains available through Source or Inspect in the primary editor; selected schema fields in a retained Properties view are descriptive. Existing full responsive scrolling, long-label sizing and v180 visual fidelity remain separate unfinished work.
 
+## Object-specific Editor View selection
+
+EditorHome opens objects in its schema editor. **새 창으로 열기** uses the same renderer with an independently bound properties window. The server accepts three built-in window modes (`source`, `properties`, `declaration`). A project's pack registry describes dependencies and the inventory exposes declaration metadata. A durable object-to-editor binding and a resolver for a trusted renderer remain unimplemented. [EditorHome command](../packs/editor-home-model/Command.csbody) · [Separate properties renderer](../examples/editor-home/ui/element-instances.js)
+
+The in-tree `ElementView` sample implements borrowed card and table projections. Its `Labels` output includes a raw declaration excerpt and test-consumer action captions. A read-only EditorHome connection would need a projection of approved typed fields for the current project and exact owned object, plus an explicitly selected renderer bundled with the host. [ElementView labels](../packs/element-view/Labels.csbody)
+
+The remaining storage choice is who owns the selection.
+
+- A private EditorHome preference would apply to that profile, project and object. The existing presentation data stores window and layout state, so a durable renderer choice would need its own validated meaning.
+- A project-owned declaration would share the selection with readers of that project. The host would still have to resolve trust locally and check that the current project and object match. A copied declaration can carry a preference without carrying permission to run its renderer.
+
+The Linux EditorHome boundary test registers the in-tree pack as a local dependency, verifies the default editor and separate properties window, and checks that the existing `viewMode` rejects a card mode and pack function identifier. It repeats the check after restart and opens the same qualified ID in a second project with independent data. The stand-alone ElementView test covers card and table lifetime. [EditorHome boundary test](../tests/web/v821_editor_view_registration_boundary_ui.py) · [ElementView test](../tests/Confectory.Tests/ElementViewTests.cs)
+
 ## Reproduce the affected gates
 
 Use the ordinary .NET 10 SDK, wasm-tools and existing native prerequisites. `CONFECTORY_DOTNET` names the installed SDK executable; private XDG/entry paths are useful when the host home is read-only. This environment's four-CPU quota required ordinary browser tool parallelism to be bounded with `DOTNET_PROCESSOR_COUNT=4 EMCC_CORES=4`.
@@ -35,6 +48,7 @@ $CONFECTORY_DOTNET build tests/Confectory.Tests -c Release
 $CONFECTORY_DOTNET run --project tests/Confectory.Tests -c Release --no-build -- test_project_shell_domain_isolated_execution_no_null_chat_open_and_context_cleanup test_editor_home_semantic_presentation_rebuilds_only_own_provider
 DISPLAY=:96 $CONFECTORY_DOTNET run --project tests/Confectory.Tests -c Release --no-build -- test_actual_editor_home_multiple_object_views_share_drafts
 $CONFECTORY_DOTNET src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/editor-home/project.cpack linux > /tmp/editor-linux.json
+python3 tests/web/v821_editor_view_registration_boundary_ui.py "$PWD" /tmp/editor-linux.json
 DISPLAY=:96 python3 tests/gui/editor_home_multiview_x11.py /tmp/editor-linux.json
 DOTNET_PROCESSOR_COUNT=4 EMCC_CORES=4 $CONFECTORY_DOTNET src/Confectory.Cli/bin/Release/net10.0/Confectory.Cli.dll build examples/editor-home/project.cpack browser > /tmp/editor-browser.json
 python3 tests/web/editor_home_multiview.py /tmp/editor-browser.json
