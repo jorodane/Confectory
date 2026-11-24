@@ -4,7 +4,8 @@ if(port==0){var probe=new System.Net.Sockets.TcpListener(System.Net.IPAddress.Lo
 if(port<1024||port>65535)throw new ArgumentException("Unprivileged loopback port required");
 string origin="http://127.0.0.1:"+port,session=Guid.NewGuid().ToString("N"),loop=Guid.NewGuid().ToString("N");
 var listener=new System.Net.HttpListener();listener.Prefixes.Add(origin+"/");listener.Start();
-bool stopping=false,closed=false;System.Threading.Tasks.Task<System.Net.HttpListenerContext>? pending=null;
+(Action<string>? Open,Func<bool>? Alive,Action? Retire) desktop=AppContext.GetData("Confectory.BrowserHost.Desktop."+owner) is ValueTuple<Action<string>,Func<bool>,Action> host?host:default;
+bool opened=false,stopping=false,closed=false;System.Threading.Tasks.Task<System.Net.HttpListenerContext>? pending=null;
 // Socket progress must not own the single host/owner execution thread. In
 // particular a page retired during reload may stop reading a large resource.
 // Owner Request/Resource calls still run serially on Step, never on I/O tasks.
@@ -28,6 +29,8 @@ void Retire(System.Net.HttpListenerContext context){
 }
 void Cleanup(){stopping=true;foreach(var context in System.Linq.Enumerable.ToArray(transfers.Keys))Retire(context);listener.Close();closed=calls.Close.Invoke(owner);}
 bool Step(){
+ if(desktop.Alive is not null&&!desktop.Alive())stopping=true;
+ if(!stopping&&!opened&&desktop.Open is not null){opened=true;desktop.Open(origin+"/#"+session);}
  if(stopping){Cleanup();return !closed;}
  pending??=listener.GetContextAsync();
  if(pending.IsCompleted){
@@ -47,6 +50,7 @@ bool Step(){
     if(request.Url.AbsolutePath=="/api/request"){
      if(request.Headers["X-Confectory-Session"]!=session||request.Headers["Origin"] is string sender&&sender!=origin)throw new UnauthorizedAccessException();
      if(request.HttpMethod!="POST"||request.ContentLength64<0||request.ContentLength64>2097152)throw new ArgumentException();
+     desktop.Retire?.Invoke();
      transfers[context]=(Read(context,deadline.Token),null,deadline,abort);
      }else if(request.HttpMethod!="GET")throw new ArgumentException();
    }catch(Exception error){
@@ -84,5 +88,5 @@ bool Step(){
  return true;
 }
 AppContext.SetData("Confectory.HostLoop."+loop,new object[]{(Func<bool>)Step,(Action)Cleanup,(Action)(()=>stopping=true),(Func<bool>)(()=>closed)});
-Console.WriteLine("CONFECTORY_WEB_UI "+origin+"/#"+session);Console.Out.Flush();
+if(desktop.Open is null){Console.WriteLine("CONFECTORY_WEB_UI "+origin+"/#"+session);Console.Out.Flush();}
 return calls.Run.Invoke(loop);

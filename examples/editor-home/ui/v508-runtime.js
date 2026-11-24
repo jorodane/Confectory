@@ -1114,6 +1114,33 @@ function setupChatResize(){const bar=document.querySelector('.chatbar');bar.quer
 v508.start();
 busy=true;try{await view.mount();if(view.active){controls();await view.call(current.projectId?'helperList':'globalHelpers',{});}}catch(error){if(error.message!=='view_closed'||view.active)throw error;}finally{busy=false;controls();}if(view.active&&$('#status'))$('#status').textContent='Ready';
 
+const startupLogic=current?.startupLogic,startupScope=current?.projectId;
+if(startupLogic){
+ while(view.active&&current.projectId===startupScope&&(busy||actualWorkspace.loading))await new Promise(resolve=>setTimeout(resolve,50));
+ const generation=view.generation,alive=()=>view.active&&!dirty&&view.generation===generation&&current.projectId===startupScope&&current.startupLogic===startupLogic;
+ const openEntry=()=>work(async()=>{
+  if(!alive())return false;
+  if(current.draft?.id!==startupLogic)await readCurrentView('select',{id:startupLogic},alive);
+  await inspectDeclaration(startupLogic);
+  if(!alive()||current.declaration?.id!==startupLogic||current.declaration.kind!=='function')throw Error('현재 프로젝트의 진입 기능을 열 수 없습니다.');
+  try{await declarationEditors.openAuthorInWork(current.declaration);}
+  catch(error){
+   const panel=windows.get('blueprint');
+   if(error.message==='consumer_error'&&alive()&&panel?.meta.id===startupLogic){
+    const status=$('.bp-status',panel.body);
+    if(status)status.textContent='진입 기능 원본을 읽지 못했습니다. 검토할 프로젝트 초안이 있으면 먼저 확인하세요.';
+    const retry=document.createElement('button');
+    retry.dataset.operation='read-startup-logic';
+    retry.textContent='진입 기능 다시 읽기';
+    retry.onclick=openEntry;
+    panel.body.prepend(retry);
+   }
+   throw error;
+  }
+ },'',{flushWorkspace:false});
+ if(alive())await openEntry();
+}
+
 function showReview(){
  const scope=current.projectId,review=view.state.review;if(!review){toast('검토할 변경이 없습니다.');return;}const w=openWindow('review','변경 검토 · '+(review.units?.[0]?.id?.split('::').at(-1)||''),495,390),ids=review.units.map(u=>u.id),additional=review.units.some(u=>u.semantic?.additionalChanges!==false),selected=new Set(ids);
  // Keep Review in the original floating foreground layer, above object Views.

@@ -35,12 +35,51 @@ def listeners():
 
 
 @contextmanager
-def open_packaged_logic(browser):
+def owned_page(browser, address, bootstrap=None):
     from editor_navigation import goto_editor
+    origin, _ = address.split('/#', 1)
+    endpoint = urllib.parse.urlsplit(origin)
+    assert endpoint.scheme == 'http' and endpoint.hostname == '127.0.0.1'
+    assert listeners() == {('tcp', f'0100007F:{endpoint.port:04X}')}
+    request = urllib.request.Request(origin + '/api/request', data=b'{"op":"mount"}',
+                                     headers={'Content-Type': 'application/json'})
+    try:
+        urllib.request.urlopen(request, timeout=5)
+    except urllib.error.HTTPError as error:
+        assert error.code == 403
+    else:
+        raise AssertionError('Unauthenticated browser RPC was accepted')
+    page = browser.new_page(viewport={'width': 1800, 'height': 1200})
+    external, errors = [], []
+
+    def route_owned(route):
+        if route.request.url.startswith(origin + '/') or route.request.url == bootstrap:
+            route.continue_()
+        else:
+            external.append(route.request.url)
+            route.abort()
+
+    page.route('**/*', route_owned)
+    page.on('pageerror', lambda error: errors.append(str(error)))
+    try:
+        if bootstrap is None:
+            goto_editor(page, address)
+        else:
+            page.goto(bootstrap, wait_until='commit')
+            page.wait_for_url(origin + '/**')
+            page.locator('.work-body').wait_for()
+        yield page
+        assert not errors and not external, (errors, external)
+    finally:
+        page.close()
+
+
+@contextmanager
+def open_packaged_logic(browser):
     env = dict(os.environ, CONFECTORY_WEB_PORT='1')
     with subprocess.Popen([INSTALL + '/run', '--logic-code'], start_new_session=True, env=env,
                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as host:
-        address, page = None, None
+        address = None
         try:
             with selectors.DefaultSelector() as reader:
                 reader.register(host.stdout, selectors.EVENT_READ)
@@ -59,36 +98,9 @@ def open_packaged_logic(browser):
                         address = ready.decode().split()[1]
                         break
             assert address, captured.decode(errors='replace')
-            origin, _ = address.split('/#', 1)
-            endpoint = urllib.parse.urlsplit(origin)
-            assert endpoint.scheme == 'http' and endpoint.hostname == '127.0.0.1'
-            assert listeners() == {('tcp', f'0100007F:{endpoint.port:04X}')}
-            request = urllib.request.Request(origin + '/api/request', data=b'{"op":"mount"}',
-                                             headers={'Content-Type': 'application/json'})
-            try:
-                urllib.request.urlopen(request, timeout=5)
-            except urllib.error.HTTPError as error:
-                assert error.code == 403
-            else:
-                raise AssertionError('Unauthenticated browser RPC was accepted')
-            page = browser.new_page(viewport={'width': 1800, 'height': 1200})
-            external, errors = [], []
-
-            def route_owned(route):
-                if route.request.url.startswith(origin + '/'):
-                    route.continue_()
-                else:
-                    external.append(route.request.url)
-                    route.abort()
-
-            page.route('**/*', route_owned)
-            page.on('pageerror', lambda error: errors.append(str(error)))
-            goto_editor(page, address)
-            yield page
-            assert not errors and not external, (errors, external)
+            with owned_page(browser, address) as page:
+                yield page
         finally:
-            if page is not None:
-                page.close()
             if host.poll() is None:
                 # A terminal Ctrl+C addresses the foreground launcher and engine together.
                 os.killpg(host.pid, signal.SIGINT)
@@ -101,72 +113,125 @@ def open_packaged_logic(browser):
     assert not listeners(), 'The loopback listener survived normal editor shutdown'
 
 
-def browser_workflow(manifest, namespace, marker):
-    from playwright.sync_api import expect, sync_playwright
+def browser_options():
+    # Keep font mappings on the fixture's shared memory mount.
+    return dict(executable_path='/usr/lib/chromium/chromium',
+                args=['--no-sandbox', '--disable-gpu'],
+                ignore_default_args=['--disable-dev-shm-usage'])
+
+
+def open_recent(page):
+    from playwright.sync_api import expect
+    card = page.locator('#home-projects [data-enter]').filter(has_text=TITLE)
+    expect(card).to_have_count(1)
+    card.click()
+    expect(page.locator('.work-body')).to_be_visible()
+
+
+def exercise(page, manifest, namespace, marker, *, cold, dispatched=False):
+    from playwright.sync_api import expect
     from editor_logic_workflow import edit_body, find_project_item, open_main, review, run_from_dock
-    expect.set_options(timeout=30000)
-    assert os.geteuid() != 0 and not Path('/workspace').exists()
-    assert not listeners()
+    if dispatched:
+        expect(page.locator('#title')).to_contain_text(TITLE)
+        panel = page.locator('.window[data-key=blueprint]')
+        expect(panel).to_be_visible()
+    else:
+        open_recent(page)
+    source_text = f'System.IO.File.WriteAllText({json.dumps(str(marker))}, "{OUTPUT}");\nreturn 0;'
+    if cold:
+        panel = open_main(page, namespace + '::Main')
+        edit_body(page, panel, source_text, change=False)
+        run_from_dock(page, marker, OUTPUT)
+        return
     source, body = manifest.parent / 'main.csbody', manifest.parent / 'main_body.celem'
     info = manifest.parent / 'elements/ProjectInfo.celem'
     original = (source.read_bytes(), body.read_bytes())
-    source_text = f'System.IO.File.WriteAllText({json.dumps(str(marker))}, "{OUTPUT}");\nreturn 0;'
+    manifest_before = manifest.read_bytes()
+    find_project_item(page, namespace + '::ProjectInfo', '개념')
+    info_window = page.locator('.window[data-key=schema]')
+    info_review = review(page, info_window.locator('[data-element-action=confirm]'))
+    assert not info.exists() and manifest.read_bytes() == manifest_before
+    info_review.locator('#confirm').click()
+    expect(info_review).to_be_hidden(timeout=120000)
+    assert TITLE in info.read_text()
+    info_window.locator('[data-close]').first.click()
+    confirmed_info, confirmed_manifest = info.read_bytes(), manifest.read_bytes()
 
-    def open_recent(page):
-        card = page.locator('#home-projects [data-enter]').filter(has_text=TITLE)
-        expect(card).to_have_count(1)
-        card.click()
-        expect(page.locator('.work-body')).to_be_visible()
+    panel = open_main(page, namespace + '::Main')
+    if dispatched:
+        # The initial registration draft protects the native manifest until Confirm.
+        panel.locator('[data-operation=read-startup-logic]').click()
+    expect(panel.locator('[data-native-source]')).to_have_value('return 0;\n')
+    panel.locator('[data-native-convert]').click()
+    expect(panel.locator('.bp-status')).to_contain_text('C# 미리보기')
+    panel.locator('[data-bp-save]').click()
+    expect(panel.get_by_role('tab', name='논리 코드', exact=True)).to_be_visible(timeout=120000)
+    edit_body(page, panel, source_text, change=True)
+    panel.locator('[data-bp-save]').click()
+    expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
+    submit = panel.locator('[data-bp-complete]')
+    first_review = review(page, submit)
+    first_review.locator('[data-reject]').click()
+    expect(first_review).to_be_hidden()
+    assert (source.read_bytes(), body.read_bytes()) == original
+    assert manifest.read_bytes() == confirmed_manifest
+    final_review = review(page, submit)
+    final_review.locator('#confirm').click()
+    expect(final_review).to_be_hidden(timeout=120000)
+    assert source.read_bytes() == original[0] and info.read_bytes() == confirmed_info
+    assert 'blueprint common' in body.read_text()
+    run_from_dock(page, marker, OUTPUT)
 
+
+def browser_workflow(manifest, namespace, marker):
+    from playwright.sync_api import expect, sync_playwright
+    expect.set_options(timeout=30000)
+    assert os.geteuid() != 0 and not Path('/workspace').exists()
+    assert not listeners()
     with sync_playwright() as playwright:
-        options = dict(executable_path='/usr/lib/chromium/chromium',
-                       args=['--no-sandbox', '--disable-gpu'],
-                       ignore_default_args=['--disable-dev-shm-usage'])
-        with playwright.chromium.launch(**options) as browser, open_packaged_logic(browser) as page:
-            open_recent(page)
-            manifest_before = manifest.read_bytes()
-            find_project_item(page, namespace + '::ProjectInfo', '개념')
-            info_window = page.locator('.window[data-key=schema]')
-            info_review = review(page, info_window.locator('[data-element-action=confirm]'))
-            assert not info.exists() and manifest.read_bytes() == manifest_before
-            info_review.locator('#confirm').click()
-            expect(info_review).to_be_hidden(timeout=120000)
-            assert TITLE in info.read_text()
-            info_window.locator('[data-close]').first.click()
-            confirmed_info, confirmed_manifest = info.read_bytes(), manifest.read_bytes()
-
-            panel = open_main(page, namespace + '::Main')
-            expect(panel.locator('[data-native-source]')).to_have_value('return 0;\n')
-            panel.locator('[data-native-convert]').click()
-            expect(panel.locator('.bp-status')).to_contain_text('C# 미리보기')
-            panel.locator('[data-bp-save]').click()
-            expect(panel.get_by_role('tab', name='논리 코드', exact=True)).to_be_visible(timeout=120000)
-            edit_body(page, panel, source_text, change=True)
-            panel.locator('[data-bp-save]').click()
-            expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
-            submit = panel.locator('[data-bp-complete]')
-            first_review = review(page, submit)
-            first_review.locator('[data-reject]').click()
-            expect(first_review).to_be_hidden()
-            assert (source.read_bytes(), body.read_bytes()) == original
-            assert manifest.read_bytes() == confirmed_manifest
-            final_review = review(page, submit)
-            final_review.locator('#confirm').click()
-            expect(final_review).to_be_hidden(timeout=120000)
-            assert source.read_bytes() == original[0] and info.read_bytes() == confirmed_info
-            assert 'blueprint common' in body.read_text()
-            run_from_dock(page, marker, OUTPUT)
-        print('PASS package Logic Code card Save, Review cancel, Confirm, actual Run and clean shutdown', flush=True)
-
-        with playwright.chromium.launch(**options) as browser, open_packaged_logic(browser) as page:
-            open_recent(page)
-            panel = open_main(page, namespace + '::Main')
-            edit_body(page, panel, source_text, change=False)
-            run_from_dock(page, marker, OUTPUT)
-        print('PASS fresh packaged host and Chromium reopen Recent, read the same card and run it again', flush=True)
+        for cold in (False, True):
+            with playwright.chromium.launch(**browser_options()) as browser, open_packaged_logic(browser) as page:
+                exercise(page, manifest, namespace, marker, cold=cold)
+            print('PASS fresh packaged host and Chromium reopen Recent, read the same card and run it again' if cold
+                  else 'PASS package Logic Code card Save, Review cancel, Confirm, actual Run and clean shutdown',
+                  flush=True)
 
 
-def test_package(package, image):
+def dispatched_browser(manifest, namespace, marker, cold):
+    from playwright.sync_api import expect, sync_playwright
+    assert os.geteuid() != 0 and not Path('/workspace').exists()
+    address = b''
+    fd = os.open(Path.home() / 'browser-open', os.O_RDWR | os.O_NONBLOCK)
+    try:
+        with selectors.DefaultSelector() as reader:
+            reader.register(fd, selectors.EVENT_READ)
+            deadline = time.monotonic() + 15
+            while b'\n' not in address and time.monotonic() < deadline:
+                if reader.select(max(0, deadline - time.monotonic())):
+                    address += os.read(fd, 1024)
+            assert b'\n' in address, 'The registered browser did not receive an address'
+    finally:
+        os.close(fd)
+    import re
+    import stat
+    received = address.decode().strip()
+    # GIO may pass a local file as a path or a file URI.
+    assert '/#' not in received and (received.startswith('file:///') or received.startswith('/')), \
+        'Only the private bootstrap file may reach the desktop launcher'
+    bootstrap = Path(received if received.startswith('/') else urllib.parse.unquote(urllib.parse.urlsplit(received).path))
+    assert bootstrap.name == 'open.html' and stat.S_IMODE(bootstrap.parent.stat().st_mode) == 0o700
+    local = re.search(r'url=(http://127\.0\.0\.1:\d+/#[0-9a-f]{32})"', bootstrap.read_text())
+    assert local, 'Expected the local browser bootstrap'
+    expect.set_options(timeout=30000)
+    with sync_playwright() as playwright, playwright.chromium.launch(**browser_options()) as browser, \
+            owned_page(browser, local[1], bootstrap=bootstrap.as_uri()) as page:
+        assert not bootstrap.exists(), 'Authenticated browser startup must retire the bootstrap'
+        exercise(page, manifest, namespace, marker, cold=cold, dispatched=True)
+    print('PASS reopened the same entry card and ran it again' if cold
+          else 'PASS GTK-dispatched Logic Code edit, Review cancel, Confirm and actual Run', flush=True)
+
+
+def test_package(package, image, switch=False):
     import re
     from playwright._impl._driver import compute_driver_executable
     from editor_linux_package_x11 import extracted_package, installed_editor
@@ -180,7 +245,15 @@ def test_package(package, image):
     with tempfile.TemporaryDirectory(prefix='cflogic-') as scratch:
         case = Path(scratch)
         extracted = extracted_package(package, case)
+        if switch:
+            opener = case / 'browser-handler'
+            opener.write_text('#!/bin/sh\nprintf "%s\\n" "$1" > "$HOME/browser-open"\n')
+            opener.chmod(0o700)
+            mounts.append((opener, '/test/browser-handler', True))
         with installed_editor(case / 'sdk', extracted, image, sdk=True, extra_mounts=mounts, shm_size="512m") as (app, projects):
+            if switch:
+                test_switch(app, projects)
+                return
             app.launch([INSTALL + '/run'])
             assert not app.state()['model']['cards'] and not app.state()['model']['helperAgents']['agents']
             created = app.create(TITLE, '', projects)
@@ -205,8 +278,86 @@ def test_package(package, image):
             assert result.returncode == 0, redact(result.stderr)
 
 
+def test_switch(app, projects):
+    import re
+    from editor_lan_chat_x11 import eventually, native_windows
+    from editor_lay_chat_x11 import open_project
+
+    def no_listener():
+        assert not any(row[3] == '0A' for row in app.tcp())
+
+    def close_project():
+        app.click(33)
+        app.click(52)
+        app.wait(lambda row: row['screen'] == 'home', 'Closed local fixture project')
+
+    def switch_command():
+        app.click(33)
+        app.click(20)
+
+    def dispatch(created, cold):
+        prior = app.window
+        switch_command()
+        window, = eventually(lambda: native_windows(b'Confectory - Logic Code'), 'Native Logic Code lifetime window')
+        assert prior not in native_windows() and app.child.poll() is None
+        result = subprocess.run(app.command([sys.executable, '/test/' + Path(__file__).name, '--dispatched',
+                                              created['path'], created['namespace'],
+                                              str(app.home / 'logic-result.txt'), str(int(cold))],
+                                             PLAYWRIGHT_NODEJS_PATH='/test/node'),
+                                capture_output=True, text=True, timeout=280)
+        assert result.returncode == 0, re.sub(r'(http://127\.0\.0\.1:\d+/#)[0-9a-f]{32}', r'\1[redacted]', result.stderr)
+        print(result.stdout, end='', flush=True)
+        app.window = window
+        app.close()
+        assert not native_windows(b'Confectory - Logic Code')
+        no_listener()
+
+    app.launch([INSTALL + '/run'])
+    assert not app.state()['model']['cards'] and not app.state()['model']['helperAgents']['agents']
+    created = app.create(TITLE, 'Unsent GTK handoff draft', projects)
+    close_project()
+    other = app.create('Unrelated Local Project', '', projects)
+    close_project()
+    assert open_project(app, TITLE)['projectId'] == created['projectId']
+    other_manifest = Path(other['path'])
+    other_original = other_manifest.read_bytes()
+
+    switch_command()
+    app.wait(lambda row: 'No default browser' in row['message'], 'No-browser CLI fallback')
+    no_listener()
+    app.click(42)
+
+    home = app.home
+    apps = home / '.local/share/applications'
+    apps.mkdir(parents=True)
+    (apps / 'confectory-test-browser.desktop').write_text('[Desktop Entry]\nType=Application\nName=Owned Chromium test\n'
+                                                         'Exec=/test/browser-handler %u\nMimeType=x-scheme-handler/http;\n')
+    (home / '.config').mkdir(exist_ok=True)
+    (home / '.config/mimeapps.list').write_text('[Default Applications]\nx-scheme-handler/http=confectory-test-browser.desktop;\n')
+    os.mkfifo(home / 'browser-open', 0o600)
+
+    app.click(55)
+    app.fill(54, 'return 3;\n')
+    switch_command()
+    app.wait(lambda row: 'unapplied editing input' in row['message'], 'Unsaved GTK source blocked the switch')
+    assert Path(created['path']).with_name('main.csbody').read_text() == 'return 0;\n'
+    no_listener()
+    app.click(42)
+    app.fill(54, 'return 0;\n')
+    dispatch(created, cold=False)
+
+    app.launch([INSTALL + '/run'])
+    assert open_project(app, TITLE)['projectId'] == created['projectId']
+    app.wait(lambda row: app.field(row, 38).get('text') == 'Unsent GTK handoff draft', 'Local GTK draft restored')
+    dispatch(created, cold=True)
+    assert other_manifest.read_bytes() == other_original
+    print('PASS fallback and unsaved guard, exact active project, unrelated project and draft retained, exit removed listener', flush=True)
+
+
 if __name__ == '__main__':
     if sys.argv[1] == '--browser':
         browser_workflow(Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]))
+    elif sys.argv[1] == '--dispatched':
+        dispatched_browser(Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]), sys.argv[5] == '1')
     else:
-        test_package(Path(sys.argv[1]).resolve(), sys.argv[2])
+        test_package(Path(sys.argv[1]).resolve(), sys.argv[2], switch='--switch' in sys.argv[3:])

@@ -40,9 +40,10 @@ internal static class Program
                 {
                     startLinux.Environment["CONFECTORY_UI"]="web";
                     startLinux.Environment["CONFECTORY_INSTALLED_LOGIC_CODE"]="1";
-                    startLinux.Environment.Remove("CONFECTORY_WEB_PORT");
                     Console.Error.WriteLine("Logic Code uses your browser on this machine. Open the address printed below and keep this terminal open. Press Ctrl+C here to close the editor.");
                 }
+                else startLinux.Environment["CONFECTORY_INSTALLED_GTK"]="1";
+                startLinux.Environment.Remove("CONFECTORY_WEB_PORT");
                 Directory.CreateDirectory(startLinux.Environment["CONFECTORY_HOME_STORAGE"]!);
                 using var engine=Process.Start(startLinux)??throw new IOException("Confectory engine did not start");
                 await engine.WaitForExitAsync();

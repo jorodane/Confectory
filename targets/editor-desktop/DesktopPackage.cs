@@ -79,9 +79,11 @@ internal static class DesktopPackage
             Put dotnet on PATH or set CONFECTORY_DOTNET to its executable. Nothing is installed by Confectory.
             The default profile is under $XDG_DATA_HOME/Confectory/EditorHome (or ~/.local/share/Confectory/EditorHome).
             No source checkout, build cache or credentials are required.
-            To edit Logic Code, create a project in GTK and close the window. Run ./run --logic-code,
-            open the printed loopback address in your browser, and select the project from Recent.
-            Keep the terminal open while editing; use Ctrl+C there when finished.
+            In a local project with a declared entry, choose Open Logic Code in Browser from the GTK
+            project menu. This closes the native editor and opens the entry function in your default
+            browser. Close the small Logic Code window to end the local editor session.
+            If the default browser cannot open, close GTK and use ./run --logic-code. Open the
+            printed loopback address, choose the project from Recent, and use Ctrl+C to stop.
             Run ./run --check-package to verify the package contents.
             """+"\n");
     }

@@ -1,6 +1,8 @@
 string root=Environment.GetEnvironmentVariable("CONFECTORY_EDITOR_REPO")??Environment.CurrentDirectory;
 if(OperatingSystem.IsWindows()&&Environment.GetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST") is null)Environment.SetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST",System.IO.Path.Combine(root,"targets","webview-windows","bin","Release","net10.0-windows","Confectory.WebView.Windows.dll"));
-string? project=Environment.GetEnvironmentVariable("CONFECTORY_WEB_PROJECT");
+(string Manifest,string Project,Action<string> Open,Func<bool> Alive,Action Retire) handoff=AppContext.GetData("Confectory.EditorHome.LogicHandoff") is ValueTuple<string,string,Action<string>,Func<bool>,Action> pending?pending:default;
+bool switched=handoff.Open is not null;
+string? project=switched?handoff.Manifest:Environment.GetEnvironmentVariable("CONFECTORY_WEB_PROJECT");
 string storage=Environment.GetEnvironmentVariable("CONFECTORY_HOME_STORAGE")??Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE")??System.IO.Path.Combine(root,".confectory","editor-home");
 bool installedLogicCode=OperatingSystem.IsLinux()&&Environment.GetEnvironmentVariable("CONFECTORY_INSTALLED_LOGIC_CODE")=="1";
 bool embedded=Environment.GetEnvironmentVariable("CONFECTORY_UI")=="embedded";
@@ -8,32 +10,44 @@ string session="",owner="",entry="";
 string OpenEntry()=>calls.EntryRequest.Invoke(Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_SCOPE")??root,"listen","{}");
 try{
  // Share the native installation's same-user entry lease across both surfaces.
- if(installedLogicCode)entry=OpenEntry();
+ if(installedLogicCode||switched)entry=OpenEntry();
  session=calls.CreateSession.Invoke(root,storage);
  // Only the serving host thread publishes background observations.
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebPollThread."+session,Environment.CurrentManagedThreadId);
  if(project is not null){var opened=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"open-request",System.Text.Json.JsonSerializer.Serialize(new{path=System.IO.Path.GetFullPath(project)})))!;
  if(opened["selected"] is null||opened["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Project could not be opened");
+ if(switched){
+  var selected=opened["selected"]!;
+  if(selected["projectId"]?.ToString()!=handoff.Project||selected["path"]?.ToString()!=handoff.Manifest||selected["entry"]?.GetValue<string>() is not {Length:>0} feature)
+   throw new InvalidOperationException("The selected project changed before Logic Code could open.");
+  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.StartupLogic."+session,(handoff.Project,selected["activation"]!.ToString(),feature));
+ }
  var shown=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"open\"}"))!;
  if(shown["workspace"] is null)throw new InvalidOperationException("Project workspace unavailable");
+ if(!switched){
  if(shown["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "project" or "pack"){
  var objects=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(session,"workspace","{\"action\":\"filter\",\"kind\":\"object\",\"query\":\"\"}"))!;
  var first=System.Linq.Enumerable.FirstOrDefault(objects["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is not null){calls.Command.Invoke(session,"workspace",new System.Text.Json.Nodes.JsonObject{["action"]="select",["id"]=first["id"]!.DeepClone()}.ToJsonString());calls.Command.Invoke(session,"workspace","{\"action\":\"schema-view\"}");}
  }else calls.Command.Invoke(session,"workspace","{\"action\":\"schema-view\"}");
 
  }
+ }
  if(embedded)entry=OpenEntry();
  if(entry.Length>0)AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,new object[]{entry,Environment.CurrentManagedThreadId});
- owner=calls.Open.Invoke(session,calls.Bundle.Invoke());return embedded?calls.EmbeddedServe.Invoke(owner):calls.Serve.Invoke(owner);
+ owner=calls.Open.Invoke(session,calls.Bundle.Invoke());
+ if(switched)AppContext.SetData("Confectory.BrowserHost.Desktop."+owner,(handoff.Open,handoff.Alive,handoff.Retire));
+ return embedded?calls.EmbeddedServe.Invoke(owner):calls.Serve.Invoke(owner);
 }finally{
  try{
   if(session.Length>0){
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebPoll."+session,null);
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebEntry."+session,null);
+   AppDomain.CurrentDomain.SetData("Confectory.EditorHome.StartupLogic."+session,null);
+   if(switched&&owner.Length>0)AppContext.SetData("Confectory.BrowserHost.Desktop."+owner,null);
    if(embedded&&entry.Length>0)calls.EntryRequest.Invoke(entry,"close","{}");
    if(owner.Length>0)while(!calls.Close.Invoke(owner))System.Threading.Thread.Sleep(2);
    calls.CloseSession.Invoke(session);
    AppDomain.CurrentDomain.SetData("Confectory.EditorHome.WebPollThread."+session,null);
   }
- }finally{if(installedLogicCode&&entry.Length>0)calls.EntryRequest.Invoke(entry,"close","{}");}
+ }finally{if((installedLogicCode||switched)&&entry.Length>0)calls.EntryRequest.Invoke(entry,"close","{}");}
 }
