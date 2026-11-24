@@ -56,6 +56,17 @@ python tests/web/project_owned_window_boundary.py Builds/Linux-x64
 python tests/gui/editor_project_windows_x11.py Builds/Linux-x64
 ```
 
+The focused card-and-Run regression can reuse a Linux EditorHome build report from
+the current checkout. With Chromium, Playwright and the .NET 10 tools available,
+run from the checkout root:
+
+```sh
+python tests/web/project_owned_window_boundary.py "$LINUX_EDITOR_HOME_REPORT" --card-run
+```
+
+This mode confirms the read-only card after canceling one Review, opens it through
+≡ and checks that it stays visible while Alpha's real entry runs exactly once.
+
 ## Reproduce the affected gates
 
 Use the ordinary .NET 10 SDK, wasm-tools and existing native prerequisites. `CONFECTORY_DOTNET` names the installed SDK executable; private XDG/entry paths are useful when the host home is read-only. This environment's four-CPU quota required ordinary browser tool parallelism to be bounded with `DOTNET_PROCESSOR_COUNT=4 EMCC_CORES=4`.

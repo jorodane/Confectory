@@ -19,14 +19,14 @@ WINDOW_TITLE = "Project-owned Stock Desk"
 UNSUPPORTED = NS + "::OtherDesk"
 
 
-def seed(package, root):
+def seed(package, root, *, checkout=None):
     (root / "profile").mkdir()
     catalog = []
     proof = root / "run-proof.txt"
     originals = {}
 
     for name in ("Alpha", "Bravo"):
-        project, body = make_project(package, root, name)
+        project, body = make_project(package, root, name, checkout=checkout)
         directory = project.parent
         title = "Local " + name
         source = project.read_text().replace("Recent." + name, NS).rstrip()[:-1]
@@ -109,8 +109,8 @@ def project_menu(page, approved=False):
     return menu
 
 
-def check_project_tools(page):
-    menu = project_menu(page)
+def check_project_tools(page, *, approved=False):
+    menu = project_menu(page, approved=approved)
     menu.get_by_role("button", name="프로젝트 도구", exact=True).click()
     tools = page.get_by_role("navigation", name="프로젝트 작업 공간")
     expect(tools).to_be_visible()
@@ -143,7 +143,7 @@ def stage_renderer(page, path, renderer, previous, *, add_input=False):
         edited = text.replace(" }", f' value editorWindow = "{renderer}"; }}', 1)
     panel = page.locator("[data-project-window-setting]")
     panel.get_by_role("button", name="메뉴 표시 설정", exact=True).click()
-    choices = panel.get_by_label("메뉴에 표시", exact=True)
+    choices = panel.get_by_role("combobox", name="메뉴에 표시", exact=True)
     expect(choices).to_have_value(previous)
     assert choices.locator("option").all_text_contents() == ["표시 안 함", "읽기 전용 카드", "읽기 전용 표"]
     choices.select_option(renderer)
@@ -279,6 +279,30 @@ def workflow(package, root):
     print("PASS packaged Chromium confirmed card and table only in A, canceled review, Home/B scope, built-in editors and real Run")
 
 
+def card_run_workflow(report, root, browser):
+    checkout = Path(__file__).resolve().parents[2]
+    (alpha, _), originals, proof = seed(report, root, checkout=checkout)
+    path = Path(alpha["path"]).with_name("StockDesk.celem")
+    with editor(report, root, "local-card-run", checkout=checkout) as address:
+        page, errors = attach(browser, address)
+        open_project(page, alpha["title"])
+        expect(page.locator('[data-project-owned-window]')).to_have_count(0)
+        card = change_renderer(page, path, "element-view-card", "", cancel_first=True)
+        check_project_tools(page, approved=True)
+        expect(page.locator('[data-project-owned-window]')).to_have_count(0)
+        assert not proof.exists()
+        open_window(page, "card", close=False)
+        check_run(page, alpha, registered=True)
+        expect(page.get_by_role("dialog", name=WINDOW_TITLE, exact=True)).to_be_visible()
+        assert proof.read_bytes() == b"Alpha\n"
+        assert not errors, errors
+        page.close()
+
+    originals[path] = card.encode()
+    assert all(file.read_bytes() == value for file, value in originals.items())
+    print("PASS Chromium canceled Review leaves no menu; confirmed card stays open during the one real Alpha Run")
+
+
 def settings_workflow(package, root, browser):
     (alpha, bravo), originals, proof = seed(package, root)
     path = Path(alpha["path"]).with_name("StockDesk.celem")
@@ -330,10 +354,13 @@ if __name__ == "__main__":
     package = Path(sys.argv[1]).resolve()
     expect.set_options(timeout=25000)
     with tempfile.TemporaryDirectory(prefix="project-owned-view-") as directory:
-        if "--settings" in sys.argv[2:]:
+        if {"--settings", "--card-run"} & set(sys.argv[2:]):
             with sync_playwright() as playwright:
                 with playwright.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"],
                                                 ignore_default_args=["--disable-dev-shm-usage"]) as browser:
-                    settings_workflow(package, Path(directory), browser)
+                    if "--card-run" in sys.argv[2:]:
+                        card_run_workflow(package, Path(directory), browser)
+                    else:
+                        settings_workflow(package, Path(directory), browser)
         else:
             workflow(package, Path(directory))

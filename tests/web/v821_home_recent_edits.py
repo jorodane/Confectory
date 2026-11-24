@@ -19,7 +19,7 @@ from editor_logic_workflow import review
 
 
 @contextmanager
-def editor(package, root, label, *, loopback=False):
+def editor(package, root, label, *, loopback=False, checkout=None):
     env = dict(os.environ, CONFECTORY_HOME_STORAGE=str(root / "profile"),
                CONFECTORY_ENTRY_STORAGE=str(root / "profile"),
                CONFECTORY_MCP_DIRECTORY=str(root / "instances"))
@@ -28,9 +28,17 @@ def editor(package, root, label, *, loopback=False):
         env.pop(setting, None)
     if loopback:
         env["CONFECTORY_DEV_PUBLIC_CHAT_LOOPBACK"] = "1"
+    if checkout is None:
+        command = ["/bin/sh", str(package / "run"), "--logic-code"]
+    else:
+        report = json.loads(package.read_text())
+        assert report["target"] == "linux" and report["tool"]["ok"]
+        command = report["run"]
+        env.update(CONFECTORY_UI="web", CONFECTORY_EDITOR_REPO=str(checkout),
+                   CONFECTORY_ENTRY_SCOPE=str(root / "entry"))
     log = root / (label + ".log")
     with log.open("w") as stream:
-        host = subprocess.Popen(["/bin/sh", str(package / "run"), "--logic-code"],
+        host = subprocess.Popen(command,
                                 env=env, stdout=stream, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             deadline = time.monotonic() + 60
@@ -55,12 +63,12 @@ def editor(package, root, label, *, loopback=False):
                     raise
 
 
-def make_project(package, root, name):
+def make_project(package, root, name, *, checkout=None):
     project = root / name
     project.mkdir()
     namespace = f"Recent.{name}"
     manifest = project / "project.cproj"
-    target = package / "content/targets/dotnet/pack.cpack"
+    target = (checkout if checkout is not None else package / "content") / "targets/dotnet/pack.cpack"
     manifest.write_text(f"""project {namespace} version "1.0.0" {{
 standalone true;
 registry Confectory.Build.DotNet {json.dumps(str(target))};
