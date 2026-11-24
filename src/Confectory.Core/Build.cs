@@ -178,7 +178,11 @@ public sealed partial class Builder
         }
         if (!ids.Contains(id, StringComparer.Ordinal))
             throw new BuildError("CONTRACT_SELECTION", $"Contract {id} was not in the prepared pack selection");
-        if (HasModuleFlow) { CompileModuleFlowContracts(); return Contracts[id]; }
+        if (HasModuleFlow)
+        {
+            CompileModuleFlowContracts();
+            if (Contracts.TryGetValue(id, out var flowContract)) return flowContract;
+        }
         var sources = ids.Select(fn => (Id: fn, Code: Generation.ContractSource(Registry.Get(fn, "function")))).ToArray();
         var information = InformationReferences(ids);
         string name = "Contracts_" + Generation.Symbol(ns);

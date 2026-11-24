@@ -23,12 +23,12 @@ CLR 심벌·번호를 바꾸지 않는다. 실제 원문 해시는 기존 읽기
 참조한다. 빌더는 선택된 모듈의 공개 함수 선언 closure를 모으고 다음과 같이 컴파일한다.
 
 1. 같은 assembly/type 이름과 struct/enum/interface 종류의 임시 nominal 선언을 만든다.
-2. 이 선언을 참조하여 원래 전체 함수 계약 DLL을 컴파일한다.
+2. 이 선언을 참조하여 정보 타입을 서명에 쓰거나 정보 타입에서 참조하는 함수가 속한 팩의 계약 DLL을 컴파일한다. 그 밖의 팩은 기존 팩별 계약 캐시를 사용한다.
 3. 실제 정보·모듈 source를 실제 함수 계약 DLL에 대고 컴파일한다.
 4. 실제 정보 DLL과 함수 DLL만 구현 컴파일·링크·catalog에 전달한다.
 
 임시 선언은 캐시 입력이며 실행 패키지에 포함하지 않는다. assembly 이름과 public type
-identity를 합치거나 바꾸지 않는다. 실제 정보/source와 함수 source 전체, 도구 identity를
+identity를 합치거나 바꾸지 않는다. 이 컴파일에 쓰는 정보 및 함수 소스와 도구 identity를
 캐시 키에 넣으므로 깊은 shape 변경도 양쪽 실제 DLL을 갱신한다. 이미 거절하던 inline
 정보 타입/pack 순환을 임의로 허용하지 않는다. Check/Build가 고른 전체 계약 범위 밖으로
 컴파일된 flow pack을 사후 확장하는 요청은 기존 CONTRACT_SELECTION 경계에서 거절한다.

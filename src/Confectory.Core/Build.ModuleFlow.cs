@@ -27,7 +27,13 @@ public sealed partial class Builder
         }
         foreach (string pack in information.Keys.Order(StringComparer.Ordinal)) Visit(pack);
         InformationContracts.Clear();
-        var sources = contractGroups.OrderBy(g => g.Key, StringComparer.Ordinal).ToDictionary(g => g.Key,
+        // Keep contracts named by generated information and packs whose signatures
+        // use nominal types in the bootstrap. Other packs have independent keys.
+        var flowPacks = definitions.SelectMany(d => d.PublicContracts ?? []).Select(PackPaths.Namespace).ToHashSet(StringComparer.Ordinal);
+        foreach (var group in contractGroups)
+            if (group.Value.Any(id => InformationStructs.SignatureTypes(Registry.Get(id, "function").Signature!).Any()))
+                flowPacks.Add(group.Key);
+        var sources = contractGroups.Where(g => flowPacks.Contains(g.Key)).OrderBy(g => g.Key, StringComparer.Ordinal).ToDictionary(g => g.Key,
             g => g.Value.Select(id => (Id: id, Source: Generation.ContractSource(Registry.Get(id, "function")))).ToArray(), StringComparer.Ordinal);
         string plan = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, ModuleInterfaces.FlowProfile, Tool.Identity,
             definitions.Select(d => new[] { d.Id, d.Source }).ToArray(), sources.Select(g => new object[] { g.Key, g.Value.Select(s => new[] { s.Id, s.Source }).ToArray() }).ToArray() });
@@ -61,9 +67,9 @@ public sealed partial class Builder
         }
         var support = new JsonObject(realContracts.Select(p => KeyValuePair.Create<string, JsonNode?>(p.Key, p.Value.DeepClone())));
         var types = new JsonObject(InformationContracts.OrderBy(p => p.Key, StringComparer.Ordinal).Select(p => KeyValuePair.Create<string, JsonNode?>(p.Key, p.Value.DeepClone())));
-        foreach (var group in contractGroups)
-            foreach (string id in group.Value) {
-                var item = realContracts[group.Key].DeepClone().AsObject(); item["supportingContracts"] = support.DeepClone(); item["informationContracts"] = types.DeepClone(); Contracts[id] = item;
+        foreach (var (pack, artifact) in realContracts)
+            foreach (string id in contractGroups[pack]) {
+                var item = artifact.DeepClone().AsObject(); item["supportingContracts"] = support.DeepClone(); item["informationContracts"] = types.DeepClone(); Contracts[id] = item;
             }
     }
 }
