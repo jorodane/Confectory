@@ -48,6 +48,7 @@ target browser Confectory.Build.BrowserWasm::Platform;
 target linux Confectory.Build.DotNet::Linux; target windows Confectory.Build.DotNet::Portable; target android Confectory.Build.DotNet::Portable;
 element CaptureWorkspaceLay function "CaptureWorkspaceLay.celem"; element CaptureWorkspaceLayBody implementation "CaptureWorkspaceLayBody.celem";
 element DrawChatCapture function "DrawChatCapture.celem"; element DrawChatCaptureBody implementation "DrawChatCaptureBody.celem";
+element PrepareProjectIcon function "PrepareProjectIcon.celem"; element PrepareProjectIconBody implementation "PrepareProjectIconBody.celem";
 element Main function "Main.celem"; element MainBody implementation "MainBody.celem";
 element Verify function "Verify.celem"; element VerifyBody implementation "VerifyBody.celem";
 element VerifyShell function "VerifyShell.celem"; element VerifyShellBody implementation "VerifyShellBody.celem";

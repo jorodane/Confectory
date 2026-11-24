@@ -35,6 +35,7 @@ try
    if(kind==4||kind==5)
    {
     int button=I(84); if(button==4||button==5) { if(kind==4) Emit(view,4,0,0,button==4?120:-120); }
+    else if(button==3&&kind==5) Emit(view,13,I(64),I(68)); // Context menu request, separate from primary pointer input.
     else if(button==1){string captureKey="Confectory.X11.Pointer."+surfaces[0];if(kind==4){XSetInputFocus(d,(nuint)surfaces[view+1],1,0);if(XGrabPointer(d,(nuint)surfaces[view+1],false,76,1,1,0,0,0)==0)AppDomain.CurrentDomain.SetData(captureKey,surfaces[view+1]);}else if(AppDomain.CurrentDomain.GetData(captureKey) is long captured&&captured==surfaces[view+1]){XUngrabPointer(d,0);AppDomain.CurrentDomain.SetData(captureKey,null);}Emit(view,kind==4?1:2,I(64),I(68));}
    }
    if(kind==6) Emit(view,3,I(64),I(68));

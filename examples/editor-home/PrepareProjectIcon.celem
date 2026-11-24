@@ -1,0 +1,4 @@
+function Confectory.EditorHome::PrepareProjectIcon (string input, bool fromFile, int[] pixels) -> string {
+provide Confectory.EditorHome::PrepareProjectIcon with Confectory.EditorHome::PrepareProjectIconBody;
+description "Normalize an image selected by the native Linux file chooser, or decode a stored Home icon for display.";
+}

@@ -28,6 +28,11 @@ dotnet targets/editor-desktop/bin/Release/net10.0/Confectory.dll package . Build
 컴파일러를 사용하는 Review·Confirm 및 Build·Run에는 **.NET 10 SDK**가 추가로 필요하다.
 `dotnet`을 PATH에서 찾을 수 있게 하거나 `CONFECTORY_DOTNET`에 실행 파일을 지정한다.
 런처는 시스템 의존성을 설치하지 않는다.
+GTK 홈 타일의 **Change icon**은 정적 PNG·JPEG·WebP(최대 5 MB, 32 메가픽셀)나 기호 하나를 받는다.
+이미지 선택과 표시에는 GdkPixbuf 및 `libwebp.so.7`이 필요하다.
+**Apply icon**으로 목록에 반영하면 같은 로컬 프로필의 브라우저에서도 표시된다.
+[GTK·Chromium 홈 타일 회귀](../tests/gui/editor_home_project_display_x11.py)에는 격리 X11,
+Chromium·Playwright, Pillow 및 ImageMagick의 `import`가 필요하다. 패키지 경로를 인수로 실행한다.
 
 대상을 생략한 `package` 명령은 기존 Windows x64 패키지를 만든다.
 체크아웃에서 개발할 때는 계속 `examples/editor-home/run-home.sh`를 사용할 수 있다.

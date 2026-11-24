@@ -42,7 +42,7 @@ class NativeControls:
         self.key_event(self.display,code,1,0);self.key_event(self.display,code,0,0)
         for modifier in reversed(modifiers):self.key_event(self.display,self.code(self.display,modifier),0,0)
         self.flush(self.display);time.sleep(.025)
-    def click(self,window,x,y):
+    def click(self,window,x,y,button=1):
         top=int(window)
         for _ in range(8):
             root,parent,children,count=U(),U(),P(),c.c_uint()
@@ -58,7 +58,7 @@ class NativeControls:
         self.raise_window(self.display,top);self.flush(self.display);time.sleep(.08)
         rx,ry,child=c.c_int(),c.c_int(),U()
         assert self.translate(self.display,int(window),self.root,x,y,c.byref(rx),c.byref(ry),c.byref(child))
-        self.motion(self.display,-1,rx.value,ry.value,0);self.button(self.display,1,1,0);self.button(self.display,1,0,0);self.flush(self.display);time.sleep(.12)
+        self.motion(self.display,-1,rx.value,ry.value,0);self.button(self.display,button,1,0);self.button(self.display,button,0,0);self.flush(self.display);time.sleep(.12)
     def drag(self,window,start,end):
         self.click(window,*start)
         rx,ry,child=c.c_int(),c.c_int(),U()

@@ -1,0 +1,160 @@
+[System.Runtime.InteropServices.DllImport("libwebp.so.7")]
+static extern int WebPGetInfo(byte[] data, nuint size, out int width, out int height);
+[System.Runtime.InteropServices.DllImport("libwebp.so.7")]
+static extern IntPtr WebPDecodeRGBAInto(byte[] data, nuint size, [System.Runtime.InteropServices.Out] byte[] output, nuint capacity, int stride);
+[System.Runtime.InteropServices.DllImport("libwebp.so.7")]
+static extern nuint WebPEncodeRGBA(byte[] input, int width, int height, int stride, float quality, out IntPtr output);
+[System.Runtime.InteropServices.DllImport("libwebp.so.7")]
+static extern void WebPFree(IntPtr output);
+[System.Runtime.InteropServices.DllImport("libglib-2.0.so.0")]
+static extern IntPtr g_bytes_new(byte[] data, nuint size);
+[System.Runtime.InteropServices.DllImport("libglib-2.0.so.0")]
+static extern void g_bytes_unref(IntPtr bytes);
+[System.Runtime.InteropServices.DllImport("libgobject-2.0.so.0")]
+static extern void g_object_unref(IntPtr value);
+[System.Runtime.InteropServices.DllImport("libgio-2.0.so.0")]
+static extern IntPtr g_memory_input_stream_new_from_bytes(IntPtr bytes);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern IntPtr gdk_pixbuf_new_from_stream_at_scale(IntPtr stream, int width, int height, int preserveAspectRatio, IntPtr cancellable, IntPtr error);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern int gdk_pixbuf_get_width(IntPtr pixbuf);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern int gdk_pixbuf_get_height(IntPtr pixbuf);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern int gdk_pixbuf_get_n_channels(IntPtr pixbuf);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern int gdk_pixbuf_get_rowstride(IntPtr pixbuf);
+[System.Runtime.InteropServices.DllImport("libgdk_pixbuf-2.0.so.0")]
+static extern IntPtr gdk_pixbuf_read_pixels(IntPtr pixbuf);
+
+const int side = 128, inputLimit = 5_000_000, outputLimit = 65_500;
+const string prefix = "data:image/webp;base64,";
+if (!OperatingSystem.IsLinux()) throw new PlatformNotSupportedException("Native Home image icons are available on Linux.");
+
+if (!fromFile)
+{
+    if (input.Length > outputLimit || !input.StartsWith(prefix, StringComparison.Ordinal) || pixels.Length != side * side)
+        throw new FormatException("Invalid stored project image.");
+    byte[] encoded = Convert.FromBase64String(input[prefix.Length..]);
+    var rgba = new byte[side * side * 4];
+    if (WebPGetInfo(encoded, (nuint)encoded.Length, out int width, out int height) == 0 || width != side || height != side ||
+        WebPDecodeRGBAInto(encoded, (nuint)encoded.Length, rgba, (nuint)rgba.Length, side * 4) == IntPtr.Zero)
+        throw new FormatException("Invalid stored project image.");
+    for (int i = 0; i < pixels.Length; i++)
+    {
+        int n = i * 4, alpha = rgba[n + 3];
+        // DrawChatCapture uses Cairo RGB24. Composite transparent padding over the Home icon background.
+        int Blend(int value, int background) => (alpha * value + (255 - alpha) * background + 127) / 255;
+        pixels[i] = (Blend(rgba[n], 0x21) << 16) | (Blend(rgba[n + 1], 0x36) << 8) | Blend(rgba[n + 2], 0x44);
+    }
+    return input;
+}
+
+byte[] data;
+using (var file = new System.IO.FileStream(input, System.IO.FileMode.Open, System.IO.FileAccess.Read, System.IO.FileShare.Read))
+{
+    long size = file.Length;
+    if (size is < 12 or > inputLimit) throw new FormatException("Choose a PNG, JPEG or WebP image up to 5 MB.");
+    data = new byte[(int)size];
+    file.ReadExactly(data);
+    if (file.ReadByte() != -1) throw new FormatException("The image changed while it was being read.");
+}
+
+var format = data.AsSpan();
+bool png = format.StartsWith(new byte[]{ 137, 80, 78, 71, 13, 10, 26, 10 });
+bool jpeg = format.StartsWith(new byte[]{ 255, 216, 255 });
+bool webp = format.StartsWith("RIFF"u8) && format[8..].StartsWith("WEBP"u8);
+int sourceWidth = 0, sourceHeight = 0;
+if (png && data.Length >= 24 && format[12..].StartsWith("IHDR"u8))
+{
+    sourceWidth = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(format[16..]);
+    sourceHeight = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(format[20..]);
+}
+else if (jpeg)
+{
+    // Read dimensions before handing a file to a decoder that may allocate the full raster.
+    for (int offset = 2; offset < data.Length - 3 && data[offset++] == 255;)
+    {
+        while (offset < data.Length - 2 && data[offset] == 255) offset++;
+        int marker = data[offset++];
+        if (offset + 1 >= data.Length || marker is 0xDA or 0xD9) break;
+        int length = (data[offset] << 8) | data[offset + 1];
+        if (length < 2 || length > data.Length - offset) break;
+        if (marker is 0xC0 or 0xC1 or 0xC2 or 0xC3 or 0xC5 or 0xC6 or 0xC7 or 0xC9 or 0xCA or 0xCB or 0xCD or 0xCE or 0xCF)
+        {
+            if (length < 8) break;
+            sourceHeight = (data[offset + 3] << 8) | data[offset + 4];
+            sourceWidth = (data[offset + 5] << 8) | data[offset + 6];
+            break;
+        }
+        offset += length;
+    }
+}
+else if (webp)
+{
+    if (WebPGetInfo(data, (nuint)data.Length, out sourceWidth, out sourceHeight) == 0)
+        throw new FormatException("Could not read the WebP image.");
+}
+if (sourceWidth is < 1 or > 16384 || sourceHeight is < 1 or > 16384 || (long)sourceWidth * sourceHeight > 32_000_000)
+    throw new FormatException("Image dimensions are invalid or exceed 32 megapixels.");
+
+double scale = (double)side / Math.Max(sourceWidth, sourceHeight);
+int targetWidth = Math.Clamp((int)Math.Round(sourceWidth * scale), 1, side);
+int targetHeight = Math.Clamp((int)Math.Round(sourceHeight * scale), 1, side);
+var canvas = new byte[side * side * 4];
+int Offset(int x, int y, int width, int height) => ((y + (side - height) / 2) * side + x + (side - width) / 2) * 4;
+if (webp)
+{
+    var rgba = new byte[sourceWidth * sourceHeight * 4];
+    if (WebPDecodeRGBAInto(data, (nuint)data.Length, rgba, (nuint)rgba.Length, sourceWidth * 4) == IntPtr.Zero)
+        throw new FormatException("Could not decode the WebP image.");
+    for (int y = 0; y < targetHeight; y++)
+    for (int x = 0; x < targetWidth; x++)
+    {
+        int source = (((2 * y + 1) * sourceHeight / (2 * targetHeight)) * sourceWidth +
+            (2 * x + 1) * sourceWidth / (2 * targetWidth)) * 4;
+        Buffer.BlockCopy(rgba, source, canvas, Offset(x, y, targetWidth, targetHeight), 4);
+    }
+}
+else
+{
+    IntPtr bytes = g_bytes_new(data, (nuint)data.Length), stream = IntPtr.Zero, pixbuf = IntPtr.Zero;
+    try
+    {
+        stream = g_memory_input_stream_new_from_bytes(bytes);
+        pixbuf = gdk_pixbuf_new_from_stream_at_scale(stream, targetWidth, targetHeight, 0, IntPtr.Zero, IntPtr.Zero);
+        if (pixbuf == IntPtr.Zero || gdk_pixbuf_get_width(pixbuf) != targetWidth || gdk_pixbuf_get_height(pixbuf) != targetHeight)
+            throw new FormatException("Could not decode the image.");
+        int channels = gdk_pixbuf_get_n_channels(pixbuf), stride = gdk_pixbuf_get_rowstride(pixbuf);
+        if (channels is not (3 or 4) || stride < targetWidth * channels) throw new FormatException("Invalid image pixels.");
+        var row = new byte[targetWidth * channels];
+        IntPtr source = gdk_pixbuf_read_pixels(pixbuf);
+        for (int y = 0; y < targetHeight; y++)
+        {
+            System.Runtime.InteropServices.Marshal.Copy(IntPtr.Add(source, y * stride), row, 0, row.Length);
+            for (int x = 0; x < targetWidth; x++)
+            {
+                int target = Offset(x, y, targetWidth, targetHeight);
+                Buffer.BlockCopy(row, x * channels, canvas, target, channels);
+                if (channels == 3) canvas[target + 3] = 255;
+            }
+        }
+    }
+    finally
+    {
+        if (pixbuf != IntPtr.Zero) g_object_unref(pixbuf);
+        if (stream != IntPtr.Zero) g_object_unref(stream);
+        g_bytes_unref(bytes);
+    }
+}
+
+nuint lengthEncoded = WebPEncodeRGBA(canvas, side, side, side * 4, 90, out IntPtr encodedPointer);
+try
+{
+    if (lengthEncoded == 0 || lengthEncoded > (nuint)((outputLimit - prefix.Length) / 4 * 3))
+        throw new FormatException("Could not encode a project icon within its size limit.");
+    var encoded = new byte[(int)lengthEncoded];
+    System.Runtime.InteropServices.Marshal.Copy(encodedPointer, encoded, 0, encoded.Length);
+    return prefix + Convert.ToBase64String(encoded);
+}
+finally { if (encodedPointer != IntPtr.Zero) WebPFree(encodedPointer); }

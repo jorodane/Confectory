@@ -1,0 +1,3 @@
+implementation Confectory.EditorHome::PrepareProjectIconBody for Confectory.EditorHome::PrepareProjectIcon (string input, bool fromFile, int[] pixels) -> string {
+body common "PrepareProjectIcon.csbody";
+}
