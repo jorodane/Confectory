@@ -1,1 +1,8 @@
-return calls.WriteChecked.Invoke(handle,"*");
+var workspace=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle)
+    as System.Text.Json.Nodes.JsonObject ?? throw new ObjectDisposedException("EditWorkspace");
+lock(workspace)
+{
+    // Restore records the observed hash. A fresh, unrestored owner can only create a missing checkpoint.
+    string expected=workspace["checkpointVersion"]?.GetValue<string>()??"missing";
+    return calls.WriteChecked.Invoke(handle,expected);
+}
