@@ -1,4 +1,6 @@
 """Keep an unrelated local body input usable while a detached property view opens."""
+from time import perf_counter
+
 from playwright.sync_api import expect, sync_playwright
 
 import v821_object_fallback_roundtrip_ui as fallback
@@ -10,7 +12,7 @@ fixture = fallback.fixture
 
 def exercise(browser):
     page = browser.new_page(viewport={"width": 2000, "height": 1200})
-    errors, held, calls = [], [], []
+    errors, held, held_status, calls = [], [], [], []
     page.on("pageerror", lambda error: errors.append(str(error)))
 
     def intercept(route):
@@ -24,6 +26,9 @@ def exercise(browser):
                 calls.append(body["endpoint"])
                 if body["endpoint"] == "openEditorView":
                     held.append(route)
+                    return
+                if body["endpoint"] == "browserDrafts" and body.get("input", {}).get("view"):
+                    held_status.append(route)
                     return
         route.continue_()
 
@@ -53,6 +58,7 @@ def exercise(browser):
     # input is exercised. No fabricated host response or timing threshold.
     try:
         expect(page.locator("#project-menu")).to_be_disabled()
+        expect(page.locator("#status")).to_have_text("객체 창을 여는 중…")
         page.wait_for_function("() => !document.querySelector('#source').disabled")
         expect(source).to_be_enabled()
         expect(page.locator("#save")).to_be_disabled()
@@ -61,17 +67,41 @@ def exercise(browser):
         expect(page.locator(".brand")).to_be_disabled()
         expect(target).to_have_attribute("aria-disabled", "true")
         local = original + "\n// Local unsaved body input during detached open\n"
+        started = perf_counter()
         source.fill(local)
         expect(source).to_have_value(local)
         expect(source).to_be_focused()
+        print(f"Independent source input response: {(perf_counter() - started) * 1000:.0f} ms")
         assert calls.count("openEditorView") == 1
         assert len(held) == 1
     finally:
-        for route in held:
+        with page.expect_request(lambda request: request.method == "POST" and
+                                 request.url.endswith("/api/request") and
+                                 request.post_data_json.get("endpoint") == "browserDrafts" and
+                                 request.post_data_json.get("input", {}).get("view")):
+            for route in held:
+                route.continue_()
+    try:
+        expect(page.locator("#status")).to_have_text("객체 변경 상태를 확인하는 중…")
+        expect(page.locator("#project-menu")).to_be_disabled()
+        expect(page.locator("#save")).to_be_disabled()
+        editor = page.locator('.window[data-key^="editor-"]:visible')
+        expect(editor).to_have_count(1)
+        note = fallback.field(editor, "Note").get_by_label("Note 기본값", exact=True)
+        started = perf_counter()
+        note.fill("Local unsaved property input during status")
+        expect(note).to_have_value("Local unsaved property input during status")
+        print(f"New property input response: {(perf_counter() - started) * 1000:.0f} ms")
+        expect(source).to_be_disabled()
+        assert len(held_status) == 1
+    finally:
+        for route in held_status:
             route.continue_()
     expect(page.locator("#project-menu")).to_be_enabled()
+    expect(page.locator("#status")).not_to_have_text("객체 변경 상태를 확인하는 중…")
     expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(1)
     expect(source).to_have_value(local)
+    expect(note).to_have_value("Local unsaved property input during status")
     expect(page.locator("#selection")).to_have_text(identity)
     state = fixture.state()
     assert state["draft"]["id"] == identity and state["draft"]["text"] == original
@@ -81,7 +111,7 @@ def exercise(browser):
     fixture.original()
     assert not errors and not fixture.external, (errors, fixture.external)
     page.close()
-    print("PASS independent body input survives detached open; shared mutations and project switch stay blocked")
+    print("PASS detached open and status progress; independent body input and shared mutation guards retained")
 
 
 if __name__ == "__main__":
