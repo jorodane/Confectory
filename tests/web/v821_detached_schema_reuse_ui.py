@@ -93,6 +93,21 @@ def exercise(browser, number, external):
             assert (full, reused) == (1, 2), (full, reused)
             expect(floating.property_value(primary, 'Note')).to_have_value('Unapplied primary input')
             expect(floating.property_value(extra, 'Note')).to_have_value('Unapplied detached input')
+        # A detached status read is not a schema mutation. It must still update
+        # all open views if their shared registered dependency changes.
+        if external:
+            dependency.write_text(dependency.read_text().rstrip()[:-1] +
+                                  '  field StatusExternalFlag single general string;\n}\n')
+            fixture.before[str(dependency)] = dependency.read_bytes()
+        owner = f'{fallback.NS}::{fallback.TARGET}'
+        status = fixture.call('browserDrafts', {'action': 'status', 'view': '2', 'id': owner, 'ids': [owner]})
+        assert owner in status['ids'], status
+        if external:
+            for editor in (primary, extra, target):
+                expect(fallback.field(editor, 'StatusExternalFlag')).to_be_visible()
+        else:
+            expect(floating.property_value(primary, 'Note')).to_have_value('Unapplied primary input')
+            expect(floating.property_value(extra, 'Note')).to_have_value('Unapplied detached input')
         fixture.original()
         print(f'PASS {"external dependency" if external else "unchanged views"}: full={full}, reused={reused}', flush=True)
     finally:
