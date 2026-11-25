@@ -59,7 +59,35 @@ case "effective": case "schema-view": case "call-check":{
    inspectedReply["effectiveDraftRevisions"]=revisions;
    var connectionRepair=request["connectionRepair"];
    if(connectionRepair is not null&&(!combinedSchema||rootNamespace!="Confectory.AISettings"||inspectedId!="Confectory.AISettings::Settings"||connectionRepair["settingsProject"]?.ToString()!=identity[0]))throw new UnauthorizedAccessException("Connection schema repair owner mismatch");
-   var metadata=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke(connectionRepair is not null?"connectionRepairSchema":combinedSchema?"inspectEffective":"effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,kind=u[1],text=u[3],drafts,schemaView=operation is "schema-view" or "call-check",connectionRepair})))!;
+   bool proofEligible=combinedSchema&&request["captureVerifiedSchema"]?.GetValue<bool>()==true&&connectionRepair is null&&rootNamespace!="Confectory.AISettings"&&u[1] is ("object" or "schema")&&changes.Length==0;
+   string HashProof(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+   string proofKey=proofEligible?HashProof(System.Text.Json.JsonSerializer.Serialize(new{identity,selected=u,manifest=manifestUnit})):"";
+   bool FreshProof(System.Text.Json.Nodes.JsonNode? proof){
+    try{
+     if(!proofEligible||proof?["key"]?.ToString()!=proofKey||proof["observations"] is not System.Text.Json.Nodes.JsonArray observations||proof["ownershipPaths"] is not System.Text.Json.Nodes.JsonArray paths||paths.Count>2048||observations.Count>2048)return false;
+     var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+     bool NoLinks(string full){for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return false;}return true;}
+     string[] Snapshot(string full){if(!NoLinks(full)||!System.IO.File.Exists(full)||new System.IO.FileInfo(full).Length>1048576)throw new InvalidOperationException("Schema proof source unavailable");return calls.FileSnapshot.Invoke(full);}
+     if(Snapshot(System.IO.Path.Combine(identity[3],u[2]))[2]!=u[5]||Snapshot(System.IO.Path.Combine(identity[3],manifestUnit[2]))[2]!=manifestUnit[5])return false;
+     foreach(var path in paths)if(!NoLinks(path!.GetValue<string>()))return false;
+     long bytes=0;foreach(var observation in observations){var found=Snapshot(observation!["path"]!.GetValue<string>());bytes+=System.Text.Encoding.UTF8.GetByteCount(found[1]);if(bytes>16777216||found[0]!="exists"||HashProof(found[1])!=observation["hash"]!.GetValue<string>())return false;}
+     return true;
+    }catch{return false;}
+   }
+   System.Text.Json.Nodes.JsonNode QueryMetadata(bool proof)=>System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke(connectionRepair is not null?"connectionRepairSchema":combinedSchema?"inspectEffective":"effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,kind=u[1],text=u[3],drafts,schemaView=operation is "schema-view" or "call-check",connectionRepair,schemaReuseProof=proof})))!;
+   var savedProof=state["schemaReuseProof"];state.AsObject().Remove("schemaReuseProof");System.Text.Json.Nodes.JsonNode metadata;System.Text.Json.Nodes.JsonNode? nextProof=null;
+   if(request["reuseVerifiedSchema"]?.GetValue<bool>()==true&&FreshProof(savedProof)){
+    metadata=savedProof!["metadata"]!.DeepClone();nextProof=savedProof.DeepClone();
+    if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_SCHEMA_REUSED");
+   }else{
+    try{metadata=QueryMetadata(proofEligible);}catch when(proofEligible){metadata=QueryMetadata(false);}
+    if(proofEligible&&metadata["effective"]?["status"]?.ToString()!="available")metadata=QueryMetadata(false);
+    if(metadata["effective"]?["observations"] is System.Text.Json.Nodes.JsonArray observed&&metadata["effective"]?["ownershipPaths"] is System.Text.Json.Nodes.JsonArray ownedPaths){
+     nextProof=new System.Text.Json.Nodes.JsonObject{["key"]=proofKey,["observations"]=observed.DeepClone(),["ownershipPaths"]=ownedPaths.DeepClone()};
+     metadata["effective"]!.AsObject().Remove("observations");metadata["effective"]!.AsObject().Remove("ownershipPaths");nextProof["metadata"]=metadata.DeepClone();
+     if(!FreshProof(nextProof))nextProof=null;
+    }
+   }
    if(connectionRepair is not null){inspectedReply["connectionRepair"]=metadata["repair"]!.DeepClone();if(metadata["repair"]?["state"]?.ToString()!="unchanged")return inspectedReply.ToJsonString();}
    if(combinedSchema){SetInspection(metadata["inspection"]!);inspectedReply["effective"]=metadata["effective"]!.DeepClone();}
    else inspectedReply["effective"]=metadata;
@@ -71,6 +99,7 @@ case "effective": case "schema-view": case "call-check":{
    }
    foreach(var revision in revisions){var current=calls.Read.Invoke(draft,revision.Key);if(long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture)!=revision.Value!.GetValue<long>())throw new InvalidOperationException("Schema draft changed during description; refresh explicitly.");}
    if(calls.Read.Invoke(draft,manifestId)[4]!=manifestUnit[4])throw new InvalidOperationException("Manifest changed during schema description; refresh explicitly.");
+   if(combinedSchema&&nextProof is not null)state["schemaReuseProof"]=nextProof;
    return inspectedReply.ToJsonString();
   }
   var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());if(edge["scope"] is not null)ids.Add(edge["scope"]!.GetValue<string>());}

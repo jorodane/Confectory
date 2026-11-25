@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false,string? nativeFunction=null)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false,string? nativeFunction=null,bool schemaReuseProof=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -99,6 +99,23 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    if(nativeTypes)result["nativeTypes"]=FunctionNativeTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File),Observe);
    if(nativeTypes&&nativeFunction is not null)result["nativeFunctionEdit"]=FunctionNativeEdits.Project(registry,id,nativeFunction,Observe);
    if(observeSources){var observations=new System.Text.Json.Nodes.JsonArray();foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}result["observations"]=observations;}
+   if(schemaReuseProof){
+    // Registry.Register checks ownership even for declarations not loaded by
+    // this projection. A reuse proof must cover those lexical paths as well.
+    var paths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+    foreach(var pack in registry.Packs){
+     string packPath=registry.Paths[pack.Key],packRoot=System.IO.Path.GetDirectoryName(packPath)!;
+     paths.Add(packPath);
+     foreach(var registeredLocator in pack.Value.Elements.Values){
+      string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(packRoot,registeredLocator.Path)),relative=System.IO.Path.GetRelativePath(packRoot,full);
+      if(System.IO.Path.IsPathRooted(relative)||relative==".."||relative.StartsWith(".."+System.IO.Path.DirectorySeparatorChar,StringComparison.Ordinal))throw new ArgumentException("Schema proof requires lexical ownership");
+      paths.Add(full);if(paths.Count>2048)throw new ArgumentException("Schema ownership proof budget");
+     }
+    }
+    var checkedPaths=new System.Collections.Generic.HashSet<string>(paths.Comparer);
+    foreach(string full in paths)for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)throw new ArgumentException("Schema proof cannot traverse links");}
+    result["ownershipPaths"]=System.Text.Json.JsonSerializer.SerializeToNode(paths.OrderBy(x=>x,StringComparer.Ordinal));
+   }
    return result;
   }
   catch(Confectory.Core.BuildError error){return new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="unavailable",["id"]=id,["code"]=error.Diagnostic.Code,["message"]=error.Diagnostic.Message,["namespaceDiagnostic"]=NamespaceDiagnostic.From(error)};}
