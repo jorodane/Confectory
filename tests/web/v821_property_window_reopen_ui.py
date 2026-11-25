@@ -62,6 +62,25 @@ def place(page):
     return window
 
 
+def click_during_read(page):
+    browser = browser_window(page)
+    choose_tree_location(browser, f'[data-tree-id="{fallback.NS}::StockFolder"]')
+    search(browser, fallback.LABEL, fallback.TARGET)
+    item = browser.locator(f'[data-object="{owner}"]')
+    handle = item.element_handle()
+    box = item.bounding_box()
+    page.mouse.move(box['x'] + 12, box['y'] + 12)
+    page.mouse.down()
+    try:
+        fixture.call('browserDrafts', {'action': 'status', 'ids': [owner]})
+        assert handle.evaluate('row => row.isConnected'), 'Unchanged browser row replaced during real pointer press'
+    finally:
+        page.mouse.up()
+    window = page.locator(f'.window[data-key="editor-{binding(owner)["view"]}"]')
+    expect(window).to_be_visible()
+    return window
+
+
 def save(page, window):
     window.locator('[data-element-action="save"]').click()
     expect(page.locator("#project-menu")).to_be_enabled()
@@ -118,6 +137,17 @@ def exercise(browser, source):
     expect(floating.property_value(target, "Note")).to_have_value("unapplied target input")
     fixture.original()
     print("PASS same-session reopen preserves both local input and saved draft", flush=True)
+    close(target)
+    page.locator('#workspace [data-workspace-zoom]').click()
+    page.locator('[data-zoom-value]').fill('62.5')
+    page.locator('[data-zoom-value]').press('Enter')
+    page.locator('[data-zoom-value]').press('Escape')
+    expect(page.locator('#workspace [data-workspace-zoom]')).to_have_text('62.5%')
+    target = click_during_read(page)
+    expect(floating.property_value(target, "Note")).to_have_value("unapplied target input")
+    assert len(fixture.state()["editorViews"]) == 3
+    print("PASS real pointer press survives a status refresh at 62.5% and reopens the retained view", flush=True)
+
 
     close(target)
     page.evaluate("()=>confectoryFlushPresentation()")

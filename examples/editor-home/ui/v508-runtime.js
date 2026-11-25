@@ -625,9 +625,29 @@ if(search&&!search.confirmed){
 }
 const selected=reviewSelections.get(scope)||new Set(),items=inventoryUI.items(w)||[...current.units],mode=w.meta.density<=0?'Compact':w.meta.density>=100?'Data':'Preview';if(w.meta.sort?.startsWith('name'))items.sort((a,b)=>a.id.localeCompare(b.id)*(w.meta.sort==='name-desc'?-1:1));$('[data-browser-control=density-label]',w.body).textContent=mode;$('[data-total]',w.body).textContent=items.length+' 객체 · '+mode;inventoryUI.tree(w);if(w.key==='browser'&&!w.meta.catalogue&&!w.browserFilterRestored){root.innerHTML='<div class="empty">'+(dirty?'미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다.':w.browserFilterError?'그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.':'그룹과 검색을 복원하는 중입니다.')+'</div>';return;}refreshBrowserCommitStatus(w,items);const iconSize=24+Math.max(0,Math.min(98,w.meta.density-1))*24/98;root.style.setProperty('--browser-icon-size',iconSize+'px');root.style.setProperty('--browser-tile-size',(iconSize+56)+'px');if(!items.length&&mode!=='Data'){root.innerHTML='<div class="empty">'+(w.meta.catalogue&&current.inventory?.status!=='available'?'실제 registry 목록을 먼저 불러오세요.':'검색 결과가 없습니다.')+'</div>';return;}
 const focusedObject=document.activeElement,focusId=mode!=='Data'&&root.contains(focusedObject)&&focusedObject.matches('[data-object]')?focusedObject.dataset.object:null;
+// Read-only status updates must not replace a live browser row under a
+// pointer press or native drag. Rebuild when the actual projection changes.
+const listStamp=mode==='Data'?null:JSON.stringify([scope,generation,group,mode,w.meta.density,items,
+ items.map(row=>[browserObjectName(row.id),browserProjection.browserChildren(row.id).length])]);
+if(listStamp!==null&&w.browserListStamp===listStamp&&w.browserListSearch===search&&
+   w.browserListNode===root.firstElementChild&&root.firstElementChild){
+ for(const el of $$('[data-object]',root))el.classList.toggle('selected',current.draft?.id===el.dataset.object);
+ controls();return;
+}
 if(mode==='Data')browserData.render(w,root,items);else root.innerHTML=`<div class="${mode==='Compact'?'compact-list':'object-grid'}">${items.map(u=>`<div class="${mode==='Compact'?'object-row':'object-card concept-tile concept-file'}" data-object="${esc(u.id)}" data-id="${esc(u.id)}" tabindex="0"><span class="obj-icon">${browserIconMarkup(u,esc)}</span><${mode==='Compact'?'strong':'div class="name"'}>${esc(browserObjectName(u.id))}</${mode==='Compact'?'strong':'div'}><small>${esc(u.kind)}</small>${mode==='Compact'?'':'<div class="object-ref"></div>'}</div>`).join('')}</div>`;
+w.browserListStamp=listStamp;w.browserListSearch=search;w.browserListNode=root.firstElementChild;
 for(const el of $$('[data-object]',root)){
- const u=items.find(u=>u.id===el.dataset.object),open=()=>u.owned===false?openBrowserDefinition(u):act('select',{id:u.id});
+ const u=items.find(u=>u.id===el.dataset.object);
+ const open=async()=>{
+  if(!activeResults()||w.browserOpenIntent?.id===u.id)return;
+  const intent={id:u.id};w.browserOpenIntent=intent;
+  try{
+   while(busy){await whenIdle();if(!activeResults()||w.browserOpenIntent!==intent)return;}
+   if(!activeResults()||w.browserOpenIntent!==intent||!root.querySelector('[data-object="'+CSS.escape(u.id)+'"]'))return;
+   const latest=browserProjection.rows().find(row=>row.id===u.id)||current.units.find(row=>row.id===u.id);
+   if(latest)await openBrowserDefinition(latest);
+  }finally{if(w.browserOpenIntent===intent)w.browserOpenIntent=null;}
+ };
  el.classList.toggle('selected',current.draft?.id===u.id);
  const handle=mode==='Data'?el.firstElementChild:el;if(!handle.dataset.referenceDrag)referenceGestures.source(handle,u.id);
  const activeResults=()=>current.projectId===scope&&view.generation===generation&&windows.get(w.key)===w&&
