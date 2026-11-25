@@ -29,7 +29,7 @@ export function branchCellRegion(data,edges,owner,port,allowFrame=false,firstWra
   const from=i?order[i-1]:owner,p=i?'next':port,id=order[i];
   if(data.entry===id||edges.some(e=>normal(e.to)===id&&(e.from!==from||e.port!==p))||edges.some(e=>e.from===id&&e.port!=='next'))return null;
  }
- if(frame&&!order.length)return null;
+ if(frame&&!order.length&&at!=='return:'+owner)return null;
  return {owner,port,order,exit:at,frame};
 }
 

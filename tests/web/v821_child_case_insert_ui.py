@@ -1,27 +1,39 @@
 """Insert one void cell into an existing owned child case using the Linux editor."""
 import ast
 import subprocess
+import shutil
 import sys
 from pathlib import Path
 
 scenario = sys.argv[3] if len(sys.argv) > 3 else "after"
-assert scenario in {"start", "after", "shared"}
+assert scenario in {"start", "after", "shared", "empty"}
 # Reuse the real editor fixture with the same local ID in a sibling. The
 # after-anchor case also keeps a value dependency across the inserted cell.
 fixture_file = Path(__file__).with_name("v821_child_case_order_ui.py")
 setup = ast.parse(fixture_file.read_text()).body
 original_argv = sys.argv
-sys.argv = [*sys.argv[:3], {"start": "normal", "after": "dependency", "shared": "shared"}[scenario]]
+sys.argv = [*sys.argv[:3], {"start": "normal", "after": "dependency", "shared": "shared", "empty": "normal"}[scenario]]
 try:
     exec(compile(ast.Module(body=setup[:next(i for i, node in enumerate(setup) if isinstance(node, ast.Try))],
                             type_ignores=[]), str(fixture_file), "exec"), globals())
 finally:
     sys.argv = original_argv
 
+if scenario == "empty":
+    # This is an explicit existing case return, not an absent/default route.
+    child["nodes"] = [node for node in child["nodes"] if node["id"] not in initial]
+    child["edges"] = [route for route in child["edges"] if route["from"] not in initial]
+    next(route for route in child["edges"] if route["port"] == "case:positive")["to"] = "return:choose"
+    for name in initial:
+        (f.project / f"Pair.{name}.node.json").unlink()
+    initial = []
+    graph_path.write_text(json.dumps(root, ensure_ascii=False))
+    x.physical = {path: path.read_bytes() for path in f.project.iterdir() if path.is_file()}
+
 key = "documentFrameCaseOrderBinding"
-anchor = "choose" if scenario == "start" else "positive"
-anchor_port = "case:positive" if scenario == "start" else "next"
-successor = "positive" if scenario == "start" else "tail"
+anchor = "choose" if scenario in {"start", "empty"} else "positive"
+anchor_port = "case:positive" if scenario in {"start", "empty"} else "next"
+successor = "return:choose" if scenario == "empty" else "positive" if scenario == "start" else "tail"
 new_body = 'global::System.Console.WriteLine("inserted-case");\nreturn;'
 
 
@@ -80,7 +92,7 @@ try:
         open_document()
         enter_body()
         branch = order(initial)
-        button = branch.locator("[data-document-branch-add]" if scenario == "start" else "[data-document-add=positive]")
+        button = branch.locator("[data-document-branch-add]" if scenario in {"start", "empty"} else "[data-document-add=positive]")
         if scenario == "shared":
             expect(button).to_be_disabled()
             assert not baseline.get("documentFrameCaseCreationAvailable")
@@ -94,19 +106,18 @@ try:
             assert baseline["documentFrameCaseCreationAvailable"]
             q = proposal(baseline)
             f.metadata("blueprintCellRegion", action="frame-case-create", graph=root, path="body", edits=q["edits"])
-            # An empty explicit case remains outside the existing child switch contract.
-            empty = copy.deepcopy(root)
-            empty_child = empty["nodes"][0]["graph"]
-            empty_child["nodes"] = [node for node in empty_child["nodes"] if node["id"] not in initial]
-            empty_child["edges"] = [route for route in empty_child["edges"] if route["from"] not in initial]
-            next(route for route in empty_child["edges"] if route["port"] == "case:positive")["to"] = "return:choose"
-            pure_denied(empty, q["edits"])
+            # Missing/implicit case routes are not the same as an explicit empty return.
+            implicit = copy.deepcopy(root)
+            frame_graph = implicit["nodes"][0]["graph"]
+            frame_graph["nodes"] = [node for node in frame_graph["nodes"] if node["id"] not in initial]
+            frame_graph["edges"] = [route for route in frame_graph["edges"] if route["from"] not in initial and route["port"] != "case:positive"]
+            pure_denied(implicit, q["edits"])
             button.click()
             f.idle()
             created = branch.locator("[data-document-cell^=cell_]").get_attribute("data-document-cell")
             assert created
             expected_order = [*initial]
-            expected_order.insert(0 if scenario == "start" else 1, created)
+            expected_order.insert(0 if scenario in {"start", "empty"} else 1, created)
             order(expected_order)
             assert len(pending()) == 6 and not new_files()
             local_undo()
@@ -123,6 +134,39 @@ try:
             assert checkpoint.read_bytes() == before and not new_files()
             x.original()
             f.checked("both UI and planner preserve the existing case; local Undo/Redo and cold restore retain the new body and all six edits")
+            if scenario == "empty":
+                # A separate project deliberately uses the exact same namespace,
+                # IDs and source bytes. The old checkpoint must not authorize it.
+                duplicate = f.case / "same IDs other project"
+                shutil.copytree(f.project, duplicate, ignore=shutil.ignore_patterns(".confectory"))
+                files = {p: p.read_bytes() for p in duplicate.rglob("*") if p.is_file()}
+                selected_project = f.env["CONFECTORY_WEB_PROJECT"]
+                f.pending()
+                f.page.close()
+                f.stop()
+                try:
+                    f.env["CONFECTORY_WEB_PROJECT"] = str(duplicate / f.manifest.name)
+                    f.start(6)
+                    f.invoke("select", dict(id=t.feature))
+                    f.invoke("saveDraft", {})
+                    duplicate_checkpoint = next(duplicate.glob(".confectory/edit-workspaces/*/draft.json"))
+                    duplicate_before = duplicate_checkpoint.read_bytes()
+                    same = read()
+                    assert same[key] == baseline[key] and same["checkpointHash"] != baseline["checkpointHash"]
+                    f.invoke("blueprint", proposal(baseline), False)
+                    assert duplicate_checkpoint.read_bytes() == duplicate_before
+                    assert all(p.read_bytes() == raw for p, raw in files.items())
+                finally:
+                    f.stop()
+                    f.env["CONFECTORY_WEB_PROJECT"] = selected_project
+                f.start(7)
+                f.page = f.setup()
+                f.page.set_viewport_size(dict(width=1800, height=1400))
+                open_document()
+                enter_body()
+                order(expected_order)
+                assert pending() == held and checkpoint.read_bytes() == before
+                f.checked("Same-ID project rejects the originating checkpoint; returning retains all local input")
 
             for fault in ("path", "args", "exit"):
                 wrong = proposal(read())
@@ -188,7 +232,7 @@ try:
             files = new_files()
             assert len(files) == 1 and json.loads(files[0].read_text())["source"] == new_body
             output_lines = output().splitlines()
-            output_lines.insert(output_lines.index("positive:7") + (scenario == "after"), "inserted-case")
+            output_lines.insert(output_lines.index("finish:7") if scenario == "empty" else output_lines.index("positive:7") + (scenario == "after"), "inserted-case")
             x.build("confirmed-child-case-insert", 14, "\n".join(output_lines))
             restart_child(3)
             order(expected_order)

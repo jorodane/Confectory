@@ -21,7 +21,7 @@ public static class BlueprintCellRegion
 
     // This child is an opaque unit to the parent order plan, but its existing
     // topology must be explicit and exclusive before that plan can move it.
-    static string CheckCompoundSwitchChild(JsonObject graph, JsonArray nodes)
+    static string CheckCompoundSwitchChild(JsonObject graph, JsonArray nodes, bool allowEmptyCase=false)
     {
         var selectors=nodes.Where(n=>S(n,"control")=="switch").ToArray();
         Need(selectors.Length==1,"Exactly one direct child switch required");
@@ -36,7 +36,7 @@ public static class BlueprintCellRegion
         var edges=graph["edges"]!.AsArray();
         var casesByPort=cases.Select(member=>Read(graph,owner,"case:"+S(member,"id"))).ToArray();
         var branches=casesByPort.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
-        Need(casesByPort.All(region=>region.Nodes.Count>0&&region.End=="return:"+owner)
+        Need(casesByPort.All(region=>(allowEmptyCase||region.Nodes.Count>0)&&region.End=="return:"+owner)
             && branches.Count==casesByPort.Sum(region=>region.Nodes.Count)
             && edges.Count==nodes.Count+cases.Length
             && nodes.All(n=>edges.Count(e=>S(e,"from")==S(n,"id")&&S(e,"port")=="next")==1)
@@ -62,7 +62,7 @@ public static class BlueprintCellRegion
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
         int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null,
-        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null)
+        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null, JsonObject? emptySwitchCaseFrame=null)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
@@ -77,7 +77,7 @@ public static class BlueprintCellRegion
             Need((nodes.Count is >0 and <64 || nodes.Count==0 && ReferenceEquals(g,emptyInsertionFrame)) && total<=256,"Bounded complete compound chain required");
             if(switchChild){
                 Need(++switchChildren==1,"At most one direct switch child per compound order");
-                return CheckCompoundSwitchChild(g,nodes);
+                return CheckCompoundSwitchChild(g,nodes,ReferenceEquals(g,emptySwitchCaseFrame));
             }
             var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
             Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
@@ -725,14 +725,14 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
     }
 
-    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path, bool allowNested = false)
+    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path, bool allowNested = false, bool allowEmptyCase = false)
     {
         var segments = path.Split('/');
         Need(segments.All(part => part.Length > 0) && (segments.Length == 1 || allowNested && segments.Length == 2),
             "One switch child within the supported owned depth required");
         var child = BlueprintTree.Select(root, path);
         Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Owned switch child required");
-        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null);
+        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null, emptySwitchCaseFrame: allowEmptyCase ? child : null);
         return child;
     }
 
@@ -761,7 +761,9 @@ public static class BlueprintCellRegion
             string port="case:"+S(member,"id");
             if(S(incoming,"node")==owner&&S(incoming,"port")!=port)continue;
             Region region;try{region=Read(graph,owner,port,firstWrappedCase: !frame);}catch(ArgumentException){continue;}
-            if (frame && region.Nodes.Count == 0) continue;
+            // The owned child planner has already checked the explicit empty
+            // return. An absent or implicit case never reaches this path.
+            if (frame && region.Nodes.Count == 0 && region.End != "return:" + owner) continue;
             int index=region.Nodes.IndexOf(S(incoming,"node"));
             if(!(S(incoming,"node")==owner&&S(incoming,"port")==port||index>=0&&S(incoming,"port")=="next"))continue;
             string next=index<0?(region.Nodes.FirstOrDefault()??region.End):index+1<region.Nodes.Count?region.Nodes[index+1]:region.End;
@@ -820,11 +822,11 @@ public static class BlueprintCellRegion
             if (action == "frame-case-create")
             {
                 var candidate = graph.DeepClone().AsObject();
-                var plan = CreateBranchCell(OwnedSwitchFrame(candidate, path), edits, frame: true);
-                OwnedSwitchFrame(candidate, path);
+                var plan = CreateBranchCell(OwnedSwitchFrame(candidate, path, allowEmptyCase: true), edits, frame: true);
+                OwnedSwitchFrame(candidate, path, allowEmptyCase: true);
                 return plan;
             }
-            var child = OwnedSwitchFrame(graph, path);
+            var child = OwnedSwitchFrame(graph, path, allowEmptyCase: true);
             if (edits.Count == 0) return new JsonObject();
             Need(edits.Count <= 64, "Bounded branch order required");
             ExactBranchRoutes(edits);
