@@ -77,11 +77,28 @@ try:
   expect(page.locator('#project-menu')).to_be_enabled()
   second,note2=open_local(page,b.PEER,'PeerFolder',2,'menu',title=b.SECOND);note2.fill('second peer local input')
   page.evaluate("()=>confectoryFlushPresentation()");page.close();f.stop()
-  f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[1]);f.start(1);page=f.setup(browser)
+  restore_mark=len(f.requests)
+  f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[1]);f.start(1);page=f.setup(browser);page.set_viewport_size({'width':2000,'height':1200})
   expect(page.locator('#title')).to_contain_text(b.SECOND);first=page.locator('.window[data-key="editor-1"]');second=page.locator('.window[data-key="editor-2"]')
   expect(d.value(first,'Note')).to_have_value('second project local input');expect(d.value(second,'Note')).to_have_value('second peer local input')
   expect(d.value(first,'Note')).to_be_editable();assert not f.state()['editorViews']
-  print('PASS clean cold restore creates both real input surfaces from one model without host slots',flush=True)
+  expect(page.locator('#project-menu')).to_be_enabled(timeout=120000)
+  restored=f.requests[restore_mark:]
+  preparations=[row for row in restored if row['endpoint']=='preparePropertyModels' and row['input'].get('restoreStatuses') is True]
+  assert len(preparations)==1 and set(preparations[0]['input']['ids'])=={b.NS+'::'+b.TARGET,b.NS+'::'+b.PEER},restored
+  # The property windows use status proof in the restore response, not separate
+  # detached status RPCs before the inventory/relations projection.
+  prior_projection=[]
+  for request in restored:
+   if request['endpoint'] in ('localInventory','relationsMap'):break
+   prior_projection.append(request)
+  assert not any(row['endpoint']=='browserDrafts' for row in prior_projection),prior_projection
+  print('PASS clean cold restore creates both real input surfaces and checkpoint statuses from one model request without host slots',flush=True)
+  d.commit(page,first)
+  second_source=f.projects[1].parent/source.name
+  assert 'data Note = "second project local input"' in second_source.read_text()
+  expect(d.value(second,'Note')).to_have_value('second peer local input')
+  print('PASS direct Save after cold restore retains other input',flush=True)
   # Restore prepares only saved owners. Explicitly prepare the same batch of four
   # using the real host reader before testing a shared schema dependency.
   f.call('preparePropertyModels',{'ids':sorted(m.identifiers)})
@@ -103,5 +120,13 @@ try:
   expect(second.locator('[data-element-error]')).not_to_have_text('')
   expect(d.value(second,'Note')).to_have_value('second peer local input');expect(d.value(first,'Note')).to_have_value('second project local input');assert peer.read_text()==external
   print('PASS external conflict, same-ID project isolation and retained independent input',flush=True)
+  page.close();f.stop()
+  f.env['CONFECTORY_WEB_PROJECT']=str(f.projects[0]);f.start(2);page=f.setup(browser);page.set_viewport_size({'width':2000,'height':1200})
+  expect(page.locator('#title')).to_contain_text(b.FIRST)
+  staged=page.locator('.window[data-element-owner="'+b.NS+'::Extra1"]')
+  expect(d.value(staged,'Note')).to_have_value('staged independent local draft',timeout=120000)
+  assert 'staged independent local draft' not in (source.parent/'private-source-Extra1.celem').read_text()
+  assert b.NS+'::Extra1' not in ids()
+  print('PASS restarted dirty checkpoint uses ordinary verified restore without publishing the draft',flush=True)
   assert not f.errors and not f.external,(f.errors,f.external)
 finally:f.stop();print('evidence',f.root,flush=True)

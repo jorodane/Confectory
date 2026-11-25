@@ -383,7 +383,7 @@ if(endpoint=="browserDrafts"){
 }
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
- case "preparePropertyModels":if(args.Count!=1||args["ids"] is not System.Text.Json.Nodes.JsonArray requestedModels||requestedModels.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");request["action"]="prepare-property-models";request["ids"]=requestedModels.DeepClone();break;
+ case "preparePropertyModels":if(System.Linq.Enumerable.Any(args,p=>p.Key is not ("ids" or "restoreStatuses"))||args["ids"] is not System.Text.Json.Nodes.JsonArray requestedModels||requestedModels.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");request["action"]="prepare-property-models";request["ids"]=requestedModels.DeepClone();if(args["restoreStatuses"]?.GetValue<bool>()==true)request["restoreStatuses"]=true;break;
  case "relationsMap":request["action"]="relations-map";if(args["prepareProperties"]?.GetValue<bool>()==true)request["prepareProperties"]=true;break;
  case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]=before["workspace"]?["unit"]?["kind"]?.ToString()=="module"?"effective":"inspect";break;
  case "editFunctionContract":if(before["workspace"]?["unit"]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Select the owned function contract first");goto case "editObjectStructure";
@@ -422,6 +422,7 @@ switch(endpoint){
 }
 var after=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,"workspace",request.ToJsonString()))!;
 if(after["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected the operation");
+if(endpoint=="preparePropertyModels"&&args["restoreStatuses"]?.GetValue<bool>()==true)return (after["workspace"]?["restoreStatuses"]??new System.Text.Json.Nodes.JsonObject()).ToJsonString();
 if(endpoint is "confirmGroup" or "confirmDraft"){
  string? outcome=after["workspace"]?["confirmation"]?[0]?.ToString();
  return System.Text.Json.JsonSerializer.Serialize(new{accepted=true,operation=endpoint,sourceConfirmed=outcome is "confirmed" or "confirmed-with-warning"});

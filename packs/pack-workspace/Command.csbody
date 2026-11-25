@@ -48,7 +48,18 @@ switch(operation){
 case "prepare-property-models":{
  if(request["ids"] is not System.Text.Json.Nodes.JsonArray requested||requested.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");
  var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
- PreparePropertyModels(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(requested,id=>id!.GetValue<string>())),reply["draftVersion"]!,true);
+ var owners=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(requested,id=>id!.GetValue<string>()));
+ PreparePropertyModels(owners,reply["draftVersion"]!,true);
+ // Restore already requested these owners. Return independently verified
+ // singleton checkpoint statuses in the same read; never split a grouped proof.
+ if(request["restoreStatuses"]?.GetValue<bool>()==true){
+  var statuses=new System.Text.Json.Nodes.JsonObject();
+  foreach(string owner in owners)try{
+   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.BrowserDrafts.Invoke(draft,System.Text.Json.JsonSerializer.Serialize(new{action="status",ids=new[]{owner}})))!;
+   if(proof["state"]?.ToString()=="ready"&&proof["ids"]?.AsArray().Count==1&&proof["ids"]?[0]?.ToString()==owner&&proof["rows"]?.AsArray().Count==1&&proof["rows"]?[0]?["id"]?.ToString()==owner&&proof["dirty"]?.GetValue<bool>()==false&&proof["unsaved"]?.GetValue<bool>()==false&&proof["canRecover"]?.GetValue<bool>()==false)statuses[owner]=proof;
+  }catch{/* Existing per-view status read is the fallback. */}
+  reply["restoreStatuses"]=statuses;
+ }
  return reply.ToJsonString();
 }
 
