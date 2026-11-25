@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Local EditorHome build report + isolated X11: source draft, Review, Run, harvest."""
 import json
+import os
 from pathlib import Path
 import shutil
 import sys
@@ -62,9 +63,10 @@ def workflow(report, root):
                         .replace("../../../targets/", str(repo / "targets") + "/"))
     fixture = {"path": str(manifest), "title": TITLE, "description": ""}
     (app.profile / "projects.json").write_text(json.dumps([fixture]))
-    # The sample's existing contract requires the source path explicitly.
-    # Bind it only to the disposable project for this editor process.
-    app.env["CONFECTORY_GAME_PROJECT"] = str(manifest)
+    # The ordinary Run must derive the sample path from its working directory.
+    # LocalEditor uses env key=value and otherwise inherits the parent environment.
+    assert "CONFECTORY_GAME_PROJECT" not in os.environ, "Unset CONFECTORY_GAME_PROJECT before this test"
+    assert "CONFECTORY_GAME_PROJECT" not in app.env
     app.env.pop("CONFECTORY_GAME_MODE", None)
     app.env.pop("CONFECTORY_COMPARISON_INPUT", None)
     app.env.pop("CONFECTORY_GAME_CLOSE_MS", None)

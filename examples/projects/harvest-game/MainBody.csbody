@@ -1,5 +1,11 @@
 void Check(bool ok,string why){if(!ok)throw new Exception(why);}System.Text.Json.Nodes.JsonNode Json(string text)=>System.Text.Json.Nodes.JsonNode.Parse(text)!;
-string project=Environment.GetEnvironmentVariable("CONFECTORY_GAME_PROJECT")??throw new InvalidOperationException("Explicit game ProjectPack source required");string root=System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(project))!;var description=Json(calls.SchemaEditingDescribe.Invoke(project));
+string project=System.IO.Path.GetFullPath(Environment.GetEnvironmentVariable("CONFECTORY_GAME_PROJECT")??"project.cpack");
+if(!System.IO.File.Exists(project))
+    throw new InvalidOperationException("Harvest sample ProjectPack not found: "+project);
+string root=System.IO.Path.GetDirectoryName(project)!;
+var description=Json(calls.SchemaEditingDescribe.Invoke(project));
+if(description["kind"]?.ToString()!="project"||description["namespace"]?.ToString()!="Example.HarvestGame")
+    throw new InvalidOperationException("Expected the Harvest sample ProjectPack: "+project);
 System.Text.Json.Nodes.JsonNode Declaration(string id){foreach(var unit in description["units"]!.AsArray())if(unit!["id"]!.GetValue<string>()==id)return Json(calls.SchemaEditingInspect.Invoke(calls.FileStreamSnapshot.Invoke(System.IO.Path.Combine(root,unit["path"]!.GetValue<string>()))[1]));throw new ArgumentException("Declared game element missing: "+id);}
 var plantDeclaration = Declaration("Example.HarvestGame::PowderPlant");
 var recipeDeclaration = Declaration("Example.HarvestGame::BombRecipe");
