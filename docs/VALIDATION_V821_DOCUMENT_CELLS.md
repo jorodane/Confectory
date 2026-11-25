@@ -74,3 +74,9 @@
 중단 record `65a85529243b408b8951970208542cf6`의 creator/worker는 종료됐고 마지막 worker의 `allChildrenReaped=true`, exit `-15`를 확인했다. 다만 Chromium `SingletonSocket`은 자동 정리 인증 대상이 아니어서 `/tmp/cv-xvjaoa36`을 보존했다. 이 record의 `running` 표시는 실제 실행 상태가 아니다. 부분 증거는 `/workspace/artifacts/v536-verification-managed/runs/65a85529243b408b8951970208542cf6.partial-e2ce6e02773d485a87bfef1c65f606cf.zip`에 있고 상태 확인은 `/workspace/scratch/v821-cells-20261120/stopped-run-2.json`에 남겼다. 이 미완료 실행을 통과로 바꾸거나 해당 폴더를 삭제하지 않았다.
 
 다음 우선순위는 실제 생성 결과를 사용하는 읽기 전용 네이티브 미리보기와 네이티브 정의의 직접 편집 분리다. 문서 셀의 생성/순서/구조 편집, 전체 목업·CHANGES 대조 및 이전 reader에서 신규 receipt를 재개하는 호환성 검사는 남아 있다. 과거 초기 빈 화면의 원인은 미확정이다.
+
+## 새 기능의 첫 논리 코드 작성
+
+등록만 된 새 기능은 아직 실제 graph의 `nodes`가 없고 기존 편집기가 첫 작성용 임시 셀을 투영한다. 해당 문맥에서 원본 graph가 필요한 속성 읽기·직렬 순서·계약 조회를 호출하면 논리 코드 화면이 `undefined.find`로 중단되었다. 실제 graph가 없는 경우 해당 원본 전용 동작만 제공하지 않으며, 기존 첫 코드 작성·Save·Review/Confirm 흐름은 그대로 사용한다.
+
+[새 기능 문서 검사](../tests/web/v821_new_function_document_ui.py)는 Linux Chromium의 실제 작업실 메뉴에서 새 기능을 만들고 논리 코드의 첫 C# 셀을 편집해 확정했다. 다른 합성 프로젝트는 변경되지 않았다. 확정된 기능의 새 코드나 선언을 변경하지 않고 별도 합성 사본의 기존 프로젝트 진입점만 그 기능으로 설정했으며, 일반 ▶ 실행으로 실제 결과 파일을 확인했다. 진입점 선택 자체를 제품 UI에서 검사한 결과는 아니며 실제 Windows/WebView2도 미실행이다.

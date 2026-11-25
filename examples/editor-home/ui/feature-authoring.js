@@ -392,6 +392,7 @@ function blueprintNormalizeControls(scope){
     receivers:selected.receivers,type:selected.argument.type,stage:ready=>addPropertyRead(ready,selected)});
   }
   function documentPropertyInputs(id){
+   if(!Array.isArray(data.nodes))return [];
    const outgoing=rawLinks().filter(link=>link.from===id);
    if(outgoing.length!==1||outgoing[0].port!=='next')return [];
    const node=data.nodes.find(row=>row.id===outgoing[0].to);
@@ -751,6 +752,7 @@ function blueprintNormalizeControls(scope){
   const branchChain=(owner,port,allowFrame=false)=>w.meta.copyDraft?null:branchCellRegion(data,branchEdges(),owner,port,allowFrame);
   const frameInputsClear=()=>{try{guardOtherInputs(w,data);return true;}catch{return false;}};
   const linearCells=selectedId=>{
+   if(!Array.isArray(data.nodes))return null;
    if(!w.meta.copyDraft){const frame=frameCellChain(data,links());if(frame)return frame;}
    if(!w.meta.copyDraft){const compound=compoundCellChain(data,links());if(compound)return data.documentCompoundOrderWritable===false?null:compound;}
    const selected=data.nodes.find(n=>n.id===selectedId);if(selected?.branchOwner){const owner=data.nodes.find(n=>n.id===selected.branchOwner);for(const member of owner?.executionEnum?.members||[]){const chain=branchChain(owner.id,'case:'+member.id,true);if(chain?.order.includes(selectedId))return chain;}return null;}
@@ -943,7 +945,7 @@ function blueprintNormalizeControls(scope){
   const flowDocument=documentFlowPreview(w,data),flowChild=flowDocument==='child';
   const callsNeedingReview=new Map(rows.filter(row=>row.kind==='call'&&row.postCallStale===true).map(row=>[row.id,row]));
   const documentContract=id=>!flowDocument&&!data.slotContext&&!data.requiresCoupledCopy&&!data.privateConversion&&
-   codeParameterScope(w,data,data.nodes.find(row=>row.id===id));
+   codeParameterScope(w,data,data.nodes?.find(row=>row.id===id));
   function documentOutputStorage(id,output){
    if(!documentContract(id)||!frameInputsClear()||data.id!==data.rootId||data.privatePath||
       !['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
