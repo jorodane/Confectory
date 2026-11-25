@@ -208,9 +208,15 @@ string SetupView(string connection){
  string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(connection))).ToLowerInvariant()[..16],folder=System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"ai-settings",key),manifest=System.IO.Path.Combine(folder,"project.cpack"),source=System.IO.Path.Combine(folder,"Settings.celem");var manifestBefore=calls.FileSnapshot.Invoke(manifest);var sourceBefore=calls.FileSnapshot.Invoke(source);model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();connectionSetupMode=model["connectionSetupModes"]?[connection]?.ToString()??(manifestBefore[0]!="exists"&&sourceBefore[0]!="exists"?"new":"existing");model["connectionSetupModes"]![connection]=connectionSetupMode;
  // The repair query already reads the current connection catalogue and requires the selected registered descendant.
  bool validateWithRepair=manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection));
- connectionStage="declarations";if(!validateWithRepair)DeclaredConnection(connection);connectionStage="settings-files";
+ // Fresh creation already validates the selected descendant through the same catalogue query.
+ bool validateWithCreation=operation=="connection-setup"&&manifestBefore[0]=="missing"&&sourceBefore[0]=="missing";
+ connectionStage="declarations";if(!validateWithRepair&&!validateWithCreation)DeclaredConnection(connection);connectionStage="settings-files";
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
- if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
+ if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
+  System.Text.Json.Nodes.JsonNode generated;
+  try{generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;}
+  catch{if(validateWithCreation){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
+  System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
  if(manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection))){
   var repairRequest=new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]};
