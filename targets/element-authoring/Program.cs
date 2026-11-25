@@ -140,6 +140,12 @@ try
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
             reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>());break;
+        case "inspectEffective":
+        {
+            var inspection=InspectDeclaration(S("text"));
+            if(inspection["id"]!.GetValue<string>()!=S("id")||inspection["kind"]!.GetValue<string>()!=S("kind"))throw new InvalidOperationException("Owned declaration identity changed; repair the source explicitly.");
+            reply=new JsonObject{["inspection"]=inspection,["effective"]=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>())};break;
+        }
         case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
         case "privateCopySeed":reply=PrivateImplementationCopy.Validate(request);break;
         case "referenceDefinition":
@@ -148,11 +154,7 @@ try
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
         case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"),request["project"]?.GetValue<string>(),request["path"]?.GetValue<string>());break;
         case "inspectManifest":reply=ManifestMetadata.Inspect(S("text"));break;
-        case "inspect":
-        {
-            var element=new Parser(S("text"),"<draft>").ParseElement();
-            reply=new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value)),["enumValues"]=element.Kind=="enum"?EnumDefinition.Members(element):null};break;
-        }
+        case "inspect":reply=InspectDeclaration(S("text"));break;
         case "unregisterDeclarations":
         {
             var manifest=new Parser(S("text"),"<owned-registration>").ParseManifest();var entries=request["entries"]!.AsArray();if(entries.Count is <1 or >32)throw new ArgumentException("Bounded declaration group required");var seen=new HashSet<string>(StringComparer.Ordinal);
@@ -247,6 +249,12 @@ catch(Exception error)
 {
     Console.Write(JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)}));return 0;
 }
+static JsonObject InspectDeclaration(string text)
+{
+    var element=new Parser(text,"<draft>").ParseElement();
+    return new JsonObject{["id"]=element.Id,["kind"]=element.Kind,["parent"]=element.Parent,["function"]=element.Function,["descriptionDefined"]=element.DescriptionPresent,["relations"]=DeclaredRelations.Describe(element),["description"]=element.Description,["signature"]=JsonSerializer.SerializeToNode(element.Signature),["editor"]=AlgorithmProjectionOperations.Editor(element),["fields"]=JsonSerializer.SerializeToNode(element.Fields),["data"]=JsonSerializer.SerializeToNode(element.Data),["values"]=JsonSerializer.SerializeToNode(element.Values.ToDictionary(x=>x.Key,x=>x.Value.Value)),["enumValues"]=element.Kind=="enum"?EnumDefinition.Members(element):null};
+}
+
 static string Owned(string root,string relative)
 {
     string full=Path.GetFullPath(Path.Combine(root,relative));
