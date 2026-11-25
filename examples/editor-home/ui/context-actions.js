@@ -4,16 +4,15 @@ export function createContextActions(api){
  const scope=()=>api.current?.projectId,selection=()=>api.current?.draft?.id||'';
  async function open(event,unit,builtins){
   const serial=++generation,projectId=scope(),selected=selection(),x=event.clientX,y=event.clientY;
-  api.contextMenu(x,y,[...builtins,['등록 기능 조회 중…',()=>{}]]);
-  const loadingMenu=document.querySelector('.context-menu');
+  const loadingMenu=api.contextMenu(x,y,[...builtins,['등록 기능 조회 중…',()=>{}]]);
   const owns=()=>generation===serial&&scope()===projectId&&selection()===selected;
   try{
    const data=await api.view.call('contextActions',{operation:'list',projectId,id:unit.id,target:api.target()});
    if(data.status==='failed')throw Error(data.message);
    if(!owns()||!loadingMenu?.isConnected)return;
    const actions=data.actions.map(action=>[action.available?'등록 기능 · '+action.title:'등록 기능 · '+action.title+' · 미지원',()=>action.available?form(data,action,owns):api.toast(action.reason)]);
-   api.contextMenu(x,y,[...builtins,...(actions.length?actions:[['등록된 기능 없음',()=>{}]])]);
-  }catch(error){if(owns()&&loadingMenu?.isConnected)api.contextMenu(x,y,[...builtins,['등록 기능 조회 실패 · 다시 여세요',()=>api.toast(error.message)]]);}
+   loadingMenu._replaceTail(builtins.length,actions.length?actions:[['등록된 기능 없음',()=>{}]]);
+  }catch(error){if(owns()&&loadingMenu?.isConnected)loadingMenu._replaceTail(builtins.length,[['등록 기능 조회 실패 · 다시 여세요',()=>api.toast(error.message)]]);}
  }
  function form(data,action,owns){
   if(!owns())return api.toast('메뉴를 연 객체나 프로젝트가 바뀌었습니다. 다시 여세요.');

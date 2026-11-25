@@ -994,7 +994,10 @@ function contextMenu(x,y,items,{escapeAnchor}={}){
  const close=()=>{m.remove();events.abort();};
  const dismiss=()=>{close();if(previous?.isConnected)previous.focus({preventScroll:true});};
  m._close=close;
- items.forEach(([name,fn])=>m.append(button(name,()=>{close();fn();})));
+ const menuButton=([name,fn])=>button(name,()=>{close();fn();});
+ items.forEach(item=>m.append(menuButton(item)));
+ // Keep the already visible built-in targets alive while asynchronous discovery finishes.
+ m._replaceTail=(start,tail)=>{if(!m.isConnected)return;const mobile=m.querySelector("[data-mobile-popup-close]");for(const child of [...m.children].slice(start))if(child!==mobile)child.remove();for(const item of tail)m.insertBefore(menuButton(item),mobile);m.style.maxHeight=Math.max(32,innerHeight-m.getBoundingClientRect().top-8)+"px";m.style.overflowY="auto";};
  if(document.body.classList.contains('is-mobile-editor')){
   const done=button('닫기',dismiss);
   done.className='mobile-popup-close';done.dataset.mobilePopupClose='';done.setAttribute('aria-label','메뉴 닫기');m.append(done);
