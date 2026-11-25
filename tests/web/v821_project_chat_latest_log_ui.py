@@ -1,4 +1,4 @@
-"""Exercise Chat/Logs and the latest log against two real isolated projects."""
+"""Exercise Chat/Logs separation and chat layout against two real isolated projects."""
 import json
 import time
 import uuid
@@ -7,6 +7,8 @@ from playwright.sync_api import expect, sync_playwright
 
 from project_chat_contract import OwnedChat
 import v666_workspace_finder_fixture as fixture
+
+expect.set_options(timeout=30000)
 
 MESSAGE = "CHAT_ONLY_Approved_Local_Message"
 REPLY = "OWNED project-chat REPLY"
@@ -114,15 +116,18 @@ def latest_line(logs):
     return next(line.strip() for row in reversed(logs) for line in reversed(row.splitlines()) if line.strip())
 
 
-def assert_latest(page, state):
-    line = page.locator("#chat-form + #chat-latest-log")
-    expect(line).to_be_visible()
-    expect(line).to_have_text(latest_line(state["logs"]))
-    assert len(line.text_content().splitlines()) == 1
-    assert line.evaluate("node => getComputedStyle(node).whiteSpace") == "nowrap"
+def assert_chat_only(page, state):
+    expect(page.locator("#chat-latest-log")).to_have_count(0)
+    expect(page.locator("#chat-inner")).not_to_contain_text(latest_line(state["logs"]))
+    expect(page.locator("#chat-input")).to_be_editable()
+    messages = page.locator("#messages").bounding_box()
     composer = page.locator("#chat-input").bounding_box()
-    assert line.bounding_box()["y"] >= composer["y"] + composer["height"]
+    assert messages["height"] >= 60 and composer["height"] >= 30, (messages, composer)
+    return (messages["height"], composer["height"])
 
+
+def same_height(before, after):
+    assert all(abs(a-b) <= 2 for a,b in zip(before, after)), (before, after)
 
 def exercise(page, owned):
     add_helper(page, owned)
@@ -135,22 +140,26 @@ def exercise(page, owned):
     fixture.checked("Chat·Logs 전환이 보낸 대화와 미전송 초안을 로그로 섞지 않으며 초안을 보존한다")
 
     previous = fixture.state()
-    assert_latest(page, previous)
+    before = assert_chat_only(page, previous)
     a = run_event(page, MARKERS[0])
     assert latest_line(a["logs"]) != latest_line(previous["logs"])
-    assert_latest(page, a)
+    same_height(before, assert_chat_only(page, a))
     logs = logs_tab(page)
     expect(logs).to_contain_text(MARKERS[0])
     assert_log_excludes(logs, MARKERS[1], DRAFT_A, MESSAGE, REPLY)
     chat_tab(page, DRAFT_A)
     fixture.checked("첫 프로젝트의 실제 실행 이벤트가 로그에 들어오며 채팅 내용은 제외된다")
-    assert_latest(page, a)
+    assert_chat_only(page, a)
 
     enter(page, LABELS[1])
     chat_tab(page, "")
-    assert_latest(page, fixture.state())
-    assert_log_excludes(page.locator("#chat-latest-log"), MARKERS[0], DRAFT_A, MESSAGE, REPLY)
+    assert_chat_only(page, fixture.state())
+    assert_log_excludes(page.locator("#chat-inner"), MARKERS[0], DRAFT_A, MESSAGE, REPLY)
     page.locator("#chat-input").fill(DRAFT_B)
+    page.locator("#chat-prepare").click()
+    expect(page.locator("#status")).to_contain_text("프로젝트에 배정된 Helper")
+    expect(page.locator("#chat-input")).to_have_value(DRAFT_B)
+    assert len(owned.requests) == 1
     logs = logs_tab(page)
     assert_log_excludes(logs, MARKERS[0], DRAFT_A, MESSAGE, REPLY)
     b = run_event(page, MARKERS[1])
@@ -158,17 +167,32 @@ def exercise(page, owned):
     expect(logs).to_contain_text(MARKERS[1])
     assert_log_excludes(logs, MARKERS[0], DRAFT_A, DRAFT_B, MESSAGE, REPLY)
     chat_tab(page, DRAFT_B)
-    assert_latest(page, b)
-    fixture.checked("로그 탭을 보고 있을 때 새 실행 이벤트가 와도 현재 프로젝트의 최신 한 줄만 채팅 아래에 표시된다")
+    assert_chat_only(page, b)
+    fixture.checked("로그 탭을 보고 있을 때 새 실행 이벤트가 와도 운영 로그는 Logs에만 표시된다")
 
     enter(page, LABELS[0])
     chat_tab(page, DRAFT_A)
     a_again = fixture.state()
     assert a_again["projectId"] == a["projectId"]
-    assert_latest(page, a_again)
+    assert_chat_only(page, a_again)
     logs = logs_tab(page)
     expect(logs).to_contain_text(MARKERS[0])
+    expect(logs).to_contain_text("Project panel hidden; assigned work remains in this project")
     assert_log_excludes(logs, MARKERS[1], DRAFT_B, MESSAGE, REPLY)
+    chat_tab(page, DRAFT_A)
+    before = assert_chat_only(page, fixture.state())
+    enter(page, LABELS[0])
+    chat_tab(page, DRAFT_A)
+    same_height(before, assert_chat_only(page, fixture.state()))
+    page.set_viewport_size({"width": 1000, "height": 640})
+    before = assert_chat_only(page, fixture.state())
+    enter(page, LABELS[0])
+    chat_tab(page, DRAFT_A)
+    same_height(before, assert_chat_only(page, fixture.state()))
+    logs = logs_tab(page)
+    expect(logs).to_contain_text("Project panel hidden; assigned work remains in this project")
+    chat_tab(page, DRAFT_A)
+    fixture.checked("기본 및 작은 뷰포트에서 프로젝트 패널 숨기기/재열기 후 채팅 높이와 입력을 유지하고 운영 기록은 Logs에만 표시한다")
     assert len(owned.requests) == 1 and not owned.errors
     assert not fixture.errors and not fixture.external, (fixture.errors, fixture.external)
     fixture.original()

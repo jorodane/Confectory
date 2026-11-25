@@ -216,7 +216,7 @@
 .local-public-compose textarea{height:36px;min-width:0;resize:none;padding:7px 10px;font-size:13px}
 .local-public-compose small{grid-column:1/-1}.local-public-compose small:empty{display:none}
 .local-public-attachment{grid-column:1/-1}.local-public-attachment button{padding:2px 8px;font-size:12px}
-.chatbar #chat-latest-log{flex:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.bubble-dock #yogi-bubble,.bubble-dock #augment-bubble,.bubble-dock #run,.bubble-dock #build{font-size:24px;line-height:1}
+.bubble-dock #yogi-bubble,.bubble-dock #augment-bubble,.bubble-dock #run,.bubble-dock #build{font-size:24px;line-height:1}
 
 .bubble-dock #augment-bubble>span[aria-hidden]{font-family:"Segoe UI Symbol",sans-serif;font-size:32px;line-height:1}
 

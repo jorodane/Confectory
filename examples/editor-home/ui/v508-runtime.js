@@ -1990,13 +1990,9 @@ function openPublicChatYogi(container,activation,generation,message){
 }
 
 function renderProjectLogs(logs){
- const text=(logs||[]).join('\n');
- $('#execution-logs').textContent=text;
- const latest=$('#chat-latest-log'),line=text.trimEnd().split(/\r\n?|\n/).at(-1).trimStart();
- if(latest.textContent!==line)latest.textContent=line;
- latest.hidden=!line;
+ $('#execution-logs').textContent=(logs||[]).join('\n');
 }
-function showChat(){const scope=current.projectId,body=$('#chat-inner');body.hidden=false;$('#execution-logs').hidden=true;$('#chat').classList.add('selected');$('#logs-tab').classList.remove('selected');if($('#chat-input')){syncPublicChat(true);return;}body.innerHTML=`<div class="messages" id="messages"><div class="message"><strong id="chat-helper">${esc(current.aiHelperId||current.helperProfile?.helper||'')}</strong><span id="chat-output">${esc(current.aiOutput||'')}</span></div></div><form class="chat-compose" id="chat-form"><div class="yogi-attachments" data-local-yogi-preview></div><textarea id="chat-input" maxlength="4096" aria-label="프로젝트 채팅 입력" placeholder="함께 만들 내용을 남겨보세요…">${esc(conversations.get(scope)??current.chatDraft??'')}</textarea><button class="primary" data-operation id="chat-prepare" type="submit" aria-label="메시지 보내기">보내기</button></form><small class="muted" id="chat-latest-log" hidden></small>`;
+function showChat(){const scope=current.projectId,body=$('#chat-inner');body.hidden=false;$('#execution-logs').hidden=true;$('#chat').classList.add('selected');$('#logs-tab').classList.remove('selected');if($('#chat-input')){syncPublicChat(true);return;}body.innerHTML=`<div class="messages" id="messages"><div class="message"><strong id="chat-helper">${esc(current.aiHelperId||current.helperProfile?.helper||'')}</strong><span id="chat-output">${esc(current.aiOutput||'')}</span></div></div><form class="chat-compose" id="chat-form"><div class="yogi-attachments" data-local-yogi-preview></div><textarea id="chat-input" maxlength="4096" aria-label="프로젝트 채팅 입력" placeholder="함께 만들 내용을 남겨보세요…">${esc(conversations.get(scope)??current.chatDraft??'')}</textarea><button class="primary" data-operation id="chat-prepare" type="submit" aria-label="메시지 보내기">보내기</button></form>`;
 $('#chat-input').oninput=()=>{conversations.set(scope,$('#chat-input').value);const key=scope+'|'+current.helperProfile?.helper;helperTalkGenerations.set(key,(helperTalkGenerations.get(key)||0)+1);};
 $('#chat-input').onblur=e=>{if(e.relatedTarget?.closest('#conflict-log,#run,#title,#worker-finder-bubble,.run-window button,[data-window-tab],.workspace-tab-close')){actualWorkspace.schedule();return;}if($('#chat-form').contains(e.relatedTarget)||e.relatedTarget?.closest('.brand')||current.projectId!==scope||busy)return;const value=$('#chat-input')?.value;if(value!==undefined&&value!==current.chatDraft)work(()=>view.call('chatDraft',{value}),'프로젝트 대화 초안 저장됨 · 전송 없음');};
 const input=$('#chat-input'),form=$('#chat-form');
