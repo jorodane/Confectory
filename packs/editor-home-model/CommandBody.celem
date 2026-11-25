@@ -1,4 +1,7 @@
 implementation Confectory.EditorHome.Model::CommandBody for Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
+import Confectory.SchemaEditing::BeginScope as BeginHomeSummaryScope (string) -> void;
+import Confectory.SchemaEditing::EndScope as EndHomeSummaryScope () -> void;
+import Confectory.SchemaEditing::Cancel as CancelHomeSummaryScope (string) -> void;
 import Confectory.EditorHome.Model::RunWindows as RunWindows (string,string,string) -> string;
 import Confectory.EditorHome.Model::ChatUse as ChatUse (string,string,string) -> string;
 import Confectory.EditorHome.Model::HelperAgents as HelperAgents (string,string,string) -> string;

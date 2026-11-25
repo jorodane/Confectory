@@ -1,4 +1,5 @@
 function Confectory.EditorHome.Model::CloseSession (string session) -> void {
+provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
 provide Confectory.EditWorkspace::Close with Confectory.EditWorkspace::CloseBody;
 provide Confectory.ProjectManager::Dispose with Confectory.ProjectManager::DisposeBody;
 provide Confectory.ProjectExecution::Dispose with Confectory.ProjectExecution::DisposeBody;

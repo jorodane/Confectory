@@ -1,4 +1,7 @@
 function Confectory.EditorHome.Model::Command (string session, string operation, string payload) -> string {
+provide Confectory.SchemaEditing::BeginScope with Confectory.SchemaEditing::BeginScopeBody;
+provide Confectory.SchemaEditing::EndScope with Confectory.SchemaEditing::EndScopeBody;
+provide Confectory.SchemaEditing::Cancel with Confectory.SchemaEditing::CancelBody;
 provide Confectory.EditorHome.Model::NativeTree with Confectory.EditorHome.Model::NativeTreeBody;
 provide Confectory.EditorHome.Model::HomePreferences with Confectory.EditorHome.Model::HomePreferencesBody;
 provide Confectory.EditorHome.Model::HelperPresentation with Confectory.EditorHome.Model::HelperPresentationBody;

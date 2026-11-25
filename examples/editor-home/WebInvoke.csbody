@@ -146,7 +146,7 @@ if(endpoint=="saveHomePreferences"){
  else throw new ArgumentException("Home preference fields");
  return "{\"accepted\":true}";
 }
-if(endpoint=="homeSummaries"){Command("home-summaries",new());return "{\"accepted\":true}";}
+if(endpoint=="homeSummaries"){if(OperatingSystem.IsWindows()||OperatingSystem.IsLinux())calls.Command.Invoke(context,"home-summaries-start","{}");else Command("home-summaries",new());return "{\"accepted\":true}";}
 if(endpoint=="moveHomeFavorite"){
  if(args.Count!=3||System.Linq.Enumerable.Any(args,row=>row.Key is not ("source" or "target" or "basis")))
   throw new ArgumentException("Home favorite move fields");
