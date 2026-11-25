@@ -114,6 +114,7 @@ try
         case "blueprintCallableContracts":reply=BlueprintCallableContracts.Query(request);break;
         case "blueprintOverrideContracts":reply=BlueprintOverrideContracts.Query(request,Format);break;
         case "blueprintSourceValidate":reply=BlueprintDocuments.Validate(S("id"),S("kind"),S("text"));break;
+        case "blueprintSourceValidateBatch":reply=BlueprintDocuments.ValidateBatch(request["documents"]!.AsArray());break;
         case "browserFolderMove":case "browserFolderValidate":reply=BrowserFolderLayout.Execute(request,Format,S("operation")=="browserFolderValidate");break;
         case "relationsMap":reply=RelationMapBatch.Query(request);break;
         case "bodyDeclarations":{

@@ -25,6 +25,7 @@ internal static class MetadataAuthoring
  }
  if(operation=="blueprintDescribeOwned"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BlueprintDocuments.DescribeOwned(request).ToJsonString();}
  if(operation=="blueprintSourceValidate")return BlueprintDocuments.Validate(S("id"),S("kind"),S("text")).ToJsonString();
+ if(operation=="blueprintSourceValidateBatch")return BlueprintDocuments.ValidateBatch(request["documents"]!.AsArray()).ToJsonString();
  if(operation=="blueprintCellRegion")return BlueprintCellRegion.Query(request).ToJsonString();
  if(operation=="relationsMap")return RelationMapBatch.Query(request).ToJsonString();
  if(operation=="bodyUnits"){request["project"]=PackPaths.Owned(ownerRoot,Path.GetRelativePath(ownerRoot,Path.GetFullPath(S("project"))));return BodyUnitMetadata.Query(request).ToJsonString();}

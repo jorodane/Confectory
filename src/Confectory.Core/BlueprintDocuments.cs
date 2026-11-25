@@ -40,6 +40,25 @@ public static class BlueprintDocuments
         return new JsonObject { ["id"] = id, ["kind"] = kind, ["validSourceDocument"] = true, ["compiled"] = false };
     }
 
+    // One projection already owns a bounded, exact source snapshot. Validate
+    // each original document by the same validator, without a process per leaf.
+    public static JsonObject ValidateBatch(JsonArray documents)
+    {
+        Require(documents.Count is >0 and <=64, "Bounded Blueprint source batch required");
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        int bytes=0;
+        foreach (var value in documents)
+        {
+            Require(value is JsonObject {Count:3} && value["id"] is JsonValue &&
+                value["kind"] is JsonValue && value["text"] is JsonValue, "Exact Blueprint source required");
+            string id=value!["id"]!.GetValue<string>(), kind=value["kind"]!.GetValue<string>(), text=value["text"]!.GetValue<string>();
+            bytes=checked(bytes+System.Text.Encoding.UTF8.GetByteCount(text));
+            Require(seen.Add(id)&&bytes<=2097152,"Unique bounded Blueprint source snapshot required");
+            Validate(id,kind,text);
+        }
+        return new JsonObject{["validated"]=documents.Count};
+    }
+
     public static JsonObject DescribeOwned(JsonObject request) => DescribeOwned(request, allowCompoundPreview: false);
 
     public static JsonObject DescribeOwned(JsonObject request, bool allowCompoundPreview)
