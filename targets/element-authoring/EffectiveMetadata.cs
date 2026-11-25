@@ -14,8 +14,9 @@ internal static class EffectiveMetadata
    string path=Confectory.Core.PackPaths.Owned(root,locator.Path);var selected=new Confectory.Core.Parser(text,path).ParseElement();
    if(selected.Id!=id||selected.Kind!=locator.Kind)throw new ArgumentException("Selected draft identity/kind mismatch.");
    long observationBytes=0;var observed=new System.Collections.Generic.Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+   System.Collections.Generic.HashSet<string>? rowPaths=null;
    string Observe(string path){
-    path=System.IO.Path.GetFullPath(path);if(observeSources)for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent)if(entry.LinkTarget is not null)throw new System.ArgumentException("Slot context cannot traverse links");
+    path=System.IO.Path.GetFullPath(path);rowPaths?.Add(path);if(observeSources)for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent)if(entry.LinkTarget is not null)throw new System.ArgumentException("Slot context cannot traverse links");
     string value=read(path);if(observeSources){if(observed.TryGetValue(path,out string? previous)&&previous!=value)throw new System.InvalidOperationException("Slot context changed during reading");if(!observed.ContainsKey(path)){observationBytes+=System.Text.Encoding.UTF8.GetByteCount(value);if(observed.Count>=2048||observationBytes>16777216)throw new System.ArgumentException("Slot context observation budget");}observed[path]=value;}return value;
    }
    foreach(var ns in manifest.Registry.Keys.ToArray())
@@ -127,12 +128,16 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    if(modelIds.Count is <1 or >32||drafts?.Count>0||!schemaView||!schemaReuseProof||!observeSources||validateObjects||definitionTypes||nativeTypes)throw new ArgumentException("Bounded clean property model required");
    var output=new System.Text.Json.Nodes.JsonArray();var ids=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 
+   var commonPaths=observed.Keys.ToArray();
    foreach(var value in modelIds){
+    rowPaths=new(commonPaths,observed.Comparer);
+    registry.BeginReadProjection(dependency=>{var parts=dependency.Split("::",StringSplitOptions.None);var full=Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(registry.Paths[parts[0]])!,registry.Packs[parts[0]].Elements[parts[1]].Path);rowPaths.Add(full);if(!observed.ContainsKey(full))Observe(full);});
+    planner=new Confectory.Core.Planner(registry,"metadata");
     string owner=value!.GetValue<string>();
     if(!ids.Add(owner)||!owner.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||!manifest.Elements.TryGetValue(owner[(manifest.Namespace.Length+2)..],out var record)||record.Kind is not ("object" or "schema"))throw new ArgumentException("Unique directly owned property model required");
     string source=Observe(Confectory.Core.PackPaths.Owned(root,record.Path));
     var owned=registry.Get(owner,record.Kind);if(owner==id&&source!=text)throw new InvalidOperationException("Source changed");
-    var row=Project(owner,source,owned);row["sourceText"]=source;output.Add(row);
+    var row=Project(owner,source,owned);row["sourceText"]=source;row["dependencyPaths"]=System.Text.Json.JsonSerializer.SerializeToNode(rowPaths);output.Add(row);
     if(output.ToJsonString().Length>524288)throw new ArgumentException("Property model output budget");
    }
    return new System.Text.Json.Nodes.JsonObject{["rows"]=output,["observations"]=Observations(),["ownershipPaths"]=OwnershipPaths()};

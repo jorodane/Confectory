@@ -37,9 +37,19 @@ def prepared(page, identifier):
         except Exception:
             return False
 
-    if not any(row["id"] == identifier for row in fixture.state().get("preparedPropertyModels", [])):
-        with page.expect_response(ready, timeout=60000):
+    # The independent fixture mount can see a model before the page does.
+    # Match only request metadata inside the callback; read the body afterward
+    # to avoid nested Playwright event dispatch.
+    deadline = time.monotonic() + 60
+    while time.monotonic() < deadline:
+        with page.expect_response(lambda response: response.url.endswith("/api/request")
+                                  and response.request.method == "POST", timeout=60000) as observed:
             page.locator("#title").hover()
+        if ready(observed.value):
+            page.evaluate("()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))")
+            break
+    else:
+        raise AssertionError("Prepared model was not published to the actual page")
     return fixture.state()["preparedPropertyModels"]
 
 

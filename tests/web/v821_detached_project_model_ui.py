@@ -4,6 +4,14 @@ import v821_property_window_reopen_ui as r
 import v821_direct_property_save_ui as d
 from playwright.sync_api import sync_playwright,expect
 f=r.fixture;b=r.fallback;source=r.seed();expect.set_options(timeout=60000)
+# Extra1 deliberately uses a different schema while the other three share StockInfo.
+for project in f.projects:
+ schema=project.parent/'private-source-IndependentInfo.celem'
+ schema.write_text((project.parent/'private-source-StockInfo.celem').read_text().replace('::StockInfo','::IndependentInfo'))
+ extra=project.parent/'private-source-Extra1.celem'
+ extra.write_text(extra.read_text().replace('::StockInfo','::IndependentInfo'))
+ project.write_text(project.read_text().rstrip()[:-1]+'\nelement IndependentInfo schema "private-source-IndependentInfo.celem";\n}\n')
+ for path in (schema,extra,project):f.before[str(path)]=path.read_bytes()
 def open_local(page,name,folder,slot,gesture='drag',held=True,title=None):
  w=r.browser_window(page);r.choose_tree_location(w,f'[data-tree-id="{b.NS}::{folder}"]');r.search(w,b.LABEL,name)
  item=w.locator(f'[data-object="{b.NS}::{name}"]');key='editor-'+str(slot);window=page.locator(f'.window[data-key="{key}"]')
@@ -42,8 +50,28 @@ try:
   extra=source.parent/'private-source-Extra2.celem';assert 'data Note = "second local committed"' in extra.read_text()
   assert source.read_bytes()==f.before[str(source)];expect(note).to_have_value('retained first local')
   print('PASS second detached owner saved without touching first',flush=True)
+  ids=lambda:{row['id'] for row in f.state()['preparedPropertyModels']}
+  assert {b.NS+'::'+b.TARGET,b.NS+'::Extra1',b.NS+'::'+b.PEER}<=ids()
+  assert b.NS+'::Extra2' not in ids() or 'second local committed' in f.state()['preparedPropertyDrafts'][b.NS+'::Extra2']['text']
+  third,note3=open_local(page,'Extra1','ExtraFolder1',3,'menu')
+  expect(note3).to_be_editable()
+  print('PASS first opening of unaffected owner after independent direct save',flush=True)
   d.commit(page,first);assert 'data Note = "retained first local"' in source.read_text()
   print('PASS first detached owner saved',flush=True)
+  note3.fill('staged independent local draft')
+  third.locator('[data-element-action="save"]').click()
+  expect(third.locator('[data-element-action="save"]')).to_be_disabled()
+  expect(page.locator("#project-menu")).to_be_enabled(timeout=120000)
+  print("after staged",ids(),flush=True)
+  assert b.NS+'::Extra1' not in ids() and b.NS+'::'+b.PEER in ids()
+  assert 'staged independent local draft' not in (source.parent/'private-source-Extra1.celem').read_text()
+  # A clean-only preparation attempted during a shared draft cannot discard
+  # previously proven unrelated rows.
+  f.call('relationsMap',{'prepareProperties':True})
+  assert b.NS+'::'+b.PEER in ids()
+  primary,peer_note=m.open_local(page,b.PEER,'PeerFolder',b.FIRST+' '+b.PEER)
+  expect(peer_note).to_be_editable()
+  print('PASS unrelated prepared owner survives staged draft and opens for real input',flush=True)
   b.enter_from_home(page,b.SECOND);m.wait_model(page,open_browser=True)
   first,note=open_local(page,b.TARGET,'StockFolder',1,title=b.SECOND);note.fill('second project local input')
   expect(page.locator('#project-menu')).to_be_enabled()
@@ -54,8 +82,17 @@ try:
   expect(d.value(first,'Note')).to_have_value('second project local input');expect(d.value(second,'Note')).to_have_value('second peer local input')
   expect(d.value(first,'Note')).to_be_editable();assert not f.state()['editorViews']
   print('PASS clean cold restore creates both real input surfaces from one model without host slots',flush=True)
+  # Restore prepares only saved owners. Explicitly prepare the same batch of four
+  # using the real host reader before testing a shared schema dependency.
+  f.call('preparePropertyModels',{'ids':sorted(m.identifiers)})
+  assert ids()==m.identifiers
   peer=f.projects[1].parent/'private-source-PeerRecord.celem';external=peer.read_text().replace(b.SECOND+' '+b.PEER,'external peer value');peer.write_text(external)
-  assert not f.state()['preparedPropertyModels']
+  after=ids()
+  assert b.NS+'::'+b.PEER not in after and b.NS+'::'+b.TARGET in after
+  dependency=peer.with_name('private-source-StockInfo.celem')
+  dependency.write_text(dependency.read_text()+'\n// external shared schema change\n')
+  assert ids()=={b.NS+"::Extra1"}
+  print("PASS external owner and shared schema invalidate only dependent rows",flush=True)
   expect(page.locator('#project-menu')).to_be_enabled(timeout=120000)
   confirm=second.locator('[data-element-action="confirm"]');expect(confirm).to_be_enabled()
   mark=len(f.requests);confirm.click()

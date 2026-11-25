@@ -2,30 +2,43 @@ var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
 void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode version,bool append=false){
-  var prior=state["propertyModels"]?.DeepClone();if(!append){state.Remove("propertyModels");state.Remove("propertyModelBacklog");}
+  var prior=state["propertyModels"]?.DeepClone();
   try{
    var ids=calls.List.Invoke(draft);
    if(owners.Length is >=1 and <=32&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(owners,StringComparer.Ordinal))==owners.Length&&System.Linq.Enumerable.All(owners,id=>Array.Exists(ids,known=>known==id)&&calls.Status.Invoke(draft,id)[1]=="object")&&calls.Changes.Invoke(draft,ids).Length==0){
     var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));if(manifestId.StartsWith("Confectory.AISettings::",StringComparison.Ordinal))return;var manifest=calls.Read.Invoke(draft,manifestId);
     var preparedSeed=calls.Read.Invoke(draft,owners[0]);var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("preparePropertyModels",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id=preparedSeed[0],kind=preparedSeed[1],text=preparedSeed[3],ids=owners,schemaView=true,schemaReuseProof=true})))!["effective"]!;
     if(prepared["observations"] is System.Text.Json.Nodes.JsonArray observed&&observed.Count<=32&&prepared["ownershipPaths"] is System.Text.Json.Nodes.JsonArray paths&&paths.Count<=128&&prepared["rows"] is System.Text.Json.Nodes.JsonArray results&&results.Count==owners.Length){
-     var models=new System.Text.Json.Nodes.JsonArray();var sourceProofs=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],manifest[2]),["hash"]=manifest[5]});
+     var models=new System.Text.Json.Nodes.JsonArray();
+     var ownedPaths=new System.Collections.Generic.Dictionary<string,System.Collections.Generic.List<string>>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+     foreach(string known in ids){var status=calls.Status.Invoke(draft,known);string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(identity[3],status[2]));if(!ownedPaths.TryGetValue(path,out var aliases))ownedPaths[path]=aliases=new();aliases.Add(known);}
+     string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+     // Persist the exact owner/dependency unit versions, not the shared history revision.
+     var dependencies=new System.Text.Json.Nodes.JsonObject();
      foreach(var candidate in results){
       var row=candidate!.AsObject();string owner=row["id"]!.ToString();if(!Array.Exists(owners,id=>id==owner))throw new InvalidOperationException("Prepared owner mismatch");var source=calls.Read.Invoke(draft,owner);
       if(source[1]!="object"||source[6]!="clean"||source[3]!=row["sourceText"]?.ToString())throw new InvalidOperationException("Prepared source changed");
+      if(row["dependencyPaths"] is not System.Text.Json.Nodes.JsonArray dependencyPaths)continue;
+      var selectedPaths=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(dependencyPaths,p=>p!.ToString()),ownedPaths.Comparer);
+      var rowObserved=new System.Text.Json.Nodes.JsonArray();var versions=new System.Text.Json.Nodes.JsonObject{[manifestId]=manifest[4]};bool matching=true;
+      foreach(var observation in observed){string path=observation!["path"]!.ToString();if(!selectedPaths.Remove(path))continue;rowObserved.Add(observation.DeepClone());
+       if(ownedPaths.TryGetValue(path,out var aliases))foreach(string dependency in aliases){var input=calls.Read.Invoke(draft,dependency);if(input[6]!="clean"||Hash(input[3])!=observation["hash"]!.ToString()){matching=false;break;}versions[dependency]=input[4];}}
+      if(!matching||selectedPaths.Count!=0||versions[owner] is null)continue;
+      dependencies[owner]=new System.Text.Json.Nodes.JsonObject{["observations"]=rowObserved,["versions"]=versions,["sources"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],manifest[2]),["hash"]=manifest[5]},new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],source[2]),["hash"]=source[5]})};
+      row.Remove("dependencyPaths");
       var inspection=row["inspection"]!.DeepClone();row.Remove("inspection");row.Remove("sourceText");
       if(row["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")continue;
       var schema=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(row["schemaModel"]!.ToJsonString()))!;
       models.Add(new System.Text.Json.Nodes.JsonObject{["unit"]=new System.Text.Json.Nodes.JsonObject{["id"]=owner,["kind"]=source[1],["path"]=source[2],["text"]=source[3],["dirty"]=false,["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture)},["inspection"]=inspection,["inspectionRevision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["effective"]=row.DeepClone(),["schemaView"]=schema});
-      sourceProofs.Add(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],source[2]),["hash"]=source[5]});
+
      }
-     if(models.Count>0&&models.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
-      if(append&&prior?["models"] is System.Text.Json.Nodes.JsonArray priorRows&&System.Text.Json.Nodes.JsonNode.DeepEquals(prior["draftVersion"],version)){
+     if(models.Count>0&&models.ToJsonString().Length+dependencies.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
+      if(append&&prior?["models"] is System.Text.Json.Nodes.JsonArray priorRows&&prior["draftVersion"]?["epoch"]?.ToString()==version["epoch"]?.ToString()){
        var backlog=state["propertyModelBacklog"] as System.Text.Json.Nodes.JsonArray??new();if(backlog.Parent is null)state["propertyModelBacklog"]=backlog;backlog.Add(prior);
        int CountRows()=>models.Count+System.Linq.Enumerable.Sum(backlog,group=>group?["models"]?.AsArray().Count??0);
-       while(backlog.Count>3||CountRows()>32||backlog.ToJsonString().Length+models.ToJsonString().Length>524288)if(backlog.Count>0)backlog.RemoveAt(0);else break;
-      }else if(append)state.Remove("propertyModelBacklog");
-      state["propertyModels"]=new System.Text.Json.Nodes.JsonObject{["models"]=models,["sources"]=sourceProofs,["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone(),["draftVersion"]=version.DeepClone()};
+       while(backlog.Count>3||CountRows()>32||backlog.ToJsonString().Length+models.ToJsonString().Length+dependencies.ToJsonString().Length>524288)if(backlog.Count>0)backlog.RemoveAt(0);else break;
+      }else state.Remove("propertyModelBacklog");
+      state["propertyModels"]=new System.Text.Json.Nodes.JsonObject{["models"]=models,["dependencies"]=dependencies,["ownershipPaths"]=paths.DeepClone(),["draftVersion"]=version.DeepClone()};
      }
     }
    }

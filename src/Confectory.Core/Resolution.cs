@@ -43,6 +43,9 @@ public sealed class Registry
         Packs.Add(ns, manifest); Paths.Add(ns, path); ManifestDigests.Add(path, JsonData.Digest(manifest));
         foreach (var locator in manifest.Elements.Values) PackPaths.Owned(Path.GetDirectoryName(path)!, locator.Path, locator.Loc);
     }
+    private Action<string>? projectionRead;
+    // Keep parsed declarations, but traverse each projection’s effective dependencies.
+    public void BeginReadProjection(Action<string> observe) { effectiveCache.Clear(); projectionRead = observe; }
     public Element Get(string id, string? expected = null, string? source = null, SourceLocation? loc = null)
     {
         string[] parts = id.Split("::", StringSplitOptions.None);
@@ -56,6 +59,7 @@ public sealed class Registry
         if (!Packs.TryGetValue(ns, out var pack)) throw new BuildError("MISSING_NAMESPACE", $"Namespace {ns} is not registered", loc) { NamespaceDiagnostic = new(ns, "element", source is null ? null : PackPaths.Namespace(source), id) };
         if (!pack.Elements.TryGetValue(local, out var locator)) throw new BuildError("MISSING_ELEMENT", $"No declaration for {id}", loc);
         if (expected is not null && locator.Kind != expected) throw new BuildError("ELEMENT_KIND", $"{id} is {locator.Kind}, expected {expected}", loc ?? locator.Loc);
+        projectionRead?.Invoke(id);
         if (!Elements.TryGetValue(id, out var element))
         {
             string path = PackPaths.Owned(Path.GetDirectoryName(Paths[ns])!, locator.Path, locator.Loc);

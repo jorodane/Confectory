@@ -71,14 +71,15 @@ System.Text.Json.Nodes.JsonObject? ProjectSchema(System.Text.Json.Nodes.JsonNode
 var publicSchema=ProjectSchema(workspace);
 // A bounded, read-only freshness projection for the already prepared primary
 // schema. Only a boolean is public; source paths and proof remain host-private.
-bool PreparedPhysicalProof(System.Text.Json.Nodes.JsonNode proof,System.Text.Json.Nodes.JsonArray sources){
-var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);long bytes=0;
-  bool NoLinks(string full){for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return false;}return true;}
-  byte[] Read(string full){if(!NoLinks(full)||!System.IO.File.Exists(full))throw new System.IO.IOException("Prepared model changed");var size=new System.IO.FileInfo(full).Length;if(size>1048576||bytes+size>1048576)throw new System.IO.IOException("Prepared model read budget");var data=System.IO.File.ReadAllBytes(full);bytes+=data.Length;if(bytes>1048576)throw new System.IO.IOException("Prepared model read budget");return data;}
+bool PreparedPhysicalProof(System.Text.Json.Nodes.JsonNode proof,System.Text.Json.Nodes.JsonArray sources,System.Collections.Generic.Dictionary<string,(string Raw,string Text)>? hashes=null,System.Collections.Generic.HashSet<string>? safePaths=null,long[]? sharedBytes=null){
+var checkedPaths=safePaths??new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);long bytes=0;
+  bool NoLinks(string full){var pending=new System.Collections.Generic.List<string>();for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(checkedPaths.Contains(node.FullName))break;if(node.LinkTarget is not null)return false;pending.Add(node.FullName);}foreach(string path in pending)checkedPaths.Add(path);return true;}
+  byte[] Read(string full){if(!NoLinks(full)||!System.IO.File.Exists(full))throw new System.IO.IOException("Prepared model changed");var size=new System.IO.FileInfo(full).Length;if(size>1048576||bytes+size>1048576)throw new System.IO.IOException("Prepared model read budget");var data=System.IO.File.ReadAllBytes(full);bytes+=data.Length;if(bytes>1048576)throw new System.IO.IOException("Prepared model read budget");if(sharedBytes is not null&&(sharedBytes[0]+=data.Length)>4194304)throw new System.IO.IOException("Prepared model snapshot budget");return data;}
   string Hash(byte[] data)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(data)).ToLowerInvariant();
-  foreach(var source in sources)if(Hash(Read(source!["path"]!.ToString()))!=source["hash"]!.ToString())return false;
+  (string Raw,string Text) Digests(string path){if(hashes is not null&&hashes.TryGetValue(path,out var existing))return existing;var data=Read(path);using var stream=new System.IO.MemoryStream(data);using var reader=new System.IO.StreamReader(stream,new System.Text.UTF8Encoding(false,true),true);var result=(Hash(data),Hash(System.Text.Encoding.UTF8.GetBytes(reader.ReadToEnd())));if(hashes is not null){if(hashes.Count>=128)throw new System.IO.IOException("Prepared model observation budget");hashes[path]=result;}return result;}
+  foreach(var source in sources)if(Digests(source!["path"]!.ToString()).Raw!=source["hash"]!.ToString())return false;
   foreach(var path in proof["ownershipPaths"]!.AsArray())if(!NoLinks(path!.ToString()))return false;
-  foreach(var observation in proof["observations"]!.AsArray()){using var stream=new System.IO.MemoryStream(Read(observation!["path"]!.ToString()));using var reader=new System.IO.StreamReader(stream,new System.Text.UTF8Encoding(false,true),true);if(Hash(System.Text.Encoding.UTF8.GetBytes(reader.ReadToEnd()))!=observation["hash"]!.ToString())return false;}
+  foreach(var observation in proof["observations"]!.AsArray())if(Digests(observation!["path"]!.ToString()).Text!=observation["hash"]!.ToString())return false;
   return true;
 }
 bool PreparedPrimaryReady(){
@@ -115,12 +116,13 @@ System.Text.Json.Nodes.JsonArray PreparedPropertyModels(){
    if(AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) is not System.Text.Json.Nodes.JsonObject pack||!System.Threading.Monitor.TryEnter(pack))return output;try{
     if(pack["propertyModels"] is not System.Text.Json.Nodes.JsonObject newest)return output;
     if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+pack["draft"]!.ToString()) is not System.Text.Json.Nodes.JsonObject edit||!System.Threading.Monitor.TryEnter(edit))return output;
-    string? epoch,revision;try{var clock=edit["history"];epoch=clock?["epoch"]?.ToString();revision=clock?["revision"]?.ToString();}finally{System.Threading.Monitor.Exit(edit);}
-    if(epoch is null||revision is null)return output;
+    try{
+    string? epoch=edit["history"]?["epoch"]?.ToString();if(epoch is null)return output;
+    bool VersionsMatch(System.Text.Json.Nodes.JsonNode versions){foreach(var pair in versions.AsObject()){var source=edit["units"]?[pair.Key];if(source is null||source["revision"]?.ToString()!=pair.Value?.ToString()||source["draft"] is null||source["baseline"]?.ToString()=="missing"||!System.Text.Json.Nodes.JsonNode.DeepEquals(source["draft"],source["original"]))return false;}return true;}
     var groups=new System.Collections.Generic.List<System.Text.Json.Nodes.JsonObject>{newest};if(pack["propertyModelBacklog"] is System.Text.Json.Nodes.JsonArray backlog)for(int i=backlog.Count-1;i>=0;i--)if(backlog[i] is System.Text.Json.Nodes.JsonObject group)groups.Add(group);
     foreach(var cache in groups){
-     var version=cache["draftVersion"];if(version?["available"]?.GetValue<bool>()!=true||epoch!=version["epoch"]?.ToString()||revision!=version["revision"]?.ToString())continue;
-     if(cache["models"] is not System.Text.Json.Nodes.JsonArray stored||cache["sources"] is not System.Text.Json.Nodes.JsonArray sources||sources.Count>33||cache["observations"] is not System.Text.Json.Nodes.JsonArray observed||observed.Count>32||cache["ownershipPaths"] is not System.Text.Json.Nodes.JsonArray paths||paths.Count>128)continue;
+     var version=cache["draftVersion"];if(version?["available"]?.GetValue<bool>()!=true||epoch!=version["epoch"]?.ToString())continue;
+     if(cache["models"] is not System.Text.Json.Nodes.JsonArray stored||cache["dependencies"] is not System.Text.Json.Nodes.JsonObject dependencies||cache["ownershipPaths"] is not System.Text.Json.Nodes.JsonArray paths||paths.Count>128)continue;
      if(cache["publicModels"] is not System.Text.Json.Nodes.JsonArray published||cache["publicDrafts"] is not System.Text.Json.Nodes.JsonObject publicDrafts){
       published=new();publicDrafts=new();
       foreach(var storedRow in stored){var schema=ProjectSchema(storedRow);var unit=storedRow?["unit"];if(schema is null||unit is null)continue;published.Add(schema);
@@ -128,13 +130,17 @@ System.Text.Json.Nodes.JsonArray PreparedPropertyModels(){
       }
       if(published.ToJsonString().Length+publicDrafts.ToJsonString().Length>131072)continue;cache["publicModels"]=published;cache["publicDrafts"]=publicDrafts;
      }
-     candidates.Add((new(){["sources"]=sources.DeepClone(),["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone()},published.DeepClone().AsArray(),publicDrafts.DeepClone().AsObject()));
+     foreach(var row in published){string id=row!["id"]!.ToString();if(dependencies[id] is not System.Text.Json.Nodes.JsonObject dependency||dependency["versions"] is not System.Text.Json.Nodes.JsonObject versions||!VersionsMatch(versions)||dependency["observations"] is not System.Text.Json.Nodes.JsonArray observed||observed.Count>32||dependency["sources"] is not System.Text.Json.Nodes.JsonArray sources||sources.Count!=2||publicDrafts[id] is not System.Text.Json.Nodes.JsonNode draft)continue;
+      candidates.Add((new(){["sources"]=sources.DeepClone(),["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone()},new(row.DeepClone()),new(){[id]=draft.DeepClone()}));}
     }
+   }finally{System.Threading.Monitor.Exit(edit);}
    }finally{System.Threading.Monitor.Exit(pack);}
   }finally{System.Threading.Monitor.Exit(home);}
   var seen=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+  var hashes=new System.Collections.Generic.Dictionary<string,(string Raw,string Text)>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+  var safePaths=new System.Collections.Generic.HashSet<string>(hashes.Comparer);var sharedBytes=new long[1];
   foreach(var candidate in candidates){
-   bool valid;try{valid=PreparedPhysicalProof(candidate.Proof,candidate.Proof["sources"]!.AsArray());}catch{valid=false;}if(!valid)continue;
+   bool valid;try{valid=PreparedPhysicalProof(candidate.Proof,candidate.Proof["sources"]!.AsArray(),hashes,safePaths,sharedBytes);}catch{valid=false;}if(!valid)continue;
    foreach(var row in candidate.Rows){string id=row!["id"]!.ToString();if(!seen.Add(id)||candidate.Drafts[id] is not System.Text.Json.Nodes.JsonNode draft)continue;
     output.Add(row.DeepClone());preparedPropertyDrafts[id]=draft.DeepClone();
     if(output.Count>32||output.ToJsonString().Length+preparedPropertyDrafts.ToJsonString().Length>131072){output.RemoveAt(output.Count-1);preparedPropertyDrafts.Remove(id);return output;}
