@@ -37,6 +37,24 @@ import {createFinderContent} from './finder-content.js';
 import {createContextActions} from './context-actions.js';
 const $=(s,root=document)=>root.querySelector(s), $$=(s,root=document)=>[...root.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Native input owns its DOM target until the browser has delivered click/drop.
+// Only the list surfaces below defer replacement; state and authority continue
+// updating normally, and actions resolve the live project/qualified ID.
+let pointerPresentation=null;
+function releasePointerPresentation(gesture=pointerPresentation){
+ if(!gesture||gesture.releasing)return;gesture.releasing=true;
+ setTimeout(()=>{if(pointerPresentation===gesture)pointerPresentation=null;for(const [root,render] of gesture.renders)if(root.isConnected)render();},0);
+}
+document.addEventListener('pointerdown',e=>{
+ if(!e.isPrimary)return;releasePointerPresentation();
+ if(!e.target.closest('.browser-view,.window[data-key="packs"],#pack-manager-view'))return;
+ pointerPresentation={target:e.target,pointer:e.pointerId,drag:false,releasing:false,renders:new Map()};
+},true);
+document.addEventListener('dragstart',e=>{if(pointerPresentation?.target&&e.target.contains(pointerPresentation.target))pointerPresentation.drag=true;},true);
+for(const event of ['pointerup','pointercancel'])document.addEventListener(event,e=>{const gesture=pointerPresentation;if(gesture?.pointer===e.pointerId&&!gesture.drag)releasePointerPresentation(gesture);},true);
+for(const event of ['dragend','drop'])document.addEventListener(event,()=>releasePointerPresentation(),true);
+window.addEventListener('blur',()=>releasePointerPresentation());
+function deferPointerPresentation(root,render){const gesture=pointerPresentation;if(!gesture||!root.contains(gesture.target))return false;gesture.renders.set(root,render);return true;}
 let startupDecided=false,startupVisible=false;
 const idleWaiters=new Set();
 let runtimeStatusRead=null;
@@ -79,7 +97,7 @@ async function readBrowserRelations(refreshPrepared=false){const scope=current.p
 let inventoryRequest=null;
 function loadLocalInventory(relations=false){const scope=current?.projectId;if(inventoryRequest?.scope===scope){inventoryRequest.relations||=relations;return;}const request={scope,relations};inventoryRequest=request;controls();const load=()=>{if(inventoryRequest!==request)return;if(current?.projectId!==scope){inventoryRequest=null;controls();return;}if(busy){setTimeout(load,50);return;}browserProjection.retry();work(async()=>{await view.call('localInventory',{});if(scope&&request.relations&&current?.projectId===scope)await readBrowserRelations();},'실제 로컬 registry 목록').finally(()=>{if(inventoryRequest===request)inventoryRequest=null;controls();if(scope&&current?.projectId===scope)ensureBrowserInventory();});};setTimeout(load,0);}
 function declarationValuesOnly(sections){return Object.fromEntries(Object.entries(sections||{}).map(([name,value])=>[name,name.startsWith('object-implementation:')?{value:typeof value?.value==='string'?value.value:'',mode:value?.mode==='reference'?'reference':'blank',reference:typeof value?.reference==='string'?value.reference:'',catalog:value?.catalog==='registered'?'registered':'owned',query:typeof value?.query==='string'?value.query.slice(0,256):'',page:Number.isInteger(value?.page)&&value.page>=0&&value.page<=1000000?value.page:0}:name==='module-new'||name.startsWith('module-function:')||name.startsWith('object-provider:')?{value:value?.value}:value]));}
-const packManager=createPackManager({esc,canvas:()=>$('#workspace'),project:()=>actualWorkspace.project,catalog:()=>current.inventory,load:()=>loadLocalInventory(),persist:()=>actualWorkspace.schedule(),toast});
+const packManager=createPackManager({esc,defer:deferPointerPresentation,canvas:()=>$('#workspace'),project:()=>actualWorkspace.project,catalog:()=>current.inventory,load:()=>loadLocalInventory(),persist:()=>actualWorkspace.schedule(),toast});
 const actualWorkspace=createActualWorkspace({createWorkspaceObject:kind=>{const declaration={Concept:'object',Info:'schema',Enum:'enum',Feature:'function',Module:'module'}[kind];if(declaration)declarationDialog(declaration);else toast('종류 생성은 아직 지원하지 않아요.');},createWorkspaceVariation:row=>variationDialog(row),openObjectTable:at=>tablesUI.custom(null,at),showPackManager:active=>{packManager.show(active);if(active&&!current.inventory)loadLocalInventory();},
  $, $$, esc, toast, modal, contextMenu, unsupported,controls,resourceCreateMenu:(w,event,parent)=>resourceBrowser.createMenu(w,event,parent),
  officeParticipants:()=>visibleParticipantHelpers(),observeOffice:()=>loadLocalInventory(true),projection:browserProjection,openBrowser:openHierarchyBrowser,openDeclaration:id=>{const row=browserProjection.rows().find(row=>row.id===id);return row?openBrowserDefinition(row):act('select',{id});},
@@ -381,19 +399,20 @@ function enterBrowserParent(w,id){const row=browserProjection.rows().find(row=>r
 function openResourceParent(item,parent){const parentId=parent?.id||null,key=workspaceRuntime.browserInstanceKey('tree','resource',parentId),size=workspaceRuntime.browserInitialSize(key),spot=workspaceRuntime.workspaceFindSpot(null,size.width,size.height),w=openWindow(key,(parent?.name||'자료')+' 브라우저',size.width,size.height,{meta:{group:'resource',resourceFolder:parentId,parent:parentId,density:40,query:'',queryInput:'',sort:'original'}});if(!w)throw Error('resource_parent_window');Object.assign(w,{x:spot.x,y:spot.y,placed:true});placeWindow(w);browser(key,true);resourceBrowser.navigate(w,parentId,item.id);workspaceRuntime.focusWorkspaceWindow(w);actualWorkspace.schedule();return w;}
 function openHierarchyBrowser(group,at,restoring,key='browser',parent=null,spot){const w=browser(key);Object.assign(w.meta,{group,catalogue:true,parent,namespace:parent?.split('::')[0]||current.namespace,kind:null,query:'',queryInput:''});browser(key,true);if(spot){Object.assign(w,{x:spot.x,y:spot.y,placed:true});placeWindow(w);}actualWorkspace.schedule();return w;}
 function openBrowserDefinition(row){if(row.owned!==false&&['object','schema'].includes(row.kind)&&row.valid!==false&&(current.editorViews?.some(value=>value.id===row.id&&value.mode==='properties')||actualWorkspace.windowDocuments.active||document.body.classList.contains('is-mobile-editor')))return openElementInstance(row.id);if(row.owned!==false){if(row.valid===false)return work(async()=>{if(dirty&&draft?.id!==row.id)throw Error('미적용 소스 입력을 먼저 Apply하세요.');await view.call('select',{id:row.id});editor();const w=windows.get('source');w.el.hidden=false;focusWindow(w);},'현재 선언 소스');return act('select',{id:row.id});}const source=browserProjection.source(row.id);if(source)return openDefinitionTarget(source,row.id);modal('등록 팩 선언',`<h3>${esc(row.id)}</h3><p>${esc(row.kind)} · 읽기 전용 목록</p><p>이 소유 작업 사본에 직접 선언한 참조가 없습니다. 정의 조회 권한을 확대하지 않습니다.</p>`);}
-function decorateBrowserRows(w,root,items){for(const el of $$('[data-object]',root)){const row=browserProjection.rows().find(row=>row.id===el.dataset.object)||items.find(row=>row.id===el.dataset.object);if(!row)continue;
+function decorateBrowserRows(w,root,items){const scope=current.projectId,generation=view.generation;const alive=()=>current.projectId===scope&&view.generation===generation&&windows.get(w.key)===w&&root.isConnected&&!w.el.hidden;for(const el of $$('[data-object]',root)){const row=browserProjection.rows().find(row=>row.id===el.dataset.object)||items.find(row=>row.id===el.dataset.object);if(!row)continue;
  el.querySelectorAll('[data-browser-enter]').forEach(button=>button.remove());
+ const live=()=>alive()?(browserProjection.rows().find(value=>value.id===row.id)||current.units.find(value=>value.id===row.id)):null;
  const category=row.kind==='category';
  if(category||browserProjection.browserChildren(row.id).length){
   const button=document.createElement('button');button.type='button';button.className=w.meta.density<=0||w.meta.density>=100?'list-expand':'concept-expand';button.dataset.browserEnter=row.id;button.textContent='▸';
   const label=browserObjectName(row.id);
   const action=category?'카테고리 '+label+' 열기':label+' 바리에이션으로 이동';
   button.setAttribute('aria-label',action);button.title=action;
-  button.onclick=e=>{e.stopPropagation();enterBrowserParent(w,row.id);};
+  button.onclick=e=>{e.stopPropagation();const latest=live();if(latest&&latest.kind===row.kind)enterBrowserParent(w,row.id);};
   const identity=el.querySelector('.browser-data-identity')||el;identity.querySelector('.obj-icon')?.after(button);
  }
- const name=el.querySelector('[data-inline-name]');if(name)name.onclick=e=>{e.stopPropagation();openBrowserDefinition(row);};
- el.draggable=row.owned!==false;el.ondragstart=e=>{if(e.target.closest('input,button')||row.owned===false){e.preventDefault();return;}workspaceRuntime.startObjectEditorDrag(e,{id:row.id,name:browserObjectName(row.id)},[{id:row.id,name:browserObjectName(row.id)}],current.projectId);workspaceRuntime.state.workspaceDragPayload.sourceProofs=[{id:row.id,revision:row.revision,hash:row.textHash}];};el.ondragend=()=>workspaceRuntime.endWorkspaceDrag();
+ const name=el.querySelector('[data-inline-name]');if(name)name.onclick=e=>{e.stopPropagation();const latest=live();if(latest)openBrowserDefinition(latest);};
+ el.draggable=row.owned!==false;el.ondragstart=e=>{const latest=live();if(e.target.closest('input,button')||!latest||latest.kind!==row.kind||latest.owned===false){e.preventDefault();return;}workspaceRuntime.startObjectEditorDrag(e,{id:latest.id,name:browserObjectName(latest.id)},[{id:latest.id,name:browserObjectName(latest.id)}],scope);workspaceRuntime.state.workspaceDragPayload.sourceProofs=[{id:latest.id,revision:latest.revision,hash:latest.textHash}];};el.ondragend=()=>workspaceRuntime.endWorkspaceDrag();
 }browserReferences.bind(root,items);}
 
 function browser(key='browser',refresh=false){const w=openWindow(key,'프로젝트 브라우저',workspaceRuntime.isProjectBrowserKey(key)?678:502,workspaceRuntime.isProjectBrowserKey(key)?458:348,{x:key==='browser'?28:58,y:key==='browser'?85:115,meta:{group:'concept',density:50,query:'',sort:'original'}});mountBrowserCommitActions(w,{action:browserCommitAction});w.meta.group??='concept';w.meta.density??=50;w.browserFilterRestored??=true;restoreBrowserFilter(w);
@@ -478,15 +497,33 @@ function ensureBrowserInventory(){
 }
 
 function packWindow(){const w=openWindow('packs','팩 관리',480,360);renderPacks(w);return w;}
-function renderPacks(w=windows.get('packs')){if(!w)return;const inventory=current.inventory;if(inventory?.status!=='available'){w.body.innerHTML='<div class="window-content">'+(inventory?'실제 로컬 팩 목록을 읽지 못했습니다.':'실제 로컬 팩 목록을 불러오는 중입니다.')+'</div>';return;}const owner=inventory.packs.find(p=>p.owned),deps=owner?.dependencies||{};w.body.innerHTML=`<div class="window-content"><h2>프로젝트의 팩</h2><p class="small">의미 객체 브라우저의 탭과 별도로 관리합니다.</p>${inventory.packs.map(p=>`<div class="pack-row" data-pack="${esc(p.namespace)}"><input type="checkbox" aria-label="${esc(p.namespace)} 의존성 선언" ${p.owned||deps[p.namespace]?'checked':''} disabled><strong title="${esc(p.namespace)}">${esc(p.namespace)}</strong><span class="tag">${esc(p.version)}</span><small>${p.owned?'현재 소유 namespace':deps[p.namespace]?'직접 의존성':'등록 팩'}</small></div>`).join('')}<div class="editor-note">실제 registry와 직접 의존성 선언입니다. 빌드 포함 여부·설치·구매·추가·제외·업데이트 정책은 연결되지 않았습니다.</div></div>`;
- const declarations=(inventory.declarations||[]).filter(row=>row.owned&&row.kind==='view'&&row.namespace===current.namespace);
+function renderPacks(w=windows.get('packs')){
+ if(!w)return;const scope=current.projectId,generation=view.generation,inventory=current.inventory;
+ const declarations=(inventory?.declarations||[]).filter(row=>row.owned&&row.kind==='view'&&row.namespace===current.namespace);
+ const stamp=JSON.stringify([scope,generation,inventory?.status,inventory?.packs,declarations.map(row=>row.id)]);
+ if(w.packListStamp===stamp&&w.body.firstElementChild===w.packListNode)return;
+ const alive=()=>current.projectId===scope&&view.generation===generation&&windows.get('packs')===w&&w.el.isConnected;
+ if(deferPointerPresentation(w.body,()=>{if(alive())renderPacks(w);}))return;
+ const detailsOpen=w.body.querySelector('details')?.open===true;
+ w.packListStamp=stamp;
+ if(inventory?.status!=='available'){w.body.innerHTML='<div class="window-content">'+(inventory?'실제 로컬 팩 목록을 읽지 못했습니다.':'실제 로컬 팩 목록을 불러오는 중입니다.')+'</div>';w.packListNode=w.body.firstElementChild;return;}
+ const owner=inventory.packs.find(p=>p.owned),deps=owner?.dependencies||{};
+ w.body.innerHTML=`<div class="window-content"><h2>프로젝트의 팩</h2><p class="small">의미 객체 브라우저의 탭과 별도로 관리합니다.</p>${inventory.packs.map(p=>`<div class="pack-row" data-pack="${esc(p.namespace)}"><input type="checkbox" aria-label="${esc(p.namespace)} 의존성 선언" ${p.owned||deps[p.namespace]?'checked':''} disabled><strong title="${esc(p.namespace)}">${esc(p.namespace)}</strong><span class="tag">${esc(p.version)}</span><small>${p.owned?'현재 소유 namespace':deps[p.namespace]?'직접 의존성':'등록 팩'}</small></div>`).join('')}<div class="editor-note">실제 registry와 직접 의존성 선언입니다. 빌드 포함 여부·설치·구매·추가·제외·업데이트 정책은 연결되지 않았습니다.</div></div>`;
+ w.packListNode=w.body.firstElementChild;
  if(!declarations.length)return;
- const section=document.createElement('details'),summary=document.createElement('summary');
+ const section=document.createElement('details'),summary=document.createElement('summary');section.open=detailsOpen;
  summary.textContent='프로젝트 창 선언';section.append(summary);
  const hint=document.createElement('p');hint.className='small';
  hint.textContent='창을 선택하고 메뉴 표시를 설정한 뒤 Review와 Confirm을 완료하세요.';
  section.append(hint);
- for(const {id} of declarations)section.append(button(id,()=>openBrowserDefinition({id,kind:'view',owned:true,valid:false})));
+ for(const {id} of declarations)section.append(button(id,async()=>{
+  if(!alive()||w.el.hidden||w.packOpenIntent)return;
+  const intent={id};w.packOpenIntent=intent;try{
+   while(busy){await whenIdle();if(!alive()||w.el.hidden||w.packOpenIntent!==intent)return;}
+   if(!alive()||w.el.hidden||!current.inventory?.declarations?.some(row=>row.id===id&&row.kind==='view'&&row.owned===true&&row.namespace===current.namespace))return;
+   await openBrowserDefinition({id,kind:'view',owned:true,valid:false});
+  }finally{if(w.packOpenIntent===intent)w.packOpenIntent=null;}
+ }));
  w.body.querySelector('.window-content').append(section);
 }
 function showPackInventory(){return work(async()=>{await view.call('localInventory',{});if(current.inventory?.status!=='available')throw Error('실제 로컬 팩 목록을 읽지 못했습니다.');packWindow();},'실제 로컬 팩 목록');}
@@ -711,6 +748,7 @@ function prepareVisiblePropertyModels(w,items){
 }
 function renderObjects(key){if(!key){for(const w of windows.values())if(w.key==='browser'||w.key.startsWith('browser:')||w.key.startsWith('browser-tree:'))renderObjects(w.key);return;}const w=windows.get(key);if(w?.meta.group==='resource'){if(w.resourceGeneration!==view.generation||!w.resourceLifetime)resourceBrowser.mount(w);else resourceBrowser.render(w);return;}const root=w&&$('[data-browser-control=objects]',w.body);if(!root||!w||!current)return;
 const scope=current.projectId,generation=view.generation,group=w.meta.group,search=w.meta.catalogue?null:w.browserSearch;
+if(w.browserScope===scope&&deferPointerPresentation(w.body,()=>{if(current.projectId===scope&&view.generation===generation&&windows.get(w.key)===w)renderObjects(w.key);}))return;
 // The transport can deliver units before work() finishes. Do not make an
 // earlier result current while the last submitted query is unresolved.
 if(search&&!search.confirmed){
@@ -766,7 +804,7 @@ for(const el of $$('[data-object]',root)){
  }else{
   el.onclick=e=>{if(!e.target.closest('input,button')&&activeResults())open();};
   el.ondblclick=e=>{if(!e.target.closest('input,button,textarea,select')&&activeResults())open();};
-  el.oncontextmenu=e=>{if(e.target.closest('input,button,textarea,select'))return;e.preventDefault();if(activeResults())objectActions(e,u);};
+  el.oncontextmenu=e=>{if(e.target.closest('input,button,textarea,select'))return;e.preventDefault();const latest=browserProjection.rows().find(row=>row.id===u.id)||current.units.find(row=>row.id===u.id);if(activeResults()&&latest&&latest.kind===u.kind&&latest.owned!==false)objectActions(e,latest);};
  }
 }
 

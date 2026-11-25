@@ -127,7 +127,10 @@ def select_registered_view(page, identifier):
     page.locator("#project-menu").click()
     page.locator(".context-menu").get_by_role("button", name="팩 관리", exact=True).click()
     packs = page.locator('[data-key="packs"]')
-    packs.get_by_text("프로젝트 창 선언", exact=True).click()
+    summary = packs.get_by_text("프로젝트 창 선언", exact=True)
+    expect(summary).to_be_visible()
+    if not summary.evaluate("element => element.parentElement.open"):
+        summary.click()
     packs.get_by_role("button", name=identifier, exact=True).click()
     expect(page.locator("#selection")).to_have_text(identifier)
     source = page.locator("#source")
