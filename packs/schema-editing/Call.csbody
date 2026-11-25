@@ -18,9 +18,14 @@ string owner=((System.Threading.AsyncLocal<string?>)registry[0]).Value??"unscope
 string? ReadWarm(){
  bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
  bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
- if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory||request["project"] is null)return null;
+ bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
+ bool relations=operation=="relationsMap";
+ if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations||request["project"] is null)return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
- var key=(System.IO.Path.GetFullPath(request["project"]!.GetValue<string>()),hostKey);
+ // Match the existing Windows EditWorkspace identity convention and the
+ // stream protocol’s case-insensitive project comparison; keep request paths intact.
+ string projectKey=System.IO.Path.GetFullPath(request["project"]!.GetValue<string>());if(OperatingSystem.IsWindows())projectKey=projectKey.ToUpperInvariant();
+ var key=(projectKey,hostKey);
  object[] pool;
  lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ReadPool") as object[]??new object[4];AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ReadPool",pool);}
  lock(pool){
@@ -32,8 +37,8 @@ string? ReadWarm(){
   bool starting=false;
   try{
    lock(registry)CheckedOwner();
-   // An auxiliary inventory must not switch or start the selected project's stream.
-   if(inventory&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)))return null;
+   // Auxiliary read projections must not switch or start the selected project's stream.
+   if((inventory||viewCatalog||relations)&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)))return null;
    if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)))Retire();
    if(object.Equals(pool[2],hostKey))return null;
    if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}
@@ -41,9 +46,10 @@ string? ReadWarm(){
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
     // An older tool may not support framing. Detect that once per executable version.
-    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
+    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
     starting=false;
-    if((metadata||inventory)&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_2"))return null;
+    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3"))return null;
+    if((viewCatalog||relations)&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_3"))return null;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(request.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
     var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");
    }finally{lock(registry){if(jobs.TryGetValue(owner,out var set)){set.Remove(active);if(set.Count==0)jobs.Remove(owner);}}}

@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_2");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_3");Console.Out.Flush();
     string? owner=null;
     for(int count=0;count<128;count++)
     {
@@ -16,7 +16,9 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         string? operation=request["operation"]?.ToString();
         bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
         bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory)return 2;
+        bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
+        bool relations=operation=="relationsMap";
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations)return 2;
         var project=Path.GetFullPath(request["project"]!.GetValue<string>());
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
