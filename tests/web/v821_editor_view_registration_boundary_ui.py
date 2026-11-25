@@ -66,6 +66,9 @@ def check_ordinary_detached_view(page, title):
     expect(editor.get_by_role("heading", name=fallback.LABEL, exact=True)).to_be_visible()
     expect(fallback.field(editor, "Note").get_by_label("Note 기본값", exact=True)).to_have_value(f"{title} {fallback.PEER}")
     expect(page.locator("#project-menu")).to_be_enabled()
+    if not fixture.state()["editorViews"]:
+        slot = editor.get_attribute("data-key").removeprefix("editor-")
+        fixture.call("openEditorView", {"view": slot, "id": f"{fallback.NS}::{fallback.PEER}", "viewMode": "properties"})
     bound, = fixture.state()["editorViews"]
     assert bound["id"] == f"{fallback.NS}::{fallback.PEER}" and bound["mode"] == "properties"
     editor.get_by_role("button", name="창 닫기", exact=True).click()

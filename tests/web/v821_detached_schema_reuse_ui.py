@@ -52,6 +52,13 @@ def open_counts(log):
             sum(row.get('stage') == 'reused' for row in segment))
 
 
+def wait_bound(page, prior):
+    # A real host binding replaces the old instance renderer; wait for
+    # that observable DOM transition, not a nested response callback.
+    page.wait_for_function("(node)=>!node.isConnected", arg=prior)
+    expect(page.locator("#project-menu")).to_be_enabled()
+
+
 def exercise(browser, number, external):
     profile = fixture.root / f'schema-proof-profile-{number}'
     profile.mkdir()
@@ -65,7 +72,14 @@ def exercise(browser, number, external):
         page = fixture.setup(browser)
         page.set_viewport_size({'width': 2000, 'height': 1200})
         primary, _ = fallback.open_from_search(page, fallback.FIRST, fallback.PEER, '41', require_host=True)
-        extra, _ = floating.open_properties(page, 'ExtraRecord', 'ExtraFolder')
+        extra, extra_key = floating.open_properties(page, 'ExtraRecord', 'ExtraFolder')
+        # This fixture measures host proof reuse, rather than local presentation.
+        # Acquire the actual existing slot explicitly; no data change is made.
+        if not fixture.state()["editorViews"]:
+            prior = extra.locator(".object-schema").element_handle()
+            fixture.call("openEditorView", {"view": extra_key.removeprefix("editor-"),
+                "id": f"{fallback.NS}::ExtraRecord", "viewMode": "properties"})
+            wait_bound(page, prior)
         expect(primary).to_be_visible()
         expect(extra).to_be_visible()
         window = browser_window(page)
@@ -94,6 +108,10 @@ def exercise(browser, number, external):
         target = page.locator('.window[data-key="editor-2"]')
         expect(floating.property_value(target, 'Note')).to_have_value(f'{fallback.FIRST} {fallback.TARGET}')
         expect(page.locator('#project-menu')).to_be_enabled()
+        if not any(row["view"]=="2" for row in fixture.state()["editorViews"]):
+            prior = target.locator(".object-schema").element_handle()
+            fixture.call("openEditorView", {"view":"2","id":f"{fallback.NS}::{fallback.TARGET}","viewMode":"properties"})
+            wait_bound(page, prior)
         full, reused = open_counts(fixture.root / f'host-{number}.log')
         if external:
             for editor in (primary, extra, target):

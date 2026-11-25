@@ -352,6 +352,10 @@ if(endpoint is "tableOptions" or "openTable" or "refreshTable" or "configureTabl
 if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "saveEditorView" or "editViewField" or "editViewMetadata" or "editViewDescription" or "editViewDefinition" or "editViewDeclaration" or "editViewObjectStructure"){
  var payload=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone(),["view"]=args["view"]!.DeepClone(),["id"]=args["id"]!.DeepClone(),["action"]=endpoint switch{"openEditorView"=>"open-view","closeEditorView"=>"close-view","saveEditorView"=>"save","editViewField"=>"data-path","editViewMetadata"=>"value","editViewDescription"=>"description","editViewDefinition"=>"field","editViewDeclaration"=>"declaration","editViewObjectStructure"=>"object-structure",_=>"open"}};
  foreach(string field in new[]{"viewMode","text","path","value","field","edit"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
+ if(endpoint=="openEditorView"&&(args["preparedRevision"] is not null||args["preparedHash"] is not null||args["preparedSourceIdentity"] is not null)){
+  if(args["viewMode"]?.ToString()!="properties"||args["preparedRevision"]?.GetValue<long>() is not long revision||revision<0||!System.Text.RegularExpressions.Regex.IsMatch(args["preparedHash"]?.ToString()??"","\\A[0-9a-f]{64}\\z")||!System.Text.RegularExpressions.Regex.IsMatch(args["preparedSourceIdentity"]?.ToString()??"","\\A[0-9a-f]{64}\\z"))throw new ArgumentException("Exact prepared source proof required");
+  foreach(string field in new[]{"preparedRevision","preparedHash","preparedSourceIdentity"})payload[field]=args[field]!.DeepClone();
+ }
  if(endpoint is "editViewField" or "editViewMetadata")payload["value"]=ExactFieldValue();
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();if(args["hash"] is not null)payload["expectedHash"]=args["hash"]!.DeepClone();
  var result=Command("workspace",payload);if(endpoint=="openEditorView"&&result["workspaceViews"]?[selected["context"]!.ToString()]?[args["view"]!.ToString()] is System.Text.Json.Nodes.JsonObject opened&&opened["initialBrowserDrafts"] is System.Text.Json.Nodes.JsonNode proof)return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["initialBrowserDrafts"]=new System.Text.Json.Nodes.JsonObject{["binding"]=opened["authorBinding"]!.DeepClone(),["status"]=proof.DeepClone()}}.ToJsonString();return "{\"accepted\":true}";
@@ -379,6 +383,7 @@ if(endpoint=="browserDrafts"){
 }
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
+ case "preparePropertyModels":if(args.Count!=1||args["ids"] is not System.Text.Json.Nodes.JsonArray requestedModels||requestedModels.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");request["action"]="prepare-property-models";request["ids"]=requestedModels.DeepClone();break;
  case "relationsMap":request["action"]="relations-map";if(args["prepareProperties"]?.GetValue<bool>()==true)request["prepareProperties"]=true;break;
  case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]=before["workspace"]?["unit"]?["kind"]?.ToString()=="module"?"effective":"inspect";break;
  case "editFunctionContract":if(before["workspace"]?["unit"]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Select the owned function contract first");goto case "editObjectStructure";

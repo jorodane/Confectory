@@ -41,8 +41,14 @@ def close(window):
     expect(window).to_be_hidden()
 
 
-def binding(identifier):
-    return next(item for item in fixture.state()["editorViews"] if item["id"] == identifier)
+def binding(page, identifier):
+    window = page.locator(f'.window[data-element-owner="{identifier}"][data-element-mode="properties"]')
+    expect(window).to_have_count(1)
+    return {"id": identifier, "view": window.get_attribute("data-key").removeprefix("editor-")}
+
+
+def owner_slots(page):
+    return set(page.locator('.window[data-element-mode="properties"]').evaluate_all("rows => rows.map(row => row.dataset.elementOwner)"))
 
 
 def drag(page, name, folder):
@@ -57,7 +63,7 @@ def place(page):
     drag(page, fallback.TARGET, "StockFolder")
     visible = page.locator('.window[data-key^="editor-"]:visible')
     expect(visible).to_have_count(1)
-    window = page.locator(f'.window[data-key="editor-{binding(owner)["view"]}"]')
+    window = page.locator(f'.window[data-key="editor-{binding(page, owner)["view"]}"]')
     expect(window).to_be_visible()
     return window
 
@@ -112,7 +118,7 @@ def click_during_read(page):
         assert handle.evaluate('row => row.isConnected'), 'Unchanged browser row replaced during real pointer press'
     finally:
         page.mouse.up()
-    window = page.locator(f'.window[data-key="editor-{binding(owner)["view"]}"]')
+    window = page.locator(f'.window[data-key="editor-{binding(page, owner)["view"]}"]')
     expect(window).to_be_visible()
     return window
 
@@ -133,7 +139,7 @@ def exercise(browser, source):
     for number in (1, 2):
         window, _ = floating.open_properties(page, f"Extra{number}", f"ExtraFolder{number}")
         close(window)
-    assert len(fixture.state()["editorViews"]) == 3
+    assert len(owner_slots(page)) == 3
 
     primary, _ = fallback.open_from_search(page, fallback.FIRST, fallback.TARGET, fallback.BEFORE)
     floating.property_value(primary, "Note").fill("saved primary draft")
@@ -142,8 +148,8 @@ def exercise(browser, source):
     close(primary)
     target = place(page)
     expect(floating.property_value(target, "Note")).to_have_value("saved primary draft")
-    assert binding(peer)["view"] == peer_key.removeprefix("editor-")
-    assert len(fixture.state()["editorViews"]) == 3
+    assert binding(page, peer)["view"] == peer_key.removeprefix("editor-")
+    assert len(owner_slots(page)) == 3
     fixture.original()
     print("PASS drag reclaims a clean hidden view and preserves the unrelated pending input", flush=True)
 
@@ -153,10 +159,10 @@ def exercise(browser, source):
     extra, _ = floating.open_properties(page, "Extra2", "ExtraFolder2")
     floating.property_value(extra, "Note").fill("keep extra input")
     close(extra)
-    owners = {row["id"] for row in fixture.state()["editorViews"]}
+    owners = owner_slots(page)
     drag(page, "Extra1", "ExtraFolder1")
     expect(page.locator("#status")).to_contain_text("독립 창 수를 확인해 주세요")
-    assert {row["id"] for row in fixture.state()["editorViews"]} == owners
+    assert owner_slots(page) == owners
     expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(0)
     target = place(page)
     expect(floating.property_value(target, "Note")).to_have_value("saved primary draft")
@@ -183,7 +189,7 @@ def exercise(browser, source):
     expect(page.locator('#workspace [data-workspace-zoom]')).to_have_text('62.5%')
     target = click_during_read(page)
     expect(floating.property_value(target, "Note")).to_have_value("unapplied target input")
-    assert len(fixture.state()["editorViews"]) == 3
+    assert len(owner_slots(page)) == 3
     print("PASS real pointer press survives a status refresh at 62.5% and reopens the retained view", flush=True)
 
 
@@ -198,7 +204,7 @@ def exercise(browser, source):
     expect(floating.property_value(target, "Note")).to_have_value("unapplied target input")
     close(target)
     drag(page, fallback.PEER, "PeerFolder")
-    other = page.locator(f'.window[data-key="editor-{binding(peer)["view"]}"]')
+    other = page.locator(f'.window[data-key="editor-{binding(page, peer)["view"]}"]')
     expect(other).to_be_visible()
     expect(floating.property_value(other, "Note")).to_have_value("unapplied peer input")
     fixture.original()

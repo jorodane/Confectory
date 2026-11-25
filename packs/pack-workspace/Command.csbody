@@ -1,7 +1,44 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackWorkspace");
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
+void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode version,bool append=false){
+  var prior=state["propertyModels"]?.DeepClone();if(!append){state.Remove("propertyModels");state.Remove("propertyModelBacklog");}
+  try{
+   var ids=calls.List.Invoke(draft);
+   if(owners.Length is >=1 and <=32&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(owners,StringComparer.Ordinal))==owners.Length&&System.Linq.Enumerable.All(owners,id=>Array.Exists(ids,known=>known==id)&&calls.Status.Invoke(draft,id)[1]=="object")&&calls.Changes.Invoke(draft,ids).Length==0){
+    var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));if(manifestId.StartsWith("Confectory.AISettings::",StringComparison.Ordinal))return;var manifest=calls.Read.Invoke(draft,manifestId);
+    var preparedSeed=calls.Read.Invoke(draft,owners[0]);var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("preparePropertyModels",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id=preparedSeed[0],kind=preparedSeed[1],text=preparedSeed[3],ids=owners,schemaView=true,schemaReuseProof=true})))!["effective"]!;
+    if(prepared["observations"] is System.Text.Json.Nodes.JsonArray observed&&observed.Count<=32&&prepared["ownershipPaths"] is System.Text.Json.Nodes.JsonArray paths&&paths.Count<=128&&prepared["rows"] is System.Text.Json.Nodes.JsonArray results&&results.Count==owners.Length){
+     var models=new System.Text.Json.Nodes.JsonArray();var sourceProofs=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],manifest[2]),["hash"]=manifest[5]});
+     foreach(var candidate in results){
+      var row=candidate!.AsObject();string owner=row["id"]!.ToString();if(!Array.Exists(owners,id=>id==owner))throw new InvalidOperationException("Prepared owner mismatch");var source=calls.Read.Invoke(draft,owner);
+      if(source[1]!="object"||source[6]!="clean"||source[3]!=row["sourceText"]?.ToString())throw new InvalidOperationException("Prepared source changed");
+      var inspection=row["inspection"]!.DeepClone();row.Remove("inspection");row.Remove("sourceText");
+      if(row["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")continue;
+      var schema=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(row["schemaModel"]!.ToJsonString()))!;
+      models.Add(new System.Text.Json.Nodes.JsonObject{["unit"]=new System.Text.Json.Nodes.JsonObject{["id"]=owner,["kind"]=source[1],["path"]=source[2],["text"]=source[3],["dirty"]=false,["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture)},["inspection"]=inspection,["inspectionRevision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["effective"]=row.DeepClone(),["schemaView"]=schema});
+      sourceProofs.Add(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],source[2]),["hash"]=source[5]});
+     }
+     if(models.Count>0&&models.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
+      if(append&&prior?["models"] is System.Text.Json.Nodes.JsonArray priorRows&&System.Text.Json.Nodes.JsonNode.DeepEquals(prior["draftVersion"],version)){
+       var backlog=state["propertyModelBacklog"] as System.Text.Json.Nodes.JsonArray??new();if(backlog.Parent is null)state["propertyModelBacklog"]=backlog;backlog.Add(prior);
+       int CountRows()=>models.Count+System.Linq.Enumerable.Sum(backlog,group=>group?["models"]?.AsArray().Count??0);
+       while(backlog.Count>3||CountRows()>32||backlog.ToJsonString().Length+models.ToJsonString().Length>524288)if(backlog.Count>0)backlog.RemoveAt(0);else break;
+      }else if(append)state.Remove("propertyModelBacklog");
+      state["propertyModels"]=new System.Text.Json.Nodes.JsonObject{["models"]=models,["sources"]=sourceProofs,["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone(),["draftVersion"]=version.DeepClone()};
+     }
+    }
+   }
+  }catch{/* An unsupported or changed model retains the normal verified opening path. */}
+}
 switch(operation){
+case "prepare-property-models":{
+ if(request["ids"] is not System.Text.Json.Nodes.JsonArray requested||requested.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");
+ var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
+ PreparePropertyModels(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(requested,id=>id!.GetValue<string>())),reply["draftVersion"]!,true);
+ return reply.ToJsonString();
+}
+
 case "browser-drafts":{var input=request.DeepClone().AsObject();input.Remove("context");input["action"]=input["draftAction"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create("status");input.Remove("draftAction");string outcome=calls.BrowserDrafts.Invoke(draft,input.ToJsonString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["browserDrafts"]=System.Text.Json.Nodes.JsonNode.Parse(outcome);return reply.ToJsonString();}
 case "archive-outcome":{var outcome=calls.Archive.Invoke(draft,"status-"+request["action"]!.ToString(),request["token"]!.ToString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["archiveOutcome"]=System.Text.Json.Nodes.JsonNode.Parse(outcome);return reply.ToJsonString();}
 case "retirement":{var resultNode=System.Text.Json.Nodes.JsonNode.Parse(calls.Archive.Invoke(draft,request["action"]!.ToString(),request["token"]!.ToString()))!;
@@ -21,29 +58,9 @@ case "relations-map":{
  // An optional bounded model for the active Browser projection. This is one
  // shared owner/Registry preparation, not a set of opened edit workspaces.
  if(request["prepareProperties"]?.GetValue<bool>()==true){
-  state.AsObject().Remove("propertyModels");
-  try{
-   var owners=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(map["nodes"]!.AsArray(),n=>n?["kind"]?.ToString()=="object"&&n["owned"]?.GetValue<bool>()==true&&n["valid"]?.GetValue<bool>()==true),n=>n!["id"]!.ToString()));
-   if(owners.Length is >=1 and <=32&&calls.Changes.Invoke(draft,ids).Length==0){
-    var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifest=calls.Read.Invoke(draft,manifestId);
-    var preparedSeed=calls.Read.Invoke(draft,owners[0]);var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("preparePropertyModels",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id=preparedSeed[0],kind=preparedSeed[1],text=preparedSeed[3],ids=owners,schemaView=true,schemaReuseProof=true})))!["effective"]!;
-    if(prepared["observations"] is System.Text.Json.Nodes.JsonArray observed&&observed.Count<=32&&prepared["ownershipPaths"] is System.Text.Json.Nodes.JsonArray paths&&paths.Count<=128&&prepared["rows"] is System.Text.Json.Nodes.JsonArray results&&results.Count==owners.Length){
-     var models=new System.Text.Json.Nodes.JsonArray();var sourceProofs=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],manifest[2]),["hash"]=manifest[5]});
-     foreach(var candidate in results){
-      var row=candidate!.AsObject();string owner=row["id"]!.ToString();if(!Array.Exists(owners,id=>id==owner))throw new InvalidOperationException("Prepared owner mismatch");var source=calls.Read.Invoke(draft,owner);
-      if(source[1]!="object"||source[6]!="clean"||source[3]!=row["sourceText"]?.ToString())throw new InvalidOperationException("Prepared source changed");
-      var inspection=row["inspection"]!.DeepClone();row.Remove("inspection");row.Remove("sourceText");
-      if(row["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")continue;
-      var schema=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(row["schemaModel"]!.ToJsonString()))!;
-      models.Add(new System.Text.Json.Nodes.JsonObject{["unit"]=new System.Text.Json.Nodes.JsonObject{["id"]=owner,["kind"]=source[1],["text"]=source[3],["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture)},["inspection"]=inspection,["inspectionRevision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["effective"]=row.DeepClone(),["schemaView"]=schema});
-      sourceProofs.Add(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],source[2]),["hash"]=source[5]});
-     }
-     if(models.Count>0&&models.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
-      state["propertyModels"]=new System.Text.Json.Nodes.JsonObject{["models"]=models,["sources"]=sourceProofs,["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone(),["draftVersion"]=reply["draftVersion"]!.DeepClone()};
-     }
-    }
-   }
-  }catch{/* An unsupported or changed model retains the normal verified opening path. */}
+  var owners=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(map["nodes"]!.AsArray(),n=>n?["kind"]?.ToString()=="object"&&n["owned"]?.GetValue<bool>()==true&&n["valid"]?.GetValue<bool>()==true),n=>n!["id"]!.ToString()));
+  if(owners.Length<=32)PreparePropertyModels(owners,reply["draftVersion"]!);
+
  }
  return reply.ToJsonString();
 }

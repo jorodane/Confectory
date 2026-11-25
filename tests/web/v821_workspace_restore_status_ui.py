@@ -19,7 +19,8 @@ try:
             browser=r.browser_window(page)
             r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder2"]')
             r.search(browser,d.LABEL,'Extra2')
-            browser.locator(f'[data-object="{d.NS}::Extra2"]').press('Enter')
+            browser.locator(f'[data-object="{d.NS}::Extra2"]').click(button='right')
+            page.locator(".context-menu").get_by_role("button", name="스키마 열기", exact=True).click()
             primary=page.locator('.window[data-key="schema"]')
             expect(r.floating.property_value(primary,'Note')).to_have_value(d.FIRST+' Extra2')
         notes = {}
@@ -28,6 +29,11 @@ try:
             value = 'Retained local ' + name
             r.floating.property_value(window, 'Note').fill(value)
             notes[key] = (f'{d.NS}::{name}', value)
+        if mode=='stale':
+            # A retained dirty working copy deliberately exercises the ordinary
+            # host admission fallback instead of the clean local read model.
+            window.locator('[data-element-action="save"]').click()
+            expect(page.locator('#project-menu')).to_be_enabled()
         saved_id=f.state()['draft']['id']
         if mode=='primary':assert saved_id==d.NS+'::Extra2',saved_id
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
@@ -70,17 +76,22 @@ try:
             window = page.locator(f'.window[data-key="{key}"]')
             expect(r.floating.property_value(window, 'Note')).to_have_value(value)
             expect(d.field(window, 'RestartFlag')).to_be_visible()
-            assert any('editor-' + row['view'] == key and row['id'] == identifier for row in f.state()['editorViews'])
+            assert window.get_attribute('data-element-owner') == identifier
         opens = [req for req in invokes if req.get('endpoint') == 'openEditorView']
         status = [req for req in invokes if req.get('endpoint') == 'browserDrafts' and req.get('input',{}).get('view')]
-        assert len(opens) >= (4 if mode=='stale' else 3), opens
-        if mode!='stale':assert len(opens)==3,opens
+        if mode=='stale':
+            assert len(opens)>=4, opens
         else:
+            # Clean restoration can use one shared preparation rather than a
+            # separate host view admission for every visible window.
+            assert len(opens) in (0,3), opens
+            if not opens:assert any(req.get('endpoint')=='preparePropertyModels' for req in invokes)
+        if mode=='stale':
             attempts=[req['expectedRevision'] for req in opens if req['input']['view']=='2']
             assert len(attempts)>=2 and attempts[0]!=attempts[-1],attempts
             print('actual stale restore admission revisions',attempts,flush=True)
         snapshot=f.state()
-        assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews'])==3
+        assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews']) in (0,3)
         if mode=='primary':
             assert snapshot['schema']['id']==saved_id
             expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
@@ -93,8 +104,14 @@ try:
         # dependency change must still be visible on an ordinary status read.
         schema.write_text(schema.read_text().rstrip()[:-1] + ' field AfterRestoreFlag single general string;\n}\n')
         f.before[str(schema)] = schema.read_bytes()
-        row = f.state()['editorViews'][0]
-        f.call('browserDrafts', {'action':'status', 'view':row['view'], 'id':row['id'], 'ids':[row['id']]})
+        rows = f.state()['editorViews']
+        if rows:
+            row = rows[0]
+            f.call('browserDrafts', {'action':'status', 'view':row['view'], 'id':row['id'], 'ids':[row['id']]})
+        else:
+            for name,folder in [(d.TARGET,'StockFolder'),(d.PEER,'PeerFolder'),('Extra1','ExtraFolder1')]:
+                r.drag(page,name,folder)
+                expect(page.locator('#project-menu')).to_be_enabled()
         for key, (_, value) in notes.items():
             window = page.locator(f'.window[data-key="{key}"]')
             expect(d.field(window, 'AfterRestoreFlag')).to_be_visible()

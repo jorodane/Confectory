@@ -60,6 +60,11 @@ try:
         expect(r.floating.property_value(w,'Note')).to_have_value(secret)
         page.evaluate('()=>confectoryFlushPresentation()')
         rows=wait_records(page,path,lambda a: any(x.get('stage')=='window-ready' for x in a) and any(x.get('stage')=='input-frame' for x in a))
+        # A prepared local window need not have a host call until its ordinary Save.
+        if not any(x.get('stage')=='consumer' and x.get('operation')=='openEditorView' for x in rows):
+            w.locator('[data-element-action="save"]').click()
+            expect(page.locator('#project-menu')).to_be_enabled()
+            rows=wait_records(page,path,lambda a: any(x.get('stage')=='consumer' and x.get('operation')=='openEditorView' for x in a) and any(x.get('stage')=='renderer-call' and x.get('operation')=='openEditorView' for x in a))
         assert any(x.get('stage')=='renderer-call' and x.get('operation')=='openEditorView' for x in rows)
         assert any(x.get('stage')=='consumer' and x.get('operation')=='openEditorView' for x in rows)
         assert any(x.get('stage')=='invoke-queue' and x.get('operation')=='openEditorView' for x in rows)

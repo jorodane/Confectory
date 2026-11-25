@@ -71,7 +71,10 @@ def search(window, value, *wanted):
     for request in fixture.requests[start:]:
         endpoint = request["endpoint"]
         assert endpoint in {"objects", "localInventory", "relationsMap", "savePresentation", "browserDrafts",
-                            "schema", "inspectDeclaration"}, endpoint
+                            "schema", "inspectDeclaration", "preparePropertyModels"}, endpoint
+        if endpoint == "preparePropertyModels":
+            ids = request["input"]["ids"]
+            assert 1 <= len(ids) <= 12 and len(set(ids)) == len(ids), ids
         if endpoint == "browserDrafts":
             assert request["input"]["action"] == "status"
 

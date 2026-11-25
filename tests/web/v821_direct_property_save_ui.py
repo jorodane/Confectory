@@ -41,8 +41,8 @@ def open_detached(page, name, folder, expected):
     window.locator(f'[data-object="{identifier}"]').click(button="right")
     page.locator(".context-menu").get_by_role("button", name="새 창으로 열기", exact=True).click()
     expect(page.locator("#project-menu")).to_be_enabled()
-    bound = next(row for row in fixture.state()["editorViews"] if row["id"] == identifier)
-    target = page.locator(f'.window[data-key="editor-{bound["view"]}"]')
+    target = page.locator(f'.window[data-element-owner="{identifier}"][data-element-mode="properties"]:visible')
+    expect(target).to_have_count(1)
     expect(target).to_be_visible()
     expect(value(target, "Note")).to_have_value(expected)
     return target
