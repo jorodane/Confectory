@@ -18,6 +18,11 @@ def find_project_item(page, item, tab):
 
 def open_main(page, feature):
     panel = page.locator('.window[data-key=blueprint]')
+    workspace = page.get_by_role('tab', name='Workspace', exact=True)
+    if not panel.is_visible() and workspace.is_visible() and workspace.get_attribute('aria-selected') != 'true':
+        # A cold project can restore the last Run document as its active tab.
+        workspace.click()
+        expect(workspace).to_have_attribute('aria-selected', 'true')
     if panel.is_visible():
         # Recent restores both floating windows. Dismiss the separate
         # declaration window through its normal control before editing.
