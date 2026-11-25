@@ -1,11 +1,13 @@
 """A new detached view reuses only a proven, unchanged existing projection.
 
 Run with the editor repository and build report, like the other v821 fixtures.
+Add a third argument `drag` to exercise the real workspace placement gesture.
 The external case changes only the fixture's registered schema after opening
 existing views. Both cases use the real UI and an independent temporary profile.
 """
 import json
 import shutil
+import sys
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -14,6 +16,7 @@ import v821_property_window_floating_ui as floating
 from v821_project_browser_search_labels import browser_window, choose_tree_location, search
 
 fixture = fallback.fixture
+use_drag = len(sys.argv) > 3 and sys.argv[3] == "drag"
 
 
 def seed_extra():
@@ -78,8 +81,14 @@ def exercise(browser, number, external):
         else:
             floating.property_value(primary, 'Note').fill('Unapplied primary input')
             floating.property_value(extra, 'Note').fill('Unapplied detached input')
-        window.locator(f'[data-object="{fallback.NS}::{fallback.TARGET}"]').click(button='right')
-        page.locator('.context-menu').get_by_role('button', name='새 창으로 열기', exact=True).click()
+        item = window.locator(f'[data-object="{fallback.NS}::{fallback.TARGET}"]')
+        if use_drag:
+            canvas = page.locator('#workspace')
+            bounds = canvas.bounding_box()
+            item.drag_to(canvas, target_position={'x': bounds['width'] * .82, 'y': bounds['height'] * .62})
+        else:
+            item.click(button='right')
+            page.locator('.context-menu').get_by_role('button', name='새 창으로 열기', exact=True).click()
         target = page.locator('.window[data-key="editor-2"]')
         expect(floating.property_value(target, 'Note')).to_have_value(f'{fallback.FIRST} {fallback.TARGET}')
         expect(page.locator('#project-menu')).to_be_enabled()
