@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_1");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_2");Console.Out.Flush();
     string? owner=null;
     for(int count=0;count<128;count++)
     {
@@ -13,7 +13,10 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         if(!pending.Wait(TimeSpan.FromSeconds(30)))return 0;
         if(pending.Result is not string line)return 0;
         var request=JsonNode.Parse(line)!.AsObject();
-        if(request["operation"]?.ToString() is not ("inspectEffective" or "editorMenuDeclarations"))return 2;
+        string? operation=request["operation"]?.ToString();
+        bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
+        bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations")&&!metadata&&!inventory)return 2;
         var project=Path.GetFullPath(request["project"]!.GetValue<string>());
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;

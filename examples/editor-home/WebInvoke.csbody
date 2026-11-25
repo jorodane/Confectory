@@ -177,7 +177,23 @@ if(endpoint=="battleLog"){
 if(endpoint=="buildPoll")return calls.BuildJobs.Invoke(context,"poll","{}");
 System.Text.Json.Nodes.JsonNode? ExactFieldValue(){if(args["valueJson"] is null)return args["value"]?.DeepClone();if(args["hash"] is null)throw new ArgumentException("Exact field input requires its displayed source hash");string raw=args["valueJson"]!.GetValue<string>();if(raw.Length>1048576)throw new ArgumentException("Exact field input budget");return System.Text.Json.Nodes.JsonNode.Parse(raw);}
 
-void OpenSemantic(){var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "blueprint" or "blueprint-node" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
+void OpenSemantic(){
+ // A cold detached-only presentation already identifies the private primary cursor.
+ // The shared draft is opened by the normal owned select command. Do not resolve a
+ // hidden primary properties view before the independent visible owners restore.
+ var activation=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(context))!;
+ var presentation=activation["presentation"];
+ string activeContext=activation["selected"]?["context"]?.ToString()??"";
+ if(presentation?["selectedObjectId"] is System.Text.Json.Nodes.JsonValue savedId&&savedId.TryGetValue<string>(out string? selectedId)&&!string.IsNullOrEmpty(selectedId)&&
+    presentation["editorBindings"] is System.Text.Json.Nodes.JsonArray bindings&&bindings.Count is >=1 and <=3&&
+    System.Linq.Enumerable.All(bindings,row=>row?["mode"]?.ToString()=="properties")&&
+    activation["workspaceViews"]?[activeContext]?.AsObject().Count is null or 0){
+  var layouts=System.Linq.Enumerable.Concat(presentation["layout"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),
+   System.Linq.Enumerable.SelectMany(presentation["workspaces"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),row=>row?["layout"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()));
+  bool detachedOnly=System.Linq.Enumerable.All(layouts,row=>{string key=row?["key"]?.ToString()??"";return key=="source"&&row?["hidden"]?.GetValue<bool>()==true||key=="browser"||key.StartsWith("browser:",StringComparison.Ordinal)||key.StartsWith("browser-tree:",StringComparison.Ordinal)||key is "editor-1" or "editor-2" or "editor-3";});
+  if(detachedOnly){try{Command("workspace",new(){["action"]="select",["id"]=selectedId});return;}catch(InvalidOperationException){/* Stale saved owner: preserve the ordinary recovery path. */}}
+ }
+ var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "blueprint" or "blueprint-node" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
 
 if(endpoint is "favoriteProject" or "removeListing"){
  if(before["selected"] is not null)throw new InvalidOperationException("Hide current project before changing Home listing");

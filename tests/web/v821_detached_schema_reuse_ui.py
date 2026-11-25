@@ -74,7 +74,9 @@ def exercise(browser, number, external):
         state = fixture.state()
         assert state['schema']['id'] == f'{fallback.NS}::{fallback.PEER}'
         assert len(state['editorViews']) == 1
+        host_log=fixture.root / f'host-{number}.log'
         if external:
+            external_start=len(host_log.read_text().splitlines())
             dependency = fixture.projects[0].parent / 'private-source-StockInfo.celem'
             dependency.write_text(dependency.read_text().rstrip()[:-1] + '  field ExternalFlag single general string;\n}\n')
             fixture.before[str(dependency)] = dependency.read_bytes()
@@ -96,8 +98,15 @@ def exercise(browser, number, external):
         if external:
             for editor in (primary, extra, target):
                 expect(fallback.field(editor, 'ExternalFlag')).to_be_visible()
-            # A background read can already have refreshed one prior projection.
-            assert full >= 2 and reused <= 1, (full, reused)
+            # A real status read can refresh either or both previous views
+            # before the new open is admitted. Count every full resolution
+            # from the actual file change, not only the last semantic command.
+            since_change=[json.loads(line.split(' ',1)[1]) for line in
+                          host_log.read_text().splitlines()[external_start:]
+                          if line.startswith('CONFECTORY_UI_TRACE ')]
+            refreshed=sum(row.get('operation')=='inspectEffective' for row in since_change)
+            assert full>=1 and refreshed>=3, (full,reused,refreshed)
+            print('full resolutions since external edit',refreshed,flush=True)
         else:
             assert (full, reused) == (1, 2), (full, reused)
             expect(floating.property_value(primary, 'Note')).to_have_value('Unapplied primary input')

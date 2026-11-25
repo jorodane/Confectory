@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_1'
+READY = 'CONFECTORY_INSPECT_STREAM_2'
 
 
 def exercise(root):
@@ -61,6 +61,11 @@ def exercise(root):
 
         proc = start()
         try:
+            describe = dict(operation='describe', project=str(a), metadataOnly=True)
+            inventory = dict(operation='catalog', project=str(a), request={'action':'inventory'})
+            first = json.loads(send(proc, describe))
+            assert first['ok'] and any(row['id']=='Test.Stream::Record' for row in first['result']['units'])
+            assert json.loads(send(proc, inventory))['result']['status']=='available'
             initial = json.loads(send(proc, request(a)))
             assert initial['ok'] and 'Count' in initial['result']['effective']['fields']
             assert 'ExternalFlag' not in initial['result']['effective']['fields']
@@ -68,7 +73,20 @@ def exercise(root):
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field ExternalFlag single general string; }')
             updated = json.loads(send(proc, request(a)))
             assert updated['ok'] and 'ExternalFlag' in updated['result']['effective']['fields']
+            # The same process must reread the current manifest, not hold a
+            # cached activation registry or import another project's identity.
+            extra = a.parent / 'Extra.celem'
+            extra.write_text('object Test.Stream::Extra {}')
+            a.write_text(a.read_text().rstrip()[:-1] + ' element Extra object "Extra.celem"; }')
+            assert any(row['id']=='Test.Stream::Extra' for row in json.loads(send(proc, describe))['result']['units'])
+            assert any(row['id']=='Test.Stream::Extra' for row in json.loads(send(proc, inventory))['result']['declarations'])
             assert send(proc, request(b)) == '' and proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert send(proc, dict(operation='describe', project=str(a), metadataOnly=False))==''
+            assert proc.wait(timeout=5)==2
         finally:
             finish(proc)
         proc = start()
@@ -121,4 +139,4 @@ def exercise(root):
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory(prefix='confectory-read-stream-') as folder:
         exercise(Path(folder))
-    print('PASS read stream: ordinary CLI, external schema, owner isolation, operation boundary, EOF and idle retirement')
+    print('PASS read stream: metadata activation and inventory, ordinary CLI, external schema/manifest, owner isolation, operation boundary, EOF and idle retirement')

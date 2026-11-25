@@ -15,20 +15,24 @@ string owner=((System.Threading.AsyncLocal<string?>)registry[0]).Value??"unscope
 // Read-only queries use a fresh registry for every request. Only CLR startup and
 // JIT are reused. Explicit cancellation scopes retain the original process path.
 string? ReadWarm(){
- if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations")||request["project"] is null)return null;
+ bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
+ bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
+ if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations")&&!metadata&&!inventory||request["project"] is null)return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
  var key=(System.IO.Path.GetFullPath(request["project"]!.GetValue<string>()),hostKey);
  object[] pool;
- lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ReadPool") as object[]??new object[3];AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ReadPool",pool);}
+ lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ReadPool") as object[]??new object[4];AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ReadPool",pool);}
  lock(pool){
   var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
   System.Diagnostics.Process? warm=pool[0] as System.Diagnostics.Process;
-  void Retire(){if(warm is not null){try{if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;warm=null;}
+  void Retire(){if(warm is not null){try{if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;pool[3]=null!;warm=null;}
   void CheckedOwner(){if(((System.Collections.Generic.HashSet<string>)registry[2]).Contains(owner))throw new OperationCanceledException("Authoring owner canceled.");}
   T Await<T>(System.Threading.Tasks.Task<T> task,int milliseconds){if(!task.Wait(milliseconds)){_ = task.ContinueWith(t=>{_ = t.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);throw new TimeoutException("Authoring tool timeout.");}return task.GetAwaiter().GetResult();}
   bool starting=false;
   try{
    lock(registry)CheckedOwner();
+   // An auxiliary inventory must not switch or start the selected project's stream.
+   if(inventory&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)))return null;
    if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)))Retire();
    if(object.Equals(pool[2],hostKey))return null;
    if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}
@@ -36,8 +40,9 @@ string? ReadWarm(){
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
     // An older tool may not support framing. Detect that once per executable version.
-    if(starting&&Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000))!="CONFECTORY_INSPECT_STREAM_1")throw new System.IO.IOException("Unsupported read-only authoring stream.");
+    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
     starting=false;
+    if((metadata||inventory)&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_2"))return null;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(request.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
     var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");
    }finally{lock(registry){if(jobs.TryGetValue(owner,out var set)){set.Remove(active);if(set.Count==0)jobs.Remove(owner);}}}
