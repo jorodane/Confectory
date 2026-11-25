@@ -74,6 +74,12 @@ def exercise(browser):
         print(f"Independent source input response: {(perf_counter() - started) * 1000:.0f} ms")
         assert calls.count("openEditorView") == 1
         assert len(held) == 1
+        source.evaluate("""node => {
+            globalThis.detachedInputInterruptions = 0;
+            new MutationObserver(records => {
+                for (const record of records) if (record.oldValue === null) detachedInputInterruptions++;
+            }).observe(node, {attributes: true, attributeFilter: ['disabled'], attributeOldValue: true});
+        }""")
     finally:
         with page.expect_request(lambda request: request.method == "POST" and
                                  request.url.endswith("/api/request") and
@@ -92,7 +98,14 @@ def exercise(browser):
         note.fill("Local unsaved property input during status")
         expect(note).to_have_value("Local unsaved property input during status")
         print(f"New property input response: {(perf_counter() - started) * 1000:.0f} ms")
-        expect(source).to_be_disabled()
+        expect(source).to_be_enabled()
+        assert page.evaluate("globalThis.detachedInputInterruptions") == 0
+        continued = local + "// Further local body input during status read\n"
+        started = perf_counter()
+        source.fill(continued)
+        expect(source).to_have_value(continued)
+        expect(source).to_be_focused()
+        print(f"Independent source input during status: {(perf_counter() - started) * 1000:.0f} ms")
         assert len(held_status) == 1
     finally:
         for route in held_status:
@@ -100,7 +113,7 @@ def exercise(browser):
     expect(page.locator("#project-menu")).to_be_enabled()
     expect(page.locator("#status")).not_to_have_text("객체 변경 상태를 확인하는 중…")
     expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(1)
-    expect(source).to_have_value(local)
+    expect(source).to_have_value(continued)
     expect(note).to_have_value("Local unsaved property input during status")
     expect(page.locator("#selection")).to_have_text(identity)
     state = fixture.state()
