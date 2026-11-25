@@ -198,7 +198,7 @@ System.Text.Json.Nodes.JsonNode Information(System.Text.Json.Nodes.JsonNode card
  return info;
 }
 void PersistHelpers()=>calls.WriteAtomic.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"helper-selections.json"),helperSelections.ToJsonString());
-string connectionStage="declarations",connectionSetupMode="unknown";string? freshSetupViewKey=null;
+string connectionStage="declarations",connectionSetupMode="unknown";string? freshSetupViewKey=null;System.Text.Json.Nodes.JsonNode? setupOpeningProjection=null;string? setupOpeningView=null;
 string ConnectionProject(){string project=System.IO.Path.Combine((string)state[1],"examples","editor-home","project.cpack");return System.IO.File.Exists(project)?project:calls.ConnectionMetadata.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"connection-metadata"));}
 System.Text.Json.Nodes.JsonNode DeclaredConnection(string connection)=>System.Linq.Enumerable.Single(System.Text.Json.Nodes.JsonNode.Parse(calls.Connections.Invoke(ConnectionProject()))!["connections"]!.AsArray(),row=>row!["id"]!.ToString()==connection)!;
 string chatStage=operation switch{"helper-chat-select"=>"helper-selection","ai-bind-helper"=>"agent-binding","ai-start"=>"dispatch","shell"=>"draft",_=>"context"};
@@ -213,9 +213,23 @@ string SetupView(string connection){
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
  if(manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection))){
-  System.Text.Json.Nodes.JsonNode repair;
-  try{repair=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;}
-  catch{if(validateWithRepair){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
+  var repairRequest=new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]};
+  System.Text.Json.Nodes.JsonNode? repair=null;
+  // For an existing settings view, both read-only checks can share one authoring
+  // process. Repair, errors, or changing files retain the ordinary fresh path.
+  if(operation=="connection-setup"&&validateWithRepair&&workspaces.TryGetValue("connection-setup/"+connection,out string? existingView)){
+   try{
+    var projection=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(existingView,"schema-view",new System.Text.Json.Nodes.JsonObject{["connectionRepair"]=repairRequest.DeepClone()}.ToJsonString()))!;
+    if(calls.FileSnapshot.Invoke(manifest)[2]==manifestFile[2]&&calls.FileSnapshot.Invoke(source)[2]==sourceBefore[2]){
+     repair=projection["connectionRepair"]?.DeepClone();
+     if(repair?["state"]?.ToString()=="unchanged"&&projection["schemaView"] is not null){projection.AsObject().Remove("connectionRepair");setupOpeningProjection=projection;setupOpeningView=existingView;}
+    }
+   }catch{ /* The ordinary path below preserves the original diagnostic stage. */ }
+  }
+  if(repair is null){
+   try{repair=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",repairRequest.ToJsonString()))!;}
+   catch{if(validateWithRepair){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
+  }
   if(repair["state"]?.ToString()=="repair"){
    string old=manifestFile[1],suffix=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(old))).ToLowerInvariant()[..12],backup="project.cpack.before-"+suffix;var prior=calls.FileSnapshot.Invoke(System.IO.Path.Combine(folder,backup));
    if(prior[0]=="exists"&&prior[1]!=old)throw new InvalidOperationException("Connection recovery backup differs; original retained");
@@ -226,7 +240,7 @@ string SetupView(string connection){
  if(calls.FileSnapshot.Invoke(source)[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  connectionStage="settings-open";string viewKey="connection-setup/"+connection;if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}return view;
 }
-void SetupSnapshot(string connection,string view,System.Text.Json.Nodes.JsonNode? outcome=null){connectionStage="settings-schema";model["connectionSetup"]=new System.Text.Json.Nodes.JsonObject{["connection"]=connection,["mode"]=connectionSetupMode,["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}")),["installationGuide"]=connection=="Confectory.Agent.Codex::Connection"?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexInstallationGuide.Invoke()):null,["outcome"]=outcome?.DeepClone(),["preparation"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexPreparationContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexPreparation.Invoke(session,"status","{}")):null,["login"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexLoginContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexLogin.Invoke(session,"status","{}")):null};}
+void SetupSnapshot(string connection,string view,System.Text.Json.Nodes.JsonNode? outcome=null){connectionStage="settings-schema";model["connectionSetup"]=new System.Text.Json.Nodes.JsonObject{["connection"]=connection,["mode"]=connectionSetupMode,["workspace"]=setupOpeningView==view&&setupOpeningProjection is not null?setupOpeningProjection.DeepClone():System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}")),["installationGuide"]=connection=="Confectory.Agent.Codex::Connection"?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexInstallationGuide.Invoke()):null,["outcome"]=outcome?.DeepClone(),["preparation"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexPreparationContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexPreparation.Invoke(session,"status","{}")):null,["login"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexLoginContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexLogin.Invoke(session,"status","{}")):null};}
 System.Text.Json.Nodes.JsonObject SetupData(string view){var projection=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}"))!["effective"]!;if(projection["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new ArgumentException("Connection schema validation failed");var data=new System.Text.Json.Nodes.JsonObject();foreach(var field in projection["schemaModel"]!["data"]!.AsObject()){if(field.Value?["kind"]?.ToString()!="general")throw new ArgumentException("Declared scalar setting required");data[field.Key]=field.Value?["scalar"]?.DeepClone();}return data;}
 string SetupConfig(string connection,string view)=>calls.AIConfig.Invoke(connection,SetupData(view).ToJsonString());
 string CatalogueConfig(string view)=>calls.CodexCandidate.Invoke(SetupData(view).ToJsonString());

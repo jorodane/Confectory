@@ -140,11 +140,20 @@ try
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
             reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>());break;
+        case "connectionRepairSchema":
         case "inspectEffective":
         {
+            JsonObject? repair=null;
+            if(S("operation")=="connectionRepairSchema")
+            {
+                var input=request["connectionRepair"]!.AsObject();
+                if(S("id")!="Confectory.AISettings::Settings"||S("kind")!="object"||Path.GetFullPath(S("project"))!=Path.GetFullPath(input["settingsProject"]!.GetValue<string>()))throw new ArgumentException("Connection settings owner mismatch");
+                repair=ConnectionDeclarations.Query(input["project"]!.GetValue<string>(),input["id"]!.GetValue<string>(),FormatManifest,path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Connection declaration unavailable");return path;},input);
+                if(repair["state"]?.ToString()!="unchanged"){reply=new JsonObject{["repair"]=repair};break;}
+            }
             var inspection=InspectDeclaration(S("text"));
             if(inspection["id"]!.GetValue<string>()!=S("id")||inspection["kind"]!.GetValue<string>()!=S("kind"))throw new InvalidOperationException("Owned declaration identity changed; repair the source explicitly.");
-            reply=new JsonObject{["inspection"]=inspection,["effective"]=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>())};break;
+            reply=new JsonObject{["inspection"]=inspection,["effective"]=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>())};if(repair is not null)reply["repair"]=repair;break;
         }
         case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
         case "privateCopySeed":reply=PrivateImplementationCopy.Validate(request);break;

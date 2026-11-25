@@ -90,6 +90,19 @@ with sync_playwright() as p:
                 expect(dialog.locator('input,select,textarea,[data-connection-advanced],[data-connection-save],[data-installation-candidates],[data-home-candidates]')).to_have_count(0)
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 if scenario=='fresh':
+                    # A healthy reopen validates repair and the current settings schema
+                    # in a single authoring process, without skipping either check.
+                    expect(page.locator('#add-agent')).to_be_enabled()
+                    before_trace=log_path.read_text()
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                    dialog.get_by_role('button',name='Codex',exact=True).click()
+                    expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    reopened_trace=log_path.read_text()[len(before_trace):]
+                    assert reopened_trace.count('"operation":"connectionRepairSchema"')==1
+                    assert '"operation":"connectionSettingsRepair"' not in reopened_trace
+                    assert '"operation":"inspectEffective"' not in reopened_trace
+                    assert '"operation":"connectionCatalog"' not in reopened_trace
+                    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                     # A separate local change while the form is closed must still be
                     # read by the repair query; no catalogue or repair result is cached.
                     manifest=settings/'project.cpack';source=settings/'Settings.celem'

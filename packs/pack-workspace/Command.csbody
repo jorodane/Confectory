@@ -57,7 +57,10 @@ case "effective": case "schema-view": case "call-check":{
     drafts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=changedId,["text"]=changed[3]});revisions[changedId]=long.Parse(changed[4],System.Globalization.CultureInfo.InvariantCulture);
    }
    inspectedReply["effectiveDraftRevisions"]=revisions;
-   var metadata=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke(combinedSchema?"inspectEffective":"effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,kind=u[1],text=u[3],drafts,schemaView=operation is "schema-view" or "call-check"})))!;
+   var connectionRepair=request["connectionRepair"];
+   if(connectionRepair is not null&&(!combinedSchema||rootNamespace!="Confectory.AISettings"||inspectedId!="Confectory.AISettings::Settings"||connectionRepair["settingsProject"]?.ToString()!=identity[0]))throw new UnauthorizedAccessException("Connection schema repair owner mismatch");
+   var metadata=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke(connectionRepair is not null?"connectionRepairSchema":combinedSchema?"inspectEffective":"effective",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest,id=inspectedId,kind=u[1],text=u[3],drafts,schemaView=operation is "schema-view" or "call-check",connectionRepair})))!;
+   if(connectionRepair is not null){inspectedReply["connectionRepair"]=metadata["repair"]!.DeepClone();if(metadata["repair"]?["state"]?.ToString()!="unchanged")return inspectedReply.ToJsonString();}
    if(combinedSchema){SetInspection(metadata["inspection"]!);inspectedReply["effective"]=metadata["effective"]!.DeepClone();}
    else inspectedReply["effective"]=metadata;
    foreach(var method in inspectedReply["effective"]?["ownFunctions"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string function=method!["id"]!.ToString();if(!function.StartsWith(rootNamespace+"::",StringComparison.Ordinal))continue;var declared=calls.Read.Invoke(draft,function);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(declared[3]))).ToLowerInvariant();if(declared[1]!="function"||hash!=method["hash"]?.ToString())throw new InvalidOperationException("Information function changed while reading; retain input");revisions[function]=long.Parse(declared[4],System.Globalization.CultureInfo.InvariantCulture);}
