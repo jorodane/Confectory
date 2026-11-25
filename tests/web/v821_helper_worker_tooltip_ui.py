@@ -69,6 +69,45 @@ def hover(profile_dot, status, goal):
     return tooltip
 
 
+
+def hover_card(page, helper, name):
+    icon = page.locator(f'.home-side [data-helper="{helper}"]')
+    icon.hover()
+    profile = page.locator('.coworker-hover-card.helper-profile-card')
+    expect(profile).to_have_count(1)
+    expect(profile.locator('.helper-profile-identity strong')).to_have_text(name)
+    return profile
+
+
+def hover_lifecycle(page, helper, neighbor):
+    profile = hover_card(page, helper, "작업 담당 도우미")
+    # Real mouse movement across the sidebar gap into the card.
+    box = profile.bounding_box()
+    page.mouse.move(box["x"] + 22, box["y"] + 18, steps=12)
+    page.wait_for_timeout(350)
+    expect(profile).to_be_visible()
+    hover_card(page, helper, "작업 담당 도우미")
+    page.wait_for_timeout(350)
+    expect(profile).to_be_visible()
+    page.mouse.move(1100, 80)
+    expect(profile).to_have_count(0)
+
+    profile = hover_card(page, helper, "작업 담당 도우미")
+    page.mouse.move(1100, 80)
+    expect(profile).to_have_count(0)
+    hover_card(page, helper, "작업 담당 도우미")
+    hover_card(page, neighbor, "다른 도우미")
+    expect(profile).to_have_count(1)
+    page.mouse.move(-5, -5)
+    expect(profile).to_have_count(0)
+
+    # Keyboard focus can show the same card and Tab away closes it.
+    icon = page.locator(f'.home-side [data-helper="{helper}"]')
+    icon.focus()
+    expect(profile).to_be_visible()
+    page.locator("#add-helper").focus()
+    expect(profile).to_have_count(0)
+
 def exercise():
     fixture.start(0)
     page = fixture.page = fixture.setup()
@@ -77,9 +116,35 @@ def exercise():
     helper = create_helper("작업 담당 도우미")
     neighbor = create_helper("다른 도우미")
     place(page, helper, neighbor)
+    page.locator(".brand").click()
+    expect(page.locator(".home-grid")).to_be_visible()
+    hover_lifecycle(page, helper, neighbor)
+    profile = hover_card(page, helper, "작업 담당 도우미")
+    # A real participant-list update replaces the sidebar node.
+    old_anchor = page.locator(f'.home-side [data-helper="{helper}"]').element_handle()
+    old_card = profile.element_handle()
+    create_helper("Sidebar refresh fixture")
+    page.wait_for_function("(anchor) => !anchor.isConnected", arg=old_anchor)
+    page.wait_for_function("(card) => !card.isConnected", arg=old_card)
+    # Chromium may immediately hover the replacement icon under the pointer.
+    page.mouse.move(1100, 80)
+    expect(profile).to_have_count(0)
+    fixture.checked("홈에서 카드 이동, 두 영역 이탈, 다른 도우미 전환, 앱 밖 이동과 사이드바 갱신을 검증한다")
+    page.locator(".project-card [data-enter]").click()
+    expect(page.locator(".work-body")).to_be_visible()
+    fixture.idle()
+    hover_lifecycle(page, helper, neighbor)
+    fixture.checked("프로젝트에서도 동일한 호버 수명이 유지된다")
     plan = call("nodeTask", action="inspect", node=NODE)
     node_task = call("nodeTask", action="assign", node=NODE, assignmentHash=plan["assignmentHash"],
                      commandID=uuid.uuid4().hex, rationale="실제 Blueprint 위치가 있는 검증 작업")["task"]
+    live_profile = hover_card(page, helper, "작업 담당 도우미")
+    expect(dots(live_profile)).to_have_count(1)
+    box = live_profile.bounding_box()
+    # Move directly to the card without crossing an adjacent Helper icon.
+    page.mouse.move(box["x"] + 22, box["y"] + 18)
+    expect(live_profile.locator(".helper-profile-identity strong")).to_have_text("작업 담당 도우미")
+    expect(dots(live_profile)).to_have_count(1)
     ordinary_goal = "일반 작업의 검증용 고유 설명"
     call("customProposal", target=DECLARATION, commandID=uuid.uuid4().hex, text=ordinary_goal)
     proposal = fixture.state()["augment"]["customCards"][-1]
@@ -93,6 +158,21 @@ def exercise():
     assert not state["aiOwnerAvailable"] and state["aiPreview"] is None
     node_goal = rows[node_task]["goal"]
     assert node_goal and ordinary_goal in rows[ordinary_task]["goal"]
+
+    expect(dots(live_profile)).to_have_count(2)
+    expect(live_profile).to_be_visible()
+    # Worker dots on the hover card must be reachable without first opening chat.
+    hover_profile = hover_card(page, helper, "작업 담당 도우미")
+    expect(dots(hover_profile)).to_have_count(2)
+    hover_dot = dot(hover_profile, node_task)
+    box = hover_dot.bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    expect(hover_dot.get_by_role("tooltip")).to_contain_text(NODE)
+    page.wait_for_timeout(350)
+    expect(hover_dot.get_by_role("tooltip")).to_be_visible()
+    page.mouse.move(1100, 80)
+    expect(hover_profile).to_have_count(0)
+    fixture.checked("읽기용 호버 카드의 실제 Worker 점까지 포인터로 이동해 상태와 위치를 확인한다")
 
     other_profile = card(page, neighbor)
     expect(dots(other_profile)).to_have_count(0)
