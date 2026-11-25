@@ -64,7 +64,7 @@ def exercise(browser, number, external):
     try:
         page = fixture.setup(browser)
         page.set_viewport_size({'width': 2000, 'height': 1200})
-        primary, _ = fallback.open_from_search(page, fallback.FIRST, fallback.PEER, '41')
+        primary, _ = fallback.open_from_search(page, fallback.FIRST, fallback.PEER, '41', require_host=True)
         extra, _ = floating.open_properties(page, 'ExtraRecord', 'ExtraFolder')
         expect(primary).to_be_visible()
         expect(extra).to_be_visible()

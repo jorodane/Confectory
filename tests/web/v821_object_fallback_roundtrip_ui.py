@@ -53,14 +53,19 @@ def seed():
     return fixture.projects[0].parent / f"private-source-{TARGET}.celem"
 
 
-def open_from_search(page, title, item, count):
+def open_from_search(page, title, item, count, *, require_host=False):
     expect(page.locator("#title")).to_contain_text(title)
     window = browser_window(page)
     folder = "StockFolder" if item == TARGET else "PeerFolder"
     choose_tree_location(window, f'[data-tree-id="{NS}::{folder}"]')
     search(window, LABEL, item)
     address = page.url
-    window.locator(f'[data-object="{NS}::{item}"]').press("Enter")
+    row = window.locator(f'[data-object="{NS}::{item}"]')
+    if require_host:
+        row.click(button="right")
+        page.locator(".context-menu").get_by_role("button", name="스키마 열기", exact=True).click()
+    else:
+        row.press("Enter")
     editor = page.locator('.window[data-key="schema"]')
     expect(editor.get_by_role("heading", name=LABEL, exact=True)).to_be_visible()
     quantity = field(editor, "Count").get_by_label("Count 기본값", exact=True)
@@ -75,7 +80,12 @@ def open_from_search(page, title, item, count):
     expect(page.locator('.window[data-key="source"]')).not_to_be_visible()
     expect(editor).not_to_contain_text(str(fixture.root))
     assert page.url == address
-    assert fixture.state()["draft"]["id"] == f"{NS}::{item}"
+    state = fixture.state()
+    if state["draft"]["id"] != f"{NS}::{item}":
+        assert not require_host
+        assert any(row["id"] == f"{NS}::{item}" for row in state.get("preparedPropertyModels", []))
+    else:
+        assert state["draft"]["id"] == f"{NS}::{item}"
     return editor, quantity
 
 

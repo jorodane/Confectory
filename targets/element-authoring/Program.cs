@@ -16,7 +16,7 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         string? operation=request["operation"]?.ToString();
         bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
         bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations")&&!metadata&&!inventory)return 2;
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory)return 2;
         var project=Path.GetFullPath(request["project"]!.GetValue<string>());
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
@@ -165,6 +165,7 @@ try
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
             reply=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,request["observeSources"]?.GetValue<bool>()==true,request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>());break;
+        case "preparePropertyModels":
         case "connectionRepairSchema":
         case "inspectEffective":
         {
@@ -178,7 +179,11 @@ try
             }
             var inspection=InspectDeclaration(S("text"));
             if(inspection["id"]!.GetValue<string>()!=S("id")||inspection["kind"]!.GetValue<string>()!=S("kind"))throw new InvalidOperationException("Owned declaration identity changed; repair the source explicitly.");
-            reply=new JsonObject{["inspection"]=inspection,["effective"]=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,(request["observeSources"]?.GetValue<bool>()==true||request["schemaReuseProof"]?.GetValue<bool>()==true),request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>(),request["schemaReuseProof"]?.GetValue<bool>()==true)};if(repair is not null)reply["repair"]=repair;break;
+            reply=new JsonObject{["inspection"]=inspection,["effective"]=EffectiveMetadata.Query(S("project"),S("manifest"),S("id"),S("text"),FormatManifest,path=>{if(new FileInfo(path).Length>1048576)throw new IOException("Manifest budget");return File.ReadAllText(path);},request["drafts"]?.AsArray(),request["schemaView"]?.GetValue<bool>()==true,request["validateObjects"]?.GetValue<bool>()==true,(request["observeSources"]?.GetValue<bool>()==true||request["schemaReuseProof"]?.GetValue<bool>()==true),request["definitionTypes"]?.GetValue<bool>()==true,request["nativeTypes"]?.GetValue<bool>()==true,request["nativeFunction"]?.GetValue<string>(),request["schemaReuseProof"]?.GetValue<bool>()==true,request["operation"]?.ToString()=="preparePropertyModels"?request["ids"]!.AsArray():null)};if(repair is not null)reply["repair"]=repair;
+            if(S("operation")=="preparePropertyModels"){
+                var prepared=reply["effective"]!.AsObject();if(prepared["rows"] is not JsonArray rows)throw new InvalidOperationException("Property model unavailable");
+                foreach(var row in rows){row!["inspection"]=InspectDeclaration(row["sourceText"]!.GetValue<string>());if(row["inspection"]?["id"]?.ToString()!=row["id"]?.ToString())throw new InvalidOperationException("Property model identity changed");}
+            }break;
         }
         case "implementationCopy":reply=ImplementationCopy.Query(request,Format);break;
         case "privateCopySeed":reply=PrivateImplementationCopy.Validate(request);break;

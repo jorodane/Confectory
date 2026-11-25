@@ -17,7 +17,35 @@ case "relations-map":{
  foreach(var observed in versions){var current=calls.Read.Invoke(draft,observed.Key);if(current[4]!=observed.Value[0]||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(current[3]))).ToLowerInvariant()!=observed.Value[1])throw new InvalidOperationException("Map source changed during projection; read again");}
  var known=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(mapNodes,n=>n!["id"]!.ToString()),StringComparer.Ordinal);var outside=new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);foreach(var edge in mapEdges)foreach(string field in new[]{"target","function","scope"})if(edge![field] is not null&&!known.Contains(edge[field]!.ToString()))outside.Add(edge[field]!.ToString());foreach(string externalId in outside)mapNodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=externalId,["title"]=externalId.Split("::")[^1],["kind"]="reference",["owned"]=false,["valid"]=true,["availability"]="outside-owned-view"});
  var grouped=new System.Text.Json.Nodes.JsonArray();foreach(var group in System.Linq.Enumerable.GroupBy(mapEdges,e=>e!.ToJsonString())){var edge=System.Linq.Enumerable.First(group)!.DeepClone().AsObject();edge["count"]=System.Linq.Enumerable.Count(group);edge["key"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(group.Key))).ToLowerInvariant();grouped.Add(edge);}
- var map=new System.Text.Json.Nodes.JsonObject{["scope"]="owned-workspace-declarations",["status"]=System.Linq.Enumerable.Any(mapNodes,n=>n!["valid"]?.GetValue<bool>()==false)?"partial":"snapshot",["nodes"]=mapNodes,["edges"]=grouped,["sourceWritten"]=false,["executed"]=false};map["version"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(map.ToJsonString()))).ToLowerInvariant();var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["relationsMap"]=map;return reply.ToJsonString();
+ var map=new System.Text.Json.Nodes.JsonObject{["scope"]="owned-workspace-declarations",["status"]=System.Linq.Enumerable.Any(mapNodes,n=>n!["valid"]?.GetValue<bool>()==false)?"partial":"snapshot",["nodes"]=mapNodes,["edges"]=grouped,["sourceWritten"]=false,["executed"]=false};map["version"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(map.ToJsonString()))).ToLowerInvariant();var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["relationsMap"]=map;
+ // An optional bounded model for the active Browser projection. This is one
+ // shared owner/Registry preparation, not a set of opened edit workspaces.
+ if(request["prepareProperties"]?.GetValue<bool>()==true){
+  state.AsObject().Remove("propertyModels");
+  try{
+   var owners=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(map["nodes"]!.AsArray(),n=>n?["kind"]?.ToString()=="object"&&n["owned"]?.GetValue<bool>()==true&&n["valid"]?.GetValue<bool>()==true),n=>n!["id"]!.ToString()));
+   if(owners.Length is >=1 and <=32&&calls.Changes.Invoke(draft,ids).Length==0){
+    var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));var manifest=calls.Read.Invoke(draft,manifestId);
+    var preparedSeed=calls.Read.Invoke(draft,owners[0]);var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("preparePropertyModels",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id=preparedSeed[0],kind=preparedSeed[1],text=preparedSeed[3],ids=owners,schemaView=true,schemaReuseProof=true})))!["effective"]!;
+    if(prepared["observations"] is System.Text.Json.Nodes.JsonArray observed&&observed.Count<=32&&prepared["ownershipPaths"] is System.Text.Json.Nodes.JsonArray paths&&paths.Count<=128&&prepared["rows"] is System.Text.Json.Nodes.JsonArray results&&results.Count==owners.Length){
+     var models=new System.Text.Json.Nodes.JsonArray();var sourceProofs=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],manifest[2]),["hash"]=manifest[5]});
+     foreach(var candidate in results){
+      var row=candidate!.AsObject();string owner=row["id"]!.ToString();if(!Array.Exists(owners,id=>id==owner))throw new InvalidOperationException("Prepared owner mismatch");var source=calls.Read.Invoke(draft,owner);
+      if(source[1]!="object"||source[6]!="clean"||source[3]!=row["sourceText"]?.ToString())throw new InvalidOperationException("Prepared source changed");
+      var inspection=row["inspection"]!.DeepClone();row.Remove("inspection");row.Remove("sourceText");
+      if(row["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")continue;
+      var schema=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeSchemaView.Invoke(row["schemaModel"]!.ToJsonString()))!;
+      models.Add(new System.Text.Json.Nodes.JsonObject{["unit"]=new System.Text.Json.Nodes.JsonObject{["id"]=owner,["kind"]=source[1],["text"]=source[3],["revision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture)},["inspection"]=inspection,["inspectionRevision"]=long.Parse(source[4],System.Globalization.CultureInfo.InvariantCulture),["effective"]=row.DeepClone(),["schemaView"]=schema});
+      sourceProofs.Add(new System.Text.Json.Nodes.JsonObject{["path"]=System.IO.Path.Combine(identity[3],source[2]),["hash"]=source[5]});
+     }
+     if(models.Count>0&&models.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
+      state["propertyModels"]=new System.Text.Json.Nodes.JsonObject{["models"]=models,["sources"]=sourceProofs,["observations"]=observed.DeepClone(),["ownershipPaths"]=paths.DeepClone(),["draftVersion"]=reply["draftVersion"]!.DeepClone()};
+     }
+    }
+   }
+  }catch{/* An unsupported or changed model retains the normal verified opening path. */}
+ }
+ return reply.ToJsonString();
 }
 
 case "bodies":{

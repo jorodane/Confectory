@@ -33,7 +33,7 @@ def register_local_sample():
 
 
 def assert_default_view(page, title, value, *, registered):
-    editor, _ = fallback.open_from_search(page, title, fallback.TARGET, value)
+    editor, _ = fallback.open_from_search(page, title, fallback.TARGET, value, require_host=True)
     state = fixture.state()
     assert state["draft"]["id"] == OBJECT
     inventory = state["inventory"]

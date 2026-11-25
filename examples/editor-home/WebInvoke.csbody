@@ -379,7 +379,7 @@ if(endpoint=="browserDrafts"){
 }
 var request=new System.Text.Json.Nodes.JsonObject{["context"]=selected["context"]!.DeepClone()};
 switch(endpoint){
- case "relationsMap":request["action"]="relations-map";break;
+ case "relationsMap":request["action"]="relations-map";if(args["prepareProperties"]?.GetValue<bool>()==true)request["prepareProperties"]=true;break;
  case "inspectDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]=before["workspace"]?["unit"]?["kind"]?.ToString()=="module"?"effective":"inspect";break;
  case "editFunctionContract":if(before["workspace"]?["unit"]?["kind"]?.ToString()!="function")throw new InvalidOperationException("Select the owned function contract first");goto case "editObjectStructure";
  case "editObjectStructure":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object structure selection changed");request["action"]="object-structure";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;

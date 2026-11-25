@@ -18,7 +18,7 @@ string owner=((System.Threading.AsyncLocal<string?>)registry[0]).Value??"unscope
 string? ReadWarm(){
  bool metadata=operation=="describe"&&request["metadataOnly"]?.GetValue<bool>()==true;
  bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
- if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations")&&!metadata&&!inventory||request["project"] is null)return null;
+ if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory||request["project"] is null)return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
  var key=(System.IO.Path.GetFullPath(request["project"]!.GetValue<string>()),hostKey);
  object[] pool;
