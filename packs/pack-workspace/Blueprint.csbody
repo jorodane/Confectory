@@ -193,9 +193,10 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     bool observedFrameOrder=ownedFrameOrderBatch&&!ownedFrameCaseOrderBatch&&
      (methodFrame||current[frameOrderBindingKey]?["sources"] is System.Text.Json.Nodes.JsonArray);
     bool methodFrameCreation=ownedFrameCreationBatch&&methodFrame;
-    var frameSources=(ownedFrameCaseBatch||ownedFrameCompoundCreationBatch||observedFrameOrder||methodFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
+    bool emptyFrameCreation=ownedFrameCreationBatch&&current["nodes"] is System.Text.Json.Nodes.JsonArray {Count:0};
+    var frameSources=(ownedFrameCaseBatch||ownedFrameCompoundCreationBatch||observedFrameOrder||methodFrameCreation||emptyFrameCreation)?current[frameOrderBindingKey]?["sources"]?.DeepClone().AsArray():null;
     if(ownedScopeTransferBatch&&scopeSources is null)throw new InvalidOperationException("Observed directly owned root and case required; preserve inputs");
-    if((observedFrameOrder||methodFrameCreation)&&frameSources is null)throw new InvalidOperationException("Observed owned frame sources required; preserve inputs");
+    if((observedFrameOrder||methodFrameCreation||emptyFrameCreation)&&frameSources is null)throw new InvalidOperationException("Observed owned frame sources required; preserve inputs");
     if(methodFrameCreation&&current["documentMethodFrameCreationAvailable"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Clean bounded method sources required before inserting one body; preserve inputs");
     var remapSources=privateReturnRemapBatch?current["privateReturnSources"]?.AsArray():null;
     if(codeParametersBatch){
@@ -412,7 +413,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
      // actions. Only the exact observed body closure belongs in this route Review.
      // The accepted graph carries the exact retargeted link. Keep the existing source lease for its original closure.
      var readIds=privateReturnRemapBatch?System.Linq.Enumerable.Select(remapSources!,id=>id!.ToString()):rootInsertionBatch?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(rootInsertionSources!,id=>id!.ToString()),physicalGraphId+"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
-      (ownedFrameCaseCreationBatch||ownedFrameCompoundCreationBatch||methodFrameCreation)?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()),
+      (ownedFrameCaseCreationBatch||ownedFrameCompoundCreationBatch||methodFrameCreation||emptyFrameCreation)?System.Linq.Enumerable.Append(System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()),
        physicalGraphId+"/node:"+current["privatePath"]!.ToString().Replace("/","/node:",StringComparison.Ordinal)
         +"/node:"+System.Linq.Enumerable.Single(edits,e=>e?["action"]?.ToString()=="createNode")!["node"]!.ToString()):
       (ownedFrameCaseOrderBatch||observedFrameOrder)?System.Linq.Enumerable.Select(frameSources!,id=>id!.ToString()):
@@ -1724,13 +1725,14 @@ lock(state){
   var order=new System.Text.Json.Nodes.JsonArray{new System.Text.Json.Nodes.JsonObject{["action"]="entry",["node"]="$entry",["to"]=graph["entry"]!.DeepClone()}};
   foreach(var edge in graph["edges"]!.AsArray())order.Add(new System.Text.Json.Nodes.JsonObject{["action"]="route",["node"]=edge!["from"]!.DeepClone(),["port"]=edge["port"]!.DeepClone(),["to"]=edge["to"]!.DeepClone()});
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{["action"]="frame-order",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=order}.ToJsonString());
-  if(methodChild||compoundChild){
+  bool emptyChild=graph["nodes"] is System.Text.Json.Nodes.JsonArray {Count:0};
+  if(methodChild||compoundChild||emptyChild){
    RequireExclusiveWritableGraph();
    RequireExclusiveChildSources(includeDescendants:compoundChild);
    if(bodySourceIds.Length>64)throw new InvalidOperationException("Bounded owned frame source closure required");
   }
   frameOrderBinding=ChildFrameBinding();
-  if(methodChild||compoundChild)frameOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
+  if(methodChild||compoundChild||emptyChild)frameOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  }catch{frameOrderBinding=null;}
  if(ownedSerialChild&&(frameOrderBinding is null||methodChild||compoundChild)&&string.IsNullOrEmpty(input["uiSurface"]?.ToString()))try{
   calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{

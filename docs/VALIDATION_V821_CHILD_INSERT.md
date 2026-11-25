@@ -46,8 +46,16 @@
 
 개발 증거 record `26eaa76033194f23a10c970dcdb3b1ee`는 위 Confirm 결함·미적용 저장 거절·격리 진단과 수정 후 별도 성공을 보존한다. ZIP SHA-256은 `686e466d9d47fb5fb144a691680595d5ceea07ecd9c80ec0ec9cfa6b7fbdd743`다. 제품에 진단 출력을 포함하지 않았고 인증된 개발 임시 공간만 정리했다. 최종 신규 25단계와 합산하지 않는다.
 
+## 기존 빈 void 자식의 첫 동작 삽입
+
+실행 계약은 기존의 `nodes: []`, `edges: []`, `entry: "exit:return"`, `exits: {"return": null}`을 이미 지원한다. 직접 소유한 인수 없는 void 복합의 해당 경로에서만 기존 일반 셀 추가를 연결한다. 빈 frame 관측은 정확한 반환을 확인하는 무변경 순서 계획이며 실제 순서 편집을 허용하지 않는다. 첫 동작의 새 entry와 원래 return으로 가는 연결만 생성하고, 삽입 후 기존 전체 복합 검증을 다시 거친다. 선택하지 않은 빈 frame, 다른 반환 계약, 복사·공유·비동기 등 기존 미지원 경계는 그대로다.
+
+기존 원본·소유권·전체 본문 관측과 최종 lease, 저장/검토/확정 모델을 재사용한다. Save 전 개인 Undo/Redo는 새 동작 입력 여섯 개를 함께 이동하며 Save 뒤 기존 `OWNERSHIP_CHANGED` 공유 이력 보호를 유지한다. 새 C# 파일은 명시 Confirm 뒤에만 생성한다.
+
+[빈 자식 삽입 검사](../tests/web/v821_empty_child_insert_ui.py)에서 Linux Chromium의 실제 빈 자식 진입, 첫 동작 및 C# 편집, 개인 Undo/Redo와 재시작, Save/Review 충돌 거절 및 명시 Confirm을 검증했다. 삽입 전 `body → inside → parent-tail → after`, 확정 후 `parent-tail`과 `after` 사이에 새 동작만 실행됐다(반환값 10 유지). 재개방 뒤에도 정확한 frame과 기존 형제는 유지되었다. 비void·인수 있는 빈 frame 및 임의 return 변경은 metadata 계획에서 거절했다. 최초 검사에서 하위 `nodes/`의 생성 파일을 세지 못한 시험 오류를 수정한 뒤 전체가 통과했다. 비어 있지 않은 기존 자식의 시작 삽입(`v821_child_insert_ui.py start`)과 정상 객체 드래그 입력도 같은 빌드에서 통과했다. 실제 Windows/WebView2는 미실행이다.
+
 ## 남은 범위
 
-빈 자식의 첫 entry 생성, 내부 삭제·복합 생성/분해·여러 frame/여러 새 셀의 공동 편집, 슬롯 내부, private 네이티브 보기와 분기/opaque/receiver/async/copy/상속 문맥은 별도 범위다. 이번은 인수 없는 void 셀 하나이며 모든 ABI·구조·실행 조합이나 전체 엔진 검증이 아니다. 기존 source scope가 바뀐 미결정 요청은 자동 rebase하지 않고 입력을 보존한다.
+내부 삭제·복합 생성/분해·여러 frame/여러 새 셀의 공동 편집, 슬롯 내부, private 네이티브 보기와 분기/opaque/receiver/async/copy/상속 문맥은 별도 범위다. 이번은 인수 없는 void 셀 하나이며 모든 ABI·구조·실행 조합이나 전체 엔진 검증이 아니다. 기존 source scope가 바뀐 미결정 요청은 자동 rebase하지 않고 입력을 보존한다.
 
 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이다. Windows x64 교차 패키지와 Linux managed 앱 검사를 실제 Windows 실행과 구별한다. 기존 reader Reference 제약과 과거 초기 빈 화면 원인은 이번 단위로 해소됐다고 단정하지 않는다. main과 Sites는 변경하지 않는다.

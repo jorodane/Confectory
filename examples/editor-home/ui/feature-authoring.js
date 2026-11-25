@@ -837,7 +837,7 @@ function blueprintNormalizeControls(scope){
    if(id==='$entry'){
     const rootStart=data.documentRootStart?.entry;
     if(!chain?.frame&&(!rootStart||chain?.order[0]!==rootStart))throw Error('직접 소유한 직렬 흐름의 시작 연결을 확인해 주세요.');
-    guardOtherInputs(w,data);insertCell(chain,id,'next',chain.order[0]);return;
+    guardOtherInputs(w,data);insertCell(chain,id,'next',chain.order[0]||chain.exit);return;
    }
    const index=chain?.order.indexOf(id)??-1;
    if(index<0||chain.compound&&!canInsertAfterCompound(id,chain))throw Error('직접 소유한 직렬 흐름에서 다음 연결을 확인해 주세요.');

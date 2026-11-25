@@ -62,7 +62,7 @@ public static class BlueprintCellRegion
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
         int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null,
-        JsonObject? nestedSwitchFrame=null)
+        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
@@ -74,7 +74,7 @@ public static class BlueprintCellRegion
             Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
-            Need(nodes.Count is >0 and <64 && total<=256,"Bounded complete compound chain required");
+            Need((nodes.Count is >0 and <64 || nodes.Count==0 && ReferenceEquals(g,emptyInsertionFrame)) && total<=256,"Bounded complete compound chain required");
             if(switchChild){
                 Need(++switchChildren==1,"At most one direct switch child per compound order");
                 return CheckCompoundSwitchChild(g,nodes);
@@ -214,8 +214,33 @@ public static class BlueprintCellRegion
         return OwnedPreviewFrame(root, path);
     }
 
+    // Observe only an already executable, empty owned void invocation. No
+    // new graph/return model is introduced and no sibling may be empty.
+    static JsonObject EmptyInsertionFrame(JsonObject root, string path, bool allowDesktopFrames)
+    {
+        Need(allowDesktopFrames && path.Length>0, "First owned child insertion requires desktop authoring");
+        var owner=BlueprintTree.Nodes(root).Single(entry=>entry.Key==path).Node;
+        var frame=BlueprintTree.Select(root,path);
+        Need(S(owner,"kind")=="graph" && owner["signature"] is JsonObject signature
+            && signature["args"] is JsonArray {Count:0} && S(signature,"return")=="void"
+            && owner["arguments"] is null or JsonObject {Count:0}
+            && S(frame,"profile")==FeatureBlueprint.NestedProfile && frame["nodes"] is JsonArray {Count:0}
+            && frame["edges"] is JsonArray {Count:0} && frame["locals"] is null or JsonArray {Count:0}
+            && S(frame,"entry")=="exit:return" && frame["exits"] is JsonObject {Count:1} exits
+            && exits.ContainsKey("return") && exits["return"] is null,
+            "Existing empty no-argument void child with an explicit return required");
+        CompoundOrder(root,CurrentRoutes(root),emptyInsertionFrame:frame);
+        return frame;
+    }
+
     static JsonObject FrameOrder(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
     {
+        if (path.Length>0 && BlueprintTree.Select(root,path)["nodes"] is JsonArray {Count:0})
+        {
+            var empty=EmptyInsertionFrame(root,path,allowDesktopFrames);
+            Need(JsonNode.DeepEquals(edits,CurrentRoutes(empty)), "Observe the exact empty child return; no order change is possible");
+            return new JsonObject{["entry"]=empty["entry"]!.DeepClone(),["edges"]=empty["edges"]!.DeepClone()};
+        }
         if (allowDesktopFrames && path.Length > 0 && !path.Contains('/') &&
             IsCompoundFrame(BlueprintTree.Select(root, path)))
         {
@@ -311,7 +336,8 @@ public static class BlueprintCellRegion
     static JsonObject FrameCreate(JsonObject root, string path, JsonArray edits, bool allowDesktopFrames)
     {
         var candidate=root.DeepClone().AsObject();
-        var child=EditableFrame(candidate,path,allowDesktopFrames);
+        var child=BlueprintTree.Select(candidate,path)["nodes"] is JsonArray {Count:0}
+            ? EmptyInsertionFrame(candidate,path,allowDesktopFrames) : EditableFrame(candidate,path,allowDesktopFrames);
         InsertCell(child,edits,InsertionAnchor.FrameCell);
         // Recheck the original depth/per-frame/global limits including the new cell.
         EditableFrame(candidate,path,allowDesktopFrames);
