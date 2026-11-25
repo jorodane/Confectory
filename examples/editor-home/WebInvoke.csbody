@@ -338,7 +338,7 @@ if(endpoint is "openEditorView" or "closeEditorView" or "editEditorView" or "sav
  foreach(string field in new[]{"viewMode","text","path","value","field","edit"})if(args[field] is not null)payload[field]=args[field]!.DeepClone();
  if(endpoint is "editViewField" or "editViewMetadata")payload["value"]=ExactFieldValue();
  if(args["revision"] is not null)payload["expectedRevision"]=args["revision"]!.DeepClone();if(args["hash"] is not null)payload["expectedHash"]=args["hash"]!.DeepClone();
- Command("workspace",payload);return "{\"accepted\":true}";
+ var result=Command("workspace",payload);if(endpoint=="openEditorView"&&result["workspaceViews"]?[selected["context"]!.ToString()]?[args["view"]!.ToString()] is System.Text.Json.Nodes.JsonObject opened&&opened["initialBrowserDrafts"] is System.Text.Json.Nodes.JsonNode proof)return new System.Text.Json.Nodes.JsonObject{["accepted"]=true,["initialBrowserDrafts"]=new System.Text.Json.Nodes.JsonObject{["binding"]=opened["authorBinding"]!.DeepClone(),["status"]=proof.DeepClone()}}.ToJsonString();return "{\"accepted\":true}";
 }
 if(endpoint is "browserArchiveOutcome" or "browserRetirement" or "planBrowserRemoval"){
  bool detached=args["view"] is not null;bool planning=endpoint=="planBrowserRemoval";string resultField=planning?"removalPlan":endpoint=="browserArchiveOutcome"?"archiveOutcome":"retirementResult";

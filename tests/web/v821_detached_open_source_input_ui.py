@@ -27,7 +27,7 @@ def exercise(browser):
                 if body["endpoint"] == "openEditorView":
                     held.append(route)
                     return
-                if body["endpoint"] == "browserDrafts" and body.get("input", {}).get("view"):
+                if body["endpoint"] == "browserDrafts" and body.get("input", {}).get("view") and not held_status:
                     held_status.append(route)
                     return
         route.continue_()
@@ -48,6 +48,11 @@ def exercise(browser):
     original = source.input_value()
     identity = page.locator("#selection").inner_text()
     assert identity == f"{fallback.NS}::MainBody/body:common"
+    # An independent fixture-owned source changes after the browser was loaded.
+    # The initial open must still perform the full fresh schema projection.
+    dependency = fixture.projects[0].parent / "private-source-StockInfo.celem"
+    dependency.write_text(dependency.read_text().rstrip()[:-1] + "  field ExternalFlag single general string;\n}\n")
+    fixture.before[str(dependency)] = dependency.read_bytes()
     target = window.locator(f'[data-object="{fallback.NS}::{fallback.TARGET}"]')
     target.click(button="right")
     with page.expect_request(lambda request: request.method == "POST" and
@@ -81,12 +86,26 @@ def exercise(browser):
             }).observe(node, {attributes: true, attributeFilter: ['disabled'], attributeOldValue: true});
         }""")
     finally:
-        with page.expect_request(lambda request: request.method == "POST" and
-                                 request.url.endswith("/api/request") and
-                                 request.post_data_json.get("endpoint") == "browserDrafts" and
-                                 request.post_data_json.get("input", {}).get("view")):
-            for route in held:
-                route.continue_()
+        for route in held:
+            route.continue_()
+    expect(page.locator("#project-menu")).to_be_enabled()
+    editor = page.locator('.window[data-key^="editor-"]:visible')
+    expect(editor).to_have_count(1)
+    expect(fallback.field(editor, "ExternalFlag")).to_be_visible()
+    assert not held_status, "Initial view proof should avoid the second status request"
+    expect(source).to_have_value(local)
+    assert page.evaluate("globalThis.detachedInputInterruptions") == 0
+
+    # A subsequent draft edit from a separate owned host view must invalidate
+    # the initial proof. Exercise the actual follow-up status path and input.
+    row, = fixture.state()["editorViews"]
+    shown = row["schema"]
+    with page.expect_request(lambda request: request.method == "POST" and
+                             request.url.endswith("/api/request") and
+                             request.post_data_json.get("endpoint") == "browserDrafts" and
+                             request.post_data_json.get("input", {}).get("view")):
+        fixture.call("editViewField", {"view": row["view"], "id": row["id"], "path": ["Count"],
+                                      "valueJson": "31", "revision": shown["revision"], "hash": shown["textHash"]})
     try:
         expect(page.locator("#status")).to_have_text("객체 변경 상태를 확인하는 중…")
         expect(page.locator("#project-menu")).to_be_disabled()
@@ -98,14 +117,9 @@ def exercise(browser):
         note.fill("Local unsaved property input during status")
         expect(note).to_have_value("Local unsaved property input during status")
         print(f"New property input response: {(perf_counter() - started) * 1000:.0f} ms")
-        expect(source).to_be_enabled()
-        assert page.evaluate("globalThis.detachedInputInterruptions") == 0
-        continued = local + "// Further local body input during status read\n"
-        started = perf_counter()
-        source.fill(continued)
-        expect(source).to_have_value(continued)
-        expect(source).to_be_focused()
-        print(f"Independent source input during status: {(perf_counter() - started) * 1000:.0f} ms")
+        # The external edit may also trigger independent inventory refresh guards.
+        # Do not weaken those guards merely to preserve typing during a status read.
+        expect(source).to_have_value(local)
         assert len(held_status) == 1
     finally:
         for route in held_status:
@@ -113,12 +127,17 @@ def exercise(browser):
     expect(page.locator("#project-menu")).to_be_enabled()
     expect(page.locator("#status")).not_to_have_text("객체 변경 상태를 확인하는 중…")
     expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(1)
+    expect(source).to_be_enabled()
+    expect(source).to_have_value(local)
+    continued = local + "// Further local body input after status read\n"
+    source.fill(continued)
     expect(source).to_have_value(continued)
     expect(note).to_have_value("Local unsaved property input during status")
     expect(page.locator("#selection")).to_have_text(identity)
     state = fixture.state()
     assert state["draft"]["id"] == identity and state["draft"]["text"] == original
     assert [row["id"] for row in state["editorViews"]] == [f"{fallback.NS}::{fallback.TARGET}"]
+    assert next(row for row in state["editorViews"][0]["schema"]["rows"] if row["name"] == "Count")["valueJson"] == "31"
     assert not set(calls) & {"editDraft", "saveDraft", "editViewField", "confirmGroup", "leaveProject"}
     assert calls.count("openEditorView") == 1
     fixture.original()
