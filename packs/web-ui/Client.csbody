@@ -13,11 +13,21 @@ export function localTransport(token) {
  };
 }
 export class WebView {
- constructor(transport,onState){this.transport=transport;this.onState=onState;this.pending=new Map();this.observations=new Set();this.generation=0;this.active=false;this.onPageHide=()=>{void this.dispose().catch(()=>{});};}
- trace(stage,start,detail={}){const rows=globalThis.confectoryWebUITrace;if(Array.isArray(rows)){rows.push({stage,elapsedMs:performance.now()-start,...detail});if(rows.length>512)rows.shift();}}
+ constructor(transport,onState){this.transport=transport;this.onState=onState;this.pending=new Map();this.observations=new Set();this.generation=0;this.active=false;this.performanceEnabled=false;this.performanceRows=[];this.performanceTimer=null;this.performanceInput=null;this.performanceSending=false;this.performanceLastUpdate=-Infinity;this.onPageHide=()=>{void this.dispose().catch(()=>{});};}
+ trace(stage,start,detail={}){const rows=globalThis.confectoryWebUITrace;if(Array.isArray(rows)){rows.push({stage,elapsedMs:performance.now()-start,...detail});if(rows.length>512)rows.shift();}if(this.performanceEnabled&&['call','render','update'].includes(stage))this.performanceMark('renderer-'+stage,detail.endpoint||'',start);}
+ // A diagnostic batch is deliberately independent of revision/command state.
+ // Only fixed operation names and numbers reach the host; no DOM text or input.
+ performanceMark(stage,operation,start){if(!this.performanceEnabled||!this.active)return;const now=performance.now(),elapsedMs=now-start;if(!Number.isFinite(elapsedMs)||elapsedMs<0||elapsedMs>3600000)return;// Frequent idle polls must not displace click, command, or ready events.
+ if(stage==='renderer-update'){if(elapsedMs<20&&now-this.performanceLastUpdate<500)return;this.performanceLastUpdate=now;}
+ if(this.performanceRows.length>=32){if(stage==='renderer-update')return;const idle=this.performanceRows.findIndex(row=>row.stage==='renderer-update');this.performanceRows.splice(idle>=0?idle:0,1);}
+ this.performanceRows.push({stage,operation,elapsedMs,pageMs:now});this.schedulePerformance();}
+ schedulePerformance(){if(this.performanceTimer===null&&this.performanceEnabled)this.performanceTimer=setTimeout(()=>{this.performanceTimer=null;this.flushPerformance();},500);}
+ flushPerformance(){if(!this.performanceEnabled||!this.active||!this.performanceRows.length)return;if(this.performanceSending||this.pending.size||this.updating){this.schedulePerformance();return;}const rows=this.performanceRows.splice(0,32),generation=this.generation;this.performanceSending=true;void this.transport({op:'performance',view:this.view,scope:this.scope,rows}).catch(()=>{}).finally(()=>{if(this.generation===generation){this.performanceSending=false;if(this.performanceRows.length)this.schedulePerformance();}});}
+ startPerformanceInput(){if(!this.performanceEnabled||!this.onState||!globalThis.document)return;const generation=this.generation;this.performanceInput=event=>{if(!event.isTrusted||!this.active||generation!==this.generation)return;const op=event.type==='drop'?'object-drop':event.target?.closest?.('[data-enter]')?'project-open':'click',start=performance.now(),stamp=Number(event.timeStamp);if(Number.isFinite(stamp)&&stamp>=0&&stamp<=start)this.performanceMark('input-delay',op,stamp);if(globalThis.requestAnimationFrame)requestAnimationFrame(()=>requestAnimationFrame(()=>{if(this.active&&generation===this.generation)this.performanceMark('input-frame',op,start);}));};document.addEventListener('click',this.performanceInput,true);document.addEventListener('drop',this.performanceInput,true);}
+ stopPerformance(){if(this.performanceTimer!==null)clearTimeout(this.performanceTimer);this.performanceTimer=null;this.flushPerformance();if(this.performanceInput&&globalThis.document){document.removeEventListener('click',this.performanceInput,true);document.removeEventListener('drop',this.performanceInput,true);}this.performanceInput=null;this.performanceRows.length=0;this.performanceEnabled=false;if(this.performanceTimer!==null)clearTimeout(this.performanceTimer);this.performanceTimer=null;}
  check(reply){if(!reply.ok)throw new Error(reply.error?.code||'request_failed');return reply;}
  async mount(){const generation=++this.generation;const reply=this.check(await this.transport({op:'mount'}));if(generation!==this.generation){await this.transport({op:'dispose',view:reply.view});return;}
-  this.view=reply.view;this.scope=reply.scope;this.active=true;globalThis.addEventListener?.('pagehide',this.onPageHide,{once:true});this.revision=undefined;this.receive(reply);return reply;
+  this.view=reply.view;this.scope=reply.scope;this.active=true;this.performanceEnabled=reply.performance===true;this.performanceSending=false;this.performanceLastUpdate=-Infinity;this.startPerformanceInput();globalThis.addEventListener?.('pagehide',this.onPageHide,{once:true});this.revision=undefined;this.receive(reply);return reply;
  }
  receive(reply){if(this.revision!==undefined&&reply.revision<this.revision)return;const changed=this.revision!==reply.revision;this.revision=reply.revision;this.state=reply.state;if(changed){const start=performance.now();this.onState?.(reply.state,reply.revision);this.trace('render',start);}}
  update(){if(!this.active)return Promise.resolve();if(this.updating?.generation===this.generation)return this.updating.promise;
@@ -41,6 +51,6 @@ export class WebView {
   });
  }
  async cancel(requestId){return this.check(await this.transport({op:'cancel',view:this.view,scope:this.scope,requestId}));}
- async dispose(){globalThis.removeEventListener?.('pagehide',this.onPageHide);const view=this.view;++this.generation;this.active=false;for(const row of [...this.observations])row.reject(new Error('view_closed'));for(const p of this.pending.values())p.reject(new Error('view_closed'));this.pending.clear();if(view)this.check(await this.transport({op:'dispose',view}));}
+ async dispose(){this.stopPerformance();globalThis.removeEventListener?.('pagehide',this.onPageHide);const view=this.view;++this.generation;this.active=false;for(const row of [...this.observations])row.reject(new Error('view_closed'));for(const p of this.pending.values())p.reject(new Error('view_closed'));this.pending.clear();if(view)this.check(await this.transport({op:'dispose',view}));}
 }
 """;

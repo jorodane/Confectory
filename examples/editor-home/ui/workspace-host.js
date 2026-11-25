@@ -181,7 +181,7 @@ export function createActualWorkspace(api) {
     return w;
   }
   function attach(state){
-    loading=true;
+    const performanceStarted=api.performanceStart?.()??null;loading=true;
     if(project){capture();projects.set(scope,project);}
     scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
@@ -203,6 +203,7 @@ export function createActualWorkspace(api) {
     if(missing.length||(selected&&selected!==state.draft?.id))project.recoveryFailed=true;
     loading=false;changed=0;saved=0;office?.update();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
     api.$('#workspace').addEventListener('input',()=>schedule());
+    api.performanceMark?.('workspace-attach',performanceStarted);
     if(missing.length||(selected&&selected!==state.draft?.id)){
       loading=true;api.setWorkspaceStatus('편집창 복원 중');const owner=scope;
       (async()=>{
@@ -212,7 +213,7 @@ export function createActualWorkspace(api) {
           const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
           for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
         }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
-        finally{if(scope===owner){loading=false;api.controls?.();if(!project.recoveryFailed)runtime.saveLayouts();}}
+        finally{if(scope===owner){loading=false;api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
       })();
     }
   }

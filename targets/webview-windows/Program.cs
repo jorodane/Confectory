@@ -12,6 +12,7 @@ internal static class Program
     {
         if (!OperatingSystem.IsWindows()) { Console.Error.WriteLine("Embedded WebUI requires Windows."); return 2; }
         ApplicationConfiguration.Initialize();
+        using var performanceCapture=new PerformanceCapture();
         using var rpc = new PackChannel();
         using var form = new AppWindowForm { Text = "Confectory", Width = 1440, Height = 960 };
         using var view = new WebView2 { Dock = DockStyle.Fill };
@@ -48,9 +49,11 @@ internal static class Program
             {
                 if (rpc.IsClosed) { result = 2; form.Close(); return; }
                 // No runtime downloader or installer. A missing runtime fails explicitly.
+                long initStarted=performanceCapture.Start();
                 _ = CoreWebView2Environment.GetAvailableBrowserVersionString();
                 var environment = await CoreWebView2Environment.CreateAsync(null, profile);
                 await view.EnsureCoreWebView2Async(environment);
+                performanceCapture.Mark("webview-init","",initStarted);
                 if (closing) return;
                 var core = view.CoreWebView2;
                 try{core.Settings.IsNonClientRegionSupportEnabled=true;nonClientSupported=true;}
@@ -72,6 +75,7 @@ internal static class Program
                 core.AddWebResourceRequestedFilter("*", CoreWebView2WebResourceContext.All, CoreWebView2WebResourceRequestSourceKinds.All);
                 core.WebResourceRequested += async (_, e) =>
                 {
+                    long resourceStarted=performanceCapture.Start();
                     using var defer = e.GetDeferral();
                     try
                     {
@@ -83,15 +87,16 @@ internal static class Program
                         e.Response = environment.CreateWebResourceResponse(new MemoryStream(bytes, false), 200, "OK", "Content-Type: " + asset[0]!.GetValue<string>() + "\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\nContent-Security-Policy: " + policy);
                     }
                     catch { if (!closing) e.Response = environment.CreateWebResourceResponse(null, 403, "Resource unavailable", "Content-Type: text/plain"); }
+                    finally{performanceCapture.Mark("webview-resource","resource",resourceStarted);}
                 };
                 string? projectParent=null,parentTicket=null;
                 core.WebMessageReceived += async (_, e) =>
                 {
-                    string id = "";
+                    string id = "",performanceOperation="request";long messageStarted=performanceCapture.Start();
                     try
                     {
                         if (!Owned(e.Source) || !Owned(core.Source) || new Uri(e.Source).AbsolutePath is not ("/" or "/index.html") || new Uri(core.Source).AbsolutePath is not ("/" or "/index.html") || e.WebMessageAsJson.Length > 2097152) return;
-                        var message = JsonNode.Parse(e.WebMessageAsJson)!;
+                        var message = JsonNode.Parse(e.WebMessageAsJson)!;if(message["native"] is not null)performanceOperation="native";
                         if(closePending&&presentationFlushKey is not null&&message["presentationFlush"]?.GetValue<string>()==presentationFlushKey){presentationFlush?.TrySetResult(message["ok"]?.GetValue<bool>()==true);return;}
                         id = message["id"]!.GetValue<string>();
                         if (id.Length is < 1 or > 128) return;
@@ -164,6 +169,7 @@ internal static class Program
                         if (!closing && core.Source == e.Source) core.PostWebMessageAsJson(new JsonObject { ["id"] = id, ["reply"] = response }.ToJsonString());
                     }
                     catch { if (!closing && id.Length is > 0 and <= 128) core.PostWebMessageAsJson(new JsonObject { ["id"] = id, ["error"] = "transport_closed" }.ToJsonString()); }
+                    finally{performanceCapture.Mark("webview-message",performanceOperation,messageStarted);}
                 };
                 // The page gets only an envelope transport; no host object, paths or shell.
                 await core.AddScriptToExecuteOnDocumentCreatedAsync("""
@@ -183,6 +189,7 @@ internal static class Program
                       }})});
                     })();
                     """.Replace("__WINDOW_CHROME__",nonClientSupported?"true":"false").Replace("__WINDOW_ORIGIN__",JsonSerializer.Serialize(origin)));
+                long navigationStarted=performanceCapture.Start();if(performanceCapture.Enabled)core.NavigationCompleted+=(_,_)=>performanceCapture.Mark("webview-navigation","",navigationStarted);
                 ready=true;core.Navigate(origin + "/");
             }
             catch (Exception e)

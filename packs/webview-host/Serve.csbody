@@ -3,7 +3,12 @@ string host=Environment.GetEnvironmentVariable("CONFECTORY_WEBVIEW_HOST")??throw
 if(!System.IO.File.Exists(host))throw new System.IO.FileNotFoundException("Build the generic Windows WebView host before starting embedded WebUI");
 var start=new System.Diagnostics.ProcessStartInfo(Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet"){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true};
 start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
+// The diagnostic file is given only to the owned rendering process, not to
+// subsequent project execution children or renderer page content.
+start.Environment.Remove("CONFECTORY_PERFORMANCE_RENDERER_FILE");start.Environment.Remove("CONFECTORY_PERFORMANCE_EPOCH");
+if(AppDomain.CurrentDomain.GetData("Confectory.Performance.Renderer") is string[] capture&&capture.Length==2){start.Environment["CONFECTORY_PERFORMANCE_RENDERER_FILE"]=capture[0];start.Environment["CONFECTORY_PERFORMANCE_EPOCH"]=capture[1];}
 using var process=System.Diagnostics.Process.Start(start)??throw new InvalidOperationException("WebView host did not start");
+var performanceRecord=AppDomain.CurrentDomain.GetData("Confectory.Performance.Record") as Action<string,string,double,double>;
 int stopping=0;
 ConsoleCancelEventHandler interrupt=(_,e)=>{e.Cancel=true;System.Threading.Interlocked.Exchange(ref stopping,1);try{process.StandardInput.Close();}catch(System.IO.IOException){}};
 Console.CancelKeyPress+=interrupt;
@@ -15,7 +20,7 @@ try{
   string? line=reading.GetAwaiter().GetResult();reading=null;if(line is null)break;
   if(line.Length>2097152)throw new InvalidOperationException("WebView request budget exceeded");
   var request=System.Text.Json.Nodes.JsonNode.Parse(line)!;string id=request["id"]!.GetValue<string>();
-  var reply=new System.Text.Json.Nodes.JsonObject{["id"]=id};
+  var reply=new System.Text.Json.Nodes.JsonObject{["id"]=id};long requestStarted=performanceRecord is not null?System.Diagnostics.Stopwatch.GetTimestamp():0;
   try{
    switch(request["operation"]!.GetValue<string>()){
     case "native":reply["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.NativeRequest.Invoke(owner,request["input"]!["action"]!.GetValue<string>(),request["input"]!["payload"]!.ToJsonString()));break;
@@ -24,6 +29,7 @@ try{
     default:throw new ArgumentException("Unknown rendering operation");
    }
   }catch(Exception){reply["error"]="transport_rejected";}
+  if(performanceRecord is not null)performanceRecord("embedded-request",request["operation"]!.GetValue<string>(),System.Diagnostics.Stopwatch.GetElapsedTime(requestStarted).TotalMilliseconds,-1);
   if(System.Threading.Volatile.Read(ref stopping)==0){process.StandardInput.WriteLine(reply.ToJsonString());process.StandardInput.Flush();}
  }
  if(System.Threading.Volatile.Read(ref stopping)!=0)return 130;

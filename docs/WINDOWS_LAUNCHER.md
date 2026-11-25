@@ -305,3 +305,34 @@ Windows 시험 호스트가 없으면 이 단계는 미실행입니다.
 런타임으로 묶음의 관리 엔진·Chromium 시작 및 등록된 웹 리소스 309개의 바이트를 확인했다.
 Windows `Confectory.exe`와 내장 WebView2는 실행하지 않았다. 위 ①의 첫 시작·프로젝트 생성·
 수직 셀 편집·정상 종료·최근 프로젝트 재열기와 ②·③의 Windows 실행은 실기 확인 대기다.
+
+
+### 선택적 로컬 성능 기록 (Windows)
+
+기본 실행은 성능 기록을 만들지 않습니다. 느린 클릭을 재현할 때만 기존
+Confectory 창을 모두 닫고, 체크아웃 또는 설치한 Windows 묶음의
+`Confectory-performance.bat`를 더블 클릭합니다. 기존 런처를 통해 같은 편집기를
+실행하며 별도 개발 도구, PowerShell 입력 또는 계정 접속이 필요하지 않습니다.
+체크아웃에서는 `Confectory.bat --performance`, 묶음에서는
+`Confectory.exe --performance`도 동일한 선택 실행입니다.
+
+1. 느린 프로젝트 진입, 객체 창 열기, 저장/검토 또는 재시작 복원을 재현합니다.
+2. 앱을 정상 종료하면 동반 배치 파일이 `%LOCALAPPDATA%\Confectory\Performance`를 엽니다.
+3. 방금 시작한 시각의 폴더만 공유합니다. `engine.jsonl`과 `webview.jsonl`에는 고정된
+   단계/작업 이름 및 상대 타이밍 숫자만 있습니다. 기존 일반 launcher 로그는 성능
+   진단 파일이 아니므로 이 공유 범위에 포함하지 않습니다.
+
+`input-delay`/`input-frame`은 브라우저 이벤트 전달과 다음 프레임의 근사치이며,
+`window-ready`는 실제 표시된 편집 가능 속성이 관찰된 시점입니다. `renderer-call`,
+`renderer-render`, `renderer-update`, `invoke-queue`, `consumer`, `authoring-process`,
+`authoring-stream`, `embedded-request`, `webview-message`, `webview-init`,
+`restore-view`/`restore-total`/`restore-layout`으로 비용을 나눠 볼 수 있습니다.
+`atMs`는 실행 시작부터의 상대 타이밍, `pageMs`는 브라우저 문서 내 상대 타이밍입니다.
+두 파일의 `atMs`는 같은 머신의 단조 시계를 사용하며, 브라우저 기록은 작은 배치로
+전달되므로 엔진에서 받은 시점과 실제 브라우저 시점은 다를 수 있습니다.
+
+원본 소스, 프로젝트 이름·경로·ID, 채팅, 입력값, 인증정보, URL, 오류 전문을 기록하지
+않으며 자동 업로드하지 않습니다. 파일당 기록 제한(엔진 8,192행, 네이티브 4,096행)이
+있으며 한도를 채우면 `capture-limit` 뒤에 추가 기록을 하지 않습니다. 기록은 로컬에
+남아 직접 삭제할 수 있습니다. 강제 종료 시 마지막 약 1초 분량은 유실될 수 있습니다.
+새 시각의 폴더가 없다면 기존 창이 남아 있거나 기록 폴더 생성에 실패한 것입니다.

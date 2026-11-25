@@ -25,3 +25,25 @@ const fail=view.update();waiting.shift()({ok:false,error:{code:'consumer_error'}
 const retry=view.update();waiting.shift()({ok:true,revision:2,state:{project:'p2'},results:[]});await retry;assert.equal(invoked.length,1);
 const pending=view.call('pending',{});const rejection=assert.rejects(pending,/view_closed/);await view.dispose();await rejection;
 console.log('PASS coalesced snapshots, exact revision, retired generation, failed-read retry and no mutation replay');
+
+// Slow diagnostics never displace the actual ready event or queue multiple
+// telemetry transports beside an ordinary retained command.
+const batches=[],finish=[];
+const diagnostic=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'diagnostic',scope:{project:'fixture'},revision:1,state:{},performance:true};
+ if(request.op==='performance'){batches.push(request);return new Promise(resolve=>finish.push(resolve));}
+ if(request.op==='dispose')return {ok:true};
+ throw Error('unexpected diagnostic operation');
+});
+await diagnostic.mount();
+for(let i=0;i<40;i++)diagnostic.performanceMark('renderer-update','',performance.now()-30);
+diagnostic.performanceMark('window-ready','openEditorView',performance.now()-10);
+diagnostic.flushPerformance();
+assert.equal(batches.length,1);assert.equal(batches[0].rows.length,32);
+assert(batches[0].rows.some(row=>row.stage==='window-ready'));
+diagnostic.performanceMark('restore-total','restore',performance.now()-20);
+diagnostic.flushPerformance();assert.equal(batches.length,1);
+finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));diagnostic.flushPerformance();assert.equal(batches.length,2);
+assert.deepEqual(Object.keys(batches[1].rows[0]).sort(),['elapsedMs','operation','pageMs','stage']);
+finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));await diagnostic.dispose();
+console.log('PASS bounded performance batches keep ready events and at most one transport in flight');

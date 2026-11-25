@@ -54,7 +54,8 @@ var views=new System.Collections.Generic.Dictionary<string,(string Scope,string[
 var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprint,string View,System.Threading.CancellationTokenSource Cancel,System.Text.Json.Nodes.JsonObject Row)>(StringComparer.Ordinal);
 // Opt-in timings contain operation names and durations only, never input, state or exception text.
 bool trace=Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1";
-void Trace(string stage,long start,string endpoint="",string code=""){if(trace)Console.Error.WriteLine("CONFECTORY_UI_TRACE "+System.Text.Json.JsonSerializer.Serialize(new{stage,endpoint,code,elapsedMs=System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds}));}
+var performanceRecord=AppDomain.CurrentDomain.GetData("Confectory.Performance.Record") as Action<string,string,double,double>;
+void Trace(string stage,long start,string endpoint="",string code=""){if(performanceRecord is not null)performanceRecord(stage,endpoint,System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds,-1);if(trace)Console.Error.WriteLine("CONFECTORY_UI_TRACE "+System.Text.Json.JsonSerializer.Serialize(new{stage,endpoint,code,elapsedMs=System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds}));}
 System.Text.Json.Nodes.JsonObject State(string stage="snapshot"){long started=System.Diagnostics.Stopwatch.GetTimestamp();try{string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}finally{Trace(stage,started);}}
 System.Text.Json.Nodes.JsonObject Error(string code,string id="")=>new(){["ok"]=false,["requestId"]=id,["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=code}};
 System.Text.Json.Nodes.JsonObject? Refresh(){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State();calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
@@ -90,13 +91,20 @@ string Dispatch(string text){
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision"),new System.Threading.CancellationTokenSource()));
-    s["ok"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+    s["ok"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
    }
    string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
    if(op=="dispose"){
     calls.Unsubscribe.Invoke(mounted.Subscription);views.Remove(v);retiredViews.Add(v);RetireLifetime(mounted.Lifetime);foreach(var row in requests.Values)if(row.View==v)row.Cancel.Cancel();return "{\"ok\":true}";
    }
    if(!System.Text.Json.Nodes.JsonNode.DeepEquals(req["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_mismatch").ToJsonString();
+   if(op=="performance"){
+    // Narrow, bounded diagnostic ingress: no state read, command, or arbitrary text.
+    if(performanceRecord is null||req.Count!=4||req["rows"] is not System.Text.Json.Nodes.JsonArray samples||samples.Count is <1 or >32)return Error("performance_denied").ToJsonString();
+    foreach(var sample in samples){if(sample is not System.Text.Json.Nodes.JsonObject row||row.Count!=4||row["stage"]?.GetValue<string>() is not ("renderer-call" or "renderer-render" or "renderer-update" or "input-delay" or "input-frame" or "restore-view" or "restore-total" or "restore-layout" or "workspace-attach" or "window-ready" or "foreground"))return Error("performance_fields").ToJsonString();
+     string stage=row["stage"]!.GetValue<string>(),operation=row["operation"]!.GetValue<string>();double elapsed=row["elapsedMs"]!.GetValue<double>(),pageMs=row["pageMs"]!.GetValue<double>();performanceRecord(stage,operation,elapsed,pageMs);
+    }return "{\"ok\":true}";
+   }
    string id=req["requestId"]?.ToString()??"";
    if(op=="cancel"){
     if(!requests.TryGetValue(id,out var row)||row.View!=v)return Error("unknown_request",id).ToJsonString();
@@ -119,9 +127,11 @@ string Dispatch(string text){
    var cancel=new System.Threading.CancellationTokenSource();string cancellation=Guid.NewGuid().ToString("N");
    AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>cancel.IsCancellationRequested));
    var status=new System.Text.Json.Nodes.JsonObject{["ok"]=true,["requestId"]=id,["status"]="pending"};requests.Add(id,(fingerprint,v,cancel,status));
+   long admittedAt=performanceRecord is not null?System.Diagnostics.Stopwatch.GetTimestamp():0;
    System.Threading.Tasks.Task.Run(()=>{
     System.Text.Json.Nodes.JsonNode? result=null;string? error=null;
     try{lock(execution){
+     if(performanceRecord is not null)Trace("invoke-queue",admittedAt,endpoint);
      if(cancel.IsCancellationRequested)error="cancelled";
      else{var before=State("invoke-before");if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))error="scope_changed";
       else if(before["revision"]!.GetValue<long>()!=expected)error="stale_revision";

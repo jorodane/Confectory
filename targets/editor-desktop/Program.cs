@@ -26,13 +26,14 @@ internal static class Program
                 check["environment"]=environment;
                 Console.WriteLine(check.ToJsonString());return 0;
             }
-            bool logicCode=args is ["--logic-code"];
-            if(args.Length!=0&&!logicCode)throw new ArgumentException("Usage: package <repository> <output-folder> [win-x64|linux-x64] | --check-package [folder] | --logic-code (Linux package)");
+            bool logicCode=args is ["--logic-code"],performance=args is ["--performance"];
+            if(args.Length!=0&&!logicCode&&!performance)throw new ArgumentException("Usage: package <repository> <output-folder> [win-x64|linux-x64] | --check-package [folder] | --logic-code (Linux package) | --performance (Windows package)");
             string root=Path.GetFullPath(AppContext.BaseDirectory);
             string rid=PackageLayout.Check(root)["rid"]!.GetValue<string>();
             string runtime=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..",".."));
             if(PackageLayout.IsLinux(rid))
             {
+                if(performance)throw new PlatformNotSupportedException("Use the Windows performance launcher for this capture.");
                 if(!PackageLayout.IsLinuxX64)throw new PlatformNotSupportedException("Run this Confectory package on Linux x64.");
                 var startLinux=PackageLayout.EngineStart(root,Path.Combine(runtime,"dotnet"),rid);
                 using var interrupt=logicCode?PosixSignalRegistration.Create(PosixSignal.SIGINT,signal=>signal.Cancel=true):null;
@@ -58,6 +59,7 @@ internal static class Program
             if(!Directory.Exists(desktop)||!Directory.EnumerateDirectories(desktop,"10.0.*").Any())throw new InvalidOperationException("Microsoft .NET Desktop Runtime 10.0 (x64) is required. Install it separately; Confectory does not install runtimes.");
             string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??Path.Combine(runtime,"dotnet.exe");
             var start=PackageLayout.EngineStart(root,dotnet,rid);
+            if(performance)start.Environment["CONFECTORY_PERFORMANCE"]="1";
             string storage=start.Environment["CONFECTORY_HOME_STORAGE"]!;Directory.CreateDirectory(storage);
             string logs=Path.Combine(storage,"logs");Directory.CreateDirectory(logs);
             using var writer=new StreamWriter(Path.Combine(logs,"launch-"+DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff")+".log")){AutoFlush=true};
@@ -70,7 +72,7 @@ internal static class Program
         catch(Exception error)
         {
             Console.Error.WriteLine(error.Message);
-            if(args.Length==0&&OperatingSystem.IsWindows())MessageBoxW(0,error.Message,"Confectory",0x10);
+            if((args.Length==0||args is ["--performance"])&&OperatingSystem.IsWindows())MessageBoxW(0,error.Message,"Confectory",0x10);
             return 1;
         }
     }
