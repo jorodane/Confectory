@@ -52,7 +52,9 @@ internal static class EditorMenuDeclarations
                     {
                         string path=PackPaths.Owned(Path.GetDirectoryName(registry.Paths["Confectory.SchemaEditing"])!,pin.Key);Read(path);
                         string canonical=Read(path).Replace("\r\n","\n",StringComparison.Ordinal);
-                        if(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)))!=pin.Value)throw new ArgumentException("Editor route contract/body version changed");
+                        string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
+                        // The previous exact, already trusted Call body remains valid for installed packs.
+                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash==PreviousCallPin))throw new ArgumentException("Editor route contract/body version changed");
                     }
                     row["available"]=true;row["reason"]="";
                 }
@@ -64,6 +66,7 @@ internal static class EditorMenuDeclarations
         return new JsonObject{["actions"]=rows,["version"]=JsonData.Digest(observed),["target"]=target,["executed"]=false,["sourceWritten"]=false};
     }
 
+    private const string PreviousCallPin="5914D69133FEB47D682F78E6C2563CDEA8FD77E05EDC6EEB5BB8335DF53E5FB6";
     private static readonly Dictionary<string,string> Pins=new(StringComparer.Ordinal)
     {
         // Filled from the existing statically imported SchemaEditing route.
@@ -72,6 +75,6 @@ internal static class EditorMenuDeclarations
         ["SetValue.csbody"]="7F69A5F91F0D1A71FEBC02F37CA92893A654C62DE315548080CC2D1717A4E573",
         ["Call.celem"]="7D034575C18E1DED88DF8271C7AD182958E26160106DF66F169A53B6726F43A1",
         ["CallBody.celem"]="DC3B74410F8775273554A31AEE4BF21E609FE548B0858C5D9BC0FD8572919E98",
-        ["Call.csbody"]="5914D69133FEB47D682F78E6C2563CDEA8FD77E05EDC6EEB5BB8335DF53E5FB6"
+        ["Call.csbody"]="DA9F68475285D35B0B66ED71513862D1BFA85034934A822084B783BE03A6D037"
     };
 }

@@ -3,9 +3,31 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
+if(args.Length==1&&args[0]=="--inspect-stream")
+{
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_1");Console.Out.Flush();
+    string? owner=null;
+    for(int count=0;count<128;count++)
+    {
+        var pending=Task.Run(()=>Console.ReadLine());
+        if(!pending.Wait(TimeSpan.FromSeconds(30)))return 0;
+        if(pending.Result is not string line)return 0;
+        var request=JsonNode.Parse(line)!.AsObject();
+        if(request["operation"]?.ToString() is not ("inspectEffective" or "editorMenuDeclarations"))return 2;
+        var project=Path.GetFullPath(request["project"]!.GetValue<string>());
+        owner??=project;
+        if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
+        Console.WriteLine(Dispatch(line));Console.Out.Flush();
+    }
+    return 0;
+}
+Console.Write(Dispatch(Console.In.ReadToEnd()));return 0;
+
+static string Dispatch(string message)
+{
 try
 {
-    var request=JsonNode.Parse(Console.In.ReadToEnd())!.AsObject();
+    var request=JsonNode.Parse(message)!.AsObject();
     string S(string name)=>request[name]!.GetValue<string>();
     JsonNode? reply;
     switch(S("operation"))
@@ -252,11 +274,12 @@ try
         }
         default:throw new ArgumentException("Unknown authoring operation.");
     }
-    Console.Write(JsonSerializer.Serialize(new{ok=true,result=reply}));return 0;
+    return JsonSerializer.Serialize(new{ok=true,result=reply});
 }
 catch(Exception error)
 {
-    Console.Write(JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)}));return 0;
+    return JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)});
+}
 }
 static JsonObject InspectDeclaration(string text)
 {
