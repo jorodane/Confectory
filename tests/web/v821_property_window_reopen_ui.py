@@ -62,6 +62,42 @@ def place(page):
     return window
 
 
+def reopen_without_host_read(page, window):
+    """A retained, bound view must be interactive while real status reads wait."""
+    browser = browser_window(page)
+    choose_tree_location(browser, f'[data-tree-id="{fallback.NS}::StockFolder"]')
+    search(browser, fallback.LABEL, fallback.TARGET)
+    item = browser.locator(f'[data-object="{owner}"]')
+    canvas = page.locator("#workspace")
+    bounds = canvas.bounding_box()
+    held = []
+
+    def hold_status(route):
+        body = route.request.post_data_json
+        if isinstance(body, dict) and body.get("op") == "update":
+            held.append(route)
+        else:
+            route.fallback()
+
+    page.route("**/api/request", hold_status)
+    try:
+        item.drag_to(canvas, target_position={"x": bounds["width"] * .82,
+                                              "y": bounds["height"] * .70})
+        expect(window).to_be_visible(timeout=3000)
+        note = floating.property_value(window, "Note")
+        expect(note).to_be_editable(timeout=3000)
+        expect(note).to_have_value("unapplied target input")
+        note.fill("local input while reads wait")
+        expect(note).to_have_value("local input while reads wait")
+        note.fill("unapplied target input")
+    finally:
+        page.unroute("**/api/request", hold_status)
+        for route in held:
+            route.fallback()
+    expect(page.locator("#project-menu")).to_be_enabled()
+    print("PASS retained property view reopens and accepts input without a host status response", flush=True)
+
+
 def click_during_read(page):
     browser = browser_window(page)
     choose_tree_location(browser, f'[data-tree-id="{fallback.NS}::StockFolder"]')
@@ -137,6 +173,8 @@ def exercise(browser, source):
     expect(floating.property_value(target, "Note")).to_have_value("unapplied target input")
     fixture.original()
     print("PASS same-session reopen preserves both local input and saved draft", flush=True)
+    close(target)
+    reopen_without_host_read(page, target)
     close(target)
     page.locator('#workspace [data-workspace-zoom]').click()
     page.locator('[data-zoom-value]').fill('62.5')
