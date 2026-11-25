@@ -6,11 +6,11 @@ import uuid
 from pathlib import Path
 
 scenario = sys.argv[3] if len(sys.argv) > 3 else "normal"
-assert scenario in {"normal", "shared", "mixed"}
+assert scenario in {"normal", "shared", "mixed", "middle"}
 fixture = Path(__file__).with_name("v821_child_case_order_ui.py")
 nodes = ast.parse(fixture.read_text()).body
 argv = sys.argv
-sys.argv = [*argv[:3], "normal" if scenario == "mixed" else scenario]
+sys.argv = [*argv[:3], "normal" if scenario in {"mixed", "middle"} else scenario]
 try:
     exec(compile(ast.Module(body=nodes[:next(i for i, node in enumerate(nodes) if isinstance(node, ast.Try))],
                             type_ignores=[]), str(fixture), "exec"), globals())
@@ -26,6 +26,15 @@ peer_frame["entry"] = selected_name
 peer_frame["edges"][0]["from"] = selected_name
 tail["signature"]["args"] = []
 tail["arguments"] = {}
+# Retain a real downstream action with a value input so removing tail in the
+# middle must reconnect to that action, not to the switch's continuation.
+if scenario == "middle":
+    following = code("following", ("amount",), owner="choose")
+    child["nodes"].append(following)
+    next(route for route in child["edges"] if route["from"] == selected_name)["to"] = "following"
+    child["edges"].append(edge("following", "return:choose"))
+    initial = ["positive", selected_name, "following"]
+remaining_order = [name for name in initial if name != selected_name]
 
 definitions = f.metadata(
     "blueprintDescribeOwned", project=str(f.manifest), id=f.n + "PairBody",
@@ -33,11 +42,15 @@ definitions = f.metadata(
 )
 assert definitions["state"] == "node-definitions", definitions
 hashes = {node["id"]: node["definitionHash"] for node in definitions["nestedNodes"]}
-for path, filename, source in [
+retained_sources = [
     ("body/tail", leaf, 'global::System.Console.WriteLine("tail:7");'),
     ("peer/tail", peer_file, 'global::System.Console.WriteLine("peer");'),
-]:
-    filename.write_text(json.dumps(dict(schema=1, node=selected_name, definitionHash=hashes[path], source=source)))
+]
+if scenario == "middle":
+    retained_sources.append(("body/following", f.project / following["implementation"],
+                             'global::System.Console.WriteLine("following:"+amount);'))
+for path, filename, source in retained_sources:
+    filename.write_text(json.dumps(dict(schema=1, node=path.rsplit("/", 1)[-1], definitionHash=hashes[path], source=source)))
 graph_path.write_text(json.dumps(root, ensure_ascii=False))
 
 
@@ -89,7 +102,8 @@ deleted = copy.deepcopy(root)
 scope = deleted["nodes"][0]["graph"]
 scope["nodes"] = [node for node in scope["nodes"] if node["id"] != selected_name]
 scope["edges"] = [route for route in scope["edges"] if route["from"] != selected_name]
-next(route for route in scope["edges"] if route["to"] == selected_name)["to"] = "return:choose"
+next(route for route in scope["edges"] if route["to"] == selected_name)["to"] = (
+    "following" if scenario == "middle" else "return:choose")
 
 
 def disk_unchanged(except_graph=False):
@@ -107,7 +121,7 @@ def change_history(direction, present):
     assert step["frame"] == "body" and [unit["id"] for unit in step["units"]] == [t.graph]
     local_undo(direction == "redo")
     f.idle()
-    order(initial if present else ["positive"])
+    order(initial if present else remaining_order)
     assert read()["edges"] == (root if present else deleted)["nodes"][0]["graph"]["edges"]
     assert read(other)["nodes"] == sibling_before
 
@@ -214,7 +228,7 @@ try:
             f.invoke("blueprint", refused_request(wrong), False)
             assert checkpoint.read_bytes() == before
             button.click()
-            order(["positive"])
+            order(remaining_order)
             held = pending()
             assert len(held) == 1
             peer_bytes = peer_file.read_bytes()
@@ -236,13 +250,16 @@ try:
             receipt = item["cellRemoval"]
             assert receipt["version"] == 3 and receipt["node"] == "body/tail"
             assert receipt["source"] == leaf.name
-            for original in (leaf, peer_file, f.project / "Pair.negativeTail.node.json"):
+            guarded = [leaf, peer_file, f.project / "Pair.negativeTail.node.json"]
+            if scenario == "middle":
+                guarded.append(f.project / following["implementation"])
+            for original in guarded:
                 assert receipt["proof"][original.name] == hashlib.sha256(original.read_bytes()).hexdigest()
             assert [unit["id"] for unit in saved["changes"]] == [t.graph]
             disk_unchanged()
 
             restart_child(1)
-            order(["positive"])
+            order(remaining_order)
             assert not read()["documentRemovableCells"]
             panel().locator(".bp-breadcrumbs button").first.click()
             f.idle()
@@ -287,7 +304,7 @@ try:
                     assert before_history["undo"]["code"] == "SOURCE_CHANGED" and not before_history["undo"]["available"]
                     local_undo()
                     f.idle()
-                    order(["positive"])
+                    order(remaining_order)
                     after_history = f.invoke("draftHistory", dict(action="inspect"))["result"]["result"]
                     assert all(after_history[key] == before_history[key] for key in ("revision", "undoCount", "redoCount"))
                     assert checkpoint.read_bytes() == snapshot and json.loads(graph_path.read_bytes()) == deleted

@@ -508,7 +508,7 @@ public static class BlueprintCellRegion
 
     static bool Case(Lane lane) => lane.Id.StartsWith("case:",StringComparison.Ordinal);
 
-    internal static string[] RemovableCaseCells(JsonObject graph, bool terminalOnly = false)
+    internal static string[] RemovableCaseCells(JsonObject graph, bool retainEntry = false)
     {
         // Reuse the same partition proof as root/case transfers. Exclude any
         // context whose code source is retained under a separate identity.
@@ -516,8 +516,11 @@ public static class BlueprintCellRegion
             return [];
         try {
             var scope=ReadScopeTransfer(graph,requirePair:false);
-            return scope.Lanes.Where(lane => Case(lane) && (!terminalOnly || lane.Order.Count > 1))
-                .SelectMany(lane => terminalOnly ? lane.Order.TakeLast(1) : lane.Order)
+            // A directly owned child case keeps its original entry and cannot be
+            // emptied. A plain interior action has the same unique incoming
+            // and outgoing route proof as a terminal action.
+            return scope.Lanes.Where(Case)
+                .SelectMany(lane => retainEntry ? lane.Order.Skip(1) : lane.Order)
                 .Where(scope.Movable.Contains).ToArray();
         } catch(ArgumentException) {
             return [];

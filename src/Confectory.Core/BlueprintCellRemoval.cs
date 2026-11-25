@@ -40,7 +40,7 @@ public static class BlueprintCellRemoval
         try {
             var selected = RemovalFrame(graph, frame);
             return Value(selected, "profile") == FeatureBlueprint.SwitchProfile
-                ? BlueprintCellRegion.RemovableCaseCells(selected, terminalOnly: true) : Options(selected);
+                ? BlueprintCellRegion.RemovableCaseCells(selected, retainEntry: true) : Options(selected);
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException) {
             return [];
