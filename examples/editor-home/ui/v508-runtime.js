@@ -887,8 +887,23 @@ async function readCurrentView(endpoint,input={},alive=()=>true){
 const operationFailures={project_chat_failed:'프로젝트 대화를 준비하거나 전송하지 못했어요. 입력과 프로젝트는 유지됩니다.',authoring_host_missing:'연결 설정 도구가 없습니다. 현재 배포의 element-authoring 실행 파일과 .NET 10 준비 상태를 확인한 뒤 다시 시도하세요.',authoring_runtime_unavailable:'연결 설정 도구를 시작할 수 없습니다. .NET 10 실행 경로와 이 앱의 실행 권한을 확인한 뒤 다시 시도하세요.',connection_access_denied:'연결 설정 또는 선언을 읽을 권한이 없습니다. 현재 앱의 설정 폴더 접근 권한을 확인하세요.',connection_settings_incomplete:'기존 연결 설정 파일이 일부만 남아 있습니다. 파일을 지우거나 덮어쓰지 않았습니다. 설정 사본에서 project.cpack과 Settings.celem을 함께 복구한 뒤 다시 시도하세요.',connection_declarations_unavailable:'설치된 Agent 팩의 선언·스키마를 읽지 못했습니다. 설치 팩의 경로와 선언을 확인한 뒤 다시 시도하세요.',connection_settings_invalid:'설정 사본의 선언·스키마를 읽지 못했습니다. 설치 팩의 경로와 Settings 선언을 확인한 뒤 다시 시도하세요.'};
 function failureMessage(error,options={}){if(error.message!=='consumer_error')return error.message;if(current.sourceError==='checkpoint_changed')return '다른 창에서 저장한 초안이 있어요. 현재 입력은 유지됩니다. 입력을 따로 보관한 뒤 프로젝트를 다시 열어 저장된 초안을 확인하세요.';const diagnostic=current.operationError;if(diagnostic&&operationFailures[diagnostic.code])return operationFailures[diagnostic.code]+' ['+diagnostic.code+' / '+diagnostic.stage+(diagnostic.code==='project_chat_failed'?' / '+diagnostic.cause:'')+']';return options.failureMessage||({no_source_changes:'검토할 소스 변경이 없습니다. 미적용 입력이 있다면 먼저 적용하세요.',creation_registration_required:'새 선언은 프로젝트 등록 변경과 함께 검토해야 합니다. 다시 Confirm…을 눌러 생성 변경을 선택하세요.',confirm_host_required:'최종 Confirm에는 컴파일 가능한 데스크톱 호스트가 필요합니다. 작업 사본은 유지됩니다.',source_operation_failed:'소스 작업을 완료하지 못했습니다. 작업 사본과 입력은 유지됩니다. 선택과 변경 검토를 다시 확인하세요.'})[current.sourceError]||'작업을 완료하지 못했습니다. 입력은 유지됩니다.';}
 async function work(action,message,options={}){if(busy)return;const workStarted=view.performanceEnabled?performance.now():0;busy=true;if(options.independentBodyAlive)allowIndependentBodyInput(options.independentBodyAlive);const progressNode=options.progress?$('#status'):null,previousStatus=progressNode?.textContent;if(progressNode)progressNode.textContent=options.progress;controls();try{if(runtimeStatusRead)await runtimeStatusRead.catch(()=>{});if(homeSummaryRead)await homeSummaryRead;await view.update();await homePreferences.flush();if(options.flushWorkspace!==false)await actualWorkspace.flushInputs();const result=await action();if(options.flushWorkspace!==false)await actualWorkspace.flushInputs();if(result!==false&&message)toast(message);return result;}catch(e){if(['scope_changed','view_closed'].includes(e.message)){await recover();toast('Ready');}else toast(failureMessage(e,options));return false;}finally{if(progressNode?.isConnected&&progressNode.textContent===options.progress)progressNode.textContent=previousStatus;independentBodyInput=null;busy=false;controls();if(view.performanceEnabled)view.performanceMark('foreground','foreground',workStarted);if(options.flushWorkspace!==false){renderObjects();restoreBrowserFilter();}}}
+// Presentation of a prepared primary schema does not change selection or
+// acquire write authority. All edits still use the bound primary owner and
+// normal revision/hash admission; unresolved or changed projections fall back.
+function presentPreparedPrimary(id){
+ if(windows.has('schema')||busy||actualWorkspace.loading||!current.projectId||!view.active||!current.preparedPrimaryReady||dirty&&draft?.id!==id)return null;
+ const schema=current.schema,source=current.draft;
+ if(!schema||source?.id!==id||schema.id!==id||schema.revision!==source.revision||!['object','schema'].includes(schema.kind)||schema.validation?.status!=='valid')return null;
+ const owner=browserProjection.rows().find(row=>row.id===id&&row.owned===true&&row.kind===schema.kind&&row.valid!==false);
+ if(!owner||owner.revision!==schema.revision||owner.textHash!==schema.textHash||(current.retirements||[]).some(row=>['pending','confirmed'].includes(row.state)&&row.ids.includes(id)))return null;
+ const started=view.performanceEnabled?performance.now():null;
+ const opened=elementEditors.show(schema);if(!opened)return null;focusWindow(opened);actualWorkspace.schedule();
+ if(started!==null)requestAnimationFrame(()=>{if(current.schema?.id===id&&opened.el.isConnected&&[...opened.el.querySelectorAll('[data-property-value]')].some(field=>!field.disabled&&!field.readOnly&&!field.closest('[inert]')&&field.getClientRects().length))view.performanceMark('window-ready','openEditorView',started);});
+ return opened;
+}
 function act(endpoint,input,recipeAccess=null){
  const recipeAlive=recipeAccess?.alive;
+ if(endpoint==='select'&&!recipeAccess&&presentPreparedPrimary(input.id))return Promise.resolve(true);
  if(dirty&&['select','objects','page'].includes(endpoint)&&!(endpoint==='select'&&input.id===draft?.id)){
   toast('Apply local input before changing selection');return;
  }

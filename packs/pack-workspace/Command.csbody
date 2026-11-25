@@ -99,7 +99,13 @@ case "effective": case "schema-view": case "call-check":{
    }
    foreach(var revision in revisions){var current=calls.Read.Invoke(draft,revision.Key);if(long.Parse(current[4],System.Globalization.CultureInfo.InvariantCulture)!=revision.Value!.GetValue<long>())throw new InvalidOperationException("Schema draft changed during description; refresh explicitly.");}
    if(calls.Read.Invoke(draft,manifestId)[4]!=manifestUnit[4])throw new InvalidOperationException("Manifest changed during schema description; refresh explicitly.");
-   if(combinedSchema&&nextProof is not null)state["schemaReuseProof"]=nextProof;
+   if(combinedSchema&&nextProof is not null){
+    // Private presentation proof: the UI may create a window from this
+    // read model only while the shared draft clock and physical dependencies
+    // still match. This never substitutes for write admission.
+    nextProof["presentation"]=new System.Text.Json.Nodes.JsonObject{["id"]=u[0],["revision"]=u[4],["source"]=System.IO.Path.Combine(identity[3],u[2]),["sourceHash"]=u[5],["manifest"]=System.IO.Path.Combine(identity[3],manifestUnit[2]),["manifestHash"]=manifestUnit[5],["draftVersion"]=inspectedReply["draftVersion"]?.DeepClone()};
+    state["schemaReuseProof"]=nextProof;
+   }
    return inspectedReply.ToJsonString();
   }
   var ids=new System.Collections.Generic.List<string>();foreach(var edge in inspectedReply["inspection"]!["relations"]!["edges"]!.AsArray()){ids.Add(edge!["target"]!.GetValue<string>());if(edge["function"] is not null)ids.Add(edge["function"]!.GetValue<string>());if(edge["scope"] is not null)ids.Add(edge["scope"]!.GetValue<string>());}
