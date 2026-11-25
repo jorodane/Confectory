@@ -206,19 +206,23 @@ bool chatOperation=operation is "helper-chat-select" or "ai-bind-helper"||(opera
 string? chatUseTicket=null;bool chatUseDispatched=false;
 string SetupView(string connection){
  string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(connection))).ToLowerInvariant()[..16],folder=System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"ai-settings",key),manifest=System.IO.Path.Combine(folder,"project.cpack"),source=System.IO.Path.Combine(folder,"Settings.celem");var manifestBefore=calls.FileSnapshot.Invoke(manifest);var sourceBefore=calls.FileSnapshot.Invoke(source);model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();connectionSetupMode=model["connectionSetupModes"]?[connection]?.ToString()??(manifestBefore[0]!="exists"&&sourceBefore[0]!="exists"?"new":"existing");model["connectionSetupModes"]![connection]=connectionSetupMode;
- connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";
+ // The repair query already reads the current connection catalogue and requires the selected registered descendant.
+ bool validateWithRepair=manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection));
+ connectionStage="declarations";if(!validateWithRepair)DeclaredConnection(connection);connectionStage="settings-files";
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
  if(manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection))){
-  var repair=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;
+  System.Text.Json.Nodes.JsonNode repair;
+  try{repair=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;}
+  catch{if(validateWithRepair){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
   if(repair["state"]?.ToString()=="repair"){
    string old=manifestFile[1],suffix=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(old))).ToLowerInvariant()[..12],backup="project.cpack.before-"+suffix;var prior=calls.FileSnapshot.Invoke(System.IO.Path.Combine(folder,backup));
    if(prior[0]=="exists"&&prior[1]!=old)throw new InvalidOperationException("Connection recovery backup differs; original retained");
    if(calls.CommitHome.Invoke(folder,new[]{backup,"project.cpack"},new[]{prior[2],manifestFile[2]},new[]{old,repair["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Connection settings metadata changed; original retained");
    string previousKey="connection-setup/"+connection;if(workspaces.TryGetValue(previousKey,out string? previousView)){calls.PackClose.Invoke(previousView);workspaces.Remove(previousKey);}Console.Error.WriteLine("Confectory connection settings: repaired generated settings registry dependency closure; original manifest backed up; Settings.celem retained");
   }
- }
+ }else if(validateWithRepair){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}
  if(calls.FileSnapshot.Invoke(source)[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  connectionStage="settings-open";string viewKey="connection-setup/"+connection;if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}return view;
 }

@@ -4,7 +4,7 @@ from editor_navigation import goto_editor
 All settings and hosts belong to this fixture. No real account, installation or network request.
 Durations are evidence; regression assertions use behavior/counts rather than machine speed.
 """
-import hashlib, json, os, pathlib, signal, subprocess, sys, tempfile, time, urllib.request
+import hashlib, json, os, pathlib, re, signal, subprocess, sys, tempfile, time, urllib.request
 from playwright.sync_api import sync_playwright, expect
 
 expect.set_options(timeout=30000)
@@ -85,10 +85,29 @@ with sync_playwright() as p:
                     generated=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps(request_body),text=True,capture_output=True,check=True,env=env)
                     recovery=json.loads(generated.stdout);assert recovery['ok'],recovery
                     (settings/'project.cpack').write_text(recovery['result']['manifest'])
-                    diagnostic.get_by_role('button',name='다시 시도').click()
+                    diagnostic.get_by_role('button',name='연결 화면 다시 열기').click()
                 expect(dialog.locator('[data-cli-login]')).to_be_enabled()
                 expect(dialog.locator('input,select,textarea,[data-connection-advanced],[data-connection-save],[data-installation-candidates],[data-home-candidates]')).to_have_count(0)
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                if scenario=='fresh':
+                    # A separate local change while the form is closed must still be
+                    # read by the repair query; no catalogue or repair result is cached.
+                    manifest=settings/'project.cpack';source=settings/'Settings.celem'
+                    current_manifest=manifest.read_text();current_source=source.read_bytes()
+                    altered,count=re.subn(r'dependency\s+Confectory\.Agent\.Codex\s+version\s+"[^"\n]*"\s*;', '', current_manifest)
+                    assert count==1
+                    manifest.write_text(altered)
+                    expect(page.locator('#add-agent')).to_be_enabled()
+                    before_trace=log_path.read_text().count('"operation":"connectionCatalog"')
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                    dialog.get_by_role('button',name='Codex',exact=True).click()
+                    expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    assert log_path.read_text().count('"operation":"connectionCatalog"')==before_trace
+                    backups=list(settings.glob('project.cpack.before-*'))
+                    assert len(backups)==1 and backups[0].read_text()==altered
+                    assert 'dependency Confectory.Agent.Codex version ' in manifest.read_text()
+                    assert source.read_bytes()==current_source
+                    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 # Input retention still applies to the separate Responses form.
                 page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
                 dialog.get_by_role('button',name='OpenAI Responses',exact=True).click();field=dialog.locator('[data-connection-field="model"]');field.fill('unapplied-kept-across-close')
