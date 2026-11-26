@@ -8,7 +8,8 @@ internal static class ConnectionDeclarations
  // cache for a small metadata query cost more than parsing these bounded source files.
  // This reader also applies the declaration scope checks to every registered file.
  long bytesRead=0;int filesRead=0;
- byte[] Read(string path){byte[] bytes=System.IO.File.ReadAllBytes(scope(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Connection metadata read budget");return bytes;}
+ var observed=new System.Collections.Generic.Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+ byte[] Read(string path){path=scope(path);byte[] bytes=System.IO.File.ReadAllBytes(path);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();if(observed.TryGetValue(path,out string? before)&&before!=hash)throw new InvalidOperationException("Connection declaration changed during reading");observed[path]=hash;bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Connection metadata read budget");return bytes;}
  var stats=new Confectory.Core.BuildStatistics();var docs=new Confectory.Core.Documents("",stats,Read);var registry=new Confectory.Core.Registry(project,docs,stats);
  var rows=new System.Text.Json.Nodes.JsonArray();foreach(var pack in registry.Packs.OrderBy(p=>p.Key,StringComparer.Ordinal))foreach(var item in pack.Value.Elements.OrderBy(p=>p.Key,StringComparer.Ordinal)){
  if(item.Value.Kind!="object")continue;string id=pack.Key+"::"+item.Key;if(id=="Confectory.AIConnection::Connection")continue;
@@ -28,7 +29,22 @@ internal static class ConnectionDeclarations
  // its own ProjectPack must declare the dependency, even on the very first run.
  string selectedPack=selected.Split("::")[0];var installed=registry.Packs[selectedPack];
  manifest.Dependencies.TryAdd(selectedPack,new Confectory.Core.Dependency(installed.Version,installed.Loc));
- if(repair is not null)return ConnectionSettingsRepair.Propose(manifest,registry,selected,repair,format);
- return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false};
+ // A private proof of the exact installed declaration model. Reuse is
+ // optional: lexical links or an excessive ownership closure retain the
+ // normal fresh query rather than changing which installations are allowed.
+ System.Text.Json.Nodes.JsonObject? Proof(){
+  try{
+   var paths=new System.Collections.Generic.HashSet<string>(observed.Comparer){project};
+   foreach(var pack in registry.Packs){string packPath=registry.Paths[pack.Key],packRoot=System.IO.Path.GetDirectoryName(packPath)!;paths.Add(packPath);
+    foreach(var entry in pack.Value.Elements.Values){string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(packRoot,entry.Path)),relative=System.IO.Path.GetRelativePath(packRoot,full);if(System.IO.Path.IsPathRooted(relative)||relative==".."||relative.StartsWith(".."+System.IO.Path.DirectorySeparatorChar,StringComparison.Ordinal))return null;paths.Add(full);if(paths.Count>2048)return null;}
+   }
+   var checkedPaths=new System.Collections.Generic.HashSet<string>(paths.Comparer);
+   foreach(string full in paths)for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return null;}
+   var rows=new System.Text.Json.Nodes.JsonArray();foreach(var item in observed){var file=new System.IO.FileInfo(item.Key);if(!file.Exists||file.Length>1048576||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.IO.File.ReadAllBytes(item.Key))).ToLowerInvariant()!=item.Value)return null;rows.Add(new System.Text.Json.Nodes.JsonObject{["path"]=item.Key,["hash"]=item.Value});}
+   return new System.Text.Json.Nodes.JsonObject{["project"]=project,["paths"]=System.Text.Json.JsonSerializer.SerializeToNode(paths),["observations"]=rows};
+  }catch(Exception error) when(error is System.IO.IOException or UnauthorizedAccessException or ArgumentException){return null;}
+ }
+ if(repair is not null){var proposal=ConnectionSettingsRepair.Propose(manifest,registry,selected,repair,format);if(proposal["state"]?.ToString() is "unchanged" or "repair")proposal["connectionModelProof"]=Proof();return proposal;}
+ return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false,["connectionModelProof"]=Proof()};
  }
 }

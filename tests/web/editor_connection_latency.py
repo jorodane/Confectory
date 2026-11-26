@@ -4,7 +4,7 @@ from editor_navigation import goto_editor
 All settings and hosts belong to this fixture. No real account, installation or network request.
 Durations are evidence; regression assertions use behavior/counts rather than machine speed.
 """
-import hashlib, json, os, pathlib, re, signal, subprocess, sys, tempfile, time, urllib.request, uuid
+import hashlib, json, os, pathlib, re, shutil, signal, subprocess, sys, tempfile, time, urllib.request, uuid
 from playwright.sync_api import sync_playwright, expect
 
 expect.set_options(timeout=30000)
@@ -45,9 +45,19 @@ with sync_playwright() as p:
         for scenario in ('fresh','partial-settings','manifest-only','missing-authoring'):
             owned=root/scenario;owned.mkdir();storage=owned/'storage'
             settings=storage/'ai-settings'/hashlib.sha256(codex.encode()).hexdigest()[:16]
+            if scenario=='fresh':
+                # A writable installation overlay owns only the Codex pack and root declaration.
+                install=owned/'install';editor=install/'examples'/'editor-home';editor.mkdir(parents=True)
+                for file in (repo/'examples'/'editor-home').glob('*.celem'):shutil.copy2(file,editor/file.name)
+                shutil.copytree(repo/'packs',install/'packs');shutil.copytree(repo/'examples'/'editor-home'/'ui',editor/'ui')
+                codex_pack=install/'packs'/'agent-codex'
+                declaration=(repo/'examples'/'editor-home'/'project.cpack').read_text().replace('../../',str(repo)+'/').replace(str(repo/'packs'/'agent-codex'/'pack.cpack'),str(codex_pack/'pack.cpack'))
+                (editor/'project.cpack').write_text(declaration)
+                marker=install/'targets'/'dotnet';marker.mkdir(parents=True);(marker/'pack.cpack').write_text('pack Owned.Marker version \"1\" {standalone false;}')
             if scenario=='partial-settings':
                 settings.mkdir(parents=True);(settings/'Settings.celem').write_text(original)
             env=os.environ.copy();env.update(CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_ENTRY_STORAGE=str(storage),CONFECTORY_HOME_STORAGE=str(storage),CONFECTORY_MCP_DIRECTORY=str(owned/'instances'),CONFECTORY_UI_TRACE='1');env.pop('CONFECTORY_WEB_PROJECT',None)
+            if scenario=='fresh':env['CONFECTORY_EDITOR_REPO']=str(install)
             if scenario=='manifest-only':
                 result=subprocess.run([env['CONFECTORY_DOTNET'],str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')],input=json.dumps({'operation':'connectionSettings','project':str(repo/'examples/editor-home/project.cpack'),'id':codex}),text=True,capture_output=True,check=True,env=env)
                 generated=json.loads(result.stdout);assert generated['ok'],generated
@@ -118,26 +128,39 @@ with sync_playwright() as p:
                     created_trace=log_path.read_text()[len(first_trace):]
                     assert created_trace.count('"operation":"connectionSettings"')==1
                     assert '"operation":"connectionCatalog"' not in created_trace
-                    assert created_trace.count('"operation":"connectionSettingsRepair"')==1
+                    assert '"operation":"connectionSettingsRepair"' not in created_trace
                     assert created_trace.count('"operation":"inspectEffective"')==1
                 expect(dialog.locator('input,select,textarea,[data-connection-advanced],[data-connection-save],[data-installation-candidates],[data-home-candidates]')).to_have_count(0)
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 if scenario=='fresh':
-                    # A healthy reopen validates repair and the current settings schema
-                    # in a single authoring process, without skipping either check.
+                    # A healthy reopen verifies the exact installed and settings snapshots
+                    # and reuses the previously validated presentation schema.
                     expect(page.locator('#add-agent')).to_be_enabled()
                     before_trace=log_path.read_text()
                     page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
                     dialog.get_by_role('button',name='Codex',exact=True).click()
                     expect(dialog.locator('[data-cli-login]')).to_be_enabled()
                     reopened_trace=log_path.read_text()[len(before_trace):]
-                    assert reopened_trace.count('"operation":"connectionRepairSchema"')==1
+                    assert '"operation":"connectionRepairSchema"' not in reopened_trace
+                    assert "CONFECTORY_SCHEMA_REUSED" in reopened_trace
                     assert '"operation":"connectionSettingsRepair"' not in reopened_trace
                     assert '"operation":"inspectEffective"' not in reopened_trace
                     assert '"operation":"connectionCatalog"' not in reopened_trace
                     dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                    # The installed declaration is also part of the proof. A missing
+                    # schema must not display the cached successful form.
+                    installed_manifest=codex_pack/'pack.cpack';installed_original=installed_manifest.read_text()
+                    installed_manifest.write_text(installed_original.replace('element Settings schema "Settings.celem";', ''))
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                    dialog.get_by_role('button',name='Codex',exact=True).click()
+                    expect(dialog.locator('[data-connection-error]')).to_be_visible()
+                    expect(dialog.locator('[data-cli-login]')).to_have_count(0)
+                    installed_manifest.write_text(installed_original)
+                    dialog.locator('[data-connection-error]').get_by_role('button',name='연결 화면 다시 열기').click()
+                    expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                     # A separate local change while the form is closed must still be
-                    # read by the repair query; no catalogue or repair result is cached.
+                    # invalidate the exact model proof and take the normal repair path.
                     manifest=settings/'project.cpack';source=settings/'Settings.celem'
                     current_manifest=manifest.read_text();current_source=source.read_bytes()
                     altered,count=re.subn(r'dependency\s+Confectory\.Agent\.Codex\s+version\s+"[^"\n]*"\s*;', '', current_manifest)

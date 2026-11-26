@@ -128,7 +128,8 @@ case "effective": case "schema-view": case "call-check":{
    inspectedReply["effectiveDraftRevisions"]=revisions;
    var connectionRepair=request["connectionRepair"];
    if(connectionRepair is not null&&(!combinedSchema||rootNamespace!="Confectory.AISettings"||inspectedId!="Confectory.AISettings::Settings"||connectionRepair["settingsProject"]?.ToString()!=identity[0]))throw new UnauthorizedAccessException("Connection schema repair owner mismatch");
-   bool proofEligible=combinedSchema&&request["captureVerifiedSchema"]?.GetValue<bool>()==true&&connectionRepair is null&&rootNamespace!="Confectory.AISettings"&&u[1] is ("object" or "schema")&&changes.Length==0;
+   bool connectionPresentation=combinedSchema&&request["connectionPresentation"]?.GetValue<bool>()==true&&rootNamespace=="Confectory.AISettings"&&inspectedId=="Confectory.AISettings::Settings";
+   bool proofEligible=combinedSchema&&request["captureVerifiedSchema"]?.GetValue<bool>()==true&&connectionRepair is null&&(rootNamespace!="Confectory.AISettings"||connectionPresentation)&&u[1] is ("object" or "schema")&&changes.Length==0;
    string HashProof(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
    string proofKey=proofEligible?HashProof(System.Text.Json.JsonSerializer.Serialize(new{identity,selected=u,manifest=manifestUnit})):"";
    bool FreshProof(System.Text.Json.Nodes.JsonNode? proof){

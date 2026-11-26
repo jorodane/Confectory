@@ -204,29 +204,63 @@ System.Text.Json.Nodes.JsonNode DeclaredConnection(string connection)=>System.Li
 string chatStage=operation switch{"helper-chat-select"=>"helper-selection","ai-bind-helper"=>"agent-binding","ai-start"=>"dispatch","shell"=>"draft",_=>"context"};
 bool chatOperation=operation is "helper-chat-select" or "ai-bind-helper"||(operation=="shell"&&Value("action")=="draft")||(operation=="ai-prepare"&&Value("kind","chat")=="chat")||(operation=="ai-start"&&model["aiPreview"]?["kind"]?.ToString()=="chat");
 string? chatUseTicket=null;bool chatUseDispatched=false;
+// Private session metadata only: the public model never contains installed
+// paths or source hashes. A proof is optional and never authorizes writes.
+string setupProofKey="Confectory.EditorHome.ConnectionModelProof."+session;
+var setupProofs=AppDomain.CurrentDomain.GetData(setupProofKey) as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject();
+AppDomain.CurrentDomain.SetData(setupProofKey,setupProofs);
+bool setupReadProof=false;
+bool FreshConnectionModel(System.Text.Json.Nodes.JsonNode? proof,string project){
+ try{
+  var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+  if(proof?["project"]?.ToString() is not string observedProject||!string.Equals(System.IO.Path.GetFullPath(project),observedProject,comparison)||proof["paths"] is not System.Text.Json.Nodes.JsonArray paths||proof["observations"] is not System.Text.Json.Nodes.JsonArray observations||paths.Count is <1 or >2048||observations.Count is <1 or >2048)return false;
+  var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+  bool NoLinks(string full){for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return false;}return true;}
+  foreach(var path in paths)if(!NoLinks(path!.GetValue<string>()))return false;
+  long bytes=0;foreach(var observation in observations){string full=observation!["path"]!.GetValue<string>();var file=new System.IO.FileInfo(full);if(!NoLinks(full)||!file.Exists||file.Length>1048576)return false;bytes+=file.Length;if(bytes>16777216||calls.FileSnapshot.Invoke(full)[2]!=observation["hash"]!.ToString())return false;}
+  return true;
+ }catch{return false;}
+}
 string SetupView(string connection){
  string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(connection))).ToLowerInvariant()[..16],folder=System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"ai-settings",key),manifest=System.IO.Path.Combine(folder,"project.cpack"),source=System.IO.Path.Combine(folder,"Settings.celem");var manifestBefore=calls.FileSnapshot.Invoke(manifest);var sourceBefore=calls.FileSnapshot.Invoke(source);model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();connectionSetupMode=model["connectionSetupModes"]?[connection]?.ToString()??(manifestBefore[0]!="exists"&&sourceBefore[0]!="exists"?"new":"existing");model["connectionSetupModes"]![connection]=connectionSetupMode;
+ string viewKey="connection-setup/"+connection;string? installProject=null;
+ string InstallProject()=>installProject??=ConnectionProject();
+ var priorProof=setupProofs[connection];bool opening=operation=="connection-setup";
+ if(opening&&priorProof is not null&&workspaces.TryGetValue(viewKey,out string? priorView)&&(priorProof["manifestHash"]?.ToString()!=manifestBefore[2]||priorProof["sourceHash"]?.ToString()!=sourceBefore[2])){
+  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(priorView))!;
+  bool sourceChanged=snapshot["unit"]?["text"]?.ToString()!=sourceBefore[1],manifestChanged=priorProof["manifestHash"]?.ToString()!=manifestBefore[2];
+  if(sourceChanged||manifestChanged){if(System.Linq.Enumerable.Any(snapshot["units"]!.AsArray(),row=>row?["dirty"]?.GetValue<bool>()==true))throw new InvalidOperationException("Connection settings changed outside the open draft; retain local input");calls.PackClose.Invoke(priorView);workspaces.Remove(viewKey);}
+ }
+ bool reuseModel=opening&&priorProof?["manifestHash"]?.ToString()==manifestBefore[2]&&priorProof?["sourceHash"]?.ToString()==sourceBefore[2]&&manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&FreshConnectionModel(priorProof?["proof"],InstallProject());
+ void RememberModel(System.Text.Json.Nodes.JsonNode? proof,string expectedManifest,string expectedSource){if(proof is null||!FreshConnectionModel(proof,InstallProject()))return;var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(source);if(m[0]!="exists"||f[0]!="exists"||m[2]!=expectedManifest||f[2]!=expectedSource)return;if(setupProofs.Count>=32&&!setupProofs.ContainsKey(connection))setupProofs.Remove(System.Linq.Enumerable.First(setupProofs).Key);setupProofs[connection]=new System.Text.Json.Nodes.JsonObject{["manifestHash"]=expectedManifest,["sourceHash"]=expectedSource,["proof"]=proof.DeepClone()};}
+ if(opening&&!reuseModel)setupProofs.Remove(connection);
  // The repair query already reads the current connection catalogue and requires the selected registered descendant.
  bool validateWithRepair=manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection));
  // Fresh creation already validates the selected descendant through the same catalogue query.
  bool validateWithCreation=operation=="connection-setup"&&manifestBefore[0]=="missing"&&sourceBefore[0]=="missing";
- connectionStage="declarations";if(!validateWithRepair&&!validateWithCreation)DeclaredConnection(connection);connectionStage="settings-files";
+ connectionStage="declarations";if(!reuseModel&&!validateWithRepair&&!validateWithCreation)DeclaredConnection(connection);connectionStage="settings-files";
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
   System.Text.Json.Nodes.JsonNode generated;
-  try{generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;}
+  try{generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(InstallProject(),connection))!;}
   catch{if(validateWithCreation){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
-  System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");}
+  System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");
+  // The generated pair has just been constructed from the current complete
+  // registry. A repair query would parse the same registry and the formerly
+  // missing source; it cannot add any validation to this exact committed pair.
+  if(opening){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(source);if(m[1]==generated["manifest"]!.ToString()&&f[1]==generated["source"]!.ToString()){RememberModel(generated["connectionModelProof"],m[2],f[2]);reuseModel=setupProofs.ContainsKey(connection);}}
+ }
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
- if(manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection))){
-  var repairRequest=new System.Text.Json.Nodes.JsonObject{["project"]=ConnectionProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=sourceBefore[1],["settingsProject"]=manifest,["repository"]=(string)state[1]};
+ if(!reuseModel&&manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey(viewKey))){
+  var repairSource=calls.FileSnapshot.Invoke(source);
+  var repairRequest=new System.Text.Json.Nodes.JsonObject{["project"]=InstallProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=repairSource[1],["settingsProject"]=manifest,["repository"]=(string)state[1]};
   System.Text.Json.Nodes.JsonNode? repair=null;
   // For an existing settings view, both read-only checks can share one authoring
   // process. Repair, errors, or changing files retain the ordinary fresh path.
   if(operation=="connection-setup"&&validateWithRepair&&workspaces.TryGetValue("connection-setup/"+connection,out string? existingView)){
    try{
     var projection=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(existingView,"schema-view",new System.Text.Json.Nodes.JsonObject{["connectionRepair"]=repairRequest.DeepClone()}.ToJsonString()))!;
-    if(calls.FileSnapshot.Invoke(manifest)[2]==manifestFile[2]&&calls.FileSnapshot.Invoke(source)[2]==sourceBefore[2]){
+    if(calls.FileSnapshot.Invoke(manifest)[2]==manifestFile[2]&&calls.FileSnapshot.Invoke(source)[2]==repairSource[2]){
      repair=projection["connectionRepair"]?.DeepClone();
      if(repair?["state"]?.ToString()=="unchanged"&&projection["schemaView"] is not null){projection.AsObject().Remove("connectionRepair");setupOpeningProjection=projection;setupOpeningView=existingView;}
     }
@@ -242,11 +276,12 @@ string SetupView(string connection){
    if(calls.CommitHome.Invoke(folder,new[]{backup,"project.cpack"},new[]{prior[2],manifestFile[2]},new[]{old,repair["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Connection settings metadata changed; original retained");
    string previousKey="connection-setup/"+connection;if(workspaces.TryGetValue(previousKey,out string? previousView)){calls.PackClose.Invoke(previousView);workspaces.Remove(previousKey);}Console.Error.WriteLine("Confectory connection settings: repaired generated settings registry dependency closure; original manifest backed up; Settings.celem retained");
   }
- }else if(validateWithRepair){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}
+  if(opening&&repair?["state"]?.ToString() is "unchanged" or "repair"){var verifiedManifest=calls.FileSnapshot.Invoke(manifest);string expected=repair["state"]!.ToString()=="repair"?repair["manifest"]!.ToString():manifestFile[1];if(verifiedManifest[1]==expected)RememberModel(repair["connectionModelProof"],verifiedManifest[2],repairSource[2]);}
+ }else if(validateWithRepair&&!reuseModel){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}
  if(calls.FileSnapshot.Invoke(source)[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
- connectionStage="settings-open";string viewKey="connection-setup/"+connection;if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}return view;
+ connectionStage="settings-open";if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}setupReadProof=opening&&setupProofs.ContainsKey(connection);return view;
 }
-void SetupSnapshot(string connection,string view,System.Text.Json.Nodes.JsonNode? outcome=null){connectionStage="settings-schema";model["connectionSetup"]=new System.Text.Json.Nodes.JsonObject{["connection"]=connection,["mode"]=connectionSetupMode,["workspace"]=setupOpeningView==view&&setupOpeningProjection is not null?setupOpeningProjection.DeepClone():System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}")),["installationGuide"]=connection=="Confectory.Agent.Codex::Connection"?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexInstallationGuide.Invoke()):null,["outcome"]=outcome?.DeepClone(),["preparation"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexPreparationContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexPreparation.Invoke(session,"status","{}")):null,["login"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexLoginContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexLogin.Invoke(session,"status","{}")):null};}
+void SetupSnapshot(string connection,string view,System.Text.Json.Nodes.JsonNode? outcome=null){connectionStage="settings-schema";model["connectionSetup"]=new System.Text.Json.Nodes.JsonObject{["connection"]=connection,["mode"]=connectionSetupMode,["workspace"]=setupOpeningView==view&&setupOpeningProjection is not null?setupOpeningProjection.DeepClone():System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view",setupReadProof?"{\"connectionPresentation\":true,\"captureVerifiedSchema\":true,\"reuseVerifiedSchema\":true}":"{}")),["installationGuide"]=connection=="Confectory.Agent.Codex::Connection"?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexInstallationGuide.Invoke()):null,["outcome"]=outcome?.DeepClone(),["preparation"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexPreparationContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexPreparation.Invoke(session,"status","{}")):null,["login"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexLoginContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexLogin.Invoke(session,"status","{}")):null};}
 System.Text.Json.Nodes.JsonObject SetupData(string view){var projection=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}"))!["effective"]!;if(projection["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new ArgumentException("Connection schema validation failed");var data=new System.Text.Json.Nodes.JsonObject();foreach(var field in projection["schemaModel"]!["data"]!.AsObject()){if(field.Value?["kind"]?.ToString()!="general")throw new ArgumentException("Declared scalar setting required");data[field.Key]=field.Value?["scalar"]?.DeepClone();}return data;}
 string SetupConfig(string connection,string view)=>calls.AIConfig.Invoke(connection,SetupData(view).ToJsonString());
 string CatalogueConfig(string view)=>calls.CodexCandidate.Invoke(SetupData(view).ToJsonString());
