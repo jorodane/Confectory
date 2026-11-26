@@ -122,3 +122,35 @@ This increment supplies the ordinary dependency selection path, not yet the
 runtime window/provider binding, actual mouse timing, score presentation,
 or binding TimingRules values to the game function. Windows execution is
 not covered by these Linux tests.
+
+## Registered runtime feature calls
+
+The normal existing owned root Logic Code call picker previously queried
+only the project itself, even after the installed runtime packs had been
+connected. It now also searches directly registered dependency contracts
+by the entered name or qualified ID. The registered result is labelled by
+its full ID. It uses the existing `readCall` receipt and subsequent save
+and compiler validation; it does not read or execute provider bodies to
+populate search results. Pending private/preview continuations retain
+their existing owned-contract-only boundary.
+
+`python tests/web/project_registered_runtime_call.py <editor-report.json>
+<repo> <disposable-evidence-directory>` follows the previous pack connection
+test on the disposable project. Actual Chromium search found both
+`Confectory.Window::Open` and `Confectory.RenderInput::Pump`. Closing the
+search did not add any cells. Selecting the self-provided
+`Confectory.Window::TextStyle` added a real typed call, saved, confirmed,
+executed the existing score, then survived a cold editor reopen and Run.
+The project manifest remained byte-identical. These are ordinary source
+and execution paths, not a mock picker.
+
+Window creation and input pumping still require the appropriate provider
+binding and session/argument wiring. Neither actual mouse interaction nor
+TimingRules value binding is claimed by this increment.
+
+The older registered ABI UI regression reached its read-only receipt check,
+but its subsequent hidden overview-node click timed out in both the prior
+and new builds. The standalone RegisteredCallTests fixture also stopped on
+an existing EditWorkspace provider assembly error. These do not establish
+full external-conflict regression coverage for this increment; the same
+host receipt/Save/Confirm paths were kept unchanged.
