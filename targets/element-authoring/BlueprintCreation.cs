@@ -58,6 +58,28 @@ internal static class BlueprintCreation
   if(function.Kind!="function"||function.Id!=request["id"]!.GetValue<string>()||function.Signature is null||function.Parent is not null||function.Provides.ContainsKey(function.Id)||PackPaths.Namespace(function.Id)!=PackPaths.Namespace(implementationId))throw new ArgumentException("An owned new function with its exact identity, an explicit signature and no existing implementation is required");
   return Scaffold(function,request,format,true);
  }
+ // Only the exact untouched first scaffold can be rebuilt from a new
+ // plain signature. The caller separately proves all sources are unpublished.
+ internal static JsonObject ReconfigureScaffold(Element function,Element implementation,JsonObject graph,JsonObject plan,Func<Element,string> format)
+ {
+  var old=function.Signature!;
+  if(function.Parent is not null||implementation.Parent is not null||implementation.Imports.Count!=0||
+     function.Provides.Count!=1||!function.Provides.TryGetValue(function.Id,out var provided)||provided.Id!=implementation.Id||
+     implementation.Bodies.Count!=1||!implementation.Bodies.TryGetValue("common",out var body)||
+     old.Args.Any(a=>a.Mode is not null)||plan.Any(p=>p.Key is not ("args" or "returnType" or "remap"))||
+     plan["remap"] is not JsonObject remap||remap.Count!=old.Args.Count||old.Args.Any(a=>!remap.ContainsKey(a.Name))||
+     plan["args"] is not JsonArray args||args.Count>64||args.Any(a=>a?["mode"] is not null))
+   throw new InvalidOperationException("Only the original unpublished plain scaffold can change its initial signature");
+  var node=graph["nodes"]!.AsArray().Single()!.AsObject();
+  var request=new JsonObject{["implementation"]=implementation.Id,["graphPath"]=body.Path,["nodePath"]=node["implementation"]!.DeepClone()};
+  function.Provides.Clear();
+  var original=Scaffold(function,request,format,true);
+  if(!JsonNode.DeepEquals(original["graph"],graph))throw new InvalidOperationException("Original first scaffold changed; retain its sources");
+  function.Provides.Clear();
+  DeclarationAuthoring.Apply(function,new JsonObject{["action"]="signature",["value"]=new JsonObject{["args"]=args.DeepClone(),["return"]=plan["returnType"]!.DeepClone()}});
+  return Scaffold(function,request,format,true);
+ }
+
  private static JsonObject Scaffold(Element function,JsonObject request,Func<Element,string> format,bool currentMethods=false)
  {
   string implementationId=request["implementation"]!.GetValue<string>(),graphPath=request["graphPath"]!.GetValue<string>(),nodePath=request["nodePath"]!.GetValue<string>();

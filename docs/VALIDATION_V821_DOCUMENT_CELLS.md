@@ -88,3 +88,11 @@
 회귀 시나리오: [새 기능 문서 검사](../tests/web/v821_new_function_document_ui.py)에서 최초 기능 작성 및 확정 후 논리 코드 안에서 등록 기능을 선택하고 입력 37을 연결한다. 검색 취소, private Undo/Redo, Save, Review 취소와 최종 Confirm, 작성 프로젝트 재시작, 별도 실행 사본의 일반 ▶를 검사한다. 실제 Windows 및 전체 패키지 검증은 별도이며, 호출 자체의 공개/참조/충돌 검증은 기존 호스트 경로를 그대로 사용한다.
 
 실제 경량 Linux 호스트/Chromium 실행에서 새 기능의 선언 및 코드 작성·Confirm, 호출 삽입 및 값 연결·Undo/Redo·Review/Confirm, 재시작 후 동일 ID·값 복원, 실행 결과 파일 두 개(새 기능 표식과 호출된 기능의 37)를 확인했다. 기존 `v821_internal_flow_document_ui.py`의 보호된 내부 C# 래핑·복원·실행 결과 11과 `v821_document_structure_ui.py start`의 첫 일반 셀 삽입·외부 변경 Save/Confirm 거절·실행 검사를 별도로 통과했다. 구 `v508_feature_call_renderer.py`는 수정 전 42d54a6과 수정 후 모두 첫 비표시 Blueprint 값 컨트롤 클릭에서 동일하게 시간 초과하여 통과로 집계하지 않았다.
+
+## 최초 그래프 저장 전 기능 호출과 입출력 계약
+
+프로젝트에 아직 등록하지 않은 직접 소유 함수 선언의 논리 코드 시작 셀에서, 기존 **기능 입출력 편집** 및 **기능 호출 추가…**를 사용할 수 있다. 동일 프로젝트에 확정 등록된 기능의 선언을 현재 최초 생성 basis로 읽으며, 임시 구현/그래프는 메타데이터 계산에만 사용한다. 선택과 연결은 개인 초안이며 실제 파일이나 구현 등록을 만들지 않는다. 최초 Save 전에 선택한 선언과 원본을 다시 확인하고, 아직 원본 본문이 없는 정확한 최초 scaffold에 한해 사용자가 명시한 단순 입력/반환 계약에서 scaffold를 만든다. 기존 구현의 입출력·연결 변경 검증을 완화하지 않는다. 최초 root contract 그룹은 기존 전체 생성 등록 검토를 유지한다.
+
+실제 Linux Chromium/호스트에서 `tests/web/v821_new_function_document_ui.py <repo> <run-report> before-save`를 실행했다. 새 함수의 입력을 int로, 반환을 long으로 바꾼 뒤 등록 기능을 시작에 추가하고 해당 함수 입력에 root input1을 연결했다. 검색 취소, 호출 Undo/Redo, 선택 선언의 외부 변경 Save 거절(최초 그래프/체크포인트 미생성), 원본 복원 후 미저장 상태의 실제 재시작, 한 번의 Save, Review 취소/Confirm과 확정 재시작을 확인했다. 별도 합성 실행 사본의 기존 Main 진입점에서 새 함수에 37을 전달해 일반 ▶로 두 결과 파일을 확인했다. 실제 사용자 파일·계정은 사용하지 않았다.
+
+범위는 최초 standalone의 단순 동기 입력/반환 및 기존 프로젝트의 직접 등록 기능 참조다. private 중첩 graph, 등록 dependency의 첫 호출, ref/out 및 async 등의 별도 선언 계약, 최초 미저장 복합 변경, 실제 Windows 실행은 이번 단위에서 확장하지 않았다.

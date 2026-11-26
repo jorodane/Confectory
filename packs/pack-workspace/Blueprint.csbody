@@ -852,6 +852,49 @@ lock(state){
   state["featureCreationOrigins"]??=new System.Text.Json.Nodes.JsonObject();var origins=state["featureCreationOrigins"]!.AsObject();while(origins.Count>=16)origins.Remove(System.Linq.Enumerable.First(origins).Key);origins[createdRoot]=new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["checkpointHash"]=basis["checkpointHash"]?.DeepClone(),["beforeSources"]=beforeSources,["afterSources"]=afterSources};
   state["blueprintBases"]!.AsObject().Remove(featureBasisToken);state["selected"]=basis["owner"]?.DeepClone()??(input["deferCheckpoint"]?.GetValue<bool>()==true?System.Text.Json.Nodes.JsonValue.Create(feature):System.Text.Json.Nodes.JsonNode.Parse(result)!["id"]!.DeepClone());state["review"]=null;return result;
  }
+ // A new, unpublished standalone declaration can borrow a typed reference
+ // preview without registering an implementation or creating any graph files.
+ string[] PreviewCaller(string feature,string token){
+  var basis=state["blueprintBases"]?[token];
+  if(basis?["kind"]?.ToString()!="feature"||basis["id"]?.ToString()!=feature||basis["owner"] is not null)
+   throw new InvalidOperationException("Read the current standalone feature declaration first");
+  var ids=System.Text.Json.JsonSerializer.Deserialize<string[]>(basis["ids"]!.ToJsonString())!;
+  var revisions=System.Text.Json.JsonSerializer.Deserialize<long[]>(basis["revisions"]!.ToJsonString())!;
+  var hashes=System.Text.Json.JsonSerializer.Deserialize<string[]>(basis["hashes"]!.ToJsonString())!;
+  if(ids.Length!=2||ids[0]!=feature||calls.CheckpointSnapshot.Invoke(calls.CheckpointLocation.Invoke(draft))[2]!=basis["checkpointHash"]?.ToString())
+   throw new InvalidOperationException("Feature declaration checkpoint changed");
+  for(int i=0;i<ids.Length;i++){
+   var row=calls.Read.Invoke(draft,ids[i]);
+   if(row[4]!=revisions[i].ToString(System.Globalization.CultureInfo.InvariantCulture)||Hash(row[3])!=hashes[i]||!PreviewFileMatches(row[2],row[5]))
+    throw new InvalidOperationException("Feature declaration source changed; retain input");
+  }
+  var source=calls.Read.Invoke(draft,feature);
+  if(source[1]!="function"||source[5]!="missing"||calls.CreationOwners.Invoke(draft,feature).Length!=0)
+   throw new InvalidOperationException("Unpublished standalone feature required");
+  return source;
+ }
+ if(targetOperation=="readCall"&&input["previewBasis"] is not null){
+  string feature=input["id"]!.GetValue<string>();
+  var source=PreviewCaller(feature,input["previewBasis"]!.GetValue<string>());
+  var definition=input["definition"]!.AsObject();string calleeId=definition["feature"]!.GetValue<string>();
+  if(definition["branchInsertion"] is not null||definition["control"]?.ToString()!="next"||calleeId==feature||
+     !calleeId.StartsWith(feature[..feature.LastIndexOf("::",StringComparison.Ordinal)]+ "::",StringComparison.Ordinal))
+   throw new ArgumentException("Select a published direct project feature");
+  var callee=calls.Read.Invoke(draft,calleeId);
+  if(callee[1]!="function"||callee[5]=="missing"||!PreviewFileMatches(callee[2],callee[5]))
+   throw new InvalidOperationException("Published current callee declaration required");
+  string impl=feature+"BlueprintBody";
+  var scaffold=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintPrepareFeature",new System.Text.Json.Nodes.JsonObject{
+   ["id"]=feature,["text"]=source[3],["implementation"]=impl,["graphPath"]="preview.graph.json",["nodePath"]="preview.node.json"
+  }.ToJsonString()))!;
+  var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintPrepareCall",new System.Text.Json.Nodes.JsonObject{
+   ["id"]=impl,["text"]=scaffold["implementation"]!.DeepClone(),["graph"]=scaffold["graph"]!.DeepClone(),
+   ["targetText"]=callee[3],["definition"]=definition.DeepClone()
+  }.ToJsonString()))!;
+  return new System.Text.Json.Nodes.JsonObject{["definition"]=definition.DeepClone(),["signature"]=prepared["signature"]!.DeepClone(),
+   ["contractHash"]=prepared["contractHash"]!.DeepClone(),["scope"]=prepared["scope"]?.DeepClone(),["contractOrigin"]="owned-published-function",
+   ["observedIds"]=new System.Text.Json.Nodes.JsonArray(feature,calleeId),["sourceWritten"]=false,["compiled"]=false}.ToJsonString();
+ }
  if(targetOperation=="callables"){
   string callableScope=input["scope"]?.GetValue<string>()??"owned";if(callableScope is not ("owned" or "registered"))throw new ArgumentException("Explicit callable catalog scope required");
   if(callableScope=="registered"){
@@ -860,7 +903,7 @@ lock(state){
    return calls.Metadata.Invoke("blueprintCallableContracts",System.Text.Json.JsonSerializer.Serialize(new{action="list",project=identity[0],manifest=callableManifest[3],sourceId=callableImplementation[0],text=callableImplementation[3],query=input["query"]?.GetValue<string>()??"",page=input["page"]?.GetValue<int>()??0}));
   }
   int callPage=input["page"]?.GetValue<int>()??0;string callQuery=input["query"]?.GetValue<string>()??"";if(callPage<0||callQuery.Length>256)throw new ArgumentException("Bounded function page required");
-  var caller=calls.Read.Invoke(draft,input["id"]!.GetValue<string>());if(caller[1]!="blueprint")throw new ArgumentException("Owned caller graph required");string callerFeature=System.Text.Json.Nodes.JsonNode.Parse(caller[3])!["feature"]!.ToString();
+  var caller=input["previewBasis"] is not null?PreviewCaller(input["id"]!.GetValue<string>(),input["previewBasis"]!.GetValue<string>()):calls.Read.Invoke(draft,input["id"]!.GetValue<string>());if(caller[1]!="blueprint"&&input["previewBasis"] is null)throw new ArgumentException("Owned caller graph required");string callerFeature=input["previewBasis"] is not null?caller[0]:System.Text.Json.Nodes.JsonNode.Parse(caller[3])!["feature"]!.ToString();
   string projectManifest=System.Linq.Enumerable.Single(calls.List.Invoke(draft),id=>calls.Status.Invoke(draft,id)[2]==System.IO.Path.GetFileName(identity[0]));if(calls.Status.Invoke(draft,projectManifest)[1]!="project")throw new ArgumentException("Owned ProjectPack compiler context required");string ownPrefix=projectManifest[..projectManifest.LastIndexOf("::",StringComparison.Ordinal)]+"::";
   if(!caller[0].StartsWith(ownPrefix,StringComparison.Ordinal))throw new ArgumentException("Caller must belong to this ProjectPack");
   var callMatches=new System.Collections.Generic.List<string>();foreach(string id in calls.List.Invoke(draft))if(id!=callerFeature&&id.StartsWith(ownPrefix,StringComparison.Ordinal)&&id.Contains(callQuery,StringComparison.OrdinalIgnoreCase)){var status=calls.Status.Invoke(draft,id);if(status[1]=="function"&&status[5]!="missing")callMatches.Add(id);}callMatches.Sort(StringComparer.Ordinal);
@@ -1025,7 +1068,14 @@ lock(state){
     if(row[1]=="implementation"&&rootId!=rootImplementation){var meta=System.Text.Json.Nodes.JsonNode.Parse(ScopedMetadata("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=row[3]})))!;if(meta["function"]?.ToString()==rootFunction||meta["parent"]?.ToString()==rootImplementation)throw new InvalidOperationException("Other implementation roots share this function; retain input until their contracts are coordinated");}}
    foreach(var row in rootObserved)rootBytes=checked(rootBytes+System.Text.Encoding.UTF8.GetByteCount(row.Value!["text"]!.ToString()));if(rootObserved.Count>256||rootBytes>2097152)throw new InvalidOperationException("Root contract source budget exceeded");
    var rootState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");System.Text.Json.Nodes.JsonNode rootUnits;lock(rootState)rootUnits=rootState["units"]!.DeepClone();
-   var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintRootContract",new System.Text.Json.Nodes.JsonObject{["functionText"]=rootObserved[rootFunction]!["text"]!.DeepClone(),["text"]=rootObserved[rootImplementation]!["text"]!.DeepClone(),["bodyTarget"]=rootRequest["bodyTarget"]!.DeepClone(),["graph"]=candidateRoot.DeepClone(),["plan"]=System.Text.Json.Nodes.JsonNode.Parse(input["plan"]!.GetValue<string>())}.ToJsonString()))!;
+   bool initialScaffold=input["initialScaffold"]?.GetValue<bool>()==true;
+   if(initialScaffold){
+    string firstBodyId=graphId+"/node:body";
+    if(System.Linq.Enumerable.Any(new[]{rootFunction,rootImplementation,graphId,firstBodyId},id=>rootUnits[id]?["baseline"]?.ToString()!="missing")||
+       rootObserved[firstBodyId] is null||System.Text.Json.Nodes.JsonNode.Parse(rootObserved[firstBodyId]!["text"]!.GetValue<string>())?["source"]?.ToString()!="")
+     throw new InvalidOperationException("Original unpublished empty first body required");
+   }
+   var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintRootContract",new System.Text.Json.Nodes.JsonObject{["functionText"]=rootObserved[rootFunction]!["text"]!.DeepClone(),["text"]=rootObserved[rootImplementation]!["text"]!.DeepClone(),["bodyTarget"]=rootRequest["bodyTarget"]!.DeepClone(),["graph"]=candidateRoot.DeepClone(),["plan"]=System.Text.Json.Nodes.JsonNode.Parse(input["plan"]!.GetValue<string>()),["initialScaffold"]=initialScaffold}.ToJsonString()))!;
    rootRequest["inspectStalePostCalls"]=false;rootRequest["text"]=prepared["implementation"]!.DeepClone();rootRequest["graph"]=prepared["graph"]!.DeepClone();rootRequest["draftContracts"]![rootFunction]=prepared["function"]!.DeepClone();
    var checkedRoot=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",rootRequest.ToJsonString()))!;if(checkedRoot["state"]!.ToString()!="node-definitions")throw new InvalidOperationException(checkedRoot.ToJsonString());
    foreach(var version in basis["definitions"]!["contractVersions"]!.AsObject())if(version.Key!=rootFunction&&!System.Text.Json.Nodes.JsonNode.DeepEquals(version.Value,checkedRoot["contractVersions"]?[version.Key]))throw new InvalidOperationException("Referenced function contract changed; retain root input and read again");

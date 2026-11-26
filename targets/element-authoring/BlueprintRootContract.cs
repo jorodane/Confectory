@@ -13,6 +13,8 @@ static class BlueprintRootContract
    throw new InvalidOperationException("Edit one explicitly owned root implementation/body; inherited or multiple bodies need coordinated selection");
   if(BlueprintExecutionBranches.Has(function))throw new InvalidOperationException("Keep the public execution contract and review its root/caller group together");
   var plan=request["plan"]!.AsObject();if(plan.Any(p=>p.Key is not ("args" or "returnType" or "remap" or "rootBody" or "inputModes" or "publicOutputs" or "removeOutputs" or "outputCreates" or "outputRoutes" or "outputEntry" or "outputOrder" or "adaptOutput" or "outputBindings")))throw new ArgumentException("Explicit root contract and remap required");
+  if(request["initialScaffold"]?.GetValue<bool>()==true)
+   return BlueprintCreation.ReconfigureScaffold(function,implementation,graph,plan,format);
   var old=function.Signature!;var remap=plan["remap"]!.AsObject();var next=plan["args"]!.AsArray();
   var published=BlueprintOutputSnapshot.Read(function);
   var adaptOutput=plan["adaptOutput"] as JsonObject;string? adaptedName=null;JsonNode? adaptedValue=null;
