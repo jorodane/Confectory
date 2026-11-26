@@ -7,7 +7,7 @@ string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
 bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
 bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
-bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
+bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
 string? streamProject=null;
 if(request.ContainsKey("_streamProject")){if(!blueprintValue&&!guardValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");}
 // These owner-bound reads and guards reconstruct and validate their current

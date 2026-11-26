@@ -90,6 +90,13 @@ def exercise(root):
             refreshed=json.loads(send(proc,override));assert refreshed['ok'] and refreshed['result']['snapshot']!=observed['result']['snapshot']
             assert refreshed==json.loads(subprocess.run(HOST,input=json.dumps(override),text=True,capture_output=True,timeout=20,check=True).stdout)
 
+            # Root execution candidates are a pure payload projection with an
+            # explicit transport owner. Invalid graph input still rejects and
+            # the same stream remains available for the next scoped read.
+            root_candidates=dict(operation='blueprintRootExecutionCandidates',id='Test.Stream::WorkBody/body:common',units={})
+            expected=json.loads(subprocess.run(HOST,input=json.dumps(root_candidates),text=True,capture_output=True,timeout=20,check=True).stdout)
+            assert not expected['ok'] and json.loads(send(proc,dict(root_candidates,_streamProject=str(a))))==expected
+
             document=dict(operation='inspect',text='object Test.Stream::Record {}')
             assert json.loads(send(proc,dict(document,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(document),text=True,capture_output=True,timeout=20,check=True).stdout)
             invalid=dict(operation='blueprintSourceValidateBatch',documents=[dict(id='bad',kind='blueprint',text='{}')])

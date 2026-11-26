@@ -137,7 +137,7 @@ public sealed partial class Builder
 
     public Builder(string project, string target) : this(project,target,null) { }
     // A verified candidate owner may share content-addressed contracts and
-    // imported native implementation artifacts. Root sources, Blueprint node
+    // imported implementation artifacts. Root sources, Blueprint node
     // proofs, declaration snapshots and final link output remain local.
     public Builder(string project, string target, string? contractCacheRoot, string? implementationCacheRoot = null)
     {
@@ -222,9 +222,9 @@ public sealed partial class Builder
         if (contractGroups.Count == 0) PrepareContracts(selected.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))));
         var sources = new List<(string Id, string Code)>();
         var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
-        // Only imported native-body packs can reuse validation artifacts across
-        // candidate directories. Root code paths and Blueprint node proofs stay local.
-        bool reusableImport = ns != Registry.Project.Namespace;
+        // Only immutable inputs outside the candidate may cross validation
+        // directories. Blueprint results still require a fresh source observation.
+        bool reusableImport = ns != Registry.Project.Namespace, hasBlueprint = false;
         foreach (var e in selected)
         {
             if (PackPaths.Namespace(e.Id) != ns) throw new BuildError("LOCAL_INPUT", "Cannot compile elements owned by different packs together");
@@ -235,7 +235,8 @@ public sealed partial class Builder
             if (BlueprintAsync.Has(executionFeature) && (body.SourceKind != "blueprint" || e.Bodies.Values.Any(b => b.SourceKind != "blueprint"))) throw new BuildError("ASYNC_PROVIDER", "Explicit async execution requires Blueprint targets; retain original C# bodies and convert explicitly", e.Loc);
             if (BlueprintExecutionBranches.Has(executionFeature) && (body.SourceKind != "blueprint" || e.Bodies.Values.Any(b => b.SourceKind != "blueprint"))) throw new BuildError("BLUEPRINT_EXECUTION_PROVIDER", "Public execution branches require Blueprint targets without opaque effective bodies", e.Loc);
             string candidateRelative = Path.GetRelativePath(Path.GetDirectoryName(Project)!, path);
-            reusableImport &= body.SourceKind != "blueprint" && PackPaths.Namespace(body.Origin) != Registry.Project.Namespace &&
+            hasBlueprint |= body.SourceKind == "blueprint";
+            reusableImport &= PackPaths.Namespace(body.Origin) != Registry.Project.Namespace &&
                 (Path.IsPathRooted(candidateRelative) || candidateRelative == ".." || candidateRelative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal));
             string source = body.SourceKind == "blueprint" ? (blueprint ??= new BlueprintCompilation(Registry, Target, Tool)).Assemble(e, body, path) : Documents.Body(path);
             sources.Add((e.Id, Generation.ImplementationSource(e, source, body.SourceKind == "blueprint" ? "graph:" + e.Function : path, blueprint?.Members.GetValueOrDefault(e.Id) ?? "", blueprint?.EntrySignatures.GetValueOrDefault(e.Id), executionFeature, e.Imports.Values.Where(i => BlueprintAsync.Has(Registry.Get(i.Id, "function"))).Select(i => i.Id).ToHashSet(StringComparer.Ordinal))));
@@ -245,14 +246,18 @@ public sealed partial class Builder
             sources.Select(x => new[] { x.Id, x.Code }).ToArray(),
             refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
         var packCache = reusableImport?implementationCache:cache;
+        // The target receives node source, helpers and mapping flags as a
+        // separate compiler input. Do not reuse an imported Blueprint artifact
+        // based only on its assembled C#; bind the exact entire node payload.
+        if (hasBlueprint&&!ReferenceEquals(packCache,cache))
+            key = JsonData.Digest(new object[] { key, "blueprint-compiler-input-v1", blueprint!.Nodes });
         var artifact = packCache.Get(key);
         if (artifact is not null) { Statistics.ReusedPacks.Add(ns); Statistics.ReusedImplementations.AddRange(selected.Select(x => x.Id)); }
         else
         {
             JsonObject Compile(string work) => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
                 sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
-                // Preserve the normal compiler request on a miss. A reused native
-                // import has no own Blueprint nodes; the root Check validates them.
+                // Preserve the exact original compiler payload on a miss.
                 blueprintNodes = blueprint?.Nodes,
                 references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Concat(InformationFiles(refs.Values, "reference")).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
             })["artifacts"]!.AsObject();
