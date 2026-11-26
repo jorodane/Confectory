@@ -67,14 +67,14 @@ def save_existing_rule(page,window):
   if request.method!='POST':return
   try:payload=request.post_data_json
   except Exception:return
-  if isinstance(payload,dict) and payload.get('op')=='invoke' and payload.get('endpoint') in ('reviewGroup','confirmGroup'):calls.append(payload['endpoint'])
+  if isinstance(payload,dict) and payload.get('op')=='invoke' and payload.get('endpoint') in ('reviewGroup','confirmGroup','directPropertyConfirm'):calls.append(payload['endpoint'])
  page.on('request',observe)
  page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
  try:
   button.click();expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
   expect(page.locator('#review-creation')).to_be_hidden();expect(page.locator('.window[data-key=review]')).to_be_hidden()
   assert not page.evaluate('()=>window.__directRuleReviewSeen'), 'A Review was displayed during direct Save'
-  assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+  assert calls==['directPropertyConfirm'],calls
  finally:
   page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
 
