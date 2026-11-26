@@ -7,13 +7,23 @@ string candidate=System.IO.Path.Combine(root,".confectory","candidates",Guid.New
 bool committed=false;
 try
 {
- calls.CopySources.Invoke(root,candidate);
- for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
- string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
+ string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));
+ bool candidatePrepared=false;
  System.Text.Json.Nodes.JsonNode? dataOnly=null;
- if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0){
-  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOnly",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
+ var overlayState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
+ if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0&&overlayState?["units"]?[changes[0]]?["kind"]?.ToString()=="object"){
+  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOverlay",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+ }
+ if(dataOnly is null){
+  calls.CopySources.Invoke(root,candidate);
+  for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
+  calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
+  candidatePrepared=true;
+  if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0){
+   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOnly",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
+   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+  }
  }
  if(dataOnly is null&&changes.Length==8){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectCreation",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
@@ -123,11 +133,11 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
   string path=check!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),item=>string.Equals(item!["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)checks.Add(check.DeepClone());else if(prior["hash"]!.ToString()!=check["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
- if(dataOnly?["reads"] is System.Text.Json.Nodes.JsonArray retirementReads)foreach(var guard in retirementReads){
+ if(dataOnly?["reads"] is System.Text.Json.Nodes.JsonArray dataReads)foreach(var guard in dataReads){
   string full=guard!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),row=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))??System.Linq.Enumerable.FirstOrDefault(reads,row=>string.Equals(row!["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
-  if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Retirement source observations disagree");
+  if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
- var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
+ var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{if(candidatePrepared)calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
 finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

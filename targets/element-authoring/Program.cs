@@ -341,6 +341,7 @@ try
         }
         case "validateExistingSchemaObjectRetirement":reply=ExistingSchemaObjectRetirementValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),S("target"),Format,FormatManifest);break;
         case "validateExistingSchemaObjectCreation":reply=ExistingSchemaObjectCreationValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),Format,FormatManifest);break;
+        case "validateLongDataOverlay":reply=LongDataOnlyValidation.Check(S("originalProject"),null,S("id"),S("relative"),S("baseline"),S("after"),Format);break;
         case "validateLongDataOnly":reply=LongDataOnlyValidation.Check(S("originalProject"),S("candidateProject"),S("id"),S("relative"),S("baseline"),S("after"),Format);break;
         case "validate":
         {
