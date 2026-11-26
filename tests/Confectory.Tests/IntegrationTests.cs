@@ -6,6 +6,26 @@ namespace Confectory.Tests;
 
 public sealed class IntegrationTests : TestCase
 {
+    public void test_final_link_reuse_and_proof_recovery()
+    {
+        static int Links(JsonObject report) => report["statistics"]!["targetInvocations"]!["link"]?.GetValue<int>() ?? 0;
+        static int Reused(JsonObject report) => report["statistics"]!["reusedFinalLinks"]!.GetValue<int>();
+        var first = Build(); Output(first, "5"); Equal(1, Links(first));
+        var second = Build(); Output(second, "5"); Equal(0, Links(second)); Equal(1, Reused(second));
+        True(Text(first, "output") != Text(second, "output")); Output(first, "5");
+        string proof = Path.Combine(Text(second, "output"), "link-proof.json");
+        File.WriteAllText(proof, "damaged proof");
+        var repaired = Build(); Output(repaired, "5"); Equal(1, Links(repaired)); Equal(0, Reused(repaired));
+        using var peer = new Fixture();
+        peer.Body("Provider", "value.csbody", "return n + 40;");
+        var peerFirst = new Builder(peer.Project, "portable").Build(); Output(peerFirst, "42");
+        // A same-ID peer proof cannot authorize reuse even in an otherwise valid output directory.
+        File.Copy(Path.Combine(Text(peerFirst, "output"), "link-proof.json"), Path.Combine(Text(repaired, "output"), "link-proof.json"), true);
+        var isolated = Build(); Output(isolated, "5"); Equal(1, Links(isolated)); Equal(0, Reused(isolated));
+        var peerWarm = new Builder(peer.Project, "portable").Build(); Output(peerWarm, "42"); Equal(0, Links(peerWarm)); Equal(1, Reused(peerWarm));
+        var warm = Build(); Output(warm, "5"); Equal(0, Links(warm)); Equal(1, Reused(warm));
+    }
+
     public void test_schema_metadata_changes_relink_without_contract_or_provider_rebuild()
     {
         string schema = f.Add("App", "schema", "Shape", "schema App::Shape { field n single general int; }");
@@ -13,10 +33,10 @@ public sealed class IntegrationTests : TestCase
         f.Main("provide Api::Value with Provider::ValueBody; use object App::O;"); f.Sync();
         var first = Build(); Output(first, "5"); string oldKey = Text(first, "key");
         File.WriteAllText(schema, "schema App::Shape { field n single general int; field note single general string; }");
-        var schemaChanged = Build(); Output(schemaChanged, "5"); True(oldKey != Text(schemaChanged, "key"));
+        var schemaChanged = Build(); Output(schemaChanged, "5"); True(oldKey != Text(schemaChanged, "key")); Equal(1, schemaChanged["statistics"]!["targetInvocations"]!["link"]!.GetValue<int>());
         Equal(0, Strings(schemaChanged, "statistics", "compiledPacks").Length); Equal(0, Strings(schemaChanged, "statistics", "compiledContracts").Length);
         File.WriteAllText(data, "object App::O { use schema App::Shape; data n = 3; }");
-        var dataChanged = Build(); Output(dataChanged, "5"); True(Text(schemaChanged, "key") != Text(dataChanged, "key"));
+        var dataChanged = Build(); Output(dataChanged, "5"); True(Text(schemaChanged, "key") != Text(dataChanged, "key")); Equal(1, dataChanged["statistics"]!["targetInvocations"]!["link"]!.GetValue<int>());
         Equal(0, Strings(dataChanged, "statistics", "compiledPacks").Length); Equal(0, Strings(dataChanged, "statistics", "compiledContracts").Length);
         string text = File.ReadAllText(Text(dataChanged, "publicCatalog")); True(!text.Contains(f.Root, StringComparison.Ordinal), "Public schema metadata leaked build paths");
         var catalog = JsonNode.Parse(text)!; var item = catalog["elements"]!.AsArray().Single(e => Text(e!, "id") == "App::O")!;

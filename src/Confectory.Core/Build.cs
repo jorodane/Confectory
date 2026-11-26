@@ -360,9 +360,17 @@ public sealed partial class Builder
                 JsonData.AtomicWrite(previewResource, connectionPresentation);
                 resources.Add(new { path = previewResource, name = ConnectionPresentationResource.Name });
             }
-            var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
-                references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(InformationFiles(Contracts.Values, "assembly")).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
-                resources });
+            string[] references=Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(InformationFiles(Contracts.Values, "assembly")).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            var reuse=FinalLinkReuse.Prepare(Tool,Project,key,work,references,connectionPresentation is not null);
+            JsonObject result;
+            string restored=work+".restore";
+            bool restoredLink=reuse is not null&&reuse.TryRestore(outputRoot,restored);
+            if(restoredLink)
+            {
+                Directory.Delete(work,true);work=restored;catalog=Path.Combine(work,"sources","public-linkage.json");
+                result=reuse!.Result(work);Statistics.ReusedFinalLinks++;
+            }
+            else result=Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source }, references, resources });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
             if (result["artifacts"] is not JsonObject artifacts || !artifacts.ContainsKey("application")) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an application artifact");
             foreach (var (_, value) in artifacts)
@@ -372,6 +380,9 @@ public sealed partial class Builder
             }
             if (artifacts["publicCatalog"] is null || JsonData.HashBytes(File.ReadAllBytes(PackPaths.Owned(work, artifacts["publicCatalog"]!.GetValue<string>()))) != JsonData.HashBytes(File.ReadAllBytes(catalog))) throw new BuildError("TOOL_PROTOCOL", "Target must preserve the public linkage catalog");
             blueprint?.EnsureUnchanged(verifyCompiler: true);
+            if(restoredLink&&blueprint is null&&new TargetTool(Registry,Target).Identity!=Tool.Identity)
+                throw new BuildError("TARGET_FAILURE","Target compiler changed during final artifact reuse; build again",Tool.Element.Loc);
+            reuse?.TryWriteProof(work,result);
             string dest = Path.Combine(outputRoot, key + "-" + Guid.NewGuid().ToString("N")[..12]); Directory.Move(work, dest);
             var reached = plan.Reached.Select(PackPaths.Namespace).ToHashSet(StringComparer.Ordinal);
             var report = JsonData.Object(new

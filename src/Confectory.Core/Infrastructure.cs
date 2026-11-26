@@ -106,6 +106,7 @@ public sealed class BuildStatistics
     public Dictionary<string, double> TargetElapsedMilliseconds { get; set; } = new(StringComparer.Ordinal);
     public Dictionary<string, List<string>> CheckedContractConsumers { get; set; } = new(StringComparer.Ordinal);
     public int FullRebuilds { get; set; }
+    public int ReusedFinalLinks { get; set; }
 }
 
 internal static class ChangeStamp

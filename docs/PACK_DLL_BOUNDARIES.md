@@ -125,3 +125,38 @@ The agreed physical contract boundary remains one selected contract DLL per name
 Regression results: 10 selected real .NET integration/Blueprint/verification tests passed, zero failures/skips, covering body and contract locality, unused declaration pruning, physical pack ABI and selected subset separation, metadata-only relink, corrupted artifact repair, target-tool change and concurrent Blueprint source change rejection. Both existing candidate-cache scripts passed, including exact same-timestamp node changes, invalid C#, damaged artifacts, same-ID project isolation and unavailable-cache fallback. The existing actual Chromium Run → failed stale imported caller → Logic Code mapping → Review cancel/Confirm → Run test also passed and incompatible input types remained refused. Windows actual execution was not performed.
 
 A third full Chromium/candidate run with the final test assertions also passed: candidate unchanged 3463ms, implementation change 4055ms (two packs), contract change 5215ms (two packs). The unchanged Run still compiled zero packs and invoked link once (954ms); the contract Run retained only A and consumer compilation. Repeated wall times spread, so the verified improvement is the eliminated Z compilation (3→2 candidate compile-pack calls), with a roughly 19% candidate implementation-change median reduction (5206→4224ms), not a claim of uniform acceleration of all Run scenarios.
+
+### Reusing an unchanged final linked output
+
+The normal build still calculates the current plan, validates the contracts and
+selects or compiles the physical DLLs. The built-in .NET Linux and portable
+link targets now explicitly advertise relocatable artifacts. For those targets
+only, the last published build can avoid another `link` process when the exact
+link inputs agree: target/tool fingerprint, project path, logical build key,
+generated binding source, actual reference DLL bytes and paths, resource bytes
+and .NET executable identity. The previous output must have a complete matching
+file/hash/mode proof, and the independent copy is checked again before use. The
+current source/Blueprint and compiler checks remain in force. A new output
+directory and current report are still published; previous runnable outputs are
+not overwritten. Missing, unsupported or damaged proofs and unexpected members
+fall back to ordinary linking. Other target modes retain their existing link
+and packaging path. This does not share final outputs across projects or
+isolated validation candidates; the first build following an upgrade may link.
+
+`statistics.reusedFinalLinks` distinguishes reuse from a real `link` invocation.
+The Chromium locality test repeats ordinary Run after restarting the local
+editor and checks repair of a damaged application, copied DLL and launcher
+mode. The portable integration test checks proof corruption, separate same-ID
+projects, and preservation of the prior output. Metadata-only changes still
+produce a fresh link without rebuilding unchanged implementation packs.
+
+Observed Linux Chromium click-to-successful-exit times for unchanged Run at
+91532d4: 3326/3210/3642ms (link 890/930/954ms). With final output reuse:
+2487/2067/2551ms, with zero link calls and one verified final reuse in
+all three. Median elapsed dropped from 3326 to 2487ms (~25%); these are
+local elapsed measurements with normal runtime variability, not a claim
+about Windows. Changed implementation and contract cases retain one actual
+link, and remain subject to ordinary compiler costs. Isolated candidate
+validation still links in its disposable output directory; it is not treated
+as a previously published Run output. The remaining unchanged-Run time
+includes fingerprint/host/launch overhead.

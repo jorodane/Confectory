@@ -39,8 +39,8 @@ env=dict(f.env,CONFECTORY_HOME_STORAGE=str(profile))
 observations=[]
 def report(kind,case,data,wall):
     s=data['statistics']
-    row=dict(kind=kind,case=case,wallMs=round(wall*1000),compiled=s['compiledPacks'],reused=s['reusedPacks'],contracts=s['compiledContractPacks'],checked=s['checkedContractConsumers'],targetCalls=s['targetInvocations'],targetMs={k:round(v) for k,v in s['targetElapsedMilliseconds'].items()})
-    assert row['targetCalls'].get('link')==1 and row['targetMs'].get('link',0)>0,row
+    row=dict(kind=kind,case=case,wallMs=round(wall*1000),compiled=s['compiledPacks'],reused=s['reusedPacks'],contracts=s['compiledContractPacks'],checked=s['checkedContractConsumers'],targetCalls=s['targetInvocations'],reusedLinks=s.get('reusedFinalLinks',0),targetMs={k:round(v) for k,v in s['targetElapsedMilliseconds'].items()})
+    assert row['targetCalls'].get('link',0)+row['reusedLinks']==1,row
     observations.append(row);print('OBSERVATION '+json.dumps(row),flush=True)
     return row
 def candidate(case,expected):
@@ -75,6 +75,7 @@ try:
         initial=candidate('initial','5:9');ui_run(browser,'initial','5:9',0)
         warm=candidate('unchanged','5:9');warm_run=ui_run(browser,'unchanged','5:9',1)
         assert not warm_run['compiled'] and not warm_run['contracts']
+        if not observe_only:assert warm_run['reusedLinks']==1 and not warm_run['targetCalls'].get('link'),warm_run
         assert not {'A.Probe','Z.Probe'}.intersection(warm['compiled']) and {'A.Probe','Z.Probe'}.issubset(warm['reused'])
         node=packs['A.Probe']/'value.node.json';stamp=node.stat();record=json.loads(node.read_text());record['source']='return 6;';node.write_text(json.dumps(record));os.utime(node,ns=(stamp.st_atime_ns,stamp.st_mtime_ns))
         body=candidate('implementation','6:9');body_run=ui_run(browser,'implementation','6:9',2)
@@ -85,6 +86,24 @@ try:
         assert set(contract_run['compiled'])=={'A.Probe','Test.DllConsumer'},contract_run
         assert 'Z.Probe' in contract_run['reused'] and contract_run['contracts']==['A.Probe'],contract_run
         assert set(contract_run['checked']['A.Probe::Value']).issuperset({'A.Probe::ValueBody','Test.DllConsumer::MainBody'}),contract_run
+        if not observe_only and 'quick' not in sys.argv[3:]:
+            latest=root/'.confectory/outputs/linux/latest.json'
+            old=json.loads(latest.read_text());output=Path(old['output'])
+            (output/'Confectory.App.dll').write_bytes(b'damaged final output')
+            damaged=ui_run(browser,'damaged-final','7:9',4)
+            assert damaged['targetCalls'].get('link')==1 and not damaged['compiled'],damaged
+            assert (output/'Confectory.App.dll').read_bytes()==b'damaged final output'
+            recovered=ui_run(browser,'recovered-warm','7:9',5)
+            assert recovered['reusedLinks']==1 and not recovered['compiled'],recovered
+            # A dependency copy and launcher permission belong to the complete output.
+            old=json.loads(latest.read_text());output=Path(old['output'])
+            dep=next(output.glob('Pack_*.dll'));dep.write_bytes(b'damaged dependency copy')
+            copied=ui_run(browser,'damaged-copy','7:9',6)
+            assert copied['targetCalls'].get('link')==1 and not copied['compiled'],copied
+            old=json.loads(latest.read_text());output=Path(old['output']);launcher=output/'run';launcher.chmod(0o600)
+            perms=ui_run(browser,'damaged-launcher','7:9',7)
+            assert perms['targetCalls'].get('link')==1 and not perms['compiled'],perms
+
         if not observe_only:
             assert 'Z.Probe' not in body['compiled'] and 'Z.Probe' in body['reused'],body
             assert 'Z.Probe' not in contract['compiled'] and 'Z.Probe' in contract['reused'],contract
