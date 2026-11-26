@@ -400,6 +400,7 @@ switch(endpoint){
  case "addProjectPack":if(args.Count!=1)throw new ArgumentException("Explicit installed pack only");request["action"]="add-project-pack";request["id"]=args["id"]!.GetValue<string>();break;
  case "setProjectEntry":if(args.Count!=1)throw new ArgumentException("Explicit entry function only");request["action"]="set-project-entry";request["id"]=args["id"]!.GetValue<string>();break;
  case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema" or "category" or "concept" or "function" or "module" or "enum"))throw new ArgumentException("Supported declaration kind required");request["kind"]=createKind;break;
+ case "directPropertyConfirm":if(args.Count!=2||args["proof"] is not System.Text.Json.Nodes.JsonArray directProof||directProof.Count!=2)throw new ArgumentException("Explicit direct property receipt required");request["action"]="direct-property-confirm";request["target"]=Target();request["proof"]=directProof.DeepClone();break;
  case "reviewGroup":request["action"]="review";request["target"]=Target();request["ids"]=args["ids"]!.DeepClone();break;
  case "confirmGroup":request["action"]="confirm";request["token"]=args["token"]!.DeepClone();request["ids"]=args["ids"]!.DeepClone();break;
  case "schema":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Schema selection changed");request["action"]="schema-view";break;
@@ -432,7 +433,7 @@ switch(endpoint){
 var after=System.Text.Json.Nodes.JsonNode.Parse(calls.Command.Invoke(context,"workspace",request.ToJsonString()))!;
 if(after["status"]?.ToString().StartsWith("Error:",StringComparison.Ordinal)==true)throw new InvalidOperationException("Consumer rejected the operation");
 if(endpoint=="preparePropertyModels"&&args["restoreStatuses"]?.GetValue<bool>()==true)return (after["workspace"]?["restoreStatuses"]??new System.Text.Json.Nodes.JsonObject()).ToJsonString();
-if(endpoint is "confirmGroup" or "confirmDraft"){
+if(endpoint is "confirmGroup" or "confirmDraft" or "directPropertyConfirm"){
  string? outcome=after["workspace"]?["confirmation"]?[0]?.ToString();
  return System.Text.Json.JsonSerializer.Serialize(new{accepted=true,operation=endpoint,sourceConfirmed=outcome is "confirmed" or "confirmed-with-warning"});
 }

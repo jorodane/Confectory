@@ -644,6 +644,18 @@ async function directPropertySave(id,proof,alive){
   try{await view.call('select',{id});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}
  }
  await assertBrowserDataApplied(ids);
+ if(proof.length===2&&proof[0].combined===true){
+  let result;
+  for(let attempt=0;attempt<3;attempt++){
+   await view.update();if(!guard()||current.draft?.id!==id||(targetChoices.get(scope)||current.runTarget)!==target)return false;
+   try{result=await view.call('directPropertyConfirm',{proof,target});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}
+  }
+  if(!result?.sourceConfirmed){showReview();throw Error('최종 소스에 저장하지 못했습니다. 초안은 유지됩니다.');}
+  reviewSelections.delete(scope);closeWindow('review');await declarationEditors.afterAuthorConfirm?.(ids,scope);
+  const properties=windows.get('schema');
+  if(properties&&!properties.el.hidden&&properties.meta.id===current.draft?.id)showSchema();
+  toast('저장했습니다.');return true;
+ }
  for(let attempt=0;attempt<3;attempt++){
   await view.update();if(!guard()||current.draft?.id!==id||(targetChoices.get(scope)||current.runTarget)!==target)return false;
   try{await view.call('reviewGroup',{ids,target});break;}catch(error){if(error.message!=='stale_revision'||attempt===2)throw error;}

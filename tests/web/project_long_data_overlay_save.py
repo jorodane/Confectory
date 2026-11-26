@@ -1,7 +1,8 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--guard-object|--guard-schema] [--run] [--timeline] [--context-batch|--context-baseline]. Every invocation makes a disposable copy.
+[--assets] [--legacy-finalization] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema] [--run] [--timeline] [--context-batch|--context-baseline]. Every invocation makes a disposable copy.
+The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -66,23 +67,29 @@ from editor_logic_workflow import find_project_item
 def save_existing_rule(page,window,new):
  # Only an already confirmed object value may use this single direct Save.
  button=window.locator('[data-element-action=confirm]');expect(button).to_have_text('저장')
- calls=[]
+ calls=[];all_calls=[]
  if '--timeline' in sys.argv:page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
  def observe(request):
   if request.method!='POST':return
   try:payload=request.post_data_json
   except Exception:return
-  if isinstance(payload,dict) and payload.get('op')=='invoke' and payload.get('endpoint') in ('reviewGroup','confirmGroup'):calls.append(payload['endpoint'])
+  if isinstance(payload,dict) and payload.get('op')=='invoke':
+   endpoint=payload.get('endpoint');all_calls.append(endpoint)
+   if endpoint in ('reviewGroup','confirmGroup','directPropertyConfirm'):calls.append(endpoint)
  page.on('request',observe)
  page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
  try:
-  button.click()
+  started=time.monotonic();button.click()
   deadline=time.monotonic()+120
-  while time.monotonic()<deadline and (calls.count('confirmGroup')<1 or f'data OpenMilliseconds = {new};' not in source_file.read_text()):page.wait_for_timeout(50)
+  while time.monotonic()<deadline and (not any(c in calls for c in ('confirmGroup','directPropertyConfirm')) or f'data OpenMilliseconds = {new};' not in source_file.read_text()):page.wait_for_timeout(50)
+  print('durable ms',round((time.monotonic()-started)*1000),flush=True)
   expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
   expect(page.locator('#review-creation')).to_be_hidden();expect(page.locator('.window[data-key=review]')).to_be_hidden()
   assert not page.evaluate('()=>window.__directRuleReviewSeen'), 'A Review was displayed during direct Save'
-  assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+  expected=['reviewGroup','confirmGroup'] if '--legacy-finalization' in sys.argv or '--baseline' in sys.argv else ['directPropertyConfirm']
+  assert calls==expected,calls
+  from collections import Counter
+  print('finalization requests',calls,'total invokes',len(all_calls),dict(Counter(all_calls)),flush=True)
  finally:
   page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
   if '--timeline' in sys.argv:print('RENDERER',json.dumps(page.evaluate('()=>globalThis.confectoryWebUITrace')),flush=True)
@@ -129,7 +136,30 @@ def activate(page):
 with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
  with web(browser,'value-save') as page:
   w=rules(page)
-  if '--guard-object' in sys.argv or '--guard-schema' in sys.argv:
+  if '--guard-final-object' in sys.argv or '--guard-final-schema' in sys.argv:
+   value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
+   target=source_file if '--guard-final-object' in sys.argv else project/'elements'/(re.search(r'use schema [^:]+::([^;]+);',source_file.read_text())[1]+'.celem')
+   before=target.read_bytes()
+   changed=before.replace(b'OpenMilliseconds = 1000',b'OpenMilliseconds = 3000') if target==source_file else before.replace(b'general long',b'general bool')
+   assert changed!=before
+   observed=[]
+   def before_finalize(route):
+    try:payload=route.request.post_data_json
+    except Exception:payload=None
+    if isinstance(payload,dict) and payload.get('endpoint')==('confirmGroup' if '--legacy-finalization' in sys.argv or '--baseline' in sys.argv else 'directPropertyConfirm') and not observed:
+     assert source_file.read_bytes()==original['elements/TimingRules.celem']
+     target.write_bytes(changed);observed.append(True)
+    route.fallback()
+   page.route('**/*',before_finalize)
+   w.locator('[data-element-action=confirm]').click()
+   expect(page.locator('#status')).to_contain_text('유지',timeout=120000)
+   assert observed and target.read_bytes()==changed
+   assert all(snapshot(project)[k]==v for k,v in original.items() if k!=str(target.relative_to(project)))
+   assert snapshot(peer)==peer_original
+   drafts=list((project/'.confectory/edit-workspaces').glob('*/draft.json'))
+   assert any('OpenMilliseconds = 2000;' in draft.read_text() for draft in drafts), 'Checkpoint did not retain the attempted value'
+   print('PASS external change at finalization and durable draft retained',flush=True)
+  elif '--guard-object' in sys.argv or '--guard-schema' in sys.argv:
    value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
    target=source_file if '--guard-object' in sys.argv else project/'elements'/(re.search(r'use schema [^:]+::([^;]+);',source_file.read_text())[1]+'.celem')
    before=target.read_bytes()
@@ -182,7 +212,7 @@ if '--timeline' in sys.argv and phases:
   if row['stage']=='consumer':
    mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
    if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective']})
-   if row.get('endpoint') in ('reviewGroup','confirmGroup'):reviews.append({'endpoint':row['endpoint'],'consumerMs':row['elapsedMs'],'propertyObservationsMs':[item['elapsedMs'] for item in group if item.get('operation')=='blueprintPropertyObservations'],'overlayMs':[item['elapsedMs'] for item in group if item.get('operation')=='validateLongDataOverlay']})
+   if row.get('endpoint') in ('reviewGroup','confirmGroup','directPropertyConfirm'):reviews.append({'endpoint':row['endpoint'],'consumerMs':row['elapsedMs'],'propertyObservationsMs':[item['elapsedMs'] for item in group if item.get('operation')=='blueprintPropertyObservations'],'overlayMs':[item['elapsedMs'] for item in group if item.get('operation')=='validateLongDataOverlay']})
    group=[]
  print('OWNER PREPARATION',json.dumps(groups),flush=True)
  print('REVIEW CONFIRM',json.dumps(reviews),flush=True)

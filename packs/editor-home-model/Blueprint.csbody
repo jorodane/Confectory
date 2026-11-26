@@ -49,6 +49,17 @@ lock(state){
   else throw new UnauthorizedAccessException("Explicit bound source surface required");
  }
  input["uiSurface"]=slot.Length==0?"":"view:"+slot;var workspaces=(System.Collections.Generic.Dictionary<string,string>)state[9];if(!workspaces.TryGetValue(workspaceKey,out string? view))throw new InvalidOperationException("Open this project's source workspace first");string? restoreSelection=slot.Length==0&&input["declaration"]?["raw"] is not null&&model["workspace"]?["unit"]?["id"]?.ToString()!=input["id"]?.ToString()?model["workspace"]?["unit"]?["id"]?.ToString():null;
+ if(operation=="applySlots")model.Remove("directPropertySaveReceipt");
  try{string result=calls.Blueprint.Invoke(view,operation,input.ToJsonString());
+ // Only the just-saved, single existing object and its unchanged manifest with ordinary data changes can
+ // enter the combined path. The receipt is session-owned, not a client claim.
+ if(operation=="applySlots"&&slot.Length==0&&selected["kind"]?.ToString()=="project"&&selected["namespace"]?.ToString()!="Confectory.AISettings"&&state[17] is null&&!((System.Collections.Generic.Dictionary<string,string>)state[11]).ContainsKey(context)&&(model["aiRuns"]?[context]?["workers"]?.AsObject().Count is null or 0)&&model["aiPreview"]?["context"]?.ToString()!=context&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray changes&&changes.Count>0&&System.Linq.Enumerable.All(changes,c=>c?["type"]?.ToString()=="data")){
+  var receipt=System.Text.Json.Nodes.JsonNode.Parse(result)!;
+  if(receipt["directSaveProof"] is System.Text.Json.Nodes.JsonArray proof&&proof.Count==2&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==input["id"]?.ToString())==1&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==selected["namespace"]!.ToString()+"::ProjectManifest"&&r?["hash"]?.ToString()==r?["beforeHash"]?.ToString())==1){
+   proof[0]!["combined"]=true;
+   model["directPropertySaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=selected["activation"]!.DeepClone(),["owner"]=input["id"]!.DeepClone(),["proof"]=proof.DeepClone()};
+   result=receipt.ToJsonString();
+  }
+ }
  if(operation is not ("verifyNativePreview" or "nativePreview" or "readNative" or "previewNodeInternal" or "read" or "list" or "readFeature" or "readImplementation" or "callables" or "implementationCallables" or "readCall" or "readConversion" or "readContract" or "readProperty" or "propertyCatalog" or "implementationSources" or "readImplementationCopy" or "readSlotRemoval" or "slotAssignments" or "readSlotAssignment")){string refresh=slot.Length>0?"open":operation is "createFeature" or "createImplementation" or "convertBody"?"open":model["workspace"]?["schemaView"] is not null?"schema-view":model["workspace"]?["inspection"] is not null?"inspect":"open";var request=new System.Text.Json.Nodes.JsonObject{["context"]=context,["action"]=refresh};if(slot.Length>0){request["view"]=slot;request["id"]=detachedOwner is null?input["id"]!.DeepClone():System.Text.Json.Nodes.JsonValue.Create(detachedOwner);}calls.Command.Invoke(session,"workspace",request.ToJsonString());}return result;}finally{if(restoreSelection is not null)calls.Command.Invoke(session,"workspace",new System.Text.Json.Nodes.JsonObject{["context"]=context,["action"]="select",["id"]=restoreSelection}.ToJsonString());}
 }
