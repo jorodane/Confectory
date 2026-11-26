@@ -1,5 +1,5 @@
 """Restore three owned windows using the initial status already read by the host."""
-import sys,time
+import sys,time,json
 import v821_property_window_reopen_ui as r
 from playwright.sync_api import sync_playwright, expect, TimeoutError as PlaywrightTimeoutError
 from editor_navigation import goto_editor
@@ -9,8 +9,10 @@ r.seed()
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 expect.set_options(timeout=60000)
 close_mode=mode in ('primary-close-restore','primary-close-persist')
-primary_mode=mode in ('primary','primary-after-save','missing-primary') or close_mode
-save_mode=mode in ('after-save','primary-after-save') or close_mode
+partial_modes={'partial-middle':[d.PEER],'partial-first':[d.TARGET],'partial-two':[d.TARGET,d.PEER],'partial-reuse':[d.PEER]}
+partial_mode=mode in partial_modes
+primary_mode=mode in ('primary','primary-after-save','missing-primary') or close_mode or partial_mode
+save_mode=mode in ('after-save','primary-after-save') or close_mode or partial_mode
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
         f.start(0)
@@ -38,7 +40,7 @@ try:
             # host admission fallback instead of the clean local read model.
             window.locator('[data-element-action="save"]').click()
             expect(page.locator('#project-menu')).to_be_enabled()
-        geometry={key:page.locator(f'.window[data-key="{key}"]').bounding_box() for key in notes} if close_mode else {}
+        geometry={key:page.locator(f'.window[data-key="{key}"]').bounding_box() for key in notes} if close_mode or partial_mode else {}
         saved_id=f.state()['draft']['id']
         if primary_mode:assert saved_id==d.NS+'::Extra2',saved_id
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
@@ -55,6 +57,15 @@ try:
             marker='element Extra2 object "private-source-Extra2.celem";'
             assert marker in manifest.read_text()
             manifest.write_text(manifest.read_text().replace(marker,''))
+            f.before[str(manifest)]=manifest.read_bytes()
+        if partial_mode:
+            manifest=f.projects[0]
+            text=manifest.read_text()
+            for name in partial_modes[mode]:
+                marker=f'element {name} object "private-source-{name}.celem";'
+                assert marker in text
+                text=text.replace(marker,'')
+            manifest.write_text(text)
             f.before[str(manifest)]=manifest.read_bytes()
         f.env.pop('CONFECTORY_WEB_PROJECT', None)
         f.start(1)
@@ -77,6 +88,99 @@ try:
         page.route('**/*', intercept)
         goto_editor(page, f.url)
         page.locator('.project-card').filter(has=page.get_by_role('heading', name=d.FIRST, exact=True)).locator('[data-enter]').click()
+        if partial_mode:
+            failed_ids={d.NS+'::'+name for name in partial_modes[mode]}
+            valid={key:(identifier,value) for key,(identifier,value) in notes.items() if identifier not in failed_ids}
+            failed={key:(identifier,value) for key,(identifier,value) in notes.items() if identifier in failed_ids}
+            expect(page.locator('#status')).to_contain_text('편집창 복원 실패')
+            expect(page.locator('#project-menu')).to_be_enabled()
+            print('visible property owners',page.locator('.window[data-element-owner]:visible').evaluate_all('rows=>rows.map(w=>w.dataset.elementOwner)'),flush=True)
+            for key,(identifier,value) in valid.items():
+                window=page.locator(f'.window[data-key="{key}"]')
+                expect(window).to_be_visible(timeout=5000)
+                expect(r.floating.property_value(window,'Note')).to_have_value(value)
+                assert window.get_attribute('data-element-owner')==identifier
+                box=window.bounding_box()
+                assert all(abs(box[field]-geometry[key][field])<=2 for field in ('x','y','width','height')),(key,box,geometry[key])
+            for key in failed:expect(page.locator(f'.window[data-key="{key}"]')).to_be_hidden()
+            expect(page.locator('#status')).to_contain_text('일부 편집창 복원 실패')
+            assert not failed_ids.intersection(row['id'] for row in f.state()['editorViews'])
+            # A manual/non-restoration request still rejects the missing owner.
+            failed_key,(failed_owner,_)=next(iter(failed.items()))
+            f.call('openEditorView',{'view':failed_key.removeprefix('editor-'),'id':failed_owner,'viewMode':'properties'},ok=False)
+            occupied=next(iter(valid))
+            # The restore classification cannot replace a differently bound slot.
+            f.call('openEditorView',{'view':occupied.removeprefix('editor-'),'id':failed_owner,'viewMode':'properties','restoreSaved':True},ok=False)
+            assert not failed_ids.intersection(row['id'] for row in f.state()['editorViews'])
+            print('PASS missing registration does not block following valid owners',flush=True)
+            key=next(key for key,(identifier,_) in valid.items() if identifier==d.NS+'::Extra1')
+            target=page.locator(f'.window[data-key="{key}"]')
+            note=r.floating.property_value(target,'Note')
+            note.click()
+            assert page.evaluate('document.activeElement.closest(".window")?.dataset.key')==key
+            changed='Saved following valid window '+mode
+            note.fill(changed)
+            source=f.projects[0].parent/'private-source-Extra1.celem'
+            assert source.read_bytes()==f.before[str(source)]
+            marker=len(invokes)
+            target.locator('[data-element-action="confirm"]').click()
+            expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
+            expect(page.locator('#project-menu')).to_be_enabled()
+            assert f'data Note = "{changed}"' in source.read_text()
+            f.before[str(source)]=source.read_bytes()
+            calls=[req['endpoint'] for req in invokes[marker:]]
+            assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+            valid[key]=(valid[key][0],changed)
+            schema.write_text(schema.read_text().rstrip()[:-1]+' field AfterPartialFlag single general string;\n}\n')
+            f.before[str(schema)]=schema.read_bytes()
+            rows=f.state()['editorViews']
+            row=next(row for row in rows if row['id']==d.NS+'::Extra1')
+            f.call('browserDrafts',{'action':'status','view':row['view'],'id':row['id'],'ids':[row['id']]})
+            for key,(identifier,value) in valid.items():
+                window=page.locator(f'.window[data-key="{key}"]')
+                expect(d.field(window,'AfterPartialFlag')).to_be_visible()
+                expect(r.floating.property_value(window,'Note')).to_have_value(value)
+            if mode=='partial-reuse':
+                replacement,replacement_key=r.floating.open_properties(page,'Extra2','ExtraFolder2')
+                assert replacement_key in failed
+                replacement_value='New input in reused slot'
+                r.floating.property_value(replacement,'Note').fill(replacement_value)
+                valid[replacement_key]=(d.NS+'::Extra2',replacement_value)
+            page.evaluate('()=>confectoryFlushPresentation()')
+            presentations=[json.loads(path.read_text()) for path in (f.root/'profile'/'presentations').glob('*.json')]
+            presentation=next(row for row in presentations if any(binding['id']==d.NS+'::Extra1' for binding in row.get('editorBindings',[])))
+            if mode=='partial-reuse':
+                assert any(binding['id']==d.NS+'::Extra2' and binding['view']==replacement_key.removeprefix('editor-') for binding in presentation['editorBindings'])
+                assert not failed_ids.intersection(binding['id'] for binding in presentation['editorBindings'])
+            else:assert failed_ids.issubset(binding['id'] for binding in presentation['editorBindings'])
+            for _,(identifier,value) in failed.items():
+                assert any(identifier in key and value==entry.get('text') for key,entry in presentation['inputs']['schema'])
+            f.original()
+            page.close();f.stop();f.start(2)
+            page=b.new_page(viewport={'width':2000,'height':1200})
+            page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(f.origin+'/') else route.abort())
+            goto_editor(page,f.url)
+            page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.FIRST,exact=True)).locator('[data-enter]').click()
+            expect(page.locator('#project-menu')).to_be_enabled()
+            for key,(identifier,value) in valid.items():
+                window=page.locator(f'.window[data-key="{key}"]')
+                expect(r.floating.property_value(window,'Note')).to_have_value(value)
+                assert window.get_attribute('data-element-owner')==identifier
+            for key in failed:
+                if key not in valid:expect(page.locator(f'.window[data-key="{key}"]')).to_be_hidden()
+            page.locator('.brand').click()
+            expect(page.locator('.home-grid')).to_be_visible()
+            page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.SECOND,exact=True)).locator('[data-enter]').click()
+            browser=r.browser_window(page)
+            r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder1"]')
+            r.search(browser,d.LABEL,'Extra1')
+            browser.locator(f'[data-object="{d.NS}::Extra1"]').click(button='right')
+            page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click()
+            other=page.locator(f'.window[data-element-owner="{d.NS}::Extra1"][data-element-mode="properties"]:visible')
+            expect(r.floating.property_value(other,'Note')).to_have_value(d.SECOND+' Extra1')
+            f.original()
+            print('PASS partial restoration saves exact owner, preserves failed input, restarts and isolates projects',flush=True)
+            raise SystemExit(0)
         if close_mode:
             deadline=time.monotonic()+30
             while not held and time.monotonic()<deadline:page.wait_for_timeout(20)

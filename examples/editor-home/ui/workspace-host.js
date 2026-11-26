@@ -8,7 +8,7 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
-  let restoreFlight=null;
+  let restoreFlight=null,partialRecovery=null;
   const readyWaiters=new Set();function ready(){loading=false;for(const resolve of readyWaiters)resolve();readyWaiters.clear();}function whenReady(){return loading?new Promise(resolve=>readyWaiters.add(resolve)):Promise.resolve();}
   const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';let office=null;
   // Browser Data borrows an editor owner once it has an explicit field definition.
@@ -96,7 +96,15 @@ export function createActualWorkspace(api) {
     runtime.saveLayouts();schedule('layout');
   }
   document.addEventListener('keydown',event=>{if(!project||loading||api.page!=='work'||event.altKey||event.isComposing||!(event.ctrlKey||event.metaKey)||!['z','y'].includes(event.key.toLowerCase())||event.target.isContentEditable||event.target.closest?.('input,textarea,select,.modal,.tab-document,.note-document,.feature-author-document,.object-schema,.object-functions,.voxel-office,.workspace-view-controls'))return;const undo=event.key.toLowerCase()==='z'&&!event.shiftKey;if((undo?project.privateHistory?.undo:project.privateHistory?.redo)?.length){event.preventDefault();event.stopImmediatePropagation();undo?deletionHistory.undo():deletionHistory.redo();}},true);
-  function capture(){if(project){windowDocuments.capture();if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.preparedPrimaryId?.()??api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
+  function capture(){if(project){windowDocuments.capture();if(!loading&&!project.recoveryFailed){project.selectedObjectId=api.preparedPrimaryId?.()??api.current.draft?.id;project.editorBindings=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));}else if(!loading&&partialRecovery?.project===project&&partialRecovery.scope===scope&&api.current.projectId===scope){
+    // A partial restore leaves ordinary editing available. Preserve a missing
+    // binding only while its slot is unclaimed; never replace a newly opened
+    // valid owner with an older failed binding at the next restart.
+    const bound=api.current.editorViews.map(({view,id,mode})=>({view,id,mode}));
+    partialRecovery.unavailable=partialRecovery.unavailable.filter(missing=>!bound.some(row=>row.view===missing.view));
+    project.editorBindings=[...bound,...partialRecovery.unavailable].sort((a,b)=>Number(a.view)-Number(b.view));
+    if(!partialRecovery.unavailable.length){project.recoveryFailed=false;partialRecovery=null;}
+  }project.inputs=api.captureInputs(detached.get(scope+'|source'));const owner=runtime.workspaceRecord();if(owner&&!loading&&panelWorkspace===runtime.state.activeWorkspaceId){owner.participants=api.capturePanels();owner.yogiPresentation=api.captureYogi();}if(owner){if(runtime.state.activeWorkspaceId==='root')project.rootWorkspaceView={...project.workspaceView};else owner.view={...project.workspaceView};}if(owner)for(const w of runtime.state.windows.values()){if(w.overlay)continue;const row=owner.layout.find(row=>row.key===w.key);if(row)Object.assign(row,runtime.windowLayout(w));}}}
   function snapshot(){capture();project.activeWorkspaceId=runtime.state.activeWorkspaceId;project.visitedWorkspaceTabs=[...runtime.state.visitedWorkspaceTabs];const value=JSON.parse(JSON.stringify(project));delete value.selectedNodeKeys;
     // Persist fresh input while a pointer gesture is provisional, using its last
     // committed geometry. A cancel can never leave an intermediate disk layout.
@@ -211,7 +219,7 @@ export function createActualWorkspace(api) {
     });
   }
   function attach(state){
-    const performanceStarted=api.performanceStart?.()??null;restoreFlight=null;loading=true;
+    const performanceStarted=api.performanceStart?.()??null;restoreFlight=null;partialRecovery=null;loading=true;
     if(project){capture();projects.set(scope,project);}
     scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
@@ -239,15 +247,22 @@ export function createActualWorkspace(api) {
       (async()=>{
         while(api.isBusy&&restoreLive(flight))await new Promise(resolve=>setTimeout(resolve,50));
         if(!restoreLive(flight))return;
-        try{await api.restoreBindings(missing,selected);if(!restoreLive(flight))return;project.recoveryFailed=false;api.setWorkspaceStatus('편집창 복원됨');
-          const layouts=restoreCompletionLayouts(flight);
+        try{const result=await api.restoreBindings(missing,selected);if(!restoreLive(flight))return;
+          const unavailable=result?.unavailable||[];
+          // An absent registration never creates a substitute editor. Preserve
+          // the saved binding/input plan for the unavailable owner while
+          // replaying the successfully bound windows at their original geometry.
+          project.recoveryFailed=unavailable.length>0;partialRecovery=unavailable.length?{project,scope,unavailable:[...unavailable]}:null;
+          const layouts=restoreCompletionLayouts(flight).filter(row=>!unavailable.some(binding=>row.key==='editor-'+binding.view&&row.meta?.id===binding.id));
           for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
+          if(unavailable.length){api.setWorkspaceStatus('일부 편집창 복원 실패');api.toast('일부 편집창 복원 실패 · 등록이 사라진 객체의 입력과 배치는 유지됩니다.');}
+          else api.setWorkspaceStatus('편집창 복원됨');
         }catch(error){if(restoreLive(flight)){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
         finally{if(restoreLive(flight)){restoreFlight=null;ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
       })();
     }
   }
-  function detach(){restoreFlight=null;office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';ready();changed=0;saved=0;}
+  function detach(){restoreFlight=null;office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';partialRecovery=null;ready();changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);const flight=restoreFlight,closed=flight?.closed.get(key);if(closed&&restoreLive(flight)&&sameWindowTarget(closed.row,w)){flight.closed.delete(key);const row=runtime.workspaceRecord().layout.find(row=>sameWindowTarget(row,w));if(row)Object.assign(row,runtime.windowLayout(w));}runtime.saveLayouts();}return w;}
   return {updateOffice:()=>office?.update(),officeFinder:()=>office?.finder()||null,runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,whenReady,get project(){return project},get loading(){return loading}};
 }
