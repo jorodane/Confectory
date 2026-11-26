@@ -77,3 +77,11 @@
 첫 반환값을 두 번째 입력으로 연결하고, 두 번째 삽입의 개인 Undo/Redo, 외부 호출 선언 변경 거절과 재시작 후 재시도, Review 취소와 형제 원본 변경 거절, Confirm, 실행 순서 (`private-probe:7`, `private-next:12`), 재개방, 독립 설명 입력과 동일 ID 별도 프로젝트의 보존을 확인한다. Confirm 이후에도 다시 호출을 추가할 수 있는 버튼이 활성화된다. 한 번의 Save에는 기존처럼 호출 한 건이 포함된다. private 분기, ref/out, async 및 Windows 실기는 이번 범위가 아니다.
 
 같은 `--multiple` 시나리오는 `method-nested`에서도 통과했다. 일반 child 삽입(`v821_child_insert_ui.py normal`) 및 기존 root 분기 직접 호출(`v821_branch_structure_ui.py call`)도 같은 Linux Chromium 빌드에서 통과했다.
+
+### 여러 직접 호출의 한 번 Save
+
+`v821_private_call_ui.py <repo> <run-report> normal --batch`에서는 두 호출을 모두 로컬 입력으로 작성하고 첫 반환값을 두 번째 입력으로 연결한 뒤 한 번에 저장한다. 기존 직렬 frame의 정확한 gap을 로컬 호출 삽입 순서로 대조하고, 저장 후보는 최종 실행 순서로 재생한다. 각 호출의 기존 선언/타입/원본/소유권 검사를 유지하면서 동일 격리 후보 안에서만 적용하며, 마지막 호출이 거절되면 체크포인트 전체가 그대로 남는다. 미결정 저장 시도는 해결하기 전 새 호출 삽입을 막는다.
+
+일반 중첩 및 `method-nested --batch --loss`에서 실제 Linux Chromium 검색, 개인 Undo/Redo, 값 연결, 두 번째 호출의 외부 선언 변경에 대한 전체 Save 거절, 재시작 후 재시도, Review 취소와 Confirm 원본 충돌, 실제 실행과 재개방, 독립 입력 및 동일 ID 프로젝트 격리를 검사했다. `--loss`는 실제 호스트가 체크포인트를 기록한 후 응답만 유실하도록 하여 재시작 뒤 별도 적용 명령 없이 정확한 영수증을 복구하는 것을 검증한다. 기존 각 호출별 Save도 가능하다. private 분기 및 Windows 실기는 별도 범위다.
+
+`normal --batch --reverse`는 소비하는 호출을 먼저 작성한 뒤 그 앞에 결과를 제공하는 호출을 삽입해 연결하여, 생성 순서가 아닌 실행 순서로 저장·실행됨을 확인했다. `normal --multiple` 기존 분할 Save 경로도 동일 빌드에서 통과했다.

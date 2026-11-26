@@ -6,7 +6,9 @@ from playwright.sync_api import expect,sync_playwright
 fixture=Path(__file__).with_name('v821_frame_structure_ui.py')
 setup=ast.parse(fixture.read_text()).body
 exec(compile(ast.Module(body=setup[:next(i for i,n in enumerate(setup)if isinstance(n,ast.Try))],type_ignores=[]),str(fixture),'exec'),globals())
-multiple='--multiple' in sys.argv
+batched='--batch' in sys.argv
+reverse=batched and '--reverse' in sys.argv
+multiple=batched or '--multiple' in sys.argv
 donor=f.n+'PrivateProbe'
 next_donor=f.n+'PrivateNext'
 marker=f.case/'private-call-run.txt'
@@ -43,7 +45,7 @@ try:
   original=read();assert original['documentFrameOrderBinding']['path']==frame_path
   add=doc().locator('[data-document-insert-call=inner]');expect(add).to_be_enabled()
   add.click();picker=f.page.get_by_role('dialog',name='블루프린트 노드 검색')
-  candidate=picker.locator('[data-resource-feature="'+donor+'"]');expect(candidate).to_be_visible()
+  candidate=picker.locator('[data-resource-feature="'+(next_donor if reverse else donor)+'"]');expect(candidate).to_be_visible()
   picker.locator('[data-resource-close]').click();assert not pending()
   add.click();expect(candidate).to_be_visible();candidate.click()
   cell=doc().locator('[data-document-cell^="call_"]');expect(cell).to_be_visible();id=cell.get_attribute('data-document-cell')
@@ -59,37 +61,44 @@ try:
   assert not doc().locator('[data-document-cell^="call_"]').count() and not doc().locator('[data-document-insert-call=inner]').count()
   assert pending()==held
   root_view();enter();assert order()==['$entry','inner',id,'tail','$exit:return'] and pending()==held
-  path=f.project/t.graph_file;raw=path.read_bytes();path.write_bytes(raw+b' ')
-  try:
-   panel().locator('[data-bp-save]').click();f.idle()
-   expect(panel().locator('.bp-status')).not_to_have_text('저장됨')
-   assert all(dict(pending()).get(k)==v for k,v in held) and checkpoint.read_bytes()==before and path.read_bytes()==raw+b' '
-  finally:path.write_bytes(raw)
-  restart(1)
-  if not doc().locator('[data-document-cell^="call_"]').count():enter()
-  assert order()==['$entry','inner',id,'tail','$exit:return']
-  panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000);f.idle()
-  x.original();peer_kept()
-  row=next(n for n in read()['nodes']if n['id']==id)
-  assert row['calledFeature']==donor and row['arguments'][0]['valueJson']=='{"input":"amount"}'
-  assert len(read(other)['nodes'])==2
+  path=f.project/t.graph_file;raw=path.read_bytes()
+  if not batched:
+   path.write_bytes(raw+b' ')
+   try:
+    panel().locator('[data-bp-save]').click();f.idle()
+    expect(panel().locator('.bp-status')).not_to_have_text('저장됨')
+    assert all(dict(pending()).get(k)==v for k,v in held) and checkpoint.read_bytes()==before and path.read_bytes()==raw+b' '
+   finally:path.write_bytes(raw)
+   restart(1)
+   if not doc().locator('[data-document-cell^="call_"]').count():enter()
+   assert order()==['$entry','inner',id,'tail','$exit:return']
+  if not batched:
+   panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000);f.idle()
+   x.original();peer_kept()
+   row=next(n for n in read()['nodes']if n['id']==id)
+   assert row['calledFeature']==donor and row['arguments'][0]['valueJson']=='{"input":"amount"}'
+   assert len(read(other)['nodes'])==2
   second=None
   if multiple:
-   # First call is saved but not confirmed; the exact saved receipt must
-   # reopen the frame and permit another call without widening its ownership.
+   # In batch mode both calls are still local inputs. In legacy mode the
+   # first call is saved but not confirmed, and reopened before the addition.
    first_saved=checkpoint.read_bytes()
-   restart(11)
+   if not batched:restart(11)
    if not doc().locator('[data-document-cell^="call_"]').count():enter()
    peer_kept()
-   add=doc().locator(f'[data-document-insert-call="{id}"]');expect(add).to_be_enabled()
+   add=doc().locator(f'[data-document-insert-call="{'inner' if reverse else id}"]');expect(add).to_be_enabled()
    add.click();picker=f.page.get_by_role('dialog',name='블루프린트 노드 검색')
-   picker.locator('[data-resource-feature="'+next_donor+'"]').click()
-   second_cell=doc().locator('[data-document-cell^="call_"]').nth(1)
+   picker.locator('[data-resource-feature="'+(donor if reverse else next_donor)+'"]').click()
+   second_cell=doc().locator(f'[data-document-cell^="call_"]:not([data-document-cell="{id}"])')
    expect(second_cell).to_be_visible();second=second_cell.get_attribute('data-document-cell')
-   assert second!=id and order()==['$entry','inner',id,second,'tail','$exit:return']
+   assert second!=id and order()==['$entry','inner',*([second,id] if reverse else [id,second]),'tail','$exit:return']
    doc().press('Control+z');expect(second_cell).to_have_count(0)
    doc().press('Control+y');expect(second_cell).to_be_visible()
-   value=second_cell.locator('[data-document-value][data-document-port="field:amount"]')
+   if reverse:
+    id,second=second,id
+    provider=doc().locator(f'[data-document-cell="{id}"] [data-document-value][data-document-port="field:amount"]')
+    provider.click();f.page.get_by_role('dialog',name='핀 값 선택').get_by_role('button',name='입력 · amount',exact=True).click()
+   value=doc().locator(f'[data-document-cell="{second}"] [data-document-value][data-document-port="field:amount"]')
    value.click();f.page.get_by_role('dialog',name='핀 값 선택').get_by_role('button',name='PrivateProbe · 결과',exact=True).click()
    expect(value).to_contain_text('PrivateProbe')
    second_held=pending();second_source=f.project/'PrivateNext.celem';second_raw=second_source.read_bytes()
@@ -102,10 +111,37 @@ try:
    restart(12)
    if not doc().locator('[data-document-cell^="call_"]').count():enter()
    assert order()==['$entry','inner',id,second,'tail','$exit:return']
-   panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+   if batched and '--loss' in sys.argv:
+    applies=set();queries=set();lost=[]
+    def interrupt(route):
+     request=route.request.post_data_json
+     if request.get('op')=='invoke' and request.get('endpoint')=='blueprint':
+      action=request.get('input',{}).get('action')
+      if action=='authorBatch':applies.add(request['requestId'])
+      elif applies and action=='settledAuthorBatch':queries.add(request['requestId'])
+     response=route.fetch();payload=response.json()
+     for row in payload.get('results',[]):
+      if row['requestId'] in applies|queries:
+       rid=row['requestId'];lost.append(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport-interrupted'})
+     route.fulfill(response=response,json=payload)
+    f.page.route('**/api/request',interrupt);panel().locator('[data-bp-save]').click()
+    for _ in range(1000):
+     if applies and any(r in queries for r in lost):break
+     f.page.wait_for_timeout(30)
+    assert len(applies)==1 and any(r in queries for r in lost) and checkpoint.read_bytes()!=first_saved
+    f.page.unroute_all(behavior='wait');f.idle();stored=checkpoint.read_bytes();restart(13)
+    if not doc().locator('[data-document-cell^="call_"]').count():enter()
+    mark=len(f.traffic);panel().locator('[data-bp-save]').click();f.idle()
+    assert not pending() and checkpoint.read_bytes()==stored
+    assert not any(r.get('invoke',{}).get('input',{}).get('action')=='authorBatch' for r in f.traffic[mark:])
+    f.checked('accepted multi-call Save with lost acknowledgement is recovered after cold restart, without duplicate application')
+   else:
+    panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000)
    f.idle();x.original();peer_kept()
    current=read();assert next(n for n in current['nodes']if n['id']==second)['calledFeature']==next_donor
-   f.checked('second reference in the same saved but unconfirmed frame, bound to first return with stale callee refusal and cold retry')
+   assert next(n for n in current['nodes']if n['id']==id)['calledFeature']==donor
+   if batched:assert first_saved==before
+   f.checked(('two unsaved references in one atomic Save' if batched else 'second reference in the same saved but unconfirmed frame')+', bound to first return with stale callee refusal and cold retry')
   r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original()
   r=review()
   sibling=f.project/'Pair.peer.inner.node.json';sibling_raw=sibling.read_bytes();saved=checkpoint.read_bytes()
