@@ -174,7 +174,7 @@ if '--trace' in sys.argv:
   if '--baseline' not in sys.argv:assert not candidate,(label,len(candidate))
 
 if '--timeline' in sys.argv and phases:
- groups=[];group=[]
+ groups=[];group=[];reviews=[]
  for line in (root/'value-save.log').read_text().splitlines():
   if not line.startswith('CONFECTORY_UI_TRACE '):continue
   row=json.loads(line.split(' ',1)[1])
@@ -182,8 +182,10 @@ if '--timeline' in sys.argv and phases:
   if row['stage']=='consumer':
    mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
    if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective']})
+   if row.get('endpoint') in ('reviewGroup','confirmGroup'):reviews.append({'endpoint':row['endpoint'],'consumerMs':row['elapsedMs'],'propertyObservationsMs':[item['elapsedMs'] for item in group if item.get('operation')=='blueprintPropertyObservations'],'overlayMs':[item['elapsedMs'] for item in group if item.get('operation')=='validateLongDataOverlay']})
    group=[]
  print('OWNER PREPARATION',json.dumps(groups),flush=True)
+ print('REVIEW CONFIRM',json.dumps(reviews),flush=True)
  assert len(groups)==len(phases),groups
  assert all(len(group['mixedPreparationMs'])==(2 if '--baseline' in sys.argv else 1) for group in groups),groups
 

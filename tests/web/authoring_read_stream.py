@@ -80,6 +80,34 @@ def exercise(root):
                 guard=dict(operation='informationBodyGroupGuards',action=action,namespace='Test.Stream',units={},selected=[])
                 assert json.loads(send(proc,dict(guard,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(guard),text=True,capture_output=True,timeout=20,check=True).stdout)
 
+            # The checkpoint Save uses the same payload-only read guard in
+            # the selected project's read stream. Preserve every returned CAS
+            # observation, including a nonempty body receipt and stale refusal.
+            import hashlib
+            def property_unit(kind, path, text):
+                return dict(kind=kind, path=path, draft=text, original=text,
+                            baseline=hashlib.sha256(text.encode()).hexdigest())
+            implementation='Test.Stream::WorkBody'
+            graph_id=implementation+'/body:common'
+            units={
+                'Test.Stream::ProjectManifest':property_unit('project','project.cpack',a.read_text()),
+                'Test.Stream::Work':property_unit('function','Work.celem',(a.parent/'Work.celem').read_text()),
+                implementation:property_unit('implementation','WorkBody.celem',
+                    'implementation Test.Stream::WorkBody for Test.Stream::Work () -> void { blueprint common "Work.graph.json"; }'),
+                graph_id:property_unit('blueprint','Work.graph.json',json.dumps({'nodes':[]}))}
+            sources={id:dict(path=unit['path'],kind=unit['kind'],hash=unit['baseline']) for id,unit in units.items()}
+            units[graph_id]['propertyObservations']=dict(version=1,graph=graph_id,sources=sources)
+            property_guard=dict(operation='blueprintPropertyObservations',namespace='Test.Stream',units=units)
+            def ordinary_guard(payload):
+                return json.loads(subprocess.run(HOST,input=json.dumps(payload),text=True,capture_output=True,timeout=20,check=True).stdout)
+            result=ordinary_guard(property_guard)
+            assert result['ok'] and len(result['result']['checks'])==4,result
+            assert json.loads(send(proc,dict(property_guard,_streamProject=str(a))))==result
+            stale=json.loads(json.dumps(property_guard));stale['units']['Test.Stream::Work']['baseline']='0'*64
+            refusal=ordinary_guard(stale)
+            assert not refusal['ok'] and json.loads(send(proc,dict(stale,_streamProject=str(a))))==refusal
+            assert json.loads(send(proc,dict(property_guard,_streamProject=str(a))))==result
+
             override=dict(operation='blueprintOverrideContracts',action='readRootImports',project=str(a),text=owned.read_text())
             observed=json.loads(send(proc,override));assert observed['ok'] and observed['result']['snapshot']
             assert observed==json.loads(subprocess.run(HOST,input=json.dumps(override),text=True,capture_output=True,timeout=20,check=True).stdout)
