@@ -216,6 +216,36 @@ try:
                         expect(doc.locator(f'[data-document-cell="{branch_call}"] [data-document-value][data-document-port="field:amount"]')).to_have_text('37')
                     finally:checkpoint.write_bytes(checkpoint_before)
                     print('PASS conflicting checkpoint Save preserves call, value and originals',flush=True)
+                if full_session:
+                    # The real Save carries a name and intent for the new cell.
+                    # Corrupt only the intent in flight; the atomic batch must
+                    # leave neither field, the source, nor the checkpoint applied.
+                    corruptions=[]
+                    def invalid_presentation(route):
+                        if route.request.method=='POST' and route.request.url.startswith(f.origin+'/'):
+                            try:body=route.request.post_data_json
+                            except Exception:body=None
+                            if isinstance(body,dict) and body.get('op')=='invoke' and body.get('endpoint')=='blueprint':
+                                request=body.get('input',{})
+                                if request.get('action')=='authorBatch':
+                                    plan=request.get('edits',[{}])[0].get('definition',{}).get('childPlan')
+                                    if plan and plan.get('creation'):
+                                        intent=next(e for e in plan['creation'] if e['action']=='intent')
+                                        intent['text']='x'*16385
+                                        corruptions.append(True)
+                                        route.continue_(post_data=json.dumps(body));return
+                        route.fallback()
+                    page.route('**/*',invalid_presentation)
+                    try:
+                        panel.locator('[data-bp-save]').click()
+                        expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                        assert corruptions and panel.locator('.bp-status').inner_text()!='저장됨'
+                        unchanged()
+                        current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
+                        assert (current.read_bytes() if current else None)==checkpoint_before
+                        expect(doc.locator(f'[data-document-cell="{branch_call}"] [data-document-value][data-document-port="field:amount"]')).to_have_text('37')
+                    finally:page.unroute('**/*',invalid_presentation)
+                    print('PASS invalid paired intent rejects the entire Save and retains the UI input',flush=True)
             started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
             print('TIMING combined wrap and branch Save ms',round((time.perf_counter()-started)*1000),flush=True)
             assert graph_path.read_bytes()==original_graph and retained_source.read_bytes()==retained_bytes
@@ -241,6 +271,19 @@ try:
             if full_clean:assert sum(row.get('endpoint')=='confirmGroup' for row in f.requests[confirm_mark:])==1
             assert retained_source.read_bytes()==retained_bytes
             assert all(Path(p).read_bytes()==old for p,old in f.before.items() if Path(p).is_relative_to(f.projects[1].parent))
+            if full_session:
+                saved_graph=json.loads(graph_path.read_bytes())
+                def descendants(graph):
+                    for node in graph['nodes']:
+                        yield node
+                        if node.get('graph'):yield from descendants(node['graph'])
+                by_id={node['id']:node for node in descendants(saved_graph)}
+                plan=accepted[-1]['input']['edits'][0]['definition']['childPlan']
+                for field in ('creation','body'):
+                    for edit in plan[field]:
+                        if edit['action'] in ('rename','intent'):
+                            assert by_id[edit['node']]['displayName' if edit['action']=='rename' else 'intent']==edit['text']
+                print('PASS paired name and intent both persist in the committed graph',flush=True)
             print('PASS same draft continued through actual branch body and reference, one final Confirm' if full_clean else 'PASS same draft continued through actual branch body and reference, final stale refusal and Confirm',flush=True)
         elif compound:
             page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(5)
