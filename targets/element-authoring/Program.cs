@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_8");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_9");Console.Out.Flush();
     string? owner=null, projectionTransaction=null;
     OwnedGraphReadModel? projectionModel=null;
     for(int count=0;count<128;count++)
@@ -31,13 +31,19 @@ if(args.Length==1&&args[0]=="--inspect-stream")
             if(connectionSchema&&!string.Equals(settings,Path.GetFullPath(request["project"]!.GetValue<string>()),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
             if(!Path.GetFileName(settings).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)||!Path.GetFileName(folder).Equals(key,StringComparison.OrdinalIgnoreCase)||!string.Equals(Path.GetFileName(Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase))return 2;
         }
+        // Only a single ordinary long-value candidate, and its three existing
+        // read-only preparation guards, may use the project-bound CLR stream.
+        // Dispatch still performs the full validation; no semantic result is cached.
+        bool SingleLongData(JsonNode? changes)=>changes is JsonArray rows&&rows.Count==1&&rows[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray pathRow&&pathRow.Count==1&&pathRow[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&JsonNode.DeepEquals(row["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"});
+        bool preparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleLongData(request["changes"])||
+            operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject declaration&&declaration["raw"] is null&&declaration["id"] is JsonValue id&&id.TryGetValue<string>(out var ownerId)&&request["units"]?[ownerId]?["kind"]?.ToString()=="object"&&SingleLongData(declaration["changes"]);
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
         bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
         bool blueprintProposal=operation is "blueprintNodeFlow" or "blueprintEnumPreview" or "blueprintPrepareCall" or "blueprintPrepareFeature";
         bool blueprintValue=blueprintProposal||operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
         bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
         bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!connectionProposal&&!connectionSchema)return 2;
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!preparation&&!connectionProposal&&!connectionSchema)return 2;
         bool payloadOnly=blueprintValue||guardValue;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
         if((payloadOnly?request["_streamProject"]:connectionProposal?request["settingsProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;

@@ -25,7 +25,7 @@ print('source files',sum(1 for p in project.rglob('*') if p.is_file()),'bytes',s
 def snapshot(folder):return {str(p.relative_to(folder)):p.read_bytes() for p in folder.rglob('*') if p.is_file() and '.confectory' not in p.parts}
 original=snapshot(project);peer_original=snapshot(peer)
 run=json.loads(Path(sys.argv[1]).read_text())['run']
-env=dict(os.environ,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
+env=dict(os.environ,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_ELEMENT_AUTHORING_HOST=os.environ.get('CONFECTORY_TEST_AUTHORING_HOST',str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 env['PATH']=str(Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
 if '--timeline' in sys.argv:
  (root/'data').mkdir();env.update(CONFECTORY_UI_TRACE='1',CONFECTORY_PERFORMANCE='1',XDG_DATA_HOME=str(root/'data'))
@@ -258,6 +258,9 @@ if '--trace' in sys.argv:
  rows=[line for trace in traces for line in trace.read_text().splitlines()]
  for label,(start,end) in phases.items():
   selected=[line for line in rows if (m:=re.match(r'\d+ (\d+\.\d+)',line)) and start<=float(m[1])<=end]
+  starts_author=[line for line in selected if 'execve(' in line and 'Confectory.ElementAuthoring.dll' in line and ' = 0' in line]
+  streams=sum('--inspect-stream' in line for line in starts_author)
+  print(label,'authoring process starts',len(starts_author),'streams',streams,'one shots',len(starts_author)-streams,flush=True)
   csc=[line for line in selected if 'execve(' in line and 'csc.dll' in line]
   dll=[line for line in selected if 'openat(' in line and '.dll' in line and str(project/'.confectory') in line]
   candidate=[line for line in selected if str(project/'.confectory/candidates') in line]
@@ -279,7 +282,7 @@ if '--timeline' in sys.argv and phases:
   if row['stage']=='authoring-process':group.append(row)
   if row['stage']=='consumer':
    mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
-   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective'],'inspectEffectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='inspectEffective']})
+   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective'],'inspectEffectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='inspectEffective'],'preparationGuardsMs':{op:[item['elapsedMs'] for item in group if item.get('operation')==op] for op in ('informationBodyGroupGuards','informationPropertyGroupGuards','informationTypeGuards')}})
    if row.get('endpoint') in ('reviewGroup','confirmGroup','directPropertyConfirm'):reviews.append({'endpoint':row['endpoint'],'consumerMs':row['elapsedMs'],'propertyObservationsMs':[item['elapsedMs'] for item in group if item.get('operation')=='blueprintPropertyObservations'],'overlayMs':[item['elapsedMs'] for item in group if item.get('operation')=='validateLongDataOverlay']})
    group=[]
  print('OWNER PREPARATION',json.dumps(groups),flush=True)

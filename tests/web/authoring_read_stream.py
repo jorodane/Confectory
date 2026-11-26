@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_8'
+READY = 'CONFECTORY_INSPECT_STREAM_9'
 
 
 def exercise(root):
@@ -382,6 +382,66 @@ def exercise(root):
             body.write_text(body.read_text() + '\n// Synthetic changed body\n')
             changed = json.loads(send(proc, payload))
             assert changed['ok'] and not any(row['available'] for row in changed['result']['actions']), changed
+        finally:
+            finish(proc)
+        # The ordinary long candidate and all three preparation guards share
+        # one project stream without changing their results or write authority.
+        c=project('long-preparation')
+        schema=c.parent/'Schema.celem';schema.write_text(schema.read_text().replace('general int','general long'))
+        record=c.parent/'Record.celem'
+        import hashlib
+        def unit(kind,path):
+            text=path.read_text()
+            return dict(kind=kind,path=path.name,draft=text,original=text,baseline=hashlib.sha256(text.encode()).hexdigest(),revision=0)
+        units={'Test.Stream::ProjectManifest':unit('project',c),'Test.Stream::Record':unit('object',record),'Test.Stream::Schema':unit('schema',schema)}
+        row=dict(type='data',path=['Count'],contract=dict(kind='general',cardinality='single',type='long'),valueJson='3')
+        declaration=dict(id='Test.Stream::Record',hash=units['Test.Stream::Record']['baseline'],changes=[row])
+        candidate=dict(operation='mixedOwnerCopyEdits',project=str(c),manifest=c.read_text(),id=declaration['id'],text=record.read_text(),drafts=[],units=units,changes=[row],reuseLongPreparation=True)
+        guards=[dict(operation=op,action='prepare',project=str(c),namespace='Test.Stream',units=units,declaration=declaration) for op in ('informationBodyGroupGuards','informationPropertyGroupGuards','informationTypeGuards')]
+        def cold(payload):
+            return json.loads(subprocess.run(HOST,input=json.dumps(payload),text=True,capture_output=True,timeout=20,check=True).stdout)
+        before={p:p.read_bytes() for p in (c,schema,record)}
+        proc=start()
+        try:
+            for payload in [candidate,*guards]:
+                actual=json.loads(send(proc,payload))
+                assert actual['ok'] and actual==cold(payload),actual
+            result=cold(candidate)['result']
+            assert result.get('repeatProof') and 'data Count = 3;' in result['text']
+            assert all(p.read_bytes()==data for p,data in before.items())
+            schema.write_text(schema.read_text().replace('general long','general bool'))
+            refused=json.loads(send(proc,candidate))
+            assert not refused['ok'] and refused==cold(candidate),refused
+            assert record.read_bytes()==before[record]
+            assert send(proc,dict(candidate,project=str(b)))=='' and proc.wait(timeout=5)==2
+        finally:
+            finish(proc)
+        proc=start()
+        try:
+            unsupported=dict(candidate,changes=[dict(type='description',text='Not a direct long value')])
+            assert send(proc,unsupported)=='' and proc.wait(timeout=5)==2
+        finally:
+            finish(proc)
+        # The same shape can reference an imported schema. Its contract
+        # must still be reread; no direct-value proof is granted for stale data.
+        dependency=root/'long-dependency';dependency.mkdir()
+        (dependency/'pack.cpack').write_text('pack Test.LongDependency version "1" { element Shape schema "Shape.celem"; }')
+        shape=dependency/'Shape.celem'
+        shape.write_text('schema Test.LongDependency::Shape { field Count single general long; }')
+        e=project('long-dependent')
+        e.write_text(e.read_text().rstrip()[:-1]+' registry Test.LongDependency "../long-dependency/pack.cpack"; dependency Test.LongDependency version "1"; }')
+        dependent=e.parent/'Record.celem'
+        dependent.write_text(dependent.read_text().replace('Test.Stream::Schema','Test.LongDependency::Shape'))
+        imported_candidate=dict(candidate,project=str(e),manifest=e.read_text(),text=dependent.read_text(),units={'Test.Stream::ProjectManifest':unit('project',e),'Test.Stream::Record':unit('object',dependent),'Test.Stream::Schema':unit('schema',e.parent/'Schema.celem')})
+        proc=start()
+        try:
+            actual=json.loads(send(proc,imported_candidate))
+            assert actual['ok'] and actual==cold(imported_candidate),actual
+            original_dependent=dependent.read_bytes()
+            shape.write_text(shape.read_text().replace('general long','general bool'))
+            refused=json.loads(send(proc,imported_candidate))
+            assert not refused['ok'] and refused==cold(imported_candidate),refused
+            assert dependent.read_bytes()==original_dependent
         finally:
             finish(proc)
         proc = start()
