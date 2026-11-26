@@ -94,3 +94,34 @@ Android packaging used installed JDK21/API36 and the existing local unsigned pac
 Pull/build this work branch with the existing .NET10 workflow. Expect one initial pack-layout cache miss without deleting old caches; subsequent unchanged build should report compile-contract=0, compile-pack=0, link=1. Element counts can remain 130 because they describe logical participants; inspect targetInvocations and distinct assembly paths for physical work. Windows users should capture two consecutive same-target latest.json reports and elapsed times so the earlier all-cold cache behavior can be diagnosed independently. Existing locally customized Android settings/keys should be preserved.
 
 Keep BaseUI/Window split as accepted. Do not add a mod loader, private cross-pack coupling, main merge or unrelated UI fixes to this increment. Follow-up UI failures and native platform acceptance above remain separately scoped. Public ABI consumers must rebuild against v2 before any future loader work.
+
+## 2026-11-26: exact Blueprint compiler input per physical pack
+
+Reproduced at `56f83dd`: ordinary Run already reuses implementation DLLs with unchanged keys, but candidate validation's shared imported Blueprint cache used the build-wide `BlueprintCompilation.Nodes` array. A change to an earlier independent Blueprint pack changed the later pack's key and sent earlier node bodies to its compiler, even when its own source and contract were unchanged.
+
+The pack compiler now takes only the nodes appended during that exact selected physical pack compilation. Its versioned input key covers that payload for both local and shared artifacts. Native-only packs do not receive unrelated Blueprint node sources. The build-wide observer and receipts remain intact for source ownership, content observations and final CAS. The existing pack assembly layout, exact compiler/target fingerprint, contract/reference keys, artifact checksum validation, candidate owner isolation, and final linkage/catalog packaging are unchanged. The first build after the key version change may rebuild Blueprint artifacts once.
+
+Added actual target process time by operation and logical contract-consumer observations to build statistics. These distinguish compiler invocations, fingerprint calls and link from full editor elapsed time; they do not restrict or skip the normal planner signature checks.
+
+### Actual Linux Chromium / isolated candidate comparison
+
+`tests/web/dll_pack_locality.py` uses two generated independent Blueprint packs A.Probe and Z.Probe and a separate native C# project consumer. The dependency edits are external changes to the generated fixture files (including a restored timestamp); the ordinary editor ▶ is used for actual Run. The candidate-validation path separately calls the same host routine used at Confirm, executes its output, and reports its compiled/reused DLLs. No registered read-only dependency is edited via the UI. The old version is measured with an observation-only statistics patch and no cache behavior change.
+
+| Scenario | Before: candidate compiled implementation packs / elapsed | After: candidate compiled implementation packs / two runs |
+|---|---|---|
+| unchanged | consumer / 3169ms | consumer / 3078, 3089ms |
+| A implementation only | consumer, A, Z / 5206ms | consumer, A / 4281, 4224ms |
+| A public contract changed | consumer, A, Z / 5564ms | consumer, A / 4928, 5177ms |
+
+On the ordinary Run path, before and after:
+- Unchanged: zero implementation and contract pack compiles; all three implementation DLLs reused, one link remains.
+- A implementation changed, same contract: only A's implementation compiles; consumer and Z reuse, zero contract compiles.
+- A public return type changes: A's contract, A implementation and the actual consumer implementation compile; Z reuses. The stale consumer import is rejected before its declaration is repaired in the fixture. Recorded A signature consumers are A.Probe::ValueBody and Test.DllConsumer::MainBody. Reached Z still receives the ordinary logical signature check; it is not recompiled.
+
+Target link operation times in the two after runs (ms): unchanged Run 890/930, body-change Run 1029/888, contract-change Run 830/908. Total actual UI Run times were 3326/3210, 4106/4151, and 5683/6219ms respectively. No Run-time acceleration beyond the existing DLL locality is claimed. Five fingerprint invocations still take about 1s in this small fixture. Root native candidate validation still recompiles its local temporary-path-specific artifact.
+
+The agreed physical contract boundary remains one selected contract DLL per namespace. If a **selected sibling** contract in that same DLL changes, a pack referencing the physical contract DLL currently invalidates even if its declared import is another sibling. Unselected contracts are pruned. Arbitrary C# can reference the physical contract assembly, so replacing its key with a declared-import-only hash would not prove compiler inputs equivalent. Finer same-DLL consumer reuse needs a separately verified semantic reference boundary; this change deliberately does not change ABI/layout or weaken it.
+
+Regression results: 10 selected real .NET integration/Blueprint/verification tests passed, zero failures/skips, covering body and contract locality, unused declaration pruning, physical pack ABI and selected subset separation, metadata-only relink, corrupted artifact repair, target-tool change and concurrent Blueprint source change rejection. Both existing candidate-cache scripts passed, including exact same-timestamp node changes, invalid C#, damaged artifacts, same-ID project isolation and unavailable-cache fallback. The existing actual Chromium Run → failed stale imported caller → Logic Code mapping → Review cancel/Confirm → Run test also passed and incompatible input types remained refused. Windows actual execution was not performed.
+
+A third full Chromium/candidate run with the final test assertions also passed: candidate unchanged 3463ms, implementation change 4055ms (two packs), contract change 5215ms (two packs). The unchanged Run still compiled zero packs and invoked link once (954ms); the contract Run retained only A and consumer compilation. Repeated wall times spread, so the verified improvement is the eliminated Z compilation (3→2 candidate compile-pack calls), with a roughly 19% candidate implementation-change median reduction (5206→4224ms), not a claim of uniform acceleration of all Run scenarios.

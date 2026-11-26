@@ -103,6 +103,8 @@ public sealed class BuildStatistics
     public List<string> CompiledImplementations { get; set; } = [];
     public List<string> ReusedImplementations { get; set; } = [];
     public Dictionary<string, int> TargetInvocations { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, double> TargetElapsedMilliseconds { get; set; } = new(StringComparer.Ordinal);
+    public Dictionary<string, List<string>> CheckedContractConsumers { get; set; } = new(StringComparer.Ordinal);
     public int FullRebuilds { get; set; }
 }
 

@@ -48,9 +48,11 @@ public sealed class TargetTool
         if (payload is not null) foreach (var (key, value) in JsonData.Object(payload)) request[key] = value?.DeepClone();
         string[] command = System.IO.Path.GetExtension(Path) == ".dll" ? [Processes.DotNet(), Path] : [Path];
         ProcessResult response;
+        var started=System.Diagnostics.Stopwatch.GetTimestamp();
         try { response = Processes.Run(command, request.ToJsonString(JsonData.Options), System.IO.Path.GetDirectoryName(Path)); }
         catch (Exception ex) when (ex is IOException or Win32Exception or TimeoutException or UnauthorizedAccessException)
         { throw new BuildError("TOOL_EXECUTION", $"Target tool failed: {ex.Message}", Element.Loc); }
+        finally { Registry.Statistics.TargetElapsedMilliseconds.TryGetValue(operation,out double elapsed);Registry.Statistics.TargetElapsedMilliseconds[operation]=elapsed+System.Diagnostics.Stopwatch.GetElapsedTime(started).TotalMilliseconds; }
         JsonObject result;
         try { result = JsonNode.Parse(response.Stdout) as JsonObject ?? throw new JsonException("Response must be an object"); }
         catch (JsonException) { throw new BuildError("TOOL_PROTOCOL", $"Target tool returned invalid JSON: {response.Stderr}{response.Stdout}", Element.Loc); }
@@ -225,6 +227,7 @@ public sealed partial class Builder
         // Only immutable inputs outside the candidate may cross validation
         // directories. Blueprint results still require a fresh source observation.
         bool reusableImport = ns != Registry.Project.Namespace, hasBlueprint = false;
+        int nodeStart=blueprint?.Nodes.Count??0;
         foreach (var e in selected)
         {
             if (PackPaths.Namespace(e.Id) != ns) throw new BuildError("LOCAL_INPUT", "Cannot compile elements owned by different packs together");
@@ -246,11 +249,13 @@ public sealed partial class Builder
             sources.Select(x => new[] { x.Id, x.Code }).ToArray(),
             refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
         var packCache = reusableImport?implementationCache:cache;
-        // The target receives node source, helpers and mapping flags as a
-        // separate compiler input. Do not reuse an imported Blueprint artifact
-        // based only on its assembled C#; bind the exact entire node payload.
-        if (hasBlueprint&&!ReferenceEquals(packCache,cache))
-            key = JsonData.Digest(new object[] { key, "blueprint-compiler-input-v1", blueprint!.Nodes });
+        // The build-wide Blueprint observer retains earlier source receipts
+        // for CAS, but a physical pack compiler sees only this selection's
+        // node payload. Bind those exact inputs for both local and imported
+        // artifacts; earlier packs (or an earlier Check) cannot invalidate it.
+        JsonArray? packNodes=hasBlueprint?new JsonArray(blueprint!.Nodes.Skip(nodeStart).Select(n=>n!.DeepClone()).ToArray()):null;
+        if(packNodes is not null)
+            key=JsonData.Digest(new object[] { key, "blueprint-compiler-input-v2", packNodes });
         var artifact = packCache.Get(key);
         if (artifact is not null) { Statistics.ReusedPacks.Add(ns); Statistics.ReusedImplementations.AddRange(selected.Select(x => x.Id)); }
         else
@@ -258,7 +263,7 @@ public sealed partial class Builder
             JsonObject Compile(string work) => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
                 sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
                 // Preserve the exact original compiler payload on a miss.
-                blueprintNodes = blueprint?.Nodes,
+                blueprintNodes = packNodes,
                 references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Concat(InformationFiles(refs.Values, "reference")).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
             })["artifacts"]!.AsObject();
             try { artifact = packCache.Produce(key, Compile); }

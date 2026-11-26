@@ -139,6 +139,8 @@ public sealed class Registry
         var fn = Get(id, "function", source, loc);
         if (!expected.Matches(fn.Signature)) throw new BuildError("CONTRACT_MISMATCH", $"Incompatible signature for {id}", loc);
         if (!Statistics.CheckedContracts.Contains(id)) Statistics.CheckedContracts.Add(id);
+        if(!Statistics.CheckedContractConsumers.TryGetValue(id,out var consumers))Statistics.CheckedContractConsumers[id]=consumers=[];
+        if(!consumers.Contains(source,StringComparer.Ordinal))consumers.Add(source);
         return fn;
     }
     public Element Implementation(string function, string implementation, string source, SourceLocation loc)
