@@ -101,3 +101,11 @@ Linux 소스 앱과 패키지 앱에서 분기 화면을 직접 열어 확인했
 한 조회 요청의 소스 관측만 재사용하고 동일한 `BlueprintDocuments.Validate`를 단일 제한된 batch 호출로 수행한다. ID·종류·텍스트·바이트 제한 및 모든 원본의 검증을 유지하며 요청 사이에 소스나 권한을 캐시하지 않는다. 기존 도구의 미지원 응답에서만 원래 개별 검증 경로를 사용한다. 새 도구의 빈/중복/잘못된 노드를 포함한 batch 거절 검사도 통과했다.
 
 같은 Linux Chromium `after` 시나리오는 Save 충돌 거절, 재시도, cold 복원, Confirm과 실행까지 처음으로 이번 검사에서 종료 코드 0을 확인했다. 대표 blueprint 조회는 개별 검증 9–14회에서 batch 1회로 줄고 약 4–8초에서 2–3초로 단축됐다. 성공한 Save 명령 자체의 약 28.7초는 남은 병목이며 전체 성능 해결로 보고하지 않는다. Windows 실기는 미실행이다.
+
+## 논리 코드에서 직접 분기 기능 호출
+
+직접 소유한 기존 물리 root switch의 명시적 독립 case 시작(빈 case 포함) 또는 case 안의 일반 셀 바로 뒤에서 기존 등록 기능을 선택할 수 있다. 선택 당시의 owner/case/anchor/successor를 서버가 기존 독립 case 판정으로 확인하며, 호출 등록·typed import와 두 실행 연결을 한 후보로 변경한다. 기존 호출 계약 및 Review/Confirm 경로를 유지하고, 원래 물리 소스의 변경과 경로/링크도 호출 생성 직전에 확인한다. 별도 저장 형식이나 자동 확정은 추가하지 않는다.
+
+실제 Linux Chromium/호스트의 `tests/web/v821_branch_structure_ui.py <repo> <run-report> call`에서 빈 negative case에 입력 37, positive의 A/B 사이에 입력 19를 연결했다. 검색 취소, private Undo/Redo, 잘못된 successor 거절, 외부 graph 변경 중 Save 거절 및 입력/체크포인트 보존, 복원된 원본에서 재시작 후 Save, Review 취소/Confirm, 각각 실제 컴파일·실행의 순서와 cold 복원, 같은 namespace/ID의 다른 합성 프로젝트 격리를 확인했다. 일반 root의 `v821_new_function_document_ui.py`도 동일 빌드에서 통과했다.
+
+초기 graph 미생성 기능, private child graph, 공유/암시적 case, 이미 비일반 셀이 섞인 같은 case 및 async/context 경로는 이번 지원 대상이 아니다. 기존 호출 API의 계약 경계를 유지한다. Windows/WebView2 및 전체 패키지는 미실행이다.

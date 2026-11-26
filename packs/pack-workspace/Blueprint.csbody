@@ -1554,7 +1554,16 @@ lock(state){
  }check["assemblePreview"]=true;}var diagnostics=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",check.ToJsonString()))!;
  System.Text.Json.Nodes.JsonNode? callPrepared=null,callDefinitions=null,externalContract=null;int registeredCallBytes=0;
  if(readingCall){
-  var callDefinition=input["definition"]!.AsObject();string calleeId=callDefinition["feature"]!.GetValue<string>(),calleeText;System.Text.Json.Nodes.JsonObject? externalRequest=null;
+  var callDefinition=input["definition"]!.AsObject();
+  if(callDefinition["branchInsertion"] is not null){
+   if(privatePath.Length!=0||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||
+      !owned.Contains(implementationMetadata["function"]!.ToString())||
+      diagnostics["state"]?.ToString() is not ("source-ready" or "source-assembled"))
+    throw new InvalidOperationException("Existing direct owned branch source required");
+   RequireExclusiveWritableGraph();
+   RequireWritableFile(implementationSource[2]);
+  }
+  string calleeId=callDefinition["feature"]!.GetValue<string>(),calleeText;System.Text.Json.Nodes.JsonObject? externalRequest=null;
   if(calleeId.StartsWith(implementationId[..implementationId.LastIndexOf("::",StringComparison.Ordinal)]+"::",StringComparison.Ordinal)){var callee=Read(calleeId);if(callee[1]!="function"||callee[5]=="missing")throw new ArgumentException("Select an existing published caller function");calleeText=callee[3];contracts[calleeId]=calleeText;}
   else{
    string externalManifestId=System.Linq.Enumerable.Single(calls.List.Invoke(draft),id=>calls.Status.Invoke(draft,id)[2]==System.IO.Path.GetFileName(identity[0]));var externalManifest=Read(externalManifestId);

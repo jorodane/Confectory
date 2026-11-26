@@ -2,4 +2,5 @@ implementation Confectory.EditWorkspace::BlueprintCallBody for Confectory.EditWo
 import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 import Confectory.EditWorkspace::EditBatch as EditBatch (string,string[],string[],long[],string[]) -> bool;
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 body common "BlueprintCall.csbody";}

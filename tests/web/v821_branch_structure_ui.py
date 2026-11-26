@@ -1,5 +1,5 @@
 """Actual Linux editor/engine: exclusive switch cells, original returns and guards."""
-import ast,copy,json,sys,time,uuid
+import ast,copy,json,shutil,sys,time,uuid
 from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 import v666_root_execution_fixture as t
@@ -31,6 +31,13 @@ for id,source in bodies.items():
 (f.project/'Flow.graph.json').write_text(json.dumps(graph,ensure_ascii=False))
 (f.project/'MainBody.celem').write_text('implementation '+f.n+'MainBody for '+f.n+'Main () -> int {import '+t.feature+' as Flow (long) -> void;body common "Main.csbody";}')
 (f.project/'Main.csbody').write_text('foreach(long amount in new long[]{1,-1}){calls.Flow.Invoke(amount);global::System.Console.WriteLine("main:"+amount);}return 7;')
+if mode=='call':
+ donor=f.n+'BranchProbe'
+ (f.project/'BranchProbe.celem').write_text(f'function {donor} (long value) -> void {{provide {donor} with {donor}Body;}}')
+ (f.project/'BranchProbeBody.celem').write_text(f'implementation {donor}Body for {donor} (long value) -> void {{body common "BranchProbe.csbody";}}')
+ (f.project/'BranchProbe.csbody').write_text('global::System.Console.WriteLine("probe:"+value);')
+ manifest=f.project/'project.cproj'
+ manifest.write_text(manifest.read_text().rstrip().removesuffix('}')+'element BranchProbe function "BranchProbe.celem";element BranchProbeBody implementation "BranchProbeBody.celem";}')
 t.physical={p:p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.parts}
 def physical():return {p:p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.parts}
 def branch(port='case:positive'):return doc().locator('[data-document-panel="'+port+'"]')
@@ -44,7 +51,96 @@ try:
  with sync_playwright()as pw:
   expect.set_options(timeout=45000);f.browser=pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']);f.page=f.setup();f.page.set_viewport_size({'width':1900,'height':1500});open_document();baseline=t.read()
   expect(doc().locator('[data-document-cell=choose]')).to_be_visible();labels=doc().locator('[data-document-cell=choose] > .fd-cell-content > .fd-branches > .fd-branch-tabs [data-document-branch]').all_text_contents();assert labels==['Positive','Negative'],labels
-  if mode=='history':
+  if mode=='call':
+   path=f.project/'Flow.graph.json'
+   original=path.read_bytes()
+   other=f.case/'same ids other project'
+   shutil.copytree(f.project,other,ignore=shutil.ignore_patterns('.confectory','.build'))
+   other_original={p:p.read_bytes()for p in other.rglob('*')if p.is_file()}
+   donor_definition=dict(id='call_invalid_gap',feature=donor,intent='invalid gap',control='next',
+     branchInsertion=dict(owner='choose',case='case:negative',**{'from':'choose','to':'exit:yes'}))
+   f.invoke('blueprint',dict(action='readCall',id=t.graph,definition=donor_definition),False)
+   assert path.read_bytes()==original
+   def choose(button,amount):
+    button.click()
+    picker=f.page.get_by_role('dialog',name='블루프린트 노드 검색')
+    candidate=picker.locator('[data-resource-feature="'+donor+'"]')
+    expect(candidate).to_be_visible()
+    candidate.click()
+    new=doc().locator('[data-document-cell^="call_"]:visible').last
+    expect(new).to_be_visible()
+    id=new.get_attribute('data-document-cell')
+    if amount is None:return id
+    value=new.locator('[data-document-value][data-document-port="field:value"]')
+    value.click()
+    search=f.page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색')
+    search.fill(str(amount));search.press('Enter')
+    expect(value).to_have_text(str(amount))
+    return id
+   def save_call():
+    panel().locator('[data-bp-save]').click()
+    expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+    f.idle()
+   def confirm_call():
+    r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden()
+    r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+    f.idle()
+   doc().locator('[data-document-branch="case:negative"]').click()
+   add=branch('case:negative').locator('[data-document-branch-call]')
+   expect(add).to_be_enabled()
+   add.click()
+   picker=f.page.get_by_role('dialog',name='블루프린트 노드 검색')
+   expect(picker.locator('[data-resource-feature="'+donor+'"]')).to_be_visible()
+   picker.locator('[data-resource-close]').click()
+   assert not pending()
+   negative=choose(add,None)
+   doc().locator('.fd-document-title').click();doc().press('Control+z')
+   expect(doc().locator('[data-document-cell="'+negative+'"]')).to_have_count(0)
+   doc().press('Control+y')
+   row=doc().locator('[data-document-cell="'+negative+'"]')
+   expect(row).to_be_visible()
+   value=row.locator('[data-document-value][data-document-port="field:value"]')
+   value.click()
+   search=f.page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색')
+   search.fill('37');search.press('Enter')
+   expect(value).to_have_text('37')
+   assert path.read_bytes()==original
+   held=pending();checkpoint_before=checkpoint.read_bytes()
+   path.write_bytes(original+b' ')
+   try:
+    panel().locator('[data-bp-save]').click();f.idle()
+    expect(panel().locator('.bp-status')).not_to_have_text('저장됨')
+    assert retained(held) and checkpoint.read_bytes()==checkpoint_before and path.read_bytes()==original+b' '
+   finally:path.write_bytes(original)
+   restart(10)
+   assert retained(held)
+   save_call();assert path.read_bytes()==original
+   confirm_call()
+   written=json.loads(path.read_text())
+   call=next(n for n in written['nodes']if n['id']==negative)
+   assert call['branchOwner']=='choose' and call['arguments']=={'value':{'constant':37}}
+   assert next(e['to']for e in written['edges']if e['from']==negative)=='exit:no'
+   t.build('branch-call-empty',7,'callee:1\nA\nB\ncontinue\nmain:1\ncallee:-1\nprobe:37\nmain:-1')
+   restart(1)
+   doc().locator('[data-document-branch="case:positive"]').click()
+   positive=choose(branch().locator('[data-document-insert-call=a]'),19)
+   assert order()==['a',positive,'b']
+   save_call();confirm_call()
+   written=json.loads(path.read_text())
+   assert next(e['to']for e in written['edges']if e['from']==positive)=='b'
+   t.build('branch-call-middle',7,'callee:1\nA\nprobe:19\nB\ncontinue\nmain:1\ncallee:-1\nprobe:37\nmain:-1')
+   restart(2)
+   doc().locator('[data-document-branch="case:positive"]').click()
+   assert order()==['a',positive,'b']
+   f.checked('actual case start and after-cell reference insertion, typed input, stale external source refusal, review, run and cold restore')
+   f.page.close();f.stop()
+   f.env['CONFECTORY_WEB_PROJECT']=str(other/'project.cproj')
+   f.start(3);f.page=f.setup();f.page.set_viewport_size({'width':1800,'height':1400});open_document()
+   assert not pending()
+   assert doc().locator('[data-document-cell^="call_"]').count()==0
+   assert all(p.read_bytes()==raw for p,raw in other_original.items())
+   f.checked('same namespace and IDs in another synthetic project retain original branch and sources')
+  elif mode=='history':
    branch().locator('[data-document-branch-add]').click();f.idle();created=next(n for n in order()if n.startswith('cell_'));doc().locator('.fd-document-title').click();doc().press('Control+z');expect(doc().locator('[data-document-cell="'+created+'"]')).to_have_count(0);assert not pending();doc().press('Control+y');expect(doc().locator('[data-document-cell="'+created+'"]')).to_be_visible();assert len(pending())==6
    save();assert not pending();history=f.invoke('draftHistory',dict(action='inspect'))['result']['result'];assert not history['undo']['available']and history['boundary']=='OWNERSHIP_CHANGED';t.original();restart(1);assert order()==[created,'a','b']and not pending();t.original();f.checked('private insertion Undo/Redo restores all six inputs; explicit Save and cold retain the existing ownership history boundary and unchanged physical originals')
   elif mode=='legacy':

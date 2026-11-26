@@ -447,6 +447,28 @@ public static class BlueprintCellRegion
         return new(owner,port,order,at);
     }
 
+    // A call import and its exact original branch gap are prepared together.
+    // Reuse the same exclusive case classifier as ordinary cell insertion.
+    public static void InsertReference(JsonObject graph, JsonObject node, JsonObject gap)
+    {
+        Need(gap.Count==4 && gap.All(p=>p.Key is "owner" or "case" or "from" or "to"),
+            "Explicit branch insertion gap required");
+        string owner=S(gap,"owner"), port=S(gap,"case"), from=S(gap,"from"), to=S(gap,"to");
+        Region region=Read(graph,owner,port);
+        int index=region.Nodes.IndexOf(from);
+        Need(from==owner || index>=0,"Select an existing branch insertion anchor");
+        string expected=from==owner ? region.Nodes.FirstOrDefault()??region.End :
+            index+1<region.Nodes.Count ? region.Nodes[index+1] : region.End;
+        Need(to==expected,"Original branch successor changed");
+        string edgePort=from==owner?port:"next";
+        var edges=graph["edges"]!.AsArray();
+        var edge=edges.SingleOrDefault(e=>S(e,"from")==from&&S(e,"port")==edgePort);
+        Need(edge is not null&&S(edge,"to")==to,"Explicit original branch edge required");
+        node["branchOwner"]=owner;
+        edge!["to"]=S(node,"id");
+        edges.Add(new JsonObject{["from"]=S(node,"id"),["port"]="next",["to"]=to});
+    }
+
     sealed record TransferScope(Region[] Cases, HashSet<string> Movable);
 
     static TransferScope ReadTransferScope(JsonObject graph, bool includeRoot=false, bool requirePair=true)
