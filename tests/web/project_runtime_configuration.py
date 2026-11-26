@@ -59,6 +59,25 @@ def save_rules(page,window):
   page.wait_for_timeout(100)
  raise AssertionError(page.locator('#status').inner_text())
 
+def save_existing_rule(page,window):
+ # Only an already confirmed object value may use this single direct Save.
+ button=window.locator('[data-element-action=confirm]');expect(button).to_have_text('저장')
+ calls=[]
+ def observe(request):
+  if request.method!='POST':return
+  try:payload=request.post_data_json
+  except Exception:return
+  if isinstance(payload,dict) and payload.get('op')=='invoke' and payload.get('endpoint') in ('reviewGroup','confirmGroup'):calls.append(payload['endpoint'])
+ page.on('request',observe)
+ page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
+ try:
+  button.click();expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
+  expect(page.locator('#review-creation')).to_be_hidden();expect(page.locator('.window[data-key=review]')).to_be_hidden()
+  assert not page.evaluate('()=>window.__directRuleReviewSeen'), 'A Review was displayed during direct Save'
+  assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+ finally:
+  page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
+
 def connect(page):
  if 'dependency Confectory.RuntimeBase ' in manifest.read_text():return
  tab=page.get_by_role('tab',name='Pack Manager',exact=True);tab.click();expect(tab).to_have_attribute('aria-selected','true');expect(page.locator('#home-pack-connect')).to_be_enabled();page.locator('#home-pack-connect').click()
@@ -134,12 +153,12 @@ def code_proof():
  return {path:path.read_bytes() for path in (implementation,graph,code,project/'elements'/f'{FEATURE}.celem')}
 
 def conflict_test(page):
- before=code_proof();window=rules(page);value=window.get_by_label('PhaseMilliseconds 기본값',exact=True);expect(value).to_have_value('7000');value.fill('8000')
- target=project/'elements/TimingRules.celem';original=target.read_bytes();changed=original.replace(b'PhaseMilliseconds = 7000',b'PhaseMilliseconds = 9000');assert changed!=original
+ before=code_proof();window=rules(page);value=window.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
+ target=project/'elements/TimingRules.celem';original=target.read_bytes();changed=original.replace(b'OpenMilliseconds = 1000',b'OpenMilliseconds = 3000');assert changed!=original
  try:
   target.write_bytes(changed) # competing edit of the disposable fixture only
   window.locator('[data-element-action=confirm]').click();expect(page.locator('#status')).to_contain_text('입력은 유지',timeout=60000)
-  expect(value).to_have_value('8000');assert target.read_bytes()==changed and all(p.read_bytes()==data for p,data in before.items());print('PASS external configuration change preserved and local value retained',flush=True)
+  expect(value).to_have_value('2000');assert target.read_bytes()==changed and all(p.read_bytes()==data for p,data in before.items());print('PASS external configuration change preserved and local value retained',flush=True)
  finally:target.write_bytes(original)
 
 with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
@@ -156,8 +175,10 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
    before=code_proof()
    with f.web(browser,'config-run-initial') as page:
     run_at_offset(page,'wide',(0,204,0))
-    window=rules(page);window.get_by_label('PhaseMilliseconds 기본값',exact=True).fill('7000');window.get_by_label('OpenMilliseconds 기본값',exact=True).fill('1000');save_rules(page,window)
-    assert all(p.read_bytes()==data for p,data in before.items());print('PASS both values saved; game source byte-identical',flush=True)
+    window=rules(page);expect(window.get_by_label('PhaseMilliseconds 기본값',exact=True)).to_have_value('5000');window.get_by_label('OpenMilliseconds 기본값',exact=True).fill('1000');save_existing_rule(page,window)
+    assert 'data PhaseMilliseconds = 5000;' in (project/'elements/TimingRules.celem').read_text()
+    assert 'data OpenMilliseconds = 1000;' in (project/'elements/TimingRules.celem').read_text()
+    assert all(p.read_bytes()==data for p,data in before.items());print('PASS one existing value directly saved once, no Review; game source byte-identical',flush=True)
     run_at_offset(page,'narrow',(204,0,0))
    with f.web(browser,'config-run-cold') as page:
     assert all(p.read_bytes()==data for p,data in before.items());run_at_offset(page,'cold',(204,0,0));print('PASS cold config runtime',flush=True)
