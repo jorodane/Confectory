@@ -6,7 +6,7 @@ for(int i=0;i<ids.Length;i++){
  if(revisions[i]<0||!System.Text.RegularExpressions.Regex.IsMatch(hashes[i],"\\A[0-9a-f]{64}\\z",System.Text.RegularExpressions.RegexOptions.CultureInvariant))throw new ArgumentException("Displayed revision and source hash required");
  var unit=calls.Read.Invoke(handle,ids[i]);kinds[i]=unit[1];paths[i]=unit[2];if(kinds[i] is "project" or "pack"&&texts[i]!=unit[3])throw new ArgumentException("Registration edits require their owning workflow");
  if(long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture)!=revisions[i]||Hash(unit[3])!=hashes[i])return false;
- if(kinds[i] is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ids[i],kind=kinds[i],text=texts[i]}));
+ if(kinds[i] is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id=ids[i],kind=kinds[i],text=texts[i],_streamProject=state["project"]!.GetValue<string>()}));
  else if(kinds[i] is not ("body" or "project" or "pack")){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(texts[i]))!;if(parsed["id"]!.ToString()!=ids[i]||parsed["kind"]!.ToString()!=kinds[i])throw new ArgumentException("Stable batch declaration identity required");}
 }
 lock(state){

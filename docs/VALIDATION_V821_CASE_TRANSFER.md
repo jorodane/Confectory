@@ -49,3 +49,39 @@ python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" single
 `baseline`은 이동 지원이 없던 이전 빌드 전용 재현 모드다. 새 빌드에서 성공을 기대하는 검사는 아니다.
 
 실제 Chromium에서 이전 빌드의 `baseline`, 확장 빌드 `normal` 및 `single` 모두 종료 코드 0을 확인했다. 값 의존 동작의 이동 거절, Escape, 개인/공유 Undo/Redo, 재시작, 동일 로컬 ID를 가진 별개 frame/프로젝트 격리, Save/Confirm 시 sibling 원본 변경 거절, Review 취소 및 재검토 뒤 실제 실행을 검사했다. 확정된 graph는 두 case 연결만 변경하고 다른 원본 파일을 바이트 단위로 보존했다. Linux 빌드 검증이며 Windows 실기 검증은 아니다.
+
+## 프로젝트별 Blueprint 읽기 프로세스 재사용
+
+`8a60ed03ee220d644a4715adaec1c0b5f270f478` 대비 같은 합성 `after` fixture를 실제 Linux Chromium과 동일 경량 빌드 구성에서 비교했다. 프로젝트에 묶인 기존 SchemaEditing 스트림의 프로토콜 4가 Blueprint 조회 및 값 기반 구조 검사, 원본 검증, Review 요약을 받아들인다. 프레이밍용 프로젝트 식별자는 실제 workspace에서 가져와 도메인 검사 전에 제거한다. 결과나 프로젝트 원본을 캐시하지 않는다. 기존 원본·초안·권한·충돌 검사와 컴파일을 유지하고 다른 프로젝트는 기존 스트림을 재사용하지 않는다. 이전 프로토콜과 명시적 취소 scope는 정상 one-shot 요청을 유지한다.
+
+| 실제 UI fixture 계측 (ms) | 기준 | 후보 |
+| --- | ---: | ---: |
+| 첫 호스트 문서 조회 | 2207 | 413 |
+| 전체 동일 조회 9건 중앙값 | 1830 | 82 |
+| 셀 추가 클릭 → 새 셀 표시 | 151 | 196 |
+| 셀 추가 클릭 → idle | 239 | 227 |
+| 코드 창 클릭 → 입력 가능 | 76 | 85 |
+| 실제 키보드 입력 | 6 | 10 |
+| 외부 변경으로 저장 거절 → idle | 4627 | 1003 |
+| 성공 Save의 authorBatch submit → 결과 | 17285 | 3382 |
+| 성공 Save 클릭 → 후속 상태 확인 및 idle | 27200 | 5508 |
+| 첫 Review 요청 → 결과 | 2316 | 1014 |
+| 최종 Confirm 요청 → 결과 | 9002 | 8696 |
+
+같은 실제 화면의 단일 저장 비교로, 새 셀/코드 입력 반응은 두 조건에서 비슷했다. 조회 9건은 각 시나리오 안의 반복이며 독립 프로필 9회 실행은 아니다. 성공 Save 전후의 `settledAuthorBatch` 확인까지 포함하여 화면의 처리 완료와 실제 Save 요청을 구분했다. 최종 Confirm의 8583ms 호스트 처리 중 기존 `validate` 컴파일 검증이 6745ms였다. 이를 생략하지 않았다.
+
+실제 Chromium에서 기존 비어 있지 않은 case 삽입, 로컬 Undo/Redo, 재시작 미저장 입력, 외부 변경으로 Save/Confirm 거절, 정상 Confirm·실제 실행 및 재열기를 통과했다. 별도 case 이동 UI에서 동일 ID 다른 프로젝트 거절, 원본 보존, 공유 Undo/Redo, 실행을 검사했고 직접 속성 저장 UI의 별도 창 입력·IME·외부 충돌 및 기존 초안 Review 경계를 통과했다. `authoring_read_stream.py`는 프로토콜, 외부 변경, 스코프 격리 및 허용 operation을 검사한다. Windows 실기와 모바일/WASM 내보내기는 검증하지 않았다.
+
+```sh
+python tests/web/authoring_read_stream.py
+CONFECTORY_UI_TRACE=1 python tests/web/v821_child_case_insert_ui.py "$REPO" "$REPORT" after
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" normal
+python tests/web/v821_direct_property_save_ui.py "$REPO" "$REPORT"
+```
+
+실제 브라우저를 실행할 수 없는 환경에서는 별도 호스트 전용 확인을 사용할 수 있다. 이 결과는 포인터·렌더링·입력 반응을 검증하지 않는다.
+
+```sh
+python tests/web/v821_child_case_insert_host_perf.py "$REPO" "$REPORT" after
+python tests/web/v821_child_case_transfer_host.py "$REPO" "$REPORT" normal
+```

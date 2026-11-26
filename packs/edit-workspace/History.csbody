@@ -39,7 +39,7 @@ lock(state){
 // Validate every inverse candidate before the atomic multi-source edit.
 foreach(var unit in entry["units"]!.AsArray()){
  string kind=unit!["kind"]!.ToString(),id=unit["id"]!.ToString(),text=unit[operation=="undo"?"before":"after"]!.ToString();
- if(kind is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind,text}));
+ if(kind is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind,text,_streamProject=state["project"]!.GetValue<string>()}));
  else if(kind!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspect",System.Text.Json.JsonSerializer.Serialize(new{text})))!;if(parsed["id"]!.ToString()!=id||parsed["kind"]!.ToString()!=kind)throw new ArgumentException("Stable history source identity required");}
 }
 lock(state){

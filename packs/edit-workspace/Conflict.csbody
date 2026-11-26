@@ -27,7 +27,7 @@ if(kind is "project" or "pack"){
  if(manifest["namespace"]!.ToString()!=ns||manifest["kind"]!.ToString()!=kind)throw new ArgumentException("Stable manifest identity required");
  var elements=manifest["elements"]!.AsArray();if(elements.Count!=locatorMap.Count)throw new ArgumentException("Manifest conflict resolution cannot add or remove owned locators");
  foreach(var element in elements){var owned=locatorMap[element!["id"]!.ToString()];if(owned is null||owned["kind"]!.ToString()!=element["kind"]!.ToString()||!string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,owned["path"]!.ToString())),System.IO.Path.GetFullPath(System.IO.Path.Combine(root,element["path"]!.ToString())),comparison))throw new ArgumentException("Manifest conflict resolution cannot change owned locators");}
-}else if(kind is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind,text=candidate}));
+}else if(kind is "blueprint" or "blueprint-node")calls.Metadata.Invoke("blueprintSourceValidate",System.Text.Json.JsonSerializer.Serialize(new{id,kind,text=candidate,_streamProject=state["project"]!.GetValue<string>()}));
 else if(kind!="body"){var parsed=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(candidate))!;if(parsed["id"]!.ToString()!=id||parsed["kind"]!.ToString()!=kind)throw new ArgumentException("Stable source identity required");}
 lock(state){
  if(!Current()||Disk()[2]!=expectedFile)return Unavailable("SOURCE_VERSION_CHANGED");

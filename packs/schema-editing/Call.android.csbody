@@ -1,1 +1,2 @@
+var transport=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();if(transport.Remove("_streamProject"))payload=transport.ToJsonString();
 return (AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.TargetCall") as Func<string,string,string>??throw new PlatformNotSupportedException("Target metadata provider is not initialized; compiler authoring is unavailable.")).Invoke(operation,payload);

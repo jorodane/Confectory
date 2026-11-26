@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_3");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_4");Console.Out.Flush();
     string? owner=null;
     for(int count=0;count<128;count++)
     {
@@ -18,11 +18,15 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
         bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
         bool relations=operation=="relationsMap";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations)return 2;
-        var project=Path.GetFullPath(request["project"]!.GetValue<string>());
+        bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
+        bool blueprintProject=operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject)return 2;
+        if(blueprintValue&&request["project"] is not null||!blueprintValue&&request.ContainsKey("_streamProject"))return 2;
+        if((blueprintValue?request["_streamProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;
+        var project=Path.GetFullPath(path);request.Remove("_streamProject");
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
-        Console.WriteLine(Dispatch(line));Console.Out.Flush();
+        Console.WriteLine(Dispatch(blueprintValue?request.ToJsonString():line));Console.Out.Flush();
     }
     return 0;
 }

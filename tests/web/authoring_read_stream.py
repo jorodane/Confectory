@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_3'
+READY = 'CONFECTORY_INSPECT_STREAM_4'
 
 
 def exercise(root):
@@ -66,6 +66,11 @@ def exercise(root):
             first = json.loads(send(proc, describe))
             assert first['ok'] and any(row['id']=='Test.Stream::Record' for row in first['result']['units'])
             assert json.loads(send(proc, inventory))['result']['status']=='available'
+            document=dict(operation='inspect',text='object Test.Stream::Record {}')
+            assert json.loads(send(proc,dict(document,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(document),text=True,capture_output=True,timeout=20,check=True).stdout)
+            invalid=dict(operation='blueprintSourceValidateBatch',documents=[dict(id='bad',kind='blueprint',text='{}')])
+            assert json.loads(send(proc,dict(invalid,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(invalid),text=True,capture_output=True,timeout=20,check=True).stdout)
+
             main = dict(operation='catalog', project=str(a), request={'action':'project-main-view'})
             windows = dict(operation='catalog', project=str(a), request={'action':'project-windows'})
             assert json.loads(send(proc, main)) == json.loads(subprocess.run(HOST, input=json.dumps(main), text=True, capture_output=True, timeout=20, check=True).stdout)
@@ -119,6 +124,19 @@ def exercise(root):
         proc = start()
         try:
             assert send(proc, dict(operation='catalog', project=str(a), request={'action':'project-window-setting'})) == ''
+            assert proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert json.loads(send(proc,request(a)))['ok']
+            assert send(proc, dict(operation='inspect',text='object Test.Stream::Record {}',_streamProject=str(b))) == ''
+            assert proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert send(proc, dict(operation='inspect',text='object Test.Stream::Record {}')) == ''
             assert proc.wait(timeout=5) == 2
         finally:
             finish(proc)

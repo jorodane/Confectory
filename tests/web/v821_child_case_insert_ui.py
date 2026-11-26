@@ -1,5 +1,7 @@
 """Insert one void cell into an existing owned child case using the Linux editor."""
 import ast
+import os
+import time
 import subprocess
 import shutil
 import sys
@@ -53,12 +55,15 @@ def proposal(data):
 
 
 def edit_source(created):
-    doc().locator(f'[data-document-code="{created}"]').click()
+    t0=time.perf_counter();doc().locator(f'[data-document-code="{created}"]').click()
     dialog = f.page.locator(".bp-script-dialog")
     body = dialog.locator("[data-code-region=body]").text_content()
     area = dialog.locator("[data-code-source]")
+    if measure_ui:
+        expect(area).to_be_enabled();print("TIMING UI source input enabled ms",round((time.perf_counter()-t0)*1000),flush=True)
     area.evaluate('(el,text)=>{el.focus();const at=el.value.indexOf(text);if(at<0)throw Error("Missing body");el.setSelectionRange(at,at+text.length)}', body)
-    f.page.keyboard.insert_text(new_body)
+    t0=time.perf_counter();f.page.keyboard.insert_text(new_body)
+    if measure_ui:print("TIMING UI keyboard insert ms",round((time.perf_counter()-t0)*1000),flush=True)
     dialog.locator("[data-code-save]").click()
     f.idle()
 
@@ -74,6 +79,28 @@ def pure_denied(graph, edits):
         return
     raise AssertionError("Unsupported insertion retained metadata authority")
 
+
+# Optional timing: retain the same actual UI scenario and correctness assertions.
+measure_ui=os.environ.get("CONFECTORY_UI_TRACE")=="1"
+_original_observe=f.observe
+def timed_observe(response):
+    before=len(f.traffic);_original_observe(response)
+    for row in f.traffic[before:]:row['measuredAt']=time.perf_counter()
+if measure_ui:f.observe=timed_observe
+_original_save=save
+def save():
+    if not measure_ui:return _original_save()
+    t0=time.perf_counter();rows=_original_save();end=time.perf_counter()
+    calls={row['invoke']['requestId']:row.get('measuredAt') for row in rows if row.get('invoke',{}).get('endpoint')=='blueprint' and row['invoke'].get('input',{}).get('action') in ('authorBatch','settledAuthorBatch')}
+    for row in rows:
+        rid=row.get('result',{}).get('requestId')
+        if rid in calls and calls[rid] and row.get('measuredAt'):print('TIMING UI save submit/result/idle ms',round((calls[rid]-t0)*1000),round((row['measuredAt']-t0)*1000),round((end-t0)*1000),flush=True)
+    return rows
+_original_read=read
+def read(*a,**k):
+    t0=time.perf_counter();v=_original_read(*a,**k)
+    if measure_ui:print('TIMING host read ms',round((time.perf_counter()-t0)*1000),flush=True)
+    return v
 
 try:
     x.build("case-before-insert", 14, output())
@@ -112,8 +139,11 @@ try:
             frame_graph["nodes"] = [node for node in frame_graph["nodes"] if node["id"] not in initial]
             frame_graph["edges"] = [route for route in frame_graph["edges"] if route["from"] not in initial and route["port"] != "case:positive"]
             pure_denied(implicit, q["edits"])
-            button.click()
+            t0=time.perf_counter();button.click()
+            if measure_ui:
+                branch.locator('[data-document-cell^=cell_]').wait_for(state='visible');print('TIMING UI add visible ms',round((time.perf_counter()-t0)*1000),flush=True)
             f.idle()
+            if measure_ui:print('TIMING UI add idle ms',round((time.perf_counter()-t0)*1000),flush=True)
             created = branch.locator("[data-document-cell^=cell_]").get_attribute("data-document-cell")
             assert created
             expected_order = [*initial]
