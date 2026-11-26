@@ -105,3 +105,13 @@
 실제 Linux Chromium에서 첫 Confirm 뒤 재개방한 신규 기능, 내부화 및 그 전체 미저장 작업의 Undo/Redo, 새 자식 삽입/Undo/Redo, C# 원문 편집, 외부 그래프 변경에 따른 전체 Save 거절, 재시작/재시도, Review 취소/Confirm, 원래 graph 및 반환 export와 물리 retained C# 보존, 냉간 재개방을 검증했다. 별도 합성 실행 사본의 일반 ▶는 원래 `new function executed` 및 새 자식 `37` 표식을 모두 기록했다. 이번 새 기능 시나리오는 Confirm 후 재개방하여 정확히 갱신된 모델을 사용한다. 첫 Confirm 직후 갱신 전 클릭과 새 복합 Confirm 직후 선택이 오래된 상태인 문제는 별도 관측으로 남긴다.
 
 기존 일반 child 삽입, 새 기능 최초 Save 전 등록 호출, 이미 존재하는 private case 추가의 Linux 회귀도 확인했다. 기존 case 추가의 한 차례 UI 실측은 삽입 표시 238ms, C# 입력 가능 74ms, 실제 키보드 입력 12ms였다. 이전 기록의 같은 종류 측정은 각각 307ms/75ms/7ms였다(다른 실행 시점의 단일 관측으로 엄밀한 benchmark는 아님). 신규 복합 자식 삽입 표시 244ms, 별도 재사용 합성 사본에서는 88ms 및 Save 2,441ms였다. 새 기능에서 private 분기를 처음 선언하고 여러 경로를 구성하는 기능, 기존 저장 후 복합 전체의 공유 Undo/Redo를 새로 확대하는 작업, Windows 실기는 이번 변경에 포함하지 않았다.
+
+### 새 복합 셀의 첫 직접 소유 분기
+
+`v821_new_function_document_ui.py <repo> <run-report> branch`는 신규 기능/복합 전환 및 자식 추가 흐름을 이어, no-argument void-data 일반 동작의 첫 분기를 논리 코드에서 명시적으로 선언한다. 기존 보호 C# editor에서 `Result`를 통해 실행 분기를 선택하며, 주 흐름과 두 비주 분기의 명시적 `return:owner`를 같은 격리 후보에 저장한다. 선택된 분기의 반환은 기존 next 흐름으로 돌아가며 기능의 반환 타입이나 기존 terminal export 값을 바꾸지 않는다. 새로운 graph 포맷이나 의미를 도입하지 않는다.
+
+기존 원본 wrapper 내부에서만 분기/반환 경계를 대조한다. 분류용 사본에서 고정 return export를 종료 경계로 보며, 실제 저장 시 원본 retainedCode 및 export는 보존한다. 정확한 소유/원본/초안 증명과 독점 소스 경로, Save와 Review/최종 Confirm의 CAS 및 컴파일 검증을 유지한다. 첫 선언 이후 일반 셀과 직접 호출을 기존 case 삽입 경로로 추가할 수 있다. 이 단위는 저장된 직접 소유 wrapper의 첫 selector 하나, 비주 분기 두 개, 기존 동기 반환 및 값 입력에 한정한다.
+
+실제 Linux Chromium에서 신규 선언 및 복합 전환의 개인 Undo/Redo, 첫 분기 편집 취소 및 Undo/Redo, 외부 graph 변경 시 Save 거절, 선언 초안 Save 뒤 selector 원본 변경 시 실제 Confirm 요청 거절 및 입력/원본 보존, 복구/재시작, 빈 분기 내 일반 동작과 그 뒤의 기존 등록 기능 호출 및 정수 입력 37, 확정과 재개방을 검증했다. 격리된 실행 사본의 실제 ▶는 positive/negative/primary를 각각 호출해 0의 원래 결과와 continuation을 유지했으며 positive의 일반 셀/호출만 실행했다. 원래 retained C# 파일과 terminal export도 보존했다. 기존 `v821_private_case_call_ui.py after` 및 `shared`는 같은 최종 빌드에서 각각 정상 호출/실행·같은 ID 프로젝트 격리와 공유 분기 삽입 거절을 통과했다.
+
+현재 작성 흐름은 복합 전환, 첫 분기 선언, 일반 셀/호출 저장의 기존 소유·검토 경계를 따라 각각 확정 후 재개방한다. 한 번에 여러 미확정 단계의 공동 저장이나 확정된 복합 전체의 공유 Undo/Redo 경계를 확대하지 않는다. 임의 분기 entry/exit, ref/out·async·공개 실행 분기, 다중 selector와 Windows 실제 실행은 별도 검증 범위다.

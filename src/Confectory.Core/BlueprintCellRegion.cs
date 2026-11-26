@@ -215,7 +215,7 @@ public static class BlueprintCellRegion
     // A new function's original C# action is wrapped with a retained source and
     // (for a value return) a terminal export. Observe that exact wrapper and
     // validate only the ordinary execution chain preceding the fixed export.
-    static JsonObject RetainedSerialFrame(JsonObject root,string path)
+    static JsonObject RetainedSerialFrame(JsonObject root,string path,bool allowSwitch=false,bool allowReferences=false)
     {
         Need(!path.Contains('/')&&path.Length>0,"One directly owned retained wrapper required");
         var clone=root.DeepClone().AsObject();
@@ -231,9 +231,14 @@ public static class BlueprintCellRegion
             Need(edges.Count(e=>S(e,"to")==id)==1&&!edges.Any(e=>S(e,"from")==id),"Fixed terminal export required");
             edges.Single(e=>S(e,"to")==id)!["to"]="exit:return";nodes.Remove(exports[0]);frame["exits"]=new JsonObject{["return"]=null};
         }
-        Need(nodes.All(n=>S(n,"kind")=="code"&&ValueParameters(n!)),"Ordinary value code before the existing return required");
-        CompoundOrder(clone,CurrentRoutes(clone),allowPlainSwitch:true);
-        CompoundOrder(frame,CurrentRoutes(frame),ordinaryFrame:true,allowPlainSwitch:true);
+        Need(nodes.All(n=>(S(n,"kind")=="code"||allowReferences&&S(n,"kind")=="call")&&ValueParameters(n!)),"Ordinary value code before the existing return required");
+        if(allowSwitch){
+            CompoundOrder(clone,CurrentRoutes(clone),allowSwitchChild:true,emptySwitchCaseFrame:frame,allowReferences:allowReferences,allowPlainSwitch:true);
+            CheckCompoundSwitchChild(frame,nodes,allowEmptyCase:true,allowReferences:allowReferences);
+        }else{
+            CompoundOrder(clone,CurrentRoutes(clone),allowPlainSwitch:true);
+            CompoundOrder(frame,CurrentRoutes(frame),ordinaryFrame:true,allowPlainSwitch:true);
+        }
         return BlueprintTree.Select(root,path);
     }
 
@@ -846,6 +851,7 @@ public static class BlueprintCellRegion
         Need(segments.All(part => part.Length > 0) && (segments.Length == 1 || allowNested && segments.Length == 2),
             "One switch child within the supported owned depth required");
         var child = BlueprintTree.Select(root, path);
+        if(segments.Length==1&&root["nodes"]!.AsArray().Any(n=>S(n,"id")==path&&n?["retainedCode"] is not null))return RetainedSerialFrame(root,path,allowSwitch:true,allowReferences:allowReferences);
         Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Owned switch child required");
         CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null, emptySwitchCaseFrame: allowEmptyCase ? child : null, allowReferences:allowReferences);
         return child;

@@ -15,7 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'gui'))
 from editor_logic_workflow import review, run_from_dock
 
 early = len(sys.argv)>3 and sys.argv[3]=='before-save'
-compound = len(sys.argv)>3 and sys.argv[3]=='compound'
+branch_mode = len(sys.argv)>3 and sys.argv[3]=='branch'
+compound = branch_mode or len(sys.argv)>3 and sys.argv[3]=='compound'
 name = 'LocalAuthorProbe'
 target = 'Example.FrameLoop::' + name
 marker = f.root / 'new-function-result.txt'
@@ -153,6 +154,70 @@ try:
             frame['nodes']=[n for n in frame['nodes'] if n['id']!=created];frame['edges']=[e for e in frame['edges'] if e['from']!=created];frame['entry']='body'
             assert graph==json.loads(old_graph) and retained_source.read_bytes()==retained_bytes
             print('PASS created feature to compound, structural Undo/Redo, new child source, stale refusal and cold retry',flush=True)
+            if branch_mode:
+                def reopen(index):
+                    page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(index)
+                    new_page=f.setup(browser);new_page.set_viewport_size({'width':1900,'height':1500})
+                    new_panel=new_page.locator('.window[data-key=blueprint]');new_doc=new_panel.locator('.function-document')
+                    expect(new_panel.locator('.bp-breadcrumbs')).to_be_visible()
+                    declaration=new_page.locator('.window[data-key=declaration]')
+                    if declaration.is_visible():declaration.locator('[data-close]').first.click()
+                    return new_page,new_panel,new_doc
+                def save_confirm():
+                    panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+                    r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+                def replace_body(text):
+                    script=page.locator('.bp-script-dialog');source=script.locator('[data-code-source]');expect(source).to_be_visible()
+                    source.evaluate('''el=>{const spans=Array.from(el.closest('.bp-script-editor').querySelectorAll('[data-code-highlight] > span'));const idx=spans.findIndex(s=>s.dataset.codeRegion==='body');if(idx<0)throw Error('Missing body');const start=spans.slice(0,idx).reduce((a,b)=>a+b.textContent.length,0);el.focus();el.setSelectionRange(start,start+spans[idx].textContent.length)}''')
+                    page.keyboard.insert_text(text);script.locator('[data-code-save]').click();expect(script).to_be_hidden()
+                page,panel,doc=reopen(20)
+                first_branch=doc.locator(f'[data-document-call-first-branch="{created}"]');expect(first_branch).to_be_visible();first_branch.click()
+                old_path=graph_path.read_bytes();checkpoint_before=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()
+                page.locator('.bp-script-dialog [data-code-cancel]').click();expect(first_branch).to_be_visible()
+                first_branch.click()
+                mode_marker=f.root/'private-case-mode.txt'
+                replace_body('var mode=System.IO.File.ReadAllText('+json.dumps(str(mode_marker))+'); return mode=="positive"?Result.Positive:mode=="negative"?Result.Negative:Result.NoBranch;')
+                expect(doc.locator('[data-document-branch="case:positive"]')).to_be_visible()
+                doc.press('Control+z');expect(doc.locator('[data-document-branch="case:positive"]')).to_have_count(0)
+                doc.press('Control+y');expect(doc.locator('[data-document-branch="case:positive"]')).to_be_visible()
+                graph_path.write_bytes(old_path+b' ')
+                try:
+                    panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                    assert panel.locator('.bp-status').inner_text()!='저장됨' and next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()==checkpoint_before
+                finally:graph_path.write_bytes(old_path)
+                page,panel,doc=reopen(21)
+                panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+                r=review(page,panel.locator('[data-bp-complete]'))
+                selector_source=graph_path.parent/next(n['implementation'] for n in json.loads(old_path)['nodes'][0]['graph']['nodes'] if n['id']==created)
+                selector_raw=selector_source.read_bytes();saved_checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes();selector_source.write_bytes(selector_raw+b' ')
+                try:
+                    mark=len(f.requests);r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()')
+                    expect(r).to_be_visible();assert any(row.get('endpoint')=='confirmGroup' for row in f.requests[mark:])
+                    assert graph_path.read_bytes()==old_path and selector_source.read_bytes()==selector_raw+b' ' and next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()==saved_checkpoint
+                finally:selector_source.write_bytes(selector_raw)
+                if r.is_visible():r.locator('[data-reject]').click();expect(r).to_be_hidden()
+                r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+                committed=json.loads(graph_path.read_text());child=committed['nodes'][0]['graph'];selector=next(n for n in child['nodes'] if n['id']==created)
+                assert selector['control']=='switch' and {e['port']:e['to'] for e in child['edges'] if e['from']==created}=={'next':'body','case:positive':'return:'+created,'case:negative':'return:'+created}
+                page,panel,doc=reopen(22)
+                doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
+                add=case.locator('[data-document-branch-add]');expect(add).to_be_enabled();add.click()
+                branch_cell=case.locator('[data-document-cell^="cell_"]');expect(branch_cell).to_be_visible();branch_id=branch_cell.get_attribute('data-document-cell');assert branch_id!=created
+                branch_marker=f.root/'private-case-marker.txt'
+                branch_cell.locator('[data-document-code]').click();replace_body('System.IO.File.WriteAllText('+json.dumps(str(branch_marker))+', "positive");return;')
+                save_confirm();page,panel,doc=reopen(23)
+                doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
+                add=case.locator(f'[data-document-insert-call="{branch_id}"]');expect(add).to_be_enabled();add.click()
+                page.get_by_role('dialog',name='블루프린트 노드 검색').locator(f'[data-resource-feature="{donor}"]').click()
+                call_cell=case.locator('[data-document-cell^="call_"]');expect(call_cell).to_be_visible();branch_call=call_cell.get_attribute('data-document-cell')
+                value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
+                expect(value).to_have_text('37');save_confirm();page,panel,doc=reopen(24)
+                doc.locator('[data-document-branch="case:positive"]').click();expect(doc.locator(f'[data-document-cell="{branch_call}"]')).to_be_visible()
+                final=json.loads(graph_path.read_text());frame=final['nodes'][0]['graph'];assert next(n for n in frame['nodes'] if n['id']==branch_call)['arguments']=={'amount':{'constant':37}}
+                assert final['nodes'][0]['retainedCode']==committed['nodes'][0]['retainedCode'] and next(n for n in frame['nodes'] if n['kind']=='export')==next(n for n in child['nodes'] if n['kind']=='export')
+                assert retained_source.read_bytes()==retained_bytes
+                print('PASS first private branch declaration, explicit empty returns, stale refusal, general cell and typed call in case, exact retained return',flush=True)
+
         if not compound:
          # Add a typed published feature from the Logic Code view itself,
          # without switching to Blueprint or manually reconnecting execution.
@@ -257,13 +322,20 @@ try:
             (pdir/'MainBody.celem').write_text(
                 'implementation Example.FrameLoop::MainBody for Example.FrameLoop::Main () -> int {import '+target+' as Probe (int) -> long;body common "Main.csbody";}')
             (pdir/'Main.csbody').write_text('return checked((int)calls.Probe.Invoke(37));')
+        if branch_mode:
+            text=text.replace('entry '+target+';', 'entry Example.FrameLoop::Main;')
+            (pdir/'MainBody.celem').write_text('implementation Example.FrameLoop::MainBody for Example.FrameLoop::Main () -> int {import '+target+' as Probe () -> int;body common "Main.csbody";}')
+            execution_marker=f.root/'private-case-execution.txt'
+            mode_path=json.dumps(str(mode_marker));donor_path=json.dumps(str(donor_marker));branch_path=json.dumps(str(branch_marker))
+            (pdir/'Main.csbody').write_text('foreach(string mode in new[]{"positive","negative","primary"}) {System.IO.File.WriteAllText('+mode_path+',mode);System.IO.File.Delete('+donor_path+');System.IO.File.Delete('+branch_path+');if(calls.Probe.Invoke()!=0)return 81;if(mode=="positive"){if(System.IO.File.ReadAllText('+donor_path+')!="37"||System.IO.File.ReadAllText('+branch_path+')!="positive")return 82;}else if(System.IO.File.Exists('+donor_path+')||System.IO.File.Exists('+branch_path+'))return 83;}System.IO.File.WriteAllText('+json.dumps(str(execution_marker))+',"positive,negative,primary");return 0;')
         manifest.write_text(text)
         f.env['CONFECTORY_WEB_PROJECT'] = str(manifest)
         f.start(2)
         page = f.setup(browser)
         page.set_viewport_size({'width': 1800, 'height': 1200})
         run_from_dock(page, marker, 'new function executed')
-        assert donor_marker.read_text() == '37'
+        if branch_mode:assert execution_marker.read_text()=='positive,negative,primary'
+        else:assert donor_marker.read_text() == '37'
         assert not f.errors and not f.external, (f.errors, f.external)
         print('PASS ordinary editor Run in isolated entry harness executes the newly authored feature', flush=True)
         page.close()
