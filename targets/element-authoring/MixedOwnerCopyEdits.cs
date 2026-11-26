@@ -29,7 +29,21 @@ internal static class MixedOwnerCopyEdits
   if(element.Kind!="object"||element.Id!=id||!id.StartsWith(ns+"::",StringComparison.Ordinal)||registration.Kind!="project"||changes.Count is <1 or >64)throw new ArgumentException("Bounded same-owner object changes required");
   var drafts=request["drafts"]!.AsArray();if(drafts.Count>255)throw new ArgumentException("Mixed source graph budget");
   string Read(string path){var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new IOException("Mixed declaration source budget");return File.ReadAllText(path);}
-  JsonObject Inspect(string source,string currentManifest,JsonArray overlays,bool types=false)=>EffectiveMetadata.Query(project,currentManifest,id,source,formatManifest,Read,overlays,schemaView:true,validateObjects:true,observeSources:true,definitionTypes:types);
+  // Only the exact direct single-long change can carry a repeat proof.
+  // Both full metadata validations still run; no model is shared across edits.
+  var single=changes.Count==1?changes[0]:null;
+  bool repeat=request["reuseLongPreparation"]?.GetValue<bool>()==true&&single?["type"]?.ToString()=="data"&&
+   single["path"] is JsonArray singlePath&&singlePath.Count==1&&singlePath[0] is JsonValue fieldName&&fieldName.TryGetValue<string>(out var repeatField)&&
+   element.Data.TryGetValue(repeatField,out var oldDatum)&&oldDatum.Kind=="general"&&oldDatum.Scalar is JsonElement oldScalar&&oldScalar.TryGetInt64(out _)&&
+   JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"})&&
+   element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&
+   element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0;
+  JsonObject Inspect(string source,string currentManifest,JsonArray overlays,bool types=false){
+   JsonObject Query(bool proof)=>EffectiveMetadata.Query(project,currentManifest,id,source,formatManifest,Read,overlays,schemaView:true,validateObjects:true,observeSources:true,definitionTypes:types,schemaReuseProof:proof);
+   var result=Query(repeat);
+   if(repeat&&result["status"]?.ToString()!="available"){repeat=false;result=Query(false);}
+   return result;
+  }
   void Valid(JsonObject result){if(result["status"]?.ToString()!="available"||result["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new InvalidOperationException("Mixed declaration/schema context invalid; retain all input");}
   var before=Inspect(text,manifest,drafts,changes.Any(c=>c?["type"]?.ToString()=="typed-definition"||c?["definition"] is not null));Valid(before);var seen=new HashSet<string>(StringComparer.Ordinal);var paths=new List<JsonArray>();var definitions=new JsonArray();var schemaChanges=new List<JsonObject>();
   void Unique(string value){if(!seen.Add(value))throw new ArgumentException("Duplicate mixed operation");}
@@ -82,6 +96,11 @@ internal static class MixedOwnerCopyEdits
    element.Uses.Add(new(schemaId,new(),id,"schema"));registration.Elements.Add(name,new("schema",relative,new()));finalManifest=DeclarationTextMerge.MergeManifest(manifest,formatManifest(registration),formatManifest);string schemaText=format(schema);additions.Add(new JsonObject{["id"]=schemaId,["kind"]="schema",["path"]=relative,["text"]=schemaText});finalDrafts.Add(new JsonObject{["id"]=schemaId,["text"]=schemaText});
   }
   string formatted=DeclarationTextMerge.Merge(text,format(element),text,format);if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");var after=Inspect(formatted,finalManifest,finalDrafts);Valid(after);
-  return new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["updates"]=updates,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
+  var result=new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["updates"]=updates,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
+  if(repeat&&additions.Count==0&&updates.Count==0&&finalManifest==manifest&&
+     before["observations"] is JsonArray observations&&after["observations"] is JsonArray afterObservations&&JsonNode.DeepEquals(observations,afterObservations)&&
+     before["ownershipPaths"] is JsonArray ownership&&after["ownershipPaths"] is JsonArray afterOwnership&&JsonNode.DeepEquals(ownership,afterOwnership))
+   result["repeatProof"]=new JsonObject{["observations"]=observations.DeepClone(),["ownershipPaths"]=ownership.DeepClone()};
+  return result;
  }
 }

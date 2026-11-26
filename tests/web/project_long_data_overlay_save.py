@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--guard-object|--guard-schema] [--run]. Every invocation makes a disposable copy.
+[--assets] [--guard-object|--guard-schema] [--run] [--timeline]. Every invocation makes a disposable copy.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -26,6 +26,8 @@ original=snapshot(project);peer_original=snapshot(peer)
 run=json.loads(Path(sys.argv[1]).read_text())['run']
 env=dict(os.environ,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 env['PATH']=str(Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
+if '--timeline' in sys.argv:
+ (root/'data').mkdir();env.update(CONFECTORY_UI_TRACE='1',CONFECTORY_PERFORMANCE='1',XDG_DATA_HOME=str(root/'data'))
 phases={};traces=[]
 @contextmanager
 def phase(name):
@@ -65,6 +67,7 @@ def save_existing_rule(page,window,new):
  # Only an already confirmed object value may use this single direct Save.
  button=window.locator('[data-element-action=confirm]');expect(button).to_have_text('저장')
  calls=[]
+ if '--timeline' in sys.argv:page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
  def observe(request):
   if request.method!='POST':return
   try:payload=request.post_data_json
@@ -82,6 +85,7 @@ def save_existing_rule(page,window,new):
   assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
  finally:
   page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
+  if '--timeline' in sys.argv:print('RENDERER',json.dumps(page.evaluate('()=>globalThis.confectoryWebUITrace')),flush=True)
 
 
 def rules(page):
@@ -168,3 +172,17 @@ if '--trace' in sys.argv:
    print('candidate first mkdir to first rename (copy+write) ms',round((t(renames[0])-t(starts[0]))*1000,2),flush=True)
   assert not csc and not dll
   if '--baseline' not in sys.argv:assert not candidate,(label,len(candidate))
+
+if '--timeline' in sys.argv and phases:
+ groups=[];group=[]
+ for line in (root/'value-save.log').read_text().splitlines():
+  if not line.startswith('CONFECTORY_UI_TRACE '):continue
+  row=json.loads(line.split(' ',1)[1])
+  if row['stage']=='authoring-process':group.append(row)
+  if row['stage']=='consumer':
+   mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
+   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed})
+   group=[]
+ print('OWNER PREPARATION',json.dumps(groups),flush=True)
+ assert len(groups)==len(phases),groups
+ assert all(len(group['mixedPreparationMs'])==(2 if '--baseline' in sys.argv else 1) for group in groups),groups
