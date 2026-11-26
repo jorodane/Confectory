@@ -11,8 +11,8 @@ expect.set_options(timeout=60000)
 close_mode=mode in ('primary-close-restore','primary-close-persist')
 partial_modes={'partial-middle':[d.PEER],'partial-first':[d.TARGET],'partial-two':[d.TARGET,d.PEER],'partial-reuse':[d.PEER]}
 partial_mode=mode in partial_modes
-primary_mode=mode in ('primary','primary-after-save','missing-primary') or close_mode or partial_mode
-save_mode=mode in ('after-save','primary-after-save') or close_mode or partial_mode
+primary_mode=mode in ('primary','primary-after-save','primary-save-own','primary-fallback','primary-external-during','missing-primary') or close_mode or partial_mode
+save_mode=mode in ('after-save','primary-after-save','primary-save-own') or close_mode or partial_mode
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
         f.start(0)
@@ -29,6 +29,7 @@ try:
             primary=page.locator('.window[data-key="schema"]')
             expect(r.floating.property_value(primary,'Note')).to_have_value(d.FIRST+' Extra2')
             if close_mode:r.floating.property_value(primary,'Note').fill('Retained primary close input')
+            if mode=='primary-save-own':r.floating.property_value(primary,'Note').fill('Retained primary Extra2')
         notes = {}
         for name, folder in [(d.TARGET, 'StockFolder'), (d.PEER, 'PeerFolder'), ('Extra1', 'ExtraFolder1')]:
             window, key = r.floating.open_properties(page, name, folder)
@@ -80,7 +81,12 @@ try:
                 req = route.request.post_data_json
                 if req.get('op') == 'invoke':
                     invokes.append(req)
-                    if close_mode and req.get('endpoint')=='preparePropertyModels' and not held:
+                    if mode=='primary-fallback' and req.get('endpoint')=='preparePropertyModels' and req.get('input',{}).get('restoreStatuses'):
+                        # Exercise an actual host response without the optional
+                        # restore status proof (older endpoint contract).
+                        request=dict(req,input={k:v for k,v in req['input'].items() if k!='restoreStatuses'})
+                        route.continue_(post_data=json.dumps(request));return
+                    if (close_mode or mode=='primary-external-during') and req.get('endpoint')=='preparePropertyModels' and not held:
                         held.append(route);return
                     if mode in ('stale','detached-close-restore') and req.get('endpoint')=='openEditorView' and req.get('input',{}).get('view')=='2' and not held:
                         held.append(route);return
@@ -181,6 +187,16 @@ try:
             f.original()
             print('PASS partial restoration saves exact owner, preserves failed input, restarts and isolates projects',flush=True)
             raise SystemExit(0)
+        if mode=='primary-external-during':
+            deadline=time.monotonic()+30
+            while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
+            assert len(held)==1
+            try:
+                primary=page.locator('.window[data-key="schema"]')
+                expect(d.field(primary,'RestartFlag')).to_be_visible()
+                schema.write_text(schema.read_text().rstrip()[:-1]+' field DuringRestoreFlag single general string;\n}\n')
+                f.before[str(schema)]=schema.read_bytes()
+            finally:held[0].continue_()
         if close_mode:
             deadline=time.monotonic()+30
             while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
@@ -297,6 +313,16 @@ try:
         if primary_mode:
             assert snapshot['schema']['id']==saved_id
             assert not any(req.get('endpoint') in ('select','schema') for req in invokes),invokes
+            if not close_mode:
+                preparations=[req['input'] for req in invokes if req.get('endpoint')=='preparePropertyModels' and req['input'].get('restoreStatuses')]
+                assert len(preparations)==1 and saved_id in preparations[0]['ids'],preparations
+                def primary_reads():return [req for req in invokes if req.get('endpoint')=='browserDrafts' and req['input'].get('ids')==[saved_id]]
+                if mode in ('primary-fallback','primary-external-during'):
+                    deadline=time.monotonic()+10
+                    while not primary_reads() and time.monotonic()<deadline:page.wait_for_timeout(20)
+                    assert primary_reads(),invokes
+                    expect(page.locator('#project-menu')).to_be_enabled()
+                else:assert not primary_reads(),invokes
             if close_mode:
                 browser=r.browser_window(page)
                 r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder2"]')
@@ -306,7 +332,7 @@ try:
                 expect(primary).to_be_visible()
                 expect(r.floating.property_value(primary,'Note')).to_have_value('Retained primary close input')
                 print('PASS manual reopen retains closed primary input and exact owner',flush=True)
-            else:expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value(d.FIRST+' Extra2')
+            else:expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value('Retained primary Extra2' if mode=='primary-save-own' else d.FIRST+' Extra2')
             if not save_mode:expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
         elif mode!='baseline':assert snapshot['schema'] is None, snapshot['schema']
 
@@ -315,26 +341,43 @@ try:
             # The deliberately dirty retained owner has no clean initial proof.
             # It may perform one ordinary bound status read; clean peers must not.
             assert len(status)<=1 and all(req['input']['ids']==[d.NS+'::Extra1'] for req in status),status
-        elif mode!='baseline':
+        elif mode not in ('baseline','primary-fallback','primary-external-during'):
             assert not status,status
+        if mode=='primary-external-during':
+            for key in notes:expect(d.field(page.locator(f'.window[data-key="{key}"]'),'DuringRestoreFlag')).to_be_visible()
+            browser=r.browser_window(page)
+            r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder2"]')
+            r.search(browser,d.LABEL,'Extra2')
+            browser.locator(f'[data-object="{d.NS}::Extra2"]').click(button='right')
+            page.locator('.context-menu').get_by_role('button',name='스키마 열기',exact=True).click()
+            expect(d.field(page.locator('.window[data-key="schema"]'),'DuringRestoreFlag')).to_be_visible()
+            print('PASS external schema change during preparation rejects old primary status proof',flush=True)
         if save_mode:
-            key=next(key for key,(identifier,_) in notes.items() if identifier==d.NS+'::Extra1')
+            if mode=='primary-save-own':
+                key='schema'
+                notes[key]=(d.NS+'::Extra2','Retained primary Extra2')
+                source=f.projects[0].parent/'private-source-Extra2.celem'
+            else:
+                key=next(key for key,(identifier,_) in notes.items() if identifier==d.NS+'::Extra1')
+                source=f.projects[0].parent/'private-source-Extra1.celem'
             target=page.locator(f'.window[data-key="{key}"]')
-            source=f.projects[0].parent/'private-source-Extra1.celem'
             marker=len(invokes)
             button=target.locator('[data-element-action="confirm"]')
             expect(button).to_have_text('저장')
             note=r.floating.property_value(target,'Note')
+            if key=='schema':page.locator('.window[data-key="browser"]').get_by_role('button',name='창 닫기',exact=True).click()
             note.click()
             assert page.evaluate('document.activeElement.closest(".window")?.dataset.key')==key
             expect(note).to_have_value(notes[key][1])
-            assert target.get_attribute('data-element-owner')==notes[key][0]
+            if key!='schema':assert target.get_attribute('data-element-owner')==notes[key][0]
+            else:assert f.state()['draft']['id']==notes[key][0]
             assert source.read_bytes()==f.before[str(source)]
             button.click()
             expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
             expect(page.locator('#project-menu')).to_be_enabled()
             calls=[req['endpoint'] for req in invokes[marker:]]
-            assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+            if key=='schema':assert calls.count('directPropertyConfirm')==1,calls
+            else:assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
             assert f'data Note = "{notes[key][1]}"' in source.read_text()
             f.before[str(source)]=source.read_bytes()
             for peer,(_,value) in notes.items():
@@ -369,7 +412,7 @@ try:
             for restored, (identifier,value) in notes.items():
                 window=page.locator(f'.window[data-key="{restored}"]')
                 expect(r.floating.property_value(window,'Note')).to_have_value(value)
-                assert window.get_attribute('data-element-owner')==identifier
+                if restored!='schema':assert window.get_attribute('data-element-owner')==identifier
             page.locator('.brand').click()
             expect(page.locator('.home-grid')).to_be_visible()
             page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.SECOND,exact=True)).locator('[data-enter]').click()

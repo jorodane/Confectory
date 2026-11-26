@@ -219,7 +219,7 @@ export function createActualWorkspace(api) {
     });
   }
   function attach(state){
-    const performanceStarted=api.performanceStart?.()??null;restoreFlight=null;partialRecovery=null;loading=true;
+    const performanceStarted=api.performanceStart?.()??null;restoreFlight?.primaryPlan?.finish(null);restoreFlight=null;partialRecovery=null;loading=true;
     if(project){capture();projects.set(scope,project);}
     scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
@@ -232,10 +232,11 @@ export function createActualWorkspace(api) {
     if(!checkpoints.has(scope)){const baseline=JSON.parse(JSON.stringify(project));delete baseline.selectedNodeKeys;checkpoints.set(scope,baseline);}project.selectedNodeKeys=[];api.restoreInputs(project.inputs||{});
     runtime.setupWorkspaceNavigation();runtime.setupOwnedObjectDrop();runtime.setupWindowSelection();runtime.renderWorkspaceTabs();runtime.renderWorkspaceDecorations();
     const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
-    for(const layout of layouts)runtime.restoreWindow(layout);windowDocuments.restore();
-    runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
     const bindings=project.editorBindings||[],selected=project.selectedObjectId;
     const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
+    const primaryPlan=api.beginRestorePrimaryStatus?.(state,missing,layouts);
+    for(const layout of layouts)runtime.restoreWindow(layout);windowDocuments.restore();
+    runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
     // Rendering the saved Pack Manager may capture before domain views reopen.
     // Keep the original binding plan intact until recovery has actually succeeded.
     if(missing.length||(selected&&selected!==state.draft?.id))project.recoveryFailed=true;
@@ -243,11 +244,11 @@ export function createActualWorkspace(api) {
     api.$('#workspace').addEventListener('input',()=>schedule());
     api.performanceMark?.('workspace-attach',performanceStarted);
     if(missing.length||(selected&&selected!==state.draft?.id)){
-      loading=true;api.setWorkspaceStatus('편집창 복원 중');const flight={project,scope,workspace:runtime.state.activeWorkspaceId,closed:new Map()};restoreFlight=flight;
+      loading=true;api.setWorkspaceStatus('편집창 복원 중');const flight={project,scope,workspace:runtime.state.activeWorkspaceId,closed:new Map(),primaryPlan};restoreFlight=flight;
       (async()=>{
         while(api.isBusy&&restoreLive(flight))await new Promise(resolve=>setTimeout(resolve,50));
-        if(!restoreLive(flight))return;
-        try{const result=await api.restoreBindings(missing,selected);if(!restoreLive(flight))return;
+        if(!restoreLive(flight)){primaryPlan?.finish(null);return;}
+        try{const result=await api.restoreBindings(missing,selected,primaryPlan);if(!restoreLive(flight))return;
           const unavailable=result?.unavailable||[];
           // An absent registration never creates a substitute editor. Preserve
           // the saved binding/input plan for the unavailable owner while
@@ -258,11 +259,11 @@ export function createActualWorkspace(api) {
           if(unavailable.length){api.setWorkspaceStatus('일부 편집창 복원 실패');api.toast('일부 편집창 복원 실패 · 등록이 사라진 객체의 입력과 배치는 유지됩니다.');}
           else api.setWorkspaceStatus('편집창 복원됨');
         }catch(error){if(restoreLive(flight)){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
-        finally{if(restoreLive(flight)){restoreFlight=null;ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
+        finally{primaryPlan?.finish(null);if(restoreLive(flight)){restoreFlight=null;ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
       })();
     }
   }
-  function detach(){restoreFlight=null;office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';partialRecovery=null;ready();changed=0;saved=0;}
+  function detach(){restoreFlight?.primaryPlan?.finish(null);restoreFlight=null;office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';partialRecovery=null;ready();changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);const flight=restoreFlight,closed=flight?.closed.get(key);if(closed&&restoreLive(flight)&&sameWindowTarget(closed.row,w)){flight.closed.delete(key);const row=runtime.workspaceRecord().layout.find(row=>sameWindowTarget(row,w));if(row)Object.assign(row,runtime.windowLayout(w));}runtime.saveLayouts();}return w;}
   return {updateOffice:()=>office?.update(),officeFinder:()=>office?.finder()||null,runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,whenReady,get project(){return project},get loading(){return loading}};
 }
