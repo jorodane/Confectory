@@ -696,14 +696,14 @@ function blueprintNormalizeControls(scope){
   const outputDragType='application/x-confectory-blueprint-output';for(const b of $$('[data-bp-output-id]',root)){b.draggable=outputEditable;b.ondragstart=e=>{if(!canvasOwns())return e.preventDefault();e.dataTransfer.setData(outputDragType,JSON.stringify({scope:canvasScope,graph:data.id,name:b.dataset.bpOutputId}));e.dataTransfer.effectAllowed='copy';};}
   viewport.addEventListener('dragover',e=>{if(outputEditable&&Array.from(e.dataTransfer.types).includes(outputDragType)){e.preventDefault();e.dataTransfer.dropEffect='copy';}},{signal});viewport.addEventListener('drop',e=>{const raw=e.dataTransfer.getData(outputDragType);if(!raw)return;e.preventDefault();e.stopPropagation();try{const v=JSON.parse(raw);if(v.scope===canvasScope&&v.graph===data.id)addExport(v.name,{x:e.clientX,y:e.clientY});}catch{}},{signal});
   let canvasPanning=false,ignoreContextUntil=0;
-  function resources(event,released=false,insertion=undefined){if(data.privateConversion&&!branchExitSupported(w)){event.preventDefault();return;}
+  function resources(event,released=false,insertion=undefined,callOnly=false){if(data.privateConversion&&!branchExitSupported(w)){event.preventDefault();return;}
    event.preventDefault();event.stopPropagation();if(!released&&(canvasPanning||performance.now()<ignoreContextUntil))return;if(closeMenu('commit')===false)return;menu=document.createElement('section');menu.className='workspace-search-menu bp-search-menu';menu.setAttribute('role','dialog');menu.setAttribute('aria-label','블루프린트 노드 검색');
    menu.innerHTML='<div class="workspace-search-head"><input type="search" data-resource-query aria-label="노드 검색" placeholder="동작·기능·속성 검색…"><button type="button" data-resource-close aria-label="검색 닫기">×</button></div><div class="bp-create-hint" data-create-hint hidden></div><label class="bp-resource-kind">대상 종류<select data-resource-kind aria-label="대상 종류"><option value="">전체</option><option value="action">동작</option><option value="call"'+(data.id?'':' disabled')+'>기능</option><option value="set"'+(sets.supported(w)?'':' disabled')+'>중간저장</option><option value="export"'+(outputEditable&&outputFields.length?'':' disabled')+'>내보내기</option><option value="branch-exit"'+(branchExitSupported(w)?'':' disabled')+'>분기 반환</option><option value="property"'+(properties.supported(w)?'':' disabled')+'>속성</option></select></label><div class="workspace-search-results" data-resource-results></div>';
    // A mobile gap is an exact owned execution edge, not just a canvas position.
    // Retain its successor until the user chooses a resource, then recheck it.
-   const fromMobile=insertion!==undefined,rememberCreated=id=>{if(fromMobile)w.authorMobileEditor={context:prefix(w)+'graph:'+String(data.id||'preview'),id,top:0};};
+   const fromMobile=insertion!==undefined&&!callOnly,rememberCreated=id=>{if(fromMobile)w.authorMobileEditor={context:prefix(w)+'graph:'+String(data.id||'preview'),id,top:0};};
    const rail=insertion?{...insertion,to:rawLinks().find(l=>l.from===insertion.from&&l.port===insertion.port)?.to||''}:null;
-   const railReady=()=>{if(!canvasOwns())return false;if(!rail)return true;if(!port(rail.from,'out','exec',rail.port)||(rawLinks().find(l=>l.from===rail.from&&l.port===rail.port)?.to||'')!==rail.to||inputs.has(prefix(w)+'$root|root-parameters')){api.toast('실행 연결이나 기능 계약이 바뀌었어요. 입력을 보존했으니 위치를 다시 선택해 주세요.');return false;}return true;};
+   const railReady=()=>{if(!canvasOwns())return false;if(callOnly&&(documentView?.mode!=='logic'||!rail||!documentCallInsertion(rail.from)))return false;if(!rail)return true;if(!port(rail.from,'out','exec',rail.port)||(rawLinks().find(l=>l.from===rail.from&&l.port===rail.port)?.to||'')!==rail.to||inputs.has(prefix(w)+'$root|root-parameters')){api.toast('실행 연결이나 기능 계약이 바뀌었어요. 입력을 보존했으니 위치를 다시 선택해 주세요.');return false;}return true;};
    const wireInsertion=id=>{if(!rail)return;privateValue(w,rail.from,rail.from==='$entry'?'entry':rail.port==='next'?'route':'route:'+rail.port,id);if(rail.to)privateValue(w,id,'route',rail.to.startsWith('$exit:')?rail.to.slice(1):rail.to);};
    const outputChoice=fn=>{if(!rail)return fn();api.toast('이 위치의 내보내기 배치는 아직 연결되지 않았어요. 기존 출력과 입력은 유지됩니다.');};
    let callableRows=null,propertyRows=null;const panel=menu;const query=$('[data-resource-query]',menu),results=$('[data-resource-results]',menu),kind=$('[data-resource-kind]',menu),at={x:event.clientX,y:event.clientY};const positionPanel=()=>{if(!panel.isConnected)return;panel.style.left=Math.max(8,Math.min(innerWidth-panel.offsetWidth-8,at.x))+'px';panel.style.top=Math.max(8,Math.min(innerHeight-panel.offsetHeight-8,at.y))+'px';};
@@ -713,13 +713,13 @@ function blueprintNormalizeControls(scope){
     if(properties.supported(w)&&propertyRows&&(!kind.value||kind.value==='property'))for(const source of propertyRows.filter(v=>(v.owner+' '+v.field.name).toLocaleLowerCase().includes(term))){const button=document.createElement('button');button.type='button';button.className='workspace-search-entry';button.dataset.resourceProperty=source.field.name;button.innerHTML='<strong>'+esc(short(source.owner)+' · '+source.field.name)+'</strong><small>속성</small>';button.onclick=()=>api.work(async()=>{if(!canvasOwns()||menu!==panel)return;const id='property_'+crypto.randomUUID().replaceAll('-',''),ready=await call(w,{action:'readProperty',id:data.id,node:id,owner:source.owner,field:source.field.name,targetJson:'null',access:'read'},()=>canvasOwns()&&menu===panel);if(!canvasOwns()||menu!==panel)return;const rect=viewport.getBoundingClientRect();closeMenu();structuralEdit(w,()=>{properties.create(w,ready);w.meta.blueprintPositions??={};w.meta.blueprintPositions[id]={x:Math.max(172,(at.x-rect.left-camera.x)/zoom-110),y:Math.max(47,(at.y-rect.top-camera.y)/zoom-30)};api.persist();});},'');results.append(button);}
     positionPanel();
    };
-   query.oninput=draw;kind.onchange=draw;$('[data-resource-close]',menu).onclick=()=>closeMenu();menu.onpointerdown=e=>e.stopPropagation();menu.onkeydown=e=>{if(e.isComposing)return;if(e.key==='Escape'){e.preventDefault();closeMenu();viewport.focus();}else if(e.key==='Enter'&&e.target===query){e.preventDefault();results.querySelector('button')?.click();}};document.body.append(menu);draw();query.focus();if(data.id){
+   if(callOnly){kind.value='call';kind.disabled=true;}query.oninput=draw;kind.onchange=draw;$('[data-resource-close]',menu).onclick=()=>closeMenu();menu.onpointerdown=e=>e.stopPropagation();menu.onkeydown=e=>{if(e.isComposing)return;if(e.key==='Escape'){e.preventDefault();closeMenu();viewport.focus();}else if(e.key==='Enter'&&e.target===query){e.preventDefault();results.querySelector('button')?.click();}};document.body.append(menu);draw();query.focus();if(data.id){
     // Opening this original context menu remains available during background
     // restoration. work() deliberately drops busy actions, so defer this read
     // to the existing idle lifecycle and recheck the exact menu/owner. Never
     // queue a source mutation or keep a retired menu alive.
     const active=()=>canvasOwns()&&menu===panel&&panel.isConnected;
-    (async()=>{for(let attempt=0;attempt<3;attempt++){await api.whenIdle?.();if(!active())return;let started=false;await api.work(async()=>{started=true;if(!active())return;let current;try{current=await call(w,{action:'callables',id:data.id,page:0,query:''},active);}catch(error){if(!active())return;throw error;}if(!active())return;callableRows=current.rows||[];draw();if(properties.supported(w)){const catalog=await call(w,{action:'propertyCatalog',id:data.id,page:0,query:''},active),found=[];for(const owner of catalog.rows||[]){const details=await call(w,{action:'propertyCatalog',id:data.id,owner:owner.id},active);for(const field of details.descriptor.fields.filter(f=>f.supported))found.push({owner:owner.id,field});}if(!active())return;propertyRows=found;draw();}},'');if(started)return;}if(active())api.toast('다른 작업이 진행 중이에요. 기능 검색을 다시 열어 주세요.');})();
+    (async()=>{for(let attempt=0;attempt<3;attempt++){await api.whenIdle?.();if(!active())return;let started=false;await api.work(async()=>{started=true;if(!active())return;let current;try{current=await call(w,{action:'callables',id:data.id,page:0,query:''},active);}catch(error){if(!active())return;throw error;}if(!active())return;callableRows=current.rows||[];draw();if(!callOnly&&properties.supported(w)){const catalog=await call(w,{action:'propertyCatalog',id:data.id,page:0,query:''},active),found=[];for(const owner of catalog.rows||[]){const details=await call(w,{action:'propertyCatalog',id:data.id,owner:owner.id},active);for(const field of details.descriptor.fields.filter(f=>f.supported))found.push({owner:owner.id,field});}if(!active())return;propertyRows=found;draw();}},'');if(started)return;}if(active())api.toast('다른 작업이 진행 중이에요. 기능 검색을 다시 열어 주세요.');})();
    }
   }
   viewport.addEventListener('pointerdown',event=>{if(event.button!==0||event.pointerType==='touch'&&!root.classList.contains('mobile-select-mode')||!canvasOwns()||event.target.closest('.bp-node,.bp-entry-wall,.bp-wire-group,button,input,textarea,select'))return;event.preventDefault();event.stopPropagation();viewport.focus({preventScroll:true});const before=[...nodeSelection],base=event.ctrlKey||event.metaKey||event.shiftKey?before:[],start={x:event.clientX,y:event.clientY},rect=viewport.getBoundingClientRect();let box=null;capture(viewport,event,next=>{if(Math.abs(next.clientX-start.x)+Math.abs(next.clientY-start.y)<3&&!box)return;if(!box){box=document.createElement('div');box.className='bp-selection-box';viewport.append(box);}const left=Math.min(start.x,next.clientX),right=Math.max(start.x,next.clientX),top=Math.min(start.y,next.clientY),bottom=Math.max(start.y,next.clientY);Object.assign(box.style,{left:left-rect.left+'px',top:top-rect.top+'px',width:right-left+'px',height:bottom-top+'px'});selectNodes([...base,...nodes.filter(n=>n.id!=='$entry'&&!n.id.startsWith('$exit:')).filter(n=>{const r=element(n.id)?.getBoundingClientRect();return r&&r.left<right&&r.right>left&&r.top<bottom&&r.bottom>top;}).map(n=>n.id)]);},cancel=>{const moved=!!box;box?.remove();if(cancel)selectNodes(before);else if(!moved)selectNodes(base);});},{signal});
@@ -1262,6 +1262,17 @@ function blueprintNormalizeControls(scope){
     ?{...node,contractReviewRequired:true}:node);
    return model;
   };
+  // A reference uses the existing exact-edge resource insertion and its
+  // selected declaration receipt. Limit this first surface to a clean,
+  // directly owned ordinary root flow with a verified next edge.
+  const documentCallInsertion=id=>{
+   if(flowDocument||!data.documentRootStart?.entry||!data.id||data.id!==data.rootId||
+      data.privatePath||data.slotContext||data.privateCopy||w.meta.copyDraft||
+      saveEntries(w).length||!frameInputsClear())return false;
+   const chain=linearCells(id);
+   return !!chain&&!chain.frame&&!chain.compound&&(id==='$entry'||chain.order.includes(id))&&
+    rawLinks().some(edge=>edge.from===id&&edge.port==='next'&&edge.to);
+  };
   const documentCellActions=id=>{
     if(flowDocument)return null;
     const held=saveEntries(w),propertyAdd=documentPropertyInputs(id).length>0;
@@ -1329,6 +1340,12 @@ function blueprintNormalizeControls(scope){
       $('[data-compound-delete-cancel]',root).onclick=close;
       $('[data-compound-delete-confirm]',root).onclick=()=>{close();remove();};
      });
+   },
+   hasCallInsertion:documentCallInsertion,
+   insertCall:(id,anchor)=>{
+    if(!canvasOwns()||api.busy||documentView?.mode!=='logic'||!documentCallInsertion(id)||closeMenu('preserve')===false)return;
+    const rect=anchor.getBoundingClientRect();
+    resources({preventDefault(){},stopPropagation(){},clientX:rect.left,clientY:rect.bottom},true,{from:id,port:'next'},true);
    },
    cellActions:documentCellActions,
    cellDrag,canDropCell:(id,slot,expected,transfer)=>{try{return !!cellDropPlan(id,slot,expected,transfer);}catch{return false;}},

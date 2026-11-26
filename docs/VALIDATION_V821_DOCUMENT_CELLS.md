@@ -80,3 +80,11 @@
 등록만 된 새 기능은 아직 실제 graph의 `nodes`가 없고 기존 편집기가 첫 작성용 임시 셀을 투영한다. 해당 문맥에서 원본 graph가 필요한 속성 읽기·직렬 순서·계약 조회를 호출하면 논리 코드 화면이 `undefined.find`로 중단되었다. 실제 graph가 없는 경우 해당 원본 전용 동작만 제공하지 않으며, 기존 첫 코드 작성·Save·Review/Confirm 흐름은 그대로 사용한다.
 
 [새 기능 문서 검사](../tests/web/v821_new_function_document_ui.py)는 Linux Chromium의 실제 작업실 메뉴에서 새 기능을 만들고 논리 코드의 첫 C# 셀을 편집해 확정했다. 다른 합성 프로젝트는 변경되지 않았다. 확정된 기능의 새 코드나 선언을 변경하지 않고 별도 합성 사본의 기존 프로젝트 진입점만 그 기능으로 설정했으며, 일반 ▶ 실행으로 실제 결과 파일을 확인했다. 진입점 선택 자체를 제품 UI에서 검사한 결과는 아니며 실제 Windows/WebView2도 미실행이다.
+
+## 논리 코드에서 직접 기능 호출 추가
+
+확정된 직접 소유 일반 직렬 graph의 시작 또는 기존 일반 셀 바로 뒤에 **기능 호출 추가…**를 제공한다. 기존 Blueprint/모바일의 기능 검색과 선택 선언 관측, 정확한 next 연결 삽입, private Undo/Redo, Save 및 Review/Confirm을 재사용한다. 검색에서 기능만 선택할 수 있으며 새로운 호출 참조는 원래 successor를 유지한다. 호출 본문을 복제하거나 편집하지 않는다. 아직 graph가 없는 첫 작성, 미저장 입력, 복합/분기/간접 소유 문맥에는 제공하지 않는다. 다른 보기의 기능 추가나 저장 계약은 변경하지 않았다.
+
+회귀 시나리오: [새 기능 문서 검사](../tests/web/v821_new_function_document_ui.py)에서 최초 기능 작성 및 확정 후 논리 코드 안에서 등록 기능을 선택하고 입력 37을 연결한다. 검색 취소, private Undo/Redo, Save, Review 취소와 최종 Confirm, 작성 프로젝트 재시작, 별도 실행 사본의 일반 ▶를 검사한다. 실제 Windows 및 전체 패키지 검증은 별도이며, 호출 자체의 공개/참조/충돌 검증은 기존 호스트 경로를 그대로 사용한다.
+
+실제 경량 Linux 호스트/Chromium 실행에서 새 기능의 선언 및 코드 작성·Confirm, 호출 삽입 및 값 연결·Undo/Redo·Review/Confirm, 재시작 후 동일 ID·값 복원, 실행 결과 파일 두 개(새 기능 표식과 호출된 기능의 37)를 확인했다. 기존 `v821_internal_flow_document_ui.py`의 보호된 내부 C# 래핑·복원·실행 결과 11과 `v821_document_structure_ui.py start`의 첫 일반 셀 삽입·외부 변경 Save/Confirm 거절·실행 검사를 별도로 통과했다. 구 `v508_feature_call_renderer.py`는 수정 전 42d54a6과 수정 후 모두 첫 비표시 Blueprint 값 컨트롤 클릭에서 동일하게 시간 초과하여 통과로 집계하지 않았다.

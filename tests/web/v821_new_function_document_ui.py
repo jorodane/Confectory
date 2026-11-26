@@ -16,6 +16,22 @@ from editor_logic_workflow import review, run_from_dock
 name = 'LocalAuthorProbe'
 target = 'Example.FrameLoop::' + name
 marker = f.root / 'new-function-result.txt'
+donor_marker = f.root / 'referenced-function-result.txt'
+donor = 'Example.FrameLoop::LocalDonor'
+# Add an ordinary published donor to the synthetic project only.
+manifest = f.projects[0]
+manifest.write_text(manifest.read_text().rstrip().removesuffix('}') +
+    'element LocalDonor function "LocalDonor.celem";element LocalDonorBody implementation "LocalDonorBody.celem";}')
+donor_sources = {
+    'LocalDonor.celem': f'function {donor} (int amount) -> void {{provide {donor} with {donor}Body;}}',
+    'LocalDonorBody.celem': f'implementation {donor}Body for {donor} (int amount) -> void {{body common "LocalDonor.csbody";}}',
+    'LocalDonor.csbody': 'System.IO.File.WriteAllText(' + json.dumps(str(donor_marker)) + ', amount.ToString());',
+}
+for filename, text in donor_sources.items():
+    path = manifest.parent / filename
+    path.write_text(text)
+    f.before[str(path)] = path.read_bytes()
+f.before[str(manifest)] = manifest.read_bytes()
 expect.set_options(timeout=60000)
 
 try:
@@ -65,8 +81,63 @@ try:
         expect(r).to_be_hidden(timeout=120000)
         assert name in f.projects[0].read_text() and name not in f.projects[1].read_text()
         print('PASS actual new feature declaration, document code edit, Save and Confirm', flush=True)
+        # Add a typed published feature from the Logic Code view itself,
+        # without switching to Blueprint or manually reconnecting execution.
+        add = doc.locator('[data-document-insert-call="$entry"]')
+        expect(add).to_be_enabled()
+        add.click()
+        picker = page.get_by_role('dialog', name='블루프린트 노드 검색')
+        candidate = picker.locator(f'[data-resource-feature="{donor}"]')
+        expect(candidate).to_be_visible()
+        picker.locator('[data-resource-close]').click()
+        expect(doc.locator('[data-document-cell^="call_"]')).to_have_count(0)
+        add.click()
+        expect(candidate).to_be_visible()
+        candidate.click()
+        call_cell = doc.locator('[data-document-cell^="call_"]')
+        expect(call_cell).to_be_visible()
+        call_id = call_cell.get_attribute('data-document-cell')
+        assert doc.locator('[data-document-cell]').evaluate_all('(cells)=>cells.map(c=>c.dataset.documentCell)')[:3] == ['$entry',call_id,'body']
+        doc.press('Control+z')
+        expect(call_cell).to_have_count(0)
+        doc.press('Control+y')
+        expect(call_cell).to_be_visible()
+        value = call_cell.locator('[data-document-value][data-document-port="field:amount"]')
+        value.click()
+        values = page.get_by_role('dialog', name='핀 값 선택')
+        values.get_by_role('searchbox', name='값 검색').fill('37')
+        values.get_by_role('searchbox', name='값 검색').press('Enter')
+        expect(value).to_have_text('37')
+        panel.locator('[data-bp-save]').click()
+        expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
+        r = review(page,panel.locator('[data-bp-complete]'))
+        r.locator('[data-reject]').click()
+        expect(r).to_be_hidden()
+        r = review(page,panel.locator('[data-bp-complete]'))
+        r.locator('#confirm').click()
+        expect(r).to_be_hidden(timeout=120000)
+        graph_path = next(manifest.parent.glob('blueprints/*.graph.json'))
+        graph = json.loads(graph_path.read_text())
+        assert graph['feature'] == target and graph['entry'] == call_id
+        assert {'from':call_id,'port':'next','to':'body'} in graph['edges']
+        call = next(node for node in graph['nodes'] if node['id']==call_id)
+        assert call['kind']=='call' and call['feature']==donor and call['arguments']=={'amount':{'constant':37}}
+        assert all((manifest.parent / file).read_text()==source for file,source in donor_sources.items())
+        assert donor not in f.projects[1].read_text()
+        print('PASS actual Logic Code feature insertion, value binding, Undo/Redo and Review/Confirm', flush=True)
         page.close()
         f.stop()
+
+        # Restore the same authored project and editor presentation before running.
+        f.start(1)
+        page = f.setup(browser)
+        page.set_viewport_size({'width': 1800, 'height': 1200})
+        restored = page.locator('.window[data-key=blueprint] .function-document')
+        expect(restored.locator(f'[data-document-cell="{call_id}"]')).to_be_visible()
+        expect(restored.locator(f'[data-document-value="{call_id}"][data-document-port="field:amount"]')).to_have_text('37')
+        page.close()
+        f.stop()
+        print('PASS cold restart restores the committed call and typed input', flush=True)
 
         # The tested authoring product has no new test-only execution action.
         # Select the committed function as the ordinary entry in a separate
@@ -78,10 +149,12 @@ try:
         assert count == 1
         manifest.write_text(text)
         f.env['CONFECTORY_WEB_PROJECT'] = str(manifest)
-        f.start(1)
+        f.start(2)
         page = f.setup(browser)
         page.set_viewport_size({'width': 1800, 'height': 1200})
         run_from_dock(page, marker, 'new function executed')
+        assert donor_marker.read_text() == '37'
+        assert not f.errors and not f.external, (f.errors, f.external)
         print('PASS ordinary editor Run in isolated entry harness executes the newly authored feature', flush=True)
         page.close()
 finally:
