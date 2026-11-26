@@ -336,3 +336,73 @@ Confectory 창을 모두 닫고, 체크아웃 또는 설치한 Windows 묶음의
 있으며 한도를 채우면 `capture-limit` 뒤에 추가 기록을 하지 않습니다. 기록은 로컬에
 남아 직접 삭제할 수 있습니다. 강제 종료 시 마지막 약 1초 분량은 유실될 수 있습니다.
 새 시각의 폴더가 없다면 기존 창이 남아 있거나 기록 폴더 생성에 실패한 것입니다.
+
+### 설정 화면의 내장 읽기 모델 및 부분 설정 업그레이드 재검증
+
+이 항목은 실제 Windows WebView2에서 아직 실행하지 않은 후속 수락 시험입니다. 패키지의
+`content/runtime/Confectory.App.dll`에는 빌드 당시 검증한 설치 선언 읽기 모델이 들어 있습니다.
+`connection-preview-v1.json` 파일은 검사에 쓰이는 복사본일 뿐 런타임 신뢰 원본이 아닙니다.
+설치 원본이나 도구가 달라지면 기존 조회/오류 경로로 돌아가며, 최초 보기 자체는 설정을
+저장하거나 인증하지 않아야 합니다.
+
+위 `$package`와 `$lab`를 사용하되 실제 사용자 프로필이나 등록된 Agent를 복사하지 않습니다.
+모든 Windows 창을 닫고 아래처럼 **새 프로필마다** 환경 변수를 해당 PowerShell 세션에서만
+설정합니다. 실제 인증이나 메시지 전송은 수행하지 않습니다.
+
+```powershell
+function Set-SettingsTestProfile([string]$name) {
+    $script:testHome = Join-Path $lab $name
+    $env:CONFECTORY_HOME_STORAGE = $testHome
+    $env:CONFECTORY_ENTRY_STORAGE = $testHome
+    $env:CONFECTORY_MCP_DIRECTORY = Join-Path $testHome 'instances'
+    New-Item -ItemType Directory -Path $testHome -Force | Out-Null
+}
+Set-SettingsTestProfile 'Fresh-Settings'
+$editor = & $startEditor
+```
+
+1. 깨끗한 프로필에서 **나중에 → Agent 추가 → Codex**를 열고 로그인 시작이나 Agent 등록을
+   누르지 않습니다. 실제 버튼이 활성화되는 시점과 첫 표시를 나누어 기록합니다. 닫고 다시
+   여는 동작을 세 번 반복합니다. Codex 설정 폴더는 보기/취소만으로 생성되면 안 됩니다.
+2. **OpenAI Responses**를 선택하고 합성 모델 문자열을 입력해 닫습니다. 다시 열어 입력 보존을
+   확인하고 **설정 저장**을 명시적으로 누릅니다. 기존 설정 파일과 초안이 저장되는지 확인한
+   후 완전히 종료·재실행합니다. 인증, 연결 시도, Agent 등록은 하지 않습니다. 합성 프로젝트
+   두 개를 오가며 현재 객체의 값과 프로젝트 소유자가 유지되는지도 봅니다.
+3. 아래 두 폐기용 프로필에는 각각 설정 쌍의 한쪽만 존재하도록 합니다. 이는 이전 설치에서
+   복구되지 않은 부분 설정을 재현하기 위한 합성 자료입니다. 기존 설치의 사용자 파일을
+   가져오거나 삭제하지 않습니다. 새 묶음의 로컬 도구로 합성 복구 자료를 생성합니다.
+
+```powershell
+$connection = 'Confectory.Agent.Codex::Connection'
+$sha = [System.Security.Cryptography.SHA256]::Create()
+try {
+    $key = [BitConverter]::ToString($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($connection))).Replace('-', '').ToLowerInvariant().Substring(0, 16)
+} finally { $sha.Dispose() }
+$utf8 = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding = $utf8
+$author = Join-Path $package 'content/targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'
+$installProject = Join-Path $package 'content/examples/editor-home/project.cpack'
+$pair = (@{ operation = 'connectionSettings'; project = $installProject; id = $connection } | ConvertTo-Json -Compress) | & dotnet $author | ConvertFrom-Json
+if (-not $pair.ok) { throw 'Synthetic settings fixture generation failed' }
+
+Set-SettingsTestProfile 'Upgrade-Source-Only'
+$partial = Join-Path (Join-Path $testHome 'ai-settings') $key
+New-Item -ItemType Directory -Path $partial -Force | Out-Null
+[IO.File]::WriteAllText((Join-Path $partial 'Settings.celem'), 'object Confectory.AISettings::Settings extends Confectory.Agent.Codex::Connection { data model = "fixture-preserved-input"; }', $utf8)
+Get-FileHash -Algorithm SHA256 (Join-Path $partial 'Settings.celem')
+$editor = & $startEditor
+# 실제 창의 오류/취소 확인 후 종료하고 해시와 project.cpack 미생성을 확인합니다.
+```
+
+다른 프로필은 `Set-SettingsTestProfile 'Upgrade-Manifest-Only'`로 전환한 뒤 같은 `$key` 폴더를
+생성하고, `Settings.celem` 대신 `$pair.result.manifest`를 `project.cpack`에 UTF-8로 씁니다.
+두 프로필 모두 Agent 추가 → Codex에서 **부분 설정 오류**를 읽을 수 있어야 하며 기존 파일
+해시가 유지되고 사라진 상대 파일이 자동 생성되지 않아야 합니다. 오류 화면에서 닫기와 재시도를
+확인합니다. 이후 각 시험 프로필의 누락된 파일만 `$pair.result.manifest` 또는
+`$pair.result.source`로 공급하고 다시 열어 복구되는지를 확인합니다. 실제 사용자 설정에서는
+이 시험용 파일을 사용하지 않습니다.
+
+결과에는 실행 빌드의 매니페스트 해시, 새/부분 프로필 구분, 화면의 최초 표시·실제 조작 가능
+시간, 오류 단계, 파일 해시 보존 여부를 별도로 기록합니다. 필요하면 기존 `--performance`
+진단을 명시적으로 사용합니다. Linux Chromium과 교차 빌드 결과를 Windows 실기 결과로
+간주하지 않습니다.

@@ -47,3 +47,29 @@ finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));diag
 assert.deepEqual(Object.keys(batches[1].rows[0]).sort(),['elapsedMs','operation','pageMs','stage']);
 finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));await diagnostic.dispose();
 console.log('PASS bounded performance batches keep ready events and at most one transport in flight');
+
+// A bounded completion is a normal revisioned snapshot, not a second command.
+// Background reads are suppressed during the short acknowledgement only;
+// explicit updates, an expired wait and the ordinary fallback remain available.
+const completions=[],completionReads=[],completionRenders=[];
+const completionView=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'completion',scope:{project:'fixture'},revision:1,state:{value:'before'}};
+ if(request.op==='invoke')return new Promise(resolve=>completions.push({request,resolve}));
+ if(request.op==='update')return new Promise(resolve=>completionReads.push(resolve));
+ if(request.op==='dispose')return {ok:true};
+ throw Error('unexpected completion operation');
+},state=>completionRenders.push(state.value));
+await completionView.mount();
+const fast=completionView.call('connectionSetup',{}, {completion:true});
+await completionView.poll();assert.equal(completionReads.length,0);
+const fastRow=completions.shift();assert.equal(fastRow.request.completion,true);
+fastRow.resolve({ok:true,status:'pending',completion:{ok:true,revision:2,state:{value:'ready'},results:[{requestId:fastRow.request.requestId,ok:true,result:{ready:true}}]}});
+assert.deepEqual(await fast,{ready:true});assert.equal(completionView.revision,2);assert.equal(completionReads.length,0);assert.deepEqual(completionRenders,['before','ready']);
+const slow=completionView.call('connectionSetup',{}, {completion:true});const slowRow=completions.shift();
+await new Promise(resolve=>setTimeout(resolve,170));const expired=completionView.poll();assert.equal(completionReads.length,1);
+completionReads.shift()({ok:true,busy:true,results:[]});await expired;
+slowRow.resolve({ok:true,status:'pending'});await new Promise(resolve=>setImmediate(resolve));assert.equal(completionReads.length,1);
+completionReads.shift()({ok:true,revision:3,state:{value:'fallback'},results:[{requestId:slowRow.request.requestId,ok:true,result:{ready:true}}]});assert.deepEqual(await slow,{ready:true});
+const stale=completionView.call('connectionSetup',{}, {completion:true});const staleRow=completions.shift();staleRow.resolve({ok:true,status:'pending',completion:{ok:true,revision:4,state:{value:'newer'},results:[{requestId:staleRow.request.requestId,ok:false,error:{code:'stale_revision'}}]}});await assert.rejects(stale,/stale_revision/);assert.equal(completionView.revision,4);
+const retired=completionView.call('connectionSetup',{}, {completion:true});const retiredRow=completions.shift();const rejected=assert.rejects(retired,/view_closed/);await completionView.dispose();await rejected;retiredRow.resolve({ok:true,completion:{ok:true,revision:99,state:{value:'retired'},results:[]}});await new Promise(resolve=>setImmediate(resolve));assert(!completionRenders.includes('retired'));
+console.log('PASS bounded completion snapshot, fallback, stale admission and retired acknowledgement');

@@ -42,6 +42,9 @@ foreach(var item in bundle["resources"]!.AsObject()){
 string entry=bundle["entry"]!.ToString();if(!assets.ContainsKey(entry)||assets[entry][0]!="text/html")throw new ArgumentException("Declared HTML entry required");
 var endpoints=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 foreach(var e in bundle["endpoints"]!.AsArray())if(e!.GetValue<string>().StartsWith("host.",StringComparison.Ordinal)||!endpoints.Add(e.GetValue<string>()))throw new ArgumentException("Duplicate endpoint");
+// Only the compiled bundle may nominate short presentation commands for a
+// bounded completion reply. Mutating/long jobs retain the asynchronous path.
+var completionEndpoints=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["completionEndpoints"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=row!.GetValue<string>();if(completionEndpoints.Count>=8||!endpoints.Contains(name)||!completionEndpoints.Add(name))throw new ArgumentException("Bounded completion endpoints required");}
 var hostActions=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var action in bundle["hostActions"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=action!.GetValue<string>();if(hostActions.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,@"^[a-z][a-z0-9-]{0,63}$")||!hostActions.Add(name))throw new ArgumentException("Bounded distinct native actions required");}
 // Trusted bundles opt in read-only observations; they cannot reuse retained invocation endpoints.
 var observations=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["observations"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=row!.GetValue<string>();if(observations.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z][A-Za-z0-9]{0,63}$")||endpoints.Contains(name)||!observations.Add(name))throw new ArgumentException("Bounded distinct observation endpoints required");}
@@ -51,7 +54,7 @@ string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool
 var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
 var views=new System.Collections.Generic.Dictionary<string,(string Scope,string[] Subscription,System.Threading.CancellationTokenSource Lifetime)>(StringComparer.Ordinal);
-var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprint,string View,System.Threading.CancellationTokenSource Cancel,System.Text.Json.Nodes.JsonObject Row)>(StringComparer.Ordinal);
+var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprint,string View,System.Threading.CancellationTokenSource Cancel,System.Text.Json.Nodes.JsonObject Row,System.Threading.Tasks.TaskCompletionSource<bool> Completion)>(StringComparer.Ordinal);
 // Opt-in timings contain operation names and durations only, never input, state or exception text.
 bool trace=Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1";
 var performanceRecord=AppDomain.CurrentDomain.GetData("Confectory.Performance.Record") as Action<string,string,double,double>;
@@ -84,6 +87,22 @@ string Immediate(System.Text.Json.Nodes.JsonObject req,bool transient){
 string Dispatch(string text){
  if(text.Length>2097152)return Error("request_too_large").ToJsonString();
  System.Text.Json.Nodes.JsonObject req;try{req=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(req["op"]?.ToString() is "observe" or "transient")return Immediate(req,req["op"]!.ToString()=="transient");}catch{return Error("invalid_request").ToJsonString();}
+ string acknowledgement=DispatchCore(req);
+ // Wait only for the admitted request, never under the execution or view gate.
+ // The serial embedded transport is bounded too: slow/missing data returns the
+ // ordinary acknowledgement and remains governed by the existing update path.
+ try{
+  if(req["op"]?.ToString()!="invoke"||req["completion"]?.GetValue<bool>()!=true||!completionEndpoints.Contains(req["endpoint"]!.GetValue<string>()))return acknowledgement;
+  var ack=System.Text.Json.Nodes.JsonNode.Parse(acknowledgement)!.AsObject();if(ack["ok"]?.GetValue<bool>()!=true)return acknowledgement;
+  string id=req["requestId"]!.GetValue<string>(),view=req["view"]!.GetValue<string>();System.Threading.Tasks.Task<bool> completed;
+  lock(gate){if(closing||!views.ContainsKey(view)||!requests.TryGetValue(id,out var row)||row.View!=view)return acknowledgement;completed=row.Completion.Task;}
+  if(!completed.Wait(100))return acknowledgement;
+  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(DispatchCore(new System.Text.Json.Nodes.JsonObject{["op"]="update",["view"]=view,["scope"]=req["scope"]!.DeepClone()}))!;
+  if(snapshot["busy"]?.GetValue<bool>()==true)return acknowledgement;
+  ack["completion"]=snapshot;return ack.ToJsonString();
+ }catch{return acknowledgement;}
+}
+string DispatchCore(System.Text.Json.Nodes.JsonObject req){
  lock(gate){
   try{
    if(closing)return Error("owner_closed").ToJsonString();
@@ -126,7 +145,7 @@ string Dispatch(string text){
    long expected=req["expectedRevision"]!.GetValue<long>();
    var cancel=new System.Threading.CancellationTokenSource();string cancellation=Guid.NewGuid().ToString("N");
    AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>cancel.IsCancellationRequested));
-   var status=new System.Text.Json.Nodes.JsonObject{["ok"]=true,["requestId"]=id,["status"]="pending"};requests.Add(id,(fingerprint,v,cancel,status));
+   var status=new System.Text.Json.Nodes.JsonObject{["ok"]=true,["requestId"]=id,["status"]="pending"};var completion=new System.Threading.Tasks.TaskCompletionSource<bool>(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously);requests.Add(id,(fingerprint,v,cancel,status,completion));
    long admittedAt=performanceRecord is not null?System.Diagnostics.Stopwatch.GetTimestamp():0;
    System.Threading.Tasks.Task.Run(()=>{
     System.Text.Json.Nodes.JsonNode? result=null;string? error=null;
@@ -141,7 +160,7 @@ string Dispatch(string text){
     finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}
     lock(gate){bool retired=closing||!views.ContainsKey(v);if(cancel.IsCancellationRequested||retired){error="cancelled";result=null;}
      status["ok"]=error is null;status["status"]=error=="cancelled"?"cancelled":error is null?"completed":"failed";
-     if(error is null)status["result"]=result;else status["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=error};
+     if(error is null)status["result"]=result;else status["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=error};completion.TrySetResult(true);
     }
    });return status.ToJsonString();
   }catch(Exception){return Error("invalid_request").ToJsonString();}

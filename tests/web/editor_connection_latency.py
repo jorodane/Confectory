@@ -13,7 +13,7 @@ report=json.loads(pathlib.Path(sys.argv[2]).read_text())
 root=pathlib.Path(tempfile.mkdtemp(prefix='confectory-connection-latency-'))
 codex='Confectory.Agent.Codex::Connection'
 original='object Confectory.AISettings::Settings extends '+codex+' {data model = "preserved-user-input";}\n'
-evidence=[]; errors=[]
+evidence=[]; errors=[]; completion_acks=[]; completion_errors=[]
 
 def state(url, endpoint=None, payload=None):
     origin,token=url.split('/#')
@@ -71,6 +71,20 @@ with sync_playwright() as p:
                     body=req.post_data_json
                     if body.get('op')=='invoke':invocations.append(body['endpoint'])
             page.on('request',request)
+            def completion_response(response):
+                try:
+                    req=response.request
+                    if not req.url.endswith('/api/request') or req.method!='POST':return
+                    body=req.post_data_json
+                    if body.get('op')!='invoke' or body.get('endpoint')!='connectionSetup' or not body.get('completion'):return
+                    ack=response.json();snapshot=ack.get('completion')
+                    if snapshot is not None:
+                        assert snapshot['ok'] and snapshot['scope']==body['scope']
+                        assert any(row['requestId']==body['requestId'] for row in snapshot['results'])
+                        completion_acks.append(body['requestId'])
+                except Exception as error:completion_errors.append(str(error))
+            page.on('response',completion_response)
+
             page.add_init_script("globalThis.confectoryWebUITrace=[];")
             try:
                 for _ in range(600):
@@ -149,6 +163,26 @@ with sync_playwright() as p:
                     assert '"operation":"connectionSettingsRepair"' not in reopened_trace
                     assert '"operation":"inspectEffective"' not in reopened_trace
                     assert '"operation":"connectionCatalog"' not in reopened_trace
+                    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                    # A real invocation can be overtaken by an independent local
+                    # view after the browser captured its revision. Force that
+                    # ordering once at the transport boundary; the ordinary UI
+                    # must re-read and retry only the rejected admission.
+                    overtaken=[]
+                    def after_revision_capture(route):
+                        body=route.request.post_data_json
+                        if not overtaken and body.get('op')=='invoke' and body.get('endpoint')=='connectionSetup' and body.get('completion'):
+                            overtaken.append(body['requestId'])
+                            result=state(url,'connectionSetup',{'connection':unknown})
+                            assert not result['ok'],result
+                        route.continue_()
+                    page.route('**/api/request',after_revision_capture)
+                    before_invokes=len(invocations)
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                    dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    page.unroute('**/api/request',after_revision_capture)
+                    assert overtaken and invocations[before_invokes:].count('connectionSetup')==2,invocations[before_invokes:]
+                    assert any(row.get('endpoint')=='connectionSetup' and row.get('code')=='stale_revision' for row in page.evaluate('confectoryWebUITrace||[]'))
                     dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                     # The installed declaration is also part of the proof. A missing
                     # schema must not display the cached successful form.
@@ -230,5 +264,7 @@ with sync_playwright() as p:
                 host.wait(timeout=15);log.close()
     finally:browser.close()
 assert errors==[],errors
+assert completion_errors==[],completion_errors
+assert completion_acks, "the ordinary real setup uses a combined completion snapshot at least once"
 (root/'evidence.json').write_text(json.dumps(evidence,indent=2,ensure_ascii=False))
 print('PASS Agent presentation zero invokes/processes; partial settings/missing host diagnostics; exact retry, retained input and late close; '+str(root))
