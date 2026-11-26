@@ -1,6 +1,6 @@
 """Trace real Chromium retirement of one previously UI-created pure data object.
 
-Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--expect-retirement-only-proof] [--recover] [--run].
+Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--expect-retirement-only-proof] [--expect-no-retain] [--recover] [--run|--warm-run].
 Each run creates isolated source copies and fresh profiles; requires strace unless --untraced.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -108,6 +108,13 @@ def activate(page):
  tab=page.get_by_role('tab',name='Workspace',exact=True)
  if tab.get_attribute('aria-selected')!='true':tab.click();expect(tab).to_have_attribute('aria-selected','true')
 with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
+ latest=project/'.confectory/outputs/linux/latest.json'
+ if '--warm-run' in sys.argv:
+  with web(browser,'run-before-retirement') as page:
+   run_at_offset(page,'before-retirement',(204,0,0))
+  before_run=latest.read_bytes();before_report=json.loads(before_run)
+  assert not (latest.parent/'confirmed-link').exists()
+  print('PASS published pre-retirement Run',before_report['key'],flush=True)
  with web(browser,'stage') as page:
   b=browser_panel(page)
   with phase('referenced'):
@@ -171,16 +178,37 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
     assert all(snapshot(project)[k]==v for k,v in original.items() if k!='project.cproj');assert snapshot(peer)==peer_original
    with phase('ui_stable'):
     expect(filter(b,name)).to_have_count(0,timeout=120000)
+   if '--warm-run' in sys.argv:
+    assert latest.read_bytes()==before_run and not (latest.parent/'confirmed-link').exists()
+    print('PASS retirement did not publish or retain a candidate build',flush=True)
   page.wait_for_function('()=>typeof confectoryFlushPresentation==="function"');page.evaluate('()=>confectoryFlushPresentation()')
  if not any(x in sys.argv for x in ('--always','--conflict','--late-reference','--permission')):
   with web(browser,'cold') as page:
    with phase('cold_reopen'):
     b=browser_panel(page);expect(filter(b,name)).to_have_count(0);assert child.exists();assert snapshot(peer)==peer_original
-  if '--run' in sys.argv:
+  if '--run' in sys.argv or '--warm-run' in sys.argv:
    with web(browser,'run-after-retirement') as page:
     assert f'element {name} object' not in manifest.read_text()
     run_at_offset(page,'after-retirement',(204,0,0))
     print('PASS explicit Run after retire uses original TimingRules configuration',flush=True)
+   if '--warm-run' in sys.argv:
+    after=json.loads(latest.read_text())
+    assert after['output']!=before_report['output'] and str(manifest) in after['statistics']['readDocuments']
+    assert ns+'::'+name not in Path(after['publicCatalog']).read_text()
+    print('PASS post-retirement Run rebuilt fresh report',after['key'],'reused links',after['statistics']['reusedFinalLinks'],flush=True)
+    # Same code, a deliberate ordinary value edit on the retained object.
+    # The previous generated output must not supply the changed runtime value.
+    with web(browser,'run-after-value-change') as page:
+     b=browser_panel(page);row=filter(b,'TimingRules');expect(row).to_be_visible();row.press('Enter');b.locator('[data-close]').first.click()
+     w=page.locator('.window[data-key=schema]');expect(w.locator('.object-title-name')).to_have_text('TimingRules')
+     value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('3500')
+     w.locator('[data-element-action=confirm]').click();expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
+     assert 'data OpenMilliseconds = 3500;' in (project/'elements/TimingRules.celem').read_text()
+     w.locator('[data-close]').first.click()
+     run_at_offset(page,'after-value-change',(0,204,0))
+    latest_report=json.loads(latest.read_text());assert latest_report['key']!=after['key']
+    assert latest_report['statistics']['reusedFinalLinks']==0 and latest_report['statistics']['targetInvocations'].get('link',0)==1
+    print('PASS changed retained data invalidates prior final link and actual game uses new value',latest_report['key'],flush=True)
   if '--recover' in sys.argv:
    with web(browser,'recover-check') as page:
     b=browser_panel(page);expect(filter(b,name)).to_have_count(0);retained=child.read_bytes()
@@ -218,6 +246,11 @@ if '--timeline' in sys.argv:
   names=[name for name,_ in calls[0]]
   assert names.count('validateExistingSchemaObjectRetirement')==1 and 'validateExistingSchemaObjectCreation' not in names,names
   print('PASS no inapplicable creation proof; full retirement proof invoked',flush=True)
-elif '--expect-retirement-only-proof' in sys.argv:
- raise AssertionError('--expect-retirement-only-proof requires --timeline')
+ if '--expect-no-retain' in sys.argv:
+  assert len(calls)==1,calls
+  names=[name for name,_ in calls[0]]
+  assert 'validateExistingSchemaObjectRetirement' in names and 'retainConfirmedLink' not in names,names
+  print('PASS retirement proof retained; no candidate-link retention call',flush=True)
+elif '--expect-retirement-only-proof' in sys.argv or '--expect-no-retain' in sys.argv:
+ raise AssertionError('Proof assertions require --timeline')
 print('PASS actual retirement scenario',flush=True)

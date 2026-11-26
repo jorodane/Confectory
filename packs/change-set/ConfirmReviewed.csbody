@@ -8,7 +8,7 @@ bool committed=false;
 try
 {
  string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));
- bool candidatePrepared=false;
+ bool candidatePrepared=false,retirementValidatedWithoutBuild=false;
  System.Text.Json.Nodes.JsonNode? dataOnly=null;
  var overlayState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
  if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0&&overlayState?["units"]?[changes[0]]?["kind"]?.ToString()=="object"){
@@ -36,7 +36,8 @@ try
  if(dataOnly is null&&singleRetirement){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
   if(proof["invalid"]?.GetValue<bool>()==true)throw new InvalidOperationException(proof["message"]!.ToString());
-  if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+  // CopySources excludes generated state; this exact read-only proof bypasses Validate/Build. There is no candidate link to retain.
+  if(proof["eligible"]?.GetValue<bool>()==true){dataOnly=proof;retirementValidatedWithoutBuild=true;}
  }
  if(dataOnly is null)calls.Validate.Invoke(project,target);
 
@@ -139,7 +140,7 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
   string full=guard!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),row=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))??System.Linq.Enumerable.FirstOrDefault(reads,row=>string.Equals(row!["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
- var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{if(candidatePrepared)calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
+ var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{if(candidatePrepared&&!retirementValidatedWithoutBuild)calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
 finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}
