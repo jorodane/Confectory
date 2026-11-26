@@ -1,0 +1,4 @@
+function Confectory.EditWorkspace::SetProjectEntry (string handle, string id) -> void {
+description "Stage only the entry clause of the owned ProjectPack for ordinary Review/Confirm; no source writes.";
+provide Confectory.EditWorkspace::SetProjectEntry with Confectory.EditWorkspace::SetProjectEntryBody;
+}

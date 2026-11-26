@@ -224,6 +224,25 @@ try
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
         case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"),request["project"]?.GetValue<string>(),request["path"]?.GetValue<string>());break;
+        case "setProjectEntry":
+        {
+            string original=S("manifest"),id=S("id");var manifest=new Parser(original,"<project-entry>").ParseManifest();
+            var function=new Parser(S("feature"),"<project-entry-function>").ParseElement();
+            if(manifest.Kind!="project"||!manifest.SupportsStandalone||!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||
+                !manifest.Elements.TryGetValue(id[(manifest.Namespace.Length+2)..],out var registration)||registration.Kind!="function"||
+                function.Kind!="function"||function.Id!=id||function.Parent is not null||function.Signature?.Args.Count!=0||function.Signature.Return is not ("int" or "void"))
+                throw new ArgumentException("Choose a confirmed directly owned () -> int or () -> void function.");
+            string current=request["current"]?.GetValue<string>()??original;
+            if(current!=original){
+                // An earlier cancelled entry Review may leave exactly one entry
+                // draft. Permit a different explicit choice, never unrelated changes.
+                var staged=new Parser(current,"<staged-project-entry>").ParseManifest();
+                manifest.Entry=staged.Entry;
+                if(DeclarationTextMerge.MergeManifest(original,FormatManifest(manifest),FormatManifest)!=current)
+                    throw new InvalidOperationException("Resolve the existing project registration draft before assigning an entry.");
+            }
+            manifest.Entry=id;reply=JsonValue.Create(DeclarationTextMerge.MergeManifest(original,FormatManifest(manifest),FormatManifest));break;
+        }
         case "inspectManifest":reply=ManifestMetadata.Inspect(S("text"));break;
         case "inspect":reply=InspectDeclaration(S("text"));break;
         case "unregisterDeclarations":
@@ -407,6 +426,7 @@ static JsonObject ReviewSummary(string kind,string before,string after,string? p
  try{
   if(kind is "project" or "pack"){
    var old=new Parser(before,"<review>").ParseManifest();var next=new Parser(after,"<review>").ParseManifest();
+   if(old.Entry!=next.Entry){Add("프로젝트 실행 진입점",JsonValue.Create(old.Entry),JsonValue.Create(next.Entry),old.Entry is not null,next.Entry is not null);next.Entry=old.Entry;}
    foreach(var item in next.Elements)if(!old.Elements.ContainsKey(item.Key))Add("프로젝트에 등록",null,JsonValue.Create(item.Key+" · "+item.Value.Kind),false,true);
    foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);
    foreach(var item in next.Elements)if(old.Elements.TryGetValue(item.Key,out var prior)&&(prior.Path!=item.Value.Path||prior.Kind!=item.Value.Kind))additional=true;

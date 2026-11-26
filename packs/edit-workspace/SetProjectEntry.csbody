@@ -1,0 +1,22 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string ns=state["namespace"]!.ToString(),root=state["root"]!.ToString(),manifestId=ns+"::ProjectManifest";
+if(!id.StartsWith(ns+"::",StringComparison.Ordinal))throw new UnauthorizedAccessException("Choose a directly owned project function.");
+var manifest=calls.Read.Invoke(handle,manifestId);var feature=calls.Read.Invoke(handle,id);
+if(manifest[1]!="project"||feature[1]!="function"||feature[6]!="clean"||manifest[5]=="missing"||feature[5]=="missing")throw new InvalidOperationException("Confirm the owned function before assigning the project entry.");
+string Original(string[] row){
+ string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row[2]));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+ if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,comparison))throw new UnauthorizedAccessException("Entry source escapes the workspace");
+ for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new UnauthorizedAccessException("Entry source must be owned without symbolic links");if(node.FullName==root)break;}
+ var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]!="exists"||snapshot[2]!=row[5])throw new InvalidOperationException("Original changed; reload before assigning the entry.");
+ return snapshot[1];
+}
+string original=Original(manifest),featureText=Original(feature);
+string next=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("setProjectEntry",new System.Text.Json.Nodes.JsonObject{["manifest"]=original,["current"]=manifest[3],["feature"]=featureText,["id"]=id}.ToJsonString()))!.GetValue<string>();
+lock(state){
+ var current=calls.Read.Invoke(handle,manifestId);var currentFeature=calls.Read.Invoke(handle,id);
+ if(!System.Linq.Enumerable.SequenceEqual(current,manifest)||!System.Linq.Enumerable.SequenceEqual(currentFeature,feature)||Original(current)!=original||Original(currentFeature)!=featureText)throw new InvalidOperationException("Entry source changed; retain drafts and retry.");
+ if(current[3]==next)return;
+ var unit=state["units"]![manifestId]!;var before=new System.Text.Json.Nodes.JsonObject{[manifestId]=unit["draft"]!.DeepClone()};
+ unit["draft"]=next;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"source-edit");
+}

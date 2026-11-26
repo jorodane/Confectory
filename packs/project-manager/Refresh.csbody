@@ -1,0 +1,19 @@
+if(manager.Length<5||manager[1]!="active"||string.IsNullOrWhiteSpace(context))throw new InvalidOperationException("Explicit open context required.");
+for(int i=4;i<manager.Length;i++)if(manager[i] is not null){
+ var value=System.Text.Json.JsonSerializer.Deserialize<string[]>(manager[i])!;
+ if(value[0]!=context||value[5]!="open")continue;
+ string path=value[1],key="Confectory.ProjectManager.Refresh."+context;
+ string Hash(){
+  for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo f?f.Directory:((System.IO.DirectoryInfo)node).Parent)if(node.LinkTarget is not null)throw new UnauthorizedAccessException("Project manifest must remain at its opened path");
+  if(new System.IO.FileInfo(path).Length>1048576)throw new ArgumentException("Project manifest budget");
+  return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.IO.File.ReadAllBytes(path)));
+ }
+ string before=Hash();
+ if(AppDomain.CurrentDomain.GetData(key) as string==before)return value.Length>8?value[..8]:value;
+ var description=calls.DescribeProject.Invoke(path);
+ if(before!=Hash()||description[0]!=value[2]||description.Length<5||description[3]!=value[6])throw new InvalidOperationException("Project manifest identity changed; reopen explicitly.");
+ value[3]=description[1];value[4]=description[2];value[7]=description[4];
+ manager[i]=System.Text.Json.JsonSerializer.Serialize(value);AppDomain.CurrentDomain.SetData(key,before);
+ return value.Length>8?value[..8]:value;
+}
+throw new ArgumentException("Unknown open project.");

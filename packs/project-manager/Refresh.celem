@@ -1,0 +1,4 @@
+function Confectory.ProjectManager::Refresh (string[] manager,string context) -> string[] {
+description "Refresh explicitly opened project execution metadata only when the confirmed manifest bytes changed; preserves the context identity.";
+provide Confectory.ProjectManager::Refresh with Confectory.ProjectManager::RefreshBody;
+}
