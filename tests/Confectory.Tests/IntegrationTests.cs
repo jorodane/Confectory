@@ -26,6 +26,57 @@ public sealed class IntegrationTests : TestCase
         var warm = Build(); Output(warm, "5"); Equal(0, Links(warm)); Equal(1, Reused(warm));
     }
 
+    public void test_confirmed_candidate_final_link_exact_input_and_damage()
+    {
+        static int Links(JsonObject report)=>report["statistics"]!["targetInvocations"]!["link"]?.GetValue<int>()??0;
+        static int Confirmed(JsonObject report)=>report["statistics"]!["reusedConfirmedLinks"]!.GetValue<int>();
+        string root=f.Packs["App"].Root, retained=Path.Combine(root,".confectory","outputs","portable","confirmed-link");
+        var first=Build();Output(first,"5");
+        string latest=Path.Combine(root,".confectory","outputs","portable","latest.json");
+        string MakeCandidate(string text)
+        {
+            string folder=Path.Combine(root,".confectory","candidates",Guid.NewGuid().ToString("N"));
+            Fixture.CopyTree(root,folder);
+            File.WriteAllText(Path.Combine(folder,"main.csbody"),text);
+            string project=Path.Combine(folder,"project.cpack");
+            var validator=new Builder(project,"portable");validator.Validate();validator.Check("App");validator.Build();
+            return project;
+        }
+        string text="Console.WriteLine(calls.Value.Invoke(12)); return 0;\n";
+        string candidate=MakeCandidate(text);
+        // Merely validating creates no retained link or published Run.
+        True(!Directory.Exists(retained));Output(first,"5");
+        byte[] previous=File.ReadAllBytes(latest);
+        File.WriteAllText(Path.Combine(root,"main.csbody"),text);
+        True(Builder.RetainConfirmedLink(f.Project,candidate,"portable"));Sequence(previous,File.ReadAllBytes(latest));
+        Directory.Delete(Path.GetDirectoryName(candidate)!,true);
+        var after=Build();Output(after,"15");Equal(0,Links(after));Equal(1,Confirmed(after));
+        var warm=Build();Output(warm,"15");Equal(0,Links(warm));Equal(0,Confirmed(warm));
+        f.Body("Provider","value.csbody","return n+9;");
+        var changed=Build();Output(changed,"21");Equal(1,Links(changed));Equal(0,Confirmed(changed));
+        text="Console.WriteLine(calls.Value.Invoke(30)); return 0;\n";candidate=MakeCandidate(text);
+        File.WriteAllText(Path.Combine(root,"main.csbody"),text);
+        True(Builder.RetainConfirmedLink(f.Project,candidate,"portable"));
+        string id=JsonNode.Parse(File.ReadAllText(Path.Combine(retained,"latest.json")))!["id"]!.ToString();
+        File.WriteAllBytes(Path.Combine(retained,id,"Confectory.App.dll"),"damaged"u8.ToArray());
+        var repaired=Build();Output(repaired,"39");Equal(1,Links(repaired));Equal(0,Confirmed(repaired));
+        using var peer=new Fixture();
+        True(!Builder.RetainConfirmedLink(peer.Project,candidate,"portable"));
+        Directory.Delete(Path.GetDirectoryName(candidate)!,true);
+        // Native CallerFilePath makes candidate and live implementation DLLs
+        // genuinely different even when their source text is identical.
+        text="""
+            string PathOf([global::System.Runtime.CompilerServices.CallerFilePath] string path = "") => path;
+            Console.WriteLine(PathOf()); return 0;
+            """;
+        candidate=MakeCandidate(text);
+        File.WriteAllText(Path.Combine(root,"main.csbody"),text);
+        True(Builder.RetainConfirmedLink(f.Project,candidate,"portable"));
+        var pathSensitive=Build();Output(pathSensitive,Path.Combine(root,"main.csbody"));
+        Equal(1,Links(pathSensitive));Equal(0,Confirmed(pathSensitive));
+        Directory.Delete(Path.GetDirectoryName(candidate)!,true);
+    }
+
     public void test_schema_metadata_changes_relink_without_contract_or_provider_rebuild()
     {
         string schema = f.Add("App", "schema", "Shape", "schema App::Shape { field n single general int; }");

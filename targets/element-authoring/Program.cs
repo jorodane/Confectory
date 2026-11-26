@@ -305,6 +305,10 @@ try
         {
             reply = new Builder(S("project"), S("target")).CheckBlueprintNode(S("implementation"), S("bodyTarget"), S("node")); break;
         }
+        case "retainConfirmedLink":
+        {
+            reply=new JsonObject{["retained"]=Builder.RetainConfirmedLink(S("original"),S("candidate"),S("target"))};break;
+        }
         case "validate":
         {
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();

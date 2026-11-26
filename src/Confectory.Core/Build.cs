@@ -140,7 +140,8 @@ public sealed partial class Builder
     public Builder(string project, string target) : this(project,target,null) { }
     // A verified candidate owner may share content-addressed contracts and
     // imported implementation artifacts. Root sources, Blueprint node
-    // proofs, declaration snapshots and final link output remain local.
+    // proofs and declaration snapshots remain local. A separately verified
+    // final-link copy may be retained only after the source commit.
     public Builder(string project, string target, string? contractCacheRoot, string? implementationCacheRoot = null)
     {
         Project = PackPaths.Resolve(project); Target = target; State = Path.Combine(Path.GetDirectoryName(Project)!, ".confectory");
@@ -361,14 +362,17 @@ public sealed partial class Builder
                 resources.Add(new { path = previewResource, name = ConnectionPresentationResource.Name });
             }
             string[] references=Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(InformationFiles(Contracts.Values, "assembly")).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            if(Tool.Info["linkReuse"]?.ToString()=="dotnet-relocatable-v1"&&references.Select(Path.GetFileName).Distinct(StringComparer.Ordinal).Count()==references.Length)
+                references=references.OrderBy(Path.GetFileName,StringComparer.Ordinal).ToArray();
             var reuse=FinalLinkReuse.Prepare(Tool,Project,key,work,references,connectionPresentation is not null);
             JsonObject result;
             string restored=work+".restore";
-            bool restoredLink=reuse is not null&&reuse.TryRestore(outputRoot,restored);
+            bool confirmedLink=false;
+            bool restoredLink=reuse is not null&&reuse.TryRestore(outputRoot,restored,out confirmedLink);
             if(restoredLink)
             {
                 Directory.Delete(work,true);work=restored;catalog=Path.Combine(work,"sources","public-linkage.json");
-                result=reuse!.Result(work);Statistics.ReusedFinalLinks++;
+                result=reuse!.Result(work);Statistics.ReusedFinalLinks++;if(confirmedLink)Statistics.ReusedConfirmedLinks++;
             }
             else result=Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source }, references, resources });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
@@ -397,6 +401,7 @@ public sealed partial class Builder
         }
         finally { if (Directory.Exists(work)) Directory.Delete(work, true); }
     }
+    public static bool RetainConfirmedLink(string original,string candidate,string target)=>FinalLinkReuse.RetainConfirmed(original,candidate,target);
     public JsonObject Validate()
     {
         var planner = new Planner(Registry, Target);

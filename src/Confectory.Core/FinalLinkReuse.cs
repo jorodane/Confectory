@@ -11,7 +11,7 @@ internal sealed class FinalLinkReuse(string project,string key,string input,stri
 {
     private const string ProofName="link-proof.json";
     private const string ReportName="build-report.json";
-    private const string Format="dotnet-final-link-v1";
+    private const string Format="dotnet-final-link-v2";
     private static string Hash(string path)
     {
         using var stream=File.OpenRead(path);return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
@@ -46,8 +46,13 @@ internal sealed class FinalLinkReuse(string project,string key,string input,stri
             {
                 string hash=Hash(path);inputs[path]=hash;Add(Path.GetFileName(path),hash);
             }
-            string identity=JsonData.Digest(new object[]{Format,project,key,tool.Identity,tool.Target,mode,dotnet,Hash(dotnet),
-                expected.OrderBy(p=>p.Key,StringComparer.Ordinal).ToArray(),inputs.OrderBy(p=>p.Key,StringComparer.Ordinal).ToArray()});
+            if(references.Select(Path.GetFileName).Distinct(StringComparer.Ordinal).Count()!=references.Length)return null;
+            // Final bindings are generated; reference filenames/bytes in the actual
+            // compiler order, not cache-directory names, are the relocation boundary.
+            string identity=JsonData.Digest(new object[]{Format,tool.Identity,tool.Target,mode,dotnet,Hash(dotnet),
+                expected.OrderBy(p=>p.Key,StringComparer.Ordinal).ToArray(),
+                references.Select(path=>new[]{Path.GetFileName(path),inputs[path]}).ToArray(),
+                presentation&&Path.Combine(work,"sources",ConnectionPresentationResource.Name).Contains(',')});
             return new(project,key,identity,mode,dotnet,expected,inputs);
         }
         catch(Exception ex) when(Recoverable(ex)){return null;}
@@ -99,36 +104,115 @@ internal sealed class FinalLinkReuse(string project,string key,string input,stri
         }
         return true;
     }
-    internal bool TryRestore(string outputRoot,string destination)
+    private static string Checksum(string owner,string input,JsonArray files)=>JsonData.Digest(new object[]{Format,owner,input,files});
+    private static bool SamePath(string left,string right)=>string.Equals(Path.GetFullPath(left),Path.GetFullPath(right),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);
+    private static JsonObject ReadProof(string folder)
+    {
+        string path=Path.Combine(folder,ProofName);
+        if(!NoLinks(path)||new FileInfo(path).Length>1048576)throw new IOException("Invalid link proof location");
+        var proof=JsonNode.Parse(File.ReadAllText(path))!.AsObject();
+        if(proof["format"]?.ToString()!=Format||proof["files"] is not JsonArray files||
+            proof["checksum"]?.ToString()!=Checksum(proof["project"]!.GetValue<string>(),proof["input"]!.GetValue<string>(),files))
+            throw new IOException("Invalid link proof");
+        return proof;
+    }
+    private static void CopyFiles(string old,string destination,JsonArray files)
+    {
+        Directory.CreateDirectory(destination);
+        foreach(var row in files)
+        {
+            string relative=row!["path"]!.GetValue<string>(),source=PackPaths.Owned(old,relative),target=PackPaths.Owned(destination,relative);
+            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            File.Copy(source,target);
+            if(!OperatingSystem.IsWindows())File.SetUnixFileMode(target,(UnixFileMode)row["mode"]!.GetValue<int>());
+        }
+    }
+    private bool RestoreFolder(string old,string destination)
     {
         bool restored=false;
         try
         {
-            string latestPath=Path.Combine(outputRoot,"latest.json");
-            if(!NoLinks(latestPath))return false;
-            var latest=JsonNode.Parse(File.ReadAllText(latestPath))!.AsObject();
-            if(latest["key"]?.ToString()!=key||latest["output"]?.GetValue<string>() is not string old)return false;
-            old=Path.GetFullPath(old);
-            if(!string.Equals(Path.GetDirectoryName(old),Path.GetFullPath(outputRoot),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)||
-                !System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(old),"^"+key+"-[0-9a-f]{12}$")||!NoLinks(old))return false;
-            string proofPath=Path.Combine(old,ProofName);
-            if(!NoLinks(proofPath))return false;
-            var proof=JsonNode.Parse(File.ReadAllText(proofPath))!.AsObject();
-            if(proof["format"]?.ToString()!=Format||proof["input"]?.ToString()!=input||proof["project"]?.ToString()!=project||proof["files"] is not JsonArray files||
-                proof["checksum"]?.ToString()!=JsonData.Digest(files)||!ValidFiles(files)||!JsonNode.DeepEquals(files,Snapshot(old)))return false;
-            Directory.CreateDirectory(destination);
-            foreach(var row in files)
-            {
-                string relative=row!["path"]!.GetValue<string>(),source=PackPaths.Owned(old,relative),target=PackPaths.Owned(destination,relative);
-                Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-                File.Copy(source,target);
-                if(!OperatingSystem.IsWindows())File.SetUnixFileMode(target,(UnixFileMode)row["mode"]!.GetValue<int>());
-            }
+            var proof=ReadProof(old);var files=proof["files"]!.AsArray();
+            if(proof["project"]?.ToString()!=project||proof["input"]?.ToString()!=input||!ValidFiles(files)||!JsonNode.DeepEquals(files,Snapshot(old)))return false;
+            CopyFiles(old,destination,files);
             if(!JsonNode.DeepEquals(files,Snapshot(destination))||!FreshReferences())return false;
             restored=true;return true;
         }
         catch(Exception ex) when(Recoverable(ex)){return false;}
         finally{if(!restored&&Directory.Exists(destination)){try{Directory.Delete(destination,true);}catch(Exception ex) when(Recoverable(ex)){}}}
+    }
+    private static string? PublishedFolder(string outputRoot,string? key)
+    {
+        string latestPath=Path.Combine(outputRoot,"latest.json");
+        if(!NoLinks(latestPath))return null;
+        var latest=JsonNode.Parse(File.ReadAllText(latestPath))!.AsObject();
+        string? actualKey=latest["key"]?.ToString(),old=latest["output"]?.GetValue<string>();
+        if(actualKey is null||!System.Text.RegularExpressions.Regex.IsMatch(actualKey,"^[0-9a-f]{64}$")||key is not null&&actualKey!=key||old is null)return null;
+        old=Path.GetFullPath(old);
+        return SamePath(Path.GetDirectoryName(old)!,outputRoot)&&System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(old),"^"+actualKey+"-[0-9a-f]{12}$")&&NoLinks(old)?old:null;
+    }
+    internal bool TryRestore(string outputRoot,string destination,out bool confirmed)
+    {
+        confirmed=false;
+        try{string? old=PublishedFolder(outputRoot,key);if(old is not null&&RestoreFolder(old,destination))return true;}
+        catch(Exception ex) when(Recoverable(ex)){}
+        try
+        {
+            string root=Path.Combine(outputRoot,"confirmed-link"),pointer=Path.Combine(root,"latest.json");
+            if(!NoLinks(pointer))return false;
+            string id=JsonNode.Parse(File.ReadAllText(pointer))!["id"]!.GetValue<string>();
+            if(!Guid.TryParseExact(id,"N",out _))return false;
+            confirmed=RestoreFolder(Path.Combine(root,id),destination);return confirmed;
+        }
+        catch(Exception ex) when(Recoverable(ex)){return false;}
+    }
+    // This is called only after a successful source CAS by ConfirmReviewed.
+    // Retention is optional, never publishes an executable or changes latest Run.
+    // The next ordinary Build recalculates all authoritative inputs independently.
+    internal static bool RetainConfirmed(string original,string candidate,string target)
+    {
+        string? staging=null;
+        try
+        {
+            original=Path.GetFullPath(original);candidate=Path.GetFullPath(candidate);
+            string owner=Path.GetDirectoryName(original)!,candidateRoot=Path.GetDirectoryName(candidate)!;
+            if(!Guid.TryParseExact(Path.GetFileName(candidateRoot),"N",out _)||
+                !SamePath(Path.GetDirectoryName(candidateRoot)!,Path.Combine(owner,".confectory","candidates"))||
+                Path.GetFileName(original)!=Path.GetFileName(candidate)||!NoLinks(original)||!NoLinks(candidate))return false;
+            var live=new Parser(File.ReadAllText(original),original).ParseManifest();
+            var copy=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
+            if(live.Kind!="project"||copy.Kind!="project"||live.Namespace!=copy.Namespace||!live.Targets.ContainsKey(target)||!copy.Targets.ContainsKey(target))return false;
+            string candidateOutputs=PackPaths.Owned(Path.Combine(candidateRoot,".confectory","outputs"),target);
+            string? old=PublishedFolder(candidateOutputs,null);if(old is null)return false;
+            var report=JsonNode.Parse(File.ReadAllText(Path.Combine(candidateOutputs,"latest.json")))!.AsObject();
+            string? mode=report["tool"]?["mode"]?.ToString(),dotnet=report["tool"]?["dotnet"]?.ToString();
+            if(mode is not ("linux" or "portable")||string.IsNullOrEmpty(dotnet)||report["tool"]?["linkReuse"]?.ToString()!="dotnet-relocatable-v1")return false;
+            var proof=ReadProof(old);var files=proof["files"]!.AsArray();
+            if(proof["project"]?.ToString()!=candidate)return false;
+            string input=proof["input"]!.GetValue<string>();
+            var expected=files.Where(row=>row!["path"]!.ToString() is not ("Confectory.App.dll" or "Confectory.App.runtimeconfig.json" or "run"))
+                .ToDictionary(row=>row!["path"]!.ToString(),row=>row!["hash"]!.ToString(),StringComparer.Ordinal);
+            // Retain only ordinary known generated source/resources and root DLL copies.
+            if(expected.Keys.Any(path=>path is not ("Bindings.cs" or "public-linkage.json" or "sources/public-linkage.json" or "connection-preview-v1.json" or "sources/connection-preview-v1.json")
+                &&(Path.GetFileName(path)!=path||!path.EndsWith(".dll",StringComparison.Ordinal))))return false;
+            var reuse=new FinalLinkReuse(original,"",input,mode,dotnet,expected,new());
+            if(!reuse.ValidFiles(files)||!JsonNode.DeepEquals(files,reuse.Snapshot(old)))return false;
+            string root=Path.Combine(PackPaths.Owned(Path.Combine(owner,".confectory","outputs"),target),"confirmed-link");
+            if(!NoLinks(root))return false;
+            Directory.CreateDirectory(root);
+            string id=Guid.NewGuid().ToString("N"),dest=Path.Combine(root,id);staging=dest+".pending";
+            CopyFiles(old,staging,files);if(!JsonNode.DeepEquals(files,reuse.Snapshot(staging)))return false;
+            JsonData.AtomicWrite(Path.Combine(staging,ProofName),new{format=Format,project=original,input,files,checksum=Checksum(original,input,files)});
+            Directory.Move(staging,dest);staging=null;
+            string pointer=Path.Combine(root,"latest.json");string? prior=null;
+            try{if(NoLinks(pointer))prior=JsonNode.Parse(File.ReadAllText(pointer))?["id"]?.ToString();}catch(Exception ex) when(Recoverable(ex)){}
+            JsonData.AtomicWrite(pointer,new{id});
+            if(prior is not null&&prior!=id&&Guid.TryParseExact(prior,"N",out _)&&NoLinks(Path.Combine(root,prior)))
+                try{Directory.Delete(Path.Combine(root,prior),true);}catch(Exception ex) when(Recoverable(ex)){}
+            return true;
+        }
+        catch(Exception ex) when(Recoverable(ex)){return false;}
+        finally{if(staging is not null&&Directory.Exists(staging))try{Directory.Delete(staging,true);}catch(Exception ex) when(Recoverable(ex)){}}
     }
     internal void TryWriteProof(string work,JsonObject result)
     {
@@ -137,7 +221,7 @@ internal sealed class FinalLinkReuse(string project,string key,string input,stri
             var expectedResult=Result(work);
             if(!JsonNode.DeepEquals(result["run"],expectedResult["run"])||!JsonNode.DeepEquals(result["artifacts"],expectedResult["artifacts"])||!FreshReferences())return;
             var files=Snapshot(work);if(!ValidFiles(files))return;
-            JsonData.AtomicWrite(Path.Combine(work,ProofName),new{format=Format,project,input,files,checksum=JsonData.Digest(files)});
+            JsonData.AtomicWrite(Path.Combine(work,ProofName),new{format=Format,project,input,files,checksum=Checksum(project,input,files)});
         }
         catch(Exception ex) when(Recoverable(ex)){/* Optional reuse must not prevent a successful build. */}
     }

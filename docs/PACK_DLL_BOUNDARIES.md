@@ -160,3 +160,59 @@ link, and remain subject to ordinary compiler costs. Isolated candidate
 validation still links in its disposable output directory; it is not treated
 as a previously published Run output. The remaining unchanged-Run time
 includes fingerprint/host/launch overhead.
+
+### Confirmed candidate → ordinary Run
+
+The isolated validation candidate and committed project may have different
+path-based implementation keys: native generated code includes its source
+location. In an actual authored fixture the full generated binding, contract
+DLL, implementation DLL, final app DLL and resource bytes were nevertheless
+identical. The final link has a narrower input boundary than pack compilation.
+
+For the explicitly relocatable .NET target, final references with unique
+filenames are now supplied in stable filename order. The v2 link proof binds
+the actual ordered reference names and content hashes, binding source, resource
+bytes (including whether the preview resource can be embedded), target/tool
+identity and runtime. The owner path is independently bound to the local
+proof integrity checksum. Logical pack keys and paths remain authoritative for
+the ordinary pack compiler; no candidate pack compiler result is substituted
+for a differently keyed live build.
+
+Only after successful reviewed source CAS does Confirm optionally retain the
+candidate's independently verified final artifact copy in the original project's
+generated `confirmed-link` storage. This is not a published build, and cancellation,
+conflict or failed compilation do not publish it. The ordinary Run still plans,
+checks and compiles the committed input as appropriate, then compares its exact
+link-input proof, verifies every retained byte/mode and copies into a fresh
+ordinary output. Missing, damaged, changed or cross-project input falls back
+to linking. The previously published Run report is not touched by Confirm;
+other targets remain on their ordinary packaging path.
+
+The actual Chromium regression `tests/web/confirmed_link_reuse_ui.py` runs
+the existing Logic Code conversion/editor, Review cancel, Confirm and a *new
+editor process* running the confirmed project entry. Its `no-retain` comparison
+withholds only generated fixture artifacts after Confirm, and `damage` corrupts
+only the generated candidate app copy. `conflict` changes the fixture's original
+source after Review and verifies no retained artifact or source commit. The
+normal `tests/web/dll_pack_locality.py` additionally exercises external
+implementation, contract and catalog changes, and damaged published outputs.
+
+Separate UI lifecycle defect found in that latter test: closing a document
+Run tab left a hidden persisted layout. Every cold editor restored those
+hidden windows and acquired new run leases; eight such rows blocked the ninth
+Run with the existing project limit. A successful Run tab close now removes
+the disposed presentation, and legacy hidden Run-instance layouts are skipped on
+restore. Nine actual cold editor runs, including catalog metadata relink,
+completed without removing the genuine eight-open-window guard.
+
+
+Observed cold editor Run after Confirm (ms), using the same disposable UI
+fixture: retained candidate 4817 / 4497, withheld candidate 6584 / 6620
+(withheld has the same Confirm cost; it is an isolated comparison of Run).
+Candidate reuse performed zero link calls in both runs, while withheld and
+damaged variants performed one. Successful Confirm took 5162–5980ms in
+the unchanged/damaged comparison; one observed post-commit retention call
+was 256ms. These wall-clock numbers vary with local load and do not mean the
+whole elapsed difference was compiler time. The ordinary Run still performs
+needed pack compilation when the path-sensitive pack key changes. Windows
+native execution was not tested.
