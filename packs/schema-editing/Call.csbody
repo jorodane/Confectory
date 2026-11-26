@@ -28,14 +28,23 @@ string? ReadWarm(){
  bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
  bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
  bool relations=operation=="relationsMap";
- if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintWarm&&!guardWarm||request["project"] is null&&(!blueprintValue&&!guardValue||streamProject is null))return null;
+ bool connectionProposal=operation is ("connectionSettings" or "connectionSettingsRepair")&&request["settingsProject"] is not null;
+ // Keep the settings workspace's read stream separate from the active editor
+ // project. Generation/repair read the installed declaration registry but return only
+ // a proposed pair; subsequent operations have the exact settings file owner.
+ string? connectionPath=connectionProposal?request["settingsProject"]?.GetValue<string>():request["project"]?.GetValue<string>();
+ bool ConnectionOwner(string? path){if(string.IsNullOrEmpty(path))return false;string full=System.IO.Path.GetFullPath(path);var folder=System.IO.Path.GetDirectoryName(full)!;return System.IO.Path.GetFileName(full).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)&&string.Equals(System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase)&&System.Text.RegularExpressions.Regex.IsMatch(System.IO.Path.GetFileName(folder),"^[0-9a-fA-F]{16}$");}
+ bool connectionWarm=ConnectionOwner(connectionPath)&&(connectionProposal||metadata||operation is ("inspectEffective" or "connectionRepairSchema"));
+ if(connectionProposal&&!connectionWarm)return null;
+ if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintWarm&&!guardWarm&&!connectionWarm||request["project"] is null&&(!blueprintValue&&!guardValue||streamProject is null))return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
  // Match the existing Windows EditWorkspace identity convention and the
  // stream protocol’s case-insensitive project comparison; keep request paths intact.
- string projectKey=System.IO.Path.GetFullPath(request["project"]?.GetValue<string>()??streamProject!);if(OperatingSystem.IsWindows())projectKey=projectKey.ToUpperInvariant();
+ string projectKey=System.IO.Path.GetFullPath((connectionProposal?connectionPath:request["project"]?.GetValue<string>())??streamProject!);if(OperatingSystem.IsWindows())projectKey=projectKey.ToUpperInvariant();
  var key=(projectKey,hostKey);
  object[] pool;
- lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ReadPool") as object[]??new object[4];AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ReadPool",pool);}
+ string poolName=connectionWarm?"Confectory.SchemaEditing.ConnectionReadPool":"Confectory.SchemaEditing.ReadPool";
+ lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData(poolName) as object[]??new object[4];AppDomain.CurrentDomain.SetData(poolName,pool);}
  lock(pool){
   var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
   System.Diagnostics.Process? warm=pool[0] as System.Diagnostics.Process;
@@ -54,12 +63,13 @@ string? ReadWarm(){
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
     // An older tool may not support framing. Detect that once per executable version.
-    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
+    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
     starting=false;
-    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
-    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
-    if(blueprintWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
-    if(guardWarm&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_5"))return null;
+    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
+    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
+    if(blueprintWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
+    if(guardWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
+    if((connectionProposal||operation=="connectionRepairSchema")&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_6"))return null;
     var framed=request.DeepClone().AsObject();if((blueprintValue||guardValue)&&streamProject is not null)framed["_streamProject"]=streamProject;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(framed.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
     var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");

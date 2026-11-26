@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_5");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_6");Console.Out.Flush();
     string? owner=null;
     for(int count=0;count<128;count++)
     {
@@ -18,14 +18,26 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
         bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
         bool relations=operation=="relationsMap";
+        bool connectionProposal=operation is ("connectionSettings" or "connectionSettingsRepair")&&request["settingsProject"] is JsonValue;
+        bool connectionSchema=operation=="connectionRepairSchema";
+        if(connectionProposal||connectionSchema)
+        {
+            // This is a read-only proposal, bound to the same private settings
+            // owner that will describe and inspect the committed pair.
+            var proposal=connectionSchema?request["connectionRepair"]!.AsObject():request;
+            string settings=Path.GetFullPath(proposal["settingsProject"]!.GetValue<string>()),folder=Path.GetDirectoryName(settings)!;
+            string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(proposal["id"]!.GetValue<string>()))).ToLowerInvariant()[..16];
+            if(connectionSchema&&!string.Equals(settings,Path.GetFullPath(request["project"]!.GetValue<string>()),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
+            if(!Path.GetFileName(settings).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)||!Path.GetFileName(folder).Equals(key,StringComparison.OrdinalIgnoreCase)||!string.Equals(Path.GetFileName(Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase))return 2;
+        }
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
         bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
         bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
         bool blueprintProject=operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject)return 2;
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!connectionProposal&&!connectionSchema)return 2;
         bool payloadOnly=blueprintValue||guardValue;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
-        if((payloadOnly?request["_streamProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;
+        if((payloadOnly?request["_streamProject"]:connectionProposal?request["settingsProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;
         var project=Path.GetFullPath(path);request.Remove("_streamProject");
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;

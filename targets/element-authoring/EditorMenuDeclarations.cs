@@ -54,7 +54,7 @@ internal static class EditorMenuDeclarations
                         string canonical=Read(path).Replace("\r\n","\n",StringComparison.Ordinal);
                         string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
                         // The previous exact, already trusted Call body remains valid for installed packs.
-                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin))throw new ArgumentException("Editor route contract/body version changed");
+                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin or PreviousConnectionStreamCallPin))throw new ArgumentException("Editor route contract/body version changed");
                     }
                     row["available"]=true;row["reason"]="";
                 }
@@ -73,6 +73,7 @@ internal static class EditorMenuDeclarations
     private const string PreviousRestoreCallPin="5BE320414DB2BA48E32BF7F15887664DEEB1F430C8B26537B99A91ECC8C5BE36";
     private const string PreviousBlueprintStreamCallPin="F468678C75D3B09543B0D099CB50D3F78DE7A97DDFB9362EC7491F485981A32D";
     private const string PreviousGuardStreamCallPin="C0BB3B712C61F58708DAA7684AB8DC185E0E5E536E1DF96C64F0144A7BD0B53A";
+    private const string PreviousConnectionStreamCallPin="91F35A2D80DCFC132332718140F93BC6F2FDE161E6326A1243673C58815135B5";
     private static readonly Dictionary<string,string> Pins=new(StringComparer.Ordinal)
     {
         // Filled from the existing statically imported SchemaEditing route.
@@ -81,6 +82,6 @@ internal static class EditorMenuDeclarations
         ["SetValue.csbody"]="7F69A5F91F0D1A71FEBC02F37CA92893A654C62DE315548080CC2D1717A4E573",
         ["Call.celem"]="7D034575C18E1DED88DF8271C7AD182958E26160106DF66F169A53B6726F43A1",
         ["CallBody.celem"]="DC3B74410F8775273554A31AEE4BF21E609FE548B0858C5D9BC0FD8572919E98",
-        ["Call.csbody"]="91F35A2D80DCFC132332718140F93BC6F2FDE161E6326A1243673C58815135B5"
+        ["Call.csbody"]="9B1663B6982BFA8D9377D87CD732BBCDF9915824964A2F3EC03E5FD00188E64D"
     };
 }

@@ -242,7 +242,7 @@ string SetupView(string connection){
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
   System.Text.Json.Nodes.JsonNode generated;
-  try{generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(InstallProject(),connection))!;}
+  try{generated=System.Text.Json.Nodes.JsonNode.Parse(opening?calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=InstallProject(),id=connection,settingsProject=manifest})):calls.ConnectionSource.Invoke(InstallProject(),connection))!;}
   catch{if(validateWithCreation){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
   System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");
   // The generated pair has just been constructed from the current complete

@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_5'
+READY = 'CONFECTORY_INSPECT_STREAM_6'
 
 
 def exercise(root):
@@ -122,6 +122,49 @@ def exercise(root):
             assert send(proc, request(b)) == '' and proc.wait(timeout=5) == 2
         finally:
             finish(proc)
+        # Generation, description and effective validation share one settings
+        # owner without reusing a project's source or performing a write.
+        import hashlib
+        installed = root / 'installed'; installed.mkdir()
+        base = installed / 'base'; base.mkdir()
+        agent = installed / 'agent'; agent.mkdir()
+        (base / 'pack.cpack').write_text('pack Confectory.AIConnection version "1" { standalone false; element Connection object "Connection.celem"; }')
+        (base / 'Connection.celem').write_text('object Confectory.AIConnection::Connection {}')
+        (agent / 'pack.cpack').write_text('pack Test.Agent version "1" { standalone false; dependency Confectory.AIConnection version "1"; element Connection object "Connection.celem"; }')
+        (agent / 'Connection.celem').write_text('object Test.Agent::Connection extends Confectory.AIConnection::Connection {}')
+        manifest = installed / 'project.cpack'
+        manifest.write_text('project Test.Install version "1" { standalone false; registry Confectory.AIConnection "base/pack.cpack"; registry Test.Agent "agent/pack.cpack"; }')
+        connection = 'Test.Agent::Connection'
+        settings = root / 'ai-settings' / hashlib.sha256(connection.encode()).hexdigest()[:16] / 'project.cpack'
+        generation = dict(operation='connectionSettings', project=str(manifest), id=connection, settingsProject=str(settings))
+        proc = start()
+        try:
+            proposed = json.loads(send(proc, generation))
+            assert proposed['ok'], proposed
+            assert proposed == json.loads(subprocess.run(HOST, input=json.dumps(generation), text=True, capture_output=True, timeout=20, check=True).stdout)
+            assert not settings.parent.exists(), 'generation is only a proposal'
+            settings.parent.mkdir(parents=True)
+            pair = proposed['result']; settings.write_text(pair['manifest'])
+            source = settings.parent / 'Settings.celem'; source.write_text(pair['source'])
+            described = json.loads(send(proc, dict(operation='describe', project=str(settings), metadataOnly=True)))
+            assert described['ok'] and described['result']['namespace']=='Confectory.AISettings', described
+            inspection = dict(operation='inspectEffective', project=str(settings), manifest=pair['manifest'], id='Confectory.AISettings::Settings', kind='object', text=pair['source'], drafts=[], schemaView=True)
+            validated = json.loads(send(proc, inspection))
+            assert validated['ok'] and validated['result']['effective']['status']=='available', validated
+            repair = dict(operation='connectionSettingsRepair', project=str(manifest), id=connection,
+                          settingsProject=str(settings), repository=str(root), manifest=pair['manifest'], text=pair['source'])
+            repaired = json.loads(send(proc, repair))
+            assert repaired['ok'] and repaired['result']['state']=='unchanged', repaired
+            combined = json.loads(send(proc, dict(inspection, operation='connectionRepairSchema', connectionRepair=repair)))
+            assert combined['ok'] and combined['result']['repair']['state']=='unchanged' and combined['result']['effective']['status']=='available', combined
+            assert send(proc, request(b)) == '' and proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert send(proc, dict(generation,settingsProject=str(a)))=='' and proc.wait(timeout=5)==2
+        finally:
+            finish(proc)
         proc = start()
         try:
             assert send(proc, dict(operation='describe', project=str(a), metadataOnly=False))==''
@@ -203,4 +246,4 @@ def exercise(root):
 if __name__ == '__main__':
     with tempfile.TemporaryDirectory(prefix='confectory-read-stream-') as folder:
         exercise(Path(folder))
-    print('PASS read stream: metadata activation, inventory, live project view and relation map refresh, ordinary CLI, external schema/manifest, owner isolation, operation boundary, EOF and idle retirement')
+    print('PASS read stream: connection proposal/repair/schema owner, metadata activation, inventory, live project view and relation map refresh, ordinary CLI, external schema/manifest, owner isolation, operation boundary, EOF and idle retirement')
