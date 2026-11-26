@@ -298,7 +298,8 @@ public sealed partial class Builder
         blueprint?.EnsureUnchanged(verifyCompiler: true);
         return JsonData.Object(new { blueprints = blueprint?.Receipts, blueprintWarnings = blueprint?.Warnings, mode = "contract-only", artifactLayout = ArtifactLayout, pack = ns, target = Target, artifact = checkedArtifact, warnings = Registry.Warnings, statistics = Statistics });
     }
-    public JsonObject Build()
+    public JsonObject Build() => Build(null);
+    public JsonObject Build(string? editorPresentationTool)
     {
         var plan = new Planner(Registry, Target).Plan(); var packs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
         PrepareContracts(plan.Implementations.Values.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))).Concat(plan.Bindings.Values.Select(x => x.Function)));
@@ -307,15 +308,24 @@ public sealed partial class Builder
         string code = Generation.FinalSource(plan);
         var catalogData = Generation.PublicCatalog(plan, packs, Contracts, Target);
         if (informationTypes.Count > 0) catalogData["informationTypes"] = InformationCatalog();
-        string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, JsonData.Digest(catalogData), packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) });
+        var connectionPresentation = ConnectionPresentationResource.Prepare(Project, Target, catalogData, editorPresentationTool ?? Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"));
+        var linkIdentity = new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "link", code, JsonData.Digest(catalogData), packs.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()), Contracts.ToDictionary(x => x.Key, x => x.Value["key"]!.GetValue<string>()) };
+        string key = JsonData.Digest(connectionPresentation is null ? linkIdentity : new object[] { linkIdentity, JsonData.Digest(connectionPresentation) });
         string outputRoot = Path.Combine(State, "outputs", Target), work = Path.Combine(outputRoot, $"{key}.{Guid.NewGuid():N}.pending"); Directory.CreateDirectory(work);
         try
         {
             string source = WriteSource(Path.Combine(work, "Bindings.cs"), code), catalog = Path.Combine(work, "sources", "public-linkage.json");
             JsonData.AtomicWrite(catalog, catalogData);
+            var resources = new List<object> { new { path = catalog, name = "public-linkage.json" } };
+            if (connectionPresentation is not null)
+            {
+                string previewResource = Path.Combine(work, "sources", ConnectionPresentationResource.Name);
+                JsonData.AtomicWrite(previewResource, connectionPresentation);
+                resources.Add(new { path = previewResource, name = ConnectionPresentationResource.Name });
+            }
             var result = Tool.Invoke("link", new { output = work, name = "Confectory.App", sources = new[] { source },
                 references = Contracts.Values.Select(x => x["assembly"]!.GetValue<string>()).Concat(InformationFiles(Contracts.Values, "assembly")).Concat(packs.Values.SelectMany(x => x["assemblies"]!.AsArray().Select(a => a!.GetValue<string>()))).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
-                resources = new[] { new { path = catalog, name = "public-linkage.json" } } });
+                resources });
             if (result["run"] is not JsonArray runArray || runArray.Count == 0 || runArray.Any(x => x is not JsonValue v || !v.TryGetValue<string>(out _))) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an executable command");
             if (result["artifacts"] is not JsonObject artifacts || !artifacts.ContainsKey("application")) throw new BuildError("TOOL_PROTOCOL", "Link tool must return an application artifact");
             foreach (var (_, value) in artifacts)

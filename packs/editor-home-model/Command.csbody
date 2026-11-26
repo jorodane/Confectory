@@ -251,9 +251,41 @@ System.Text.Json.Nodes.JsonNode ReadPreviewSchema(string manifest,string manifes
  var input=new System.Text.Json.Nodes.JsonObject{["project"]=manifest,["manifest"]=manifestText,["id"]="Confectory.AISettings::Settings",["kind"]="object",["text"]=text,["schemaView"]=true,["schemaReuseProof"]=true};
  var effective=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspectEffective",input.ToJsonString()))!["effective"]!;if(effective["status"]?.ToString()!="available"){input.Remove("schemaReuseProof");effective=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspectEffective",input.ToJsonString()))!["effective"]!;}RequirePreviewSchema(effective);return effective.DeepClone();
 }
+// The linker-produced resource is only a read presentation. It is accepted
+// from the current entry assembly, never a writable sidecar or profile file.
+// Before displaying it, recheck the exact tool and all canonical source proofs.
+bool FreshPreviewTool(System.Text.Json.Nodes.JsonNode? tool){
+ try{
+  if(tool is null)return true;string? host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOST"),expectedHost=tool["authoringSha256"]?.ToString(),expectedCore=tool["coreSha256"]?.ToString();if(string.IsNullOrEmpty(host)||expectedHost is null||expectedCore is null||!System.Text.RegularExpressions.Regex.IsMatch(expectedHost,"^[0-9a-f]{64}$")||!System.Text.RegularExpressions.Regex.IsMatch(expectedCore,"^[0-9a-f]{64}$"))return false;
+  string Hash(string full){var file=new System.IO.FileInfo(full);if(!file.Exists||file.Length>16777216||file.LinkTarget is not null)return "";return Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.IO.File.ReadAllBytes(full))).ToLowerInvariant();}
+  return Hash(host)==expectedHost&&Hash(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(System.IO.Path.GetFullPath(host))!,"Confectory.Core.dll"))==expectedCore;
+ }catch{return false;}
+}
+System.Text.Json.Nodes.JsonNode? LinkedPreview(string connection,string manifest){
+ try{
+  string repo=System.IO.Path.GetFullPath((string)state[1]),project=System.IO.Path.Combine(repo,"examples","editor-home","project.cpack");if(!System.IO.File.Exists(project))return null;
+  var assembly=System.Reflection.Assembly.GetEntryAssembly();if(assembly is null)return null;using var stream=assembly.GetManifestResourceStream("connection-preview-v1.json");if(stream is null||stream.Length is <=0 or >2097152)return null;
+  using var reader=new System.IO.StreamReader(stream);var catalog=System.Text.Json.Nodes.JsonNode.Parse(reader.ReadToEnd())!;
+  if(catalog["formatVersion"]?.GetValue<int>()!=1||catalog["entries"]?[connection] is not System.Text.Json.Nodes.JsonObject entry)return null;
+  var tool=new System.Text.Json.Nodes.JsonObject{["authoringSha256"]=catalog["authoringSha256"]?.DeepClone(),["coreSha256"]=catalog["coreSha256"]?.DeepClone()};if(!FreshPreviewTool(tool))return null;
+  var generated=entry["generated"]!.DeepClone();var proof=generated["connectionModelProof"]!;var effective=generated["presentation"]!;
+  if(generated["connection"]?.ToString()!=connection||generated["source"]?.ToString()!="object Confectory.AISettings::Settings extends "+connection+" {}\n"||generated["credentialRead"]?.GetValue<bool>()!=false||generated["executionPerformed"]?.GetValue<bool>()!=false||effective["status"]?.ToString()!="available"||effective["schemaModel"]?["validation"]?["status"]?.ToString()!="valid"||effective["schemaModel"]?["id"]?.ToString()!="Confectory.AISettings::Settings"||effective["schemaModel"]?["executionAuthorized"]?.GetValue<bool>()!=false)return null;
+  string Resolve(string root,string relative){if(relative.Length==0||relative.Contains('\\')||System.IO.Path.IsPathRooted(relative)||System.Linq.Enumerable.Any(relative.Split('/'),p=>p is "" or "." or ".."))throw new ArgumentException("Connection resource relative path required");string full=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,relative.Replace('/',System.IO.Path.DirectorySeparatorChar)));return full;}
+  string Relocate(string path){if(path.StartsWith("install/",StringComparison.Ordinal))return Resolve(repo,path[8..]);if(path.StartsWith("settings/",StringComparison.Ordinal))return Resolve(System.IO.Path.GetDirectoryName(manifest)!,path[9..]);throw new ArgumentException("Connection resource path scope required");}
+  string text=generated["manifest"]!.GetValue<string>();foreach(var path in entry["registryPaths"]!.AsArray()){string relative=path!.GetValue<string>(),token=System.Text.Json.JsonSerializer.Serialize("@install/"+relative);if(!text.Contains(token,StringComparison.Ordinal))return null;text=text.Replace(token,System.Text.Json.JsonSerializer.Serialize(Resolve(repo,relative)),StringComparison.Ordinal);}generated["manifest"]=text;
+  proof["project"]=Relocate(proof["project"]!.GetValue<string>());
+  void Paths(System.Text.Json.Nodes.JsonArray paths){for(int i=0;i<paths.Count;i++)paths[i]=Relocate(paths[i]!.GetValue<string>());}
+  void Observations(System.Text.Json.Nodes.JsonArray observations){foreach(var row in observations)row!["path"]=Relocate(row["path"]!.GetValue<string>());}
+  Paths(proof["paths"]!.AsArray());Observations(proof["observations"]!.AsArray());Paths(effective["ownershipPaths"]!.AsArray());Observations(effective["observations"]!.AsArray());
+  void Locations(System.Text.Json.Nodes.JsonNode? node){if(node is System.Text.Json.Nodes.JsonObject obj){foreach(string locationKey in new[]{"Loc","loc"})if(obj[locationKey] is System.Text.Json.Nodes.JsonObject loc)foreach(string fileKey in new[]{"File","file"})if(loc[fileKey] is System.Text.Json.Nodes.JsonValue file&&file.TryGetValue<string>(out var path))loc[fileKey]=Relocate(path);foreach(var child in obj)Locations(child.Value);}else if(node is System.Text.Json.Nodes.JsonArray items)foreach(var child in items)Locations(child);}
+  Locations(effective);
+  if(!FreshConnectionModel(proof,project)||!FreshPresentation(effective)||!FreshPreviewTool(tool)||!EmptySettingsOwner(manifest))return null;
+  generated["linkedTool"]=tool;if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_CONNECTION_LINKED_PREVIEW");return generated;
+ }catch{return null;}
+}
 bool AdmittedPreview(System.Text.Json.Nodes.JsonNode preview,string manifest){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,"Settings.celem"));return m[0]=="exists"&&f[0]=="exists"&&preview["admittedManifest"]?.ToString()==m[2]&&preview["admittedSource"]?.ToString()==f[2];}
 bool PreviewOwner(System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted)=>preview["admittedManifest"] is null?EmptySettingsOwner(manifest):allowAdmitted&&AdmittedPreview(preview,manifest);
-bool PreviewFresh(System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted=false){return PreviewOwner(preview,manifest,allowAdmitted)&&FreshConnectionModel(preview["proof"],ConnectionProject())&&FreshPresentation(preview["effective"]);}
+bool PreviewFresh(System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted=false){return PreviewOwner(preview,manifest,allowAdmitted)&&FreshPreviewTool(preview["linkedTool"])&&FreshConnectionModel(preview["proof"],ConnectionProject())&&FreshPresentation(preview["effective"]);}
 bool VerifyPreview(string connection,System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted=false){
  if(PreviewFresh(preview,manifest,allowAdmitted))return true;
  // The ordinary reader also supports installations without a reusable lexical
@@ -269,11 +301,11 @@ System.Text.Json.Nodes.JsonNode OpenPreview(string connection,string manifest){
  connectionSetupMode="new";model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();model["connectionSetupModes"]![connection]="new";
  var previous=connectionPreviews[connection];if(previous is not null&&PreviewFresh(previous,manifest)){if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_CONNECTION_PREVIEW_REUSED");return previous;}
  if(previous is not null&&previous["revision"]!.GetValue<long>()!=0){if(VerifyPreview(connection,previous,manifest))return previous;throw new InvalidOperationException("Connection declarations changed outside the open draft; retain local input");}
- connectionStage="declarations";var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=ConnectionProject(),id=connection,settingsProject=manifest,presentation=true})))!;
+ connectionStage="declarations";var generated=LinkedPreview(connection,manifest)??System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=ConnectionProject(),id=connection,settingsProject=manifest,presentation=true})))!;
  var effective=generated["presentation"]!;RequirePreviewSchema(effective);
  if(!EmptySettingsOwner(manifest))throw new InvalidOperationException("Initial settings changed during preview; original retained");
  if(connectionPreviews.Count>=32&&!connectionPreviews.ContainsKey(connection))throw new InvalidOperationException("Connection preview budget exceeded");
- var preview=new System.Text.Json.Nodes.JsonObject{["manifest"]=generated["manifest"]!.DeepClone(),["source"]=generated["source"]!.DeepClone(),["text"]=generated["source"]!.DeepClone(),["revision"]=0L,["proof"]=generated["connectionModelProof"]?.DeepClone(),["effective"]=effective.DeepClone()};
+ var preview=new System.Text.Json.Nodes.JsonObject{["manifest"]=generated["manifest"]!.DeepClone(),["source"]=generated["source"]!.DeepClone(),["text"]=generated["source"]!.DeepClone(),["revision"]=0L,["proof"]=generated["connectionModelProof"]?.DeepClone(),["effective"]=effective.DeepClone(),["linkedTool"]=generated["linkedTool"]?.DeepClone()};
  connectionPreviews[connection]=preview;return preview;
 }
 string SetupView(string connection){

@@ -111,6 +111,17 @@ internal static class Target
         if (!final) compilerArguments.Add("-refout:" + reference);
         foreach (string path in sdk.Framework.Concat(references)) compilerArguments.Add("-reference:" + path);
         foreach (string source in Strings(request, "sources")) compilerArguments.Add(source);
+        // Unlike the legacy public catalogue sidecar, this optional generated
+        // read model is authenticated by being part of the linked application.
+        // A path that cannot be represented in Roslyn's resource argument
+        // merely retains the ordinary authoring fallback.
+        if (final)
+            foreach (var resource in request["resources"]?.AsArray() ?? [])
+                if (resource?["name"]?.ToString() == "connection-preview-v1.json")
+                {
+                    string path = Path.GetFullPath(resource["path"]!.GetValue<string>());
+                    if (!path.Contains(',')) compilerArguments.Add("-resource:" + path + ",connection-preview-v1.json");
+                }
         // Provider JSON already travels on stdin. Roslyn's reference-heavy argv
         // previously exceeded Windows CreateProcess's command-line limit.
         // Keep -noconfig outside the response file (Roslyn ignores it inside).

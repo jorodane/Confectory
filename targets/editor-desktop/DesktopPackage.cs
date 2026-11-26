@@ -19,7 +19,8 @@ internal static class DesktopPackage
         try
         {
             string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
-            var built=new Builder(Path.Combine(repo,"examples/editor-home/project.cpack"),linux?"linux":"windows").Build();
+            var authoringTool=Path.Combine(repo,"targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll");
+            var built=new Builder(Path.Combine(repo,"examples/editor-home/project.cpack"),linux?"linux":"windows").Build(authoringTool);
             string engine=Path.GetDirectoryName(built["run"]!.AsArray().Last()!.GetValue<string>())!;
             string content=Path.Combine(stage,"content");Directory.CreateDirectory(content);
             Copy(Path.Combine(repo,"packs"),Path.Combine(content,"packs"),true);
