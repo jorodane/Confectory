@@ -1092,7 +1092,7 @@ lock(state){
   string feature=input["id"]!.GetValue<string>();
   var source=PreviewCaller(feature,input["previewBasis"]!.GetValue<string>());
   var definition=input["definition"]!.AsObject();string calleeId=definition["feature"]!.GetValue<string>();
-  if(definition["branchInsertion"] is not null||definition["control"]?.ToString()!="next"||calleeId==feature||
+  if(definition["codeImport"] is not null||definition["branchInsertion"] is not null||definition["control"]?.ToString()!="next"||calleeId==feature||
      !calleeId.StartsWith(feature[..feature.LastIndexOf("::",StringComparison.Ordinal)]+ "::",StringComparison.Ordinal))
    throw new ArgumentException("Select a published direct project feature");
   var callee=calls.Read.Invoke(draft,calleeId);
@@ -1805,6 +1805,9 @@ lock(state){
  }
  foreach(var node in graph["nodes"]!.AsArray()){
   string nodeId=node!["id"]!.ToString();var definition=System.Linq.Enumerable.Single(definitions["nodes"]!.AsArray(),n=>n!["id"]!.ToString()==nodeId)!;var row=new System.Text.Json.Nodes.JsonObject{["id"]=nodeId,["kind"]=node["kind"]!.DeepClone(),["control"]=node["control"]!.DeepClone(),["intent"]=node["intent"]?.DeepClone(),["signature"]=definition["definition"]!["signature"]!.DeepClone(),["definitionHash"]=definition["definitionHash"]!.DeepClone(),["implementationContext"]=definition["definition"]!["implementationContext"]?.DeepClone(),["contextBoundary"]=definition["definition"]!["contextBoundary"]?.DeepClone(),["executionForwarded"]=definition["definition"]!["executionForwarded"]?.DeepClone(),["executionSource"]=definition["definition"]!["executionSource"]?.DeepClone(),["calledFeature"]=definition["definition"]!["calledFeature"]?.DeepClone(),["async"]=definition["definition"]!["async"]?.DeepClone(),["completionBranch"]=definition["definition"]!["completionBranch"]?.DeepClone()};
+  if(node["kind"]?.ToString()=="code"&&node["imports"] is System.Text.Json.Nodes.JsonArray codeImports){
+   row["codeImports"]=new System.Text.Json.Nodes.JsonArray(System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(codeImports,id=>{string feature=id!.ToString();var imported=System.Linq.Enumerable.Single(definitions["imports"]!.AsArray(),item=>item?["feature"]?.ToString()==feature)!;return (System.Text.Json.Nodes.JsonNode)new System.Text.Json.Nodes.JsonObject{["feature"]=feature,["alias"]=imported["alias"]!.DeepClone()};})));
+  }
   // Project the exact function text already observed by this view, including
   // existing saved/private/slot views. A retained copy/override snapshot is not
   // silently treated as the current declaration. No new reads or compiler hash
@@ -1868,7 +1871,11 @@ lock(state){
  bool contractOnly=readingCall&&input["contractOnly"]?.GetValue<bool>()==true;
  if(readingCall){
   var callDefinition=input["definition"]!.AsObject();
-  if(contractOnly&&(privatePath.Length!=0||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||!owned.Contains(implementationMetadata["function"]!.ToString())||callDefinition["privateInsertion"] is not null||callDefinition["branchInsertion"] is not null||callDefinition["arguments"] is not null||!owned.Contains(callDefinition["feature"]!.ToString())||callDefinition["control"]?.ToString()!="next"||input["uiSurface"]?.ToString() is not (null or "")))throw new InvalidOperationException("Direct owned contract-only observation required");
+  if(contractOnly&&(callDefinition["codeImport"] is not null||privatePath.Length!=0||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||!owned.Contains(implementationMetadata["function"]!.ToString())||callDefinition["privateInsertion"] is not null||callDefinition["branchInsertion"] is not null||callDefinition["arguments"] is not null||!owned.Contains(callDefinition["feature"]!.ToString())||callDefinition["control"]?.ToString()!="next"||input["uiSurface"]?.ToString() is not (null or "")))throw new InvalidOperationException("Direct owned contract-only observation required");
+  if(callDefinition["codeImport"] is not null){
+   if(privatePath.Length!=0||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||!owned.Contains(implementationMetadata["function"]!.ToString())||diagnostics["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Existing direct owned code source required");
+   RequireExclusiveWritableGraph();RequireWritableFile(implementationSource[2]);RequireExclusiveChildSources(allowReferences:true,allowFixedExport:retainedFrame);
+  }
   if(callDefinition["privateInsertion"] is not null){
    if(privatePath.Length==0||callDefinition["privateInsertion"]?["path"]?.ToString()!=privatePath||
       slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||

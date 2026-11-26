@@ -1469,6 +1469,16 @@ function blueprintNormalizeControls(scope){
   }
   documentView=mountFunctionDocument(root,{...surface,context:functionDocumentContext(w,data),nativeDefinition:!!data.privateConversion&&!flowDocument,
    initialMode:flowChild?'blueprint':undefined,model:documentModel,
+   codeImportLabels:id=>rows.find(row=>row.id===id)?.codeImports||[],
+   hasCodeImport:id=>!!data.id&&data.id===data.rootId&&!data.privatePath&&!data.slotContext&&!data.privateCopy&&!w.meta.nodeFlowDraft&&['source-ready','source-assembled'].includes(data.diagnostics?.state)&&rows.some(row=>row.id===id&&row.kind==='code'&&row.control==='next'&&!row.implementationContext&&!row.forwardCallerStorage&&!row.async),
+   importCode:id=>{
+    if(!canvasOwns()||api.busy||saveEntries(w).length)return api.toast('기존 기능 입력을 먼저 저장하거나 취소해 주세요.');
+    api.modal('코드 기능 참조','<form><label>기능 ID<input data-code-import-feature required placeholder="Pack::Function"></label><p class="small">선택한 함수의 계약을 확인하여 이 코드 셀에 참조를 추가합니다.</p><p role="alert" data-code-import-error></p><button type="submit" data-code-import-apply>참조 추가</button></form>',(modal,close)=>{
+     $('form',modal).onsubmit=event=>{event.preventDefault();const feature=$('[data-code-import-feature]',modal).value.trim(),alive=()=>canvasOwns()&&modal.isConnected&&!saveEntries(w).length;
+      api.work(async()=>{try{if(!alive())throw Error('코드 편집 대상이 바뀌었습니다.');const definition={id:'import_'+crypto.randomUUID().replaceAll('-',''),feature,intent:'코드 기능 참조',control:'next',codeImport:id};const prepared=await call(w,{action:'readCall',id:data.id,definition},alive);if(!alive())return;await call(w,{action:'createCall',id:data.id,basis:prepared.basis},alive);if(!alive())return;const current=await call(w,{action:'read',id:data.id},alive);if(!alive())return;close();show(w.authorInfo,current,true);api.toast('코드 참조: '+prepared.alias); }catch(error){if(modal.isConnected)$('[data-code-import-error]',modal).textContent=error.message;throw error;}},'');
+     };
+    });
+   },
    hasExecutionTarget:id=>documentExecutionTargets(id).length>0,pickExecutionTarget:pickDocumentExecutionTarget,
    hasBranchTarget:(owner,port)=>documentBranchTargets(owner,port).length>0,
    hasDocumentContract:documentContract,

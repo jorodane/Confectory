@@ -10,7 +10,7 @@ internal static class BlueprintCall
   var target=new Parser(request["targetText"]!.GetValue<string>(),"<callee>").ParseElement();
   var definition=request["definition"]!.AsObject();string id=definition["id"]!.GetValue<string>(),feature=definition["feature"]!.GetValue<string>(),intent=definition["intent"]!.GetValue<string>(),control=definition["control"]!.GetValue<string>();
   if(implementation.Kind!="implementation"||implementation.Id!=request["id"]!.GetValue<string>()||target.Kind!="function"||target.Id!=feature||target.Signature is null||feature==implementation.Function)throw new ArgumentException("An existing function with its exact contract identity is required");
-  if(definition.Any(p=>p.Key is not ("id" or "feature" or "intent" or "control" or "branchInsertion" or "privateInsertion" or "arguments"))||id.Length>128||!System.Text.RegularExpressions.Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z")||string.IsNullOrWhiteSpace(intent)||intent.Length>16384||control is not ("next" or "branch")||control=="branch"&&target.Signature.Return!="bool")throw new ArgumentException("Explicit call node identity, intent and compatible execution port required");
+  if(definition.Any(p=>p.Key is not ("id" or "feature" or "intent" or "control" or "branchInsertion" or "privateInsertion" or "arguments" or "codeImport"))||id.Length>128||!System.Text.RegularExpressions.Regex.IsMatch(id,@"\A[A-Za-z_][A-Za-z_0-9.-]*\z")||string.IsNullOrWhiteSpace(intent)||intent.Length>16384||control is not ("next" or "branch")||control=="branch"&&target.Signature.Return!="bool")throw new ArgumentException("Explicit call node identity, intent and compatible execution port required");
   var graph=request["graph"]!.DeepClone().AsObject();if(graph["feature"]?.ToString()!=implementation.Function||graph["nodes"]!.AsArray().Any(n=>n!["id"]!.ToString()==id))throw new ArgumentException("Current caller graph and a new node identity required");
   string alias=FeatureBlueprint.ImportAlias(feature);
   if(implementation.Imports.TryGetValue(alias,out var existing)){
@@ -20,6 +20,14 @@ internal static class BlueprintCall
    implementation.Imports.Add(alias,new Import(feature,target.Signature,null,new(),implementation.Id));
   }
   var signature=FeatureBlueprint.SignatureDocument(target.Signature);
+  if(definition["codeImport"] is JsonValue codeNode){
+   if(control!="next"||implementation.Parent is not null||definition["branchInsertion"] is not null||definition["privateInsertion"] is not null||definition["arguments"] is not null||BlueprintAsync.Has(target)||target.Signature.Args.Any(a=>a.Mode is not null)||BlueprintExecutionBranches.Has(target))throw new ArgumentException("Ordinary synchronous code import required");
+   string selected=codeNode.GetValue<string>();var cell=graph["nodes"]!.AsArray().SingleOrDefault(n=>n?["id"]?.ToString()==selected)?.AsObject();
+   if(cell is null||cell["kind"]?.ToString()!="code"||cell["control"]?.ToString()!="next"||cell["implementationContext"] is not null||cell["forwardCallerStorage"]?.GetValue<bool>()==true||cell["async"]?.GetValue<bool>()==true)throw new ArgumentException("Existing ordinary owned code cell required");
+   var refs=cell["imports"] as JsonArray??new JsonArray();if(refs.Count>=32||refs.Any(r=>r?.ToString()==feature))throw new ArgumentException("New bounded code import required");refs.Add(feature);if(cell["imports"] is null)cell["imports"]=refs;
+   return new JsonObject{["implementation"]=format(implementation),["graph"]=graph,["feature"]=feature,["alias"]=alias,["scope"]=implementation.Imports[alias].Scope,["signature"]=signature,["description"]=target.Description,["contractHash"]=FeatureBlueprint.ContractHash(target),["sourceWritten"]=false,["compiled"]=false};
+  }
+
   var node=new JsonObject{["id"]=id,["kind"]="call",["feature"]=feature,["intent"]=intent,["control"]=control,["signature"]=signature.DeepClone(),["arguments"]=new JsonObject()};
   if(definition["privateInsertion"] is JsonObject privateGap){
    if(definition["branchInsertion"] is not null||control!="next"||implementation.Parent is not null||BlueprintAsync.Has(target)||

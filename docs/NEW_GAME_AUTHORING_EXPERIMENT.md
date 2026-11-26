@@ -195,3 +195,44 @@ Next: persistent surface creation and RenderInput pump/draw provider
 bindings, event handling, and referencing actual TimingRules values in
 the project function. Windows execution and actual mouse success/failure
 are not covered in this step.
+
+## Interactive native input and render loop
+
+The ordinary saved root code cell now offers **기능 참조 추가** (Add function
+reference). An explicitly selected existing function adds its canonical
+import and contract to that cell, updates its source definition receipt
+without changing its C# text, and stages the graph, implementation and
+code record together. The cell lists the exact function IDs and generated
+aliases that can be called from its native code. Existing source and
+registered contract observations, original-file check, atomic draft edit,
+and final compile/Review/Confirm remain in use. This is restricted to an
+ordinary direct-owned, synchronous saved root code cell; preview, private,
+slot, copied and incompatible async/ref/out/branch contracts are excluded.
+
+A new `PlayInteractiveTiming` function was authored entirely through the
+normal editor. In its declared function scope, four providers were
+explicitly bound: Window.CreateSurfaces, RenderInput.Pump, RenderInput.Draw,
+and Window.Close. A code cell then selected those exact four references
+and used their editor-displayed aliases in a C# event/render loop. The loop
+shows a green **Click now** target and red **Wait** target, alternating
+at 1.5 seconds, and changes a separate result panel to **Success** or
+**Failure** in response to a real pointer-down event. It closes the native
+surface in a `finally` block. These game rules are confined to the
+synthetic game's editor-authored C#; no rule was added to the engine.
+
+`tests/web/project_runtime_input.py <editor-report.json> <repo>
+<disposable-evidence-directory>` uses the already-connected Timing Puzzle
+fixture, actual editor creation and Save/Confirm, actual native X11
+window and XTest mouse input. It captures the real screen and verifies
+both result colors, then repeats after a cold editor restart. It requires
+a dedicated X11 display, libXtst, xwininfo, ImageMagick import and Pillow.
+The `--guard-only` mode on the completed disposable project verifies that
+a duplicate import and an external competing graph edit are rejected
+without changing the implementation or overwriting the external bytes.
+The existing registered callable ABI conflict regression also passed.
+The competing edit is test-only, not an authoring shortcut.
+
+The TimingRules declaration is still not wired to the authored loop;
+timing and geometry currently live as game-local literal values. Reusable
+configuration-value binding remains separate. Actual Windows execution
+is not covered here.
