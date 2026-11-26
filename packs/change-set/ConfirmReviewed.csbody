@@ -15,6 +15,10 @@ try
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOnly",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
  }
+ if(dataOnly is null&&changes.Length==8){
+  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectCreation",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
+  if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+ }
  if(dataOnly is null)calls.Validate.Invoke(project,target);
 
  if(!System.Linq.Enumerable.SequenceEqual(changes,calls.Changes.Invoke(handle,selected)))return new[]{"stale","Selected draft changed during validation; review again."};

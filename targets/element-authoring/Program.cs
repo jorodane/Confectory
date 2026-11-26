@@ -339,6 +339,7 @@ try
         {
             reply=new JsonObject{["retained"]=Builder.RetainConfirmedLink(S("original"),S("candidate"),S("target"))};break;
         }
+        case "validateExistingSchemaObjectCreation":reply=ExistingSchemaObjectCreationValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),Format,FormatManifest);break;
         case "validateLongDataOnly":reply=LongDataOnlyValidation.Check(S("originalProject"),S("candidateProject"),S("id"),S("relative"),S("baseline"),S("after"),Format);break;
         case "validate":
         {
