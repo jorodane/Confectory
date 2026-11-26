@@ -1,6 +1,6 @@
 """Trace real Chromium retirement of one previously UI-created pure data object.
 
-Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--recover] [--run].
+Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--expect-retirement-only-proof] [--recover] [--run].
 Each run creates isolated source copies and fresh profiles; requires strace unless --untraced.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -159,11 +159,15 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
     print('PASS manifest always reference blocks final confirmation despite stage success',flush=True)
   else:
    with phase('confirm'):
+    # Observe actual modal disappearance in the page; Playwright's wait polling
+    # can otherwise add a substantial delay to the reported UI-completion time.
+    r.locator('#confirm').evaluate('''b=>{window.__retirementUIClose=null;b.addEventListener('click',()=>{const start=performance.now(),review=b.closest('.window[data-key=review]');const check=()=>{if(!review?.isConnected||!review.getClientRects().length){window.__retirementUIClose=performance.now()-start;return;}if(performance.now()-start<120000)requestAnimationFrame(check);};requestAnimationFrame(check);},{capture:true,once:true});}''')
     next_start=time.time()
     r.locator('#confirm').click();deadline=time.monotonic()+120
     while f'element {name} object' in manifest.read_text() and time.monotonic()<deadline:page.wait_for_timeout(25)
     print('durable unregister ms',round((time.time()-next_start)*1000),flush=True)
     assert f'element {name} object' not in manifest.read_text();expect(r).to_be_hidden(timeout=120000);assert child.read_bytes()==original[f'elements/{name}.celem']
+    page.wait_for_function('()=>window.__retirementUIClose!==null');print('ui close observed ms',round(page.evaluate('()=>window.__retirementUIClose')),flush=True)
     assert all(snapshot(project)[k]==v for k,v in original.items() if k!='project.cproj');assert snapshot(peer)==peer_original
    with phase('ui_stable'):
     expect(filter(b,name)).to_have_count(0,timeout=120000)
@@ -199,4 +203,21 @@ for label,(start,end) in (phases.items() if traces else []):
  dll=[line for line in selected if 'openat(' in line and '.dll' in line and str(project/'.confectory') in line]
  print(label,'csc',len(csc),'link',sum('/outputs/linux/' in l for l in csc),'dll',len(dll),'writes',sum('O_WRONLY' in l or 'O_RDWR' in l or 'O_CREAT' in l for l in dll),flush=True)
  if '--baseline' not in sys.argv:assert not csc and not dll,(label,len(csc),len(dll))
+if '--timeline' in sys.argv:
+ calls=[];pending=[]
+ for line in (root/'confirm.log').read_text().splitlines():
+  if not line.startswith('CONFECTORY_UI_TRACE '):continue
+  row=json.loads(line.split(' ',1)[1])
+  if row['stage']=='authoring-process':pending.append((row['operation'],row['elapsedMs']))
+  if row['stage']=='consumer':
+   if row.get('endpoint')=='confirmGroup':calls.append(pending)
+   pending=[]
+ print('confirm authoring calls',json.dumps(calls),flush=True)
+ if '--expect-retirement-only-proof' in sys.argv:
+  assert len(calls)==1,calls
+  names=[name for name,_ in calls[0]]
+  assert names.count('validateExistingSchemaObjectRetirement')==1 and 'validateExistingSchemaObjectCreation' not in names,names
+  print('PASS no inapplicable creation proof; full retirement proof invoked',flush=True)
+elif '--expect-retirement-only-proof' in sys.argv:
+ raise AssertionError('--expect-retirement-only-proof requires --timeline')
 print('PASS actual retirement scenario',flush=True)
