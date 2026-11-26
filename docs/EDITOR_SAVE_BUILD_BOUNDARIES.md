@@ -69,3 +69,26 @@
 정상 3회 및 충돌 포함 1회에서 기존 한 번 Save·Confirm, 그룹 Undo/Redo, 정상 재시작, 외부 계약/체크포인트 충돌 거절, 다른 합성 프로젝트 원본 보존과 실행을 확인했다. 추가 UI 회귀는 실제 Save 요청의 의도 하나를 허용 한계 밖으로 변경해 전체 거절 및 체크포인트/원본/호출 입력 보존을 확인한 후 정상 재시도한다. 이 단계는 6회의 조회를 실제 제거했으나 전체 authorBatch를 하나의 graph 요청으로 통합한 것은 아니다. 다음 경계는 이름/의도와 C# source를 동일 candidate의 검증된 definition hash에 연결하는 다중 소스 계획 또는 분기 변경 전체의 검증이다. 실제 Windows 실행은 미검증이다.
 
 후보 검증 후 동일 환경에서 이전 0fe054c를 다시 실행했다. Save 4862ms, authorBatch 2384ms, graph 70회/600ms, Confirm 5972ms, Run 4251ms였다. 후보의 Save 중앙값 3875ms는 이 비교보다 약 20% 짧으며, 전체 Confirm/Run 개선은 입증되지 않았다. 기존 독립 컴파일 시험에서 동일 timestamp 소스 변경, 잘못된 C# 거절 및 손상 artifact 복구도 통과했다.
+
+## 여러 코드 셀의 이름·의도·본문 후보 (8580218 후속)
+
+동일한 직접 소유 frame에서 연속한 일반 코드 셀의 이름/의도/C# 본문 변경을 하나의 내부 `cellContentBatch`로 처리한다. 구조 및 계약을 바꾸는 단계는 기존 검증 경계로 남긴다. 각 (셀 ID, 필드) 중복을 금지하고 기존 이름/의도/보조 함수/소스 검증을 수행한다. 그래프 변경이 있으면 먼저 현재 후보 전체의 정의를 검증하며, 본문 record의 definitionHash는 그 검증 결과를 사용한다. 그래프와 각 변경 본문 및 나머지 관측 source를 단일 EditBatch revision/hash CAS에 전달한다. 기존 소스 검증, 최종 compiler Confirm, 원자 checkpoint 및 기록 경계는 그대로다.
+
+브라우저와 호스트의 기존 직접 소유 root 코드 셀 classifier를 확장해 여러 셀의 이름과 본문을 한 번의 실제 Save에 포함한다. 다른 소유자/복사/slot, 구조 및 타입 변경, 다른 frame 혼합은 확장하지 않는다. 저장된 요청 복구 역시 각 셀과 필드를 정확히 일치시킨다. 실제 Chromium에서 두 기존 셀의 이름과 본문 4개 변경이 하나의 authorBatch에 포함됨을 확인했고, Undo/Redo, cold reopen, 외부 graph 변경 및 실제 컴파일 출력도 통과했다.
+
+추가 source-only 두 셀의 회귀에서 8580218과 초기 후보가 외부 graph의 공백 변경을 체크포인트 전에 거절하지 않는 기존 제약을 발견했다. 이번 다중 본문 경계에서 원본 경로 및 baseline 해시 검사와 기존 checked checkpoint의 전체 관측 source 체크를 적용했다. 최종 후보에서 이름+본문 및 본문만 편집하는 두 경로 모두 외부 변경 거절과 입력 보존, 정상 재시도, undo/redo, 실행을 통과했다.
+
+| 실제 복합 작성 Chromium (ms) | 8580218 정상 중앙값 | 후보 정상 4회 |
+|---|---:|---|
+| graph 조회 횟수 | 64 | 60, 60, 60, 60 |
+| graph 조회 합계 | 488 | 509, 445, 498, 448 |
+| authorBatch 호스트 | 2345 | 2475, 2219, 2282, 2066 |
+| Save 완료 | 3875 | 4360, 3876, 3860, 3854 |
+
+Save 전체 중앙값은 3868ms로 거의 같다. 이전 버전의 별도 신선 비교는 Save 5954ms/authorBatch 3219ms/graph 64회였지만, 해당 시점의 실행 편차가 커서 안정적인 전체 Save 개선으로 합산하지 않는다. 신규 두 셀 이름+본문 Save 4658ms, 두 셀 본문 Save 4517ms를 실제 UI에서 관찰했다. 이전 버전은 이름+본문 혼합 다중 셀 Save를 동일 방식으로 허용하지 않았다.
+
+남은 큰 분리 비용의 정상 대표 실행: graph 60회/448ms, async 후보 24회/285ms, body locator 28회/250ms, cell region 82회/209ms, declaration inspect 46회/180ms. 다음 단계는 구조 변경 후 같은 source closure의 locator/async/region projection을 일괄 준비하는 것이다. 이번 변경은 그 경계까지 통합하지 않았으며 Confirm과 Run의 시간 개선도 입증하지 않았다.
+
+원본 충돌 주입을 제외한 별도 동등 벤치마크 모드(content-source-baseline)에서, 이전 8580218의 두 기존 셀 본문만 변경하는 Save는 3196ms, authorBatch 1154ms/graph 8회였고, 최종 후보는 2630ms, authorBatch 1126ms/graph 6회였다. 이 비교는 안전성 증거가 아니라 정상 경로의 계측이다. 외부 변경 거절은 위의 content-source-batch 및 content-batch 모드에서 별도로 검증했다. 최종 복합 충돌 시나리오 및 정상 케이스도 다시 실행했다. 실제 C# 오류 거절, 변경된 Blueprint 소스 재컴파일 및 손상 산출물 복구 시험을 통과했다.
+
+실제 두 편집기 `v821_two_editor_blueprint_observations.py` 회귀도 통과했다. 다른 편집기가 소스 Confirm한 이후 늦게 받은 관측 및 기존 이동 Review가 원본을 덮지 못하며, 개인 입력을 보존하고 새 Review를 준비한다. Windows 실기는 미검증이다.

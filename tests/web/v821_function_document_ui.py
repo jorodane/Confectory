@@ -59,6 +59,39 @@ try:
     cell.locator('[data-document-fold=choose]').click();expect(cell.locator('.fd-branch-tabs')).to_be_hidden();expect(cell.locator('>.fd-cell-header .fd-cell-title')).to_be_visible()
     restart(1);cell=doc().locator('[data-document-cell=choose]');expect(cell.locator('.fd-cell-content').first).to_be_hidden();cell.locator('[data-document-fold=choose]').click();expect(cell.locator('.fd-branch-tabs')).to_be_visible();expect(cell.locator('.fd-branch-panel').first).to_be_hidden()
     assert not pending() and checkpoint.read_bytes()==before;t.read();x.original();x.build('vertical-branches',t.result_code,t.initial_stdout);f.checked('real execution-enum branch names and nested fold states survive cold without source, draft or execution changes')
+   elif mode in {'content-batch','content-source-batch','content-source-baseline'}:
+    edit_names=mode=='content-batch'
+    names={'body':'Batch calculation','after':'Batch continuation'}
+    code={'body':'global::System.Console.WriteLine("batch-body");\nreturn amount+4;', 'after':'global::System.Console.WriteLine("batch-after");'}
+    for node in ('body','after'):
+     if edit_names:doc().locator(f'[data-document-name="{node}"]').fill(names[node]);doc().locator('.fd-document-title').click()
+     doc().locator(f'[data-document-code="{node}"]').click()
+     dialog=f.page.locator('.bp-script-dialog');source=dialog.locator('[data-code-source]');expect(source).to_be_visible()
+     source.evaluate("""el=>{const spans=Array.from(el.closest('.bp-script-editor').querySelectorAll('[data-code-highlight] > span'));const index=spans.findIndex(s=>s.dataset.codeRegion==='body');if(index<0)throw Error('Missing editable body');const start=spans.slice(0,index).reduce((a,b)=>a+b.textContent.length,0);el.focus();el.setSelectionRange(start,start+spans[index].textContent.length);}""")
+     f.page.keyboard.insert_text(code[node]);dialog.locator('[data-code-save]').click();expect(dialog).to_be_hidden();f.idle()
+    held=pending();assert len(held)==(4 if edit_names else 2),held
+    x.original();assert checkpoint.read_bytes()==before
+    restart(1);assert pending()==held
+    graph_path=f.project/t.graph_file;raw=graph_path.read_bytes()
+    # Benchmark-only comparison with the earlier source-only implementation.
+    # The normal modes always require rejection of this physical change.
+    if mode!='content-source-baseline':
+     graph_path.write_bytes(raw+b' ')
+     try:
+      save();assert retained(held) and graph_path.read_bytes()==raw+b' ' and checkpoint.read_bytes()==before
+     finally:graph_path.write_bytes(raw)
+    started=time.perf_counter();traffic=save();expect(panel().locator('.bp-status')).to_have_text('저장됨');assert not pending();print('TIMING multi-cell content Save ms',round((time.perf_counter()-started)*1000),flush=True)
+    batches=[row['invoke']['input'] for row in traffic if row.get('invoke',{}).get('endpoint')=='blueprint' and row['invoke'].get('input',{}).get('action')=='authorBatch']
+    assert len(batches)==1 and {(e['node'],e['action']) for e in batches[0]['edits']}=={(node,action) for node in names for action in (('rename','source') if edit_names else ('source',))},batches
+    saved=t.read()['nodes'];assert {n['id']:n['displayName'] for n in saved if n['id'] in names}==(names if edit_names else {n['id']:n['displayName'] for n in baseline['nodes'] if n['id'] in names})
+    assert all(code[n['id']] in n['source'] for n in saved if n['id'] in code);x.original()
+    for direction,wanted in [('undo',baseline['nodes']),('redo',saved)]:
+     h=f.invoke('draftHistory',{'action':'inspect'})['result']['result'];assert h[direction]['available'];assert f.invoke('draftHistory',{'action':direction,'token':h[direction]['token']})['result']['result']['accepted'];assert t.read()['nodes']==wanted;x.original()
+    f.invoke('saveDraft',{});restart(2);assert not pending();assert t.read()['nodes']==saved
+    r=review();r.locator('[data-reject]').click();x.original();r=review();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);f.idle()
+    x.build('multi-cell-content',11,'batch-body\nbatch-after\n11')
+    written=json.loads(graph_path.read_bytes());assert {n['id']:n.get('displayName',n['id']) for n in written['nodes'] if n['id'] in names}==(names if edit_names else {n['id']:n.get('displayName',n['id']) for n in t.definition['nodes'] if n['id'] in names})
+    f.checked('two ordinary cells with independent '+('names and ' if edit_names else '')+'C# bodies use one Save, '+('reject external change, ' if mode!='content-source-baseline' else '')+'restore Undo/Redo, survive restart and execute both edited bodies')
    else:
     assert doc().locator('[data-document-cell]').evaluate_all('(els)=>els.map(e=>e.dataset.documentCell)')==['$entry','body','after','$exit:return']
     first=doc().locator('[data-document-cell=body]');left=first.locator('.fd-inputs').bounding_box();right=first.locator('.fd-outputs').bounding_box();assert left['x']+left['width']<right['x'];first.locator('[data-document-fold=body]').click()
