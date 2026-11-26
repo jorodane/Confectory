@@ -143,3 +143,17 @@
 마지막 명시 검증 빌드의 `session` 경로에서 최초 복합 전환 문서 표시 5,290ms, 미저장 자식 표시 124ms, 분기 편집기 표시 62ms, 최초 합동 Save 4,336ms, 최종 Confirm 12,054ms를 관찰했다. 이전 2649ff4/0c4a2e6의 다섯 번 Save가 이번에는 세 번이다(초기 합동 작성 한 번, 이후 분기 본문 한 번, 호출과 연결 한 번). 별도의 `session-child`는 실제 미저장 일반 셀만 먼저 저장한 뒤 분기 작성과 최종 실행까지 통과했다. 두 시험 모두 외부 원본 변경 Save 거절, 전체 미저장 복합 Undo/Redo, cold 복원, 최종 Review 취소/원본 충돌 거절, 동일 ID 별도 프로젝트 파일 보존과 실제 CLR에서 세 분기·원래 반환 검증을 수행했다.
 
 같은 빌드의 기존 `staged` 경로도 종단간 통과했다. 기존 첫 세 Save의 측정 합계 9,608ms와 새 합동 Save 4,336ms를 비교할 수 있다(단일 관측). 별도로, 이전 미리보기 요청 수 검사가 활성화 직후 병행 read를 같이 세는 경우를 발견해 정확한 관측을 포함한 preview 요청 한 개를 확인하고 별도 read 수도 기록하도록 했다. 이번 기존 경로에서는 병행 read 한 개가 관찰되었으므로 전체 요청이 언제나 하나라고 단정하지 않는다.
+
+#### 같은 미저장 복합 작업 사본에서 분기 동작·호출·값 연결
+
+위 직접 소유 retained wrap의 새 선택자에서 선언한 분기 하나에 일반 void 셀 하나를 만들고 그 뒤에 기존 등록 기능 호출과 값 입력을 추가할 수 있다. 새 ID와 로컬 실행 연결은 기존 입력 journal에 보존하며 실제 소스 등록 또는 체크포인트를 먼저 생성하지 않는다. 호출 선택은 프로젝트의 소유 기능 선언에 대한 기존 읽기 경로에서 signature/contractHash/scope를 얻는다. 아직 저장되지 않은 private graph를 기존 등록 대상으로 가장하지 않는다. 최종 Save에서 실제 private gap, 분기 owner, 정확한 ID 및 값 표현을 기존 source/계약 검증으로 다시 확인한다. 원래 retained body, 반환 연결 및 소유권/읽기 증명은 바뀌지 않는다.
+
+최종 authorBatch의 격리 후보에서 wrap → 첫 내부 셀 → enum → 분기 내부 셀 → 직접 기능 호출을 차례로 검증한다. 내부 단계는 같은 작업 사본에만 적용하며 체크포인트 쓰기를 하지 않는다. 마지막 원자적 Save와 기존 Review/Confirm은 유지한다. 미저장 Undo/Redo는 전체 복합·분기·호출·값 입력 한 건이며 기존 개인 journal의 cold 복구를 사용한다. 다른 분기의 복수 신규 셀/호출을 한 번에 추가하는 일반화, ref/out·async·외부 등록 기능의 미저장 선택은 이번 좁은 경로에 추가하지 않았다.
+
+재실행은 `python tests/web/v821_new_function_document_ui.py <repo> <run-report> full-clean` (정상 Save/Confirm 횟수) 및 `full-session` (원본·호출 계약·체크포인트 충돌, 입력 유지와 재시도)다. 기존 `session`, `session-child`, `staged` 회귀를 보존한다. 실제 Linux Chromium에서 편집과 일반 ▶를 사용하고 별도 합성 실행 harness에서 세 분기의 결과와 원래 반환값 및 원본 바이트를 검사한다. 실제 사용자 프로젝트/계정과 Windows/WebView2는 사용하지 않았다.
+
+초기 두 종단간 관측에서 복합 전환 문서 표시 5,274~5,307ms, 미저장 첫 셀 92~126ms, 분기 편집기 60~64ms, 분기 안 셀 141~159ms, 검색 시작부터 호출 표시 1,517~1,595ms, 값 연결 81ms, 최종 Save 6,400~6,849ms, 최종 Confirm 11,046~11,516ms였다. 복합 전환 및 호출 계약 조회의 지연은 남아 있다. 이러한 수치는 단일 조작 지연의 통계적 개선이 아니라 실제 편집 동작별 관측값이다.
+
+정상 `full-clean` 독립 실행에서는 작성 중 `saveDraft` 및 `authorBatch`가 0건이고, 마지막 Save의 authorBatch와 최종 confirmGroup이 각각 1건임을 실제 UI 요청에서 검사했다. 원본과 이전 체크포인트는 작성·Undo/Redo·재시작까지 바이트가 같았다. 이 실행은 전환 5,271ms, 첫 셀 115ms, 분기 편집 66ms, 분기 내부 셀 190ms, 호출 1,628ms, 값 연결 108ms, 마지막 Save 7,874ms, Confirm 11,488ms였다. 별도 오류 주입 실행에서 실패한 요청은 정상 Save/Confirm 횟수에 포함하지 않는다. 기존 `session`, `session-child`, `staged`의 실제 편집·확정·실행 회귀도 각각 통과했다.
+
+마지막 `full-session` 재실행에서 호출 선택 후 실제 합성 donor 선언의 `int amount`를 `long amount`로 바꾸면 Save가 거절되고 값 37 및 원래 체크포인트를 유지했다. 별도 원본 graph 변경과 체크포인트 CAS 경합도 거절됐다. 각각 원래 상태로 복구한 뒤 하나의 합동 Save와 최종 Review/Confirm/실제 실행에 성공했다. 이 오류 주입 실행의 마지막 Save 6,371ms, Confirm 11,539ms다.

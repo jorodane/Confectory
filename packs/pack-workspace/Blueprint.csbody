@@ -471,13 +471,24 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     // isolated candidate. Reuse the ordinary frame/enum admission and apply
     // both operations without writing an intermediate checkpoint.
     if(nodeFlowBatch&&edits[0]?["definition"]?["childPlan"] is System.Text.Json.Nodes.JsonObject childPlan){
-     if(graphId!=physicalGraphId||surface.Length!=0||slotRequest.Count!=0||childPlan.Count!=2||childPlan["creation"] is not System.Text.Json.Nodes.JsonArray creation||creation.Count!=6||!childPlan.ContainsKey("branch"))throw new ArgumentException("Exact direct wrapped child and branch candidate required");
+     if(graphId!=physicalGraphId||surface.Length!=0||slotRequest.Count!=0||childPlan.Count is <2 or >4||System.Linq.Enumerable.Any(childPlan,p=>p.Key is not ("creation" or "branch" or "body" or "call"))||childPlan["creation"] is not System.Text.Json.Nodes.JsonArray creation||creation.Count!=6||!childPlan.ContainsKey("branch"))throw new ArgumentException("Exact direct wrapped child and branch candidate required");
      string childPath=edits[0]!["node"]!.ToString(),frame=physicalGraphId+"/graph:"+childPath;
      var made=System.Linq.Enumerable.Single(creation,e=>e?["action"]?.ToString()=="createNode");
      string createdId=made?["node"]?.ToString()??"";
      if(!System.Linq.Enumerable.Any(creation,e=>e?["action"]?.ToString()=="entry"&&e["node"]?.ToString()=="$entry"&&e["to"]?.ToString()==createdId)||!System.Linq.Enumerable.Any(creation,e=>e?["action"]?.ToString()=="route"&&e["node"]?.ToString()==createdId&&e["port"]?.ToString()=="next"&&e["to"]?.ToString()=="body"))throw new ArgumentException("Exact first insertion before retained C# required");
      var branch=childPlan["branch"] as System.Text.Json.Nodes.JsonObject;
      if(childPlan["branch"] is not null&&(branch is null||branch.Count!=3||branch["action"]?.ToString()!="enumCode"||branch["definition"]?["declareCases"]?.GetValue<bool>()!=true||made?["node"]?.ToString()!=branch["node"]?.ToString()))throw new ArgumentException("Same newly created selector required");
+     var branchBody=childPlan["body"] as System.Text.Json.Nodes.JsonArray;var branchCall=childPlan["call"] as System.Text.Json.Nodes.JsonObject;
+     if(childPlan.ContainsKey("body")&&(branchBody is null||branchBody.Count!=6||branch is null)||childPlan.ContainsKey("call")&&(branchCall is null||branchBody is null||branchCall.Count!=3||branchCall["action"]?.ToString()!="createPrivateCall"))throw new ArgumentException("Exact declared branch body and reference required");
+     string? bodyId=null,casePort=null;
+     if(branchBody is not null){
+      var declaration=System.Linq.Enumerable.Single(branchBody,row=>row?["action"]?.ToString()=="createNode")!;
+      bodyId=declaration["node"]!.ToString();
+      var anchor=System.Linq.Enumerable.Single(branchBody,row=>row?["action"]?.ToString()=="route"&&row["node"]?.ToString()==createdId)!;
+      casePort=anchor["port"]?.ToString();
+      if(declaration["definition"]?["branchOwner"]?.ToString()!=createdId||anchor["to"]?.ToString()!=bodyId||casePort is null||!casePort.StartsWith("case:",StringComparison.Ordinal)||!System.Linq.Enumerable.Any(branchBody,row=>row?["action"]?.ToString()=="route"&&row["node"]?.ToString()==bodyId&&row["port"]?.ToString()=="next"&&row["to"]?.ToString()=="return:"+createdId))throw new ArgumentException("Exact new branch body gap required");
+      if(branchCall is not null){var gap=branchCall["definition"]?["call"]?["privateInsertion"];if(gap?["path"]?.ToString()!=childPath||gap["owner"]?.ToString()!=createdId||gap["case"]?.ToString()!=casePort||gap["from"]?.ToString()!=bodyId||gap["to"]?.ToString()!="return:"+createdId)throw new ArgumentException("Exact newly created branch reference gap required");}
+     }
      var group=candidate["units"]?[physicalGraphId]?["atomicEditGroup"]?.AsArray()??throw new InvalidOperationException("Retained wrap group required");
      var initialProof=new System.Text.Json.Nodes.JsonObject();
      foreach(var member in group){string id=member!.ToString();var u=candidate["units"]![id]!;initialProof[id]=new System.Text.Json.Nodes.JsonObject{["path"]=u["path"]!.DeepClone(),["kind"]=u["kind"]!.DeepClone(),["hash"]=HashBatch(u["draft"]!.ToString())};}
@@ -498,6 +509,16 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
       var source=System.Linq.Enumerable.Single(childView["sources"]!.AsArray(),r=>r?["id"]?.ToString()==selector["sourceId"]?.ToString())!;
       var binding=new System.Text.Json.Nodes.JsonObject{["graph"]=frame,["root"]=physicalGraphId,["node"]=selector["id"]!.DeepClone(),["source"]=selector["sourceId"]!.DeepClone(),["definitionHash"]=selector["definitionHash"]!.DeepClone(),["sourceHash"]=source["hash"]!.DeepClone()};
       if(System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"authorBatch",new System.Text.Json.Nodes.JsonObject{["id"]=frame,["attempt"]=Guid.NewGuid().ToString("N"),["checkpointHash"]=checkpoint,["sourceProof"]=ChildProof(childView),["privateBinding"]=binding,["edits"]=new System.Text.Json.Nodes.JsonArray(branch.DeepClone())}.ToJsonString()))?["staged"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Retained branch staging failed");
+      }
+      if(branchBody is not null){
+       childView=ReadChild();
+       var bodyRequest=new System.Text.Json.Nodes.JsonObject{["id"]=frame,["attempt"]=Guid.NewGuid().ToString("N"),["checkpointHash"]=checkpoint,["sourceProof"]=ChildProof(childView),["documentFrame"]=childView["documentFrameCaseOrderBinding"]?.DeepClone(),["edits"]=branchBody.DeepClone()};
+       if(System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"authorBatch",bodyRequest.ToJsonString()))?["staged"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Retained case staging failed");
+      }
+      if(branchCall is not null){
+       childView=ReadChild();
+       var callRequest=new System.Text.Json.Nodes.JsonObject{["id"]=frame,["attempt"]=Guid.NewGuid().ToString("N"),["checkpointHash"]=checkpoint,["sourceProof"]=ChildProof(childView),["documentFrame"]=childView["documentFrameReferenceBinding"]?.DeepClone(),["edits"]=new System.Text.Json.Nodes.JsonArray(branchCall.DeepClone())};
+       if(System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"authorBatch",callRequest.ToJsonString()))?["staged"]?.GetValue<bool>()!=true)throw new InvalidOperationException("Retained case reference staging failed");
       }
       current=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",BatchRead().ToJsonString()))!;
       if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Complete retained compound candidate required");
@@ -570,7 +591,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     ||scopeUndo[scopeUndo.Count-1]?["units"] is not System.Text.Json.Nodes.JsonArray {Count:2}))
     throw new InvalidOperationException("Scope transfer requires one reversible graph and node entry; preserve inputs");
    if(pack["compoundWorkCopy"]?.GetValue<bool>()==true&&targetHandle.StartsWith("author-batch-",StringComparison.Ordinal)){
-    if(!ownedFrameCreationBatch&&!retainedEnum||pendingWrap is null)throw new InvalidOperationException("Only bound retained child continuation may stay in working copy");
+    if(!ownedFrameCreationBatch&&!retainedEnum&&!ownedFrameCallBatch||pendingWrap is null)throw new InvalidOperationException("Only bound retained child continuation may stay in working copy");
     live["units"]=candidate["units"]!.DeepClone();live["history"]=candidate["history"]!.DeepClone();
     return new System.Text.Json.Nodes.JsonObject{["staged"]=true,["sourceWritten"]=false,["checkpointSaved"]=false}.ToJsonString();
    }

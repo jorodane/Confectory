@@ -16,7 +16,9 @@ from editor_logic_workflow import review, run_from_dock
 
 early = len(sys.argv)>3 and sys.argv[3]=='before-save'
 session_child = len(sys.argv)>3 and sys.argv[3]=='session-child'
-session = session_child or len(sys.argv)>3 and sys.argv[3]=='session'
+full_clean = len(sys.argv)>3 and sys.argv[3]=='full-clean'
+full_session = full_clean or len(sys.argv)>3 and sys.argv[3]=='full-session'
+session = full_session or session_child or len(sys.argv)>3 and sys.argv[3]=='session'
 staged = session or len(sys.argv)>3 and sys.argv[3]=='staged'
 branch_mode = staged or len(sys.argv)>3 and sys.argv[3]=='branch'
 compound = branch_mode or len(sys.argv)>3 and sys.argv[3]=='compound'
@@ -110,6 +112,7 @@ try:
             retained_source=graph_path.parent/json.loads(original_graph)['nodes'][0]['implementation'];retained_bytes=retained_source.read_bytes()
             checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
             checkpoint_before=checkpoint.read_bytes() if checkpoint else None
+            before_composition=len(f.requests)
             def unchanged():
                 assert graph_path.read_bytes()==original_graph and retained_source.read_bytes()==retained_bytes
                 current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
@@ -129,7 +132,25 @@ try:
                 expect(page.locator('.bp-script-dialog [data-code-source]')).to_be_visible();print('TIMING unsaved branch editor ms',round((time.perf_counter()-started)*1000),flush=True)
                 replace_body('var mode=System.IO.File.ReadAllText('+json.dumps(str(mode_marker))+'); return mode=="positive"?Result.Positive:mode=="negative"?Result.Negative:Result.NoBranch;')
                 expect(doc.locator('[data-document-branch="case:positive"]')).to_be_visible()
+            branch_marker=f.root/'private-case-marker.txt'
+            def compose_case(save_between):
+                doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
+                add=case.locator('[data-document-branch-add]');expect(add).to_be_enabled();started=time.perf_counter();add.click()
+                branch_cell=case.locator('[data-document-cell^="cell_"]');expect(branch_cell).to_be_visible();branch_id=branch_cell.get_attribute('data-document-cell')
+                print('TIMING branch child add ms',round((time.perf_counter()-started)*1000),flush=True)
+                branch_cell.locator('[data-document-code]').click();replace_body('System.IO.File.WriteAllText('+json.dumps(str(branch_marker))+', "positive");return;')
+                if save_between:panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+                doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
+                add=case.locator(f'[data-document-insert-call="{branch_id}"]');expect(add).to_be_enabled();started=time.perf_counter();add.click()
+                page.get_by_role('dialog',name='블루프린트 노드 검색').locator(f'[data-resource-feature="{donor}"]').click()
+                call_cell=case.locator('[data-document-cell^="call_"]');expect(call_cell).to_be_visible();branch_call=call_cell.get_attribute('data-document-cell')
+                print('TIMING branch reference add ms',round((time.perf_counter()-started)*1000),flush=True)
+                value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');started=time.perf_counter();value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
+                expect(value).to_have_text('37');print('TIMING value binding ms',round((time.perf_counter()-started)*1000),flush=True)
+                if save_between:panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+                return branch_id,branch_call
             if not session_child:declare_first();unchanged()
+            if full_session:branch_id,branch_call=compose_case(False);unchanged()
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+z');expect(doc.locator('[data-document-internal=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(0);unchanged()
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+y');expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
             panel.get_by_role('tab',name='논리 코드',exact=True).click();expect(doc.locator(f'[data-document-cell="{created}"]' if session_child else '[data-document-branch="case:positive"]')).to_be_visible();unchanged()
@@ -138,43 +159,66 @@ try:
             declaration=page.locator('.window[data-key=declaration]')
             if declaration.is_visible():declaration.locator('[data-close]').first.click()
             expect(doc.locator(f'[data-document-cell="{created}"]' if session_child else '[data-document-branch="case:positive"]')).to_be_visible();unchanged()
-            graph_path.write_bytes(original_graph+b' ')
-            try:
-                panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
-                assert panel.locator('.bp-status').inner_text()!='저장됨' and graph_path.read_bytes()==original_graph+b' '
-                current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
-                assert (current.read_bytes() if current else None)==checkpoint_before
-                expect(doc.locator(f'[data-document-cell="{created}"]' if session_child else '[data-document-branch="case:positive"]')).to_be_visible()
-            finally:graph_path.write_bytes(original_graph)
+            if full_session:
+                doc.locator('[data-document-branch="case:positive"]').click()
+                expect(doc.locator(f'[data-document-cell="{branch_call}"] [data-document-value][data-document-port="field:amount"]')).to_have_text('37')
+            mark=len(f.requests)
+            if full_session:
+                assert not any(row.get('endpoint')=='saveDraft' or row.get('endpoint')=='blueprint' and row.get('input',{}).get('action')=='authorBatch' for row in f.requests[before_composition:mark])
+            if not full_clean:
+                graph_path.write_bytes(original_graph+b' ')
+                try:
+                    panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                    assert panel.locator('.bp-status').inner_text()!='저장됨' and graph_path.read_bytes()==original_graph+b' '
+                    current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
+                    assert (current.read_bytes() if current else None)==checkpoint_before
+                    expect(doc.locator(f'[data-document-cell="{created}"]' if session_child else '[data-document-branch="case:positive"]')).to_be_visible()
+                finally:graph_path.write_bytes(original_graph)
+                if full_session:
+                    donor_declaration=manifest.parent/'LocalDonor.celem';donor_before=donor_declaration.read_bytes()
+                    donor_declaration.write_bytes(donor_before.replace(b'int amount',b'long amount'))
+                    try:
+                        panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                        assert panel.locator('.bp-status').inner_text()!='저장됨' and graph_path.read_bytes()==original_graph
+                        current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
+                        assert (current.read_bytes() if current else None)==checkpoint_before
+                        expect(doc.locator(f'[data-document-cell="{branch_call}"] [data-document-value][data-document-port="field:amount"]')).to_have_text('37')
+                    finally:donor_declaration.write_bytes(donor_before)
+                    print('PASS changed donor declaration blocks Save and retains typed call input',flush=True)
+                if full_session and checkpoint is not None:
+                    checkpoint.write_bytes(checkpoint_before+b' ')
+                    try:
+                        panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                        assert panel.locator('.bp-status').inner_text()!='저장됨' and checkpoint.read_bytes()==checkpoint_before+b' ' and graph_path.read_bytes()==original_graph
+                        expect(doc.locator(f'[data-document-cell="{branch_call}"] [data-document-value][data-document-port="field:amount"]')).to_have_text('37')
+                    finally:checkpoint.write_bytes(checkpoint_before)
+                    print('PASS conflicting checkpoint Save preserves call, value and originals',flush=True)
             started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
             print('TIMING combined wrap and branch Save ms',round((time.perf_counter()-started)*1000),flush=True)
             assert graph_path.read_bytes()==original_graph and retained_source.read_bytes()==retained_bytes
             if session_child:
                 declare_first();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
             print('PASS wrap and child authored without intermediate Save; grouped Undo/Redo and cold recovery',flush=True)
-            doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
-            add=case.locator('[data-document-branch-add]');expect(add).to_be_enabled();add.click()
-            branch_cell=case.locator('[data-document-cell^="cell_"]');expect(branch_cell).to_be_visible();branch_id=branch_cell.get_attribute('data-document-cell')
-            branch_marker=f.root/'private-case-marker.txt'
-            branch_cell.locator('[data-document-code]').click();replace_body('System.IO.File.WriteAllText('+json.dumps(str(branch_marker))+', "positive");return;')
-            panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-            doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
-            add=case.locator(f'[data-document-insert-call="{branch_id}"]');expect(add).to_be_enabled();add.click()
-            page.get_by_role('dialog',name='블루프린트 노드 검색').locator(f'[data-resource-feature="{donor}"]').click()
-            call_cell=case.locator('[data-document-cell^="call_"]');expect(call_cell).to_be_visible();branch_call=call_cell.get_attribute('data-document-cell')
-            value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
-            expect(value).to_have_text('37');panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-            r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden()
-            r=review(page,panel.locator('[data-bp-complete]'));retained_source.write_bytes(retained_bytes+b' ')
-            try:
-                r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()');expect(r).to_be_visible()
-                assert graph_path.read_bytes()==original_graph
-            finally:retained_source.write_bytes(retained_bytes)
-            r.locator('[data-reject]').click();expect(r).to_be_hidden()
+            if not full_session:branch_id,branch_call=compose_case(True)
+            else:
+                accepted=[row for row in f.requests[mark:] if row.get('endpoint')=='blueprint' and row.get('input',{}).get('action')=='authorBatch']
+                assert any(row['input']['edits'][0]['definition'].get('childPlan',{}).get('call') for row in accepted)
+                if full_clean:assert len(accepted)==1
+                print('PASS branch body, call and typed value in same unsaved work copy',flush=True)
+            if not full_clean:
+                r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden()
+                r=review(page,panel.locator('[data-bp-complete]'));retained_source.write_bytes(retained_bytes+b' ')
+                try:
+                    r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()');expect(r).to_be_visible()
+                    assert graph_path.read_bytes()==original_graph
+                finally:retained_source.write_bytes(retained_bytes)
+                r.locator('[data-reject]').click();expect(r).to_be_hidden()
+            confirm_mark=len(f.requests)
             r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING final confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+            if full_clean:assert sum(row.get('endpoint')=='confirmGroup' for row in f.requests[confirm_mark:])==1
             assert retained_source.read_bytes()==retained_bytes
             assert all(Path(p).read_bytes()==old for p,old in f.before.items() if Path(p).is_relative_to(f.projects[1].parent))
-            print('PASS same draft continued through actual branch body and reference, final stale refusal and Confirm',flush=True)
+            print('PASS same draft continued through actual branch body and reference, one final Confirm' if full_clean else 'PASS same draft continued through actual branch body and reference, final stale refusal and Confirm',flush=True)
         elif compound:
             page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(5)
             page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
