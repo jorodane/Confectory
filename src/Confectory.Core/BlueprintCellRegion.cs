@@ -21,7 +21,7 @@ public static class BlueprintCellRegion
 
     // This child is an opaque unit to the parent order plan, but its existing
     // topology must be explicit and exclusive before that plan can move it.
-    static string CheckCompoundSwitchChild(JsonObject graph, JsonArray nodes, bool allowEmptyCase=false)
+    static string CheckCompoundSwitchChild(JsonObject graph, JsonArray nodes, bool allowEmptyCase=false, bool allowReferences=false)
     {
         var selectors=nodes.Where(n=>S(n,"control")=="switch").ToArray();
         Need(selectors.Length==1,"Exactly one direct child switch required");
@@ -31,10 +31,10 @@ public static class BlueprintCellRegion
         var flow=selector["executionEnum"]!.AsObject();
         var members=flow["members"]!.AsArray();
         var cases=members.Where(member=>S(member,"id")!=S(flow,"primary")).ToArray();
-        Need(members.Count==3&&cases.Length==2&&nodes.All(n=>S(n,"kind")=="code"&&PlainCallContext(n!)),
+        Need(members.Count==3&&cases.Length==2&&nodes.All(n=>(S(n,"kind")=="code"||allowReferences&&PlainPrivateReference(n!,owner))&&PlainCallContext(n!)),
             "One owned switch with two explicit cases and plain code cells required");
         var edges=graph["edges"]!.AsArray();
-        var casesByPort=cases.Select(member=>Read(graph,owner,"case:"+S(member,"id"))).ToArray();
+        var casesByPort=cases.Select(member=>Read(graph,owner,"case:"+S(member,"id"),allowReferences:allowReferences)).ToArray();
         var branches=casesByPort.SelectMany(region=>region.Nodes).ToHashSet(StringComparer.Ordinal);
         Need(casesByPort.All(region=>(allowEmptyCase||region.Nodes.Count>0)&&region.End=="return:"+owner)
             && branches.Count==casesByPort.Sum(region=>region.Nodes.Count)
@@ -60,9 +60,9 @@ public static class BlueprintCellRegion
 
     // This classifier is only for adding another direct reference. It must
     // not expand the ordinary code movement/removal or wrapper contracts.
-    static bool PlainPrivateReference(JsonNode node) => S(node,"kind")=="call"&&S(node,"control")=="next"
+    static bool PlainPrivateReference(JsonNode node,string owner="") => S(node,"kind")=="call"&&S(node,"control")=="next"
         && PlainCallContext(node)&&ValueParameters(node)&&
-        new[]{"branchOwner","executionEnum","publicExecution","sourceIdentity","completionBranch",BlueprintCompletionAdapter.Metadata}.All(key=>node[key] is null)
+        (owner.Length==0?node["branchOwner"] is null:S(node,"branchOwner")==owner)&&new[]{"executionEnum","publicExecution","sourceIdentity","completionBranch",BlueprintCompletionAdapter.Metadata}.All(key=>node[key] is null)
         && S(node,"feature").Length>0;
 
     // Move an existing compound as one invocation. No descendant, signature or
@@ -84,7 +84,7 @@ public static class BlueprintCellRegion
             Need((nodes.Count is >0 and <64 || nodes.Count==0 && ReferenceEquals(g,emptyInsertionFrame)) && total<=256,"Bounded complete compound chain required");
             if(switchChild){
                 Need(++switchChildren==1,"At most one direct switch child per compound order");
-                return CheckCompoundSwitchChild(g,nodes,ReferenceEquals(g,emptySwitchCaseFrame));
+                return CheckCompoundSwitchChild(g,nodes,ReferenceEquals(g,emptySwitchCaseFrame),allowReferences);
             }
             var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
             Need(names.Count==nodes.Count && nodes.All(n=>(S(n,"kind") is "code" or "graph" || allowReferences&&PlainPrivateReference(n!)) && S(n,"control")=="next"
@@ -403,7 +403,7 @@ public static class BlueprintCellRegion
         else selected["edges"]!.AsArray().Single(e=>S(e,"from")==S(incoming,"node"))!["to"]=id;
         selected["edges"]!.AsArray().Add(new JsonObject{["from"]=id,["port"]="next",["to"]=successor});
     }
-    static Region Read(JsonObject graph, string owner, string port, bool firstWrappedCase = false)
+    static Region Read(JsonObject graph, string owner, string port, bool firstWrappedCase = false, bool allowReferences=false)
     {
         Need(S(graph,"profile")==FeatureBlueprint.SwitchProfile && graph["executionExitMode"]?.GetValue<bool>()!=true
             && graph["copySource"] is null, "Only an existing synchronous owned switch region is supported");
@@ -440,7 +440,7 @@ public static class BlueprintCellRegion
         string Next(string from,string p)=>edges.SingleOrDefault(e=>S(e,"from")==from&&S(e,"port")==p)?["to"]?.GetValue<string>()??"return:"+owner;
         var order=new List<string>();var seen=new HashSet<string>(StringComparer.Ordinal);string at=Next(owner,port);
         while(nodes.TryGetValue(at,out var node)){
-            Need(Ordinary(node,owner)&&seen.Add(at),"Branch editing requires an acyclic ordinary chain in one region");
+            Need((Ordinary(node,owner)||allowReferences&&PlainPrivateReference(node,owner))&&seen.Add(at),"Branch editing requires an acyclic ordinary chain in one region");
             order.Add(at);at=Next(at,"next");
         }
         Need(at=="return:"+owner || at.StartsWith("exit:",StringComparison.Ordinal)&&graph["exits"]!.AsObject().ContainsKey(at[5..]),
@@ -456,12 +456,12 @@ public static class BlueprintCellRegion
 
     // A call import and its exact original branch gap are prepared together.
     // Reuse the same exclusive case classifier as ordinary cell insertion.
-    public static void InsertReference(JsonObject graph, JsonObject node, JsonObject gap)
+    public static void InsertReference(JsonObject graph, JsonObject node, JsonObject gap, bool allowReferences=false)
     {
         Need(gap.Count==4 && gap.All(p=>p.Key is "owner" or "case" or "from" or "to"),
             "Explicit branch insertion gap required");
         string owner=S(gap,"owner"), port=S(gap,"case"), from=S(gap,"from"), to=S(gap,"to");
-        Region region=Read(graph,owner,port);
+        Region region=Read(graph,owner,port,allowReferences:allowReferences);
         int index=region.Nodes.IndexOf(from);
         Need(from==owner || index>=0,"Select an existing branch insertion anchor");
         string expected=from==owner ? region.Nodes.FirstOrDefault()??region.End :
@@ -483,6 +483,11 @@ public static class BlueprintCellRegion
         var segments=path.Split('/');
         Need(segments.All(part=>part.Length>0),"Exact nonempty private reference path required");
         var frame=BlueprintTree.Select(root,path);
+        if(S(frame,"profile")==FeatureBlueprint.SwitchProfile){
+            OwnedSwitchFrame(root,path,allowNested:true,allowEmptyCase:true,allowReferences:true);
+            Need(frame["nodes"]!.AsArray().Count<63,"Bounded private branch reference frame required");
+            return frame;
+        }
         bool method=S(frame,"profile")==FeatureBlueprint.MethodsProfile;
         Need(method?segments.Length<=2:S(frame,"profile")==FeatureBlueprint.NestedProfile,"Existing ordinary private frame required");
         CompoundOrder(root,CurrentRoutes(root),methodPreviewDepth:method?segments.Length:0,allowReferences:true);
@@ -494,11 +499,19 @@ public static class BlueprintCellRegion
 
     public static void InsertPrivateReference(JsonObject root,JsonObject node,JsonObject gap)
     {
-        Need(gap.Count==3&&gap.All(p=>p.Key is "path" or "from" or "to"),"Exact private frame gap required");
+        Need((gap.Count==3&&gap.All(p=>p.Key is "path" or "from" or "to"))||(gap.Count==5&&gap.All(p=>p.Key is "path" or "owner" or "case" or "from" or "to")&&gap["owner"] is not null&&gap["case"] is not null),"Exact private frame gap required");
         string path=S(gap,"path"),from=S(gap,"from"),to=S(gap,"to");
         var frame=PrivateReferenceFrame(root,path);
         var nodes=frame["nodes"]!.AsArray();
         Need(!nodes.Any(n=>S(n,"id")==S(node,"id")), "Existing ordinary private frame and new local identity required");
+        if(S(frame,"profile")==FeatureBlueprint.SwitchProfile){
+            Need(gap.Count==5,"Exact private case gap required");
+            var branch=new JsonObject{{"owner",gap["owner"]!.DeepClone()},{"case",gap["case"]!.DeepClone()},{"from",from},{"to",to}};
+            InsertReference(frame,node,branch,allowReferences:true);
+            nodes.Add(node);
+            return;
+        }
+        Need(gap.Count==3,"Ordinary private frame gap required");
         var edges=frame["edges"]!.AsArray();
         if(from=="$entry"){
             Need(S(frame,"entry")==to,"Original private frame entry changed");
@@ -793,14 +806,14 @@ public static class BlueprintCellRegion
         return new JsonObject{["edges"]=edges,["owner"]=region.Owner,["port"]=region.Port};
     }
 
-    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path, bool allowNested = false, bool allowEmptyCase = false)
+    internal static JsonObject OwnedSwitchFrame(JsonObject root, string path, bool allowNested = false, bool allowEmptyCase = false, bool allowReferences=false)
     {
         var segments = path.Split('/');
         Need(segments.All(part => part.Length > 0) && (segments.Length == 1 || allowNested && segments.Length == 2),
             "One switch child within the supported owned depth required");
         var child = BlueprintTree.Select(root, path);
         Need(S(child, "profile") == FeatureBlueprint.SwitchProfile, "Owned switch child required");
-        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null, emptySwitchCaseFrame: allowEmptyCase ? child : null);
+        CompoundOrder(root, CurrentRoutes(root), allowSwitchChild: true, nestedSwitchFrame: segments.Length == 2 ? child : null, emptySwitchCaseFrame: allowEmptyCase ? child : null, allowReferences:allowReferences);
         return child;
     }
 

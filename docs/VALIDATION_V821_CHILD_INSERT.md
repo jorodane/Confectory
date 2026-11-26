@@ -85,3 +85,13 @@
 일반 중첩 및 `method-nested --batch --loss`에서 실제 Linux Chromium 검색, 개인 Undo/Redo, 값 연결, 두 번째 호출의 외부 선언 변경에 대한 전체 Save 거절, 재시작 후 재시도, Review 취소와 Confirm 원본 충돌, 실제 실행과 재개방, 독립 입력 및 동일 ID 프로젝트 격리를 검사했다. `--loss`는 실제 호스트가 체크포인트를 기록한 후 응답만 유실하도록 하여 재시작 뒤 별도 적용 명령 없이 정확한 영수증을 복구하는 것을 검증한다. 기존 각 호출별 Save도 가능하다. private 분기 및 Windows 실기는 별도 범위다.
 
 `normal --batch --reverse`는 소비하는 호출을 먼저 작성한 뒤 그 앞에 결과를 제공하는 호출을 삽입해 연결하여, 생성 순서가 아닌 실행 순서로 저장·실행됨을 확인했다. `normal --multiple` 기존 분할 Save 경로도 동일 빌드에서 통과했다.
+
+### Private 복합 분기에서 직접 호출
+
+`v821_private_case_call_ui.py <repo> <run-report> empty` 및 `after`는 기존의 명시 분기 반환과 일반 셀 사이에 등록 기능 두 개를 삽입한다. `after --nested`는 두 단계 `body/nest`를 사용한다. 기존 분기 소유 ID와 정확한 기존 case/next/return 연결을 root/frame 증명과 함께 확인하고, 이전 호출의 반환을 다음 호출의 입력으로 연결해 동일 분기의 한 번 Save로 저장한다. 각 호출의 기존 계약/원본 검증과 최종 컴파일 검증은 유지한다. 별도 순서·삭제·분기 이동 계약은 바꾸지 않는다.
+
+실제 Linux Chromium에서 빈 분기·셀 사이·중첩 경로, 개인 Undo/Redo, 외부 호출 선언 수정에 따른 전체 Save 거절, 재시작 후 재시도, Review 취소와 형제 원본 변경에 따른 Confirm 거절, 정확한 원본 차이, 독립 설명 입력 및 같은 ID 별도 프로젝트의 격리를 확인했다. 컴파일 실행 출력은 해당 분기에서만 `case-probe:7` 다음 `case-follow:12`가 나오고, 나머지 분기·continuation 및 기존 종료 코드 14는 그대로였다. 별도 프로젝트에서 돌아온 뒤 실제 프로젝트 ▶도 종료 코드 14를 확인했다. `shared` 시나리오는 공유된 분기 진입에서 호출 삽입을 제공하지 않는다.
+
+범위는 기존의 명시적·독립된 두 비주 분기가 기존 owner로 반환하는 직접 소유 동기 switch frame이다. 한 배치의 여러 호출은 동일 case에 한정한다. 암시/default 경로, 공유 진입, 다른 분기 동시 편집, ref/out·async·public execution, Windows 실기는 확대하거나 검증하지 않았다. 기존 직렬 `v821_private_call_ui.py normal --batch --reverse`도 같은 빌드에서 통과했다.
+
+기존 루트 분기 `v821_branch_structure_ui.py call`도 동일 빌드에서 통과했다.

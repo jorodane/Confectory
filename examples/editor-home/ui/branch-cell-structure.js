@@ -1,8 +1,8 @@
 // Editor projection only. The engine independently checks the original region,
 // complete plan, value dominance, source closure and checkpoint CAS.
 const normal=to=>to?.startsWith('$exit:')?to.slice(1):to;
-export function branchCellRegion(data,edges,owner,port,allowFrame=false,firstWrappedCase=false){
- const binding=allowFrame?data.documentFrameCaseOrderBinding:null;
+export function branchCellRegion(data,edges,owner,port,allowFrame=false,firstWrappedCase=false,allowReferences=false){
+ const binding=allowFrame?(allowReferences?data.documentFrameReferenceBinding:data.documentFrameCaseOrderBinding):null;
  const frame=!!(data.privatePath&&binding&&binding.root===data.rootId&&binding.graph===data.id&&binding.path===data.privatePath);
  if(!data.id||(!frame&&(data.id!==data.rootId||data.privatePath))||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.profile!=='sync-acyclic-switch-v1'||data.nodes.length>=64)return null;
  const byId=new Map(data.nodes.map(n=>[n.id,n])),parent=byId.get(owner);
@@ -21,7 +21,7 @@ export function branchCellRegion(data,edges,owner,port,allowFrame=false,firstWra
  if(new Set(edges.map(e=>e.from+'|'+e.port)).size!==edges.length||!edges.some(e=>e.from===owner&&e.port===port))return null;
  const next=(id,p)=>normal(edges.find(e=>e.from===id&&e.port===p)?.to)||'return:'+owner,order=[],seen=new Set();let at=next(owner,port);
  while(byId.has(at)){
-  const n=byId.get(at);if(n.kind!=='code'||n.control!=='next'||n.branchOwner!==owner||n.implementationContext||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum||seen.has(at))return null;
+  const n=byId.get(at);if(!(n.kind==='code'||allowReferences&&n.kind==='call'&&!n.publicExecution&&!n.signature?.args?.some(a=>a.mode))||n.control!=='next'||n.branchOwner!==owner||n.implementationContext||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum||seen.has(at))return null;
   seen.add(at);order.push(at);at=next(at,'next');
  }
  if(at!=='return:'+owner&&!(at?.startsWith('exit:')&&(data.exits||[]).some(e=>(e.name||e.id)===at.slice(5))))return null;

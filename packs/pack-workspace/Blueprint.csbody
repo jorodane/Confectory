@@ -1886,7 +1886,7 @@ lock(state){
  }catch{frameOrderBinding=null;}
  System.Text.Json.Nodes.JsonObject? frameReferenceBinding=null;
  if(ownedSerialChild&&string.IsNullOrEmpty(input["uiSurface"]?.ToString())&&
-   graph["profile"]?.ToString() is ("sync-acyclic-nested-v1" or "sync-acyclic-methods-v1")&&
+   graph["profile"]?.ToString() is ("sync-acyclic-nested-v1" or "sync-acyclic-methods-v1" or "sync-acyclic-switch-v1")&&
    graph["nodes"] is System.Text.Json.Nodes.JsonArray referenceNodes&&referenceNodes.Count is >0 and <63&&
    System.Linq.Enumerable.All(referenceNodes,node=>node?["kind"]?.ToString() is "code" or "call"))try{
   if(frameOrderBinding is null)ScopedMetadata("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
