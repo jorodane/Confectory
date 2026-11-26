@@ -131,14 +131,19 @@ public sealed partial class Builder
     public Registry Registry { get; }
     public TargetTool Tool { get; }
     private readonly Artifacts cache;
+    private readonly Artifacts contractCache;
     public Dictionary<string, JsonObject> Contracts { get; } = new(StringComparer.Ordinal);
 
-    public Builder(string project, string target)
+    public Builder(string project, string target) : this(project,target,null) { }
+    // A caller with a verified candidate owner may share only the content-
+    // addressed contract artifacts. Declaration snapshots, implementation code and output remain local.
+    public Builder(string project, string target, string? contractCacheRoot)
     {
         Project = PackPaths.Resolve(project); Target = target; State = Path.Combine(Path.GetDirectoryName(Project)!, ".confectory");
         Documents = new(Path.Combine(State, "cache", "declarations"), Statistics);
         Registry = new(Project, Documents, Statistics); Tool = new(Registry, target);
         cache = new(Path.Combine(State, "cache", "artifacts"));
+        contractCache = contractCacheRoot is null?cache:new(contractCacheRoot);
     }
     private static string WriteSource(string path, string text)
     { File.WriteAllText(path, text, new UTF8Encoding(false)); return path; }
@@ -188,12 +193,19 @@ public sealed partial class Builder
         string name = "Contracts_" + Generation.Symbol(ns);
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "contracts", ns, sources.Select(x => new[] { x.Id, x.Code }).ToArray() });
         if (information.Count > 0) key = JsonData.Digest(new object[] { key, InformationStructs.Profile, information.Select(p => new[] { p.Key, p.Value!["key"]!.GetValue<string>() }).ToArray() });
-        var artifact = cache.Get(key);
+        var artifact = contractCache.Get(key);
         if (artifact is not null) { Statistics.ReusedContracts.AddRange(ids); Statistics.ReusedContractPacks.Add(ns); }
         else
         {
-            artifact = cache.Produce(key, work => Tool.Invoke("compile-contract", new { output = work, name,
-                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(), references = information.Select(p => p.Value!["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject());
+            JsonObject Compile(string work) => Tool.Invoke("compile-contract", new { output = work, name,
+                sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(), references = information.Select(p => p.Value!["reference"]!.GetValue<string>()).ToArray() })["artifacts"]!.AsObject();
+            try { artifact = contractCache.Produce(key, Compile); }
+            catch (Exception error) when (!ReferenceEquals(contractCache,cache) && error is IOException or UnauthorizedAccessException)
+            {
+                // The optional profile cache is not a Confirm prerequisite.
+                // Compiler/contract failures are not caught or converted to hits.
+                artifact = cache.Get(key) ?? cache.Produce(key, Compile);
+            }
             Statistics.CompiledContracts.AddRange(ids); Statistics.CompiledContractPacks.Add(ns);
         }
         if (!artifact.ContainsKey("assembly") || !artifact.ContainsKey("reference")) throw new BuildError("TOOL_PROTOCOL", "Contract compilation must return assembly and reference");

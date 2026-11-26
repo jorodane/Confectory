@@ -10,7 +10,10 @@ bool guardProject=operation is ("informationBodyGroupGuards" or "informationProp
 bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
 string? streamProject=null;
 if(request.ContainsKey("_streamProject")){if(!blueprintValue&&!guardValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");}
-bool blueprintProject=operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
+// These owner-bound reads and guards reconstruct and validate their current
+// registry on every invocation; only the authoring CLR is shared.
+bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
+bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
 bool blueprintWarm=blueprintProject||blueprintValue&&streamProject is not null;
 bool guardWarm=guardProject||guardValue&&streamProject is not null;
 var start=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(System.IO.Path.GetFullPath(host));

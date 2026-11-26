@@ -33,7 +33,8 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
         bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
         bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
-        bool blueprintProject=operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
+        bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
+        bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
         if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!connectionProposal&&!connectionSchema)return 2;
         bool payloadOnly=blueprintValue||guardValue;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
@@ -299,7 +300,23 @@ try
         {
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
             if(manifest.Kind=="pack"){foreach(var (name,unit) in manifest.Elements){string path=PackPaths.Owned(Path.GetDirectoryName(candidate)!,unit.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=unit.Kind)throw new ArgumentException("Pack unit identity mismatch");foreach(var body in element.Bodies.Values)File.ReadAllText(PackPaths.Owned(Path.GetDirectoryName(candidate)!,body.Path));}reply=new JsonObject{["state"]="valid",["level"]="owned-syntax-only",["linkValidated"]=false};break;}
-            var builder=new Builder(candidate,S("target"));builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
+            // Candidate validation is thrown away after Confirm. Reuse only exact
+            // contract compiler keys within the same original project, not source
+            // declarations, candidate paths, review proofs or execution outputs.
+            string? artifactCache=null;
+            try{
+                string full=Path.GetFullPath(candidate),candidateRoot=Path.GetDirectoryName(full)!;
+                var candidates=Directory.GetParent(candidateRoot);var state=candidates?.Parent;var owner=state?.Parent;
+                if(Guid.TryParseExact(Path.GetFileName(candidateRoot),"N",out _)&&candidates?.Name=="candidates"&&state?.Name==".confectory"&&owner is not null){
+                    string original=Path.Combine(owner.FullName,Path.GetFileName(full));
+                    string? profile=Environment.GetEnvironmentVariable("CONFECTORY_HOME_STORAGE")??Environment.GetEnvironmentVariable("CONFECTORY_ENTRY_STORAGE");
+                    string projectIdentity=OperatingSystem.IsWindows()?original.ToUpperInvariant():original;
+                    string? cache=profile is not null&&Path.IsPathFullyQualified(profile)&&Directory.Exists(profile)?Path.Combine(profile,"validation-contracts-v1",JsonData.Digest(new[]{projectIdentity,manifest.Namespace})):null;
+                    bool NoLinks(string path){for(FileSystemInfo? node=new FileInfo(path);node is not null;node=node is FileInfo f?f.Directory:((DirectoryInfo)node).Parent)if(node.LinkTarget is not null)return false;return true;}
+                    if(cache is not null&&NoLinks(full)&&NoLinks(original)&&NoLinks(cache)&&File.Exists(original)&&new FileInfo(original).Length<=1048576&&new Parser(File.ReadAllText(original),original).ParseManifest().Namespace==manifest.Namespace)artifactCache=cache;
+                }
+            }catch{ /* Nonstandard/changed candidate retains fresh validation. */ }
+            var builder=new Builder(candidate,S("target"),artifactCache);builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
             reply=new JsonObject{["state"]="valid"};break;
         }
         default:throw new ArgumentException("Unknown authoring operation.");

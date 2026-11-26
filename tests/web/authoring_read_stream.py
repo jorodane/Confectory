@@ -28,6 +28,13 @@ def exercise(root):
         return manifest
 
     a, b = project('a'), project('b')
+    imported=root/'imported';imported.mkdir()
+    (imported/'pack.cpack').write_text('pack Test.Import version "1" { element F function "F.celem"; }')
+    foreign=imported/'F.celem';foreign.write_text('function Test.Import::F () -> void {}')
+    a.write_text(a.read_text().rstrip()[:-1]+' registry Test.Import "../imported/pack.cpack"; dependency Test.Import version "1"; element Work function "Work.celem"; element WorkBody implementation "WorkBody.celem"; }')
+    (a.parent/'Work.celem').write_text('function Test.Stream::Work () -> void { provide Test.Stream::Work with Test.Stream::WorkBody; }')
+    owned=a.parent/'WorkBody.celem';owned.write_text('implementation Test.Stream::WorkBody for Test.Stream::Work () -> void { import Test.Import::F as Foreign () -> void; body common "Work.csbody"; }')
+    (a.parent/'Work.csbody').write_text('return;')
     def request(manifest):
         return dict(operation='inspectEffective', project=str(manifest), manifest=manifest.read_text(),
                     id='Test.Stream::Record', kind='object', text=(manifest.parent / 'Record.celem').read_text(),
@@ -72,6 +79,16 @@ def exercise(root):
             for action in ('headers','graphs'):
                 guard=dict(operation='informationBodyGroupGuards',action=action,namespace='Test.Stream',units={},selected=[])
                 assert json.loads(send(proc,dict(guard,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(guard),text=True,capture_output=True,timeout=20,check=True).stdout)
+
+            override=dict(operation='blueprintOverrideContracts',action='readRootImports',project=str(a),text=owned.read_text())
+            observed=json.loads(send(proc,override));assert observed['ok'] and observed['result']['snapshot']
+            assert observed==json.loads(subprocess.run(HOST,input=json.dumps(override),text=True,capture_output=True,timeout=20,check=True).stdout)
+            verify=dict(override,action='verifyRootImports',snapshot=observed['result']['snapshot'])
+            assert json.loads(send(proc,verify))['ok']
+            foreign.write_text(foreign.read_text()+'\n// external declaration revision\n')
+            assert not json.loads(send(proc,verify))['ok']
+            refreshed=json.loads(send(proc,override));assert refreshed['ok'] and refreshed['result']['snapshot']!=observed['result']['snapshot']
+            assert refreshed==json.loads(subprocess.run(HOST,input=json.dumps(override),text=True,capture_output=True,timeout=20,check=True).stdout)
 
             document=dict(operation='inspect',text='object Test.Stream::Record {}')
             assert json.loads(send(proc,dict(document,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(document),text=True,capture_output=True,timeout=20,check=True).stdout)
