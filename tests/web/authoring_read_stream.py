@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_7'
+READY = 'CONFECTORY_INSPECT_STREAM_8'
 
 
 def exercise(root):
@@ -117,6 +117,53 @@ def exercise(root):
             expected=ordinary_proposal(call)
             assert expected['ok'], expected
             assert json.loads(send(proc, dict(call,_streamProject=str(a))))==expected
+            # Same transaction reuses an exact derived contract model, not
+            # its authority: a different graph or declaration must be observed.
+            import uuid
+            token=uuid.uuid4().hex
+            projection=dict(operation='blueprintDescribeOwned',project=str(a),id=feature['implementation'],
+                            text=proposal['result']['implementation'],graph=proposal['result']['graph'],
+                            draftContracts={feature['id']:proposal['result']['function']},bodyTarget='common',definitionsOnly=True)
+            def projected(value):
+                return json.loads(send(proc,dict(value,_projectionTransaction=token)))
+            assert projected(projection)==ordinary_proposal(projection)
+            assert projected(projection)==ordinary_proposal(projection)
+            changed_graph=json.loads(json.dumps(projection['graph']))
+            changed_graph['nodes'][0]['intent']='Different candidate cell'
+            updated_projection=dict(projection,graph=changed_graph)
+            updated=ordinary_proposal(updated_projection)
+            assert updated!=ordinary_proposal(projection) and projected(updated_projection)==updated
+            assert projected(projection)==ordinary_proposal(projection)
+            foreign_call=dict(call,targetText=foreign.read_text(),
+                              definition=dict(id='foreign',feature='Test.Import::F',intent='Foreign call',control='next'))
+            foreign_prepared=ordinary_proposal(foreign_call)
+            assert foreign_prepared['ok'], foreign_prepared
+            linked=dict(projection,text=foreign_prepared['result']['implementation'],graph=foreign_prepared['result']['graph'])
+            baseline=ordinary_proposal(linked)
+            assert baseline['ok'] and baseline['result']['state']=='node-definitions',baseline
+            assert projected(linked)==baseline and projected(linked)==baseline
+            original_foreign=foreign.read_bytes();stamp=foreign.stat()
+            try:
+                foreign.write_text('function Test.Import::F (int changed) -> void {}')
+                os.utime(foreign,ns=(stamp.st_atime_ns,stamp.st_mtime_ns))
+                changed=ordinary_proposal(linked)
+                assert changed!=baseline and projected(linked)==changed,changed
+            finally:
+                foreign.write_bytes(original_foreign)
+            assert projected(linked)==ordinary_proposal(linked)
+            # Retargeting a locator must not reuse the old parsed contract
+            # even if its original file is still unchanged.
+            if os.name != 'nt':
+                outside=root/'unowned.celem';outside.write_bytes(original_foreign)
+                original_path=foreign.with_suffix('.saved')
+                foreign.rename(original_path)
+                try:
+                    foreign.symlink_to(outside)
+                    rejected=ordinary_proposal(linked)
+                    assert not rejected['ok'] and projected(linked)==rejected,rejected
+                finally:
+                    foreign.unlink();original_path.rename(foreign)
+                assert projected(linked)==ordinary_proposal(linked)
             for value in ('blueprintEnumPreview','blueprintNodeFlow'):
                 malformed=dict(operation=value)
                 if value=='blueprintNodeFlow': malformed['ownerRequest']={'project':str(a)}

@@ -54,7 +54,7 @@ internal static class EditorMenuDeclarations
                         string canonical=Read(path).Replace("\r\n","\n",StringComparison.Ordinal);
                         string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
                         // The previous exact, already trusted Call body remains valid for installed packs.
-                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin or PreviousConnectionStreamCallPin or PreviousSettingsStreamCallPin or PreviousOverrideStreamCallPin or PreviousReviewStreamCallPin))throw new ArgumentException("Editor route contract/body version changed");
+                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin or PreviousConnectionStreamCallPin or PreviousSettingsStreamCallPin or PreviousOverrideStreamCallPin or PreviousReviewStreamCallPin or PreviousProposalStreamCallPin))throw new ArgumentException("Editor route contract/body version changed");
                     }
                     row["available"]=true;row["reason"]="";
                 }
@@ -75,6 +75,7 @@ internal static class EditorMenuDeclarations
     private const string PreviousGuardStreamCallPin="C0BB3B712C61F58708DAA7684AB8DC185E0E5E536E1DF96C64F0144A7BD0B53A";
     private const string PreviousConnectionStreamCallPin="91F35A2D80DCFC132332718140F93BC6F2FDE161E6326A1243673C58815135B5";
     private const string PreviousSettingsStreamCallPin="9B1663B6982BFA8D9377D87CD732BBCDF9915824964A2F3EC03E5FD00188E64D";
+    private const string PreviousProposalStreamCallPin="7E27DDFF9FBB3980500396C680F7791E18D2485035A164E2096483D24898DCF7";
     private const string PreviousReviewStreamCallPin="F58300F4DB7999DA85BF5F2DA2195FFDFE3AA138A31EB9B765AA41C27506535D";
     private const string PreviousOverrideStreamCallPin="B0BABEBEB240ECA36DD7AAFDD895B4A72F1D317BFEFA13617F1B5DA0DDF9DDE7";
     private static readonly Dictionary<string,string> Pins=new(StringComparer.Ordinal)
@@ -85,6 +86,6 @@ internal static class EditorMenuDeclarations
         ["SetValue.csbody"]="7F69A5F91F0D1A71FEBC02F37CA92893A654C62DE315548080CC2D1717A4E573",
         ["Call.celem"]="7D034575C18E1DED88DF8271C7AD182958E26160106DF66F169A53B6726F43A1",
         ["CallBody.celem"]="DC3B74410F8775273554A31AEE4BF21E609FE548B0858C5D9BC0FD8572919E98",
-        ["Call.csbody"]="7E27DDFF9FBB3980500396C680F7791E18D2485035A164E2096483D24898DCF7"
+        ["Call.csbody"]="0E99595B8FE257181B748CFC844DB8372194A8F9ECFD663B91B86B3879FF30E6"
     };
 }

@@ -61,43 +61,71 @@ public static class BlueprintDocuments
 
     public static JsonObject DescribeOwned(JsonObject request) => DescribeOwned(request, allowCompoundPreview: false);
 
-    public static JsonObject DescribeOwned(JsonObject request, bool allowCompoundPreview)
+    public static JsonObject DescribeOwned(JsonObject request, bool allowCompoundPreview, OwnedGraphReadModel? model = null)
     {
         string project = Path.GetFullPath(request["project"]!.GetValue<string>());
-        var registry = new Registry(project, new Documents(Path.Combine(Path.GetDirectoryName(project)!, ".confectory", "document-cache"), new BuildStatistics()), new BuildStatistics());
-        var implementation = new Parser(request["text"]!.GetValue<string>(), "<assigned-implementation>").ParseElement();
-        Require(implementation.Id == request["id"]!.ToString() && implementation.Kind == "implementation" && PackPaths.Namespace(implementation.Id) == registry.Project.Namespace, "Assigned project implementation required");
-        string assemblyPath=request["assemblePreview"]?.GetValue<bool>()==true?request["privatePath"]?.GetValue<string>()??"":"";
-        if(assemblyPath.Length>0){
-            Require(implementation.Parent is null&&PackPaths.Namespace(implementation.Function!)==registry.Project.Namespace,"Direct owned child preview required");
-            var root = request["graph"]!.AsObject();
-            if (allowCompoundPreview) BlueprintCellRegion.OwnedPreviewFrame(root, assemblyPath, previewOutParameters: true);
-            else BlueprintCellRegion.OwnedFrame(root, assemblyPath);
-        }
-        if (implementation.Parent is not null)
+        var graph=request["graph"]!.DeepClone().AsObject();
+        // Only the directly owned, property-free projection is eligible for
+        // a retained contract context. Other contexts keep the original registry path.
+        bool eligible=model is not null &&
+            (request["draftPropertySources"] is null or JsonObject { Count: 0 }) &&
+            !BlueprintTree.Nodes(graph).Any(node=>FeatureBlueprint.IsPropertyNode(node.Node["kind"]?.ToString()));
+        var key=new JsonObject{["project"]=project,["id"]=request["id"]?.DeepClone(),["text"]=request["text"]?.DeepClone(),["draftContracts"]=request["draftContracts"]?.DeepClone()}.ToJsonString();
+        OwnedGraphReadModel.Context? prepared=eligible?model!.Get(project,key):null;
+        Registry? registry=null;
+        Element implementation;
+        string featureSource;
+        JsonObject contracts;
+        if(prepared is not null)
         {
-            registry.Elements[implementation.Id] = implementation;
-            implementation = registry.Effective(implementation.Id);
+            implementation=prepared.Implementation;
+            featureSource=prepared.FeatureSource;
+            contracts=prepared.Contracts.DeepClone().AsObject();
         }
-        string ReadContract(string id)
+        else
         {
-            string? draft = request["draftContracts"]?[id]?.GetValue<string>();
-            // A new owned function is not in the physical manifest until reviewed Confirm.
-            // Foreign contracts still require the registry's ordinary dependency checks.
-            string source;
-            if (draft is not null && PackPaths.Namespace(id) == registry.Project.Namespace) source = draft;
-            else
+            var observation=eligible?new OwnedGraphReadModel.Observation():null;
+            var statistics=new BuildStatistics();
+            registry=new Registry(project, new Documents(Path.Combine(Path.GetDirectoryName(project)!, ".confectory", "document-cache"), statistics, observation is null?null:observation.Read),statistics);
+            implementation=new Parser(request["text"]!.GetValue<string>(), "<assigned-implementation>").ParseElement();
+            Require(implementation.Id == request["id"]!.ToString() && implementation.Kind == "implementation" && PackPaths.Namespace(implementation.Id) == registry.Project.Namespace, "Assigned project implementation required");
+            if(implementation.Parent is not null)
             {
-                var declaration = registry.Get(id, "function", implementation.Id);
-                source = draft ?? File.ReadAllText(declaration.Loc.File);
+                registry.Elements[implementation.Id]=implementation;
+                implementation=registry.Effective(implementation.Id);
+                observation=null;
             }
-            var parsed = new Parser(source, "<owned-contract>").ParseElement();
-            Require(parsed.Kind == "function" && parsed.Id == id, "Assigned contract identity required");
-            return source;
+            string ReadContract(string id)
+            {
+                string? draft=request["draftContracts"]?[id]?.GetValue<string>();
+                string source;
+                if(draft is not null&&PackPaths.Namespace(id)==registry.Project.Namespace)source=draft;
+                else
+                {
+                    var declaration=registry.Get(id,"function",implementation.Id);
+                    source=draft??(observation is null?File.ReadAllText(declaration.Loc.File):observation.Text(declaration.Loc.File));
+                }
+                var parsed=new Parser(source,"<owned-contract>").ParseElement();
+                Require(parsed.Kind=="function"&&parsed.Id==id,"Assigned contract identity required");
+                return source;
+            }
+            contracts=new JsonObject();
+            foreach(string id in implementation.Imports.Values.Select(i=>i.Id).Distinct(StringComparer.Ordinal))contracts[id]=ReadContract(id);
+            featureSource=ReadContract(implementation.Function!);
+            if(observation is not null)
+            {
+                observation.BindPaths(project,registry);
+                model!.Put(project,key,new OwnedGraphReadModel.Context(implementation,featureSource,contracts.DeepClone().AsObject(),observation));
+            }
         }
-        var contracts = new JsonObject();
-        foreach (string id in implementation.Imports.Values.Select(i => i.Id).Distinct(StringComparer.Ordinal)) contracts[id] = ReadContract(id);
-        string featureSource=ReadContract(implementation.Function!);var graph=request["graph"]!.DeepClone().AsObject();
+        string assemblyPath=request["assemblePreview"]?.GetValue<bool>()==true?request["privatePath"]?.GetValue<string>()??"":"";
+        if(assemblyPath.Length>0)
+        {
+            Require(implementation.Parent is null&&PackPaths.Namespace(implementation.Function!)==PackPaths.Namespace(implementation.Id),"Direct owned child preview required");
+            var root=request["graph"]!.AsObject();
+            if(allowCompoundPreview)BlueprintCellRegion.OwnedPreviewFrame(root,assemblyPath,previewOutParameters:true);
+            else BlueprintCellRegion.OwnedFrame(root,assemblyPath);
+        }
         bool rebind=request["rebindContract"]?.GetValue<bool>()==true;
         if(rebind){
             var feature=new Parser(featureSource,"<current-owned-feature>").ParseElement();graph["contractHash"]=FeatureBlueprint.ContractHash(feature);
@@ -108,9 +136,13 @@ public static class BlueprintDocuments
             string ownedTarget=request["bodyTarget"]?.GetValue<string>()??throw new ArgumentException("Explicit owned private graph body target required");
             Require(implementation.Bodies.TryGetValue(ownedTarget,out var ownedBody)&&ownedBody.SourceKind=="blueprint","Owned Blueprint body target required");
         }
-        RuntimeObjectContracts.ApplyOwnedDrafts(registry,request["draftPropertySources"] as JsonObject);
-        var propertyContracts=RuntimeObjectContracts.ForGraph(registry,implementation.Id,graph,request["definitionsOnly"]?.GetValue<bool>()==true);
-        var result=FeatureBlueprint.Execute(new JsonObject
+        var propertyContracts=new JsonObject();
+        if(registry is not null)
+        {
+            RuntimeObjectContracts.ApplyOwnedDrafts(registry,request["draftPropertySources"] as JsonObject);
+            propertyContracts=RuntimeObjectContracts.ForGraph(registry,implementation.Id,graph,request["definitionsOnly"]?.GetValue<bool>()==true);
+        }
+        var projection=new JsonObject
         {
             ["operation"] = request["definitionsOnly"]?.GetValue<bool>() == true ? "featureBlueprintNodes" : request["assemblePreview"]?.GetValue<bool>() == true ? "featureBlueprintAssemble" : "featureBlueprintDescribe", ["featureSource"] = featureSource,
             ["inspectStalePostCalls"] = request["definitionsOnly"]?.GetValue<bool>() == true && request["inspectStalePostCalls"]?.GetValue<bool>() == true,
@@ -118,7 +150,8 @@ public static class BlueprintDocuments
             ["implementationContext"] = FeatureBlueprint.ImplementationContext(implementation), ["bodyTarget"] = request["bodyTarget"]?.DeepClone(), ["featureContracts"] = contracts, ["graph"] = graph,
             ["implementations"] = request["implementations"]?.DeepClone(), ["propertyContracts"] = propertyContracts,
             ["assemblyPath"] = assemblyPath.Length>0?assemblyPath:null
-        });
+        };
+        var result=model is null||rebind?FeatureBlueprint.Execute(projection):model.Project(project,projection);
         if(rebind)result["reboundGraph"]=graph.DeepClone();
         if(request["privatePath"] is JsonValue privatePath && privatePath.GetValue<string>().Length>0 && result["state"]?.ToString()!="invalid")
         {

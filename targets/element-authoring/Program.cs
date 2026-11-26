@@ -5,8 +5,9 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_7");Console.Out.Flush();
-    string? owner=null;
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_8");Console.Out.Flush();
+    string? owner=null, projectionTransaction=null;
+    OwnedGraphReadModel? projectionModel=null;
     for(int count=0;count<128;count++)
     {
         var pending=Task.Run(()=>Console.ReadLine());
@@ -43,13 +44,20 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         var project=Path.GetFullPath(path);if(operation=="blueprintNodeFlow"&&(request["ownerRequest"]?["project"] is not JsonValue nested||!nested.TryGetValue<string>(out var nestedPath)||!string.Equals(project,Path.GetFullPath(nestedPath),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))return 2;request.Remove("_streamProject");
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
-        Console.WriteLine(Dispatch(payloadOnly?request.ToJsonString():line));Console.Out.Flush();
+        OwnedGraphReadModel? model=null;
+        if(request.ContainsKey("_projectionTransaction")){
+            if(operation!="blueprintDescribeOwned"||!Guid.TryParseExact(request["_projectionTransaction"]?.ToString(),"N",out _))return 2;
+            string token=request["_projectionTransaction"]!.ToString();request.Remove("_projectionTransaction");
+            if(projectionTransaction!=token){projectionTransaction=token;projectionModel=new OwnedGraphReadModel(project);}
+            model=projectionModel;
+        }else if(operation=="blueprintDescribeOwned"){projectionTransaction=null;projectionModel=null;}
+        Console.WriteLine(Dispatch(request.ToJsonString(),model));Console.Out.Flush();
     }
     return 0;
 }
 Console.Write(Dispatch(Console.In.ReadToEnd()));return 0;
 
-static string Dispatch(string message)
+static string Dispatch(string message, OwnedGraphReadModel? model=null)
 {
 try
 {
@@ -67,7 +75,7 @@ try
         case "packSource": case "packManifest": case "packUsage":
             reply=PackOperations.Execute(S("operation"),request,FormatManifest);break;
         case "featureBlueprintNodes": case "featureBlueprintDescribe": case "featureBlueprintAssemble":reply=FeatureBlueprint.Execute(request);break;
-        case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request, allowCompoundPreview: true);break;
+        case "blueprintDescribeOwned":reply=BlueprintDocuments.DescribeOwned(request, allowCompoundPreview: true, model);break;
         case "blueprintEnumPreview":reply=BlueprintEnumContract.Preview(request["contract"]!.AsObject(),request["binding"]!.AsObject());break;
         case "blueprintConversion":reply=BlueprintConversion.Query(request);break;
         case "blueprintNodeFlow":reply=BlueprintNodeFlow.Prepare(request);break;

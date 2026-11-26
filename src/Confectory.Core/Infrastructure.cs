@@ -61,14 +61,20 @@ public static class PackPaths
 {
     // Resolve each existing component, including directory symlinks. GetFullPath
     // alone would accept a path whose lexical prefix is owned but whose target is not.
-    public static string Resolve(string path)
+    public static string Resolve(string path) => Resolve(path,null);
+    // One read-proof pass can observe shared path components once. This map
+    // must be fresh for each pass, never a persistent filesystem cache.
+    internal static string Resolve(string path,Dictionary<string,string>? components)
     {
         string full = Path.GetFullPath(path), current = Path.GetPathRoot(full)!;
         foreach (string component in full[current.Length..].Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries))
         {
-            current = Path.Combine(current, component);
+            string next=Path.Combine(current,component);
+            if(components is not null&&components.TryGetValue(next,out var observed)){current=observed;continue;}
+            current=next;
             FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
             if (info.LinkTarget is not null) current = info.ResolveLinkTarget(true)!.FullName;
+            if(components is not null)components[next]=current;
         }
         return current;
     }
