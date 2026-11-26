@@ -36,5 +36,6 @@ lock(state){
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.BuildCursor."+session,null);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.ContextActions."+session,null);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome.ConnectionModelProof."+session,null);
+ AppDomain.CurrentDomain.SetData("Confectory.EditorHome.ConnectionPreviews."+session,null);
  AppDomain.CurrentDomain.SetData("Confectory.EditorHome."+session,null);
 }

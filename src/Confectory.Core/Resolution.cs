@@ -25,6 +25,10 @@ public sealed class Registry
             string path = PackPaths.Resolve(Path.Combine(Path.GetDirectoryName(ProjectPath)!, locator.Path));
             Register(path, documents.Manifest(path), ns);
         }
+        ValidateDependencies();
+    }
+    private void ValidateDependencies()
+    {
         foreach (var (ns, pack) in Packs)
         foreach (var (dep, expectation) in pack.Dependencies)
         {
@@ -33,6 +37,30 @@ public sealed class Registry
             if (!VersionExpectation.Matches(expectation.Version, selected.Version))
                 Warnings.Add(new("warning", "VERSION_MISMATCH", $"{ns} expects {dep} {expectation.Version}; selected {selected.Version}", expectation.Loc));
         }
+    }
+    // A read projection may replace the installation root with a proposed
+    // project while retaining exactly the already validated registered packs.
+    // The root's locators and every dependency are checked again; no new or
+    // relocated registry entry is accepted, and the effective cache is fresh.
+    public Registry ProjectOverlay(string projectPath, Manifest project) => new(this, projectPath, project);
+    private Registry(Registry installed, string projectPath, Manifest project)
+    {
+        Documents = installed.Documents; Statistics = installed.Statistics;
+        ProjectPath = PackPaths.Resolve(projectPath); Project = project;
+        if (project.Kind != "project" || installed.Packs.ContainsKey(project.Namespace) || project.Registry.Count != installed.Project.Registry.Count)
+            throw new BuildError("PROJECT_INPUT", "Project overlay requires the unchanged installed registry", project.Loc);
+        Register(ProjectPath, project, project.Namespace);
+        foreach (var (ns, locator) in project.Registry)
+        {
+            if (!installed.Project.Registry.ContainsKey(ns) || !installed.Paths.TryGetValue(ns, out string? path) ||
+                !string.Equals(PackPaths.Resolve(Path.Combine(Path.GetDirectoryName(ProjectPath)!, locator.Path)), path, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                throw new BuildError("REGISTRY_ID", "Project overlay registry differs from the installed snapshot", locator.Loc);
+            Packs.Add(ns, installed.Packs[ns]); Paths.Add(ns, path); ManifestDigests.Add(path, installed.ManifestDigests[path]);
+        }
+        foreach (var (id, element) in installed.Elements)
+            if (Packs.ContainsKey(PackPaths.Namespace(id)) && PackPaths.Namespace(id) != project.Namespace)
+                Elements.Add(id, element);
+        ValidateDependencies();
     }
     private void Register(string path, Manifest manifest, string expected)
     {

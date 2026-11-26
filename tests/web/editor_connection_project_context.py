@@ -11,11 +11,13 @@ fixture = fallback.fixture
 connection = 'Confectory.Agent.Codex::Connection'
 
 
-def setup_connection(page):
+def setup_connection(page, *, save=False):
     page.locator('#add-agent').click()
     dialog = page.get_by_role('dialog', name='Agent 추가', exact=True)
     dialog.get_by_role('button', name='Codex', exact=True).click()
     expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+    if save:
+        fixture.call('saveConnectionSetup', {'connection': connection})
     dialog.locator('[data-connection-cancel]').click()
     expect(dialog).to_have_count(0)
 
@@ -33,7 +35,7 @@ try:
         setup_connection(page)
         assert fixture.state()['projectId'] == first
         settings = fixture.root / 'profile' / 'ai-settings' / hashlib.sha256(connection.encode()).hexdigest()[:16]
-        pair = {name: (settings / name).read_bytes() for name in ('project.cpack', 'Settings.celem')}
+        assert not settings.exists(), 'preview does not create a settings owner'
         fallback.enter_from_home(page, fallback.SECOND)
         fallback.open_from_search(page, fallback.SECOND, fallback.TARGET, '19')
         second = fixture.state()['projectId']
@@ -43,7 +45,7 @@ try:
         fallback.enter_from_home(page, fallback.FIRST)
         fallback.open_from_search(page, fallback.FIRST, fallback.TARGET, fallback.BEFORE)
         assert fixture.state()['projectId'] == first
-        assert all((settings / name).read_bytes() == data for name, data in pair.items())
+        assert not settings.exists()
         fixture.original()
         fixture.checked('Agent setup preserves active project identity and same-ID project values across switches')
         page.close()
@@ -53,10 +55,22 @@ try:
         fallback.open_from_search(page, fallback.FIRST, fallback.TARGET, fallback.BEFORE)
         setup_connection(page)
         assert fixture.state()['projectId'] == first
-        assert all((settings / name).read_bytes() == data for name, data in pair.items())
+        assert not settings.exists()
         fixture.original()
         assert not fixture.errors and not fixture.external, (fixture.errors, fixture.external)
-        fixture.checked('Cold restart revalidates the existing settings and preserves project/source identity')
+        fixture.checked('Cold restart reconstructs the unsaved preview and preserves project/source identity')
+        setup_connection(page, save=True)
+        pair = {name: (settings / name).read_bytes() for name in ('project.cpack', 'Settings.celem')}
+        page.close()
+        fixture.stop()
+        fixture.start(2)
+        page = fixture.setup(browser)
+        fallback.open_from_search(page, fallback.FIRST, fallback.TARGET, fallback.BEFORE)
+        setup_connection(page)
+        assert fixture.state()['projectId'] == first
+        assert all((settings / name).read_bytes() == data for name, data in pair.items())
+        fixture.original()
+        fixture.checked('Explicitly saved settings survive a second cold restart without changing the project')
 finally:
     fixture.stop()
 print('PASS', fixture.root)

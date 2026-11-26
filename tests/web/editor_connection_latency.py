@@ -129,7 +129,10 @@ with sync_playwright() as p:
                     assert created_trace.count('"operation":"connectionSettings"')==1
                     assert '"operation":"connectionCatalog"' not in created_trace
                     assert '"operation":"connectionSettingsRepair"' not in created_trace
-                    assert created_trace.count('"operation":"inspectEffective"')==1
+                    assert '"operation":"inspectEffective"' not in created_trace
+                    assert not settings.exists()
+                    cancelled=state(url,'cancelConnectionCheck',{'connection':codex});assert cancelled['ok'],cancelled
+                    assert not settings.exists()
                 expect(dialog.locator('input,select,textarea,[data-connection-advanced],[data-connection-save],[data-installation-candidates],[data-home-candidates]')).to_have_count(0)
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 if scenario=='fresh':
@@ -142,7 +145,7 @@ with sync_playwright() as p:
                     expect(dialog.locator('[data-cli-login]')).to_be_enabled()
                     reopened_trace=log_path.read_text()[len(before_trace):]
                     assert '"operation":"connectionRepairSchema"' not in reopened_trace
-                    assert "CONFECTORY_SCHEMA_REUSED" in reopened_trace
+                    assert "CONFECTORY_CONNECTION_PREVIEW_REUSED" in reopened_trace
                     assert '"operation":"connectionSettingsRepair"' not in reopened_trace
                     assert '"operation":"inspectEffective"' not in reopened_trace
                     assert '"operation":"connectionCatalog"' not in reopened_trace
@@ -158,6 +161,14 @@ with sync_playwright() as p:
                     installed_manifest.write_text(installed_original)
                     dialog.locator('[data-connection-error]').get_by_role('button',name='연결 화면 다시 열기').click()
                     expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                    assert not settings.exists(), 'opening, cancelling and repair of declarations do not create settings'
+                    # Codex's simplified form exposes no Save button; use its real
+                    # save endpoint without invoking login or account operations.
+                    page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True)
+                    dialog.get_by_role('button',name='Codex',exact=True).click();expect(dialog.locator('[data-cli-login]')).to_be_enabled()
+                    staged=state(url,'saveConnectionSetup',{'connection':codex});assert staged['ok'],staged
+                    assert (settings/'project.cpack').exists() and (settings/'Settings.celem').exists()
                     dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                     # A separate local change while the form is closed must still be
                     # invalidate the exact model proof and take the normal repair path.
@@ -183,6 +194,27 @@ with sync_playwright() as p:
                 dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
                 page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
                 expect(dialog.locator('[data-connection-field="model"]')).to_have_value('unapplied-kept-across-close')
+                responses='Confectory.Agent.Responses::Connection';responses_dir=storage/'ai-settings'/hashlib.sha256(responses.encode()).hexdigest()[:16]
+                assert not responses_dir.exists()
+                pending=state(url)['connectionSetup']['schema'];model_row=next(row for row in pending['rows'] if row['name']=='model')
+                staged=state(url,'editConnectionSetup',{'connection':responses,'path':model_row['path'],'value':'host-staged-before-save','revision':pending['revision']});assert staged['ok'],staged
+                assert not responses_dir.exists()
+                if scenario=='fresh':
+                    # A second local owner creating even one file while the
+                    # in-memory edit is pending is an admission conflict.
+                    responses_dir.mkdir(parents=True)
+                    external=responses_dir/'Settings.celem';external.write_text('fixture-external-partial')
+                    rejected=state(url,'saveConnectionSetup',{'connection':responses});assert not rejected['ok'],rejected
+                    assert external.read_text()=='fixture-external-partial' and not (responses_dir/'project.cpack').exists()
+                    assert next(row for row in state(url)['connectionSetup']['schema']['rows'] if row['name']=='model')['value']=='host-staged-before-save'
+                    external.unlink();responses_dir.rmdir()
+                dialog.locator('[data-connection-cancel]').click();expect(dialog).to_have_count(0)
+                page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='OpenAI Responses',exact=True).click()
+                expect(dialog.locator('[data-connection-field="model"]')).to_be_visible()
+                dialog.locator('[data-connection-field="model"]').fill('explicitly-saved-model')
+                dialog.locator('[data-connection-save]').click();expect(dialog.locator('[data-connection-save]')).to_be_enabled()
+                assert (responses_dir/'project.cpack').exists() and (responses_dir/'Settings.celem').exists()
+                expect(dialog.locator('[data-connection-field="model"]')).to_have_value('explicitly-saved-model')
                 dialog.locator('[data-connection-cancel]').click();expect(page.locator('#add-agent')).to_be_enabled()
                 # Close after the backend request starts, before it can return its settings.
                 page.locator('#add-agent').click();dialog=page.get_by_role('dialog',name='Agent 추가',exact=True);dialog.get_by_role('button',name='Codex',exact=True).click()

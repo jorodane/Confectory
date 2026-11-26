@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class ConnectionDeclarations
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string? selected,Func<Confectory.Core.Manifest,string> format,Func<string,string> scope,System.Text.Json.Nodes.JsonObject? repair=null)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string? selected,Func<Confectory.Core.Manifest,string> format,Func<string,string> scope,System.Text.Json.Nodes.JsonObject? repair=null,string? presentationProject=null)
  {
  project=scope(System.IO.Path.GetFullPath(project));string root=System.IO.Path.GetDirectoryName(project)!;
  // Each query reads current declarations. Serializing/deserializing the persistent build
@@ -45,6 +45,19 @@ internal static class ConnectionDeclarations
   }catch(Exception error) when(error is System.IO.IOException or UnauthorizedAccessException or ArgumentException){return null;}
  }
  if(repair is not null){var proposal=ConnectionSettingsRepair.Propose(manifest,registry,selected,repair,format);if(proposal["state"]?.ToString() is "unchanged" or "repair")proposal["connectionModelProof"]=Proof();return proposal;}
- return new System.Text.Json.Nodes.JsonObject{["manifest"]=format(manifest),["source"]="object Confectory.AISettings::Settings extends "+selected+" {}\n",["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false,["connectionModelProof"]=Proof()};
+ var generatedManifest=format(manifest);string generatedSource="object Confectory.AISettings::Settings extends "+selected+" {}\n";
+ var result=new System.Text.Json.Nodes.JsonObject{["manifest"]=generatedManifest,["source"]=generatedSource,["connection"]=selected,["settingsDependency"]=new System.Text.Json.Nodes.JsonObject{["namespace"]=selectedPack,["version"]=installed.Version},["credentialRead"]=false,["executionPerformed"]=false};
+ if(presentationProject is not null){
+  // The projected root uses the exact declaration registry read above, not a
+  // second registration pass or a settings file created solely for display.
+  string ReadText(string path){if(new System.IO.FileInfo(path).Length>1048576)throw new System.IO.IOException("Manifest budget");return System.IO.File.ReadAllText(path);}
+  var effective=EffectiveMetadata.Query(presentationProject,generatedManifest,"Confectory.AISettings::Settings",generatedSource,format,ReadText,schemaView:true,observeSources:true,schemaReuseProof:true,installation:registry);
+  if(effective["status"]?.ToString()!="available")effective=EffectiveMetadata.Query(presentationProject,generatedManifest,"Confectory.AISettings::Settings",generatedSource,format,ReadText,schemaView:true);
+  // Even installations that cannot produce a reusable lexical proof must not
+  // publish a mixed read of the installed snapshot.
+  foreach(var observation in observed){var file=new System.IO.FileInfo(observation.Key);if(!file.Exists||file.Length>1048576||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.IO.File.ReadAllBytes(observation.Key))).ToLowerInvariant()!=observation.Value)throw new InvalidOperationException("Connection declaration changed during presentation");}
+  result["presentation"]=effective;
+ }
+ result["connectionModelProof"]=Proof();return result;
  }
 }

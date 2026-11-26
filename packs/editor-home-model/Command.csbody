@@ -221,11 +221,80 @@ bool FreshConnectionModel(System.Text.Json.Nodes.JsonNode? proof,string project)
   return true;
  }catch{return false;}
 }
+// The initial form is an owner-local working copy, not a registered settings
+// project. Only explicit save/preflight workflows admit it to the file-backed
+// draft; closing a form does not materialize it or authorize account access.
+string previewKey="Confectory.EditorHome.ConnectionPreviews."+session;
+var connectionPreviews=AppDomain.CurrentDomain.GetData(previewKey) as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject();
+AppDomain.CurrentDomain.SetData(previewKey,connectionPreviews);
+string SettingsManifest(string connection)=>System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"ai-settings",Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(connection))).ToLowerInvariant()[..16],"project.cpack");
+bool NoSettingsFiles(string manifest)=>calls.FileSnapshot.Invoke(manifest)[0]=="missing"&&calls.FileSnapshot.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,"Settings.celem"))[0]=="missing";
+bool EmptySettingsOwner(string manifest){string folder=System.IO.Path.GetDirectoryName(manifest)!;return NoSettingsFiles(manifest)&&(!System.IO.Directory.Exists(folder)||!System.Linq.Enumerable.Any(System.IO.Directory.EnumerateFileSystemEntries(folder)));}
+bool FreshPresentation(System.Text.Json.Nodes.JsonNode? effective){
+ try{
+  if(effective?["observations"] is not System.Text.Json.Nodes.JsonArray observations||observations.Count is <1 or >2048||effective["ownershipPaths"] is not System.Text.Json.Nodes.JsonArray paths||paths.Count>2048)return false;
+  var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+  bool NoLinks(string full){for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return false;}return true;}
+  foreach(var path in paths)if(!NoLinks(path!.GetValue<string>()))return false;
+  long bytes=0;foreach(var observed in observations){string full=observed!["path"]!.GetValue<string>();var file=new System.IO.FileInfo(full);if(!NoLinks(full)||!file.Exists||file.Length>1048576)return false;bytes+=file.Length;if(bytes>16777216)return false;var snapshot=calls.FileSnapshot.Invoke(full);if(snapshot[0]!="exists"||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(snapshot[1]))).ToLowerInvariant()!=observed["hash"]!.ToString())return false;}
+  return true;
+ }catch{return false;}
+}
+void RequirePreviewSchema(System.Text.Json.Nodes.JsonNode effective){
+ connectionStage="settings-schema";if(effective["status"]?.ToString()!="available"||effective["schemaModel"] is not System.Text.Json.Nodes.JsonObject){var failure=new InvalidOperationException("Schema description unavailable: "+(effective["code"]?.ToString()??"SCHEMA_MODEL_MISSING"));if(effective["namespaceDiagnostic"] is System.Text.Json.Nodes.JsonObject diagnostic)failure.Data["Confectory.NamespaceDiagnostic"]=diagnostic.ToJsonString();throw failure;}
+}
+System.Text.Json.Nodes.JsonObject PreviewWorkspace(System.Text.Json.Nodes.JsonNode preview){
+ var effective=preview["effective"]!.DeepClone().AsObject();effective.Remove("observations");effective.Remove("ownershipPaths");
+ return new System.Text.Json.Nodes.JsonObject{["unit"]=new System.Text.Json.Nodes.JsonObject{["id"]="Confectory.AISettings::Settings",["kind"]="object",["text"]=preview["text"]!.DeepClone(),["revision"]=preview["revision"]!.DeepClone()},["effective"]=effective,["schemaView"]=System.Text.Json.Nodes.JsonNode.Parse(calls.DescribeConnectionView.Invoke(effective["schemaModel"]!.ToJsonString()))};
+}
+System.Text.Json.Nodes.JsonNode ReadPreviewSchema(string manifest,string manifestText,string text){
+ var input=new System.Text.Json.Nodes.JsonObject{["project"]=manifest,["manifest"]=manifestText,["id"]="Confectory.AISettings::Settings",["kind"]="object",["text"]=text,["schemaView"]=true,["schemaReuseProof"]=true};
+ var effective=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspectEffective",input.ToJsonString()))!["effective"]!;if(effective["status"]?.ToString()!="available"){input.Remove("schemaReuseProof");effective=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("inspectEffective",input.ToJsonString()))!["effective"]!;}RequirePreviewSchema(effective);return effective.DeepClone();
+}
+bool AdmittedPreview(System.Text.Json.Nodes.JsonNode preview,string manifest){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(manifest)!,"Settings.celem"));return m[0]=="exists"&&f[0]=="exists"&&preview["admittedManifest"]?.ToString()==m[2]&&preview["admittedSource"]?.ToString()==f[2];}
+bool PreviewOwner(System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted)=>preview["admittedManifest"] is null?EmptySettingsOwner(manifest):allowAdmitted&&AdmittedPreview(preview,manifest);
+bool PreviewFresh(System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted=false){return PreviewOwner(preview,manifest,allowAdmitted)&&FreshConnectionModel(preview["proof"],ConnectionProject())&&FreshPresentation(preview["effective"]);}
+bool VerifyPreview(string connection,System.Text.Json.Nodes.JsonNode preview,string manifest,bool allowAdmitted=false){
+ if(PreviewFresh(preview,manifest,allowAdmitted))return true;
+ // The ordinary reader also supports installations without a reusable lexical
+ // proof. Reconstruct and compare that exact read model rather than accepting
+ // a cached result or treating a changed proven snapshot as current.
+ if(!PreviewOwner(preview,manifest,allowAdmitted)||preview["proof"] is not null&&preview["effective"]?["observations"] is not null)return false;
+ var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.ConnectionSource.Invoke(ConnectionProject(),connection))!;
+ if(generated["manifest"]?.ToString()!=preview["manifest"]?.ToString()||generated["source"]?.ToString()!=preview["source"]?.ToString())return false;
+ var current=ReadPreviewSchema(manifest,preview["manifest"]!.ToString(),preview["text"]!.ToString());
+ return System.Text.Json.Nodes.JsonNode.DeepEquals(current["schemaModel"],preview["effective"]?["schemaModel"])&&PreviewOwner(preview,manifest,allowAdmitted);
+}
+System.Text.Json.Nodes.JsonNode OpenPreview(string connection,string manifest){
+ connectionSetupMode="new";model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();model["connectionSetupModes"]![connection]="new";
+ var previous=connectionPreviews[connection];if(previous is not null&&PreviewFresh(previous,manifest)){if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_CONNECTION_PREVIEW_REUSED");return previous;}
+ if(previous is not null&&previous["revision"]!.GetValue<long>()!=0){if(VerifyPreview(connection,previous,manifest))return previous;throw new InvalidOperationException("Connection declarations changed outside the open draft; retain local input");}
+ connectionStage="declarations";var generated=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=ConnectionProject(),id=connection,settingsProject=manifest,presentation=true})))!;
+ var effective=generated["presentation"]!;RequirePreviewSchema(effective);
+ if(!EmptySettingsOwner(manifest))throw new InvalidOperationException("Initial settings changed during preview; original retained");
+ if(connectionPreviews.Count>=32&&!connectionPreviews.ContainsKey(connection))throw new InvalidOperationException("Connection preview budget exceeded");
+ var preview=new System.Text.Json.Nodes.JsonObject{["manifest"]=generated["manifest"]!.DeepClone(),["source"]=generated["source"]!.DeepClone(),["text"]=generated["source"]!.DeepClone(),["revision"]=0L,["proof"]=generated["connectionModelProof"]?.DeepClone(),["effective"]=effective.DeepClone()};
+ connectionPreviews[connection]=preview;return preview;
+}
 string SetupView(string connection){
  string key=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(connection))).ToLowerInvariant()[..16],folder=System.IO.Path.Combine(System.IO.Path.GetDirectoryName((string)state[2])!,"ai-settings",key),manifest=System.IO.Path.Combine(folder,"project.cpack"),source=System.IO.Path.Combine(folder,"Settings.celem");var manifestBefore=calls.FileSnapshot.Invoke(manifest);var sourceBefore=calls.FileSnapshot.Invoke(source);model["connectionSetupModes"]??=new System.Text.Json.Nodes.JsonObject();connectionSetupMode=model["connectionSetupModes"]?[connection]?.ToString()??(manifestBefore[0]!="exists"&&sourceBefore[0]!="exists"?"new":"existing");model["connectionSetupModes"]![connection]=connectionSetupMode;
  string viewKey="connection-setup/"+connection;string? installProject=null;
  string InstallProject()=>installProject??=ConnectionProject();
  var priorProof=setupProofs[connection];bool opening=operation=="connection-setup";
+ var pendingPreview=connectionPreviews[connection];
+ if(pendingPreview is not null){
+  connectionStage="settings-files";
+  if(!PreviewOwner(pendingPreview,manifest,true)){if(!opening||pendingPreview["revision"]!.GetValue<long>()!=0)throw new InvalidOperationException("Connection settings changed outside the open draft; retain local input");connectionPreviews.Remove(connection);pendingPreview=null;}
+  else{
+   // Explicit file-backed admission rechecks all current declaration proofs and
+   // the edited schema before the existing atomic create / ordinary draft path.
+   if(!VerifyPreview(connection,pendingPreview,manifest,true))throw new InvalidOperationException("Connection declarations changed outside the open draft; retain local input");
+   var verified=ReadPreviewSchema(manifest,pendingPreview["manifest"]!.ToString(),pendingPreview["text"]!.ToString());
+   if(verified["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new ArgumentException("Connection schema validation failed");
+   calls.CheckSettings.Invoke(pendingPreview["text"]!.ToString());
+   if(!VerifyPreview(connection,pendingPreview,manifest,true))throw new InvalidOperationException("Connection settings changed during validation; original retained");
+  }
+ }
  if(opening&&priorProof is not null&&workspaces.TryGetValue(viewKey,out string? priorView)&&(priorProof["manifestHash"]?.ToString()!=manifestBefore[2]||priorProof["sourceHash"]?.ToString()!=sourceBefore[2])){
   var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(priorView))!;
   bool sourceChanged=snapshot["unit"]?["text"]?.ToString()!=sourceBefore[1],manifestChanged=priorProof["manifestHash"]?.ToString()!=manifestBefore[2];
@@ -242,9 +311,10 @@ string SetupView(string connection){
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
   System.Text.Json.Nodes.JsonNode generated;
-  try{generated=System.Text.Json.Nodes.JsonNode.Parse(opening?calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=InstallProject(),id=connection,settingsProject=manifest})):calls.ConnectionSource.Invoke(InstallProject(),connection))!;}
+  try{generated=pendingPreview is not null?new System.Text.Json.Nodes.JsonObject{["manifest"]=pendingPreview["manifest"]!.DeepClone(),["source"]=pendingPreview["source"]!.DeepClone(),["connectionModelProof"]=pendingPreview["proof"]?.DeepClone()}:System.Text.Json.Nodes.JsonNode.Parse(opening?calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=InstallProject(),id=connection,settingsProject=manifest})):calls.ConnectionSource.Invoke(InstallProject(),connection))!;}
   catch{if(validateWithCreation){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
   System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");
+  if(pendingPreview is not null){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(source);if(m[0]!="exists"||f[0]!="exists"||m[1]!=generated["manifest"]!.ToString()||f[1]!=generated["source"]!.ToString())throw new InvalidOperationException("Initial settings changed during creation; original retained");pendingPreview["admittedManifest"]=m[2];pendingPreview["admittedSource"]=f[2];}
   // The generated pair has just been constructed from the current complete
   // registry. A repair query would parse the same registry and the formerly
   // missing source; it cannot add any validation to this exact committed pair.
@@ -279,9 +349,18 @@ string SetupView(string connection){
   if(opening&&repair?["state"]?.ToString() is "unchanged" or "repair"){var verifiedManifest=calls.FileSnapshot.Invoke(manifest);string expected=repair["state"]!.ToString()=="repair"?repair["manifest"]!.ToString():manifestFile[1];if(verifiedManifest[1]==expected)RememberModel(repair["connectionModelProof"],verifiedManifest[2],repairSource[2]);}
  }else if(validateWithRepair&&!reuseModel){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}
  if(calls.FileSnapshot.Invoke(source)[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
- connectionStage="settings-open";if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}setupReadProof=opening&&setupProofs.ContainsKey(connection);return view;
+ connectionStage="settings-open";if(!workspaces.TryGetValue(viewKey,out string? view)){view=calls.PackOpen.Invoke(manifest,"local-user","editor");try{calls.PackCommand.Invoke(view,"select","{\"id\":\"Confectory.AISettings::Settings\"}");workspaces.Add(viewKey,view);freshSetupViewKey=viewKey;}catch{calls.PackClose.Invoke(view);throw;}}if(pendingPreview is not null){
+  var current=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(view))!["unit"]!;
+  if(current["text"]!.ToString()!=pendingPreview["source"]!.ToString()&&current["text"]!.ToString()!=pendingPreview["text"]!.ToString())throw new InvalidOperationException("Connection working copy changed; retain local input");
+  if(pendingPreview["text"]!.ToString()!=current["text"]!.ToString()){
+   var edited=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"edit",new System.Text.Json.Nodes.JsonObject{["text"]=pendingPreview["text"]!.DeepClone(),["expectedRevision"]=current["revision"]!.DeepClone()}.ToJsonString()))!;if(edited["conflict"]?.GetValue<bool>()==true)throw new InvalidOperationException("Connection settings changed; retain local input");
+  }
+  connectionPreviews.Remove(connection);
+ }
+ setupReadProof=opening&&setupProofs.ContainsKey(connection);return view;
 }
 void SetupSnapshot(string connection,string view,System.Text.Json.Nodes.JsonNode? outcome=null){connectionStage="settings-schema";model["connectionSetup"]=new System.Text.Json.Nodes.JsonObject{["connection"]=connection,["mode"]=connectionSetupMode,["workspace"]=setupOpeningView==view&&setupOpeningProjection is not null?setupOpeningProjection.DeepClone():System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view",setupReadProof?"{\"connectionPresentation\":true,\"captureVerifiedSchema\":true,\"reuseVerifiedSchema\":true}":"{}")),["installationGuide"]=connection=="Confectory.Agent.Codex::Connection"?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexInstallationGuide.Invoke()):null,["outcome"]=outcome?.DeepClone(),["preparation"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexPreparationContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexPreparation.Invoke(session,"status","{}")):null,["login"]=connection=="Confectory.Agent.Codex::Connection"&&model["codexLoginContext"] is not null?System.Text.Json.Nodes.JsonNode.Parse(calls.CodexLogin.Invoke(session,"status","{}")):null};}
+void PublishPreview(string connection,System.Text.Json.Nodes.JsonNode preview,System.Text.Json.Nodes.JsonNode? outcome=null){setupOpeningView="";setupOpeningProjection=PreviewWorkspace(preview);SetupSnapshot(connection,"",outcome);}
 System.Text.Json.Nodes.JsonObject SetupData(string view){var projection=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}"))!["effective"]!;if(projection["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new ArgumentException("Connection schema validation failed");var data=new System.Text.Json.Nodes.JsonObject();foreach(var field in projection["schemaModel"]!["data"]!.AsObject()){if(field.Value?["kind"]?.ToString()!="general")throw new ArgumentException("Declared scalar setting required");data[field.Key]=field.Value?["scalar"]?.DeepClone();}return data;}
 string SetupConfig(string connection,string view)=>calls.AIConfig.Invoke(connection,SetupData(view).ToJsonString());
 string CatalogueConfig(string view)=>calls.CodexCandidate.Invoke(SetupData(view).ToJsonString());
@@ -567,7 +646,10 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  calls.YogiSeal.Invoke(box,seal);break;case "remove":calls.YogiRemove.Invoke(box,Value("item"));break;default:throw new ArgumentException("Unknown local Yogi action");}if(!nativeYogi||action!="show")calls.YogiSave.Invoke(box);model["yogi"]=System.Text.Json.Nodes.JsonNode.Parse(calls.YogiRevalidate.Invoke(box,calls.ProposalDraft.Invoke(Workspace(context))));}
  model["status"]="Local semantic Yogi package and bounded owned capture; no external recipient";
  }
- else if(operation=="connection-setup"){string connection=Value("connection");model["agentUseFormOpen"]=connection==Codex;if(connection!=Codex)Onboarding("cancel",new());CancelPreparation();SetupSnapshot(connection,SetupView(connection));if(connection==Codex){Onboarding("snapshot",new());RestoreRegisteredCodex();}model["status"]="Connection configuration opened in place; selected project and work unchanged";}
+ else if(operation=="connection-setup"){string connection=Value("connection");model["agentUseFormOpen"]=connection==Codex;if(connection!=Codex)Onboarding("cancel",new());CancelPreparation();string settingsManifest=SettingsManifest(connection);
+ if(NoSettingsFiles(settingsManifest)&&!EmptySettingsOwner(settingsManifest)){connectionStage="settings-files";connectionSetupMode="existing";throw new InvalidOperationException("Retain partial connection settings for recovery");}
+ if(EmptySettingsOwner(settingsManifest)&&!workspaces.ContainsKey("connection-setup/"+connection))PublishPreview(connection,OpenPreview(connection,settingsManifest));
+ else SetupSnapshot(connection,SetupView(connection));if(connection==Codex){Onboarding("snapshot",new());RestoreRegisteredCodex();}model["status"]="Connection configuration opened in place; selected project and work unchanged";}
 
  else if(operation=="agent-use-complete"){CompleteAgentUse(Value("challenge"));model["status"]="Agent registered with explicit continuing-use consent";}
  else if(operation=="agent-use-revoke"){if(model["agentUseFormOpen"]?.GetValue<bool>()!=true||model["connectionSetup"]?["connection"]?.ToString()!=Codex)throw new UnauthorizedAccessException("chat-use-agent-settings-required");calls.ChatUse.Invoke(session,"revoke-agent",System.Text.Json.JsonSerializer.Serialize(new{agent=Codex}));Onboarding("snapshot",new());model["status"]="Agent common use revoked; settings and history retained";}
@@ -602,9 +684,18 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  string connection=Value("connection");if(connection!="Confectory.Agent.Codex::Connection"||model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Current Codex form required");var catalogue=model["connectionCatalogues"]?[connection]??throw new InvalidOperationException("Official model catalogue is stale; query again");if(model["connectionSetup"]?["connection"]?.ToString()!=connection||catalogue["config"]!.ToString()!=CatalogueConfig(SetupView(connection)))throw new InvalidOperationException("Candidate configuration changed; query models again");string selected=Value("model");if(!System.Linq.Enumerable.Any(catalogue["models"]!.AsArray(),row=>row!["model"]!.ToString()==selected))throw new ArgumentException("Select a returned official model");SetupValue(connection,"model",selected);InvalidateCheck(connection);SetupSnapshot(connection,SetupView(connection));model["status"]="Official model staged; model-bound verification and request approval remain separate";
  }
  else if(operation=="connection-setup-field"){
- string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string view=SetupView(connection),field=args["path"]?[0]?.ToString()??"";
+ string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string field=args["path"]?[0]?.ToString()??"";
  if(System.Text.RegularExpressions.Regex.IsMatch(field,"apiKey|password|accessToken|refreshToken|secret",System.Text.RegularExpressions.RegexOptions.IgnoreCase))throw new ArgumentException("Secret fields are not settings");if(field=="credentialReference"||field.EndsWith("CredentialReference",StringComparison.Ordinal))calls.CheckReference.Invoke(args["value"]?.GetValue<string>()??throw new ArgumentException("Named credential reference required"));
- CancelPreparation();var edited=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"data-path",new System.Text.Json.Nodes.JsonObject{["id"]="Confectory.AISettings::Settings",["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone()}.ToJsonString()))!;if(edited["conflict"]?.GetValue<bool>()==true)throw new InvalidOperationException("Connection settings changed; refresh before applying");InvalidateCheck(connection);SetupSnapshot(connection,view);model["status"]="Connection field staged through ordinary schema path editing; source project untouched";
+ CancelPreparation();
+ if(connectionPreviews[connection] is System.Text.Json.Nodes.JsonNode preview){
+  string settingsManifest=SettingsManifest(connection);if(!VerifyPreview(connection,preview,settingsManifest)||preview["revision"]!.GetValue<long>()!=args["revision"]!.GetValue<long>())throw new InvalidOperationException("Connection settings changed; refresh before applying");
+  string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("setDataPath",new System.Text.Json.Nodes.JsonObject{["text"]=preview["text"]!.DeepClone(),["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone()}.ToJsonString()))!;
+  calls.CheckSettings.Invoke(formatted);var effective=ReadPreviewSchema(settingsManifest,preview["manifest"]!.ToString(),formatted);
+  if(!VerifyPreview(connection,preview,settingsManifest))throw new InvalidOperationException("Connection declarations changed; retain local input");
+  preview["text"]=formatted;preview["revision"]=preview["revision"]!.GetValue<long>()+1;preview["effective"]=effective;InvalidateCheck(connection);connectionSetupMode="new";PublishPreview(connection,preview);model["status"]="Connection field staged in memory; no settings saved";
+ }else{
+ string view=SetupView(connection);var edited=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"data-path",new System.Text.Json.Nodes.JsonObject{["id"]="Confectory.AISettings::Settings",["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone()}.ToJsonString()))!;if(edited["conflict"]?.GetValue<bool>()==true)throw new InvalidOperationException("Connection settings changed; refresh before applying");InvalidateCheck(connection);SetupSnapshot(connection,view);model["status"]="Connection field staged through ordinary schema path editing; source project untouched";
+ }
  }
  else if(operation=="connection-setup-save"){string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string view=SetupView(connection);calls.CheckSettings.Invoke(System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(view))!["unit"]!["text"]!.ToString());calls.PackCommand.Invoke(view,"save","{}");model["connectionSetupModes"]![connection]="existing";connectionSetupMode="existing";SetupSnapshot(connection,view,new System.Text.Json.Nodes.JsonObject{["state"]="saved",["code"]="settings_saved",["message"]="설정 초안을 저장했습니다. 계정 인증이나 실제 요청은 수행하지 않았습니다.",["authenticated"]=false,["networkContacted"]=false});}
  else if(operation=="connection-setup-attempt"){
@@ -620,7 +711,7 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Current preflight form required");var preview=model["connectionCheckPreview"]??throw new InvalidOperationException("Check settings first");string view=SetupView(connection);if(preview["connection"]?.ToString()!=connection||preview["token"]?.ToString()!=Value("token")||preview["config"]?.ToString()!=(preview["catalogue"]?.GetValue<bool>()==true?CatalogueConfig(view):SetupConfig(connection,view)))throw new InvalidOperationException("Preflight approval is stale; check current settings again");
  string config=preview["config"]!.ToString();model["connectionChecks"]??=new System.Text.Json.Nodes.JsonObject();model["connectionChecks"]![connection]=config;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.CodexVerification.Invoke(config,preview["catalogue"]?.GetValue<bool>()==true?"catalogue-start":"start",args["approvals"]!.ToJsonString()))!;SetupSnapshot(connection,view,result);model["status"]="Separately approved preflight started; no project content or model turn";
  }
- else if(operation=="connection-check-cancel"){string connection=Value("connection");InvalidateCheck(connection);if(model["connectionSetup"]?["connection"]?.ToString()==connection)SetupSnapshot(connection,SetupView(connection),new System.Text.Json.Nodes.JsonObject{["state"]="cancelled",["code"]="verification_cancelled",["message"]="사전 확인을 취소했습니다. 다시 조건 확인을 진행하세요.",["authenticated"]=false});}
+ else if(operation=="connection-check-cancel"){string connection=Value("connection");InvalidateCheck(connection);if(model["connectionSetup"]?["connection"]?.ToString()==connection){var outcome=new System.Text.Json.Nodes.JsonObject{["state"]="cancelled",["code"]="verification_cancelled",["message"]="사전 확인을 취소했습니다. 다시 조건 확인을 진행하세요.",["authenticated"]=false};if(connectionPreviews[connection] is System.Text.Json.Nodes.JsonNode preview){connectionSetupMode="new";PublishPreview(connection,preview,outcome);}else SetupSnapshot(connection,SetupView(connection),outcome);}}
  else if(operation=="connection-setup-cancel"){model["agentUseFormOpen"]=false;Onboarding("cancel",new());CancelPreparation();if(model["connectionSetup"]?["outcome"]?["state"]?.ToString()=="checking")InvalidateCheck(model["connectionSetup"]!["connection"]!.ToString());model["connectionCheckPreview"]=null;if(model["connectionSetup"]?["connection"] is System.Text.Json.Nodes.JsonNode closedConnection)model["connectionCatalogues"]?.AsObject().Remove(closedConnection.ToString());model["connectionSetup"]=null;model["status"]="Connection form closed; saved settings and original project work retained";}
  else if(operation=="ai-connections"){string context=Active();model["connections"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Connections.Invoke(ConnectionProject()));Shell(context,"menu","providers");model["helperPanel"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["mode"]="ai-connections"};model["status"]="Select saved pack settings; this grants no execution or content permission";}
  else if(operation=="ai-choose-method"){CancelPreparation();

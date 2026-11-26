@@ -139,9 +139,12 @@ def exercise(root):
         generation = dict(operation='connectionSettings', project=str(manifest), id=connection, settingsProject=str(settings))
         proc = start()
         try:
-            proposed = json.loads(send(proc, generation))
+            proposed = json.loads(send(proc, dict(generation,presentation=True)))
             assert proposed['ok'], proposed
-            assert proposed == json.loads(subprocess.run(HOST, input=json.dumps(generation), text=True, capture_output=True, timeout=20, check=True).stdout)
+            assert proposed['result']['presentation']['status']=='available', proposed
+            # The ordinary generation result is identical apart from its read projection.
+            ordinary_generation = dict(proposed['result']); presentation = ordinary_generation.pop('presentation')
+            assert ordinary_generation['manifest'] == json.loads(subprocess.run(HOST, input=json.dumps(generation), text=True, capture_output=True, timeout=20, check=True).stdout)['result']['manifest']
             assert not settings.parent.exists(), 'generation is only a proposal'
             settings.parent.mkdir(parents=True)
             pair = proposed['result']; settings.write_text(pair['manifest'])
@@ -151,6 +154,8 @@ def exercise(root):
             inspection = dict(operation='inspectEffective', project=str(settings), manifest=pair['manifest'], id='Confectory.AISettings::Settings', kind='object', text=pair['source'], drafts=[], schemaView=True)
             validated = json.loads(send(proc, inspection))
             assert validated['ok'] and validated['result']['effective']['status']=='available', validated
+            for key in ('schemaModel','fields','data','values','requirements','providers'):
+                assert presentation[key]==validated['result']['effective'][key], key
             repair = dict(operation='connectionSettingsRepair', project=str(manifest), id=connection,
                           settingsProject=str(settings), repository=str(root), manifest=pair['manifest'], text=pair['source'])
             repaired = json.loads(send(proc, repair))

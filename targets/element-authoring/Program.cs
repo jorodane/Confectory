@@ -182,7 +182,7 @@ try
         case "projectionAffected": case "projectionVersions": case "projectionQueue": case "projectionPublish": case "projectionQuery": case "projectionList": case "editorDescribe":reply=ProjectionArtifacts.Execute(S("operation"),request);break;
         case "algorithmProject":reply=AlgorithmProjectionOperations.Execute(request);break;
         case "connectionCatalog": case "connectionSettings": case "connectionSettingsRepair":
-            reply=ConnectionDeclarations.Query(S("project"),S("operation")=="connectionCatalog"?null:S("id"),FormatManifest,path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Connection declaration unavailable");return path;},S("operation")=="connectionSettingsRepair"?request:null);break;
+            reply=ConnectionDeclarations.Query(S("project"),S("operation")=="connectionCatalog"?null:S("id"),FormatManifest,path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Connection declaration unavailable");return path;},S("operation")=="connectionSettingsRepair"?request:null,S("operation")=="connectionSettings"&&request["presentation"]?.GetValue<bool>()==true?S("settingsProject"):null);break;
         case "catalog":
             reply=SemanticCatalogService.Query(S("project"),request["request"]!.AsObject(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Owned document unavailable");return path;});break;
         case "effective":
