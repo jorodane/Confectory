@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_4'
+READY = 'CONFECTORY_INSPECT_STREAM_5'
 
 
 def exercise(root):
@@ -66,6 +66,13 @@ def exercise(root):
             first = json.loads(send(proc, describe))
             assert first['ok'] and any(row['id']=='Test.Stream::Record' for row in first['result']['units'])
             assert json.loads(send(proc, inventory))['result']['status']=='available'
+            for name in ('informationPropertyGroupGuards','informationTypeGuards','informationBodyGroupGuards'):
+                guard=dict(operation=name,action='validate',project=str(a),namespace='Test.Stream',units={},selected=[])
+                assert json.loads(send(proc,guard))==json.loads(subprocess.run(HOST,input=json.dumps(guard),text=True,capture_output=True,timeout=20,check=True).stdout)
+            for action in ('headers','graphs'):
+                guard=dict(operation='informationBodyGroupGuards',action=action,namespace='Test.Stream',units={},selected=[])
+                assert json.loads(send(proc,dict(guard,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(guard),text=True,capture_output=True,timeout=20,check=True).stdout)
+
             document=dict(operation='inspect',text='object Test.Stream::Record {}')
             assert json.loads(send(proc,dict(document,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(document),text=True,capture_output=True,timeout=20,check=True).stdout)
             invalid=dict(operation='blueprintSourceValidateBatch',documents=[dict(id='bad',kind='blueprint',text='{}')])
@@ -137,6 +144,12 @@ def exercise(root):
         proc = start()
         try:
             assert send(proc, dict(operation='inspect',text='object Test.Stream::Record {}')) == ''
+            assert proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert send(proc, dict(operation='informationBodyGroupGuards',action='prepare',project=str(a),namespace='Test.Stream',units={})) == ''
             assert proc.wait(timeout=5) == 2
         finally:
             finish(proc)

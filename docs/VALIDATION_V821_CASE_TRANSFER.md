@@ -85,3 +85,31 @@ python tests/web/v821_direct_property_save_ui.py "$REPO" "$REPORT"
 python tests/web/v821_child_case_insert_host_perf.py "$REPO" "$REPORT" after
 python tests/web/v821_child_case_transfer_host.py "$REPO" "$REPORT" normal
 ```
+
+## 저장 확인/Confirm 관측 검사 후속 개선
+
+기준 `73962cf5bbdb5166e32ae4084a175a3f28994db3`, 동일한 실제 Chromium `after` fixture 비교. 격리된 `author-batch`의 기존 선언 검사에 프로젝트 범위를 전달해 원래 판정과 CAS를 유지한다. 직접 소유한 frame의 성공 저장 확인은 선택적으로 검증한 projection을 반환한다. 원본 읽기·저장 receipt·정확한 프로젝트/그래프/체크포인트를 대조하고 projection 뒤 물리 원본과 체크포인트를 다시 검사한다. 이전 클라이언트, slot/copy 등 그 외 경로는 기존 재조회와 정착 검사 동작을 유지한다. 프로토콜 5는 기존 정보 body/property/type **검사**만 프로젝트에 묶인 authoring subprocess에서 실행한다. 준비/변경 작업과 컴파일은 이 스트림에 포함하지 않는다.
+
+| 같은 UI 흐름 (ms) | 기준 | 후속 후보 |
+| --- | ---: | ---: |
+| 셀 추가 → 표시 | 186 | 185 |
+| 코드 창 → 입력 가능 | 64 | 76 |
+| 실제 키보드 입력 | 7 | 5 |
+| 성공 authorBatch 요청 → 결과 | 2469 | 1087 |
+| 성공 Save 클릭 → idle | 4326 | 2880 |
+| 첫 Review 요청 → 결과 | 851 | 245 |
+| 최종 Confirm 요청 → 결과 | 8254 | 6650 |
+| 최종 Confirm의 컴파일 검증 호출 | 6426 | 6123 |
+
+이는 독립 실제 UI 실행의 단일 전후 비교이며 Windows 시간이나 반복 실행의 통계적 추정이 아니다. 같은 Save 요청의 선언 검사 17건은 총 1506→206ms, 최종 Confirm의 body/property/type guard 13건은 총 1404→147ms였다. 모든 검사 호출을 유지했다. Confirm은 구조 확인, 소유 구현 전체 컴파일 및 실제 소비자 링크를 여전히 실행한다.
+
+임시 타깃 세부 계측의 기준은 Builder 초기화 457ms, 구조 확인 39ms, 소유 구현 확인 2632ms, 소비자 링크 3198ms였다. 별도 SDK shared compiler 시험은 시간 초과했고 채택하지 않았다. 검증 한 건의 타깃 프로세스를 재사용하는 후보는 정상 아티팩트 동등성, 잘못된 코드 거절, 변경된 도구 설정의 거절을 확인했지만 정확한 파일 증명이 들어간 최종 실행의 컴파일 검증 6272ms/Confirm 8051ms로 이점이 작아 제품 변경에는 포함하지 않았다. 따라서 남은 약 6초 CPU/컴파일 처리 개선은 별개다.
+
+추가 호스트 회귀: `v821_child_case_transfer_host.py`는 정착 projection과 일반 최신 조회 일치 및 저장 이후 외부 원본 변경 거절을 검사한다. `v821_child_case_insert_host_perf.py`의 `after invalid`는 실제 compiler의 CS0103 오류와 원본·체크포인트 보존을 검증한다.
+
+```sh
+CONFECTORY_UI_TRACE=1 python tests/web/v821_child_case_insert_ui.py "$REPO" "$REPORT" after
+python tests/web/v821_child_case_transfer_host.py "$REPO" "$REPORT" normal
+python tests/web/v821_child_case_insert_host_perf.py "$REPO" "$REPORT" after invalid
+python tests/web/authoring_read_stream.py
+```

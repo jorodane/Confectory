@@ -5,11 +5,14 @@ string host=Environment.GetEnvironmentVariable("CONFECTORY_ELEMENT_AUTHORING_HOS
 if(!System.IO.File.Exists(host))throw new InvalidOperationException("AUTHORING_HOST_MISSING");
 string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
+bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
+bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
 bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
 string? streamProject=null;
-if(request.ContainsKey("_streamProject")){if(!blueprintValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");}
+if(request.ContainsKey("_streamProject")){if(!blueprintValue&&!guardValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");}
 bool blueprintProject=operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
 bool blueprintWarm=blueprintProject||blueprintValue&&streamProject is not null;
+bool guardWarm=guardProject||guardValue&&streamProject is not null;
 var start=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add(System.IO.Path.GetFullPath(host));
 object[] registry;
 lock(AppDomain.CurrentDomain)
@@ -25,7 +28,7 @@ string? ReadWarm(){
  bool inventory=operation=="catalog"&&request["request"]?["action"]?.ToString()=="inventory";
  bool viewCatalog=operation=="catalog"&&request["request"]?["action"]?.ToString() is ("project-main-view" or "project-windows");
  bool relations=operation=="relationsMap";
- if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintWarm||request["project"] is null&&(!blueprintValue||streamProject is null))return null;
+ if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintWarm&&!guardWarm||request["project"] is null&&(!blueprintValue&&!guardValue||streamProject is null))return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
  // Match the existing Windows EditWorkspace identity convention and the
  // stream protocol’s case-insensitive project comparison; keep request paths intact.
@@ -51,12 +54,13 @@ string? ReadWarm(){
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
     // An older tool may not support framing. Detect that once per executable version.
-    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
+    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
     starting=false;
-    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4"))return null;
-    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4"))return null;
-    if(blueprintWarm&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_4"))return null;
-    var framed=request.DeepClone().AsObject();if(blueprintValue&&streamProject is not null)framed["_streamProject"]=streamProject;
+    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
+    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
+    if(blueprintWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5"))return null;
+    if(guardWarm&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_5"))return null;
+    var framed=request.DeepClone().AsObject();if((blueprintValue||guardValue)&&streamProject is not null)framed["_streamProject"]=streamProject;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(framed.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
     var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");
    }finally{lock(registry){if(jobs.TryGetValue(owner,out var set)){set.Remove(active);if(set.Count==0)jobs.Remove(owner);}}}

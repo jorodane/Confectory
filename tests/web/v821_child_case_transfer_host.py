@@ -24,6 +24,15 @@ try:
     try:f.invoke('blueprint',q,False);assert checkpoint.read_bytes()==before
     finally:source.write_bytes(raw)
     q=transfer_request(read());f.invoke('blueprint',q)
+    settled=dict(q,action='settledAuthorBatch',settledProjection=True)
+    def projection():return f.invoke('blueprint',settled)['result']['result']
+    proof=projection();assert proof['settled'] and proof['projection'] is not None
+    observed=read();assert all(proof['projection'][key]==observed[key] for key in ('id','rootId','nodes','edges','sources','checkpointHash'))
+    source.write_bytes(raw+b' ')
+    try:
+        rejected=projection();assert not rejected['settled'] and rejected['projection'] is None
+    finally:source.write_bytes(raw)
+    assert projection()['settled']
     assert read()['edges']==changed['edges'];assert read(other)['nodes']==peer_before;x.original()
     for direction,edges in [('undo',baseline['edges']),('redo',changed['edges'])]:
         step=f.invoke('draftHistory',dict(action='inspect'))['result']['result'][direction]

@@ -12,6 +12,16 @@ try:
     checkpoint=next(f.project.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
     baseline=timed('read-first',read)
     for i in range(3):assert timed(f'read-repeat-{i}',read)['edges']==baseline['edges']
+    if len(sys.argv)>4 and sys.argv[4]=='invalid':
+        new_body='global::System.Console.WriteLine(MissingProbe);'
+        result=f.invoke('blueprint',proposal(baseline))['result']['result'];assert result['settled']
+        saved=read();held=checkpoint.read_bytes();ids=saved['reviewIds']
+        reviewed=f.invoke('reviewGroup',dict(ids=ids))['state']['review'];assert not reviewed.get('errors'),reviewed
+        response=f.invoke('confirmGroup',dict(ids=ids,token=reviewed['token']));rejected=response['result']['result'];message=json.dumps(response['state'],ensure_ascii=False)
+        assert not rejected['sourceConfirmed'] and 'CS0103' in message and 'MissingProbe' in message,(rejected,'compiler diagnostic not projected by the web state')
+        assert checkpoint.read_bytes()==held and not new_files();x.original()
+        print('PASS actual Confirm compiler rejects invalid source and preserves checkpoint/originals',flush=True)
+        raise SystemExit(0)
     peer_before=read(other)['nodes'];q=proposal(baseline)
     source=f.project/peer['implementation'];raw=source.read_bytes();source.write_bytes(raw+b' ')
     try:
