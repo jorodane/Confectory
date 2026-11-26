@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_9'
+READY = 'CONFECTORY_INSPECT_STREAM_10'
 
 
 def exercise(root):
@@ -389,6 +389,12 @@ def exercise(root):
         c=project('long-preparation')
         schema=c.parent/'Schema.celem';schema.write_text(schema.read_text().replace('general int','general long'))
         record=c.parent/'Record.celem'
+        # Even an otherwise unused registered pack is part of the final
+        # overlay's exact read proof and is re-observed on every invocation.
+        witness=root/'overlay-witness';witness.mkdir()
+        witness_manifest=witness/'pack.cpack'
+        witness_manifest.write_text('pack Test.OverlayWitness version "1" { }')
+        c.write_text(c.read_text().rstrip()[:-1]+' registry Test.OverlayWitness "../overlay-witness/pack.cpack"; }')
         import hashlib
         def unit(kind,path):
             text=path.read_text()
@@ -408,11 +414,29 @@ def exercise(root):
                 assert actual['ok'] and actual==cold(payload),actual
             result=cold(candidate)['result']
             assert result.get('repeatProof') and 'data Count = 3;' in result['text']
+            overlay=dict(operation='validateLongDataOverlay',originalProject=str(c),id=declaration['id'],relative=record.name,baseline=declaration['hash'],after=result['text'])
+            proof=json.loads(send(proc,overlay))
+            assert proof['ok'] and proof['result']['eligible'] and proof==cold(overlay),proof
+            assert any(row['path']==str(witness_manifest) for row in proof['result']['reads'])
+            witness_manifest.write_text(witness_manifest.read_text()+'\n// external manifest edit\n')
+            updated_proof=json.loads(send(proc,overlay))
+            assert updated_proof['ok'] and updated_proof['result']['eligible'] and updated_proof==cold(overlay) and updated_proof!=proof,updated_proof
             assert all(p.read_bytes()==data for p,data in before.items())
             schema.write_text(schema.read_text().replace('general long','general bool'))
             refused=json.loads(send(proc,candidate))
             assert not refused['ok'] and refused==cold(candidate),refused
-            assert record.read_bytes()==before[record]
+            denied_overlay=json.loads(send(proc,overlay))
+            assert denied_overlay==cold(overlay) and not denied_overlay.get('result',{}).get('eligible'),denied_overlay
+            record.write_text(record.read_text().replace('Count = 2','Count = 4'))
+            stale_overlay=json.loads(send(proc,overlay))
+            assert not stale_overlay['ok'] and stale_overlay==cold(overlay),stale_overlay
+            assert 'Count = 4' in record.read_text()
+            assert send(proc,dict(overlay,originalProject=str(b)))=='' and proc.wait(timeout=5)==2
+        finally:
+            finish(proc)
+        proc=start()
+        try:
+            assert not json.loads(send(proc,candidate))['ok']
             assert send(proc,dict(candidate,project=str(b)))=='' and proc.wait(timeout=5)==2
         finally:
             finish(proc)
@@ -420,6 +444,11 @@ def exercise(root):
         try:
             unsupported=dict(candidate,changes=[dict(type='description',text='Not a direct long value')])
             assert send(proc,unsupported)=='' and proc.wait(timeout=5)==2
+        finally:
+            finish(proc)
+        proc=start()
+        try:
+            assert send(proc,dict(overlay,candidateProject=str(b)))=='' and proc.wait(timeout=5)==2
         finally:
             finish(proc)
         # The same shape can reference an imported schema. Its contract

@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema] [--run] [--timeline] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
+[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response|--lost-final-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema|--guard-final-permission] [--run] [--timeline] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
 The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
@@ -144,7 +144,33 @@ def activate(page):
 with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
  with web(browser,'value-save') as page:
   w=rules(page)
-  if '--lost-owner-response' in sys.argv:
+  if '--lost-final-response' in sys.argv:
+   value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
+   confirmed=[];masked=set()
+   def lose_final(route):
+    try:body=route.request.post_data_json
+    except Exception:body=None
+    if isinstance(body,dict) and body.get('endpoint')=='directPropertyConfirm':confirmed.append(body['requestId'])
+    response=route.fetch();payload=response.json()
+    for row in payload.get('results',[]):
+     rid=row.get('requestId')
+     if rid not in confirmed:continue
+     assert row.get('ok') and row.get('result',{}).get('sourceConfirmed') is True,row
+     assert 'data OpenMilliseconds = 2000;' in source_file.read_text()
+     masked.add(rid);row.clear();row.update(requestId=rid,ok=False,error={'code':'transport_lost'})
+    route.fulfill(response=response,json=payload)
+   page.route('**/api/request',lose_final)
+   try:
+    w.locator('[data-element-action=confirm]').click()
+    expect(page.locator('#status')).to_have_text('transport_lost',timeout=120000)
+   finally:
+    page.unroute_all(behavior='wait')
+   assert len(confirmed)==len(masked)==1,(confirmed,masked)
+   final_bytes=source_file.read_bytes()
+   assert all(snapshot(project)[k]==v for k,v in original.items() if k!='elements/TimingRules.celem')
+   assert snapshot(peer)==peer_original
+   print('PASS final source committed once despite lost final response',flush=True)
+  elif '--lost-owner-response' in sys.argv:
    value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
    applies=[];queries=[];masked=[]
    def lose_response(route):
@@ -173,24 +199,31 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
    assert len(journals())==1
    page.unroute_all(behavior='wait')
    print('PASS apply checkpoint persisted with reply lost and journal retained',flush=True)
-  elif '--guard-final-object' in sys.argv or '--guard-final-schema' in sys.argv:
+  elif any(flag in sys.argv for flag in ('--guard-final-object','--guard-final-schema','--guard-final-permission')):
    value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value('1000');value.fill('2000')
-   target=source_file if '--guard-final-object' in sys.argv else project/'elements'/(re.search(r'use schema [^:]+::([^;]+);',source_file.read_text())[1]+'.celem')
-   before=target.read_bytes()
-   changed=before.replace(b'OpenMilliseconds = 1000',b'OpenMilliseconds = 3000') if target==source_file else before.replace(b'general long',b'general bool')
-   assert changed!=before
+   permission='--guard-final-permission' in sys.argv
+   target=source_file if permission or '--guard-final-object' in sys.argv else project/'elements'/(re.search(r'use schema [^:]+::([^;]+);',source_file.read_text())[1]+'.celem')
+   before=target.read_bytes();original_mode=target.stat().st_mode & 0o777
+   changed=before if permission else before.replace(b'OpenMilliseconds = 1000',b'OpenMilliseconds = 3000') if target==source_file else before.replace(b'general long',b'general bool')
+   assert permission or changed!=before
    observed=[]
    def before_finalize(route):
     try:payload=route.request.post_data_json
     except Exception:payload=None
     if isinstance(payload,dict) and payload.get('endpoint')==('confirmGroup' if '--legacy-finalization' in sys.argv or '--baseline' in sys.argv else 'directPropertyConfirm') and not observed:
      assert source_file.read_bytes()==original['elements/TimingRules.celem']
-     target.write_bytes(changed);observed.append(True)
+     if permission:target.chmod(0o400)
+     else:target.write_bytes(changed)
+     observed.append(True)
     route.fallback()
    page.route('**/*',before_finalize)
-   w.locator('[data-element-action=confirm]').click()
-   expect(page.locator('#status')).to_contain_text('유지',timeout=120000)
-   assert observed and target.read_bytes()==changed
+   try:
+    w.locator('[data-element-action=confirm]').click()
+    expect(page.locator('#status')).to_contain_text('유지',timeout=120000)
+    assert observed and target.read_bytes()==changed
+    if permission:assert (target.stat().st_mode & 0o222)==0
+   finally:
+    if permission:target.chmod(original_mode)
    assert all(snapshot(project)[k]==v for k,v in original.items() if k!=str(target.relative_to(project)))
    assert snapshot(peer)==peer_original
    drafts=list((project/'.confectory/edit-workspaces').glob('*/draft.json'))
@@ -216,6 +249,14 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
     assert snapshot(peer)==peer_original
     w=rules(page);expect(w.get_by_label('OpenMilliseconds 기본값',exact=True)).to_have_value(str(new))
    print('PASS three direct saves/reopen and sources preserved',flush=True)
+ if '--lost-final-response' in sys.argv:
+  with web(browser,'cold-final-recovery') as page:
+   w=rules(page);expect(w.get_by_label('OpenMilliseconds 기본값',exact=True)).to_have_value('2000')
+   expect(w.locator('[data-element-action=confirm]')).to_be_disabled()
+   assert source_file.read_bytes()==final_bytes and snapshot(peer)==peer_original
+   for checkpoint in (project/'.confectory/edit-workspaces').glob('*/draft.json'):
+    assert not any(row.get('id')==ns+'::TimingRules' for row in json.loads(checkpoint.read_text())['changes'])
+   print('PASS cold final recovery shows committed value without another Save/Confirm',flush=True)
  if '--lost-owner-response' in sys.argv:
   with web(browser,'cold-recovery') as page:
    w=rules(page);expect(w.get_by_label('OpenMilliseconds 기본값',exact=True)).to_have_value('2000')
