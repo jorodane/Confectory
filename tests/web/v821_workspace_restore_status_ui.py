@@ -8,12 +8,14 @@ f, d = r.fixture, r.fallback
 r.seed()
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 expect.set_options(timeout=60000)
+primary_mode=mode in ('primary','primary-after-save')
+save_mode=mode in ('after-save','primary-after-save')
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
         f.start(0)
         page = f.setup(b)
         page.set_viewport_size({'width': 2000, 'height': 1200})
-        if mode=='primary':
+        if primary_mode:
             # The primary and detached owners are distinct. Open the primary
             # before filling all three detached slots, avoiding a duplicate UI target.
             browser=r.browser_window(page)
@@ -35,14 +37,14 @@ try:
             window.locator('[data-element-action="save"]').click()
             expect(page.locator('#project-menu')).to_be_enabled()
         saved_id=f.state()['draft']['id']
-        if mode=='primary':assert saved_id==d.NS+'::Extra2',saved_id
+        if primary_mode:assert saved_id==d.NS+'::Extra2',saved_id
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
         page.evaluate('()=>confectoryFlushPresentation()')
         page.close()
         f.stop()
         # Real outside edit after the original session has stopped.
         schema = f.projects[0].parent / 'private-source-StockInfo.celem'
-        if mode!='after-save':
+        if not save_mode:
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field RestartFlag single general string;\n}\n')
             f.before[str(schema)] = schema.read_bytes()
         f.env.pop('CONFECTORY_WEB_PROJECT', None)
@@ -76,7 +78,7 @@ try:
         for key, (identifier, value) in notes.items():
             window = page.locator(f'.window[data-key="{key}"]')
             expect(r.floating.property_value(window, 'Note')).to_have_value(value)
-            if mode!='after-save':expect(d.field(window, 'RestartFlag')).to_be_visible()
+            if not save_mode:expect(d.field(window, 'RestartFlag')).to_be_visible()
             assert window.get_attribute('data-element-owner') == identifier
         opens = [req for req in invokes if req.get('endpoint') == 'openEditorView']
         status = [req for req in invokes if req.get('endpoint') == 'browserDrafts' and req.get('input',{}).get('view')]
@@ -99,9 +101,10 @@ try:
             assert not any(req.get('endpoint')=='relationsMap' for req in invokes), invokes
         snapshot=f.state()
         assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews']) in (0,3)
-        if mode=='primary':
+        if primary_mode:
             assert snapshot['schema']['id']==saved_id
-            expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
+            expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value(d.FIRST+' Extra2')
+            if not save_mode:expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
         elif mode!='baseline':assert snapshot['schema'] is None, snapshot['schema']
 
         print('restored detached status reads',len(status),flush=True)
@@ -111,13 +114,20 @@ try:
             assert len(status)<=1 and all(req['input']['ids']==[d.NS+'::Extra1'] for req in status),status
         elif mode!='baseline':
             assert not status,status
-        if mode=='after-save':
+        if save_mode:
             key=next(key for key,(identifier,_) in notes.items() if identifier==d.NS+'::Extra1')
             target=page.locator(f'.window[data-key="{key}"]')
             source=f.projects[0].parent/'private-source-Extra1.celem'
             marker=len(invokes)
             button=target.locator('[data-element-action="confirm"]')
-            expect(button).to_have_text('저장');button.click()
+            expect(button).to_have_text('저장')
+            note=r.floating.property_value(target,'Note')
+            note.click()
+            assert page.evaluate('document.activeElement.closest(".window")?.dataset.key')==key
+            expect(note).to_have_value(notes[key][1])
+            assert target.get_attribute('data-element-owner')==notes[key][0]
+            assert source.read_bytes()==f.before[str(source)]
+            button.click()
             expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
             expect(page.locator('#project-menu')).to_be_enabled()
             calls=[req['endpoint'] for req in invokes[marker:]]
@@ -143,6 +153,32 @@ try:
             expect(d.field(window, 'AfterRestoreFlag')).to_be_visible()
             expect(r.floating.property_value(window, 'Note')).to_have_value(value)
         f.original()
+        if save_mode:
+            page.evaluate('()=>confectoryFlushPresentation()')
+            page.close()
+            f.stop()
+            f.start(2)
+            page=b.new_page(viewport={'width':2000,'height':1200})
+            page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(f.origin+'/') else route.abort())
+            goto_editor(page,f.url)
+            page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.FIRST,exact=True)).locator('[data-enter]').click()
+            expect(page.locator('#project-menu')).to_be_enabled()
+            for restored, (identifier,value) in notes.items():
+                window=page.locator(f'.window[data-key="{restored}"]')
+                expect(r.floating.property_value(window,'Note')).to_have_value(value)
+                assert window.get_attribute('data-element-owner')==identifier
+            page.locator('.brand').click()
+            expect(page.locator('.home-grid')).to_be_visible()
+            page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.SECOND,exact=True)).locator('[data-enter]').click()
+            browser=r.browser_window(page)
+            r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder1"]')
+            r.search(browser,d.LABEL,'Extra1')
+            browser.locator(f'[data-object="{d.NS}::Extra1"]').click(button='right')
+            page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click()
+            other=page.locator(f'.window[data-element-owner="{d.NS}::Extra1"][data-element-mode="properties"]:visible')
+            expect(r.floating.property_value(other,'Note')).to_have_value(d.SECOND+' Extra1')
+            f.original()
+            print('PASS restored string direct save, exact persisted source, restart and same-ID project isolation',flush=True)
         print('PASS cold restore ('+mode+'): exact three owners, retained input and external schema refresh', flush=True)
 finally:
     f.stop()

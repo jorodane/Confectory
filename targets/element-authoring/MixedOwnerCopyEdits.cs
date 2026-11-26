@@ -34,7 +34,7 @@ internal static class MixedOwnerCopyEdits
   var single=changes.Count==1?changes[0]:null;
   bool repeat=request["reuseLongPreparation"]?.GetValue<bool>()==true&&single?["type"]?.ToString()=="data"&&
    single["path"] is JsonArray singlePath&&singlePath.Count==1&&singlePath[0] is JsonValue fieldName&&fieldName.TryGetValue<string>(out var repeatField)&&
-   element.Data.TryGetValue(repeatField,out var oldDatum)&&oldDatum.Kind=="general"&&oldDatum.Scalar is JsonElement oldScalar&&oldScalar.TryGetInt64(out _)&&
+   element.Data.TryGetValue(repeatField,out var oldDatum)&&oldDatum.Kind=="general"&&oldDatum.Scalar is JsonElement oldScalar&&oldScalar.ValueKind==JsonValueKind.Number&&oldScalar.TryGetInt64(out _)&&
    JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"})&&
    element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&
    element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0;
