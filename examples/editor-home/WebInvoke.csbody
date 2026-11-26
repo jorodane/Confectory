@@ -192,6 +192,18 @@ void OpenSemantic(){
    System.Linq.Enumerable.SelectMany(presentation["workspaces"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),row=>row?["layout"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()));
   bool detachedOnly=System.Linq.Enumerable.All(layouts,row=>{string key=row?["key"]?.ToString()??"";return key=="source"&&row?["hidden"]?.GetValue<bool>()==true||key=="browser"||key.StartsWith("browser:",StringComparison.Ordinal)||key.StartsWith("browser-tree:",StringComparison.Ordinal)||key is "editor-1" or "editor-2" or "editor-3";});
   if(detachedOnly){try{Command("workspace",new(){["action"]="select",["id"]=selectedId});return;}catch(InvalidOperationException){/* Stale saved owner: preserve the ordinary recovery path. */}}
+  // When the saved primary properties view is visible, resolve that exact owner
+  // instead of opening a default owner which the client immediately replaces.
+  bool savedPrimary=System.Linq.Enumerable.Any(layouts,row=>row?["key"]?.ToString()=="schema"&&row?["meta"]?["id"]?.ToString()==selectedId&&row?["hidden"]?.GetValue<bool>()!=true);
+  bool supportedMixed=System.Linq.Enumerable.All(layouts,row=>{string key=row?["key"]?.ToString()??"";return key=="source"&&row?["hidden"]?.GetValue<bool>()==true||key=="browser"||key.StartsWith("browser:",StringComparison.Ordinal)||key.StartsWith("browser-tree:",StringComparison.Ordinal)||key is "editor-1" or "editor-2" or "editor-3" or "map" or "builds" or "history"||key=="schema"&&row?["meta"]?["id"]?.ToString()==selectedId;});
+  if(savedPrimary&&supportedMixed){
+   try{
+    var saved=Command("workspace",new(){["action"]="select",["id"]=selectedId});
+    if(saved["workspace"]?["unit"]?["id"]?.ToString()==selectedId&&saved["workspace"]?["unit"]?["kind"]?.ToString() is "object" or "schema"){
+     Command("workspace",new(){["action"]="schema-view"});return;
+    }
+   }catch(InvalidOperationException){/* Stale presentation: ordinary recovery below. */}
+  }
  }
  var opened=Command("workspace",new(){["action"]="open"});if(opened["workspace"]?["unit"]?["kind"]?.ToString() is "body" or "blueprint" or "blueprint-node" or "pack" or "project"){var filtered=Command("workspace",new(){["action"]="filter",["kind"]="object",["query"]=""});var first=System.Linq.Enumerable.FirstOrDefault(filtered["workspace"]?["units"]?.AsArray()??new System.Text.Json.Nodes.JsonArray());if(first is null)return;Command("workspace",new(){["action"]="select",["id"]=first["id"]!.DeepClone()});}Command("workspace",new(){["action"]="schema-view"});}
 

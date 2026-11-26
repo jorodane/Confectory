@@ -8,7 +8,7 @@ f, d = r.fixture, r.fallback
 r.seed()
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 expect.set_options(timeout=60000)
-primary_mode=mode in ('primary','primary-after-save')
+primary_mode=mode in ('primary','primary-after-save','missing-primary')
 save_mode=mode in ('after-save','primary-after-save')
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
@@ -47,6 +47,12 @@ try:
         if not save_mode:
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field RestartFlag single general string;\n}\n')
             f.before[str(schema)] = schema.read_bytes()
+        if mode=='missing-primary':
+            manifest=f.projects[0]
+            marker='element Extra2 object "private-source-Extra2.celem";'
+            assert marker in manifest.read_text()
+            manifest.write_text(manifest.read_text().replace(marker,''))
+            f.before[str(manifest)]=manifest.read_bytes()
         f.env.pop('CONFECTORY_WEB_PROJECT', None)
         f.start(1)
         page = b.new_page(viewport={'width': 2000, 'height': 1200})
@@ -66,6 +72,13 @@ try:
         page.route('**/*', intercept)
         goto_editor(page, f.url)
         page.locator('.project-card').filter(has=page.get_by_role('heading', name=d.FIRST, exact=True)).locator('[data-enter]').click()
+        if mode=='missing-primary':
+            expect(page.locator('.work-body')).to_be_visible()
+            expect(page.locator('#title')).to_contain_text(d.FIRST)
+            expect(page.locator('#status')).to_contain_text('실제 편집창 복원 실패')
+            f.original()
+            print('PASS missing saved primary owner retains the project and reports recovery failure',flush=True)
+            raise SystemExit(0)
         if mode=='stale':
             deadline=time.monotonic()+30
             while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
@@ -103,6 +116,7 @@ try:
         assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews']) in (0,3)
         if primary_mode:
             assert snapshot['schema']['id']==saved_id
+            assert not any(req.get('endpoint') in ('select','schema') for req in invokes),invokes
             expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value(d.FIRST+' Extra2')
             if not save_mode:expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
         elif mode!='baseline':assert snapshot['schema'] is None, snapshot['schema']
