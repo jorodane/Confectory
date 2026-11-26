@@ -301,9 +301,9 @@ try
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
             if(manifest.Kind=="pack"){foreach(var (name,unit) in manifest.Elements){string path=PackPaths.Owned(Path.GetDirectoryName(candidate)!,unit.Path);var element=new Parser(File.ReadAllText(path),path).ParseElement();if(element.Id!=manifest.Namespace+"::"+name||element.Kind!=unit.Kind)throw new ArgumentException("Pack unit identity mismatch");foreach(var body in element.Bodies.Values)File.ReadAllText(PackPaths.Owned(Path.GetDirectoryName(candidate)!,body.Path));}reply=new JsonObject{["state"]="valid",["level"]="owned-syntax-only",["linkValidated"]=false};break;}
             // Candidate validation is thrown away after Confirm. Reuse only exact
-            // contract compiler keys within the same original project, not source
-            // declarations, candidate paths, review proofs or execution outputs.
-            string? artifactCache=null;
+            // contract and imported native implementation keys within the same
+            // original project, not declarations, review proofs or link outputs.
+            string? artifactCache=null,implementationCache=null;
             try{
                 string full=Path.GetFullPath(candidate),candidateRoot=Path.GetDirectoryName(full)!;
                 var candidates=Directory.GetParent(candidateRoot);var state=candidates?.Parent;var owner=state?.Parent;
@@ -313,10 +313,14 @@ try
                     string projectIdentity=OperatingSystem.IsWindows()?original.ToUpperInvariant():original;
                     string? cache=profile is not null&&Path.IsPathFullyQualified(profile)&&Directory.Exists(profile)?Path.Combine(profile,"validation-contracts-v1",JsonData.Digest(new[]{projectIdentity,manifest.Namespace})):null;
                     bool NoLinks(string path){for(FileSystemInfo? node=new FileInfo(path);node is not null;node=node is FileInfo f?f.Directory:((DirectoryInfo)node).Parent)if(node.LinkTarget is not null)return false;return true;}
-                    if(cache is not null&&NoLinks(full)&&NoLinks(original)&&NoLinks(cache)&&File.Exists(original)&&new FileInfo(original).Length<=1048576&&new Parser(File.ReadAllText(original),original).ParseManifest().Namespace==manifest.Namespace)artifactCache=cache;
+                    if(cache is not null&&NoLinks(full)&&NoLinks(original)&&NoLinks(cache)&&File.Exists(original)&&new FileInfo(original).Length<=1048576&&new Parser(File.ReadAllText(original),original).ParseManifest().Namespace==manifest.Namespace){
+                        artifactCache=cache;
+                        string importedCache=Path.Combine(profile!,"validation-implementations-v1",JsonData.Digest(new[]{projectIdentity,manifest.Namespace}));
+                        if(NoLinks(importedCache))implementationCache=importedCache;
+                    }
                 }
             }catch{ /* Nonstandard/changed candidate retains fresh validation. */ }
-            var builder=new Builder(candidate,S("target"),artifactCache);builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
+            var builder=new Builder(candidate,S("target"),artifactCache,implementationCache);builder.Validate();builder.Check(builder.Registry.Project.Namespace);builder.Build();
             reply=new JsonObject{["state"]="valid"};break;
         }
         default:throw new ArgumentException("Unknown authoring operation.");

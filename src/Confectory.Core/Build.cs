@@ -132,18 +132,21 @@ public sealed partial class Builder
     public TargetTool Tool { get; }
     private readonly Artifacts cache;
     private readonly Artifacts contractCache;
+    private readonly Artifacts implementationCache;
     public Dictionary<string, JsonObject> Contracts { get; } = new(StringComparer.Ordinal);
 
     public Builder(string project, string target) : this(project,target,null) { }
-    // A caller with a verified candidate owner may share only the content-
-    // addressed contract artifacts. Declaration snapshots, implementation code and output remain local.
-    public Builder(string project, string target, string? contractCacheRoot)
+    // A verified candidate owner may share content-addressed contracts and
+    // imported native implementation artifacts. Root sources, Blueprint node
+    // proofs, declaration snapshots and final link output remain local.
+    public Builder(string project, string target, string? contractCacheRoot, string? implementationCacheRoot = null)
     {
         Project = PackPaths.Resolve(project); Target = target; State = Path.Combine(Path.GetDirectoryName(Project)!, ".confectory");
         Documents = new(Path.Combine(State, "cache", "declarations"), Statistics);
         Registry = new(Project, Documents, Statistics); Tool = new(Registry, target);
         cache = new(Path.Combine(State, "cache", "artifacts"));
         contractCache = contractCacheRoot is null?cache:new(contractCacheRoot);
+        implementationCache = implementationCacheRoot is null?cache:new(implementationCacheRoot);
     }
     private static string WriteSource(string path, string text)
     { File.WriteAllText(path, text, new UTF8Encoding(false)); return path; }
@@ -219,6 +222,9 @@ public sealed partial class Builder
         if (contractGroups.Count == 0) PrepareContracts(selected.SelectMany(e => new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))));
         var sources = new List<(string Id, string Code)>();
         var refs = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        // Only imported native-body packs can reuse validation artifacts across
+        // candidate directories. Root code paths and Blueprint node proofs stay local.
+        bool reusableImport = ns != Registry.Project.Namespace;
         foreach (var e in selected)
         {
             if (PackPaths.Namespace(e.Id) != ns) throw new BuildError("LOCAL_INPUT", "Cannot compile elements owned by different packs together");
@@ -228,6 +234,9 @@ public sealed partial class Builder
             var executionFeature = Registry.Get(e.Function!, "function");
             if (BlueprintAsync.Has(executionFeature) && (body.SourceKind != "blueprint" || e.Bodies.Values.Any(b => b.SourceKind != "blueprint"))) throw new BuildError("ASYNC_PROVIDER", "Explicit async execution requires Blueprint targets; retain original C# bodies and convert explicitly", e.Loc);
             if (BlueprintExecutionBranches.Has(executionFeature) && (body.SourceKind != "blueprint" || e.Bodies.Values.Any(b => b.SourceKind != "blueprint"))) throw new BuildError("BLUEPRINT_EXECUTION_PROVIDER", "Public execution branches require Blueprint targets without opaque effective bodies", e.Loc);
+            string candidateRelative = Path.GetRelativePath(Path.GetDirectoryName(Project)!, path);
+            reusableImport &= body.SourceKind != "blueprint" && PackPaths.Namespace(body.Origin) != Registry.Project.Namespace &&
+                (Path.IsPathRooted(candidateRelative) || candidateRelative == ".." || candidateRelative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal));
             string source = body.SourceKind == "blueprint" ? (blueprint ??= new BlueprintCompilation(Registry, Target, Tool)).Assemble(e, body, path) : Documents.Body(path);
             sources.Add((e.Id, Generation.ImplementationSource(e, source, body.SourceKind == "blueprint" ? "graph:" + e.Function : path, blueprint?.Members.GetValueOrDefault(e.Id) ?? "", blueprint?.EntrySignatures.GetValueOrDefault(e.Id), executionFeature, e.Imports.Values.Where(i => BlueprintAsync.Has(Registry.Get(i.Id, "function"))).Select(i => i.Id).ToHashSet(StringComparer.Ordinal))));
             foreach (string fn in new[] { e.Function! }.Concat(e.Imports.Values.Select(x => x.Id))) refs[fn] = Contract(fn);
@@ -235,15 +244,21 @@ public sealed partial class Builder
         string key = JsonData.Digest(new object[] { ArtifactLayout, Generation.Abi, Tool.Identity, "implementations", ns,
             sources.Select(x => new[] { x.Id, x.Code }).ToArray(),
             refs.OrderBy(x => x.Key, StringComparer.Ordinal).Select(x => new[] { x.Key, x.Value["key"]!.GetValue<string>() }).ToArray() });
-        var artifact = cache.Get(key);
+        var packCache = reusableImport?implementationCache:cache;
+        var artifact = packCache.Get(key);
         if (artifact is not null) { Statistics.ReusedPacks.Add(ns); Statistics.ReusedImplementations.AddRange(selected.Select(x => x.Id)); }
         else
         {
-            artifact = cache.Produce(key, work => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
+            JsonObject Compile(string work) => Tool.Invoke("compile-pack", new { output = work, name = "Pack_" + Generation.Symbol(ns),
                 sources = sources.Select(x => WriteSource(Path.Combine(work, Generation.Symbol(x.Id) + ".cs"), x.Code)).ToArray(),
+                // Preserve the normal compiler request on a miss. A reused native
+                // import has no own Blueprint nodes; the root Check validates them.
                 blueprintNodes = blueprint?.Nodes,
                 references = refs.Values.Select(x => x["reference"]!.GetValue<string>()).Concat(InformationFiles(refs.Values, "reference")).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray()
-            })["artifacts"]!.AsObject());
+            })["artifacts"]!.AsObject();
+            try { artifact = packCache.Produce(key, Compile); }
+            catch (Exception error) when (!ReferenceEquals(packCache,cache) && error is IOException or UnauthorizedAccessException)
+            { artifact = cache.Get(key) ?? cache.Produce(key, Compile); }
             Statistics.CompiledPacks.Add(ns); Statistics.CompiledImplementations.AddRange(selected.Select(x => x.Id));
         }
         blueprint?.EnsureUnchanged(verifyCompiler: true);

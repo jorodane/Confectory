@@ -503,7 +503,9 @@ try:
         f.start(2)
         page = f.setup(browser)
         page.set_viewport_size({'width': 1800, 'height': 1200})
+        run_started=time.perf_counter()
         run_from_dock(page, marker, 'new function executed')
+        print('TIMING Run to observed output ms',round((time.perf_counter()-run_started)*1000),flush=True)
         if branch_mode:assert execution_marker.read_text()=='positive,negative,primary'
         else:assert donor_marker.read_text() == '37'
         assert not f.errors and not f.external, (f.errors, f.external)
