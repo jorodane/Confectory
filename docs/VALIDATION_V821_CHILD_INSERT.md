@@ -125,3 +125,9 @@
 재실행: `python tests/web/v821_new_function_document_ui.py <repo> <run-report> staged`. 기존 `branch` 방식은 비교 대상으로 유지한다. 실제 Linux Chromium에서 새 기능 작성, 복합 전환 및 Undo/Redo, 자식 동작 및 분기 생성, 분기 호출과 상수 37 연결, 외부 원본 변경의 Save 거절과 cold recovery, Review 취소, 최종 원본 변경의 Confirm 거절, 최종 Confirm, 재개방을 검사했다. 실행은 기존 일반 ▶와 별도의 합성 entry harness에서 positive/negative/primary의 세 경로, 입력 37 및 원래 반환값 0을 확인한다. 실제 사용자 프로젝트와 계정, Windows/WebView2는 검증하지 않았다.
 
 동일 Linux 빌드의 격리 프로필 각각 한 번 측정한 성공 경로의 시간이다(오류 주입, Review 열기, 재시작 및 실행 시간 제외). 복합 전환 클릭부터 문서 표시까지는 기존 2,937ms, 연속 초안 5,332ms로 개선되지 않았다. 일반 자식 추가 클릭부터 셀 표시까지는 127ms와 96ms였다. 실제 셀 편집까지도 검사했지만 이 수치는 첫 키 입력 지연 측정은 아니다. 성공한 Save 5회의 합은 기존 15,353ms, 연속 초안 13,075ms였다. Confirm 5회의 합 55,872ms가 최종 한 번 12,013ms로 줄었다. Save와 Confirm 합은 약 71.2초에서 25.1초로 줄었다. 단일 관측이므로 개별 처리 시간의 통계적 개선은 주장하지 않는다. 제거된 확정 왕복이 주효하며 복합 전환과 단일 최종 검증의 지연은 남아 있다.
+
+#### 복합 전환 미리보기의 중복 조회 감소
+
+직접 소유 root에서 최초 복합 전환을 클릭할 때만, 현재 표시 중인 전체 source proof와 checkpoint를 기존 `previewNodeInternal` 요청에 함께 전달한다. 서버는 기존 미리보기 자체의 authoritative read로 이 관측을 대조하고, 불일치는 거절한다. 이미 실행된 시도/재시작/내부 경로/slot은 기존 복구 절차를 사용하며 Save 및 Confirm의 실제 원본 CAS와 계약 검증은 유지한다.
+
+실제 Chromium `staged` 회귀에서 클릭부터 문서 표시 사이 blueprint `read`/미리보기 요청이 두 개에서 한 개로 감소한 것을 검사한다. 이번 독립 실행의 전환 1,925ms, 자식 셀 표시 117ms, 성공 Save 5회 13,492ms, Confirm 12,030ms를 관찰했다. 앞선 2649ff4의 전환 관측 5,332ms와 비교하되 단일 시행의 편차가 커서 보편적 지연 단축으로 단정하지 않는다. 이 개선으로 수동 Save 횟수가 줄어들지는 않는다. Save를 한 번으로 합치려면 기존 preview 후보의 수명과 이후의 child/enum/call source binding 및 이력을 하나의 비공개 session model에서 유지하고 최종 체크포인트 시점에 원본·규칙·의존성을 다시 검증해야 한다. 자동으로 기존 Save를 호출하는 것은 기존 소유권 이력 경계를 앞당기므로 이 변경에서 시행하지 않는다.

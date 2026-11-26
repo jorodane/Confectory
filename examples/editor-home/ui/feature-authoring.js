@@ -1945,6 +1945,13 @@ function blueprintNormalizeControls(scope){
    const data=prepared.data;if(proposal.binding&&JSON.stringify(proposal.binding)!==JSON.stringify(data.copyNodeFlowBinding))throw Error('복사한 C# 원본 문맥이 바뀌었습니다. 입력은 유지됩니다.');
    proposal.binding=structuredClone(data.copyNodeFlowBinding);data.id=selected;data.privateConversion=true;data.nodeFlowPreview=true;data.nodeFlowOriginal=baseline.data;return data;
   }
+  // On the initial directly owned root gesture the exact displayed source
+  // proof can be checked by the preview command's own authoritative read.
+  if(!restored&&!proposal.attempt&&!proposal.binding&&!w.meta.slotOwner&&!w.meta.authorView&&flowParentFrame(proposal)===proposal.root&&w.authorData.id===proposal.root){
+   const data=await call(w,{action:'previewNodeInternal',id:proposal.root,node:proposal.node,frame:frame||flowChildFrame(proposal),observedSources:proposal.sourceProof,observedCheckpoint:proposal.checkpointHash,definition:{nonce:proposal.nonce}},alive);
+   if(!sameRestoredSources(proposal.sourceProof,data.nodeFlowOriginal)||proposal.checkpointHash!==data.nodeFlowOriginal.checkpointHash)throw Error('원본 C# 또는 저장 초안이 바뀌었습니다. 내부 흐름 입력은 보존했습니다.');
+   proposal.binding=structuredClone(data.nodeFlowBinding);data.privateConversion=true;return data;
+  }
   // Slot revisions are process-local. Cold recovery still requires the exact
   // owner hash and complete accepted source receipt before rebasing any input.
   if(restored&&w.meta.slotOwner)delete w.meta.slotRevision;

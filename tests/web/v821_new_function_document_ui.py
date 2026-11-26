@@ -107,12 +107,15 @@ try:
             graph_path=next(manifest.parent.glob('blueprints/*.graph.json'))
             original_graph=graph_path.read_bytes()
             retained_source=graph_path.parent/json.loads(original_graph)['nodes'][0]['implementation'];retained_bytes=retained_source.read_bytes()
-            start=doc.locator('[data-document-internal=body]');expect(start).to_be_enabled();started=time.perf_counter();start.click()
+            start=doc.locator('[data-document-internal=body]');expect(start).to_be_enabled();wrap_requests=len(f.requests);started=time.perf_counter();start.click()
             try:expect(panel.locator('.bp-breadcrumbs')).to_be_visible(timeout=20000)
             except Exception:
                 print('internalize failure:',panel.locator('.bp-status').inner_text(),flush=True);raise
             panel.get_by_role('tab',name='논리 코드',exact=True).click()
             expect(doc.locator('[data-document-cell=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1);print('TIMING wrap editable ms',round((time.perf_counter()-started)*1000),flush=True)
+            wrap_calls=[r['input'] for r in f.requests[wrap_requests:] if r.get('endpoint')=='blueprint' and r.get('input',{}).get('action') in ('read','previewNodeInternal')]
+            assert len(wrap_calls)==1 and wrap_calls[0]['action']=='previewNodeInternal' and wrap_calls[0].get('observedSources') and wrap_calls[0].get('observedCheckpoint'), [r.get('action') for r in wrap_calls]
+            print('PASS direct root wrapping uses one bound preview request',flush=True)
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+z');expect(doc.locator('[data-document-internal=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(0)
             assert graph_path.read_bytes()==original_graph
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+y');expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)

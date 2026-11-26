@@ -45,7 +45,11 @@ def build(name,expected):
 if __name__=='__main__':
  try:
   build('before',7);f.start(0);d=read();assert d['diagnostics']['state']=='source-ready';before=checkpoint();nonce=uuid.uuid4().hex
-  preview=rpc('previewNodeInternal',node='calculate',definition={'nonce':nonce});assert preview['privatePath']=='calculate' and preview['nodeFlowPreview'];assert next(x for x in preview['nodes'] if x['id']=='body')['source']==record['source'];assert checkpoint()==before;original();f.checked('내부 진입 미리보기는 원문·helper·연결·물리 파일과 체크포인트를 변경하지 않는다')
+  observation={'observedSources':proof(d),'observedCheckpoint':d['checkpointHash']}
+  rpc('previewNodeInternal',False,node='calculate',definition={'nonce':nonce},**{**observation,'observedCheckpoint':'0'*64})
+  rpc('previewNodeInternal',False,node='calculate',definition={'nonce':nonce},**{**observation,'observedSources':proof(d).replace(d['sources'][0]['hash'],'0'*64)})
+  assert checkpoint()==before;original()
+  preview=rpc('previewNodeInternal',node='calculate',definition={'nonce':nonce},**observation);assert preview['privatePath']=='calculate' and preview['nodeFlowPreview'];assert next(x for x in preview['nodes'] if x['id']=='body')['source']==record['source'];assert checkpoint()==before;original();f.checked('내부 진입 미리보기는 원문·helper·연결·물리 파일과 체크포인트를 변경하지 않는다')
   # The pure preparer refuses unsupported contexts before moving any code.
   owner_request={'project':str(manifest),'id':impl,'text':(f.project/'FlowBody.celem').read_text(),'bodyTarget':'common'}
   for name in ['legacy','context','forwarded','ref','out','branch','switch','wrong-receipt']:
