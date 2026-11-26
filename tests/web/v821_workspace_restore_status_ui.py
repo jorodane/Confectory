@@ -1,15 +1,16 @@
 """Restore three owned windows using the initial status already read by the host."""
 import sys,time
 import v821_property_window_reopen_ui as r
-from playwright.sync_api import sync_playwright, expect
+from playwright.sync_api import sync_playwright, expect, TimeoutError as PlaywrightTimeoutError
 from editor_navigation import goto_editor
 
 f, d = r.fixture, r.fallback
 r.seed()
 mode=sys.argv[3] if len(sys.argv)>3 else 'normal'
 expect.set_options(timeout=60000)
-primary_mode=mode in ('primary','primary-after-save','missing-primary')
-save_mode=mode in ('after-save','primary-after-save')
+close_mode=mode in ('primary-close-restore','primary-close-persist')
+primary_mode=mode in ('primary','primary-after-save','missing-primary') or close_mode
+save_mode=mode in ('after-save','primary-after-save') or close_mode
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
         f.start(0)
@@ -25,17 +26,19 @@ try:
             page.locator(".context-menu").get_by_role("button", name="스키마 열기", exact=True).click()
             primary=page.locator('.window[data-key="schema"]')
             expect(r.floating.property_value(primary,'Note')).to_have_value(d.FIRST+' Extra2')
+            if close_mode:r.floating.property_value(primary,'Note').fill('Retained primary close input')
         notes = {}
         for name, folder in [(d.TARGET, 'StockFolder'), (d.PEER, 'PeerFolder'), ('Extra1', 'ExtraFolder1')]:
             window, key = r.floating.open_properties(page, name, folder)
             value = 'Retained local ' + name
             r.floating.property_value(window, 'Note').fill(value)
             notes[key] = (f'{d.NS}::{name}', value)
-        if mode=='stale':
+        if mode in ('stale','detached-close-restore'):
             # A retained dirty working copy deliberately exercises the ordinary
             # host admission fallback instead of the clean local read model.
             window.locator('[data-element-action="save"]').click()
             expect(page.locator('#project-menu')).to_be_enabled()
+        geometry={key:page.locator(f'.window[data-key="{key}"]').bounding_box() for key in notes} if close_mode else {}
         saved_id=f.state()['draft']['id']
         if primary_mode:assert saved_id==d.NS+'::Extra2',saved_id
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
@@ -66,18 +69,59 @@ try:
                 req = route.request.post_data_json
                 if req.get('op') == 'invoke':
                     invokes.append(req)
-                    if mode=='stale' and req.get('endpoint')=='openEditorView' and req.get('input',{}).get('view')=='2' and not held:
+                    if close_mode and req.get('endpoint')=='preparePropertyModels' and not held:
+                        held.append(route);return
+                    if mode in ('stale','detached-close-restore') and req.get('endpoint')=='openEditorView' and req.get('input',{}).get('view')=='2' and not held:
                         held.append(route);return
             route.continue_()
         page.route('**/*', intercept)
         goto_editor(page, f.url)
         page.locator('.project-card').filter(has=page.get_by_role('heading', name=d.FIRST, exact=True)).locator('[data-enter]').click()
+        if close_mode:
+            deadline=time.monotonic()+30
+            while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
+            assert len(held)==1
+            primary=page.locator('.window[data-key="schema"]')
+            try:
+                expect(primary).to_be_visible()
+                primary.get_by_role('button',name='창 닫기',exact=True).click()
+                expect(primary).to_be_hidden()
+                # Home navigation cannot race the in-progress restore.
+                try:page.locator('.brand').click(timeout=1500)
+                except PlaywrightTimeoutError:pass
+                expect(page.locator('.work-body')).to_be_visible()
+                expect(page.locator('#title')).to_contain_text(d.FIRST)
+            finally:held[0].continue_()
         if mode=='missing-primary':
             expect(page.locator('.work-body')).to_be_visible()
             expect(page.locator('#title')).to_contain_text(d.FIRST)
             expect(page.locator('#status')).to_contain_text('실제 편집창 복원 실패')
             f.original()
             print('PASS missing saved primary owner retains the project and reports recovery failure',flush=True)
+            raise SystemExit(0)
+        if mode=='detached-close-restore':
+            deadline=time.monotonic()+30
+            while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
+            assert len(held)==1
+            key=next(key for key,(identifier,_) in notes.items() if identifier==d.NS+'::'+d.TARGET)
+            target=page.locator(f'.window[data-key="{key}"]')
+            try:
+                expect(target).to_be_visible(timeout=5000)
+                target.get_by_role('button',name='창 닫기',exact=True).click()
+                expect(target).to_be_hidden()
+            finally:held[0].continue_()
+            expect(page.locator('#project-menu')).to_be_enabled()
+            expect(target).to_be_hidden(timeout=3000)
+            for peer,(identifier,value) in notes.items():
+                if peer!=key:
+                    window=page.locator(f'.window[data-key="{peer}"]')
+                    expect(window).to_be_visible()
+                    expect(r.floating.property_value(window,'Note')).to_have_value(value)
+            r.drag(page,d.TARGET,'StockFolder')
+            expect(target).to_be_visible()
+            expect(r.floating.property_value(target,'Note')).to_have_value(notes[key][1])
+            f.original()
+            print('PASS retained detached window closes during next admission and reopens with input',flush=True)
             raise SystemExit(0)
         if mode=='stale':
             deadline=time.monotonic()+30
@@ -88,6 +132,13 @@ try:
             finally:held[0].continue_()
         expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(3)
         expect(page.locator('#project-menu')).to_be_enabled()
+        if close_mode:
+            expect(primary).to_be_hidden(timeout=3000)
+            print('PASS completed restore does not reopen the explicitly closed primary',flush=True)
+            # Other restored windows retain geometry and are real, editable owners.
+            for key,box in geometry.items():
+                actual=page.locator(f'.window[data-key="{key}"]').bounding_box()
+                assert actual and all(abs(actual[field]-box[field])<=2 for field in ('x','y','width','height')),(key,box,actual)
         for key, (identifier, value) in notes.items():
             window = page.locator(f'.window[data-key="{key}"]')
             expect(r.floating.property_value(window, 'Note')).to_have_value(value)
@@ -112,12 +163,46 @@ try:
             projections=[req for req in invokes if req.get('endpoint')=='localInventory' and req.get('input',{}).get('relations')]
             assert len(projections)==1, projections
             assert not any(req.get('endpoint')=='relationsMap' for req in invokes), invokes
+        if mode=='primary-close-persist':
+            page.evaluate('()=>confectoryFlushPresentation()')
+            page.close()
+            f.stop()
+            f.start(2)
+            page=b.new_page(viewport={'width':2000,'height':1200})
+            page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(f.origin+'/') else route.abort())
+            goto_editor(page,f.url)
+            page.locator('.project-card').filter(has=page.get_by_role('heading',name=d.FIRST,exact=True)).locator('[data-enter]').click()
+            expect(page.locator('.window[data-key^="editor-"]:visible')).to_have_count(3)
+            expect(page.locator('#project-menu')).to_be_enabled()
+            expect(page.locator('.window[data-key="schema"]')).to_be_hidden()
+            for key,(identifier,value) in notes.items():
+                window=page.locator(f'.window[data-key="{key}"]')
+                expect(r.floating.property_value(window,'Note')).to_have_value(value)
+                assert window.get_attribute('data-element-owner')==identifier
+            browser=r.browser_window(page)
+            r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder2"]')
+            r.search(browser,d.LABEL,'Extra2')
+            browser.locator(f'[data-object="{d.NS}::Extra2"]').click(button='right')
+            page.locator('.context-menu').get_by_role('button',name='스키마 열기',exact=True).click()
+            expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value('Retained primary close input')
+            f.original()
+            print('PASS closed layout persists across restart; explicit reopen retains input',flush=True)
+            raise SystemExit(0)
         snapshot=f.state()
         assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews']) in (0,3)
         if primary_mode:
             assert snapshot['schema']['id']==saved_id
             assert not any(req.get('endpoint') in ('select','schema') for req in invokes),invokes
-            expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value(d.FIRST+' Extra2')
+            if close_mode:
+                browser=r.browser_window(page)
+                r.choose_tree_location(browser,f'[data-tree-id="{d.NS}::ExtraFolder2"]')
+                r.search(browser,d.LABEL,'Extra2')
+                browser.locator(f'[data-object="{d.NS}::Extra2"]').click(button='right')
+                page.locator('.context-menu').get_by_role('button',name='스키마 열기',exact=True).click()
+                expect(primary).to_be_visible()
+                expect(r.floating.property_value(primary,'Note')).to_have_value('Retained primary close input')
+                print('PASS manual reopen retains closed primary input and exact owner',flush=True)
+            else:expect(r.floating.property_value(page.locator('.window[data-key="schema"]'),'Note')).to_have_value(d.FIRST+' Extra2')
             if not save_mode:expect(d.field(page.locator('.window[data-key="schema"]'),'RestartFlag')).to_be_visible()
         elif mode!='baseline':assert snapshot['schema'] is None, snapshot['schema']
 

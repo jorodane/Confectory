@@ -168,7 +168,7 @@ function ensureWindowVisible(w){
  w.x=(x-view.x)/view.scale;w.y=(y-view.y)/view.scale;placeWindow(w);saveLayouts();
 }
 
-function closeWindow(key,approved=false){const w=state.windows.get(key);if(!w)return;if(!approved&&host.beforeCloseWindow?.(w,()=>closeWindow(key,true)))return;state.cancelDrag?.();linkRuntime.remove([key]);if(w.documentDocked){host.closeWindowDocument?.(key,approved);return}if(host.hideWindowOnClose?.(key)){w.el.hidden=true;unregisterWorkspaceNode(key);saveLayouts();return}host.detachWindow?.(w,'close');clearTimeout(w.helperBubbleTimer);host.referenceTooltipCleanup?.();w.el.remove();state.windows.delete(key);unregisterWorkspaceNode(key);if(key==='run'&&host.running){host.closeRun()}saveLayouts()}
+function closeWindow(key,approved=false){const w=state.windows.get(key);if(!w)return;if(!approved&&host.beforeCloseWindow?.(w,()=>closeWindow(key,true)))return;state.cancelDrag?.();linkRuntime.remove([key]);if(w.documentDocked){host.closeWindowDocument?.(key,approved);return}if(host.hideWindowOnClose?.(key)){w.el.hidden=true;unregisterWorkspaceNode(key);host.windowClosed?.(w,true);saveLayouts();return}host.detachWindow?.(w,'close');clearTimeout(w.helperBubbleTimer);host.referenceTooltipCleanup?.();w.el.remove();state.windows.delete(key);unregisterWorkspaceNode(key);host.windowClosed?.(w,false);if(key==='run'&&host.running){host.closeRun()}saveLayouts()}
 
 function toggleWindow(key,fn){state.windows.has(key)?closeWindow(key):fn()}
 

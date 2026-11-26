@@ -8,6 +8,7 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
+  let restoreFlight=null;
   const readyWaiters=new Set();function ready(){loading=false;for(const resolve of readyWaiters)resolve();readyWaiters.clear();}function whenReady(){return loading?new Promise(resolve=>readyWaiters.add(resolve)):Promise.resolve();}
   const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';let office=null;
   // Browser Data borrows an editor owner once it has an explicit field definition.
@@ -26,6 +27,7 @@ export function createActualWorkspace(api) {
     foregroundZ:node=>node.key==='ai-preview'&&api.$('.augment-overlay')?271:undefined,
     beforeCloseWindow:(w,close)=>api.beforeCloseWindow?.(w,close)||false,
     hideWindowOnClose:key=>keepsEditing(key,runtime.state.windows.get(key)?.meta),
+    windowClosed:(w,retained)=>rememberRestoreClose(w,retained),
     layoutMetadata:w=>Object.fromEntries(['resourceFilter','resourceSelections','resourceAnchor','resourceRenameInput','resourceDescriptionDraft','resourceFolder','resourceClosedFolders','resourceLayoutPending','resourceOwner','resourceId','resourceHash','resourceSelected','id','view','mode','group','density','query','sort','mainWorkspace','namespace','catalogue','kind','parent','queryInput','browserLocations','schemaCollapsed','ownPropertiesCollapsed','inheritedSourceCollapsed','functionsCollapsed','ownFunctionsCollapsed','variationsCollapsed','variations','elementBrowsers','browserData','propertyExpanded','propertyCollapsedInfo','propertyCollapsedValues','behaviorSourceCollapsed','hierarchyVisible','treeWidth','treeRestoreWidth','closedNamespaces','treeExpanded','treeSelection','treeQuery','workerId','copyDraft','implementationBody','conversionDraft','nodeFlowDraft','creationPending','creationDeclaration','slotOwner','slotHash','slotRevision','slotImplementation','authorView','moduleAuthor','blueprintGraph','blueprintV508','blueprintNode','blueprintPropertyAccess','blueprintPropertyNode','blueprintCodeMode','blueprintEnumDraft','blueprintOutputWidth','blueprintOutputCollapsed','blueprintZoom','blueprintPositions','blueprintCamera','blueprintViews','functionDocumentViews','recordId','conflictFilter','collapsedConflictSections','readRecordIds','battlePage','runView','nodeTaskNode','nodeTaskQuery','nodeTaskPage','nodeTaskReason','buildJob','buildTarget','buildCommand','buildPage','conflictSourceId','referenceRequest','mapQuery','mapRoles','mapFocus','mapSelected','mapPositions','mapCamera','mapDidFit','mapFocusId','mapFocusPositions','fieldDiscovery','tableDefinition','tableName','tableQuery','tableSort','tableSelected','tableInputs','tableFill','tableBuilder','tableColumnOrder','tableWidths','tableValueSort'].filter(key=>w.meta[key]!==undefined).map(key=>[key,w.meta[key]])),
     restoreActualWindow:layout=>restore(layout),
     afterSwitchWorkspace:()=>{office?.update();const panels=structuredClone(runtime.workspaceRecord().participants||[]);api.clearPanels();api.clearYogi();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(panels);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);api.render();schedule()},
@@ -184,8 +186,32 @@ export function createActualWorkspace(api) {
     w.body.innerHTML='<div class="window-content"><p>이 창의 실제 기능을 다시 연결해야 합니다. 저장된 입력은 유지됩니다.</p></div>';
     return w;
   }
+  // A close completed while restoring is a newer presentation intent than
+  // the saved layout. Keep it in this attachment only (including retained
+  // editor inputs), rather than letting the completion replay the old row.
+  function sameWindowTarget(row,w){return row.key===w.key&&['id','view','mode'].every(field=>(row.meta?.[field]??null)===(w.meta?.[field]??null));}
+  function restoreLive(flight){return restoreFlight===flight&&project===flight.project&&scope===flight.scope&&runtime.state.activeWorkspaceId===flight.workspace;}
+  function rememberRestoreClose(w,retained){
+    const flight=restoreFlight;if(!flight||!restoreLive(flight))return;
+    const owner=runtime.workspaceRecord(),index=owner.layout.findIndex(row=>sameWindowTarget(row,w));
+    if(index<0)return;
+    const row=runtime.windowLayout(w);
+    flight.closed.set(w.key,{row,retained,window:w});
+    if(retained)owner.layout[index]={...row,hidden:true};else owner.layout.splice(index,1);
+  }
+  function restoreCompletionLayouts(flight){
+    const owner=runtime.workspaceRecord();
+    return owner.layout.flatMap(row=>{
+      const closed=flight.closed.get(row.key);
+      if(!closed||!sameWindowTarget(row,closed.row))return [structuredClone(row)];
+      // Recreated/rebound windows are not the instance the user closed.
+      const actual=runtime.state.windows.get(row.key);
+      if(actual&&actual!==closed.window&&!sameWindowTarget(row,actual))return [structuredClone(row)];
+      return closed.retained?[{...structuredClone(row),hidden:true}]:[];
+    });
+  }
   function attach(state){
-    const performanceStarted=api.performanceStart?.()??null;loading=true;
+    const performanceStarted=api.performanceStart?.()??null;restoreFlight=null;loading=true;
     if(project){capture();projects.set(scope,project);}
     scope=state.projectId;inputStarted=0;
     project=projects.get(scope)||state.presentation||{version:1,layout:[],workspaces:[],workspaceItems:[],workspaceView:{x:0,y:0,scale:1},rootWorkspaceView:{x:0,y:0,scale:1},activeWorkspaceId:'root',visitedWorkspaceTabs:['root'],inputs:{}};
@@ -209,19 +235,19 @@ export function createActualWorkspace(api) {
     api.$('#workspace').addEventListener('input',()=>schedule());
     api.performanceMark?.('workspace-attach',performanceStarted);
     if(missing.length||(selected&&selected!==state.draft?.id)){
-      loading=true;api.setWorkspaceStatus('편집창 복원 중');const owner=scope;
+      loading=true;api.setWorkspaceStatus('편집창 복원 중');const flight={project,scope,workspace:runtime.state.activeWorkspaceId,closed:new Map()};restoreFlight=flight;
       (async()=>{
-        while(api.isBusy&&scope===owner)await new Promise(resolve=>setTimeout(resolve,50));
-        if(scope!==owner)return;
-        try{await api.restoreBindings(missing,selected);if(scope!==owner)return;project.recoveryFailed=false;api.setWorkspaceStatus('편집창 복원됨');
-          const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
+        while(api.isBusy&&restoreLive(flight))await new Promise(resolve=>setTimeout(resolve,50));
+        if(!restoreLive(flight))return;
+        try{await api.restoreBindings(missing,selected);if(!restoreLive(flight))return;project.recoveryFailed=false;api.setWorkspaceStatus('편집창 복원됨');
+          const layouts=restoreCompletionLayouts(flight);
           for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
-        }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
-        finally{if(scope===owner){ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
+        }catch(error){if(restoreLive(flight)){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
+        finally{if(restoreLive(flight)){restoreFlight=null;ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
       })();
     }
   }
-  function detach(){office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';ready();changed=0;saved=0;}
-  function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
+  function detach(){restoreFlight=null;office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';ready();changed=0;saved=0;}
+  function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);const flight=restoreFlight,closed=flight?.closed.get(key);if(closed&&restoreLive(flight)&&sameWindowTarget(closed.row,w)){flight.closed.delete(key);const row=runtime.workspaceRecord().layout.find(row=>sameWindowTarget(row,w));if(row)Object.assign(row,runtime.windowLayout(w));}runtime.saveLayouts();}return w;}
   return {updateOffice:()=>office?.update(),officeFinder:()=>office?.finder()||null,runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,whenReady,get project(){return project},get loading(){return loading}};
 }
