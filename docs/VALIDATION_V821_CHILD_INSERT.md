@@ -95,3 +95,13 @@
 범위는 기존의 명시적·독립된 두 비주 분기가 기존 owner로 반환하는 직접 소유 동기 switch frame이다. 한 배치의 여러 호출은 동일 case에 한정한다. 암시/default 경로, 공유 진입, 다른 분기 동시 편집, ref/out·async·public execution, Windows 실기는 확대하거나 검증하지 않았다. 기존 직렬 `v821_private_call_ui.py normal --batch --reverse`도 같은 빌드에서 통과했다.
 
 기존 루트 분기 `v821_branch_structure_ui.py call`도 동일 빌드에서 통과했다.
+
+### 새 기능을 복합으로 전환한 뒤 일반 동작 추가
+
+`v821_new_function_document_ui.py <repo> <run-report> compound`은 기존 프로젝트 브라우저의 새 기능 만들기에서 직접 작성, 원본 코드 Save/Confirm, 내부 흐름 진입 및 복합 전체의 개인 Undo/Redo, Save/Confirm, 재개방, 첫 자식 앞 일반 동작 추가까지 실제 제품 UI로 진행한다. 새 기능의 기본 switch-capable profile은 동기 직렬 흐름에서도 사용되며, 내부화가 만드는 기존 `retainedCode` 및 반환 export 때문에 종전 nested-only 분류가 일반 자식 삽입을 제공하지 않았다.
+
+기존 원본을 보존하는 직접 소유 wrapper의 정확한 경로와 전체 직렬 next 연결을 확인하고, 분류용 복사본에서만 고정 반환 export를 종료 경계로 취급한다. 실제 후보의 retainedCode, 반환 export/값 및 다른 실행선을 바꾸지 않는다. 기존 원본·초안 증명, 전체 소스 관측, 독점 경로, 컴파일/Confirm 및 깊이/노드/바이트 제한을 유지한다. 이 특별한 관측은 삽입 전용이며 전체 순서 재작성이나 임의 반환 변경에는 사용하지 않는다. 소스가 새로 소유되는 Save의 기존 `OWNERSHIP_CHANGED` 경계도 유지한다.
+
+실제 Linux Chromium에서 첫 Confirm 뒤 재개방한 신규 기능, 내부화 및 그 전체 미저장 작업의 Undo/Redo, 새 자식 삽입/Undo/Redo, C# 원문 편집, 외부 그래프 변경에 따른 전체 Save 거절, 재시작/재시도, Review 취소/Confirm, 원래 graph 및 반환 export와 물리 retained C# 보존, 냉간 재개방을 검증했다. 별도 합성 실행 사본의 일반 ▶는 원래 `new function executed` 및 새 자식 `37` 표식을 모두 기록했다. 이번 새 기능 시나리오는 Confirm 후 재개방하여 정확히 갱신된 모델을 사용한다. 첫 Confirm 직후 갱신 전 클릭과 새 복합 Confirm 직후 선택이 오래된 상태인 문제는 별도 관측으로 남긴다.
+
+기존 일반 child 삽입, 새 기능 최초 Save 전 등록 호출, 이미 존재하는 private case 추가의 Linux 회귀도 확인했다. 기존 case 추가의 한 차례 UI 실측은 삽입 표시 238ms, C# 입력 가능 74ms, 실제 키보드 입력 12ms였다. 이전 기록의 같은 종류 측정은 각각 307ms/75ms/7ms였다(다른 실행 시점의 단일 관측으로 엄밀한 benchmark는 아님). 신규 복합 자식 삽입 표시 244ms, 별도 재사용 합성 사본에서는 88ms 및 Save 2,441ms였다. 새 기능에서 private 분기를 처음 선언하고 여러 경로를 구성하는 기능, 기존 저장 후 복합 전체의 공유 Undo/Redo를 새로 확대하는 작업, Windows 실기는 이번 변경에 포함하지 않았다.

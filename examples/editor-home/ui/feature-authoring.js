@@ -829,8 +829,8 @@ function blueprintNormalizeControls(scope){
    while(names.has(id)){if(seen.has(id))return null;seen.add(id);order.push(id);const next=edges.filter(e=>e.from===id);if(next.length!==1||next[0].port!=='next')return null;id=next[0].to;}
    return order.length===names.size&&id?.startsWith('$exit:')?{order,exit:id.slice(1)}:null;
   };
-  const canContinueOrder=(chain,held)=>!held.length||ownedCellOrder(w,held)&&
-   (!chain?.frame||!chain.owner||held.some(([,v])=>v.node===chain.owner&&v.type==='route:'+chain.port));
+  const canContinueOrder=(chain,held)=>!chain?.insertionOnly&&(!held.length||ownedCellOrder(w,held)&&
+   (!chain?.frame||!chain.owner||held.some(([,v])=>v.node===chain.owner&&v.type==='route:'+chain.port)));
   const buttonOrderCells=(id,ordinary=linearCells(id))=>ordinary||
    (!w.meta.copyDraft?frameCellChain(data,links(),true):null);
   // Buttons and document drag share one complete order plan and one Undo record.
@@ -891,7 +891,7 @@ function blueprintNormalizeControls(scope){
    const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;
    return cellOrderPlan(id,slot-(slot>from?1:0));
   };
-  const caseInsertionAvailable=chain=>!!chain&&(!chain.wrappedCall||frameInputsClear())&&(!chain.frame||data.profile!=='sync-acyclic-methods-v1'||data.documentMethodFrameCreationAvailable===true)&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
+  const caseInsertionAvailable=chain=>!!chain&&(!chain.wrappedCall||frameInputsClear())&&(!chain.frame||chain.owner||!['sync-acyclic-methods-v1','sync-acyclic-switch-v1'].includes(data.profile)||data.documentMethodFrameCreationAvailable===true)&&(!chain.frame||!chain.owner||data.documentFrameCaseCreationAvailable===true&&frameInputsClear());
   const insertCell=(chain,from,port,next)=>{
    if(!caseInsertionAvailable(chain)||data.nodes.length>=63||saveEntries(w).length)throw Error('기존 입력을 먼저 저장해 주세요. 소유한 일반 직렬 셀 또는 독립 분기만 확장할 수 있습니다.');
    if(!next)throw Error('다음 연결을 확인하지 못했습니다. 기존 흐름은 유지됩니다.');

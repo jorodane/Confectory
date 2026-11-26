@@ -82,19 +82,21 @@ export function compoundOrderCells(data,cells){
 
 export function frameCellChain(data,edges=data.edges,allowCompoundOrder=false,allowReferences=false){
  const binding=allowReferences?data.documentFrameReferenceBinding:data.documentFrameOrderBinding;
- if(!binding||binding.root!==data.rootId||binding.graph!==data.id||binding.path!==data.privatePath||!data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||!['sync-acyclic-nested-v1','sync-acyclic-methods-v1'].includes(data.profile)||data.nodes.length>=64)return null;
+ if(!binding||binding.root!==data.rootId||binding.graph!==data.id||binding.path!==data.privatePath||!data.privatePath||data.slotContext||data.privateCopy||data.privateConversion||data.executionExitMode||data.asyncTransition?.enabled||!['sync-acyclic-nested-v1','sync-acyclic-methods-v1','sync-acyclic-switch-v1'].includes(data.profile)||data.nodes.length>=64)return null;
  if(!data.nodes.length&&(data.profile!=='sync-acyclic-nested-v1'||!Array.isArray(binding.sources)||data.entry!=='exit:return'))return null;
  const compound=allowCompoundOrder&&data.profile==='sync-acyclic-nested-v1'&&!data.privatePath.includes('/')&&Array.isArray(binding.sources);
- if(data.nodes.some(n=>!(n.kind==='code'||compound&&n.kind==='graph'||allowReferences&&n.kind==='call'&&!n.publicExecution&&!n.signature?.args?.some(a=>a.mode))||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
- const names=new Set(data.nodes.map(n=>n.id)),routes=edges.filter(e=>e.from!=='$entry'),start=normal(edges.find(e=>e.from==='$entry'&&e.port==='next')?.to||data.entry);
+ const terminal=binding.insertionOnly===true&&data.nodes.find(n=>n.kind==='export'&&n.output==='return');
+ const included=terminal?data.nodes.filter(n=>n!==terminal):data.nodes;
+ if(included.some(n=>!(n.kind==='code'||compound&&n.kind==='graph'||allowReferences&&n.kind==='call'&&!n.publicExecution&&!n.signature?.args?.some(a=>a.mode))||n.control!=='next'||n.branchOwner||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum))return null;
+ const names=new Set(included.map(n=>n.id)),routes=edges.filter(e=>e.from!=='$entry'),start=normal(edges.find(e=>e.from==='$entry'&&e.port==='next')?.to||data.entry);
  if(routes.length!==names.size||routes.some(e=>e.port!=='next'||!names.has(e.from))||new Set(routes.map(e=>e.from)).size!==names.size)return null;
  const order=[],seen=new Set();let at=start;
  while(names.has(at)){if(seen.has(at))return null;seen.add(at);order.push(at);at=normal(routes.find(e=>e.from===at).to);}
- return order.length===names.size&&at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5))?{order,exit:at,frame:true}:null;
+ return order.length===names.size&&(terminal?at===terminal.id:at?.startsWith('exit:')&&(data.exits||[]).some(e=>e.name===at.slice(5)))?{order,exit:at,frame:true,insertionOnly:binding.insertionOnly===true}:null;
 }
 export function frameOrderCells(data,cells){
  const region=frameCellChain(data,data.edges,true),rows=cells.map(([,v])=>v);
- if(!region||rows.length!==region.order.length+1||new Set(rows.map(v=>v.node)).size!==rows.length||rows.filter(v=>v.type==='entry'&&v.node==='$entry').length!==1||rows.some(v=>typeof v.text!=='string'||!(v.type==='entry'&&v.node==='$entry'||v.type==='route'&&region.order.includes(v.node))))return false;
+ if(!region||region.insertionOnly||rows.length!==region.order.length+1||new Set(rows.map(v=>v.node)).size!==rows.length||rows.filter(v=>v.type==='entry'&&v.node==='$entry').length!==1||rows.some(v=>typeof v.text!=='string'||!(v.type==='entry'&&v.node==='$entry'||v.type==='route'&&region.order.includes(v.node))))return false;
  const links=new Map(rows.map(v=>[v.node,normal(v.text)])),seen=new Set();let at=links.get('$entry');
  while(region.order.includes(at)){if(seen.has(at))return false;seen.add(at);at=links.get(at);}
  return seen.size===region.order.length&&at===region.exit;

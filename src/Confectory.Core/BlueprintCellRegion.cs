@@ -69,16 +69,17 @@ public static class BlueprintCellRegion
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
         int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null,
-        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null, JsonObject? emptySwitchCaseFrame=null, bool allowReferences=false)
+        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null, JsonObject? emptySwitchCaseFrame=null, bool allowReferences=false, bool allowPlainSwitch=false)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
         {
-            bool switchChild=allowSwitchChild&&(depth==1||depth==2&&ReferenceEquals(g,nestedSwitchFrame))
+            bool plainSwitch=allowPlainSwitch&&S(g,"profile")==FeatureBlueprint.SwitchProfile&&g["nodes"]!.AsArray().All(n=>S(n,"control")=="next");
+            bool switchChild=allowSwitchChild&&!plainSwitch&&(depth==1||depth==2&&ReferenceEquals(g,nestedSwitchFrame))
                 &&S(g,"profile")==FeatureBlueprint.SwitchProfile;
             bool methodLeaf=S(g,"profile")==FeatureBlueprint.MethodsProfile
                 && (depth>0&&depth<=methodPreviewDepth || depth==0&&methodFrameOrder);
-            Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||switchChild||methodLeaf) && g["copySource"] is null
+            Need(depth<=8 && (S(g,"profile")==FeatureBlueprint.NestedProfile||plainSwitch||switchChild||methodLeaf) && g["copySource"] is null
                 && g["executionExitMode"]?.GetValue<bool>()!=true,"Direct synchronous compound chain required");
             var nodes=g["nodes"]!.AsArray(); total+=nodes.Count;
             Need((nodes.Count is >0 and <64 || nodes.Count==0 && ReferenceEquals(g,emptyInsertionFrame)) && total<=256,"Bounded complete compound chain required");
@@ -211,9 +212,38 @@ public static class BlueprintCellRegion
         return selected;
     }
 
+    // A new function's original C# action is wrapped with a retained source and
+    // (for a value return) a terminal export. Observe that exact wrapper and
+    // validate only the ordinary execution chain preceding the fixed export.
+    static JsonObject RetainedSerialFrame(JsonObject root,string path)
+    {
+        Need(!path.Contains('/')&&path.Length>0,"One directly owned retained wrapper required");
+        var clone=root.DeepClone().AsObject();
+        var wrapper=clone["nodes"]!.AsArray().Single(n=>S(n,"id")==path)!.AsObject();
+        Need(S(wrapper,"kind")=="graph"&&S(wrapper,"control")=="next"&&wrapper["retainedCode"] is JsonObject retained&&retained.Count==5&&retained["version"]?.GetValue<int>()==1&&S(retained["definition"],"kind")=="code","Existing retained ordinary C# wrapper required");
+        wrapper.Remove("retainedCode");
+        var frame=BlueprintTree.Select(clone,path);
+        Need(S(root,"profile")==FeatureBlueprint.SwitchProfile&&S(frame,"profile")==FeatureBlueprint.SwitchProfile,"New ordinary switch-profile wrapper required");
+        var nodes=frame["nodes"]!.AsArray();var exports=nodes.Where(n=>S(n,"kind")=="export").ToArray();
+        if(exports.Length>0){
+            Need(exports.Length==1&&S(exports[0],"output")=="return"&&frame["exits"] is JsonObject {Count:0},"One fixed existing return export required");
+            var id=S(exports[0],"id");var edges=frame["edges"]!.AsArray();
+            Need(edges.Count(e=>S(e,"to")==id)==1&&!edges.Any(e=>S(e,"from")==id),"Fixed terminal export required");
+            edges.Single(e=>S(e,"to")==id)!["to"]="exit:return";nodes.Remove(exports[0]);frame["exits"]=new JsonObject{["return"]=null};
+        }
+        Need(nodes.All(n=>S(n,"kind")=="code"&&ValueParameters(n!)),"Ordinary value code before the existing return required");
+        CompoundOrder(clone,CurrentRoutes(clone),allowPlainSwitch:true);
+        CompoundOrder(frame,CurrentRoutes(frame),ordinaryFrame:true,allowPlainSwitch:true);
+        return BlueprintTree.Select(root,path);
+    }
+
     static JsonObject EditableFrame(JsonObject root, string path, bool allowDesktopFrames)
     {
         var selected = BlueprintTree.Select(root, path);
+        if(S(selected,"profile")==FeatureBlueprint.SwitchProfile){
+            Need(allowDesktopFrames,"Exact ordinary retained switch-profile child required");
+            return RetainedSerialFrame(root,path);
+        }
         if (S(selected, "profile") != FeatureBlueprint.MethodsProfile)
             return OwnedFrame(root, path);
 
@@ -255,6 +285,10 @@ public static class BlueprintCellRegion
             return CompoundOrder(parent, edits, methodPreviewDepth: 1);
         }
         var selected = EditableFrame(root, path, allowDesktopFrames);
+        if(!path.Contains('/')&&root["nodes"]!.AsArray().Any(n=>S(n,"id")==path&&n?["retainedCode"] is not null)){
+            Need(JsonNode.DeepEquals(edits,CurrentRoutes(selected)),"Retained wrapper insertion only; preserve terminal export and order");
+            return new JsonObject{["entry"]=selected["entry"]!.DeepClone(),["edges"]=selected["edges"]!.DeepClone()};
+        }
         return CompoundOrder(selected, edits, ordinaryFrame: true,
             methodFrameOrder: S(selected, "profile") == FeatureBlueprint.MethodsProfile);
     }

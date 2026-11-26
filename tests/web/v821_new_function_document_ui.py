@@ -4,6 +4,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
+import time
 
 from playwright.sync_api import expect, sync_playwright
 
@@ -14,6 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'gui'))
 from editor_logic_workflow import review, run_from_dock
 
 early = len(sys.argv)>3 and sys.argv[3]=='before-save'
+compound = len(sys.argv)>3 and sys.argv[3]=='compound'
 name = 'LocalAuthorProbe'
 target = 'Example.FrameLoop::' + name
 marker = f.root / 'new-function-result.txt'
@@ -97,79 +99,134 @@ try:
             expect(r).to_be_hidden(timeout=120000)
             assert name in f.projects[0].read_text() and name not in f.projects[1].read_text()
             print('PASS actual new feature declaration, document code edit, Save and Confirm', flush=True)
-        # Add a typed published feature from the Logic Code view itself,
-        # without switching to Blueprint or manually reconnecting execution.
-        add = doc.locator('[data-document-insert-call="$entry"]')
-        expect(add).to_be_enabled()
-        add.click()
-        picker = page.get_by_role('dialog', name='블루프린트 노드 검색')
-        candidate = picker.locator(f'[data-resource-feature="{donor}"]')
-        expect(candidate).to_be_visible()
-        picker.locator('[data-resource-close]').click()
-        expect(doc.locator('[data-document-cell^="call_"]')).to_have_count(0)
-        add.click()
-        expect(candidate).to_be_visible()
-        candidate.click()
-        call_cell = doc.locator('[data-document-cell^="call_"]')
-        expect(call_cell).to_be_visible()
-        call_id = call_cell.get_attribute('data-document-cell')
-        assert doc.locator('[data-document-cell]').evaluate_all('(cells)=>cells.map(c=>c.dataset.documentCell)')[:3] == ['$entry',call_id,'body']
-        doc.press('Control+z')
-        expect(call_cell).to_have_count(0)
-        doc.press('Control+y')
-        expect(call_cell).to_be_visible()
-        value = call_cell.locator('[data-document-value][data-document-port="field:amount"]')
-        value.click()
-        values = page.get_by_role('dialog', name='핀 값 선택')
-        if early:
-            values.get_by_role('button',name='입력 · input1',exact=True).click()
-            expect(value).to_contain_text('input1')
-        else:
-            values.get_by_role('searchbox', name='값 검색').fill('37')
-            values.get_by_role('searchbox', name='값 검색').press('Enter')
-            expect(value).to_have_text('37')
-        if early:
-            f.original()
-            candidate_path=manifest.parent/'LocalDonor.celem'
-            original=candidate_path.read_bytes()
-            candidate_path.write_bytes(original+b' ')
+        if compound:
+            page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(5)
+            page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
+            graph_path=next(manifest.parent.glob('blueprints/*.graph.json'))
+            original_graph=graph_path.read_bytes()
+            retained_source=graph_path.parent/json.loads(original_graph)['nodes'][0]['implementation'];retained_bytes=retained_source.read_bytes()
+            start=doc.locator('[data-document-internal=body]');expect(start).to_be_enabled();start.click()
+            try:expect(panel.locator('.bp-breadcrumbs')).to_be_visible(timeout=20000)
+            except Exception:
+                print('internalize failure:',panel.locator('.bp-status').inner_text(),flush=True);raise
+            panel.get_by_role('tab',name='논리 코드',exact=True).click()
+            expect(doc.locator('[data-document-cell=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
+            doc.locator('.fd-document-title').click();page.keyboard.press('Control+z');expect(doc.locator('[data-document-internal=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(0)
+            assert graph_path.read_bytes()==original_graph
+            doc.locator('.fd-document-title').click();page.keyboard.press('Control+y');expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
+            panel.get_by_role('tab',name='논리 코드',exact=True).click()
+            panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+            r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+            # The default new feature uses the switch-capable profile even before
+            # any selector is created. Its newly wrapped body must be editable.
+            graph=json.loads(graph_path.read_text());frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body')
+            assert graph['profile']==frame['profile']=='sync-acyclic-switch-v1'
+            page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(6)
+            page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
+            expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
+            declaration=page.locator('.window[data-key=declaration]')
+            if declaration.is_visible():declaration.locator('[data-close]').first.click()
+            old_graph=graph_path.read_bytes()
+            add=doc.locator('[data-document-add="$entry"]');expect(add).to_be_enabled();started=time.perf_counter();add.click()
+            cell=doc.locator('[data-document-cell^="cell_"]');expect(cell).to_be_visible();created=cell.get_attribute('data-document-cell');print('TIMING compound child add visible ms',round((time.perf_counter()-started)*1000),flush=True)
+            doc.press('Control+z');expect(cell).to_have_count(0);doc.press('Control+y');expect(cell).to_be_visible()
+            cell.locator('[data-document-code]').click();script=page.locator('.bp-script-dialog');source=script.locator('[data-code-source]')
+            body=script.locator('[data-code-region=body]').text_content()
+            source.evaluate('(el,body)=>{let at=el.value.indexOf(body);el.focus();el.setSelectionRange(at,at+body.length)}',body)
+            page.keyboard.insert_text('System.IO.File.WriteAllText('+json.dumps(str(donor_marker))+', "37"); return;')
+            script.locator('[data-code-save]').click();expect(script).to_be_hidden()
+            checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'));before=checkpoint.read_bytes()
+            graph_path.write_bytes(old_graph+b' ')
             try:
-                panel.locator('[data-bp-save]').click()
-                expect(panel.locator('.bp-status')).to_contain_text('모든 입력은 유지됩니다.',timeout=30000)
-                assert not list(manifest.parent.glob('blueprints/*.graph.json'))
-                assert not list(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'))
-                assert candidate_path.read_bytes()==original+b' '
-            finally:
-                candidate_path.write_bytes(original)
-            page.evaluate('async()=>await confectoryFlushPresentation()')
-            page.close();f.stop();f.start(10)
-            page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200})
-            panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
-            expect(doc.locator(f'[data-document-cell="{call_id}"]')).to_be_visible()
-            expect(doc.locator(f'[data-document-value="{call_id}"][data-document-port="field:amount"]')).to_contain_text('input1')
-            f.original()
-        panel.locator('[data-bp-save]').click()
-        expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
-        if early:
-            f.original()
-        r = review(page,panel.locator('[data-bp-complete]'))
-        r.locator('[data-reject]').click()
-        expect(r).to_be_hidden()
-        r = review(page,panel.locator('[data-bp-complete]'))
-        r.locator('#confirm').click()
-        expect(r).to_be_hidden(timeout=120000)
-        graph_path = next(manifest.parent.glob('blueprints/*.graph.json'))
-        graph = json.loads(graph_path.read_text())
-        if early:
-            declaration_path=next(manifest.parent.rglob(name+'.celem'))
-            assert '(int input1) -> long' in declaration_path.read_text()
-        assert graph['feature'] == target and graph['entry'] == call_id
-        assert {'from':call_id,'port':'next','to':'body'} in graph['edges']
-        call = next(node for node in graph['nodes'] if node['id']==call_id)
-        assert call['kind']=='call' and call['feature']==donor and call['arguments']=={'amount':{'input':'input1'} if early else {'constant':37}}
-        assert all((manifest.parent / file).read_text()==source for file,source in donor_sources.items())
-        assert donor not in f.projects[1].read_text()
-        print('PASS actual Logic Code feature insertion, value binding, Undo/Redo and Review/Confirm', flush=True)
+                panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).not_to_have_text('저장 중…',timeout=120000)
+                assert panel.locator('.bp-status').inner_text()!='저장됨' and checkpoint.read_bytes()==before and graph_path.read_bytes()==old_graph+b' '
+                expect(cell).to_be_visible()
+            finally:graph_path.write_bytes(old_graph)
+            page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(10)
+            page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
+            expect(doc.locator(f'[data-document-cell="{created}"]')).to_be_visible()
+            panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+            r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden();assert graph_path.read_bytes()==old_graph
+            r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+            graph=json.loads(graph_path.read_text());frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body');assert frame['entry']==created
+            assert {'from':created,'port':'next','to':'body'} in frame['edges']
+            frame['nodes']=[n for n in frame['nodes'] if n['id']!=created];frame['edges']=[e for e in frame['edges'] if e['from']!=created];frame['entry']='body'
+            assert graph==json.loads(old_graph) and retained_source.read_bytes()==retained_bytes
+            print('PASS created feature to compound, structural Undo/Redo, new child source, stale refusal and cold retry',flush=True)
+        if not compound:
+         # Add a typed published feature from the Logic Code view itself,
+         # without switching to Blueprint or manually reconnecting execution.
+         add = doc.locator('[data-document-insert-call="$entry"]')
+         expect(add).to_be_enabled()
+         add.click()
+         picker = page.get_by_role('dialog', name='블루프린트 노드 검색')
+         candidate = picker.locator(f'[data-resource-feature="{donor}"]')
+         expect(candidate).to_be_visible()
+         picker.locator('[data-resource-close]').click()
+         expect(doc.locator('[data-document-cell^="call_"]')).to_have_count(0)
+         add.click()
+         expect(candidate).to_be_visible()
+         candidate.click()
+         call_cell = doc.locator('[data-document-cell^="call_"]')
+         expect(call_cell).to_be_visible()
+         call_id = call_cell.get_attribute('data-document-cell')
+         assert doc.locator('[data-document-cell]').evaluate_all('(cells)=>cells.map(c=>c.dataset.documentCell)')[:3] == ['$entry',call_id,'body']
+         doc.press('Control+z')
+         expect(call_cell).to_have_count(0)
+         doc.press('Control+y')
+         expect(call_cell).to_be_visible()
+         value = call_cell.locator('[data-document-value][data-document-port="field:amount"]')
+         value.click()
+         values = page.get_by_role('dialog', name='핀 값 선택')
+         if early:
+             values.get_by_role('button',name='입력 · input1',exact=True).click()
+             expect(value).to_contain_text('input1')
+         else:
+             values.get_by_role('searchbox', name='값 검색').fill('37')
+             values.get_by_role('searchbox', name='값 검색').press('Enter')
+             expect(value).to_have_text('37')
+         if early:
+             f.original()
+             candidate_path=manifest.parent/'LocalDonor.celem'
+             original=candidate_path.read_bytes()
+             candidate_path.write_bytes(original+b' ')
+             try:
+                 panel.locator('[data-bp-save]').click()
+                 expect(panel.locator('.bp-status')).to_contain_text('모든 입력은 유지됩니다.',timeout=30000)
+                 assert not list(manifest.parent.glob('blueprints/*.graph.json'))
+                 assert not list(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'))
+                 assert candidate_path.read_bytes()==original+b' '
+             finally:
+                 candidate_path.write_bytes(original)
+             page.evaluate('async()=>await confectoryFlushPresentation()')
+             page.close();f.stop();f.start(10)
+             page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200})
+             panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
+             expect(doc.locator(f'[data-document-cell="{call_id}"]')).to_be_visible()
+             expect(doc.locator(f'[data-document-value="{call_id}"][data-document-port="field:amount"]')).to_contain_text('input1')
+             f.original()
+         panel.locator('[data-bp-save]').click()
+         expect(panel.locator('.bp-status')).to_have_text('저장됨', timeout=120000)
+         if early:
+             f.original()
+         r = review(page,panel.locator('[data-bp-complete]'))
+         r.locator('[data-reject]').click()
+         expect(r).to_be_hidden()
+         r = review(page,panel.locator('[data-bp-complete]'))
+         r.locator('#confirm').click()
+         expect(r).to_be_hidden(timeout=120000)
+         graph_path = next(manifest.parent.glob('blueprints/*.graph.json'))
+         graph = json.loads(graph_path.read_text())
+         if early:
+             declaration_path=next(manifest.parent.rglob(name+'.celem'))
+             assert '(int input1) -> long' in declaration_path.read_text()
+         assert graph['feature'] == target and graph['entry'] == call_id
+         assert {'from':call_id,'port':'next','to':'body'} in graph['edges']
+         call = next(node for node in graph['nodes'] if node['id']==call_id)
+         assert call['kind']=='call' and call['feature']==donor and call['arguments']=={'amount':{'input':'input1'} if early else {'constant':37}}
+         assert all((manifest.parent / file).read_text()==source for file,source in donor_sources.items())
+         assert donor not in f.projects[1].read_text()
+         print('PASS actual Logic Code feature insertion, value binding, Undo/Redo and Review/Confirm', flush=True)
         page.close()
         f.stop()
 
@@ -178,11 +235,13 @@ try:
         page = f.setup(browser)
         page.set_viewport_size({'width': 1800, 'height': 1200})
         restored = page.locator('.window[data-key=blueprint] .function-document')
-        expect(restored.locator(f'[data-document-cell="{call_id}"]')).to_be_visible()
-        expect(restored.locator(f'[data-document-value="{call_id}"][data-document-port="field:amount"]')).to_contain_text('input1' if early else '37')
+        if compound:expect(restored.locator(f'[data-document-cell="{created}"]')).to_be_visible()
+        else:
+            expect(restored.locator(f'[data-document-cell="{call_id}"]')).to_be_visible()
+            expect(restored.locator(f'[data-document-value="{call_id}"][data-document-port="field:amount"]')).to_contain_text('input1' if early else '37')
         page.close()
         f.stop()
-        print('PASS cold restart restores the committed call and typed input', flush=True)
+        print('PASS cold restart restores the committed compound child' if compound else 'PASS cold restart restores the committed call and typed input', flush=True)
 
         # The tested authoring product has no new test-only execution action.
         # Select the committed function as the ordinary entry in a separate
