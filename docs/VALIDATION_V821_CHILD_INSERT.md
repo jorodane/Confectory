@@ -115,3 +115,13 @@
 실제 Linux Chromium에서 신규 선언 및 복합 전환의 개인 Undo/Redo, 첫 분기 편집 취소 및 Undo/Redo, 외부 graph 변경 시 Save 거절, 선언 초안 Save 뒤 selector 원본 변경 시 실제 Confirm 요청 거절 및 입력/원본 보존, 복구/재시작, 빈 분기 내 일반 동작과 그 뒤의 기존 등록 기능 호출 및 정수 입력 37, 확정과 재개방을 검증했다. 격리된 실행 사본의 실제 ▶는 positive/negative/primary를 각각 호출해 0의 원래 결과와 continuation을 유지했으며 positive의 일반 셀/호출만 실행했다. 원래 retained C# 파일과 terminal export도 보존했다. 기존 `v821_private_case_call_ui.py after` 및 `shared`는 같은 최종 빌드에서 각각 정상 호출/실행·같은 ID 프로젝트 격리와 공유 분기 삽입 거절을 통과했다.
 
 현재 작성 흐름은 복합 전환, 첫 분기 선언, 일반 셀/호출 저장의 기존 소유·검토 경계를 따라 각각 확정 후 재개방한다. 한 번에 여러 미확정 단계의 공동 저장이나 확정된 복합 전체의 공유 Undo/Redo 경계를 확대하지 않는다. 임의 분기 entry/exit, ref/out·async·공개 실행 분기, 다중 selector와 Windows 실제 실행은 별도 검증 범위다.
+
+### 확정 전 새 복합 셀의 연속 작성
+
+직접 소유한 기존 C# 셀을 복합으로 전환하여 Save한 경우, 아직 Confirm하지 않아도 같은 private frame에서 일반 동작 추가, 첫 분기 선언, 분기 내부 동작과 등록된 기능 호출 및 값 연결을 이어갈 수 있다. 각각의 기존 Save는 동일 로컬 초안의 체크포인트이며 마지막 한 번의 Review/Confirm으로 확정한다. 처음부터 마지막까지 Save 한 번만 하는 메모리 편집은 아직 지원하지 않는다.
+
+원본 C#의 해시 및 소유 ID, 직전 Save의 소스 증명, 동일한 완전한 atomic group, 각 실제 원본/missing 소스의 CAS를 다시 확인한다. 다른 저장 변경, 다른 소유 형태 및 혼합 변경에는 기존 제한이 적용된다. 새 일반 셀의 원본만 정확하게 같은 묶음에 추가하며, 기존 실행/반환 계약 검증과 Confirm의 원자적 파일 쓰기를 유지한다. 기존 Save 전 개인 구조 Undo/Redo와 소유 멤버십 변경 후 이력 경계는 그대로다.
+
+재실행: `python tests/web/v821_new_function_document_ui.py <repo> <run-report> staged`. 기존 `branch` 방식은 비교 대상으로 유지한다. 실제 Linux Chromium에서 새 기능 작성, 복합 전환 및 Undo/Redo, 자식 동작 및 분기 생성, 분기 호출과 상수 37 연결, 외부 원본 변경의 Save 거절과 cold recovery, Review 취소, 최종 원본 변경의 Confirm 거절, 최종 Confirm, 재개방을 검사했다. 실행은 기존 일반 ▶와 별도의 합성 entry harness에서 positive/negative/primary의 세 경로, 입력 37 및 원래 반환값 0을 확인한다. 실제 사용자 프로젝트와 계정, Windows/WebView2는 검증하지 않았다.
+
+동일 Linux 빌드의 격리 프로필 각각 한 번 측정한 성공 경로의 시간이다(오류 주입, Review 열기, 재시작 및 실행 시간 제외). 복합 전환 클릭부터 문서 표시까지는 기존 2,937ms, 연속 초안 5,332ms로 개선되지 않았다. 일반 자식 추가 클릭부터 셀 표시까지는 127ms와 96ms였다. 실제 셀 편집까지도 검사했지만 이 수치는 첫 키 입력 지연 측정은 아니다. 성공한 Save 5회의 합은 기존 15,353ms, 연속 초안 13,075ms였다. Confirm 5회의 합 55,872ms가 최종 한 번 12,013ms로 줄었다. Save와 Confirm 합은 약 71.2초에서 25.1초로 줄었다. 단일 관측이므로 개별 처리 시간의 통계적 개선은 주장하지 않는다. 제거된 확정 왕복이 주효하며 복합 전환과 단일 최종 검증의 지연은 남아 있다.

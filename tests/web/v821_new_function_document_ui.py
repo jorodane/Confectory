@@ -15,7 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'gui'))
 from editor_logic_workflow import review, run_from_dock
 
 early = len(sys.argv)>3 and sys.argv[3]=='before-save'
-branch_mode = len(sys.argv)>3 and sys.argv[3]=='branch'
+staged = len(sys.argv)>3 and sys.argv[3]=='staged'
+branch_mode = staged or len(sys.argv)>3 and sys.argv[3]=='branch'
 compound = branch_mode or len(sys.argv)>3 and sys.argv[3]=='compound'
 name = 'LocalAuthorProbe'
 target = 'Example.FrameLoop::' + name
@@ -106,27 +107,34 @@ try:
             graph_path=next(manifest.parent.glob('blueprints/*.graph.json'))
             original_graph=graph_path.read_bytes()
             retained_source=graph_path.parent/json.loads(original_graph)['nodes'][0]['implementation'];retained_bytes=retained_source.read_bytes()
-            start=doc.locator('[data-document-internal=body]');expect(start).to_be_enabled();start.click()
+            start=doc.locator('[data-document-internal=body]');expect(start).to_be_enabled();started=time.perf_counter();start.click()
             try:expect(panel.locator('.bp-breadcrumbs')).to_be_visible(timeout=20000)
             except Exception:
                 print('internalize failure:',panel.locator('.bp-status').inner_text(),flush=True);raise
             panel.get_by_role('tab',name='논리 코드',exact=True).click()
-            expect(doc.locator('[data-document-cell=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
+            expect(doc.locator('[data-document-cell=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1);print('TIMING wrap editable ms',round((time.perf_counter()-started)*1000),flush=True)
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+z');expect(doc.locator('[data-document-internal=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(0)
             assert graph_path.read_bytes()==original_graph
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+y');expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
             panel.get_by_role('tab',name='논리 코드',exact=True).click()
-            panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-            r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+            started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000);print('TIMING checkpoint save ms',round((time.perf_counter()-started)*1000),flush=True)
+            if not staged:
+                r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+            def effective_graph():
+                if staged:
+                    checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'))
+                    return json.loads(next(row['draft'] for row in json.loads(checkpoint.read_bytes())['changes'] if row['kind']=='blueprint' and row['id'].startswith(target)))
+                return json.loads(graph_path.read_text())
             # The default new feature uses the switch-capable profile even before
             # any selector is created. Its newly wrapped body must be editable.
-            graph=json.loads(graph_path.read_text());frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body')
+            graph=effective_graph();wrapped_graph=json.loads(json.dumps(graph));frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body')
             assert graph['profile']==frame['profile']=='sync-acyclic-switch-v1'
-            page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(6)
-            page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
+            if not staged:
+                page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(6)
+                page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
             expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
             declaration=page.locator('.window[data-key=declaration]')
-            if declaration.is_visible():declaration.locator('[data-close]').first.click()
+            if not staged and declaration.is_visible():declaration.locator('[data-close]').first.click()
             old_graph=graph_path.read_bytes()
             add=doc.locator('[data-document-add="$entry"]');expect(add).to_be_enabled();started=time.perf_counter();add.click()
             cell=doc.locator('[data-document-cell^="cell_"]');expect(cell).to_be_visible();created=cell.get_attribute('data-document-cell');print('TIMING compound child add visible ms',round((time.perf_counter()-started)*1000),flush=True)
@@ -146,13 +154,15 @@ try:
             page.evaluate('async()=>await confectoryFlushPresentation()');page.close();f.stop();f.start(10)
             page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200});panel=page.locator('.window[data-key=blueprint]');doc=panel.locator('.function-document')
             expect(doc.locator(f'[data-document-cell="{created}"]')).to_be_visible()
-            panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-            r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden();assert graph_path.read_bytes()==old_graph
-            r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
-            graph=json.loads(graph_path.read_text());frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body');assert frame['entry']==created
+            started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000);print('TIMING checkpoint save ms',round((time.perf_counter()-started)*1000),flush=True)
+            if not staged:
+                r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden();assert graph_path.read_bytes()==old_graph
+                r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+            else:assert graph_path.read_bytes()==original_graph
+            graph=effective_graph();frame=next(n['graph'] for n in graph['nodes'] if n['id']=='body');assert frame['entry']==created
             assert {'from':created,'port':'next','to':'body'} in frame['edges']
             frame['nodes']=[n for n in frame['nodes'] if n['id']!=created];frame['edges']=[e for e in frame['edges'] if e['from']!=created];frame['entry']='body'
-            assert graph==json.loads(old_graph) and retained_source.read_bytes()==retained_bytes
+            assert graph==wrapped_graph and retained_source.read_bytes()==retained_bytes
             print('PASS created feature to compound, structural Undo/Redo, new child source, stale refusal and cold retry',flush=True)
             if branch_mode:
                 def reopen(index):
@@ -164,13 +174,15 @@ try:
                     if declaration.is_visible():declaration.locator('[data-close]').first.click()
                     return new_page,new_panel,new_doc
                 def save_confirm():
-                    panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-                    r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
+                    started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000);print('TIMING checkpoint save ms',round((time.perf_counter()-started)*1000),flush=True)
+                    if not staged:
+                        r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+                    else:assert graph_path.read_bytes()==original_graph
                 def replace_body(text):
                     script=page.locator('.bp-script-dialog');source=script.locator('[data-code-source]');expect(source).to_be_visible()
                     source.evaluate('''el=>{const spans=Array.from(el.closest('.bp-script-editor').querySelectorAll('[data-code-highlight] > span'));const idx=spans.findIndex(s=>s.dataset.codeRegion==='body');if(idx<0)throw Error('Missing body');const start=spans.slice(0,idx).reduce((a,b)=>a+b.textContent.length,0);el.focus();el.setSelectionRange(start,start+spans[idx].textContent.length)}''')
                     page.keyboard.insert_text(text);script.locator('[data-code-save]').click();expect(script).to_be_hidden()
-                page,panel,doc=reopen(20)
+                if not staged:page,panel,doc=reopen(20)
                 first_branch=doc.locator(f'[data-document-call-first-branch="{created}"]');expect(first_branch).to_be_visible();first_branch.click()
                 old_path=graph_path.read_bytes();checkpoint_before=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()
                 page.locator('.bp-script-dialog [data-code-cancel]').click();expect(first_branch).to_be_visible()
@@ -186,32 +198,46 @@ try:
                     assert panel.locator('.bp-status').inner_text()!='저장됨' and next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()==checkpoint_before
                 finally:graph_path.write_bytes(old_path)
                 page,panel,doc=reopen(21)
-                panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
-                r=review(page,panel.locator('[data-bp-complete]'))
-                selector_source=graph_path.parent/next(n['implementation'] for n in json.loads(old_path)['nodes'][0]['graph']['nodes'] if n['id']==created)
-                selector_raw=selector_source.read_bytes();saved_checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes();selector_source.write_bytes(selector_raw+b' ')
-                try:
-                    mark=len(f.requests);r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()')
-                    expect(r).to_be_visible();assert any(row.get('endpoint')=='confirmGroup' for row in f.requests[mark:])
-                    assert graph_path.read_bytes()==old_path and selector_source.read_bytes()==selector_raw+b' ' and next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()==saved_checkpoint
-                finally:selector_source.write_bytes(selector_raw)
-                if r.is_visible():r.locator('[data-reject]').click();expect(r).to_be_hidden()
-                r=review(page,panel.locator('[data-bp-complete]'));r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000)
-                committed=json.loads(graph_path.read_text());child=committed['nodes'][0]['graph'];selector=next(n for n in child['nodes'] if n['id']==created)
+                started=time.perf_counter();panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000);print('TIMING checkpoint save ms',round((time.perf_counter()-started)*1000),flush=True)
+                if not staged:
+                 r=review(page,panel.locator('[data-bp-complete]'))
+                 selector_source=graph_path.parent/next(n['implementation'] for n in json.loads(old_path)['nodes'][0]['graph']['nodes'] if n['id']==created)
+                 selector_raw=selector_source.read_bytes();saved_checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes();selector_source.write_bytes(selector_raw+b' ')
+                 try:
+                     mark=len(f.requests);r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()')
+                     expect(r).to_be_visible();assert any(row.get('endpoint')=='confirmGroup' for row in f.requests[mark:])
+                     assert graph_path.read_bytes()==old_path and selector_source.read_bytes()==selector_raw+b' ' and next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json')).read_bytes()==saved_checkpoint
+                 finally:selector_source.write_bytes(selector_raw)
+                 if r.is_visible():r.locator('[data-reject]').click();expect(r).to_be_hidden()
+                 r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+                committed=effective_graph();child=committed['nodes'][0]['graph'];selector=next(n for n in child['nodes'] if n['id']==created)
                 assert selector['control']=='switch' and {e['port']:e['to'] for e in child['edges'] if e['from']==created}=={'next':'body','case:positive':'return:'+created,'case:negative':'return:'+created}
-                page,panel,doc=reopen(22)
+                if not staged:page,panel,doc=reopen(22)
                 doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
                 add=case.locator('[data-document-branch-add]');expect(add).to_be_enabled();add.click()
                 branch_cell=case.locator('[data-document-cell^="cell_"]');expect(branch_cell).to_be_visible();branch_id=branch_cell.get_attribute('data-document-cell');assert branch_id!=created
                 branch_marker=f.root/'private-case-marker.txt'
                 branch_cell.locator('[data-document-code]').click();replace_body('System.IO.File.WriteAllText('+json.dumps(str(branch_marker))+', "positive");return;')
-                save_confirm();page,panel,doc=reopen(23)
+                save_confirm()
+                if not staged:page,panel,doc=reopen(23)
                 doc.locator('[data-document-branch="case:positive"]').click();case=doc.locator('[data-document-panel="case:positive"]')
                 add=case.locator(f'[data-document-insert-call="{branch_id}"]');expect(add).to_be_enabled();add.click()
                 page.get_by_role('dialog',name='블루프린트 노드 검색').locator(f'[data-resource-feature="{donor}"]').click()
                 call_cell=case.locator('[data-document-cell^="call_"]');expect(call_cell).to_be_visible();branch_call=call_cell.get_attribute('data-document-cell')
                 value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
-                expect(value).to_have_text('37');save_confirm();page,panel,doc=reopen(24)
+                expect(value).to_have_text('37');save_confirm()
+                if staged:
+                    assert graph_path.read_bytes()==original_graph and retained_source.read_bytes()==retained_bytes
+                    r=review(page,panel.locator('[data-bp-complete]'));r.locator('[data-reject]').click();expect(r).to_be_hidden()
+                    r=review(page,panel.locator('[data-bp-complete]'));retained_source.write_bytes(retained_bytes+b' ')
+                    try:
+                        mark=len(f.requests);r.locator('#confirm').click();page.evaluate('async()=>await confectoryFlushPresentation()');expect(r).to_be_visible()
+                        assert graph_path.read_bytes()==original_graph and any(row.get('endpoint')=='confirmGroup' for row in f.requests[mark:])
+                    finally:retained_source.write_bytes(retained_bytes)
+                    if r.is_visible():r.locator('[data-reject]').click();expect(r).to_be_hidden()
+                    r=review(page,panel.locator('[data-bp-complete]'));started=time.perf_counter();r.locator('#confirm').click();expect(r).to_be_hidden(timeout=120000);print('TIMING confirm ms',round((time.perf_counter()-started)*1000),flush=True)
+                    print('PASS all intermediate Saves remained in one unconfirmed retained group',flush=True)
+                page,panel,doc=reopen(24)
                 doc.locator('[data-document-branch="case:positive"]').click();expect(doc.locator(f'[data-document-cell="{branch_call}"]')).to_be_visible()
                 final=json.loads(graph_path.read_text());frame=final['nodes'][0]['graph'];assert next(n for n in frame['nodes'] if n['id']==branch_call)['arguments']=={'amount':{'constant':37}}
                 assert final['nodes'][0]['retainedCode']==committed['nodes'][0]['retainedCode'] and next(n for n in frame['nodes'] if n['kind']=='export')==next(n for n in child['nodes'] if n['kind']=='export')
