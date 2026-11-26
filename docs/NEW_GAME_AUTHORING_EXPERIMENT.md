@@ -236,3 +236,68 @@ The TimingRules declaration is still not wired to the authored loop;
 timing and geometry currently live as game-local literal values. Reusable
 configuration-value binding remains separate. Actual Windows execution
 is not covered here.
+
+## Published configuration controls the playable game
+
+A new **프로젝트 객체 참조** action on a confirmed directly owned function
+stages an ordinary `use object` relationship to an exact confirmed directly
+owned object. It keeps existing function relations and original source,
+uses normal Review/Confirm, and refuses another project, an incorrect kind,
+missing targets or stale owner/manifest input. The general public linkage
+catalog now includes the effective schema contract for each published
+object data field. `Confectory.RuntimeBase::ReadDeclaredLong` reads only a
+single `long` value in the running project's explicitly linked object,
+using the embedded catalog or the official entry-assembly-directory
+sidecar (the actual Linux target uses the sidecar). It does not read source
+files, editor drafts, an external assembly or a live object instance.
+The final build key already includes the catalog content.
+
+The actual editor created two typed fields in the existing TimingRules
+object and its generated schema (`PhaseMilliseconds` and `OpenMilliseconds`,
+both `long`), connected RuntimeBase through Pack Manager, linked the object
+in `PlayInteractiveTiming`, and imported ReadDeclaredLong through the code
+cell's normal function reference picker. The authored event/render loop
+uses those fields by exact qualified object ID and field name. Two
+independently UI-created disposable projects have the same namespace and
+IDs; neither uses file-edit shortcuts for game authoring.
+
+Actual Chromium ▶ and X11 observations:
+
+| Confirmed Phase / Open (ms) | Click following first green | Rendered result |
+| --- | --- | --- |
+| 5000 / 3500 | ~1.77 s | Success (green) |
+| 7000 / 1000 | ~1.76 s | Failure (red) |
+| 7000 / 1000, cold restart | ~1.79 s | Failure (red) |
+| Independent same-ID project, 5000 / 3500 | ~1.76 s | Success (green) |
+
+The function declaration, implementation declaration, graph and node
+C# record were byte-identical before and after the two setting changes.
+Actual competing external edit of the disposable configuration object was
+rejected, retaining the local 8000 input and the external 9000 value; the
+fixture-only external edit was restored afterwards. The CLI component test
+rejects string and int fields despite the same apparent numeric value,
+missing fields, unlinked same-project objects and foreign-project IDs. It
+also checks the value-only relink changes the final build key.
+
+### Reproduce from an empty local profile
+
+Use the Linux lightweight editor report and isolated X11 display documented
+in the preceding stages. Create fresh disposable projects through the
+normal test entry points in order (with the evidence directory emitted by
+the first command):
+
+1. `python tests/gui/editor_new_game_workflow.py <report> <repo>`
+2. `python tests/web/project_installed_pack_registration.py <report> <repo> <evidence>`
+3. `python tests/web/project_runtime_input.py <report> <repo> <evidence>`
+4. `python tests/web/project_runtime_configuration.py <report> <repo> <evidence>`
+
+For isolation, repeat steps 1–3 with a second independent profile; execute
+step 4 with `--setup-only` before changing the first project's settings,
+then with `--isolation-only` after the first project's change. The first
+project may be checked with `--guard-only` after its narrow settings run.
+Component tests: `tests/packs/owned_function_object_use.py <author-host>`
+and `tests/packs/linked_declared_long.py <repo>`. Set CONFECTORY_DOTNET to
+the SDK executable, keep X11 isolated and provide xwininfo, ImageMagick
+and Pillow as for the native input test. Windows actual execution remains
+unverified. This is a small authored experimental game, not a new game
+engine-specific rule or a packaged external release.

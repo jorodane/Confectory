@@ -259,6 +259,7 @@ try
             var manifest=new Parser(S("text"),"<owned-registration>").ParseManifest();var entries=request["entries"]!.AsArray();if(entries.Count is <1 or >32)throw new ArgumentException("Bounded declaration group required");var seen=new HashSet<string>(StringComparer.Ordinal);
             foreach(var row in entries){string id=row!["id"]!.GetValue<string>(),prefix=manifest.Namespace+"::";if(!id.StartsWith(prefix,StringComparison.Ordinal)||!seen.Add(id)||!manifest.Elements.TryGetValue(id[prefix.Length..],out var locator)||locator.Kind!=row["kind"]!.ToString()||locator.Path!=row["path"]!.ToString())throw new ArgumentException("Exact owned declaration registration required");manifest.Elements.Remove(id[prefix.Length..]);}string formatted=FormatManifest(manifest);string? prior=request["prior"]?.GetValue<string>();if(prior is not null&&FormatManifest(new Parser(prior,"<checkpoint-registration>").ParseManifest())==formatted)formatted=prior;reply=JsonValue.Create(formatted);break;
         }
+        case "ownedFunctionObjectUse":reply=JsonValue.Create(OwnedFunctionObjectUse.Prepare(S("project"),S("manifest"),S("text"),S("objectId"),Format));break;
         case "registeredFunctionProvider":reply=JsonValue.Create(RegisteredFunctionProvider.Prepare(S("project"),S("manifest"),S("text"),S("function"),S("implementation"),Format));break;
         case "editDeclaration":
         {

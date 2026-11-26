@@ -1,0 +1,1 @@
+function Confectory.RuntimeBase::ReadDeclaredLong (string objectId, string field) -> long { provide Confectory.RuntimeBase::ReadDeclaredLong with Confectory.RuntimeBase::ReadDeclaredLongBody; description "Read one confirmed, single long field from an explicitly linked object in this executable's own project. Not a live instance or source-file read."; }

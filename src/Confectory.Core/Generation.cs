@@ -129,6 +129,13 @@ public static partial class Generation
             if (e.Values.Count > 0) item["metadataValues"] = JsonSerializer.SerializeToNode(e.Values.ToDictionary(x => x.Key, x => new { value = x.Value.Value, origin = x.Value.Origin }), JsonData.Options);
             if (e.Fields.Count > 0) item["schemaFields"] = JsonSerializer.SerializeToNode(e.Fields.ToDictionary(p => p.Key, p => new { cardinality = p.Value.Cardinality, kind = p.Value.Kind, type = p.Value.Type, origin = p.Value.Origin }), JsonData.Options);
             if (e.Data.Count > 0) item["typedData"] = JsonSerializer.SerializeToNode(e.Data.ToDictionary(p => p.Key, p => PublicDatum(p.Value)), JsonData.Options);
+            // Export the validated effective schema contract of published object data.
+            // This is linked metadata, not a live runtime object instance.
+            if (e.Kind == "object" && e.Data.Count > 0)
+            {
+                var fields = SchemaContracts.Fields(plan.Registry,id);
+                item["typedDataContracts"] = JsonSerializer.SerializeToNode(e.Data.Keys.ToDictionary(name=>name,name=>new { cardinality=fields[name].Cardinality,kind=fields[name].Kind,type=fields[name].Type,origin=fields[name].Origin }),JsonData.Options);
+            }
             elements.Add(item);
         }
         return JsonData.Object(new

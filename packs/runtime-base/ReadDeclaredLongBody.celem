@@ -1,0 +1,1 @@
+implementation Confectory.RuntimeBase::ReadDeclaredLongBody for Confectory.RuntimeBase::ReadDeclaredLong (string objectId, string field) -> long { body common "ReadDeclaredLong.csbody"; }

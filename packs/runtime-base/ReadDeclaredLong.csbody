@@ -1,0 +1,18 @@
+// Only the catalog embedded in or packaged beside the running application is used.
+// No source path, environment preference, external assembly or runtime instance.
+var assembly=System.Reflection.Assembly.GetEntryAssembly()??throw new InvalidOperationException("Linked application required");
+System.IO.Stream? linked=assembly.GetManifestResourceStream("public-linkage.json");
+if(linked is null&&!OperatingSystem.IsBrowser()&&!OperatingSystem.IsAndroid()&&!string.IsNullOrEmpty(assembly.Location)){
+ string path=System.IO.Path.Combine(System.IO.Path.GetDirectoryName(assembly.Location)!,"public-linkage.json");
+ var file=new System.IO.FileInfo(path);if(file.Exists&&file.LinkTarget is null)linked=file.OpenRead();
+}
+using var stream=linked??throw new InvalidOperationException("Linked catalog unavailable");
+if(stream.Length>16777216||objectId.Length>256||field.Length>256)throw new ArgumentException("Bounded linked field required");
+var catalog=System.Text.Json.Nodes.JsonNode.Parse(stream)??throw new InvalidOperationException("Linked catalog unavailable");
+string project=catalog["project"]?.GetValue<string>()??throw new InvalidOperationException("Linked project required");
+if(catalog["formatVersion"]?.GetValue<int>()!=1||catalog["surface"]?.ToString()!="linked-elements"||!objectId.StartsWith(project+"::",StringComparison.Ordinal))throw new ArgumentException("Own linked project object required");
+var owner=System.Linq.Enumerable.SingleOrDefault(catalog["elements"]!.AsArray(),item=>item?["id"]?.ToString()==objectId);
+if(owner?["kind"]?.ToString()!="object")throw new ArgumentException("Exact linked object required");
+var contract=owner["typedDataContracts"]?[field];var datum=owner["typedData"]?[field];
+if(contract?["cardinality"]?.ToString()!="single"||contract["kind"]?.ToString()!="general"||contract["type"]?.ToString()!="long"||datum?["kind"]?.ToString()!="general"||datum["scalar"] is not System.Text.Json.Nodes.JsonValue value||!value.TryGetValue<long>(out long result))throw new ArgumentException("Confirmed single long data field required");
+return result;
