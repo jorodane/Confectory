@@ -13,7 +13,7 @@ import v666_node_names_recovery_fixture as t
 
 f, x = t.f, t.x
 mode = sys.argv[3] if len(sys.argv) > 3 else "normal"
-assert mode in {"normal", "empty", "value", "shared", "readonly"}
+assert mode in {"normal", "empty", "value", "shared", "readonly", "start"}
 graph_path = f.project / t.graph_file
 
 
@@ -104,7 +104,7 @@ def expected_output(transferred=False):
     if mode == "shared":
         return 11, "\n".join(positive + ["moved", "left", "body", "after", "result:1"])
     if transferred:
-        negative.append("moved")
+        negative.insert(0 if mode == "start" else len(negative), "moved")
     return 51, "\n".join(positive + negative + ["result:41"])
 
 
@@ -140,6 +140,12 @@ def drag_to_case(destination, allowed, cancel=False, screenshot=False):
     expect(marker).to_have_count(int(allowed), timeout=3000)
     if allowed:
         expect(marker).to_have_text("분기 끝에 놓기")
+        if mode == "start" and destination == "negative":
+            pane=doc().locator('[data-document-panel="case:negative"]')
+            expect(pane).to_be_visible()
+            target=pane.locator(':scope>[data-document-cell="right"]');box=target.bounding_box();assert box
+            f.page.mouse.move(box['x']+box['width']/2,box['y']+box['height']*.25,steps=15)
+            expect(marker).to_have_text("분기 안에 놓기")
         if screenshot:
             f.page.screenshot(path=str(f.case / "case-transfer-placement.png"))
     if cancel:
@@ -161,7 +167,10 @@ def expected_edges(destination_has_right):
     routes = {(row["from"], row["port"]): row for row in edges}
     routes["choose", "case:positive"]["to"] = "left"
     routes["move", "next"]["to"] = "exit:early"
-    if destination_has_right:
+    if mode == "start":
+        routes["choose", "case:negative"]["to"] = "move"
+        routes["move", "next"]["to"] = "right"
+    elif destination_has_right:
         routes["right", "next"]["to"] = "move"
     else:
         routes["choose", "case:negative"]["to"] = "move"
@@ -171,8 +180,9 @@ def expected_edges(destination_has_right):
 original = prepare_project()
 x.physical = {p: p.read_bytes() for p in f.project.rglob("*") if p.is_file() and ".confectory" not in p.parts}
 modes = {path: stat.S_IMODE(path.stat().st_mode) for path in x.physical}
-supported = mode in {"normal", "empty"}
+supported = mode in {"normal", "empty", "start"}
 negative = [] if mode == "empty" else ["right"]
+negative_after = ["move"] + negative if mode == "start" else negative + ["move"]
 try:
     x.build("before-transfer", *expected_output())
     f.start(0)
@@ -209,7 +219,7 @@ try:
                 assert not pending()
                 case_tab("positive").click()
                 drag_to_case("negative", True, screenshot=True)
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 held = pending()
                 assert len(held) == len(negative) + 4
                 assert checkpoint.read_bytes() == before
@@ -218,10 +228,10 @@ try:
                 assert_cases(["move", "left"], negative)
                 assert not pending()
                 local_undo(True)
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 assert pending() == held
                 restart_drag(1)
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 assert pending() == held
                 f.checked("mouse transfer including target marker and Escape is one local Undo/Redo step and survives reopening")
 
@@ -246,12 +256,12 @@ try:
                 f.invoke("saveDraft", {})
                 restart_drag(2)
                 folded()
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 assert not pending()
                 drag_to_case("positive", True)
                 assert_cases(["left", "move"], negative)
                 local_undo()
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 assert not pending()
                 f.checked("checkpoint Save and shared history are atomic; real reverse gesture is available and can be undone")
 
@@ -282,7 +292,7 @@ try:
                 sources_unchanged(allow_graph=True)
                 x.build("after-transfer", *expected_output(transferred=True))
                 restart_drag(3)
-                assert_cases(["left"], negative + ["move"])
+                assert_cases(["left"], negative_after)
                 assert not pending()
                 f.checked("both case outcomes keep their original terminals and bindings; the moved source, ID and every other original stay intact")
             f.page.screenshot(path=str(f.case / f"case-transfer-{mode}.png"))

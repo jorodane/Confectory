@@ -113,3 +113,24 @@ python tests/web/v821_child_case_transfer_host.py "$REPO" "$REPORT" normal
 python tests/web/v821_child_case_insert_host_perf.py "$REPO" "$REPORT" after invalid
 python tests/web/authoring_read_stream.py
 ```
+
+## 대상 case 내부 위치 선택
+
+`b7fcf18f5e352143b03148269da1fd7732cba532`에서 실제 Chromium의 기존 drag는 상대 case 탭에서 끝 배치만 제공하고 그 내부 셀을 대상으로 지정할 수 없음을 재현했다. 이제 상대 case 탭 위에 마우스를 이동하면 기존 DOM을 교체하지 않고 대상 case 패널을 잠시 표시한다. 대상 셀 위쪽/아래쪽에 놓으면 그 앞/뒤로 이동하며, 탭에 직접 놓으면 기존처럼 끝에 추가된다. Escape 또는 drag 종료는 임시 표시를 원래 선택으로 복구한다. 표시 전환 자체는 authored source나 개인 Undo에 기록되지 않는다.
+
+기존 `TransferOrder`는 동일한 직접 소유 switch의 명시적 두 case 전체 route를 계속 요구한다. 값 의존성이 없는 void 일반 셀 하나만 상대 case에 삽입할 수 있고, 삽입된 셀을 제외한 대상/출발 순서와 각 case의 종료점, switch 계속점, 원래 셀 ID·소유권·원문은 그대로여야 한다. 다른 frame 경계를 넘는 이동, 여러 셀 공동 이동, 기존 값 연결 또는 다른 셀을 함께 재정렬하는 요청은 허용하지 않는다. 저장·Review/Confirm·최종 CAS와 기존 충돌 보호는 바꾸지 않는다.
+
+재현과 검증은 경량 Linux 실제 Chromium 편집기에서 기존 fixture를 확장해 수행한다.
+
+```sh
+# 이전 빌드 전용 재현
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" baseline-position
+# 후속 빌드
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" middle
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" start
+python tests/web/v821_case_transfer_ui.py "$REPO" "$REPORT" start
+python tests/web/v821_case_transfer_ui.py "$REPO" "$REPORT" normal
+python tests/web/v821_case_transfer_ui.py "$REPO" "$REPORT" empty
+```
+
+위 6개 실행 및 기존 주 흐름↔case 실제 배치(`v821_scope_transfer_ui.py normal`)을 통과했다. 중간 위치 검증에서 값 연결 셀, 위조된 다른 case 순서 변경, 형제 frame/동일 ID 별개 프로젝트의 요청을 거절하고 미저장 입력을 보존했다. 직접 소유 child 마지막 셀 이동(`single`)도 기존 명시적 빈 case 종료점으로 돌아간다. 실제 Windows/WebView2와 모바일 터치 드래그는 미검증이다.

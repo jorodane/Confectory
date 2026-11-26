@@ -628,15 +628,17 @@ public static class BlueprintCellRegion
         }
         var result=scope.Cases.Select(Candidate).ToArray();
         Need(seen.Count==members.Count,"Retain the union of both original cases");
-        bool MovedOneToEnd(int destination){
+        bool MovedOne(int destination){
             int source=1-destination;
             if(result[destination].Count!=scope.Cases[destination].Nodes.Count+1)return false;
-            string moved=result[destination][^1];
+            var inserted=result[destination].Where(id=>!scope.Cases[destination].Nodes.Contains(id)).ToArray();
+            if(inserted.Length!=1)return false;
+            string moved=inserted[0];
             return scope.Movable.Contains(moved) && scope.Cases[source].Nodes.Contains(moved)
                 && result[source].SequenceEqual(scope.Cases[source].Nodes.Where(id=>id!=moved))
-                && result[destination].SkipLast(1).SequenceEqual(scope.Cases[destination].Nodes);
+                && result[destination].Where(id=>id!=moved).SequenceEqual(scope.Cases[destination].Nodes);
         }
-        Need(MovedOneToEnd(0)||MovedOneToEnd(1),"Move exactly one unconnected void cell to the other case's end");
+        Need(MovedOne(0)||MovedOne(1),"Move exactly one unconnected void cell between cases without reordering any other cell");
 
         var edges=graph["edges"]!.DeepClone().AsArray();
         foreach(var edge in edges){

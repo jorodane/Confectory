@@ -10,7 +10,7 @@ import uuid
 from playwright.sync_api import expect, sync_playwright
 
 scenario = sys.argv[3] if len(sys.argv)>3 else 'normal'
-assert scenario in {'normal','baseline','single'}
+assert scenario in {'normal','baseline','single','baseline-position','middle','start'}
 fixture = Path(__file__).with_name('v821_child_case_order_ui.py')
 setup = ast.parse(fixture.read_text()).body
 argv = sys.argv
@@ -50,12 +50,19 @@ expected=copy.deepcopy(root)
 changed=expected['nodes'][0]['graph']
 links={(e['from'],e['port']):e for e in changed['edges']}
 links[('choose','case:positive') if scenario=='single' else ('positive','next')]['to']='return:choose'
-links[('negativeTail','next')]['to']='tail'
-links[('tail','next')]['to']='return:choose'
+if scenario=='start':
+    links[('choose','case:negative')]['to']='tail'
+    links[('tail','next')]['to']='negative'
+elif scenario=='middle':
+    links[('negative','next')]['to']='tail'
+    links[('tail','next')]['to']='negativeTail'
+else:
+    links[('negativeTail','next')]['to']='tail'
+    links[('tail','next')]['to']='return:choose'
 pos_before=['tail'] if scenario=='single' else ['positive','tail'];neg_before=['negative','negativeTail']
-pos_after=[] if scenario=='single' else ['positive'];neg_after=['negative','negativeTail','tail']
+pos_after=[] if scenario=='single' else ['positive'];neg_after=['tail','negative','negativeTail'] if scenario=='start' else ['negative','tail','negativeTail'] if scenario=='middle' else ['negative','negativeTail','tail']
 original_output=output()
-lines=original_output.splitlines();lines.remove('tail:7');lines.insert(lines.index('negativeTail:-2')+1,'tail:7')
+lines=original_output.splitlines();lines.remove('tail:7');lines.insert(lines.index('negative:-2') if scenario=='start' else lines.index('negative:-2')+1 if scenario=='middle' else lines.index('negativeTail:-2')+1,'tail:7')
 changed_output='\n'.join(lines)
 
 
@@ -69,7 +76,7 @@ def cases(pos,neg):
     assert case_order('negative')==neg
 
 
-def drag_to_negative(allowed,cancel=False,node='tail'):
+def drag_to_negative(allowed,cancel=False,node='tail',position=None):
     select_case('positive')
     start_drag(node)
     tab=doc().locator('[data-document-branch="case:negative"][data-document-owner=choose]')
@@ -80,8 +87,22 @@ def drag_to_negative(allowed,cancel=False,node='tail'):
     marker=f.page.locator('.fd-cell-drop-marker[data-branch-transfer]')
     expect(marker).to_have_count(int(allowed),timeout=3000)
     if allowed:expect(marker).to_have_text('분기 끝에 놓기')
+    if position is not None:
+        pane=doc().locator('[data-document-panel="case:negative"]')
+        if position=='baseline':
+            expect(pane).to_be_hidden()
+        else:
+            expect(pane).to_be_visible()
+            target=pane.locator(':scope>[data-document-cell="negative"]');bounds=target.bounding_box();assert bounds
+            f.page.mouse.move(bounds['x']+bounds['width']/2,bounds['y']+bounds['height']*(.25 if position=='start' else .75),steps=15)
+            expect(marker).to_have_text('분기 안에 놓기')
+
     if cancel:f.page.keyboard.press('Escape')
     f.page.mouse.up();f.idle();expect(marker).to_have_count(0)
+    if cancel and position in {'start','middle'}:
+        expect(doc().locator('[data-document-panel="case:positive"]')).to_be_visible()
+        expect(doc().locator('[data-document-panel="case:negative"]')).to_be_hidden()
+
 
 
 def transfer_request(data):
@@ -109,12 +130,18 @@ try:
             cases(pos_before,neg_before)
             assert not pending() and checkpoint.read_bytes()==before
             f.checked('Existing child UI cannot transfer the ordinary action to the other case')
+        elif scenario=='baseline-position':
+            assert baseline['documentBranchTransfer']['movable']==['tail']
+            drag_to_negative(True,cancel=True,position='baseline')
+            cases(pos_before,neg_before);assert not pending() and checkpoint.read_bytes()==before
+            f.checked('Existing branch tab only exposes append; the destination cells cannot be targeted')
         else:
             assert baseline['documentBranchTransfer']['movable']==['tail']
-            if scenario=='normal':
+            if scenario in {'normal','middle','start'}:
                 drag_to_negative(False,node='positive');cases(pos_before,neg_before);assert not pending()
-            drag_to_negative(True,cancel=True);cases(pos_before,neg_before);assert not pending()
-            drag_to_negative(True);cases(pos_after,neg_after)
+            position=scenario if scenario in {'start','middle'} else None
+            drag_to_negative(True,cancel=True,position=position);cases(pos_before,neg_before);assert not pending()
+            drag_to_negative(True,position=position);cases(pos_after,neg_after)
             held=pending();assert len(held)==len(pos_before)+len(neg_before)+2 and checkpoint.read_bytes()==before
             local_undo();cases(pos_before,neg_before);assert not pending()
             local_undo(True);cases(pos_after,neg_after);assert pending()==held
@@ -123,9 +150,17 @@ try:
             wrong=transfer_request(baseline);wrong['documentFrame']['path']='peer'
             f.invoke('blueprint',wrong,False)
             assert pending()==held and checkpoint.read_bytes()==before
+            if scenario in {'middle','start'}:
+                reordered=transfer_request(baseline)
+                replacements={('choose','case:negative'):'negativeTail',('negativeTail','next'):'tail',('tail','next'):'negative',('negative','next'):'return:choose'}
+                for edit in reordered['edits']:
+                    if (edit['node'],edit['port']) in replacements:edit['to']=replacements[(edit['node'],edit['port'])]
+                f.invoke('blueprint',reordered,False)
+                assert pending()==held and checkpoint.read_bytes()==before
+
             f.checked('Mouse transfer, Escape, local Undo/Redo and cold preserve the same-ID sibling and original files')
 
-            if scenario=='normal':
+            if scenario in {'normal','middle'}:
                 # A different project has the same original sources and graph IDs.
                 duplicate=f.case/'same IDs other project'
                 shutil.copytree(f.project,duplicate,ignore=shutil.ignore_patterns('.confectory'))

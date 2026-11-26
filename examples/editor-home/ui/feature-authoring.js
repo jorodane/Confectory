@@ -800,7 +800,7 @@ function blueprintNormalizeControls(scope){
    if(chain?.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||!(n.kind==='code'||chain.compound&&n.kind==='graph')||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
    const destination=chain&&transferTarget(id,chain),order=chain?.order||[];
    return {scope:JSON.stringify([surface.context,chain?.owner||'',chain?.port||'',from?.id||'']),order:[...order],exit:chain?.exit,cross,
-    transfer:destination?{owner:chain.owner,port:destination.port}:null,
+    transfer:destination?{owner:chain.owner,port:destination.port,order:[...destination.order]}:null,
     version:JSON.stringify([proof(data),data.checkpointHash,held,order,api.ownerInputs?[...api.ownerInputs].filter(([key])=>key.startsWith(w.authorScope+'|'+w.meta.id+'|')):[]])};
   };
   const cellDropPlan=(id,slot,expected,transfer=null)=>{
@@ -809,7 +809,15 @@ function blueprintNormalizeControls(scope){
    if(transfer){
     if(!now.transfer||transfer.owner!==now.transfer.owner||transfer.port!==now.transfer.port)return null;
     const {owner,cases}=data.documentBranchTransfer;
-    const chains=cases.map(region=>({...region,order:region.port===transfer.port?[...region.order,id]:region.order.filter(cell=>cell!==id)}));
+    const target=cases.find(region=>region.port===transfer.port);if(!target)return null;
+    let index=target.order.length;
+    if(transfer.anchor!==undefined||transfer.side!==undefined){
+     const anchor=target.order.indexOf(transfer.anchor);
+     if(anchor<0||!['before','after'].includes(transfer.side))return null;
+     index=anchor+(transfer.side==='after'?1:0);
+    }
+    const order=[...target.order];order.splice(index,0,id);
+    const chains=cases.map(region=>({...region,order:region.port===transfer.port?order:region.order.filter(cell=>cell!==id)}));
     return {owner,chains};
    }
    const from=now.order.indexOf(id);if(!Number.isInteger(slot)||slot<0||slot>now.order.length)return null;

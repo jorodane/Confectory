@@ -49,14 +49,20 @@ export function mountFunctionDocument(root,api){
  }
  const dragType='application/x-confectory-document-cell',marker=document.createElement('div');marker.className='fd-cell-drop-marker';marker.setAttribute('aria-label','셀 배치 위치');marker.innerHTML='<span>여기에 놓기</span>';
  const clearDrop=()=>{marker.remove();if(drag)drag.slot=null;};
- const cancelDrag=()=>{clearDrop();drag=null;pointerType=null;host.classList.remove('fd-cell-dragging');};
+ const restoreTransferPane=()=>{
+  if(!drag?.preview)return;
+  for(const [panel,hidden] of drag.preview.panels)panel.hidden=hidden;
+  for(const [tab,pressed] of drag.preview.tabs)tab.setAttribute('aria-pressed',pressed);
+  drag.preview=null;
+ };
+ const cancelDrag=()=>{clearDrop();restoreTransferPane();drag=null;pointerType=null;host.classList.remove('fd-cell-dragging');};
  const currentDrag=()=>{const now=drag&&api.cellDrag?.(drag.id);return !!now&&owns()&&state.mode==='logic'&&now.scope===drag.binding.scope&&now.version===drag.binding.version;};
  const fieldLabel=field=>esc(field.name||field.id)+' <small>'+esc((field.type||field.nativeType||'')+(field.multi?'[]':''))+'</small>';
  const dragTitle=actions=>{
   if(!actions?.drag)return '현재 입력과 편집 문맥에서는 드래그할 수 없습니다. 기존 입력은 유지됩니다.';
-  if(actions.cross&&actions.transfer)return '주 흐름이나 열린 분기의 셀 앞뒤에 놓아 실행 위치를 옮깁니다. 다른 분기의 탭에 놓으면 그 분기 끝으로 이동합니다.';
+  if(actions.cross&&actions.transfer)return '주 흐름이나 열린 분기의 셀 앞뒤에 놓아 실행 위치를 옮깁니다. 다른 분기 탭에 머물러 대상 셀 앞뒤에 놓거나 탭에 바로 놓아 끝으로 이동합니다.';
   if(actions.cross)return '주 흐름이나 열린 분기의 셀 앞뒤에 놓아 실행 위치를 옮깁니다.';
-  if(actions.transfer)return '다른 분기 탭에 놓으면 그 분기 끝으로 이동합니다. 같은 분기는 Alt+↑/↓로 이동할 수 있습니다.';
+  if(actions.transfer)return '다른 분기 탭에 머물러 대상 셀 앞뒤에 놓거나 탭에 바로 놓아 끝으로 이동합니다. 같은 분기는 Alt+↑/↓로 이동할 수 있습니다.';
   return '같은 흐름 안에서 끌어 이동 · Alt+↑/↓';
  };
  // Keep the active text/caret while pending input changes action eligibility.
@@ -169,6 +175,20 @@ export function mountFunctionDocument(root,api){
   for(const button of host.querySelectorAll('[data-document-call-refresh]'))button.onclick=()=>{if(owns())api.refreshCall(button.dataset.documentCallRefresh);};
   for(const button of host.querySelectorAll('[data-document-call-compare]'))button.onclick=()=>{if(owns())api.compareCall(button.dataset.documentCallCompare);};
  }
+ // Preview the other case without replacing the native drag source DOM or
+ // persisting a view selection. Cancel/drop restores the original selection.
+ function previewTransferPane(event){
+  const transfer=drag?.binding.transfer,tab=event.target.closest('[data-document-branch]');
+  if(!transfer||!tab||tab.dataset.documentOwner!==transfer.owner||!currentDrag())return;
+  if(tab.dataset.documentBranch===drag.parent.dataset.documentPanel){restoreTransferPane();return;}
+  if(tab.dataset.documentBranch!==transfer.port)return;
+  const group=tab.closest('.fd-branches');if(!group||!group.contains(drag.parent))return;
+  const panels=Array.from(group.children).filter(el=>el.hasAttribute('data-document-panel'));
+  const target=panels.find(panel=>panel.dataset.documentPanel===transfer.port);if(!target)return;
+  if(!drag.preview)drag.preview={panels:panels.map(panel=>[panel,panel.hidden]),tabs:Array.from(tab.parentElement.querySelectorAll('[data-document-branch]')).map(button=>[button,button.getAttribute('aria-pressed')])};
+  for(const panel of panels)panel.hidden=panel!==target;
+  for(const [button] of drag.preview.tabs)button.setAttribute('aria-pressed',String(button===tab));
+ }
  function dropPosition(event){
   if(!currentDrag()){cancelDrag();return null;}
   const tab=event.target.closest('[data-document-branch]');
@@ -183,6 +203,17 @@ export function mountFunctionDocument(root,api){
   const target=event.target.closest('[data-document-cell]'),parent=drag.parent;
   const empty=event.target.closest('[data-document-branch-add]');
   const area=empty?.parentElement||target?.parentElement;
+  const branchTarget=drag.binding.transfer;
+  if(branchTarget&&target&&target.parentElement!==parent&&target.parentElement.dataset.documentPanel===branchTarget.port
+      &&target.parentElement.closest('[data-document-cell]')?.dataset.documentCell===branchTarget.owner
+      &&branchTarget.order.includes(target.dataset.documentCell)){
+   const box=target.getBoundingClientRect(),bounds=host.getBoundingClientRect(),side=event.clientY<box.top+box.height/2?'before':'after';
+   const transfer={owner:branchTarget.owner,port:branchTarget.port,anchor:target.dataset.documentCell,side};
+   if(!api.canDropCell?.(drag.id,null,drag.binding,transfer))return null;
+   const y=side==='before'?box.top-3:box.bottom+3;
+   if(event.clientX<box.left||event.clientX>box.right||y<bounds.top+3||y>bounds.bottom-3)return null;
+   return {slot:null,transfer,x:Math.max(bounds.left+5,box.left),y,width:Math.min(bounds.right-5,box.right)-Math.max(bounds.left+5,box.left)};
+  }
   if(drag.binding.cross&&area&&area!==parent){
    const {owner,lanes}=drag.binding.cross,anchor=empty?'$empty':target.dataset.documentCell;
    const panel=area.dataset.documentPanel,box=(empty||target).getBoundingClientRect();
@@ -213,11 +244,11 @@ export function mountFunctionDocument(root,api){
   return {slot,x:Math.max(rect.left,bounds.left+5),y,width:Math.min(rect.right,bounds.right-5)-Math.max(rect.left,bounds.left+5)};
  }
  host.addEventListener('dragover',event=>{
-  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();clearDrop();const target=dropPosition(event);event.dataTransfer.dropEffect=target?'move':'none';if(!target)return;drag.slot=target.slot;
+  if(!drag||!Array.from(event.dataTransfer.types).includes(dragType))return;event.preventDefault();event.stopPropagation();clearDrop();previewTransferPane(event);const target=dropPosition(event);event.dataTransfer.dropEffect=target?'move':'none';if(!target)return;drag.slot=target.slot;
   const lane=target.transfer?.lane,branch=lane?.startsWith('case:');
   marker.toggleAttribute('data-branch-transfer',!!target.transfer&&!lane);
   if(lane)marker.dataset.scopeTransfer=branch?'case':'root';else delete marker.dataset.scopeTransfer;
-  marker.firstElementChild.textContent=lane?(branch?'분기 안에 놓기':'주 흐름에 놓기'):target.transfer?'분기 끝에 놓기':'여기에 놓기';
+  marker.firstElementChild.textContent=lane?(branch?'분기 안에 놓기':'주 흐름에 놓기'):target.transfer?(target.transfer.anchor!==undefined?'분기 안에 놓기':'분기 끝에 놓기'):'여기에 놓기';
   Object.assign(marker.style,{left:target.x+'px',top:target.y+'px',width:target.width+'px'});document.body.append(marker);
  },{signal:events.signal});
  host.addEventListener('drop',event=>{
