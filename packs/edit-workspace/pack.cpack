@@ -1,6 +1,7 @@
 pack Confectory.EditWorkspace version "0.1.0" {
 element EditObjectStructure function "EditObjectStructure.celem";element EditObjectStructureBody implementation "EditObjectStructureBody.celem";
 standalone false;
+element AddProjectPack function "AddProjectPack.celem";element AddProjectPackBody implementation "AddProjectPackBody.celem";
 element SetProjectEntry function "SetProjectEntry.celem";element SetProjectEntryBody implementation "SetProjectEntryBody.celem";
 element Retirement function "Retirement.celem";element RetirementBody implementation "RetirementBody.celem";
 element PlanRemoval function "PlanRemoval.celem";element PlanRemovalBody implementation "PlanRemovalBody.celem";

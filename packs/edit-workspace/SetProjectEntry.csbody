@@ -16,7 +16,7 @@ lock(state){
  var current=calls.Read.Invoke(handle,manifestId);var currentFeature=calls.Read.Invoke(handle,id);
  if(!System.Linq.Enumerable.SequenceEqual(current,manifest)||!System.Linq.Enumerable.SequenceEqual(currentFeature,feature)||Original(current)!=original||Original(currentFeature)!=featureText)throw new InvalidOperationException("Entry source changed; retain drafts and retry.");
  if(current[3]==next)return;
- var unit=state["units"]![manifestId]!;var before=new System.Text.Json.Nodes.JsonObject{[manifestId]=unit["draft"]!.DeepClone()};
+ var unit=state["units"]![manifestId]!;
  unit["draft"]=next;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
- if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(before,"source-edit");
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new System.Text.Json.Nodes.JsonObject(),"OWNERSHIP_CHANGED");
 }

@@ -1,0 +1,6 @@
+implementation Confectory.EditWorkspace::AddProjectPackBody for Confectory.EditWorkspace::AddProjectPack (string handle,string installation,string id) -> void {
+import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
+import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
+body common "AddProjectPack.csbody";
+}

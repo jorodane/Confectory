@@ -227,6 +227,7 @@ case "filter":{
 case "select":string id=request["id"]!.GetValue<string>();calls.Read.Invoke(draft,id);state["review"]=null;state["selected"]=id;break;
 case "page":int page=request["page"]!.GetValue<int>();if(page<0)throw new ArgumentOutOfRangeException("page");state["review"]=null;state["page"]=page;break;
 case "edit":string selected=state["selected"]!.GetValue<string>();if(selected=="")throw new InvalidOperationException("Select an owned unit first.");long expected=request["expectedRevision"]!.GetValue<long>();if(expected<0)throw new ArgumentOutOfRangeException("expectedRevision");string text=request["text"]!.GetValue<string>();if(text.Length>1048576)throw new ArgumentException("Draft exceeds one million characters.");long before=long.Parse(calls.Read.Invoke(draft,selected)[4]);conflict=!calls.Edit.Invoke(draft,selected,text,expected);if(conflict||long.Parse(calls.Read.Invoke(draft,selected)[4])!=before)state["review"]=null;break;
+case "add-project-pack":calls.AddProjectPack.Invoke(draft,request["installation"]!.GetValue<string>(),request["id"]!.GetValue<string>());calls.Save.Invoke(draft);state["review"]=null;break;
 case "set-project-entry":calls.SetProjectEntry.Invoke(draft,request["id"]!.GetValue<string>());calls.Save.Invoke(draft);state["review"]=null;break;
 case "cancel-review":state["review"]=null;break;
 case "review":{

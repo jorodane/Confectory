@@ -224,6 +224,15 @@ try
         case "locate":
             reply=RelationLocators.Query(S("manifest"),Path.GetDirectoryName(Path.GetFullPath(S("project")))!,request["ids"]!.AsArray().Select(x=>x!.GetValue<string>()).ToArray(),path=>{var file=new FileInfo(path);if(!file.Exists||file.Length>1048576||file.LinkTarget is not null)throw new IOException("Manifest unavailable");return File.ReadAllText(path);});break;
         case "reviewSummary":reply=ReviewSummary(S("kind"),S("before"),S("after"),request["project"]?.GetValue<string>(),request["path"]?.GetValue<string>());break;
+        case "isEntryOnlyHistory":
+        {
+            string before=S("before"),after=S("after");var owner=new Parser(before,"<old-entry-history>").ParseManifest();var next=new Parser(after,"<new-entry-history>").ParseManifest();
+            bool match=owner.Kind=="project"&&next.Kind=="project"&&owner.Namespace==S("namespace")&&next.Namespace==owner.Namespace&&owner.Entry!=next.Entry&&next.Entry is not null;
+            if(match){owner.Entry=next.Entry;match=DeclarationTextMerge.MergeManifest(before,FormatManifest(owner),FormatManifest)==after;}
+            reply=JsonValue.Create(match);break;
+        }
+        case "installedPackOptions":reply=ProjectPackRegistration.Options(S("installation"),S("project"));break;
+        case "addProjectPack":reply=JsonValue.Create(ProjectPackRegistration.Prepare(S("installation"),S("project"),S("manifest"),S("current"),S("id"),FormatManifest));break;
         case "setProjectEntry":
         {
             string original=S("manifest"),id=S("id");var manifest=new Parser(original,"<project-entry>").ParseManifest();
@@ -426,6 +435,8 @@ static JsonObject ReviewSummary(string kind,string before,string after,string? p
  try{
   if(kind is "project" or "pack"){
    var old=new Parser(before,"<review>").ParseManifest();var next=new Parser(after,"<review>").ParseManifest();
+   foreach(var pair in next.Registry.ToArray())if(!old.Registry.ContainsKey(pair.Key)){Add("팩 등록",null,JsonValue.Create(pair.Key),false,true);next.Registry.Remove(pair.Key);}
+   foreach(var pair in next.Dependencies.ToArray())if(!old.Dependencies.ContainsKey(pair.Key)){Add("프로젝트 의존 팩",null,JsonValue.Create(pair.Key+" · "+pair.Value.Version),false,true);next.Dependencies.Remove(pair.Key);}
    if(old.Entry!=next.Entry){Add("프로젝트 실행 진입점",JsonValue.Create(old.Entry),JsonValue.Create(next.Entry),old.Entry is not null,next.Entry is not null);next.Entry=old.Entry;}
    foreach(var item in next.Elements)if(!old.Elements.ContainsKey(item.Key))Add("프로젝트에 등록",null,JsonValue.Create(item.Key+" · "+item.Value.Kind),false,true);
    foreach(var item in old.Elements)if(!next.Elements.ContainsKey(item.Key))Add("프로젝트 등록 해제",JsonValue.Create(item.Key+" · "+item.Value.Kind),null,true,false);

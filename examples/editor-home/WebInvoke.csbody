@@ -217,6 +217,7 @@ if(endpoint=="host.close"){
 if(endpoint=="helperProfiles"){Command("helper-display-list",new());return "{\"accepted\":true}";}
 if(endpoint=="globalHelpers"){Command("helper-list",new());return "{\"accepted\":true}";}
 if(endpoint=="recruitGlobalHelper"){if(before["selected"] is not null)throw new InvalidOperationException("Global recruitment uses Home");Command("helper-recruit",new(){["kind"]="global"});return "{\"accepted\":true}";}
+if(endpoint=="installedPackOptions"){if(args.Count!=0||before["selected"]?["context"] is null)throw new UnauthorizedAccessException("Explicit project required");return Command("installed-pack-options",new()).ToJsonString();}
 if(endpoint=="localInventory"){
  bool relations=args["relations"]?.GetValue<bool>()==true;
  if(relations&&before["selected"]?["context"] is null)throw new InvalidOperationException("Open project first");
@@ -396,6 +397,7 @@ switch(endpoint){
  case "editObjectStructure":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Object structure selection changed");request["action"]="object-structure";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "editDeclaration":if(args["id"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Declaration selection changed");request["action"]="declaration";request["id"]=args["id"]!.DeepClone();request["edit"]=args["edit"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();break;
  case "createVariation":if(args["parent"]?.ToString()!=before["workspace"]?["unit"]?["id"]?.ToString())throw new InvalidOperationException("Parent selection changed");request["action"]="create-variation";request["id"]=args["id"]!.DeepClone();request["parent"]=args["parent"]!.DeepClone();request["expectedRevision"]=args["revision"]!.DeepClone();request["expectedHash"]=args["hash"]!.DeepClone();break;
+ case "addProjectPack":if(args.Count!=1)throw new ArgumentException("Explicit installed pack only");request["action"]="add-project-pack";request["id"]=args["id"]!.GetValue<string>();break;
  case "setProjectEntry":if(args.Count!=1)throw new ArgumentException("Explicit entry function only");request["action"]="set-project-entry";request["id"]=args["id"]!.GetValue<string>();break;
  case "createDeclaration":request["action"]="create";request["id"]=args["id"]!.DeepClone();string createKind=args["kind"]!.GetValue<string>();if(createKind is not ("object" or "schema" or "category" or "concept" or "function" or "module" or "enum"))throw new ArgumentException("Supported declaration kind required");request["kind"]=createKind;break;
  case "reviewGroup":request["action"]="review";request["target"]=Target();request["ids"]=args["ids"]!.DeepClone();break;

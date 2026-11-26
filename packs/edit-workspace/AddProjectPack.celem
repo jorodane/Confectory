@@ -1,0 +1,4 @@
+function Confectory.EditWorkspace::AddProjectPack (string handle,string installation,string id) -> void {
+description "Stage an installed pack and its transitive registry closure; no source writes.";
+provide Confectory.EditWorkspace::AddProjectPack with Confectory.EditWorkspace::AddProjectPackBody;
+}

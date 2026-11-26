@@ -92,3 +92,33 @@ compiles, compiler/tool fingerprints and the first project description
 still cost real time. The first default Run in a context may need one
 description refresh; later unchanged manifest bytes reuse the already
 described entry. No new performance speedup is claimed in this increment.
+
+## Installed runtime pack connection
+
+The fixed Pack Manager tab now offers **설치된 팩 연결** (Connect installed
+pack). Select an installed pack by its namespace and use the ordinary
+manifest Review/Confirm. This adds a direct dependency and registrations
+for its required installed closure, without downloading anything or
+silently adding unrelated direct dependencies. Existing conflicting
+registrations and unrelated manifest drafts are refused.
+
+In the actual disposable Timing Puzzle editor, canceling Window's review
+left the confirmed manifest unchanged. Confirming Window registered its
+required RenderInput pack; explicitly connecting RenderInput afterwards
+added its direct dependency without a duplicate registration. A cold
+Chromium reopen showed both packs and the existing authored entry still
+produced score 1. Old entry-only manifest history from the previous
+increment is recovered without granting generic manifest Undo authority;
+new manifest ownership edits use the established history boundary.
+
+Regression commands (using the lightweight built editor and author host):
+
+- `python tests/packs/project_pack_registration.py <ElementAuthoring.dll> <installed-editor-project.cpack>`
+- `python tests/gui/editor_new_game_workflow.py <editor-report.json> <repo>`
+- `python tests/web/project_installed_pack_registration.py <editor-report.json> <repo> <disposable-evidence-directory>`
+
+The last command uses the evidence directory printed by the game workflow.
+This increment supplies the ordinary dependency selection path, not yet the
+runtime window/provider binding, actual mouse timing, score presentation,
+or binding TimingRules values to the game function. Windows execution is
+not covered by these Linux tests.

@@ -99,6 +99,16 @@ lock(state)
  var privateCopies=data["privateCopies"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject();if(privateCopies.Count>8||System.Text.Encoding.UTF8.GetByteCount(privateCopies.ToJsonString())>16777216)throw new ArgumentException("Private copy seed budget");foreach(var item in privateCopies){var seed=item.Value!;if(seed["snapshot"]?["implementation"]?.ToString()!=item.Key||staged[item.Key] is not null||staged[seed["snapshot"]!["owner"]!.ToString()]?["kind"]?.ToString() is not ("object" or "schema")&&!retiredIds.Contains(seed["snapshot"]!["owner"]!.ToString()))throw new ArgumentException("Private seed identity already registered or missing owner");calls.Metadata.Invoke("privateCopySeed",new System.Text.Json.Nodes.JsonObject{["seed"]=seed.DeepClone(),["project"]=state["project"]!.DeepClone(),["identity"]=state["identity"]!.DeepClone()}.ToJsonString());}
  var history=data["history"]?.DeepClone() as System.Text.Json.Nodes.JsonObject??new System.Text.Json.Nodes.JsonObject{["revision"]=0L,["undo"]=new System.Text.Json.Nodes.JsonArray(),["redo"]=new System.Text.Json.Nodes.JsonArray()};
  if(history.ToJsonString().Length>2098176||history["revision"]!.GetValue<long>()<0||history["undo"] is not System.Text.Json.Nodes.JsonArray undo||history["redo"] is not System.Text.Json.Nodes.JsonArray redo||undo.Count+redo.Count>32)throw new ArgumentException("Bounded saved history required");
+ // A previous entry-only writer recorded a manifest in ordinary source
+ // history. Such an entry must not acquire generic manifest Undo authority.
+ // Recover only that exact obsolete record, preserving all source drafts and
+ // unrelated valid history. Unknown/corrupt manifest records still fail.
+ foreach(var stack in new[]{undo,redo})for(int index=stack.Count-1;index>=0;index--){
+  var item=stack[index];if(item?["label"]?.ToString()!="source-edit"||item["units"] is not System.Text.Json.Nodes.JsonArray rows||rows.Count!=1||item["cellRemoval"] is not null)continue;
+  var row=rows[0];string manifestId=state["namespace"]!.ToString()+"::ProjectManifest";var owned=staged[manifestId];
+  if(row?["id"]?.ToString()!=manifestId||row["kind"]?.ToString()!="project"||owned?["kind"]?.ToString()!="project"||row["path"]?.ToString()!=owned["path"]?.ToString()||row.AsObject().Count!=5||row["before"] is not System.Text.Json.Nodes.JsonValue||row["after"] is not System.Text.Json.Nodes.JsonValue)continue;
+  if(System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("isEntryOnlyHistory",new System.Text.Json.Nodes.JsonObject{["namespace"]=state["namespace"]!.DeepClone(),["before"]=row["before"]!.DeepClone(),["after"]=row["after"]!.DeepClone()}.ToJsonString()))?.GetValue<bool>()==true)stack.RemoveAt(index);
+ }
  var entryIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
  foreach(var item in System.Linq.Enumerable.Concat(undo,redo)){
   if(item is null||!Guid.TryParseExact(item["id"]!.ToString(),"N",out _)||!entryIds.Add(item["id"]!.ToString())||item["label"]!.ToString() is not ("source-edit" or "batch-edit")||item["units"] is not System.Text.Json.Nodes.JsonArray recorded||recorded.Count<1||recorded.Count>64||item.ToJsonString().Length>1048576)throw new ArgumentException("Saved history entry invalid");

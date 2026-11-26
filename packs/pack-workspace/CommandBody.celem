@@ -27,5 +27,6 @@ import Confectory.EditWorkspace::Retirement as Retirement (string,string,string)
 import Confectory.EditWorkspace::MoveFolders as MoveFolders (string,string) -> string;
 import Confectory.Save::InformationArchive as Archive (string,string,string) -> string;
 import Confectory.EditWorkspace::SetProjectEntry as SetProjectEntry (string,string) -> void;
+import Confectory.EditWorkspace::AddProjectPack as AddProjectPack (string,string,string) -> void;
 body common "Command.csbody";
 }

@@ -1,0 +1,21 @@
+var state=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");
+string root=state["root"]!.ToString(),project=state["project"]!.ToString(),manifestId=state["namespace"]!.ToString()+"::ProjectManifest";
+var manifest=calls.Read.Invoke(handle,manifestId);
+if(manifest[1]!="project"||manifest[5]=="missing")throw new InvalidOperationException("Owned confirmed ProjectPack required");
+string Original(string[] row){
+ string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row[2]));var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
+ if(!string.Equals(path,project,comparison))throw new UnauthorizedAccessException("Manifest owner changed");
+ for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new UnauthorizedAccessException("Manifest must be owned without symbolic links");if(node.FullName==root)break;}
+ var snapshot=calls.Snapshot.Invoke(path);if(snapshot[0]!="exists"||snapshot[2]!=row[5])throw new InvalidOperationException("Original changed; reload before adding a pack.");
+ return snapshot[1];
+}
+string original=Original(manifest);
+string next=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("addProjectPack",new System.Text.Json.Nodes.JsonObject{["installation"]=installation,["project"]=project,["manifest"]=original,["current"]=manifest[3],["id"]=id}.ToJsonString()))!.GetValue<string>();
+lock(state){
+ var current=calls.Read.Invoke(handle,manifestId);
+ if(!System.Linq.Enumerable.SequenceEqual(current,manifest)||Original(current)!=original)throw new InvalidOperationException("Manifest changed; retain drafts and retry.");
+ if(current[3]==next)return;
+ var unit=state["units"]![manifestId]!;
+ unit["draft"]=next;unit["revision"]=unit["revision"]!.GetValue<long>()+1;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace.HistoryRecorder."+handle) is Action<System.Text.Json.Nodes.JsonObject,string> record)record(new System.Text.Json.Nodes.JsonObject(),"OWNERSHIP_CHANGED");
+}
