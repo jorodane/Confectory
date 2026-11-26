@@ -42,8 +42,9 @@ try:
         f.stop()
         # Real outside edit after the original session has stopped.
         schema = f.projects[0].parent / 'private-source-StockInfo.celem'
-        schema.write_text(schema.read_text().rstrip()[:-1] + ' field RestartFlag single general string;\n}\n')
-        f.before[str(schema)] = schema.read_bytes()
+        if mode!='after-save':
+            schema.write_text(schema.read_text().rstrip()[:-1] + ' field RestartFlag single general string;\n}\n')
+            f.before[str(schema)] = schema.read_bytes()
         f.env.pop('CONFECTORY_WEB_PROJECT', None)
         f.start(1)
         page = b.new_page(viewport={'width': 2000, 'height': 1200})
@@ -75,7 +76,7 @@ try:
         for key, (identifier, value) in notes.items():
             window = page.locator(f'.window[data-key="{key}"]')
             expect(r.floating.property_value(window, 'Note')).to_have_value(value)
-            expect(d.field(window, 'RestartFlag')).to_be_visible()
+            if mode!='after-save':expect(d.field(window, 'RestartFlag')).to_be_visible()
             assert window.get_attribute('data-element-owner') == identifier
         opens = [req for req in invokes if req.get('endpoint') == 'openEditorView']
         status = [req for req in invokes if req.get('endpoint') == 'browserDrafts' and req.get('input',{}).get('view')]
@@ -104,8 +105,27 @@ try:
         elif mode!='baseline':assert snapshot['schema'] is None, snapshot['schema']
 
         print('restored detached status reads',len(status),flush=True)
-        if mode != 'baseline':
-            assert not status, status
+        if mode=='stale':
+            # The deliberately dirty retained owner has no clean initial proof.
+            # It may perform one ordinary bound status read; clean peers must not.
+            assert len(status)<=1 and all(req['input']['ids']==[d.NS+'::Extra1'] for req in status),status
+        elif mode!='baseline':
+            assert not status,status
+        if mode=='after-save':
+            key=next(key for key,(identifier,_) in notes.items() if identifier==d.NS+'::Extra1')
+            target=page.locator(f'.window[data-key="{key}"]')
+            source=f.projects[0].parent/'private-source-Extra1.celem'
+            marker=len(invokes)
+            button=target.locator('[data-element-action="confirm"]')
+            expect(button).to_have_text('저장');button.click()
+            expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
+            expect(page.locator('#project-menu')).to_be_enabled()
+            calls=[req['endpoint'] for req in invokes[marker:]]
+            assert calls.count('reviewGroup')==calls.count('confirmGroup')==1,calls
+            assert f'data Note = "{notes[key][1]}"' in source.read_text()
+            f.before[str(source)]=source.read_bytes()
+            for peer,(_,value) in notes.items():
+                if peer!=key:expect(r.floating.property_value(page.locator(f'.window[data-key="{peer}"]'),'Note')).to_have_value(value)
         # The initial proof is one-shot, not a session cache. A later real
         # dependency change must still be visible on an ordinary status read.
         schema.write_text(schema.read_text().rstrip()[:-1] + ' field AfterRestoreFlag single general string;\n}\n')

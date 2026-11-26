@@ -8,6 +8,7 @@ import {createWorkspaceRuntime} from './workspace.js';
 // DOM while it is detached, and persists only private presentation data.
 export function createActualWorkspace(api) {
   let project=null,scope='',loading=false,scheduled=null,saving=null,changed=0,saved=0;
+  const readyWaiters=new Set();function ready(){loading=false;for(const resolve of readyWaiters)resolve();readyWaiters.clear();}function whenReady(){return loading?new Promise(resolve=>readyWaiters.add(resolve)):Promise.resolve();}
   const projects=new Map(),detached=new Map(),checkpoints=new Map();let inputStarted=0;let panelWorkspace='root';let office=null;
   // Browser Data borrows an editor owner once it has an explicit field definition.
   const keepsEditing=(key,meta)=>key==='blueprint'||key.startsWith('blueprint-code:')||key==='source'||key.startsWith('editor-')||key.startsWith('table:')||((key==='browser'||key.startsWith('browser:')||key.startsWith('browser-tree:'))&&(!!meta?.tableDefinition||meta?.group==='resource'));
@@ -89,7 +90,7 @@ export function createActualWorkspace(api) {
       for(const row of runtime.workspaceRecord().layout.map(row=>structuredClone(row)))runtime.restoreWindow(row);
       windowDocuments.restore();noteDocuments.render();runtime.links.schedule();
       }const restored=reveal.map(key=>runtime.state.windows.get(key)).filter(w=>w&&!w.el.hidden&&!w.documentDocked);if(restored.length){runtime.setWindowSelection(restored);runtime.focusWorkspaceNode(restored.at(-1));}
-    }finally{loading=false;api.controls?.();}
+    }finally{ready();api.controls?.();}
     runtime.saveLayouts();schedule('layout');
   }
   document.addEventListener('keydown',event=>{if(!project||loading||api.page!=='work'||event.altKey||event.isComposing||!(event.ctrlKey||event.metaKey)||!['z','y'].includes(event.key.toLowerCase())||event.target.isContentEditable||event.target.closest?.('input,textarea,select,.modal,.tab-document,.note-document,.feature-author-document,.object-schema,.object-functions,.voxel-office,.workspace-view-controls'))return;const undo=event.key.toLowerCase()==='z'&&!event.shiftKey;if((undo?project.privateHistory?.undo:project.privateHistory?.redo)?.length){event.preventDefault();event.stopImmediatePropagation();undo?deletionHistory.undo():deletionHistory.redo();}},true);
@@ -201,7 +202,7 @@ export function createActualWorkspace(api) {
     // Rendering the saved Pack Manager may capture before domain views reopen.
     // Keep the original binding plan intact until recovery has actually succeeded.
     if(missing.length||(selected&&selected!==state.draft?.id))project.recoveryFailed=true;
-    loading=false;changed=0;saved=0;office?.update();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
+    ready();changed=0;saved=0;office?.update();panelWorkspace=runtime.state.activeWorkspaceId;api.restorePanels(runtime.workspaceRecord().participants||[]);api.restoreYogi(runtime.workspaceRecord().yogiPresentation);if(project.activeWorkspacePanel==='pack-manager')openPackManager();
     api.$('#workspace').addEventListener('input',()=>schedule());
     api.performanceMark?.('workspace-attach',performanceStarted);
     if(missing.length||(selected&&selected!==state.draft?.id)){
@@ -213,11 +214,11 @@ export function createActualWorkspace(api) {
           const layouts=runtime.workspaceRecord().layout.map(row=>structuredClone(row));
           for(const row of layouts)runtime.restoreWindow(row);windowDocuments.restore();runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
         }catch(error){if(scope===owner){project.recoveryFailed=true;api.setWorkspaceStatus('편집창 복원 실패');api.toast('실제 편집창 복원 실패 · 입력과 원래 배치는 유지됩니다.');}}
-        finally{if(scope===owner){loading=false;api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
+        finally{if(scope===owner){ready();api.controls?.();if(!project.recoveryFailed){runtime.saveLayouts();api.performanceMark?.('restore-layout',performanceStarted);}}}
       })();
     }
   }
-  function detach(){office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';loading=false;changed=0;saved=0;}
+  function detach(){office?.dispose();if(!project)return;api.showPackManager?.(false);runtime.cancelInteractions();capture();loading=true;api.clearPanels();api.clearYogi();clearTimeout(scheduled);runtime.saveLayouts();capture();for(const w of runtime.state.windows.values())host.detachWindow(w);projects.set(scope,project);noteDocuments.detach();windowDocuments.detach();project=null;scope='';ready();changed=0;saved=0;}
   function reveal(key){const owner=findOwner(key);if(owner&&owner!==runtime.state.activeWorkspaceId)runtime.switchWorkspace(owner);let w=runtime.state.windows.get(key);if(!w){const layout=runtime.workspaceRecord()?.layout.find(row=>row.key===key);if(layout)w=runtime.restoreWindow(layout);}if(w){w.el.hidden=false;runtime.registerWorkspaceNode(w);runtime.focusWindow(w);runtime.saveLayouts();}return w;}
-  return {updateOffice:()=>office?.update(),officeFinder:()=>office?.finder()||null,runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,get project(){return project},get loading(){return loading}};
+  return {updateOffice:()=>office?.update(),officeFinder:()=>office?.finder()||null,runtime,noteDocuments,windowDocuments,deletionHistory,activateBackground,attach,detach,flush,flushInputs,schedule,shouldRender,reveal,whenReady,get project(){return project},get loading(){return loading}};
 }
