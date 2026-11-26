@@ -3,7 +3,6 @@ string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.
 string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 var observed=calls.Read.Invoke(handle,parent);if(observed[1]!="object")throw new ArgumentException("Owned object parent required");
 if(long.Parse(observed[4],System.Globalization.CultureInfo.InvariantCulture)!=revision||Hash(observed[3])!=hash)throw new InvalidOperationException("Parent source changed; read it again");
-var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(observed[3]))!;if(inspected["id"]!.ToString()!=parent||inspected["kind"]!.ToString()!="object")throw new ArgumentException("Parent identity changed");
 string manifestId,manifestText;long manifestRevision;
 lock(state){
  string ns=state["namespace"]!.ToString();if(!parent.StartsWith(ns+"::",StringComparison.Ordinal)||!id.StartsWith(ns+"::",StringComparison.Ordinal))throw new ArgumentException("Parent and child belong to the owned namespace");
@@ -11,8 +10,19 @@ lock(state){
  manifestId=ns+(state["units"]![ns+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");manifestText=state["units"]![manifestId]!["draft"]!.ToString();manifestRevision=state["units"]![manifestId]!["revision"]!.GetValue<long>();
 }
 // Build and parse both candidates before touching the shared draft state.
-string empty=calls.Create.Invoke("object",id);string text=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("editDeclaration",System.Text.Json.JsonSerializer.Serialize(new{text=empty,edit=new{action="parent",value=parent}})))!;
-string local=id[(id.IndexOf("::",StringComparison.Ordinal)+2)..],path="elements/"+local+".celem",registered=calls.Register.Invoke(manifestText,id,"object",path);
+// The owned direct-schema case uses a read-only combined proposal; no
+// partial draft is installed even if the authoring request fails or is lost.
+string local=id[(id.IndexOf("::",StringComparison.Ordinal)+2)..],path="elements/"+local+".celem",text,registered;
+System.Text.Json.Nodes.JsonObject? proposal=null;
+try{proposal=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("prepareExistingSchemaObjectVariation",System.Text.Json.JsonSerializer.Serialize(new{parent,parentText=observed[3],id,manifest=manifestText})))!.AsObject();}
+catch(InvalidOperationException error) when(error.Message=="AUTHORING: Unknown authoring operation."){/* Old authoring tool: retain the exact existing proposal sequence. */}
+if(proposal?["eligible"]?.GetValue<bool>()==true){
+ text=proposal["text"]!.GetValue<string>();registered=proposal["registered"]!.GetValue<string>();
+}else{
+ var inspected=System.Text.Json.Nodes.JsonNode.Parse(calls.Inspect.Invoke(observed[3]))!;if(inspected["id"]!.ToString()!=parent||inspected["kind"]!.ToString()!="object")throw new ArgumentException("Parent identity changed");
+ string empty=calls.Create.Invoke("object",id);text=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("editDeclaration",System.Text.Json.JsonSerializer.Serialize(new{text=empty,edit=new{action="parent",value=parent}})))!;
+ registered=calls.Register.Invoke(manifestText,id,"object",path);
+}
 lock(state){
  if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state))throw new ObjectDisposedException("EditWorkspace");
  var current=state["units"]![parent];var manifest=state["units"]![manifestId]!;

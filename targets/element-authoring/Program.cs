@@ -270,19 +270,7 @@ try
         }
         case "ownedFunctionObjectUse":reply=JsonValue.Create(OwnedFunctionObjectUse.Prepare(S("project"),S("manifest"),S("text"),S("objectId"),Format));break;
         case "registeredFunctionProvider":reply=JsonValue.Create(RegisteredFunctionProvider.Prepare(S("project"),S("manifest"),S("text"),S("function"),S("implementation"),Format));break;
-        case "editDeclaration":
-        {
-            string text=S("text");var element=new Parser(text,"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
-            if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum" or "implementation"))throw new ArgumentException("Authored declaration required");
-            var edit=request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required");
-            DeclarationAuthoring.Apply(element,edit);
-            bool reorder=edit["action"]!.GetValue<string>()=="field-order";
-            string formatted=reorder?DeclarationTextMerge.ReorderFields(text,element.Fields.Keys):Format(element);
-            var parsed=new Parser(formatted,"<draft>").ParseElement();
-            if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");
-            if(reorder&&!parsed.Fields.Keys.SequenceEqual(element.Fields.Keys))throw new InvalidOperationException("Explicit local field order required");
-            reply=JsonValue.Create(formatted);break;
-        }
+        case "editDeclaration":reply=JsonValue.Create(EditDeclaration(S("text"),request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required")));break;
         case "setDataPath": case "setField": case "setData":
         {
             var element=new Parser(S("text"),"<draft>").ParseElement();if(S("operation")=="setDataPath")SchemaContracts.SetDataPath(element,JsonSerializer.SerializeToElement(request["path"]),JsonSerializer.SerializeToElement(request["value"]));else if(S("operation")=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string formatted=Format(element);new Parser(formatted,"<draft>").ParseElement();reply=JsonValue.Create(formatted);break;
@@ -299,18 +287,30 @@ try
             if(value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False))throw new ArgumentException("Scalar metadata required.");
             element.Values[S("field")]=new(value,element.Id,new());string formatted=Format(element);new Parser(formatted,"<draft>").ParseElement();reply=JsonValue.Create(formatted);break;
         }
-        case "create":
+        case "create":reply=JsonValue.Create(CreateDeclaration(S("kind"),S("id")));break;
+        case "register":reply=JsonValue.Create(RegisterDeclaration(S("text"),S("id"),S("kind"),S("path")));break;
+        case "prepareExistingSchemaObjectVariation":
         {
-            string kind=S("kind"),id=S("id");if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum"))throw new ArgumentException("Unsupported authored kind.");
-            string text=$"{kind} {id}"+(kind=="function"?" () -> int":"")+" { }\n";
-            new Parser(text,"<new>").ParseElement();reply=JsonValue.Create(text);break;
-        }
-        case "register":
-        {
-            var manifest=new Parser(S("text"),"<draft>").ParseManifest();string id=S("id");
-            if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to selected project namespace.");
-            string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(S("kind"),S("path"),new()));
-            string text=DeclarationTextMerge.MergeManifest(S("text"),FormatManifest(manifest),FormatManifest);new Parser(text,"<draft>").ParseManifest();reply=JsonValue.Create(text);break;
+            // This proposal has no file or workspace write authority.
+            string parent=S("parent"),parentText=S("parentText"),id=S("id"),manifestText=S("manifest");
+            var inspected=InspectDeclaration(parentText);
+            if(inspected["id"]!.ToString()!=parent||inspected["kind"]!.ToString()!="object")throw new ArgumentException("Parent identity changed");
+            var p=new Parser(parentText,"<draft>").ParseElement();
+            var manifest=new Parser(manifestText,"<draft>").ParseManifest();
+            string prefix=manifest.Namespace+"::";
+            if(manifest.Kind!="project"||!parent.StartsWith(prefix,StringComparison.Ordinal)||!id.StartsWith(prefix,StringComparison.Ordinal)||
+               p.Parent is not null||p.Uses.Count!=1||p.Uses[0].Kind!="schema"||!p.Uses[0].Id.StartsWith(prefix,StringComparison.Ordinal)||
+               p.Data.Values.Any(d=>d.Kind!="general")||Format(p)!=Format(new Element{Kind="object",Id=p.Id,Uses=p.Uses,Data=p.Data,Description=p.Description,DescriptionPresent=p.DescriptionPresent})||
+               !manifest.Elements.TryGetValue(parent[prefix.Length..],out var pl)||pl.Kind!="object"||
+               !manifest.Elements.TryGetValue(p.Uses[0].Id[prefix.Length..],out var sl)||sl.Kind!="schema"){
+                reply=new JsonObject{["eligible"]=false};break;
+            }
+            string path="elements/"+id[prefix.Length..]+".celem";
+            // Execute the same three proposal transformations in their original order.
+            string empty=CreateDeclaration("object",id);
+            string text=EditDeclaration(empty,new JsonObject{["action"]="parent",["value"]=parent});
+            string registered=RegisterDeclaration(manifestText,id,"object",path);
+            reply=new JsonObject{["eligible"]=true,["text"]=text,["registered"]=registered};break;
         }
         case "prepare":
         {
@@ -389,6 +389,34 @@ catch(Exception error)
     return JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)});
 }
 }
+static string CreateDeclaration(string kind,string id)
+{
+    if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum"))throw new ArgumentException("Unsupported authored kind.");
+    string text=$"{kind} {id}"+(kind=="function"?" () -> int":"")+" { }\n";
+    new Parser(text,"<new>").ParseElement();return text;
+}
+
+static string EditDeclaration(string text,JsonObject edit)
+{
+    var element=new Parser(text,"<draft>").ParseElement();string id=element.Id,kind=element.Kind;
+    if(kind is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "enum" or "implementation"))throw new ArgumentException("Authored declaration required");
+    DeclarationAuthoring.Apply(element,edit);
+    bool reorder=edit["action"]!.GetValue<string>()=="field-order";
+    string formatted=reorder?DeclarationTextMerge.ReorderFields(text,element.Fields.Keys):Format(element);
+    var parsed=new Parser(formatted,"<draft>").ParseElement();
+    if(parsed.Id!=id||parsed.Kind!=kind)throw new ArgumentException("Stable declaration ID and kind required");
+    if(reorder&&!parsed.Fields.Keys.SequenceEqual(element.Fields.Keys))throw new InvalidOperationException("Explicit local field order required");
+    return formatted;
+}
+
+static string RegisterDeclaration(string source,string id,string kind,string path)
+{
+    var manifest=new Parser(source,"<draft>").ParseManifest();
+    if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to selected project namespace.");
+    string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(kind,path,new()));
+    string text=DeclarationTextMerge.MergeManifest(source,FormatManifest(manifest),FormatManifest);new Parser(text,"<draft>").ParseManifest();return text;
+}
+
 static string PrepareCandidateManifest(string original,string candidate,string candidateText,JsonArray additions)
 {
     var manifest=new Parser(candidateText,candidate).ParseManifest();
