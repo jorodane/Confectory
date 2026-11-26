@@ -544,7 +544,11 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
        throw new InvalidOperationException("Private return ancestor failed to assemble; no source or checkpoint saved");
      }
     }
-    if(documentFrame){var parentRead=BatchRead();parentRead["id"]=physicalGraphId;var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",parentRead.ToJsonString()))!;if(parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Parent boundary validation failed; child candidate not saved");}
+    // Internal retained-child stages never publish a checkpoint. Their enclosing
+    // compound batch assembles the complete root before its single checked write.
+    // Standalone document-frame edits must still validate the parent immediately.
+    bool deferredCompoundParent=pack["compoundWorkCopy"]?.GetValue<bool>()==true&&targetHandle.StartsWith("author-batch-",StringComparison.Ordinal)&&pendingWrap is not null&&(ownedFrameCreationBatch||ownedFrameCallBatch);
+    if(documentFrame&&!deferredCompoundParent){var parentRead=BatchRead();parentRead["id"]=physicalGraphId;var parent=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",parentRead.ToJsonString()))!;if(parent["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Parent boundary validation failed; child candidate not saved");}
     if(nodeFlowBatch&&edits[0]?["definition"]?["executionExits"] is not null&&current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Complete explicit internal exit candidate required; no source or checkpoint saved");
     foreach(var abi in edits)if(abi!["action"]!.ToString() is "rebindCallAbi" or "rebindCopyAbi"){var n=AbiBatchNode(temp,current,abi!,true);if(current["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled")||!System.Text.Json.Nodes.JsonNode.DeepEquals(n!["copyAbiBinding"],abi["definition"]?["abi"]?["copyBinding"])||!System.Text.Json.Nodes.JsonNode.DeepEquals(n["callAbiReceipt"],abi["definition"]?["abi"]?["receipt"])||n["callAbiSourceHash"]?.ToString()!=abi["definition"]?["abi"]?["sourceHash"]?.ToString())throw new InvalidOperationException("ABI declaration changed before checkpoint; inputs retained");}
     if(pendingWrap is not null&&ownedFrameCreationBatch){
