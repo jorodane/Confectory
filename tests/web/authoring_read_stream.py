@@ -224,6 +224,20 @@ def exercise(root):
             record=a.parent/'Record.celem'
             record.write_text(record.read_text().rstrip()[:-1]+' value editorName = "Fresh"; }')
             assert json.loads(send(proc,relation()))['result']['nodes'][0]['title']=='Fresh'
+            # SlotContext requires the complete effective result and source
+            # observations, not a schema-view cache. Compare the exact legacy
+            # cold request with the existing warm inspection envelope.
+            def slot_context():
+                payload=request(a)
+                payload.pop('schemaView');payload.pop('schemaReuseProof')
+                payload['observeSources']=True
+                warm=json.loads(send(proc,payload))
+                legacy=dict(payload,operation='effective');legacy.pop('kind')
+                cold=json.loads(subprocess.run(HOST,input=json.dumps(legacy),text=True,capture_output=True,timeout=20,check=True).stdout)
+                assert warm['ok'] and cold['ok'] and warm['result']['effective']==cold['result'],(warm,cold)
+                assert cold['result']['observations']
+                return cold['result']
+            slot_before=slot_context()
             initial = json.loads(send(proc, request(a)))
             assert initial['ok'] and 'Count' in initial['result']['effective']['fields']
             assert 'ExternalFlag' not in initial['result']['effective']['fields']
@@ -231,6 +245,8 @@ def exercise(root):
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field ExternalFlag single general string; }')
             updated = json.loads(send(proc, request(a)))
             assert updated['ok'] and 'ExternalFlag' in updated['result']['effective']['fields']
+            slot_after=slot_context()
+            assert 'ExternalFlag' in slot_after['fields'] and slot_before['observations']!=slot_after['observations']
             # The same process must reread the current manifest, not hold a
             # cached activation registry or import another project's identity.
             extra = a.parent / 'Extra.celem'

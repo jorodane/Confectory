@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema] [--run] [--timeline] [--context-batch|--context-baseline]. Every invocation makes a disposable copy.
+[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema] [--run] [--timeline] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
 The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
@@ -78,6 +78,7 @@ def save_existing_rule(page,window,new):
    if endpoint=='blueprint':blueprint_calls.append(payload.get('input',{}).get('action'))
    if endpoint in ('reviewGroup','confirmGroup','directPropertyConfirm'):calls.append(endpoint)
  page.on('request',observe)
+ button.evaluate('''b=>{window.__saveFirstFrame=null;b.addEventListener('click',()=>{const start=performance.now();requestAnimationFrame(()=>{window.__saveFirstFrame={ms:performance.now()-start,disabled:!!document.querySelector('.window[data-key=schema] [data-element-action=confirm]')?.disabled}})},{capture:true,once:true})}''')
  page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
  try:
   started=time.monotonic();button.click()
@@ -91,6 +92,9 @@ def save_existing_rule(page,window,new):
   assert calls==expected,calls
   expected_owner=['readOwnerEdits','applySlots','settledSlots','settledSlots'] if any(flag in sys.argv for flag in ('--legacy-settlement','--legacy-finalization','--baseline')) else ['readOwnerEdits','applySlots']
   assert [action for action in blueprint_calls if action in ('readOwnerEdits','applySlots','settledSlots')]==expected_owner,blueprint_calls
+  reaction=page.evaluate('()=>window.__saveFirstFrame')
+  assert reaction is not None and reaction['disabled'],reaction
+  print('first UI frame ms',round(reaction['ms'],1),'save control disabled',reaction['disabled'],flush=True)
   print('owner requests',blueprint_calls,flush=True)
   from collections import Counter
   print('finalization requests',calls,'total invokes',len(all_calls),dict(Counter(all_calls)),flush=True)
@@ -275,7 +279,7 @@ if '--timeline' in sys.argv and phases:
   if row['stage']=='authoring-process':group.append(row)
   if row['stage']=='consumer':
    mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
-   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective']})
+   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective'],'inspectEffectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='inspectEffective']})
    if row.get('endpoint') in ('reviewGroup','confirmGroup','directPropertyConfirm'):reviews.append({'endpoint':row['endpoint'],'consumerMs':row['elapsedMs'],'propertyObservationsMs':[item['elapsedMs'] for item in group if item.get('operation')=='blueprintPropertyObservations'],'overlayMs':[item['elapsedMs'] for item in group if item.get('operation')=='validateLongDataOverlay']})
    group=[]
  print('OWNER PREPARATION',json.dumps(groups),flush=True)
@@ -285,3 +289,6 @@ if '--timeline' in sys.argv and phases:
 
  if '--context-batch' in sys.argv or '--context-baseline' in sys.argv:
   assert all(len(group['effectiveMs'])==(1 if '--context-batch' in sys.argv else 4) for group in groups),groups
+
+ if '--warm-context' in sys.argv:
+  assert all(not group['effectiveMs'] and len(group['inspectEffectiveMs'])>=2 for group in groups),groups
