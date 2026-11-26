@@ -787,7 +787,7 @@ public static class BlueprintCellRegion
     {
         string action = S(request, "action");
         bool preview = allowDesktopFrames && action == "frame-preview";
-        bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create";
+        bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create" or "frame-case-transfer-options" or "frame-case-transfer";
         bool frameCompound = allowDesktopFrames && action is "frame-compound-insert-options" or "frame-compound-insert";
         bool frameReconnect = allowDesktopFrames && action == "frame-reconnect";
         bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound || frameReconnect;
@@ -827,6 +827,19 @@ public static class BlueprintCellRegion
                 return plan;
             }
             var child = OwnedSwitchFrame(graph, path, allowEmptyCase: true);
+            if(action == "frame-case-transfer-options"){
+                Need(edits.Count==0,"Observe the exact two owned case chains");
+                return TransferOptions(ReadTransferScope(child));
+            }
+            if(action == "frame-case-transfer"){
+                Need(edits.Count<=64,"Bounded owned case transfer required");
+                ExactBranchRoutes(edits);
+                var plan=TransferOrder(child,edits,ReadTransferScope(child));
+                var candidate=graph.DeepClone().AsObject();
+                BlueprintTree.Select(candidate,path)["edges"]=plan["edges"]!.DeepClone();
+                OwnedSwitchFrame(candidate,path,allowEmptyCase:true);
+                return plan;
+            }
             if (edits.Count == 0) return new JsonObject();
             Need(edits.Count <= 64, "Bounded branch order required");
             ExactBranchRoutes(edits);

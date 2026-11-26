@@ -34,3 +34,18 @@
 개발 중 Chromium의 드래그 테스트 입력과 Review의 원본 관측 범위를 수정했다. 개발 기록은 `/workspace/artifacts/v536-verification-managed/runs/bb28b49de629465493165875566207ed.zip`에 보관했다. SHA-256은 `1faee9159e2e66c128c991560fe5da701371623b5c5bbc37aa284a160914d45e`이다.
 
 실제 Windows/WebView2, 모바일, 물리 기기, 전체 UI, 신규 CRLF checkout과 v821 원본 목업의 직접 시각 대조는 미검증이다. Windows x64 패키지에 들어 있는 앱은 Linux에서 실행했다. 과거 초기화 빈 화면의 원인은 미확정이다.
+
+## 직접 소유한 복합 내부 case 사이 이동
+
+`d18b860` 이후의 기존 내부 case 순서 편집 경로를 확장한다. 같은 직접 소유 switch frame의 명시적 case 사이에서 값 의존성이 없는 일반 void 동작 한 개를 상대 case 탭 끝으로 옮긴다. 마지막 동작을 이동해 원래 case가 명시적 빈 case가 되는 형태도 기존 실행 의미로 처리한다. frame 경계를 넘는 이동, 값 연결이 있는 셀 및 임의 위치 교차 삽입은 별개 기능이다. 원본 연결 및 정확한 root/frame/source 관측을 기존 authorBatch, history 및 Review/Confirm에서 요구한다.
+
+경량 Linux 에디터 빌드의 실행 경로를 포함한 report JSON과 동일 checkout을 사용한다. 기존 element-authoring 및 project-execution-host Release 빌드 경로를 각 환경 변수에 지정한 뒤 실행한다.
+
+```sh
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" normal
+python tests/web/v821_child_case_transfer_ui.py "$REPO" "$REPORT" single
+```
+
+`baseline`은 이동 지원이 없던 이전 빌드 전용 재현 모드다. 새 빌드에서 성공을 기대하는 검사는 아니다.
+
+실제 Chromium에서 이전 빌드의 `baseline`, 확장 빌드 `normal` 및 `single` 모두 종료 코드 0을 확인했다. 값 의존 동작의 이동 거절, Escape, 개인/공유 Undo/Redo, 재시작, 동일 로컬 ID를 가진 별개 frame/프로젝트 격리, Save/Confirm 시 sibling 원본 변경 거절, Review 취소 및 재검토 뒤 실제 실행을 검사했다. 확정된 graph는 두 case 연결만 변경하고 다른 원본 파일을 바이트 단위로 보존했다. Linux 빌드 검증이며 Windows 실기 검증은 아니다.

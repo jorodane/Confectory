@@ -33,7 +33,7 @@ export function createFeatureAuthoring(api){
  const frameBindingFor=(w,data,cells)=>{
   if(w.meta.copyDraft||!cells.length||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
   if(cells.length===1&&frameReconnectInput(data,cells[0][1]))return data.documentFrameReconnectBinding;
-  if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&(branchOrderCells(data,cells)||branchCreationCells(data,cells,true))?data.documentFrameCaseOrderBinding:null;
+  if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&(branchOrderCells(data,cells)||branchCreationCells(data,cells,true)||data.documentBranchTransfer&&branchTransferDraft(w,cells))?data.documentFrameCaseOrderBinding:null;
   if(cellRemovalInput(cells)&&data.privatePath&&!data.privatePath.includes('/'))return frameRemovalBinding(data);
   if(serialCreationCells(data,cells,'compound-frame'))return data.documentFrameCompoundInsertion;
   return frameOrderCells(data,cells)||serialCreationCells(data,cells)?data.documentFrameOrderBinding:null;
@@ -796,7 +796,7 @@ function blueprintNormalizeControls(scope){
    const from=!held.length&&engineScope?.movable.includes(id)?engineScope.lanes.find(lane=>lane.order.includes(id)):null;
    const cross=from?{owner:engineScope.owner,lanes:engineScope.lanes.filter(lane=>caseLane(lane.id)!==caseLane(from.id))}:null;
    const chain=linearCells(id);
-   if(!cross&&(!chain||!chain.order.includes(id)||chain.frame&&chain.owner&&chain.order.length<2)||(data.locals||[]).length||!canContinueOrder(chain,held))return null;
+   if(!cross&&(!chain||!chain.order.includes(id)||chain.frame&&chain.owner&&chain.order.length<2&&!transferTarget(id,chain))||(data.locals||[]).length||!canContinueOrder(chain,held))return null;
    if(chain?.order.some(id=>{const n=data.nodes.find(n=>n.id===id);return !n||!(n.kind==='code'||chain.compound&&n.kind==='graph')||n.control!=='next'||n.implementationContext||n.contextBoundary||n.forwardCallerStorage||n.postCall||n.async||n.executionEnum;}))return null;
    const destination=chain&&transferTarget(id,chain),order=chain?.order||[];
    return {scope:JSON.stringify([surface.context,chain?.owner||'',chain?.port||'',from?.id||'']),order:[...order],exit:chain?.exit,cross,
@@ -1334,8 +1334,9 @@ function blueprintNormalizeControls(scope){
     }
     structuralEdit(w,()=>{
      for(const region of plan.chains){
-      privateValue(w,plan.owner,'route:'+region.port,region.order[0]||region.exit,true);
-      region.order.forEach((node,index)=>privateValue(w,node,'route',region.order[index+1]||region.exit,true));
+      const frameCase=!!data.privatePath&&!!data.documentFrameCaseOrderBinding;
+      privateValue(w,plan.owner,'route:'+region.port,region.order[0]||region.exit,true,frameCase);
+      region.order.forEach((node,index)=>privateValue(w,node,'route',region.order[index+1]||region.exit,true,frameCase));
      }
     });
    },'');},

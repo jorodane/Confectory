@@ -40,7 +40,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
  bool ownedEntryBatch=request["owner"] is null&&graphId==physicalGraphId&&edits.Count==1&&edits[0]!.AsObject().Count==3&&edits[0]?["action"]?.ToString()=="entry"&&edits[0]?["node"]?.ToString()=="$entry"&&edits[0]?["to"] is System.Text.Json.Nodes.JsonValue ownedEntryValue&&ownedEntryValue.TryGetValue<string>(out _);
  bool ownedCellOrderBatch=request["owner"] is null&&graphId==physicalGraphId&&edits.Count is >=2 and <=64&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="entry")==1&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?["node"]?.ToString()),StringComparer.Ordinal))==edits.Count&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row&&row["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&(row.Count==3&&row["action"]?.ToString()=="entry"&&row["node"]?.ToString()=="$entry"||row.Count==4&&row["action"]?.ToString()=="route"&&row["port"]?.ToString()=="next"&&row["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String));
  bool ownedFrameCaseOrderBatch=documentFrame&&surface.Length==0&&request["owner"] is null&&graphId!=physicalGraphId
-  &&edits.Count is >=3 and <=64&&caseOrderAnchors==1&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row
+  &&edits.Count is >=3 and <=64&&caseOrderAnchors is 1 or 2&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row
    &&row.Count==4&&row["action"]?.ToString()=="route"&&row["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String
    &&row["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&row["port"] is System.Text.Json.Nodes.JsonValue portValue
    &&portValue.TryGetValue<string>(out var port)&&(port=="next"||port.StartsWith("case:",StringComparison.Ordinal)));
@@ -50,7 +50,8 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
   &&(reconnect.Count==3&&reconnect["action"]?.ToString()=="entry"&&reconnect["node"]?.ToString()=="$entry"
    ||reconnect.Count==4&&reconnect["action"]?.ToString()=="route"&&reconnect["port"] is System.Text.Json.Nodes.JsonValue reconnectPort
     &&reconnectPort.TryGetValue<string>(out var reconnectPortName)&&(reconnectPortName=="next"||reconnectPortName.StartsWith("case:",StringComparison.Ordinal)));
- string frameOrderAction=ownedFrameReconnectBatch?"frame-reconnect":ownedFrameCaseOrderBatch?"frame-case-order":"frame-order";
+ bool ownedFrameCaseTransferBatch=ownedFrameCaseOrderBatch&&caseOrderAnchors==2;
+ string frameOrderAction=ownedFrameReconnectBatch?"frame-reconnect":ownedFrameCaseTransferBatch?"frame-case-transfer":ownedFrameCaseOrderBatch?"frame-case-order":"frame-order";
  bool ownedFrameOrderBatch=ownedFrameReconnectBatch||ownedFrameCaseOrderBatch||documentFrame&&request["owner"] is null&&graphId!=physicalGraphId&&edits.Count is >=2 and <=64&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="entry")==1&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(System.Linq.Enumerable.Select(edits,e=>e?["node"]?.ToString()),StringComparer.Ordinal))==edits.Count&&System.Linq.Enumerable.All(edits,e=>e is System.Text.Json.Nodes.JsonObject row&&row["to"]?.GetValueKind()==System.Text.Json.JsonValueKind.String&&(row.Count==3&&row["action"]?.ToString()=="entry"&&row["node"]?.ToString()=="$entry"||row.Count==4&&row["action"]?.ToString()=="route"&&row["port"]?.ToString()=="next"&&row["node"]?.GetValueKind()==System.Text.Json.JsonValueKind.String));
  bool ownedFrameCreationBatch=documentFrame&&request["owner"] is null&&graphId!=physicalGraphId&&edits.Count==6&&System.Linq.Enumerable.Count(edits,e=>e?["action"]?.ToString()=="createNode")==1;
  bool ownedFrameCaseCreationBatch=ownedFrameCreationBatch&&surface.Length==0&&
@@ -229,7 +230,7 @@ if(targetOperation is "authorBatch" or "settledAuthorBatch"){
     if(ownedFrameCreationBatch&&System.Linq.Enumerable.Any(current["sources"]!.AsArray(),source=>candidate["units"]?[source!["id"]!.ToString()] is not System.Text.Json.Nodes.JsonNode unit||unit["baseline"]?.ToString()=="missing"||unit["draft"]?.ToString()!=unit["original"]?.ToString()))throw new InvalidOperationException("Confirm or discard existing child source edits before adding a new owned body; preserve inputs");
     if(documentFrame){
      var binding=current[frameOrderBindingKey]??(ownedCellRemovalBatch?current["documentFrameCaseOrderBinding"]:null);
-     if(binding is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,request["documentFrame"]))throw new InvalidOperationException("Observed physical root and exact full child frame binding required; preserve inputs");
+     if(binding is null||!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,request["documentFrame"])||ownedFrameCaseTransferBatch&&current["documentBranchTransfer"] is null)throw new InvalidOperationException("Observed physical root and exact full child frame binding required; preserve inputs");
      if(!ownedFrameCreationBatch&&!ownedCellRemovalBatch)calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
       ["action"]=frameOrderAction,["graph"]=System.Text.Json.Nodes.JsonNode.Parse(candidate["units"]![physicalGraphId]!["draft"]!.ToString()),["path"]=current["privatePath"]!.DeepClone(),["edits"]=edits.DeepClone()
      }.ToJsonString());
@@ -1770,6 +1771,12 @@ lock(state){
   frameCaseOrderBinding=ChildFrameBinding();
   frameCaseOrderBinding["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);
  }catch{frameCaseOrderBinding=null;}
+ if(frameCaseOrderBinding is not null)try{
+  var options=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintCellRegion",new System.Text.Json.Nodes.JsonObject{
+   ["action"]="frame-case-transfer-options",["graph"]=rootGraph.DeepClone(),["path"]=privatePath,["edits"]=new System.Text.Json.Nodes.JsonArray()
+  }.ToJsonString()))!;
+  if(options["movable"]!.AsArray().Count>0){options["sources"]=System.Text.Json.JsonSerializer.SerializeToNode(bodySourceIds);branchTransfer=options;}
+ }catch{/* Keep the separately proven ordinary case order. */}
  var removableCells=new System.Text.Json.Nodes.JsonArray();
  var removalBlockedByChildDraft=new System.Text.Json.Nodes.JsonArray();
  if((privatePath.Length==0||!methodChild&&!compoundChild&&(frameOrderBinding is not null||frameCaseOrderBinding is not null)&&!privatePath.Contains('/'))&&slotContext is null&&!copiedRoot&&implementationMetadata["parent"] is null
