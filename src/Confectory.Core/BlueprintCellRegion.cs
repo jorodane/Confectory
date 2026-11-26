@@ -58,11 +58,18 @@ public static class BlueprintCellRegion
         return at;
     }
 
+    // This classifier is only for adding another direct reference. It must
+    // not expand the ordinary code movement/removal or wrapper contracts.
+    static bool PlainPrivateReference(JsonNode node) => S(node,"kind")=="call"&&S(node,"control")=="next"
+        && PlainCallContext(node)&&ValueParameters(node)&&
+        new[]{"branchOwner","executionEnum","publicExecution","sourceIdentity","completionBranch",BlueprintCompletionAdapter.Metadata}.All(key=>node[key] is null)
+        && S(node,"feature").Length>0;
+
     // Move an existing compound as one invocation. No descendant, signature or
     // storage binding is rewritten; the normal compiler checks value dominance.
     static JsonObject CompoundOrder(JsonObject graph, JsonArray edits, bool ordinaryFrame=false, bool allowSwitchChild=false,
         int methodPreviewDepth=0, bool methodFrameOrder=false, bool previewOutParameters=false, JsonObject? detachedFrame=null,
-        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null, JsonObject? emptySwitchCaseFrame=null)
+        JsonObject? nestedSwitchFrame=null, JsonObject? emptyInsertionFrame=null, JsonObject? emptySwitchCaseFrame=null, bool allowReferences=false)
     {
         int total=0, switchChildren=0;
         string Chain(JsonObject g,int depth)
@@ -80,7 +87,7 @@ public static class BlueprintCellRegion
                 return CheckCompoundSwitchChild(g,nodes,ReferenceEquals(g,emptySwitchCaseFrame));
             }
             var names=nodes.Select(n=>S(n,"id")).ToHashSet(StringComparer.Ordinal);
-            Need(names.Count==nodes.Count && nodes.All(n=>S(n,"kind") is "code" or "graph" && S(n,"control")=="next"
+            Need(names.Count==nodes.Count && nodes.All(n=>(S(n,"kind") is "code" or "graph" || allowReferences&&PlainPrivateReference(n!)) && S(n,"control")=="next"
                 && n!["branchOwner"] is null && n["executionEnum"] is null && PlainCallContext(n)),
                 "Preserve branch, call, opaque, receiver and forwarded storage contexts");
             if(methodPreviewDepth>0||methodLeaf)
@@ -91,7 +98,7 @@ public static class BlueprintCellRegion
                 bool previewOutLeaf=previewOutParameters && nodes.Any(HasOutParameter);
                 Need((g["locals"] is null or JsonArray {Count:0} ||
                         previewOutLeaf && NumericConstantLocals(g["locals"]))
-                    && nodes.All(node=>S(node,"kind")=="code" && ValueParameters(node!, previewOutLeaf)),
+                    && nodes.All(node=>(S(node,"kind")=="code" || allowReferences&&PlainPrivateReference(node!)) && ValueParameters(node!, previewOutLeaf)),
                     "Method frame requires ordinary code leaves and supported parameter storage");
             }
             var edges=g["edges"]!.AsArray();
@@ -471,14 +478,27 @@ public static class BlueprintCellRegion
 
     // An imported function can be placed in an exact ordinary private frame.
     // Validate the old tree before adding the reference, not a flattened ID.
+    static JsonObject PrivateReferenceFrame(JsonObject root,string path)
+    {
+        var segments=path.Split('/');
+        Need(segments.All(part=>part.Length>0),"Exact nonempty private reference path required");
+        var frame=BlueprintTree.Select(root,path);
+        bool method=S(frame,"profile")==FeatureBlueprint.MethodsProfile;
+        Need(method?segments.Length<=2:S(frame,"profile")==FeatureBlueprint.NestedProfile,"Existing ordinary private frame required");
+        CompoundOrder(root,CurrentRoutes(root),methodPreviewDepth:method?segments.Length:0,allowReferences:true);
+        var nodes=frame["nodes"]!.AsArray();
+        Need(nodes.Count is >0 and <63&&nodes.All(n=>(S(n,"kind")=="code"||PlainPrivateReference(n!))&&ValueParameters(n!)),
+            "Bounded direct private reference frame required");
+        return frame;
+    }
+
     public static void InsertPrivateReference(JsonObject root,JsonObject node,JsonObject gap)
     {
         Need(gap.Count==3&&gap.All(p=>p.Key is "path" or "from" or "to"),"Exact private frame gap required");
         string path=S(gap,"path"),from=S(gap,"from"),to=S(gap,"to");
-        var frame=EditableFrame(root,path,allowDesktopFrames:true);
+        var frame=PrivateReferenceFrame(root,path);
         var nodes=frame["nodes"]!.AsArray();
-        Need(nodes.Count is >0 and <63&&nodes.All(n=>S(n,"kind")=="code"&&ValueParameters(n!))&&
-            !nodes.Any(n=>S(n,"id")==S(node,"id")), "Existing ordinary private frame and new local identity required");
+        Need(!nodes.Any(n=>S(n,"id")==S(node,"id")), "Existing ordinary private frame and new local identity required");
         var edges=frame["edges"]!.AsArray();
         if(from=="$entry"){
             Need(S(frame,"entry")==to,"Original private frame entry changed");
@@ -838,9 +858,15 @@ public static class BlueprintCellRegion
         bool frameCase = allowDesktopFrames && action is "frame-case-order" or "frame-case-create" or "frame-case-transfer-options" or "frame-case-transfer";
         bool frameCompound = allowDesktopFrames && action is "frame-compound-insert-options" or "frame-compound-insert";
         bool frameReconnect = allowDesktopFrames && action == "frame-reconnect";
-        bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound || frameReconnect;
+        bool frameReference = allowDesktopFrames && action == "frame-reference-options";
+        bool frame=action is "frame-order" or "frame-create" || preview || frameCase || frameCompound || frameReconnect || frameReference;
         Need(request.Count==(3+(request.ContainsKey("operation")?1:0)+(frame?1:0)) && (request["operation"] is null || S(request,"operation")=="blueprintCellRegion") && request.All(p=>p.Key is "operation" or "action" or "graph" or "edits" ||frame&&p.Key=="path"),"Exact cell editor plan required");
         var graph=request["graph"]!.AsObject();var edits=request["edits"]!.AsArray();
+        if(frameReference){
+            Need(edits.Count==0,"Reference options do not edit sources");
+            PrivateReferenceFrame(graph,S(request,"path"));
+            return new JsonObject{["available"]=true};
+        }
         if (frameReconnect) return FrameReconnect(graph,S(request,"path"),edits);
         if (preview)
         {

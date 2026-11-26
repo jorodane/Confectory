@@ -69,3 +69,11 @@
 범위는 기존 일반 직렬 frame에 처음 직접 참조를 추가하는 동작이다. 기존 호출이 섞인 frame에서 추가 호출 삽입, 공유/암시적 분기, ref/out·async·public execution 계약, Windows 실기는 확장하지 않았다.
 
 일반 중첩 profile은 별도 프로젝트를 열었다 돌아온 뒤 실제 프로젝트 ▶에서 전달값 7의 독립 표식과 종료 코드 10까지 확인했다. method-nested profile은 동일 제품 UI Save/Review/Confirm과 실제 컴파일러 실행, 재열기 및 독립 입력 보존이 통과했다. 기존 일반 child 삽입, root switch case 호출 및 최초 기능 호출의 Linux 회귀도 통과했다.
+
+### 기존 호출 이후 연속 호출
+
+`tests/web/v821_private_call_ui.py <repo> <run-report> normal --multiple`은 기존 중첩 frame의 첫 호출을 Save하고 Confirm 없이 재시작한 뒤 두 번째 호출을 추가한다. 일반 편집·이동 판정과 별도로 참조 삽입의 정확한 frame binding을 제공한다. 이전 Save의 원본/초안 증명과 소스 소유권이 일치하는 경우에만 동일 root의 다음 호출을 허용한다. 다른 편집을 자동 합치거나 승인하지 않는다.
+
+첫 반환값을 두 번째 입력으로 연결하고, 두 번째 삽입의 개인 Undo/Redo, 외부 호출 선언 변경 거절과 재시작 후 재시도, Review 취소와 형제 원본 변경 거절, Confirm, 실행 순서 (`private-probe:7`, `private-next:12`), 재개방, 독립 설명 입력과 동일 ID 별도 프로젝트의 보존을 확인한다. Confirm 이후에도 다시 호출을 추가할 수 있는 버튼이 활성화된다. 한 번의 Save에는 기존처럼 호출 한 건이 포함된다. private 분기, ref/out, async 및 Windows 실기는 이번 범위가 아니다.
+
+같은 `--multiple` 시나리오는 `method-nested`에서도 통과했다. 일반 child 삽입(`v821_child_insert_ui.py normal`) 및 기존 root 분기 직접 호출(`v821_branch_structure_ui.py call`)도 같은 Linux Chromium 빌드에서 통과했다.

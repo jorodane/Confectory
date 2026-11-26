@@ -25,6 +25,7 @@ internal static class BlueprintCall
    if(definition["branchInsertion"] is not null||control!="next"||implementation.Parent is not null||BlueprintAsync.Has(target)||
       target.Signature.Args.Any(a=>a.Mode is not null)||BlueprintExecutionBranches.Has(target))
     throw new ArgumentException("Ordinary synchronous private reference required");
+   if(definition["arguments"] is not null&&definition["arguments"] is not JsonObject)throw new ArgumentException("Exact private value arguments required");
    var arguments=definition["arguments"] as JsonObject??new JsonObject();
    if(arguments.Count>target.Signature.Args.Count||arguments.Any(p=>!target.Signature.Args.Any(a=>a.Name==p.Key)))
     throw new ArgumentException("Declared private value inputs required");

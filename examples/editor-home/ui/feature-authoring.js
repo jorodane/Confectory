@@ -37,7 +37,7 @@ export function createFeatureAuthoring(api){
   if(callee&&api.otherPending?.([callee]))throw Error('선택한 기능의 다른 입력을 먼저 확인해 주세요. 기존 입력은 유지됩니다.');
  }
  function privateCallEdit(w,data,cells){
-  if(!data.privatePath||!data.documentFrameOrderBinding||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
+  if(!data.privatePath||!data.documentFrameReferenceBinding||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
   try{
    const creates=cells.filter(([,v])=>v.type==='call-create');
    if(creates.length!==1)return null;
@@ -46,7 +46,7 @@ export function createFeatureAuthoring(api){
    const routes=cells.filter(([,v])=>v.type==='entry'||v.type==='route').map(([,v])=>v);
    if(routes.length!==2||!routes.some(v=>v.node===gap.from&&v.type===(gap.from==='$entry'?'entry':'route')&&v.text===value.node)||
       !routes.some(v=>v.node===value.node&&v.type==='route'&&v.text===gap.to))return null;
-   const arguments_={};
+   const arguments_=Object.create(null);
    for(const [,v] of cells){if(v===value||routes.includes(v))continue;
     if(v.node!==value.node||!v.type.startsWith('argument:'))return null;
     const name=v.type.slice(9),arg=signature(selected.signature).args.find(a=>a.name===name);
@@ -58,7 +58,7 @@ export function createFeatureAuthoring(api){
  }
  const frameBindingFor=(w,data,cells)=>{
   if(w.meta.copyDraft||!cells.length||cells.some(([key])=>!key.startsWith(prefix(w))))return null;
-  if(privateCallEdit(w,data,cells))return data.documentFrameOrderBinding;
+  if(privateCallEdit(w,data,cells))return data.documentFrameReferenceBinding;
   if(cells.length===1&&frameReconnectInput(data,cells[0][1]))return data.documentFrameReconnectBinding;
   if(cells.some(([,value])=>value.frameCaseOrder===true))return data.documentFrameCaseOrderBinding&&(branchOrderCells(data,cells)||branchCreationCells(data,cells,true)||data.documentBranchTransfer&&branchTransferDraft(w,cells))?data.documentFrameCaseOrderBinding:null;
   if(cellRemovalInput(cells)&&data.privatePath&&!data.privatePath.includes('/'))return frameRemovalBinding(data);
@@ -1320,7 +1320,7 @@ function blueprintNormalizeControls(scope){
    if(flowDocument||!data.privatePath||data.slotContext||data.privateCopy||data.requiresCoupledCopy||w.meta.copyDraft||
       w.meta.authorView||saveEntries(w).length||!['source-ready','source-assembled'].includes(data.diagnostics?.state))return null;
    try{guardPrivateCallInputs(w,data);}catch{return null;}
-   const chain=frameCellChain(data,links());
+   const chain=frameCellChain(data,links(),false,true);
    if(!chain||!chain.order.length||data.nodes.length>=63)return null;
    const index=chain.order.indexOf(id);
    if(id!=='$entry'&&index<0)return null;

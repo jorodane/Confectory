@@ -6,13 +6,21 @@ from playwright.sync_api import expect,sync_playwright
 fixture=Path(__file__).with_name('v821_frame_structure_ui.py')
 setup=ast.parse(fixture.read_text()).body
 exec(compile(ast.Module(body=setup[:next(i for i,n in enumerate(setup)if isinstance(n,ast.Try))],type_ignores=[]),str(fixture),'exec'),globals())
+multiple='--multiple' in sys.argv
 donor=f.n+'PrivateProbe'
+next_donor=f.n+'PrivateNext'
 marker=f.case/'private-call-run.txt'
-(f.project/'PrivateProbe.celem').write_text(f'function {donor} (int amount) -> void {{provide {donor} with {donor}Body;}}')
-(f.project/'PrivateProbeBody.celem').write_text(f'implementation {donor}Body for {donor} (int amount) -> void {{body common "PrivateProbe.csbody";}}')
-(f.project/'PrivateProbe.csbody').write_text('global::System.Console.WriteLine("private-probe:"+amount);global::System.IO.File.WriteAllText('+json.dumps(str(marker))+',amount.ToString());')
+(f.project/'PrivateProbe.celem').write_text(f'function {donor} (int amount) -> {'int' if multiple else 'void'} {{provide {donor} with {donor}Body;}}')
+(f.project/'PrivateProbeBody.celem').write_text(f'implementation {donor}Body for {donor} (int amount) -> {'int' if multiple else 'void'} {{body common "PrivateProbe.csbody";}}')
+(f.project/'PrivateProbe.csbody').write_text('global::System.Console.WriteLine("private-probe:"+amount);global::System.IO.File.WriteAllText('+json.dumps(str(marker))+',amount.ToString());'+('return amount+5;' if multiple else ''))
 manifest=f.project/'project.cproj'
 manifest.write_text(manifest.read_text().rstrip().removesuffix('}')+'element PrivateProbe function "PrivateProbe.celem";element PrivateProbeBody implementation "PrivateProbeBody.celem";}')
+if multiple:
+ (f.project/'PrivateNext.celem').write_text(f'function {next_donor} (int amount) -> void {{provide {next_donor} with {next_donor}Body;}}')
+ (f.project/'PrivateNextBody.celem').write_text(f'implementation {next_donor}Body for {next_donor} (int amount) -> void {{body common "PrivateNext.csbody";}}')
+ (f.project/'PrivateNext.csbody').write_text('global::System.Console.WriteLine("private-next:"+amount);global::System.IO.File.WriteAllText('+json.dumps(str(marker))+',amount.ToString());')
+ manifest.write_text(manifest.read_text().rstrip().removesuffix('}')+'element PrivateNext function "PrivateNext.celem";element PrivateNextBody implementation "PrivateNextBody.celem";}')
+
 x.physical={p:p.read_bytes()for p in f.project.rglob('*')if p.is_file()and'.confectory'not in p.parts}
 original_graph=json.loads((f.project/t.graph_file).read_text())
 other_project=f.case/'same ids other project'
@@ -65,6 +73,39 @@ try:
   row=next(n for n in read()['nodes']if n['id']==id)
   assert row['calledFeature']==donor and row['arguments'][0]['valueJson']=='{"input":"amount"}'
   assert len(read(other)['nodes'])==2
+  second=None
+  if multiple:
+   # First call is saved but not confirmed; the exact saved receipt must
+   # reopen the frame and permit another call without widening its ownership.
+   first_saved=checkpoint.read_bytes()
+   restart(11)
+   if not doc().locator('[data-document-cell^="call_"]').count():enter()
+   peer_kept()
+   add=doc().locator(f'[data-document-insert-call="{id}"]');expect(add).to_be_enabled()
+   add.click();picker=f.page.get_by_role('dialog',name='블루프린트 노드 검색')
+   picker.locator('[data-resource-feature="'+next_donor+'"]').click()
+   second_cell=doc().locator('[data-document-cell^="call_"]').nth(1)
+   expect(second_cell).to_be_visible();second=second_cell.get_attribute('data-document-cell')
+   assert second!=id and order()==['$entry','inner',id,second,'tail','$exit:return']
+   doc().press('Control+z');expect(second_cell).to_have_count(0)
+   doc().press('Control+y');expect(second_cell).to_be_visible()
+   value=second_cell.locator('[data-document-value][data-document-port="field:amount"]')
+   value.click();f.page.get_by_role('dialog',name='핀 값 선택').get_by_role('button',name='PrivateProbe · 결과',exact=True).click()
+   expect(value).to_contain_text('PrivateProbe')
+   second_held=pending();second_source=f.project/'PrivateNext.celem';second_raw=second_source.read_bytes()
+   second_source.write_bytes(second_raw+b' ')
+   try:
+    panel().locator('[data-bp-save]').click();f.idle()
+    expect(panel().locator('.bp-status')).not_to_have_text('저장됨')
+    assert all(dict(pending()).get(k)==v for k,v in second_held) and checkpoint.read_bytes()==first_saved
+   finally:second_source.write_bytes(second_raw)
+   restart(12)
+   if not doc().locator('[data-document-cell^="call_"]').count():enter()
+   assert order()==['$entry','inner',id,second,'tail','$exit:return']
+   panel().locator('[data-bp-save]').click();expect(panel().locator('.bp-status')).to_have_text('저장됨',timeout=120000)
+   f.idle();x.original();peer_kept()
+   current=read();assert next(n for n in current['nodes']if n['id']==second)['calledFeature']==next_donor
+   f.checked('second reference in the same saved but unconfirmed frame, bound to first return with stale callee refusal and cold retry')
   r=review();r.locator('[data-reject]').click();expect(r).to_be_hidden();x.original()
   r=review()
   sibling=f.project/'Pair.peer.inner.node.json';sibling_raw=sibling.read_bytes();saved=checkpoint.read_bytes()
@@ -78,16 +119,22 @@ try:
   written=json.loads(path.read_text());selected=chosen(written);node=next(n for n in selected['nodes']if n['id']==id)
   assert node['kind']=='call' and node['feature']==donor and node['arguments']=={'amount':{'input':'amount'}}
   assert next(e['to']for e in selected['edges']if e['from']=='inner')==id
-  assert next(e['to']for e in selected['edges']if e['from']==id)=='tail'
-  selected['nodes'].remove(node);selected['edges']=[e for e in selected['edges']if e['from']!=id]
+  assert next(e['to']for e in selected['edges']if e['from']==id)==(second or 'tail')
+  if multiple:
+   second_node=next(n for n in selected['nodes']if n['id']==second)
+   assert second_node['feature']==next_donor and second_node['arguments']=={'amount':{'node':id,'output':'return'}}
+   assert next(e['to']for e in selected['edges']if e['from']==second)=='tail'
+   selected['nodes'].remove(second_node)
+  selected['nodes'].remove(node);selected['edges']=[e for e in selected['edges']if e['from'] not in (id,second)]
   next(e for e in selected['edges']if e['from']=='inner')['to']='tail'
   assert written==original_graph
   assert all(p.read_bytes()==raw for p,raw in x.physical.items()if p not in (path,f.project/'PairBody.celem'))
-  x.build('private-call',10,'body\nprivate-probe:7\ninside\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
+  x.build('private-call',10,'body\nprivate-probe:7\n'+('private-next:12\n' if multiple else '')+'inside\nparent-tail\npeer-inner\npeer-tail\nafter\n10')
 
   restart(2)
   if not doc().locator('[data-document-cell^="call_"]').count():enter()
-  assert order()==['$entry','inner',id,'tail','$exit:return'];peer_kept()
+  assert order()==['$entry','inner',id, *([second] if multiple else []),'tail','$exit:return'];peer_kept()
+  if multiple:expect(doc().locator(f'[data-document-insert-call={second}]')).to_be_enabled()
   f.checked('actual nested frame: call search, one local Undo/Redo, exact input, external conflict refusal, saved review and execution, cold reopen and unrelated local description input')
   f.page.close();f.stop()
   f.env['CONFECTORY_WEB_PROJECT']=str(other_project/'project.cproj')
@@ -101,9 +148,9 @@ try:
   marker.unlink()
   f.page.get_by_role('button',name='프로젝트 실행',exact=True).click()
   expect(f.page.locator('.run-window:visible [data-run-frame]')).to_have_text('종료 코드 10',timeout=120000)
-  assert marker.read_text()=='7'
+  assert marker.read_text()==('12' if multiple else '7')
   peer_kept()
-  f.checked('ordinary project Run after returning executes the confirmed private call with 7')
+  f.checked('ordinary project Run after returning executes the confirmed private references')
   assert not f.errors and not f.external,(f.errors,f.external)
   f.browser.close()
 except Exception:
