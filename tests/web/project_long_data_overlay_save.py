@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response|--lost-final-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema|--guard-final-permission] [--run] [--timeline] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
+[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response|--lost-final-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema|--guard-final-permission] [--run] [--timeline] [--poll-timeline] [--legacy-presentation-ack] [--stale-presentation] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
 The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
@@ -67,17 +67,36 @@ from editor_logic_workflow import find_project_item
 def save_existing_rule(page,window,new):
  # Only an already confirmed object value may use this single direct Save.
  button=window.locator('[data-element-action=confirm]');expect(button).to_have_text('저장')
- calls=[];all_calls=[];blueprint_calls=[]
+ calls=[];all_calls=[];blueprint_calls=[];updates=[];poll_rows=[];combined=[];seen_results=set();invoked_ids=set()
  if '--timeline' in sys.argv:page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
  def observe(request):
   if request.method!='POST':return
   try:payload=request.post_data_json
   except Exception:return
+  if isinstance(payload,dict) and payload.get('op')=='update':updates.append(request)
   if isinstance(payload,dict) and payload.get('op')=='invoke':
-   endpoint=payload.get('endpoint');all_calls.append(endpoint)
+   endpoint=payload.get('endpoint');all_calls.append(endpoint);invoked_ids.add(payload.get('requestId'))
    if endpoint=='blueprint':blueprint_calls.append(payload.get('input',{}).get('action'))
    if endpoint in ('reviewGroup','confirmGroup','directPropertyConfirm'):calls.append(endpoint)
+ def observe_update(response):
+  try:payload=response.request.post_data_json
+  except Exception:return
+  if not isinstance(payload,dict):return
+  if payload.get('op')=='invoke' and payload.get('endpoint')=='savePresentation':
+   try:reply=response.json()
+   except Exception:return
+   if reply.get('completion') is not None:
+    combined.append(True)
+    seen_results.update(row.get('requestId') for row in reply['completion'].get('results',[]))
+   return
+  if payload.get('op')!='update':return
+  try:reply=response.json()
+  except Exception:return
+  fresh=[row.get('requestId') for row in reply.get('results',[]) if row.get('requestId') in invoked_ids and row.get('requestId') not in seen_results]
+  seen_results.update(row.get('requestId') for row in reply.get('results',[]))
+  poll_rows.append(dict(busy=reply.get('busy') is True,changed=reply.get('changed') is True,fresh=len(fresh),revision=reply.get('revision')))
  page.on('request',observe)
+ if '--poll-timeline' in sys.argv:page.on('response',observe_update)
  button.evaluate('''b=>{window.__saveFirstFrame=null;b.addEventListener('click',()=>{const start=performance.now();requestAnimationFrame(()=>{window.__saveFirstFrame={ms:performance.now()-start,disabled:!!document.querySelector('.window[data-key=schema] [data-element-action=confirm]')?.disabled}})},{capture:true,once:true})}''')
  page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
  try:
@@ -98,7 +117,11 @@ def save_existing_rule(page,window,new):
   print('owner requests',blueprint_calls,flush=True)
   from collections import Counter
   print('finalization requests',calls,'total invokes',len(all_calls),dict(Counter(all_calls)),flush=True)
+  print('update requests',len(updates),flush=True)
+  if '--poll-timeline' in sys.argv:
+   print('combined presentation replies',len(combined),'update replies',len(poll_rows),'busy',sum(row['busy'] for row in poll_rows),'changed',sum(row['changed'] for row in poll_rows),'result-bearing',sum(row['fresh']>0 for row in poll_rows),'unchanged-no-new-result',sum(not row['busy'] and not row['changed'] and not row['fresh'] for row in poll_rows),flush=True)
  finally:
+  if '--poll-timeline' in sys.argv:page.remove_listener('response',observe_update)
   page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
   if '--timeline' in sys.argv:print('RENDERER',json.dumps(page.evaluate('()=>globalThis.confectoryWebUITrace')),flush=True)
 
@@ -240,6 +263,30 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
    assert all(snapshot(project)[k]==v for k,v in original.items() if k!=str(target.relative_to(project)))
    assert snapshot(peer)==peer_original;print('PASS external edit and private input preserved',flush=True)
   else:
+   if '--legacy-presentation-ack' in sys.argv:
+    ordinary_acks=[]
+    def legacy_ack(route):
+     try:payload=route.request.post_data_json
+     except Exception:payload=None
+     if not isinstance(payload,dict) or payload.get('endpoint')!='savePresentation':return route.fallback()
+     response=route.fetch();reply=response.json()
+     if reply.pop('completion',None) is not None:ordinary_acks.append(True)
+     route.fulfill(response=response,json=reply)
+    page.route('**/api/request',legacy_ack)
+   if '--stale-presentation' in sys.argv:
+    stale_payloads=[]
+    def stale_presentation(route):
+     try:payload=route.request.post_data_json
+     except Exception:payload=None
+     if not isinstance(payload,dict) or payload.get('endpoint')!='savePresentation':return route.fallback()
+     if not stale_payloads:
+      stale_payloads.append(payload['input'])
+      response=route.fetch(post_data=json.dumps({**payload,'expectedRevision':-1}))
+      route.fulfill(response=response)
+     else:
+      if len(stale_payloads)==1:stale_payloads.append(payload['input'])
+      route.fallback()
+    page.route('**/api/request',stale_presentation)
    for i in range(3):
     previous=int(re.search(r'data OpenMilliseconds = (\d+);',source_file.read_text())[1]);new=3500 if previous==1000 else 1000
     value=w.get_by_label('OpenMilliseconds 기본값',exact=True);expect(value).to_have_value(str(previous));value.fill(str(new))
@@ -249,6 +296,12 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
     assert snapshot(peer)==peer_original
     w=rules(page);expect(w.get_by_label('OpenMilliseconds 기본값',exact=True)).to_have_value(str(new))
    print('PASS three direct saves/reopen and sources preserved',flush=True)
+   if '--legacy-presentation-ack' in sys.argv:
+    assert ordinary_acks, 'No combined completion observed'
+    print('PASS ordinary acknowledgement fallback',len(ordinary_acks),flush=True)
+   if '--stale-presentation' in sys.argv:
+    assert len(stale_payloads)==2 and stale_payloads[0]==stale_payloads[1], 'Stale retry changed the private snapshot'
+    print('PASS stale presentation revision retried same snapshot',flush=True)
  if '--lost-final-response' in sys.argv:
   with web(browser,'cold-final-recovery') as page:
    w=rules(page);expect(w.get_by_label('OpenMilliseconds 기본값',exact=True)).to_have_value('2000')
