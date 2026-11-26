@@ -59,3 +59,13 @@
 내부 삭제·복합 생성/분해·여러 frame/여러 새 셀의 공동 편집, 슬롯 내부, private 네이티브 보기와 분기/opaque/receiver/async/copy/상속 문맥은 별도 범위다. 이번은 인수 없는 void 셀 하나이며 모든 ABI·구조·실행 조합이나 전체 엔진 검증이 아니다. 기존 source scope가 바뀐 미결정 요청은 자동 rebase하지 않고 입력을 보존한다.
 
 실제 Windows/WebView2·물리 기기·전체 UI·원본 v821 목업 직접 시각 대조·신규 CRLF 실행은 미실행이다. Windows x64 교차 패키지와 Linux managed 앱 검사를 실제 Windows 실행과 구별한다. 기존 reader Reference 제약과 과거 초기 빈 화면 원인은 이번 단위로 해소됐다고 단정하지 않는다. main과 Sites는 변경하지 않는다.
+
+## 중첩 private 일반 셀에서 등록 기능 호출
+
+직접 소유 물리 root의 정확한 child 경로를 사용해, 기존 일반 직렬 private frame의 시작 또는 일반 셀 다음에 등록된 동기 기능을 참조한다. root의 typed import 및 선택된 child의 호출·입력·정확한 next 연결을 기존 격리된 authorBatch에서 한 후보로 저장한다. 호출 등록은 private frame 밖에 별도 코드 원본을 생성하거나 호출 대상 본문을 복사하지 않는다. 원래 root/frame/source proof, 체크포인트, 소유 경로 및 물리 원본 검사를 유지한다. Review/Confirm의 읽기 관측은 선택된 root의 실제 본문·선언·등록 기능 closure에 한정하고 무관한 선택 입력을 가져오지 않는다.
+
+재실행: `tests/web/v821_private_call_ui.py <repo> <run-report> normal` 또는 `method-nested`. 두 레벨의 `body/nest`와 같은 local ID를 가진 `other/nest`를 사용하는 합성 프로젝트에서 기능 검색/취소, 한 번의 개인 Undo/Redo, 현재 frame 입력 amount 연결, 외부 변경 Save 거절, 형제 원본의 최종 Confirm 거절, Review 취소, 확정과 컴파일·실제 실행 순서(7 전달, 원래 반환 10), 재시작, 독립 객체 설명 초안 보존 및 같은 ID의 별도 프로젝트 격리를 검사한다. 기존 Save 이후의 소유권 history boundary는 바꾸지 않는다.
+
+범위는 기존 일반 직렬 frame에 처음 직접 참조를 추가하는 동작이다. 기존 호출이 섞인 frame에서 추가 호출 삽입, 공유/암시적 분기, ref/out·async·public execution 계약, Windows 실기는 확장하지 않았다.
+
+일반 중첩 profile은 별도 프로젝트를 열었다 돌아온 뒤 실제 프로젝트 ▶에서 전달값 7의 독립 표식과 종료 코드 10까지 확인했다. method-nested profile은 동일 제품 UI Save/Review/Confirm과 실제 컴파일러 실행, 재열기 및 독립 입력 보존이 통과했다. 기존 일반 child 삽입, root switch case 호출 및 최초 기능 호출의 Linux 회귀도 통과했다.

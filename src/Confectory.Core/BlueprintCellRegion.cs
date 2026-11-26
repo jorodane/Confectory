@@ -469,6 +469,30 @@ public static class BlueprintCellRegion
         edges.Add(new JsonObject{["from"]=S(node,"id"),["port"]="next",["to"]=to});
     }
 
+    // An imported function can be placed in an exact ordinary private frame.
+    // Validate the old tree before adding the reference, not a flattened ID.
+    public static void InsertPrivateReference(JsonObject root,JsonObject node,JsonObject gap)
+    {
+        Need(gap.Count==3&&gap.All(p=>p.Key is "path" or "from" or "to"),"Exact private frame gap required");
+        string path=S(gap,"path"),from=S(gap,"from"),to=S(gap,"to");
+        var frame=EditableFrame(root,path,allowDesktopFrames:true);
+        var nodes=frame["nodes"]!.AsArray();
+        Need(nodes.Count is >0 and <63&&nodes.All(n=>S(n,"kind")=="code"&&ValueParameters(n!))&&
+            !nodes.Any(n=>S(n,"id")==S(node,"id")), "Existing ordinary private frame and new local identity required");
+        var edges=frame["edges"]!.AsArray();
+        if(from=="$entry"){
+            Need(S(frame,"entry")==to,"Original private frame entry changed");
+            frame["entry"]=S(node,"id");
+        }else{
+            Need(nodes.Any(n=>S(n,"id")==from),"Original private anchor required");
+            var edge=edges.Single(e=>S(e,"from")==from&&S(e,"port")=="next");
+            Need(S(edge,"to")==to,"Original private successor changed");
+            edge!["to"]=S(node,"id");
+        }
+        edges.Add(new JsonObject{["from"]=S(node,"id"),["port"]="next",["to"]=to});
+        nodes.Add(node);
+    }
+
     sealed record TransferScope(Region[] Cases, HashSet<string> Movable);
 
     static TransferScope ReadTransferScope(JsonObject graph, bool includeRoot=false, bool requirePair=true)
