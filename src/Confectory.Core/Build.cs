@@ -404,17 +404,7 @@ public sealed partial class Builder
     public static bool RetainConfirmedLink(string original,string candidate,string target)=>FinalLinkReuse.RetainConfirmed(original,candidate,target);
     public JsonObject Validate()
     {
-        var planner = new Planner(Registry, Target);
-        foreach (var (ns, manifest) in Registry.Packs)
-        foreach (string local in manifest.Elements.Keys)
-        {
-            string id = ns + "::" + local; var e = Registry.Effective(id); planner.Structural(id);
-            SchemaContracts.Validate(Registry, id);
-            if (e.Kind == "implementation") Registry.Implementation(e.Function!, id, id, e.Loc);
-            else if (e.Kind == "module") planner.Module(id);
-            foreach (var reference in e.Uses.Concat(e.Contains)) Registry.Get(reference.Id, reference.Kind, reference.Origin ?? id, reference.Loc);
-            foreach (var (fn, provider) in e.Provides) Registry.Implementation(fn, provider.Id, provider.Origin ?? id, provider.Loc);
-        }
+        RegistryValidation.Validate(Registry, Target);
         return JsonData.Object(new { mode = "validate", warnings = Registry.Warnings, statistics = Statistics });
     }
 }

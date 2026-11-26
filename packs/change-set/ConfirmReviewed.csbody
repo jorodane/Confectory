@@ -19,6 +19,13 @@ try
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectCreation",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
  }
+ var retirementState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
+ bool singleRetirement=dataOnly is null&&changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="pending"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
+ if(singleRetirement){
+  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
+  if(proof["invalid"]?.GetValue<bool>()==true)throw new InvalidOperationException(proof["message"]!.ToString());
+  if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+ }
  if(dataOnly is null)calls.Validate.Invoke(project,target);
 
  if(!System.Linq.Enumerable.SequenceEqual(changes,calls.Changes.Invoke(handle,selected)))return new[]{"stale","Selected draft changed during validation; review again."};
@@ -115,6 +122,10 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
  if(dataOnly is not null)foreach(var check in dataOnly["checks"]!.AsArray()){
   string path=check!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),item=>string.Equals(item!["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)checks.Add(check.DeepClone());else if(prior["hash"]!.ToString()!=check["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
+ }
+ if(dataOnly?["reads"] is System.Text.Json.Nodes.JsonArray retirementReads)foreach(var guard in retirementReads){
+  string full=guard!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),row=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))??System.Linq.Enumerable.FirstOrDefault(reads,row=>string.Equals(row!["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
+  if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Retirement source observations disagree");
  }
  var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
