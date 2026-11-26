@@ -9,6 +9,7 @@ element MoveObjects function "MoveObjects.celem";element MoveObjectsBody impleme
 element CopyImplementation function "CopyImplementation.celem";element CopyImplementationBody implementation "CopyImplementationBody.celem";
 element DiscardCreationGroup function "DiscardCreationGroup.celem";element DiscardCreationGroupBody implementation "DiscardCreationGroupBody.celem";
 element SlotContext function "SlotContext.celem";element SlotContextBody implementation "SlotContextBody.celem";
+element SlotContextSnapshot function "SlotContextSnapshot.celem";element SlotContextSnapshotBody implementation "SlotContextSnapshotBody.celem";
 element SlotBatch function "SlotBatch.celem";element SlotBatchBody implementation "SlotBatchBody.celem";
 element BlueprintConvert function "BlueprintConvert.celem";element BlueprintConvertBody implementation "BlueprintConvertBody.celem";
 element BlueprintCall function "BlueprintCall.celem";element BlueprintCallBody implementation "BlueprintCallBody.celem";

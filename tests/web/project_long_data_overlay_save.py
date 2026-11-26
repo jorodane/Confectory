@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--guard-object|--guard-schema] [--run] [--timeline]. Every invocation makes a disposable copy.
+[--assets] [--guard-object|--guard-schema] [--run] [--timeline] [--context-batch|--context-baseline]. Every invocation makes a disposable copy.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -181,8 +181,11 @@ if '--timeline' in sys.argv and phases:
   if row['stage']=='authoring-process':group.append(row)
   if row['stage']=='consumer':
    mixed=[item['elapsedMs'] for item in group if item.get('operation')=='mixedOwnerCopyEdits']
-   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed})
+   if row.get('endpoint')=='blueprint' and mixed:groups.append({'consumerMs':row['elapsedMs'],'mixedPreparationMs':mixed,'effectiveMs':[item['elapsedMs'] for item in group if item.get('operation')=='effective']})
    group=[]
  print('OWNER PREPARATION',json.dumps(groups),flush=True)
  assert len(groups)==len(phases),groups
  assert all(len(group['mixedPreparationMs'])==(2 if '--baseline' in sys.argv else 1) for group in groups),groups
+
+ if '--context-batch' in sys.argv or '--context-baseline' in sys.argv:
+  assert all(len(group['effectiveMs'])==(1 if '--context-batch' in sys.argv else 4) for group in groups),groups

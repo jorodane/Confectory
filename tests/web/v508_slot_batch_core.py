@@ -10,6 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 class Calls {
  public Func<string,string,string> Context=null!;
+ public Func<string,string,string> Capture=(h,o)=>throw new Exception("Unexpected optimized snapshot in ordinary slot test");
  public Func<string,string,string,string,string,string[],long[],string[],string> Create=null!;
  public Func<string,string,string> Metadata=null!;
  public Func<string,string,string> Copy=(h,p)=>throw new Exception("Unexpected copy branch in ordinary slot transaction regression");
@@ -46,6 +47,6 @@ class Program {
 '''.replace('BODY',body)
 (case/'Program.cs').write_text(source)
 env=os.environ.copy();env.update(DOTNET_CLI_HOME='/tmp/confectory-dotnet10-final',NUGET_PACKAGES='/tmp/confectory-site-nuget')
-print('CASE '+str(case),flush=True);result=subprocess.run(['/workspace/toolchains/dotnet-10.0.401/dotnet','run','--project',str(case/'probe.csproj'),'-c','Release'],env=env)
+print('CASE '+str(case),flush=True);result=subprocess.run([os.environ.get('CONFECTORY_DOTNET','/workspace/toolchains/dotnet-10.0.401/dotnet'),'run','--project',str(case/'probe.csproj'),'-c','Release'],env=env)
 if result.returncode==0:(case/'evidence.json').write_text(json.dumps({'checks':['second-failure','peer-race','owner-race','manifest-race','close-race','destination-race','stale-hash','success-preserves-checkpoint'],'actualProductBody':True,'controlledDependencies':True,'actualEngine':False,'nativeWindows':False,'sourceSha256':hashlib.sha256(body.encode()).hexdigest(),'evidence':str(case)},indent=2))
 raise SystemExit(result.returncode)

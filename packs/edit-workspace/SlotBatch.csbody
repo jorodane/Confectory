@@ -44,28 +44,59 @@ try{
  if(declaration?["raw"] is not null&&!declarationOnly){
   var unit=candidate["units"]![owner]!;string merged=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("mergeDeclarationText",new System.Text.Json.Nodes.JsonObject{["text"]=before[owner]!["draft"]!.DeepClone(),["typed"]=unit["draft"]!.DeepClone(),["raw"]=declaration["raw"]!["text"]!.DeepClone()}.ToJsonString()))!;if(merged!=unit["draft"]!.ToString()){unit["draft"]=merged;unit["revision"]=unit["revision"]!.GetValue<long>()+1;}
  }
- if(assignmentOnly||declaration is not null||before[owner]!["kind"]!.ToString()=="schema"){
-  var finalContext=System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(stagedHandle,owner))!;foreach(var row in rows)if(!declarationOnly&&(!Required(finalContext,row!)||(row!["remove"]?.GetValue<bool>()==true?System.Linq.Enumerable.Any(finalContext["providers"]!.AsArray(),r=>r!["function"]!.ToString()==row!["function"]!.ToString()&&r["origin"]!.ToString()==owner):!System.Linq.Enumerable.Any(finalContext["providers"]!.AsArray(),r=>r!["function"]!.ToString()==row!["function"]!.ToString()&&r["implementation"]!.ToString()==row["implementation"]!.ToString()&&r["origin"]!.ToString()==owner&&r["contract"]?["status"]?.ToString()=="valid"))))throw new InvalidOperationException("Final mixed copy/module contract invalid; no changes applied");
-  string finalManifest=ns+(before[ns+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");var finalDrafts=new System.Text.Json.Nodes.JsonArray();foreach(var source in candidate["units"]!.AsObject())if(source.Key!=owner&&source.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&source.Value!["kind"]?.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum"))finalDrafts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=source.Key,["text"]=source.Value["draft"]!.DeepClone()});var finalMetadata=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("effective",new System.Text.Json.Nodes.JsonObject{["project"]=project,["manifest"]=candidate["units"]![finalManifest]!["draft"]!.DeepClone(),["id"]=owner,["text"]=candidate["units"]![owner]!["draft"]!.DeepClone(),["drafts"]=finalDrafts,["schemaView"]=true,["validateObjects"]=true,["observeSources"]=true}.ToJsonString()))!;if(finalMetadata["status"]?.ToString()!="available"||finalMetadata["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new InvalidOperationException("Final mixed graph/schema/reference invalid; no changes applied");
-  if(declarationPrepared?["repeatProof"] is System.Text.Json.Nodes.JsonObject repeatProof&&declarationRequest?["reuseLongPreparation"]?.GetValue<bool>()==true){
-   // The tool derived this exact closure from both full validations. Re-read
-   // the original observations and lexical ownership; the existing final
-   // SlotContext comparison below additionally checks all live draft inputs.
+ // The first full Context and both MixedOwner metadata validations have
+ // already established the candidate. Reuse only the exact declaration-only
+ // long proof, never mixed source/slot/registration edits.
+ var repeatProof=declarationPrepared?["repeatProof"] as System.Text.Json.Nodes.JsonObject;
+ bool reuseContext=false;
+ string manifestMember=ns+(before[ns+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");
+ if(declarationOnly&&declarationPrepared is not null&&repeatProof is not null&&declarationRequest?["reuseLongPreparation"]?.GetValue<bool>()==true&&
+    declarationPrepared?["additions"]?.AsArray().Count==0&&declarationPrepared?["updates"]?.AsArray().Count==0&&
+    (declarationPrepared?["linkedUpdates"]?.AsArray().Count??0)==0&&declarationPrepared?["manifest"]?.ToString()==before[manifestMember]?["draft"]?.ToString()&&
+    declarationPrepared?["text"]?.ToString()!=before[owner]?["draft"]?.ToString()){
+  var expected=before.DeepClone();expected[owner]!["draft"]=declarationPrepared!["text"]!.DeepClone();expected[owner]!["revision"]=before[owner]!["revision"]!.GetValue<long>()+1;
+  bool sameOverlays=true;
+  var supplied=declarationRequest["drafts"]!.AsArray();
+  var retained=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(candidate["units"]!.AsObject(),row=>row.Key!=owner&&row.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&row.Value!["kind"]!.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum")));
+  if(supplied.Count!=retained.Length)sameOverlays=false;
+  else foreach(var row in retained)if(!System.Linq.Enumerable.Any(supplied,d=>d?["id"]?.ToString()==row.Key&&System.Text.Json.Nodes.JsonNode.DeepEquals(d["text"],row.Value!["draft"])))sameOverlays=false;
+  bool observed=System.Linq.Enumerable.All(context["observations"]!.AsArray(),read=>System.Linq.Enumerable.Any(repeatProof["observations"]!.AsArray(),proof=>System.Text.Json.Nodes.JsonNode.DeepEquals(read,proof)));
+  reuseContext=sameOverlays&&observed&&System.Text.Json.Nodes.JsonNode.DeepEquals(expected,candidate["units"]);
+ }
+ void VerifyRepeatSources(){
    var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
-   foreach(var path in repeatProof["ownershipPaths"]!.AsArray()){
+   foreach(var path in repeatProof!["ownershipPaths"]!.AsArray()){
     string full=path!.GetValue<string>();if(!System.IO.Path.IsPathFullyQualified(full)||System.IO.Path.GetFullPath(full)!=full)throw new InvalidOperationException("Invalid mixed ownership proof");
     for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)throw new InvalidOperationException("Mixed ownership changed; no changes applied");}
    }
-   foreach(var observation in repeatProof["observations"]!.AsArray()){
+   foreach(var observation in repeatProof!["observations"]!.AsArray()){
     string full=observation!["path"]!.GetValue<string>();if(!System.IO.Path.IsPathFullyQualified(full)||System.IO.Path.GetFullPath(full)!=full)throw new InvalidOperationException("Invalid mixed source proof");
     for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)throw new InvalidOperationException("Mixed source ownership changed; no changes applied");}
     var fileInfo=new System.IO.FileInfo(full);if(!fileInfo.Exists||fileInfo.Length>1048576||Hash(System.IO.File.ReadAllText(full))!=observation["hash"]!.ToString())throw new InvalidOperationException("Mixed schema/source dependencies changed; no changes applied");
    }
-  }else if(declaration is not null&&!System.Text.Json.Nodes.JsonNode.DeepEquals(declarationPrepared,System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke(declaration["raw"] is not null?"rawOwnerEdits":before[owner]!["kind"]!.ToString()=="schema"?"informationDefinitions":before[owner]!["kind"]!.ToString()is ("function" or "category" or "concept" or "module" or "enum")?"functionPresentation":"mixedOwnerCopyEdits",declarationRequest!.ToJsonString()))))throw new InvalidOperationException("Mixed schema/source dependencies changed; no changes applied");
+ }
+ void VerifySnapshot(string workspace,System.Text.Json.Nodes.JsonNode units){
+  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.Capture.Invoke(workspace,owner))!;
+  if(snapshot["project"]?.ToString()!=project||snapshot["namespace"]?.ToString()!=ns||snapshot["manifest"]?.ToString()!=manifestMember||
+     snapshot["checkpointHash"]?.ToString()!=context["checkpointHash"]?.ToString()||!System.Text.Json.Nodes.JsonNode.DeepEquals(snapshot["units"],units))
+   throw new InvalidOperationException("Slot context changed during staging; no changes applied");
+ }
+ if(reuseContext){
+  // Read/discover all resources as in Context, but do not reparse the already
+  // validated graph. Compare against a separate immutable candidate snapshot.
+  VerifySnapshot(stagedHandle,candidate["units"]!.DeepClone());
+ }else{
+ if(assignmentOnly||declaration is not null||before[owner]!["kind"]!.ToString()=="schema"){
+  var finalContext=System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(stagedHandle,owner))!;foreach(var row in rows)if(!declarationOnly&&(!Required(finalContext,row!)||(row!["remove"]?.GetValue<bool>()==true?System.Linq.Enumerable.Any(finalContext["providers"]!.AsArray(),r=>r!["function"]!.ToString()==row!["function"]!.ToString()&&r["origin"]!.ToString()==owner):!System.Linq.Enumerable.Any(finalContext["providers"]!.AsArray(),r=>r!["function"]!.ToString()==row!["function"]!.ToString()&&r["implementation"]!.ToString()==row["implementation"]!.ToString()&&r["origin"]!.ToString()==owner&&r["contract"]?["status"]?.ToString()=="valid"))))throw new InvalidOperationException("Final mixed copy/module contract invalid; no changes applied");
+  string finalManifest=ns+(before[ns+"::ProjectManifest"] is null?"::PackManifest":"::ProjectManifest");var finalDrafts=new System.Text.Json.Nodes.JsonArray();foreach(var source in candidate["units"]!.AsObject())if(source.Key!=owner&&source.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&source.Value!["kind"]?.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum"))finalDrafts.Add(new System.Text.Json.Nodes.JsonObject{["id"]=source.Key,["text"]=source.Value["draft"]!.DeepClone()});var finalMetadata=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("effective",new System.Text.Json.Nodes.JsonObject{["project"]=project,["manifest"]=candidate["units"]![finalManifest]!["draft"]!.DeepClone(),["id"]=owner,["text"]=candidate["units"]![owner]!["draft"]!.DeepClone(),["drafts"]=finalDrafts,["schemaView"]=true,["validateObjects"]=true,["observeSources"]=true}.ToJsonString()))!;if(finalMetadata["status"]?.ToString()!="available"||finalMetadata["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new InvalidOperationException("Final mixed graph/schema/reference invalid; no changes applied");
+  if(repeatProof is not null&&declarationRequest?["reuseLongPreparation"]?.GetValue<bool>()==true)VerifyRepeatSources();
+  else if(declaration is not null&&!System.Text.Json.Nodes.JsonNode.DeepEquals(declarationPrepared,System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke(declaration["raw"] is not null?"rawOwnerEdits":before[owner]!["kind"]!.ToString()=="schema"?"informationDefinitions":before[owner]!["kind"]!.ToString()is ("function" or "category" or "concept" or "module" or "enum")?"functionPresentation":"mixedOwnerCopyEdits",declarationRequest!.ToJsonString()))))throw new InvalidOperationException("Mixed schema/source dependencies changed; no changes applied");
+ }
  }
  if(System.Text.Encoding.UTF8.GetByteCount(candidate["units"]!.ToJsonString())>16777216)throw new ArgumentException("Slot result budget");
  // Revalidate the ORIGINAL context, never the staged registration or arbitrary refreshed donor data.
- if(!System.Text.Json.Nodes.JsonNode.DeepEquals(context,System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(handle,owner))))throw new InvalidOperationException("Slot dependencies changed during staging; no changes applied");
+ if(reuseContext){VerifySnapshot(handle,before);VerifyRepeatSources();}
+ else if(!System.Text.Json.Nodes.JsonNode.DeepEquals(context,System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(handle,owner))))throw new InvalidOperationException("Slot dependencies changed during staging; no changes applied");
  lock(state){
   if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state)||!System.Text.Json.Nodes.JsonNode.DeepEquals(before,state["units"]))throw new InvalidOperationException("Concurrent draft edit; no slot changes applied");
   var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;var destinations=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
