@@ -157,3 +157,27 @@
 정상 `full-clean` 독립 실행에서는 작성 중 `saveDraft` 및 `authorBatch`가 0건이고, 마지막 Save의 authorBatch와 최종 confirmGroup이 각각 1건임을 실제 UI 요청에서 검사했다. 원본과 이전 체크포인트는 작성·Undo/Redo·재시작까지 바이트가 같았다. 이 실행은 전환 5,271ms, 첫 셀 115ms, 분기 편집 66ms, 분기 내부 셀 190ms, 호출 1,628ms, 값 연결 108ms, 마지막 Save 7,874ms, Confirm 11,488ms였다. 별도 오류 주입 실행에서 실패한 요청은 정상 Save/Confirm 횟수에 포함하지 않는다. 기존 `session`, `session-child`, `staged`의 실제 편집·확정·실행 회귀도 각각 통과했다.
 
 마지막 `full-session` 재실행에서 호출 선택 후 실제 합성 donor 선언의 `int amount`를 `long amount`로 바꾸면 Save가 거절되고 값 37 및 원래 체크포인트를 유지했다. 별도 원본 graph 변경과 체크포인트 CAS 경합도 거절됐다. 각각 원래 상태로 복구한 뒤 하나의 합동 Save와 최종 Review/Confirm/실제 실행에 성공했다. 이 오류 주입 실행의 마지막 Save 6,371ms, Confirm 11,539ms다.
+
+#### 직접 root의 복합 전환 및 미저장 호출 계약 조회 반응 개선 (f833f4b 이후)
+
+이미 표시 중인 직접 소유 switch root의 기존 basis를 새 복합 전환에서 재사용한다. 원본 source ID/path/kind/revision/hash 및 실제 파일 baseline과 checkpoint를 모두 현재 상태와 대조한다. 직접 C# root에만 적용하고 등록 ancestry·copy·slot 등이 있는 문맥과 만료 basis는 기존 전체 읽기로 돌아간다. 실제 candidate internalize와 child projection은 기존 경로에서 다시 계산한다. 새 캐시나 초기 선계산은 없고, cold restore/Undo에 필요한 완전한 원래 View 읽기 경로도 유지한다.
+
+미저장 분기 호출 선택의 `readCall`에서 직접 소유 계약만 관찰하는 `contractOnly`를 사용한다. 실제 C# 선언·소유권·서명·contractHash·scope와 원본을 기존 준비/검증으로 확인하되, 이 호출에 사용하지 않는 루트 실행 변경 및 async View 후보 조회를 실행하지 않는다. 이 읽기는 createCall mutation basis를 발급하지 않으며 실제 private gap·타입·계약·원본 검증은 마지막 Save에서 기존 방식 그대로 수행한다. 최종 Save/Confirm의 의미와 group 경계는 변경하지 않는다.
+
+2026-11-26, Linux Chromium과 동일 경량 .NET 호스트의 독립 합성 프로필에서 `full-clean` 및 `full-session`으로 검증했다. 임시 진단 빌드에서 원래 root read 1,079~1,244ms, 실제 internalize 243~295ms, child read 29~34ms였다. 변경 후 root observation 1ms, 실제 internalize 308ms, child read 59ms였다. 호스트 Blueprint consumer 전체의 wrap 1,353~1,575ms → 372ms(진단), 최종 일반 빌드 대표 264ms. 호출 selection consumer 전체 1,059~1,194ms → 172ms(진단), 일반 빌드 대표 188ms. 기존 계약 준비·describe까지 198~241ms 이후 약 861~953ms는 사용하지 않는 View 후보 조회였다. 이 값은 호스트 벽시계 지연이며 CPU 사용량이 아니다. 임시 진단은 제품 소스에 포함하지 않았다.
+
+| 실제 조작 | 기존 | 개선 |
+| --- | ---: | ---: |
+| 신뢰된 복합 전환 클릭 → 실제 논리 코드 표시 | 1,956ms | 874~900ms |
+| Playwright 클릭 대기 포함 복합 전환 | 5,274~5,374ms | 4,228~4,891ms |
+| 검색 버튼 클릭 → 등록 기능 선택 | 128ms | 217ms |
+| 기능 선택 → 호출 표시 | 1,362ms | 346~379ms |
+| 검색부터 호출 표시, 자동화 대기 포함 | 1,526~1,598ms | 586~623ms |
+
+기존의 복합 전환 전체 표시는 편집기 복원 중 Playwright가 실제 클릭 가능 시점까지 기다린 시간도 포함한다. 신뢰된 DOM 클릭을 따로 계측하여 두 시간을 분리했다. 초기 로딩으로 작업을 옮기지 않았으며, 루트 문서 최초 복원과 실제 후보 구성 비용은 아직 남아 있다.
+
+동일 Linux 합성 fixture의 일반 창 관측은 다음과 같다. 속성 첫 열기/재열기 실제 필드 입력 가능 25.5/10.6ms → 26.0/12.1ms, Codex 설정 최초/재열기/재열기 1,384/531/533ms → 1,318/492/407ms(인증하지 않음). 저장된 속성 창 세 개의 warm 복원 마지막 입력 가능/명령 준비 144/448ms → 136/460ms, cold 복원 704/953ms → 779/995ms였다. 각 조건 한 독립 실행의 관측이므로 cold 차이는 실제 개선 또는 회귀로 통계적으로 단정하지 않는다. 기존 사용자 프로젝트나 계정, Windows 실기는 검증하지 않았다.
+
+최종 일반 빌드에서 실제 `full-clean` 단일 Save/Confirm, `full-session`의 물리 graph 변경 및 contract-only declaration 변경 거절, no mutation basis, 체크포인트 충돌, 기존 원문·미저장 Undo/Redo·재시작 복구·정확한 실행을 확인했다. 일반 빌드의 Save/Confirm은 각각 7,885/12,037ms(정상), 6,411/11,537ms(충돌 주입 후 성공)였으며 이 단계의 성능 개선은 주장하지 않는다.
+
+추가 교대 비교는 문서 표시뿐 아니라 실제 새 셀 버튼과 호출 입력값 버튼이 활성화된 상태를 기다렸다. 기존 → 최종 일반 빌드에서 신뢰된 복합 전환 클릭부터 활성화 1,940 → 890ms, 검색/선택 대기부터 활성화 216+1,384 → 212+361ms였다. 그 뒤 실제 입력, Save 한 번, Confirm 한 번과 CLR 실행까지 모두 통과했다. 기존 M11 내부 C# API와 일반 중첩 private 다중 호출 UI의 충돌·독립 입력·다른 프로젝트 및 실행 회귀도 통과했다.

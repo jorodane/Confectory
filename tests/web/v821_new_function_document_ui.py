@@ -113,6 +113,7 @@ try:
             checkpoint=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
             checkpoint_before=checkpoint.read_bytes() if checkpoint else None
             before_composition=len(f.requests)
+            page.evaluate('''()=>{globalThis.compoundMarks={};document.addEventListener('click',event=>{if(!event.isTrusted)return;const target=event.target.closest('button');if(!target)return;const key=target.matches('[data-document-internal]')?'wrap':target.matches('[data-document-insert-call]')?'search':target.matches('[data-resource-feature]')?'select':null;if(key)compoundMarks[key]=performance.now();},true);}''')
             def unchanged():
                 assert graph_path.read_bytes()==original_graph and retained_source.read_bytes()==retained_bytes
                 current=next(manifest.parent.glob('.confectory/edit-workspaces/*/draft.json'),None)
@@ -123,8 +124,10 @@ try:
                 page.keyboard.insert_text(text);script.locator('[data-code-save]').click();expect(script).to_be_hidden()
             started=time.perf_counter();doc.locator('[data-document-internal=body]').click();expect(panel.locator('.bp-breadcrumbs')).to_be_visible(timeout=20000)
             panel.get_by_role('tab',name='논리 코드',exact=True).click();expect(doc.locator('[data-document-cell=body]')).to_be_visible()
+            add=doc.locator('[data-document-add="$entry"]');expect(add).to_be_enabled()
             print('TIMING wrap editable ms',round((time.perf_counter()-started)*1000),flush=True)
-            add=doc.locator('[data-document-add="$entry"]');expect(add).to_be_enabled();started=time.perf_counter();add.click()
+            print('TIMING trusted wrap click to editable ms',round(page.evaluate('performance.now()-compoundMarks.wrap')),flush=True)
+            started=time.perf_counter();add.click()
             cell=doc.locator('[data-document-cell^="cell_"]');expect(cell).to_be_visible();created=cell.get_attribute('data-document-cell');print('TIMING unsaved child add ms',round((time.perf_counter()-started)*1000),flush=True)
             mode_marker=f.root/'private-case-mode.txt'
             def declare_first():
@@ -145,12 +148,32 @@ try:
                 page.get_by_role('dialog',name='블루프린트 노드 검색').locator(f'[data-resource-feature="{donor}"]').click()
                 call_cell=case.locator('[data-document-cell^="call_"]');expect(call_cell).to_be_visible();branch_call=call_cell.get_attribute('data-document-cell')
                 print('TIMING branch reference add ms',round((time.perf_counter()-started)*1000),flush=True)
-                value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');started=time.perf_counter();value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
+                value=call_cell.locator('[data-document-value][data-document-port="field:amount"]');expect(value).to_be_enabled()
+                print('TIMING trusted search to selection and selection to editable ms',page.evaluate('[Math.round(compoundMarks.select-compoundMarks.search),Math.round(performance.now()-compoundMarks.select)]'),flush=True)
+                started=time.perf_counter();value.click();search=page.get_by_role('dialog',name='핀 값 선택').get_by_role('searchbox',name='값 검색');search.fill('37');search.press('Enter')
                 expect(value).to_have_text('37');print('TIMING value binding ms',round((time.perf_counter()-started)*1000),flush=True)
                 if save_between:panel.locator('[data-bp-save]').click();expect(panel.locator('.bp-status')).to_have_text('저장됨',timeout=120000)
                 return branch_id,branch_call
             if not session_child:declare_first();unchanged()
             if full_session:branch_id,branch_call=compose_case(False);unchanged()
+            if full_session and not full_clean:
+                preview_request=next(row['input'] for row in reversed(f.requests[before_composition:]) if row.get('endpoint')=='blueprint' and row.get('input',{}).get('action')=='previewNodeInternal')
+                reference_request=next(row['input'] for row in reversed(f.requests[before_composition:]) if row.get('endpoint')=='blueprint' and row.get('input',{}).get('action')=='readCall')
+                if preview_request.get('observedBasis'):
+                    graph_path.write_bytes(original_graph+b' ')
+                    try:f.call('blueprint',preview_request,False)
+                    finally:graph_path.write_bytes(original_graph)
+                    unchanged()
+                    print('PASS reused preview basis rejects changed physical graph',flush=True)
+                if reference_request.get('contractOnly'):
+                    observed=f.call('blueprint',reference_request)
+                    assert observed.get('contractOnly') is True and not observed.get('basis')
+                    donor_path=manifest.parent/'LocalDonor.celem';old=donor_path.read_bytes();donor_path.write_bytes(old+b' ')
+                    try:f.call('blueprint',reference_request,False)
+                    finally:donor_path.write_bytes(old)
+                    unchanged()
+                    print('PASS contract-only read produces no mutation basis and rejects changed declaration',flush=True)
+
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+z');expect(doc.locator('[data-document-internal=body]')).to_be_visible();expect(panel.locator('.bp-breadcrumbs button')).to_have_count(0);unchanged()
             doc.locator('.fd-document-title').click();page.keyboard.press('Control+y');expect(panel.locator('.bp-breadcrumbs button')).to_have_count(1)
             panel.get_by_role('tab',name='논리 코드',exact=True).click();expect(doc.locator(f'[data-document-cell="{created}"]' if session_child else '[data-document-branch="case:positive"]')).to_be_visible();unchanged()

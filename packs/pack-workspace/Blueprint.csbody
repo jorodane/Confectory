@@ -801,7 +801,31 @@ lock(state){
   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(binding,observed))throw new InvalidOperationException("Copy assignment/target/provenance changed; retain input");return binding;
  }
  if(targetOperation=="previewNodeInternal"){
-  var read=new System.Text.Json.Nodes.JsonObject{["id"]=input["id"]!.DeepClone()};if(input["uiSurface"] is not null)read["uiSurface"]=input["uiSurface"]!.DeepClone();foreach(string field in new[]{"owner","ownerHash","ownerRevision"})if(input[field] is not null)read[field]=input[field]!.DeepClone();var current=System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",read.ToJsonString()))!;
+  var read=new System.Text.Json.Nodes.JsonObject{["id"]=input["id"]!.DeepClone()};if(input["uiSurface"] is not null)read["uiSurface"]=input["uiSurface"]!.DeepClone();foreach(string field in new[]{"owner","ownerHash","ownerRevision"})if(input[field] is not null)read[field]=input[field]!.DeepClone();
+  System.Text.Json.Nodes.JsonNode? observation=null;
+  // The already displayed direct root has an owned source basis. Only a
+  // fresh preview may use it; the candidate and new child are still validated
+  // by the ordinary internalize and read paths.
+  string rootId=input["id"]!.ToString(),basisId=input["observedBasis"]?.ToString()??"";
+  if(basisId.Length==32&&input["owner"] is null&&input["uiSurface"]?.ToString() is (null or "")&&!rootId.Contains("/graph:",StringComparison.Ordinal)&&
+     state["blueprintBases"]?[basisId] is System.Text.Json.Nodes.JsonObject savedBasis&&savedBasis["id"]?.ToString()==rootId&&savedBasis["kind"] is null&&savedBasis["slotContext"] is null&&savedBasis["registeredAncestry"] is null&&savedBasis["registeredFunction"] is null&&savedBasis["copyAbiBinding"] is null&&savedBasis["overrideAncestors"] is System.Text.Json.Nodes.JsonObject{Count:0}&&savedBasis["sources"] is System.Text.Json.Nodes.JsonObject savedSources&&savedBasis["definitions"]?["nodes"] is System.Text.Json.Nodes.JsonArray savedNodes){
+   var savedGraph=System.Text.Json.Nodes.JsonNode.Parse(savedSources[rootId]!["text"]!.ToString())!;
+   if(savedGraph["copySource"] is null&&savedGraph["profile"]?.ToString()=="sync-acyclic-switch-v1"&&System.Linq.Enumerable.All(savedNodes,n=>n?["definition"]?["kind"]?.ToString()=="code")&&savedBasis["abiContracts"] is System.Text.Json.Nodes.JsonObject{Count:0}){
+    string selectedId=input["node"]!.ToString(),sourceId=rootId+"/node:"+selectedId;
+    var selected=System.Linq.Enumerable.SingleOrDefault(savedNodes,n=>n?["id"]?.ToString()==selectedId);
+    var liveWorkspace=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject;
+    string checkpoint=input["observedCheckpoint"]?.ToString()??"";
+    if(selected is not null&&savedSources[sourceId] is not null&&savedSources.Count is >=2 and <=64&&liveWorkspace?["checkpointVersion"]?.ToString()==checkpoint&&calls.CheckpointSnapshot.Invoke(calls.CheckpointLocation.Invoke(draft))[2]==checkpoint){
+     var rows=new System.Text.Json.Nodes.JsonArray();bool fresh=true;
+     foreach(var item in savedSources){var value=calls.Read.Invoke(draft,item.Key);if(value[2]!=item.Value!["path"]!.ToString()||value[1]!=item.Value["kind"]!.ToString()||value[4]!=item.Value["revision"]!.ToString()||Hash(value[3])!=item.Value["hash"]!.ToString()||!PreviewFileMatches(value[2],value[5])){fresh=false;break;}rows.Add(new System.Text.Json.Nodes.JsonObject{["id"]=item.Key,["revision"]=item.Value["revision"]!.DeepClone(),["hash"]=item.Value["hash"]!.DeepClone()});}
+     if(!fresh)throw new InvalidOperationException("Original preview source changed; refresh explicitly and retain input");
+     observation=new System.Text.Json.Nodes.JsonObject{["id"]=rootId,["rootId"]=rootId,["privatePath"]="",["basis"]=basisId,["checkpointHash"]=checkpoint,["sources"]=rows,["nodes"]=new System.Text.Json.Nodes.JsonArray(new System.Text.Json.Nodes.JsonObject{["id"]=selectedId,["kind"]="code",["sourceId"]=sourceId,["definitionHash"]=selected["definitionHash"]!.DeepClone()})};
+    }
+   }
+  }
+  var current=observation??System.Text.Json.Nodes.JsonNode.Parse(Process(targetHandle,"read",read.ToJsonString()))!;
+  if(observation is null&&input["observedBasis"] is not null)
+   foreach(var row in current["sources"]!.AsArray()){var original=calls.Read.Invoke(draft,row!["id"]!.ToString());if(!PreviewFileMatches(original[2],original[5]))throw new InvalidOperationException("Original preview source changed; refresh explicitly and retain input");}
   // A fresh directly owned preview can bind the already displayed source
   // closure in this request, rather than requiring a separate browser read.
   // This is observational only; authorBatch still checks physical source CAS.
@@ -813,7 +837,7 @@ lock(state){
   var selectedFlow=System.Linq.Enumerable.Single(current["nodes"]!.AsArray(),row=>row!["id"]!.ToString()==input["node"]!.ToString())!;if(selectedFlow["kind"]?.ToString()!="code"||selectedFlow["sourceId"] is null)throw new InvalidOperationException("Selected owned C# source required");var selectedSource=System.Linq.Enumerable.Single(current["sources"]!.AsArray(),row=>row!["id"]!.ToString()==selectedFlow["sourceId"]!.ToString())!;
   var flowBinding=new System.Text.Json.Nodes.JsonObject{["graph"]=current["id"]!.DeepClone(),["root"]=current["rootId"]!.DeepClone(),["node"]=input["node"]!.DeepClone(),["source"]=selectedFlow["sourceId"]!.DeepClone(),["definitionHash"]=selectedFlow["definitionHash"]!.DeepClone(),["sourceHash"]=selectedSource["hash"]!.DeepClone()};if(current["nodeFlowDependencyHash"] is not null)flowBinding["dependencyHash"]=current["nodeFlowDependencyHash"]!.DeepClone();if(input["definition"]?["binding"] is not null&&!System.Text.Json.Nodes.JsonNode.DeepEquals(input["definition"]!["binding"],flowBinding))throw new InvalidOperationException("Selected C# frame or source changed; retain input without retargeting");
   string temp="node-preview-"+Guid.NewGuid().ToString("N");var workspace=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");var pack=state.DeepClone().AsObject();pack["draft"]=temp;pack["nodeFlowPreview"]=true;AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+temp,workspace.DeepClone());AppDomain.CurrentDomain.SetData("Confectory.PackWorkspace."+temp,pack);
-  try{var plan=input.DeepClone().AsObject();plan["basis"]=current["basis"]!.DeepClone();plan["definition"]!["binding"]=flowBinding.DeepClone();Process(temp,"internalizeNode",plan.ToJsonString());string child=input["id"]!.ToString()+"/graph:"+input["node"]!.ToString();if(input["frame"] is not null&&input["frame"]!.ToString()!=child&&!child.StartsWith(input["frame"]!.ToString()+"/graph:",StringComparison.Ordinal))throw new ArgumentException("The selected wrapping frame or its exact ancestor is required");read["id"]=input["frame"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(child);var preview=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",read.ToJsonString()))!.AsObject();preview["nodeFlowPreview"]=true;preview["nodeFlowOriginal"]=current.DeepClone();preview["nodeFlowBinding"]=flowBinding.DeepClone();return preview.ToJsonString();}finally{AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+temp,null);AppDomain.CurrentDomain.SetData("Confectory.PackWorkspace."+temp,null);}
+  try{var plan=input.DeepClone().AsObject();plan["basis"]=current["basis"]!.DeepClone();plan["definition"]!["binding"]=flowBinding.DeepClone();Process(temp,"internalizeNode",plan.ToJsonString());string child=input["id"]!.ToString()+"/graph:"+input["node"]!.ToString();if(input["frame"] is not null&&input["frame"]!.ToString()!=child&&!child.StartsWith(input["frame"]!.ToString()+"/graph:",StringComparison.Ordinal))throw new ArgumentException("The selected wrapping frame or its exact ancestor is required");read["id"]=input["frame"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(child);var preview=System.Text.Json.Nodes.JsonNode.Parse(Process(temp,"read",read.ToJsonString()))!.AsObject();preview["nodeFlowPreview"]=true;if(observation is not null)preview["nodeFlowReusedBasis"]=true;preview["nodeFlowOriginal"]=current.DeepClone();preview["nodeFlowBinding"]=flowBinding.DeepClone();return preview.ToJsonString();}finally{AppDomain.CurrentDomain.SetData("Confectory.EditWorkspace."+temp,null);AppDomain.CurrentDomain.SetData("Confectory.PackWorkspace."+temp,null);}
  }
  if(targetOperation is "readConversion" or "convertBody"){
   string conversionId=input["id"]!.GetValue<string>(),conversionTarget=input["target"]!.GetValue<string>();
@@ -1763,8 +1787,10 @@ lock(state){
   if(!System.Text.Json.Nodes.JsonNode.DeepEquals(ChildPreviewBinding(),input["documentFrame"])||calls.CheckpointSnapshot.Invoke(calls.CheckpointLocation.Invoke(draft))[2]!=input["checkpointHash"]?.ToString())throw new InvalidOperationException("Child preview observation changed; no result exposed");
  }check["assemblePreview"]=true;}var diagnostics=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("blueprintDescribeOwned",check.ToJsonString()))!;
  System.Text.Json.Nodes.JsonNode? callPrepared=null,callDefinitions=null,externalContract=null;int registeredCallBytes=0;
+ bool contractOnly=readingCall&&input["contractOnly"]?.GetValue<bool>()==true;
  if(readingCall){
   var callDefinition=input["definition"]!.AsObject();
+  if(contractOnly&&(privatePath.Length!=0||slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||!owned.Contains(implementationMetadata["function"]!.ToString())||callDefinition["privateInsertion"] is not null||callDefinition["branchInsertion"] is not null||callDefinition["arguments"] is not null||!owned.Contains(callDefinition["feature"]!.ToString())||callDefinition["control"]?.ToString()!="next"||input["uiSurface"]?.ToString() is not (null or "")))throw new InvalidOperationException("Direct owned contract-only observation required");
   if(callDefinition["privateInsertion"] is not null){
    if(privatePath.Length==0||callDefinition["privateInsertion"]?["path"]?.ToString()!=privatePath||
       slotContext is not null||copiedRoot||implementationMetadata["parent"] is not null||
@@ -1822,6 +1848,13 @@ lock(state){
  // a source from a detached information body proof merely because its creation finished.
  if(slotContext?["checkpointPlain"]?.GetValue<bool>()==true&&input["uiSurface"]?.ToString() is "view:1" or "view:2" or "view:3")Read(System.Linq.Enumerable.Single(calls.List.Invoke(draft),id=>calls.Status.Invoke(draft,id)[2]==System.IO.Path.GetFileName(identity[0])));
  foreach(var observed in sources){var current=calls.Read.Invoke(draft,observed.Key);if(current[4]!=observed.Value!["revision"]!.ToString()||Hash(current[3])!=observed.Value!["hash"]!.ToString())throw new InvalidOperationException("Blueprint changed while reading; refresh explicitly");}
+ if(contractOnly){
+  // This observation is not a createCall basis. The final private candidate
+  // performs the complete route, contract, source and type validation again.
+  if(externalContract is not null)throw new InvalidOperationException("Owned published contract required");
+  foreach(var item in sources){var value=calls.Read.Invoke(draft,item.Key);if(!PreviewFileMatches(value[2],value[5]))throw new InvalidOperationException("Call contract source changed; retain input and refresh");}
+  return new System.Text.Json.Nodes.JsonObject{["id"]=graphId,["definition"]=input["definition"]!.DeepClone(),["signature"]=callPrepared!["signature"]!.DeepClone(),["description"]=callPrepared["description"]!.DeepClone(),["alias"]=callPrepared["alias"]!.DeepClone(),["scope"]=callPrepared["scope"]?.DeepClone(),["contractOrigin"]="owned-published-function",["contractReadScope"]="selected-function-declaration",["contractBodyReads"]=0,["contractHash"]=callPrepared["contractHash"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false,["contractOnly"]=true}.ToJsonString();
+ }
  // Project the already-owned function contract for the original author view without changing selection.
  System.Text.Json.Nodes.JsonNode? featureDefinition=null;string featureId=definitions["feature"]!.ToString();
  if(owned.Contains(featureId)){var featureSource=Read(featureId);if(featureSource[1]=="function"){featureDefinition=System.Text.Json.Nodes.JsonNode.Parse(ScopedMetadata("inspect",System.Text.Json.JsonSerializer.Serialize(new{text=featureSource[3]})))!;featureDefinition["revision"]=long.Parse(featureSource[4],System.Globalization.CultureInfo.InvariantCulture);featureDefinition["textHash"]=Hash(featureSource[3]);}}
