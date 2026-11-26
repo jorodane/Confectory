@@ -90,6 +90,12 @@ try:
             attempts=[req['expectedRevision'] for req in opens if req['input']['view']=='2']
             assert len(attempts)>=2 and attempts[0]!=attempts[-1],attempts
             print('actual stale restore admission revisions',attempts,flush=True)
+        if mode=='normal':
+            # The first visible Browser projection needs both views of the same
+            # project. The combined read must replace the separate map command.
+            projections=[req for req in invokes if req.get('endpoint')=='localInventory' and req.get('input',{}).get('relations')]
+            assert len(projections)==1, projections
+            assert not any(req.get('endpoint')=='relationsMap' for req in invokes), invokes
         snapshot=f.state()
         assert snapshot['draft']['id']==saved_id and len(snapshot['editorViews']) in (0,3)
         if mode=='primary':
