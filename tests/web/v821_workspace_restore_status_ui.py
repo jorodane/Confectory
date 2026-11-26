@@ -11,7 +11,7 @@ expect.set_options(timeout=60000)
 close_mode=mode in ('primary-close-restore','primary-close-persist')
 partial_modes={'partial-middle':[d.PEER],'partial-first':[d.TARGET],'partial-two':[d.TARGET,d.PEER],'partial-reuse':[d.PEER]}
 partial_mode=mode in partial_modes
-primary_mode=mode in ('primary','primary-after-save','primary-save-own','primary-fallback','primary-external-during','missing-primary') or close_mode or partial_mode
+primary_mode=mode in ('primary','primary-after-save','primary-save-own','primary-fallback','primary-completion-fallback','primary-stale-prepare','primary-external-during','missing-primary') or close_mode or partial_mode
 save_mode=mode in ('after-save','primary-after-save','primary-save-own') or close_mode or partial_mode
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox', '--disable-gpu']) as b:
@@ -81,12 +81,18 @@ try:
                 req = route.request.post_data_json
                 if req.get('op') == 'invoke':
                     invokes.append(req)
+                    if mode=='primary-completion-fallback' and req.get('endpoint')=='preparePropertyModels':
+                        # An older server returns the ordinary asynchronous
+                        # acknowledgement; the actual host still prepares models.
+                        assert req.get('completion') is True
+                        request={k:v for k,v in req.items() if k!='completion'}
+                        route.continue_(post_data=json.dumps(request));return
                     if mode=='primary-fallback' and req.get('endpoint')=='preparePropertyModels' and req.get('input',{}).get('restoreStatuses'):
                         # Exercise an actual host response without the optional
                         # restore status proof (older endpoint contract).
                         request=dict(req,input={k:v for k,v in req['input'].items() if k!='restoreStatuses'})
                         route.continue_(post_data=json.dumps(request));return
-                    if (close_mode or mode=='primary-external-during') and req.get('endpoint')=='preparePropertyModels' and not held:
+                    if (close_mode or mode in ('primary-external-during','primary-stale-prepare')) and req.get('endpoint')=='preparePropertyModels' and not held:
                         held.append(route);return
                     if mode in ('stale','detached-close-restore') and req.get('endpoint')=='openEditorView' and req.get('input',{}).get('view')=='2' and not held:
                         held.append(route);return
@@ -187,6 +193,12 @@ try:
             f.original()
             print('PASS partial restoration saves exact owner, preserves failed input, restarts and isolates projects',flush=True)
             raise SystemExit(0)
+        if mode=='primary-stale-prepare':
+            deadline=time.monotonic()+30
+            while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
+            assert len(held)==1
+            try:f.call('browserDrafts',{'action':'status','ids':[saved_id]})
+            finally:held[0].continue_()
         if mode=='primary-external-during':
             deadline=time.monotonic()+30
             while not held and time.monotonic()<deadline:page.wait_for_timeout(20)
@@ -314,8 +326,12 @@ try:
             assert snapshot['schema']['id']==saved_id
             assert not any(req.get('endpoint') in ('select','schema') for req in invokes),invokes
             if not close_mode:
-                preparations=[req['input'] for req in invokes if req.get('endpoint')=='preparePropertyModels' and req['input'].get('restoreStatuses')]
-                assert len(preparations)==1 and saved_id in preparations[0]['ids'],preparations
+                preparation_calls=[req for req in invokes if req.get('endpoint')=='preparePropertyModels' and req['input'].get('restoreStatuses')]
+                if mode=='primary-stale-prepare':
+                    assert len(preparation_calls)>=2 and preparation_calls[0]['expectedRevision']!=preparation_calls[-1]['expectedRevision'],preparation_calls
+                    print('PASS bounded completion retries refused stale preparation revision',flush=True)
+                else:assert len(preparation_calls)==1,preparation_calls
+                assert all(saved_id in req['input']['ids'] and req.get('completion') is True for req in preparation_calls),preparation_calls
                 def primary_reads():return [req for req in invokes if req.get('endpoint')=='browserDrafts' and req['input'].get('ids')==[saved_id]]
                 if mode in ('primary-fallback','primary-external-during'):
                     deadline=time.monotonic()+10
