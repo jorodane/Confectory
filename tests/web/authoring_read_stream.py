@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_6'
+READY = 'CONFECTORY_INSPECT_STREAM_7'
 
 
 def exercise(root):
@@ -102,6 +102,26 @@ def exercise(root):
             invalid=dict(operation='blueprintSourceValidateBatch',documents=[dict(id='bad',kind='blueprint',text='{}')])
             assert json.loads(send(proc,dict(invalid,_streamProject=str(a))))==json.loads(subprocess.run(HOST,input=json.dumps(invalid),text=True,capture_output=True,timeout=20,check=True).stdout)
 
+            feature = dict(operation='blueprintPrepareFeature', id='Test.Stream::Fresh',
+                           text='function Test.Stream::Fresh () -> int { description "Fresh"; }',
+                           implementation='Test.Stream::FreshBody', graphPath='fresh.graph.json', nodePath='fresh.node.json')
+            def ordinary_proposal(payload):
+                return json.loads(subprocess.run(HOST, input=json.dumps(payload), text=True, capture_output=True, timeout=20, check=True).stdout)
+            proposal = ordinary_proposal(feature)
+            assert proposal['ok'], proposal
+            assert json.loads(send(proc, dict(feature, _streamProject=str(a))))==proposal
+            call = dict(operation='blueprintPrepareCall', id=feature['implementation'],
+                        text=proposal['result']['implementation'], graph=proposal['result']['graph'],
+                        targetText='function Test.Stream::Donor (int amount) -> void {}',
+                        definition=dict(id='donor',feature='Test.Stream::Donor',intent='Call donor',control='next'))
+            expected=ordinary_proposal(call)
+            assert expected['ok'], expected
+            assert json.loads(send(proc, dict(call,_streamProject=str(a))))==expected
+            for value in ('blueprintEnumPreview','blueprintNodeFlow'):
+                malformed=dict(operation=value)
+                if value=='blueprintNodeFlow': malformed['ownerRequest']={'project':str(a)}
+                assert json.loads(send(proc,dict(malformed,_streamProject=str(a))))==ordinary_proposal(malformed)
+
             main = dict(operation='catalog', project=str(a), request={'action':'project-main-view'})
             windows = dict(operation='catalog', project=str(a), request={'action':'project-windows'})
             assert json.loads(send(proc, main)) == json.loads(subprocess.run(HOST, input=json.dumps(main), text=True, capture_output=True, timeout=20, check=True).stdout)
@@ -144,6 +164,14 @@ def exercise(root):
             assert any(row['id']=='Test.Stream::Extra' for row in json.loads(send(proc, describe))['result']['units'])
             assert any(row['id']=='Test.Stream::Extra' for row in json.loads(send(proc, inventory))['result']['declarations'])
             assert send(proc, request(b)) == '' and proc.wait(timeout=5) == 2
+        finally:
+            finish(proc)
+        proc = start()
+        try:
+            assert json.loads(send(proc, request(a)))['ok']
+            assert send(proc, dict(operation='blueprintNodeFlow', _streamProject=str(a),
+                                   ownerRequest={'project':str(b)})) == ''
+            assert proc.wait(timeout=5)==2
         finally:
             finish(proc)
         # Generation, description and effective validation share one settings

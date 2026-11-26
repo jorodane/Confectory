@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_6");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_7");Console.Out.Flush();
     string? owner=null;
     for(int count=0;count<128;count++)
     {
@@ -32,14 +32,15 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         }
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
         bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
-        bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
+        bool blueprintProposal=operation is "blueprintNodeFlow" or "blueprintEnumPreview" or "blueprintPrepareCall" or "blueprintPrepareFeature";
+        bool blueprintValue=blueprintProposal||operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
         bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
         bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
         if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!connectionProposal&&!connectionSchema)return 2;
         bool payloadOnly=blueprintValue||guardValue;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
         if((payloadOnly?request["_streamProject"]:connectionProposal?request["settingsProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;
-        var project=Path.GetFullPath(path);request.Remove("_streamProject");
+        var project=Path.GetFullPath(path);if(operation=="blueprintNodeFlow"&&(request["ownerRequest"]?["project"] is not JsonValue nested||!nested.TryGetValue<string>(out var nestedPath)||!string.Equals(project,Path.GetFullPath(nestedPath),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))return 2;request.Remove("_streamProject");
         owner??=project;
         if(!string.Equals(owner,project,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return 2;
         Console.WriteLine(Dispatch(payloadOnly?request.ToJsonString():line));Console.Out.Flush();

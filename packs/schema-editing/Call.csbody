@@ -7,9 +7,10 @@ string dotnet=Environment.GetEnvironmentVariable("CONFECTORY_DOTNET")??"dotnet";
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();request["operation"]=operation;
 bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
 bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
-bool blueprintValue=operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
+bool blueprintProposal=operation is "blueprintNodeFlow" or "blueprintEnumPreview" or "blueprintPrepareCall" or "blueprintPrepareFeature";
+bool blueprintValue=blueprintProposal||operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
 string? streamProject=null;
-if(request.ContainsKey("_streamProject")){if(!blueprintValue&&!guardValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");}
+if(request.ContainsKey("_streamProject")){if(!blueprintValue&&!guardValue||request["project"] is not null)throw new ArgumentException("Invalid authoring stream scope");streamProject=request["_streamProject"]!.GetValue<string>();request.Remove("_streamProject");if(operation=="blueprintNodeFlow"&&!string.Equals(System.IO.Path.GetFullPath(request["ownerRequest"]!["project"]!.GetValue<string>()),System.IO.Path.GetFullPath(streamProject),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Node flow stream owner mismatch");}
 // These owner-bound reads and guards reconstruct and validate their current
 // registry on every invocation; only the authoring CLR is shared.
 bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
@@ -66,13 +67,14 @@ string? ReadWarm(){
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
     // An older tool may not support framing. Detect that once per executable version.
-    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
+    if(starting){var protocol=Await(active.StandardOutput.ReadLineAsync(),Math.Min(timeout,2000));if(protocol is not ("CONFECTORY_INSPECT_STREAM_1" or "CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))throw new System.IO.IOException("Unsupported read-only authoring stream.");pool[3]=protocol;}
     starting=false;
-    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
-    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
-    if(blueprintWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
-    if(guardWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6"))return null;
-    if((connectionProposal||operation=="connectionRepairSchema")&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_6"))return null;
+    if((metadata||inventory)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_2" or "CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))return null;
+    if((viewCatalog||relations)&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_3" or "CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))return null;
+    if(blueprintWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_4" or "CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))return null;
+    if(guardWarm&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_5" or "CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))return null;
+    if((connectionProposal||operation=="connectionRepairSchema")&&pool[3] is not ("CONFECTORY_INSPECT_STREAM_6" or "CONFECTORY_INSPECT_STREAM_7"))return null;
+    if(blueprintProposal&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_7"))return null;
     var framed=request.DeepClone().AsObject();if((blueprintValue||guardValue)&&streamProject is not null)framed["_streamProject"]=streamProject;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(framed.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
     var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");
