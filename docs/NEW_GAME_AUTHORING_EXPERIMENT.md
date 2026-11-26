@@ -154,3 +154,44 @@ and new builds. The standalone RegisteredCallTests fixture also stopped on
 an existing EditWorkspace provider assembly error. These do not establish
 full external-conflict regression coverage for this increment; the same
 host receipt/Save/Confirm paths were kept unchanged.
+
+## Explicit runtime provider and first native window
+
+The owned, published function's declaration now has **등록 팩 구현 지정**.
+Enter the exact qualified function and implementation IDs. The authoring
+host verifies direct registered pack ownership and version, exact matching
+function/implementation declarations and signature, and the current
+confirmed project and function bytes, without loading provider bodies.
+The binding is staged in that function's draft; ordinary Review/Confirm
+and compiler validation remain mandatory. An existing different binding
+is not silently replaced. The function view shows the declared bindings.
+
+Actual Chromium authored a new `ShowTimingWindow` function, assigned
+`Confectory.Window::Open` to `Confectory.Window::Native`, then added the
+registered function call and four literal arguments in Logic Code. After
+Confirm and choosing the new entry via 실행 설정, the normal ▶ command
+created an actual X11 window titled **Timing Puzzle Window** (640×480,
+10-second automatic close), and exited successfully. No game source file
+was written outside the editor. The runnable game rules from the previous
+entry remain present; this is a window/session authoring milestone, not
+an interactive timing game.
+
+`tests/packs/registered_function_provider.py <ElementAuthoring.dll> <repo>`
+checks exact ownership, wrong/missing providers, and stale input refusal.
+`tests/web/project_runtime_window.py <editor-report.json> <repo>
+<disposable-evidence-directory>` extends the pack connection experiment
+with the actual UI/provider/window path and a cold restart. It requires
+the isolated X11 display and xwininfo.
+
+The earlier `v536_registered_call_abi.py` regression now selects Blueprint
+view explicitly. A changed external manifest must not qualify as an
+unchanged receipt; the test verifies refusal and retained input, restores
+only that synthetic competing edit, then verifies cold retry, Review
+cancel and Confirm with original registered files unchanged. No host
+conflict policy was relaxed. Adopting an unresolved changed external
+receipt is not claimed by this test.
+
+Next: persistent surface creation and RenderInput pump/draw provider
+bindings, event handling, and referencing actual TimingRules values in
+the project function. Windows execution and actual mouse success/failure
+are not covered in this step.
