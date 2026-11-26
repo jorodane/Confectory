@@ -10,7 +10,12 @@ try
  calls.CopySources.Invoke(root,candidate);
  for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
  string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
- calls.Validate.Invoke(project,target);
+ System.Text.Json.Nodes.JsonNode? dataOnly=null;
+ if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0){
+  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOnly",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
+  if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+ }
+ if(dataOnly is null)calls.Validate.Invoke(project,target);
 
  if(!System.Linq.Enumerable.SequenceEqual(changes,calls.Changes.Invoke(handle,selected)))return new[]{"stale","Selected draft changed during validation; review again."};
  calls.ValidateSelection.Invoke(handle,selected);
@@ -101,6 +106,11 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
     reads.RemoveAt(n);
    }
   }
+ }
+ // Merge data-only semantic observations into the existing atomic CAS.
+ if(dataOnly is not null)foreach(var check in dataOnly["checks"]!.AsArray()){
+  string path=check!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),item=>string.Equals(item!["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
+  if(prior is null)checks.Add(check.DeepClone());else if(prior["hash"]!.ToString()!=check["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
  var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }

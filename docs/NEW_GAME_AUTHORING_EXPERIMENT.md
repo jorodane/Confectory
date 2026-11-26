@@ -301,3 +301,58 @@ the SDK executable, keep X11 isolated and provide xwininfo, ImageMagick
 and Pillow as for the native input test. Windows actual execution remains
 unverified. This is a small authored experimental game, not a new game
 engine-specific rule or a packaged external release.
+
+## Integer data-only Save versus explicit build
+
+A separate disposable Timing Puzzle project was created through the normal
+GTK and Chromium UI, with an existing confirmed `TimingRules` long field
+and its ordinary authored `ReadDeclaredLong` caller. The editor's original
+Save performed a full candidate compile and final link for changing that
+one field. Linux `strace` recorded actual compiler process launches and
+project-local DLL file opens; editor application assemblies are excluded.
+The measured candidate DLL reads are compiler/linker artifact access, not
+proof of loading a running game into the editor process.
+
+The narrow fast path now applies only if the actual reviewed change set
+contains one existing direct-owned object's single general long data
+value change. The object and applied schema must be direct and published,
+with unchanged semantic declaration structure, no inheritance and only
+single general fields. Exact reviewed source, manifest locator and copied
+schema bytes are verified, the existing SchemaContracts validator checks
+the candidate data, and the observed original schema and manifest hashes
+join the final atomic source CAS. Other shapes retain the original full
+compiler validation path. No generic build or provider contract is changed.
+
+Same fixture, consecutive unique integer values, ordinary Chromium UI
+with the same `strace -D -f` instrumentation:
+
+| Action | Baseline ms | Changed ms | Compiler processes before → after | Project DLL opens before → after |
+| --- | ---: | ---: | ---: | ---: |
+| Open property | 1326 | 956 | 0 → 0 | 0 → 0 |
+| Input | 12 | 20 | 0 → 0 | 0 → 0 |
+| Save | 17154 | 7989 | 3 → 0 | 46 → 0 |
+| Reopen | 513 | 698 | 0 → 0 | 0 → 0 |
+| Explicit Run | 3003 | 4951 | 0 → 1 | 50 → 39 |
+
+Save's compiler processes included one final executable link; fourteen
+DLL opens had write/create flags. After the change Save did not open or
+write project DLLs. The required final link now happens at explicit Run
+(the one compiler process observed there), and the actual authored caller
+emitted the new confirmed value. These are traced durations, not ordinary
+untraced Windows/UI latency estimates. Remaining source copy, draft and
+CAS validation costs are not optimized by this narrow change.
+
+Actual independent external edits to the configuration object and to its
+applied schema were each rejected and the local integer input remained.
+`tests/packs/long_data_only_validation.py <ElementAuthoring.dll>` verifies
+the strict eligibility and manifest/schema proofs, stale rejection, and
+fallback for structural or invalid changes. To reproduce the actual trace,
+create a fresh disposable UI-authored project with
+`tests/gui/editor_new_game_workflow.py <report> <repo>`, then run
+`tests/web/project_integer_data_save.py <report> <repo> <evidence> <trace-path>
+--setup-only`. Repeat without the flag to trace and assert the no-compiler
+Save, or with `--baseline` for diagnostic counts on the earlier build.
+`--guard-only` and `--schema-guard-only` test competing edits on that
+disposable fixture. The experiment uses an isolated Linux environment and
+strace; Windows execution is not verified. The separate proposed multi-type
+reader work is intentionally not included in this increment.

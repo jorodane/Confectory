@@ -339,6 +339,7 @@ try
         {
             reply=new JsonObject{["retained"]=Builder.RetainConfirmedLink(S("original"),S("candidate"),S("target"))};break;
         }
+        case "validateLongDataOnly":reply=LongDataOnlyValidation.Check(S("originalProject"),S("candidateProject"),S("id"),S("relative"),S("baseline"),S("after"),Format);break;
         case "validate":
         {
             string candidate=S("project");var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
