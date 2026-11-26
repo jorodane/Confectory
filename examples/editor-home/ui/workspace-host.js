@@ -140,6 +140,9 @@ export function createActualWorkspace(api) {
     Object.assign(w.meta,meta);w.elementStamp=null;
   }
   function restore(layout){
+    // Older presentation snapshots retained closed Run tabs as hidden layouts.
+    // Never acquire a fresh execution lease for those already closed views.
+    if(layout.hidden&&layout.key.startsWith('run:instance:'))return null;
     // Layout is not a reviewed source token. Keep stale Review geometry privately, without a fake editor.
     if(layout.key==='review'){
       if(api.current.review){api.review();return runtime.state.windows.get('review');}

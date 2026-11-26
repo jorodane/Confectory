@@ -36,7 +36,11 @@ export function createWindowDocuments(api){
   w.documentDocked=false;w.documentOwner=null;w.el.classList.remove('window-document','tab-document');w.el.removeAttribute('role');w.el.querySelector('.window-title')?.classList.remove('document-toolbar');w.el.oncontextmenu=w.documentPreviousContext||null;w.documentPreviousContext=null;w.documentContextOwned=false;w.el.hidden=close;
   Object.assign(w,{x:row.x,y:row.y,width:row.width,height:row.height,folded:!!row.folded,placed:!!row.placed,floatingTabId:typeof row.floatingTabId==='string'?row.floatingTabId:null});w.el.classList.toggle('folded',w.folded);
   const target=close?(api.runtime.workspaceRecord(row.workspaceId)?row.workspaceId:'root'):api.runtime.state.activeWorkspaceId;
-  if(target!==api.runtime.state.activeWorkspaceId){api.retain(w);w.el.remove();api.runtime.state.windows.delete(key);const targetOwner=api.runtime.workspaceRecord(target);targetOwner.layout=targetOwner.layout.filter(item=>item.key!==key);targetOwner.layout.push(api.runtime.windowLayout(w));}
+  if(close&&key.startsWith('run:instance:')){
+   // The Run lease was closed before this callback. Unlike an editor with
+   // retained input, the disposed execution view has no hidden layout to restore.
+   w.el.remove();api.runtime.state.windows.delete(key);api.runtime.unregisterWorkspaceNode(key);
+  }else if(target!==api.runtime.state.activeWorkspaceId){api.retain(w);w.el.remove();api.runtime.state.windows.delete(key);const targetOwner=api.runtime.workspaceRecord(target);targetOwner.layout=targetOwner.layout.filter(item=>item.key!==key);targetOwner.layout.push(api.runtime.windowLayout(w));}
   else{
    if(!close&&mode==='floating'){
     const box=floatingBounds(w,point);const rect=canvas.getBoundingClientRect();Object.assign(w,{x:box.left-rect.left,y:box.top-rect.top,width:box.width,height:box.height,folded:false,placed:false,floatingTabId:next});w.meta.mainWorkspace=false;

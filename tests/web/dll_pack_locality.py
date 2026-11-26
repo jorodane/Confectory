@@ -63,10 +63,15 @@ def candidate(case,expected):
 def ui_run(browser,case,expected,index):
     f.start(index)
     try:
-        page=f.setup(browser);page.set_viewport_size({'width':1800,'height':1200})
+        page=f.setup(browser);expect(page.locator('.run-window')).to_have_count(0);page.set_viewport_size({'width':1800,'height':1200})
         start=time.perf_counter();run_from_dock(page,marker,expected)
         data=json.loads((root/'.confectory/outputs/linux/latest.json').read_text())
         result=report('run',case,data,time.perf_counter()-start)
+        run_window=page.locator('.run-window:visible')
+        key=run_window.get_attribute('data-key')
+        page.locator('[data-window-tab-close="'+key+'"]').click()
+        expect(page.locator('[data-window-tab-close="'+key+'"]')).to_have_count(0)
+        expect(page.locator('.run-window')).to_have_count(0)
         page.get_by_role('tab',name='Workspace',exact=True).click();expect(page.get_by_role('button',name='프로젝트 실행',exact=True)).to_be_visible()
         page.evaluate('async()=>await confectoryFlushPresentation()');page.close();return result
     finally:f.stop()
@@ -103,6 +108,11 @@ try:
             old=json.loads(latest.read_text());output=Path(old['output']);launcher=output/'run';launcher.chmod(0o600)
             perms=ui_run(browser,'damaged-launcher','7:9',7)
             assert perms['targetCalls'].get('link')==1 and not perms['compiled'],perms
+            source=root/'DllMain.celem';source.write_text(source.read_text().replace('function Test.DllConsumer::Main () -> int {','function Test.DllConsumer::Main () -> int { description "changed catalog";'))
+            resource=ui_run(browser,'catalog-change','7:9',8)
+            assert resource['targetCalls'].get('link')==1 and not resource['compiled'],resource
+            catalog=json.loads(Path(json.loads(latest.read_text())['publicCatalog']).read_text())
+            assert any(item['id']=='Test.DllConsumer::Main' and item['description']=='changed catalog' for item in catalog['elements']),catalog
 
         if not observe_only:
             assert 'Z.Probe' not in body['compiled'] and 'Z.Probe' in body['reused'],body
