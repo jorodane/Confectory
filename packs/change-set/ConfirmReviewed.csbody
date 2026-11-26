@@ -15,25 +15,37 @@ try
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOverlay",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
  }
+ var retirementState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
+ bool singleRetirement=changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="pending"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
+ bool retirementCombined=false;
  if(dataOnly is null){
   calls.CopySources.Invoke(root,candidate);
   for(int i=0;i<changes.Length;i+=4)calls.WriteAtomic.Invoke(System.IO.Path.Combine(candidate,changes[i+1]),changes[i+3]);
-  calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
+  // A single existing retirement can prepare the candidate and prove it
+  // against that same in-memory manifest. Older tools retain the separate path.
+  System.Text.Json.Nodes.JsonObject? combined=null;
+  if(singleRetirement&&changes[2]!="missing"&&changes[6]!="missing"){
+   try{combined=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("prepareExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!.AsObject();}catch(InvalidOperationException){/* Unsupported or failed proposal: retain ordinary preparation and validation. */}
+  }
+  if(combined?["preparedManifest"] is System.Text.Json.Nodes.JsonValue prepared&&prepared.TryGetValue<string>(out var text)&&combined["proof"] is System.Text.Json.Nodes.JsonObject combinedProof){
+   calls.WriteAtomic.Invoke(project,text);retirementCombined=true;
+   if(combinedProof["invalid"]?.GetValue<bool>()==true)throw new InvalidOperationException(combinedProof["message"]!.ToString());
+   if(combinedProof["eligible"]?.GetValue<bool>()==true){dataOnly=combinedProof;retirementValidatedWithoutBuild=true;}
+  }else calls.WriteAtomic.Invoke(project,calls.Prepare.Invoke(identity[0],project));
   candidatePrepared=true;
   if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0){
    var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOnly",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
    if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
   }
  }
- var retirementState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
- bool singleRetirement=changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="pending"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
+
  // A registration-only retirement has two existing baselines. The creation proof requires a missing object baseline; keep all retirement and fallback validation unchanged.
  if(dataOnly is null&&changes.Length==8&&(!singleRetirement||changes[2]=="missing"||changes[6]=="missing")){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectCreation",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
  }
 
- if(dataOnly is null&&singleRetirement){
+ if(dataOnly is null&&singleRetirement&&!retirementCombined){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
   if(proof["invalid"]?.GetValue<bool>()==true)throw new InvalidOperationException(proof["message"]!.ToString());
   // CopySources excludes generated state; this exact read-only proof bypasses Validate/Build. There is no candidate link to retain.

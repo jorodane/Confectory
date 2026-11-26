@@ -17,7 +17,19 @@ with tempfile.TemporaryDirectory(prefix='cf-object-retirement-') as folder:
         h=lambda s:hashlib.sha256(s.encode()).hexdigest()
         rows=['Alpha::ProjectManifest','project.cpack',h(old),new,'Alpha::Child','child.celem',h(child),child]
         if changes:changes(rows)
-        return json.loads(subprocess.check_output(host,input=json.dumps(dict(operation='validateExistingSchemaObjectRetirement',originalProject=str(root/'project.cpack'),candidateProject=str(candidate/'project.cpack'),target='linux',changes=rows)),text=True))
+        request=dict(originalProject=str(root/'project.cpack'),candidateProject=str(candidate/'project.cpack'),target='linux',changes=rows)
+        def invoke(operation,**payload):
+            return json.loads(subprocess.check_output(host,input=json.dumps(dict(operation=operation,**payload)),text=True))
+        candidate_manifest=candidate/'project.cpack';raw=candidate_manifest.read_bytes()
+        combined=invoke('prepareExistingSchemaObjectRetirement',**request)
+        assert candidate_manifest.read_bytes()==raw, 'Combined proof must be read-only'
+        prepared=invoke('prepare',original=request['originalProject'],candidate=request['candidateProject'],additions=[])
+        assert prepared['ok'] and combined['ok'],(prepared,combined)
+        assert combined['result']['preparedManifest']==prepared['result']
+        candidate_manifest.write_text(prepared['result'])
+        legacy=invoke('validateExistingSchemaObjectRetirement',**request)
+        assert legacy['ok'] and combined['result']['proof']==legacy['result'],(combined,legacy)
+        return legacy
     def refused(reply):assert not reply['ok'] or not reply['result']['eligible'],reply
     proof=call();assert proof['ok'] and proof['result']['eligible'],proof
     assert {x['path'] for x in proof['result']['checks']}=={'project.cpack','child.celem'}
@@ -29,4 +41,4 @@ with tempfile.TemporaryDirectory(prefix='cf-object-retirement-') as folder:
     refused(call(changes=lambda rows:rows.__setitem__(6,'0'*64)))
     refused(call(changes=lambda rows:rows.__setitem__(3,rows[3].replace('version "1"','version "2"'))))
     refused(call(override={'body.celem':sources['body.celem'].replace('common','linux')}))
-print('PASS exact unregister, all-target graph, always, declared and opaque references, source and mixed-change fallback')
+print('PASS combined read-only preparation matches legacy proof, exact unregister, all-target graph, always, references, source and mixed-change fallback')

@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 // checked, never deleted. Every observed declaration/body is tied to Confirm.
 internal static class ExistingSchemaObjectRetirementValidation
 {
-    internal static JsonObject Check(string originalProject,string candidateProject,JsonArray changes,string target,Func<Element,string> format,Func<Manifest,string> formatManifest)
+    internal static JsonObject Check(string originalProject,string candidateProject,JsonArray changes,string target,Func<Element,string> format,Func<Manifest,string> formatManifest,byte[]? candidateBefore=null,string? preparedManifest=null)
     {
         JsonObject No()=>new(){["eligible"]=false};
         var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
@@ -34,7 +34,16 @@ internal static class ExistingSchemaObjectRetirementValidation
         }
         string Text(byte[] raw)=>new UTF8Encoding(false,true).GetString(raw,raw.AsSpan().StartsWith(new byte[]{239,187,191})?3:0,raw.Length-(raw.AsSpan().StartsWith(new byte[]{239,187,191})?3:0));
         byte[] CandidateRead(string path){
-            if(string.Equals(path,candidateProject,comparison))return Read(path);
+            if(string.Equals(path,candidateProject,comparison)){
+                byte[] raw=Read(path);
+                if(preparedManifest is null)return raw;
+                // The prepared form is only an in-memory proposal for the
+                // same exact raw candidate manifest observed during preparation.
+                if(candidateBefore is null||!raw.AsSpan().SequenceEqual(candidateBefore))throw new InvalidOperationException("Candidate manifest changed during preparation");
+                byte[] prepared=new UTF8Encoding(false,true).GetBytes(preparedManifest);
+                if(prepared.Length>1048576)throw new ArgumentException("Bounded prepared manifest required");
+                return prepared;
+            }
             if(path.StartsWith(copy+Path.DirectorySeparatorChar,comparison)){
                 byte[] before=Observe(Owned(root,Path.GetRelativePath(copy,path))),after=Read(path);
                 if(!before.AsSpan().SequenceEqual(after))throw new ArgumentException("Candidate source differs");

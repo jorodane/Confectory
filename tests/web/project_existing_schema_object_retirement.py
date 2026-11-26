@@ -1,6 +1,6 @@
 """Trace real Chromium retirement of one previously UI-created pure data object.
 
-Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--expect-retirement-only-proof] [--expect-no-retain] [--recover] [--run|--warm-run].
+Run with BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--always|--conflict|--late-reference|--permission] [--baseline] [--untraced] [--timeline] [--expect-retirement-only-proof] [--expect-no-retain] [--expect-combined|--expect-legacy-fallback] [--recover] [--run|--warm-run] [--repeat-confirm].
 Each run creates isolated source copies and fresh profiles; requires strace unless --untraced.
 """
 import os,sys,shutil,tempfile,subprocess,signal,time,json,re
@@ -21,7 +21,7 @@ if '--always' in sys.argv:
 def snapshot(folder):return {str(p.relative_to(folder)):p.read_bytes() for p in folder.rglob('*') if p.is_file() and '.confectory' not in p.parts}
 original=snapshot(project);peer_original=snapshot(peer)
 run=json.loads(Path(sys.argv[1]).read_text())['run']
-env=dict(os.environ,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_ELEMENT_AUTHORING_HOST=str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll'),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
+env=dict(os.environ,CONFECTORY_UI='web',CONFECTORY_EDITOR_REPO=str(repo),CONFECTORY_HOME_STORAGE=str(root/'profile'),CONFECTORY_ENTRY_STORAGE=str(root/'profile'),CONFECTORY_MCP_DIRECTORY=str(root/'instances'),CONFECTORY_WEB_PROJECT=str(manifest),CONFECTORY_ELEMENT_AUTHORING_HOST=os.environ.get('CONFECTORY_TEST_AUTHORING_HOST',str(repo/'targets/element-authoring/bin/Release/net10.0/Confectory.ElementAuthoring.dll')),CONFECTORY_PROJECT_EXECUTION_HOST=str(repo/'targets/project-execution-host/bin/Release/net10.0/Confectory.ProjectExecutionHost.dll'))
 env['PATH']=str(Path(env['CONFECTORY_DOTNET']).parent)+os.pathsep+env['PATH']
 if '--timeline' in sys.argv:
  (root/'data').mkdir();env.update(CONFECTORY_UI_TRACE='1',CONFECTORY_PERFORMANCE='1',XDG_DATA_HOME=str(root/'data'))
@@ -107,6 +107,19 @@ def activate(page):
  page.evaluate('()=>confectoryFlushPresentation()')
  tab=page.get_by_role('tab',name='Workspace',exact=True)
  if tab.get_attribute('aria-selected')!='true':tab.click();expect(tab).to_have_attribute('aria-selected','true')
+def confirm_retirement(page,r,name,phase_name='confirm',label=''):
+ with phase(phase_name):
+  # Observe actual modal disappearance in the page; Playwright's wait polling
+  # can otherwise add a substantial delay to the reported UI-completion time.
+  r.locator('#confirm').evaluate('''b=>{window.__retirementUIClose=null;b.addEventListener('click',()=>{const start=performance.now(),review=b.closest('.window[data-key=review]');const check=()=>{if(!review?.isConnected||!review.getClientRects().length){window.__retirementUIClose=performance.now()-start;return;}if(performance.now()-start<120000)requestAnimationFrame(check);};requestAnimationFrame(check);},{capture:true,once:true});}''')
+  next_start=time.time()
+  r.locator('#confirm').click();deadline=time.monotonic()+120
+  while f'element {name} object' in manifest.read_text() and time.monotonic()<deadline:page.wait_for_timeout(25)
+  print(label+'durable unregister ms',round((time.time()-next_start)*1000),flush=True)
+  assert f'element {name} object' not in manifest.read_text();expect(r).to_be_hidden(timeout=120000);assert (project/'elements'/f'{name}.celem').read_bytes()==original[f'elements/{name}.celem']
+  page.wait_for_function('()=>window.__retirementUIClose!==null');print(label+'ui close observed ms',round(page.evaluate('()=>window.__retirementUIClose')),flush=True)
+  assert all(snapshot(project)[k]==v for k,v in original.items() if k!='project.cproj');assert snapshot(peer)==peer_original
+
 with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
  latest=project/'.confectory/outputs/linux/latest.json'
  if '--warm-run' in sys.argv:
@@ -165,19 +178,19 @@ with sync_playwright() as pw,pw.chromium.launch(executable_path='/usr/bin/chromi
     unchanged()
     print('PASS manifest always reference blocks final confirmation despite stage success',flush=True)
   else:
-   with phase('confirm'):
-    # Observe actual modal disappearance in the page; Playwright's wait polling
-    # can otherwise add a substantial delay to the reported UI-completion time.
-    r.locator('#confirm').evaluate('''b=>{window.__retirementUIClose=null;b.addEventListener('click',()=>{const start=performance.now(),review=b.closest('.window[data-key=review]');const check=()=>{if(!review?.isConnected||!review.getClientRects().length){window.__retirementUIClose=performance.now()-start;return;}if(performance.now()-start<120000)requestAnimationFrame(check);};requestAnimationFrame(check);},{capture:true,once:true});}''')
-    next_start=time.time()
-    r.locator('#confirm').click();deadline=time.monotonic()+120
-    while f'element {name} object' in manifest.read_text() and time.monotonic()<deadline:page.wait_for_timeout(25)
-    print('durable unregister ms',round((time.time()-next_start)*1000),flush=True)
-    assert f'element {name} object' not in manifest.read_text();expect(r).to_be_hidden(timeout=120000);assert child.read_bytes()==original[f'elements/{name}.celem']
-    page.wait_for_function('()=>window.__retirementUIClose!==null');print('ui close observed ms',round(page.evaluate('()=>window.__retirementUIClose')),flush=True)
-    assert all(snapshot(project)[k]==v for k,v in original.items() if k!='project.cproj');assert snapshot(peer)==peer_original
+   confirm_retirement(page,r,name)
    with phase('ui_stable'):
     expect(filter(b,name)).to_have_count(0,timeout=120000)
+   if '--repeat-confirm' in sys.argv:
+    second='TimingRulesVariantTrace'
+    with phase('plan_repeat'):
+     d=delete(page,b,second)
+    with phase('stage_repeat'):
+     d.locator('#delete-object').click();expect(d).to_be_hidden(timeout=120000);expect(filter(b,second)).to_have_count(0,timeout=120000)
+    with phase('review_repeat'):
+     r=review(page,b)
+    confirm_retirement(page,r,second,'confirm_repeat','repeat ')
+    print('PASS second deletion in same editor session',flush=True)
    if '--warm-run' in sys.argv:
     assert latest.read_bytes()==before_run and not (latest.parent/'confirmed-link').exists()
     print('PASS retirement did not publish or retain a candidate build',flush=True)
@@ -244,13 +257,23 @@ if '--timeline' in sys.argv:
  if '--expect-retirement-only-proof' in sys.argv:
   assert len(calls)==1,calls
   names=[name for name,_ in calls[0]]
-  assert names.count('validateExistingSchemaObjectRetirement')==1 and 'validateExistingSchemaObjectCreation' not in names,names
+  assert (names.count('validateExistingSchemaObjectRetirement')==1 or names.count('prepareExistingSchemaObjectRetirement')==1) and 'validateExistingSchemaObjectCreation' not in names,names
   print('PASS no inapplicable creation proof; full retirement proof invoked',flush=True)
  if '--expect-no-retain' in sys.argv:
   assert len(calls)==1,calls
   names=[name for name,_ in calls[0]]
-  assert 'validateExistingSchemaObjectRetirement' in names and 'retainConfirmedLink' not in names,names
+  assert ('validateExistingSchemaObjectRetirement' in names or 'prepareExistingSchemaObjectRetirement' in names) and 'retainConfirmedLink' not in names,names
   print('PASS retirement proof retained; no candidate-link retention call',flush=True)
-elif '--expect-retirement-only-proof' in sys.argv or '--expect-no-retain' in sys.argv:
+ if '--expect-combined' in sys.argv:
+  assert len(calls)==1,calls
+  names=[name for name,_ in calls[0]]
+  assert names.count('prepareExistingSchemaObjectRetirement')==1 and 'prepare' not in names and 'validateExistingSchemaObjectRetirement' not in names,names
+  print('PASS combined preparation and full retirement proof',flush=True)
+ if '--expect-legacy-fallback' in sys.argv:
+  assert len(calls)==1,calls
+  names=[name for name,_ in calls[0]]
+  assert names.count('prepareExistingSchemaObjectRetirement')==1 and names.count('prepare')==1 and names.count('validateExistingSchemaObjectRetirement')==1,names
+  print('PASS old authoring tool uses ordinary preparation and retirement proof',flush=True)
+elif any(flag in sys.argv for flag in ('--expect-retirement-only-proof','--expect-no-retain','--expect-combined','--expect-legacy-fallback')):
  raise AssertionError('Proof assertions require --timeline')
 print('PASS actual retirement scenario',flush=True)

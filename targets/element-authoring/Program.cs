@@ -315,21 +315,22 @@ try
         case "prepare":
         {
             string original=Path.GetFullPath(S("original")),candidate=Path.GetFullPath(S("candidate"));
-            var manifest=new Parser(File.ReadAllText(candidate),candidate).ParseManifest();
-            foreach(var ns in manifest.Registry.Keys.ToArray())
-            {
-                string originalRoot=Path.GetDirectoryName(original)!,resolved=Path.GetFullPath(Path.Combine(originalRoot,manifest.Registry[ns].Path));
-                string prefix=originalRoot.TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
-                if(resolved.StartsWith(prefix,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))resolved=Path.Combine(Path.GetDirectoryName(candidate)!,Path.GetRelativePath(originalRoot,resolved));
-                manifest.Registry[ns]=manifest.Registry[ns] with{Path=resolved};
-            }
-            foreach(var item in request["additions"]!.AsArray())
-            {
-                string path=item!["path"]!.GetValue<string>(),kind=item["kind"]!.GetValue<string>(),id=item["id"]!.GetValue<string>();
-                if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to the selected project namespace.");
-                string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(kind,path,new()));
-            }
-            reply=JsonValue.Create(FormatManifest(manifest));break;
+            reply=JsonValue.Create(PrepareCandidateManifest(original,candidate,File.ReadAllText(candidate),request["additions"]!.AsArray()));break;
+        }
+        case "prepareExistingSchemaObjectRetirement":
+        {
+            string original=Path.GetFullPath(S("originalProject")),candidate=Path.GetFullPath(S("candidateProject"));
+            // The candidate is a fresh host-owned copy. Preparation remains a
+            // read-only proposal; only the host may write the returned manifest.
+            for(FileSystemInfo? f=new FileInfo(candidate);f is not null;f=f is FileInfo file?file.Directory:((DirectoryInfo)f).Parent)
+                if(f.LinkTarget is not null)throw new ArgumentException("Linked candidate manifest refused");
+            if(new FileInfo(candidate).Length>1048576)throw new ArgumentException("Bounded candidate manifest required");
+            byte[] raw=File.ReadAllBytes(candidate);
+            if(raw.Length>1048576)throw new ArgumentException("Bounded candidate manifest required");
+            string text=new UTF8Encoding(false,true).GetString(raw.AsSpan().StartsWith(new byte[]{239,187,191})?raw.AsSpan(3):raw.AsSpan());
+            string prepared=PrepareCandidateManifest(original,candidate,text,new JsonArray());
+            var proof=ExistingSchemaObjectRetirementValidation.Check(original,candidate,request["changes"]!.AsArray(),S("target"),Format,FormatManifest,raw,prepared);
+            reply=new JsonObject{["preparedManifest"]=prepared,["proof"]=proof};break;
         }
         case "run":
         {
@@ -388,6 +389,25 @@ catch(Exception error)
     return JsonSerializer.Serialize(new{ok=false,code=error is BuildError build?build.Diagnostic.Code:"AUTHORING",message=error.Message,namespaceDiagnostic=NamespaceDiagnostic.From(error as BuildError)});
 }
 }
+static string PrepareCandidateManifest(string original,string candidate,string candidateText,JsonArray additions)
+{
+    var manifest=new Parser(candidateText,candidate).ParseManifest();
+    foreach(var ns in manifest.Registry.Keys.ToArray())
+    {
+        string originalRoot=Path.GetDirectoryName(original)!,resolved=Path.GetFullPath(Path.Combine(originalRoot,manifest.Registry[ns].Path));
+        string prefix=originalRoot.TrimEnd(Path.DirectorySeparatorChar)+Path.DirectorySeparatorChar;
+        if(resolved.StartsWith(prefix,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))resolved=Path.Combine(Path.GetDirectoryName(candidate)!,Path.GetRelativePath(originalRoot,resolved));
+        manifest.Registry[ns]=manifest.Registry[ns] with{Path=resolved};
+    }
+    foreach(var item in additions)
+    {
+        string path=item!["path"]!.GetValue<string>(),kind=item["kind"]!.GetValue<string>(),id=item["id"]!.GetValue<string>();
+        if(!id.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal))throw new ArgumentException("Creation belongs to the selected project namespace.");
+        string name=id[(manifest.Namespace.Length+2)..];manifest.Elements.Add(name,new(kind,path,new()));
+    }
+    return FormatManifest(manifest);
+}
+
 static JsonObject InspectDeclaration(string text)
 {
     var element=new Parser(text,"<draft>").ParseElement();
