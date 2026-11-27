@@ -3,13 +3,21 @@ export function createContextActions(api){
  let generation=0;
  const scope=()=>api.current?.projectId,selection=()=>api.current?.draft?.id||'';
  async function open(event,unit,builtins){
-  const serial=++generation,projectId=scope(),selected=selection(),x=event.clientX,y=event.clientY;
+  const serial=++generation,projectId=scope(),selected=selection(),viewGeneration=api.view.generation,activation=api.view.scope?.projectActivation,target=api.target(),x=event.clientX,y=event.clientY;
   const loadingMenu=api.contextMenu(x,y,[...builtins,['등록 기능 조회 중…',()=>{}]]);
-  const owns=()=>generation===serial&&scope()===projectId&&selection()===selected;
+  const owns=()=>generation===serial&&scope()===projectId&&selection()===selected&&api.view.generation===viewGeneration&&api.view.scope?.projectActivation===activation&&api.target()===target;
+  const live=()=>owns()&&loadingMenu?.isConnected;
   try{
-   const data=await api.view.call('contextActions',{operation:'list',projectId,id:unit.id,target:api.target()});
+   const input={operation:'list',projectId,id:unit.id,target};let data;
+   // A transport stale_revision rejects before the consumer runs. Refresh and
+   // retry only this discovery, never a prepared token or action invocation.
+   try{data=await api.view.call('contextActions',input);}catch(error){
+    if(error.message!=='stale_revision')throw error;
+    if(!live())return;await api.view.update();if(!live())return;
+    data=await api.view.call('contextActions',input);
+   }
    if(data.status==='failed')throw Error(data.message);
-   if(!owns()||!loadingMenu?.isConnected)return;
+   if(!live())return;
    const actions=data.actions.map(action=>[action.available?'등록 기능 · '+action.title:'등록 기능 · '+action.title+' · 미지원',()=>action.available?form(data,action,owns):api.toast(action.reason)]);
    loadingMenu._replaceTail(builtins.length,actions.length?actions:[['등록된 기능 없음',()=>{}]]);
   }catch(error){if(owns()&&loadingMenu?.isConnected)loadingMenu._replaceTail(builtins.length,[['등록 기능 조회 실패 · 다시 여세요',()=>api.toast(error.message)]]);}
