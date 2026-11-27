@@ -91,7 +91,13 @@ try:
         d.value(first, 'Note').fill(secret)
         page.locator('#chat-input').fill(secret)
         d.value(third, 'Count').fill('11')
+        save_start = len(f.requests)
         d.commit(page, third)
+        save_requests = f.requests[save_start:]
+        blueprint = [r['input'] for r in save_requests if r['endpoint'] == 'blueprint']
+        assert sum(r.get('action') == 'applySlots' and r.get('settleDirectOwner') is True
+                   for r in blueprint) == 1, blueprint
+        assert not any(r.get('action') == 'settledSlots' for r in blueprint), blueprint
         assert 'data Count = 11' in (sample/'SampleC.celem').read_text()
         for path, original in before.items():
             if path != sample/'SampleC.celem':

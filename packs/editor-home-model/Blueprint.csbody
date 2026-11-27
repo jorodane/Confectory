@@ -1,7 +1,7 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.EditorHome."+session) as object[]??throw new ObjectDisposedException("Entry/home session");
 lock(state){
  if((bool)state[6])throw new ObjectDisposedException("Entry/home session");var model=(System.Text.Json.Nodes.JsonObject)state[3];var selected=model["selected"]??throw new InvalidOperationException("Open an owned project first");var input=System.Text.Json.Nodes.JsonNode.Parse(payload)!.AsObject();string context=selected["context"]!.ToString();if(input["context"]?.ToString()!=context)throw new InvalidOperationException("Blueprint project context changed");if(input.ContainsKey("uiSurface"))throw new UnauthorizedAccessException("Editor surface is server-bound");string slot=input["view"]?.ToString()??"";input.Remove("view");string workspaceKey=context;
- string? detachedOwner=null;
+ string? detachedOwner=null;string? requestedViewBinding=input["viewBinding"]?.ToString();
  if(slot.Length>0){
   bool propertySave=operation is "readOwnerEdits" or "settledSlots" or "applySlots";
   bool moduleSlot=operation is "implementationSources" or "readImplementationCopy" or "readImplementation" or "readSlotRemoval" or "implementationCallables" or "discardImplementationCopies";
@@ -51,7 +51,13 @@ lock(state){
  input["uiSurface"]=slot.Length==0?"":"view:"+slot;var workspaces=(System.Collections.Generic.Dictionary<string,string>)state[9];if(!workspaces.TryGetValue(workspaceKey,out string? view))throw new InvalidOperationException("Open this project's source workspace first");string? restoreSelection=slot.Length==0&&input["declaration"]?["raw"] is not null&&model["workspace"]?["unit"]?["id"]?.ToString()!=input["id"]?.ToString()?model["workspace"]?["unit"]?["id"]?.ToString():null;
  bool settleDirect=input["settleDirectOwner"]?.GetValue<bool>()==true;
  input.Remove("settleDirectOwner");
- if(settleDirect&&(operation!="applySlots"||slot.Length!=0||input["directPropertySave"]?.GetValue<bool>()!=true||input["rows"] is not System.Text.Json.Nodes.JsonArray directRows||directRows.Count!=0||input["declaration"]?["raw"] is not null||input["declaration"]?["changes"] is not System.Text.Json.Nodes.JsonArray directChanges||directChanges.Count==0||!System.Linq.Enumerable.All(directChanges,c=>c?["type"]?.ToString()=="data")||model["workspace"]?["unit"]?["id"]?.ToString()!=input["id"]?.ToString()||model["workspace"]?["unit"]?["kind"]?.ToString()!="object"))throw new InvalidOperationException("Direct owner settlement requires the current ordinary property edit");
+ // The detached fast return is only a receipt reconciliation, not a new
+ // confirmation authority. The exact server-bound view must survive both checks.
+ var detachedDirectRow=slot.Length==0?null:model["workspaceViews"]?[context]?[slot];
+ string? detachedDirectBinding=detachedDirectRow?["authorBinding"]?.ToString();
+ bool detachedDirect=slot.Length>0&&detachedDirectBinding is not null&&requestedViewBinding==detachedDirectBinding&&detachedDirectRow?["mode"]?.ToString()=="properties"&&selected["kind"]?.ToString()=="project"&&selected["namespace"]?.ToString()!="Confectory.AISettings"&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray detachedChanges&&detachedChanges.Count==1&&detachedChanges[0]?["type"]?.ToString()=="data"&&detachedChanges[0]?["path"] is System.Text.Json.Nodes.JsonArray detachedPath&&detachedPath.Count==1&&System.Text.Json.Nodes.JsonNode.DeepEquals(detachedChanges[0]?["contract"],new System.Text.Json.Nodes.JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"});
+ var directWorkspace=slot.Length==0?model["workspace"]:detachedDirectRow?["workspace"];
+ if(settleDirect&&(operation!="applySlots"||slot.Length!=0&&!detachedDirect||input["directPropertySave"]?.GetValue<bool>()!=true||input["rows"] is not System.Text.Json.Nodes.JsonArray directRows||directRows.Count!=0||input["declaration"]?["raw"] is not null||input["declaration"]?["changes"] is not System.Text.Json.Nodes.JsonArray directChanges||directChanges.Count==0||!System.Linq.Enumerable.All(directChanges,c=>c?["type"]?.ToString()=="data")||directWorkspace?["unit"]?["id"]?.ToString()!=input["id"]?.ToString()||directWorkspace?["unit"]?["kind"]?.ToString()!="object"))throw new InvalidOperationException("Direct owner settlement requires the current ordinary property edit");
  if(operation=="applySlots")model.Remove("directPropertySaveReceipt");
  try{string result=calls.Blueprint.Invoke(view,operation,input.ToJsonString());
  // Only the just-saved, single existing object and its unchanged manifest with ordinary data changes can
@@ -66,12 +72,19 @@ lock(state){
  }
  System.Text.Json.Nodes.JsonObject? directSettlement=null;
  bool DirectSettled()=>directSettlement is not null&&System.Text.Json.Nodes.JsonNode.Parse(calls.Blueprint.Invoke(view,"settledSlots",directSettlement.ToJsonString()))?["settled"]?.GetValue<bool>()==true;
- if(settleDirect&&model["directPropertySaveReceipt"]?["owner"]?.ToString()==input["id"]?.ToString()){
-  directSettlement=new System.Text.Json.Nodes.JsonObject{["id"]=input["id"]!.DeepClone(),["uiSurface"]="",["rows"]=new System.Text.Json.Nodes.JsonArray(),["declaration"]=input["declaration"]!.DeepClone()};
+ bool detachedProof=false;
+ if(settleDirect&&detachedDirect){
+  var saved=System.Text.Json.Nodes.JsonNode.Parse(result)!;
+  detachedProof=saved["checkpointSaved"]?.GetValue<bool>()==true&&saved["directSaveProof"] is System.Text.Json.Nodes.JsonArray proof&&proof.Count==2&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==input["id"]?.ToString())==1&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==selected["namespace"]!.ToString()+"::ProjectManifest"&&r?["hash"]?.ToString()==r?["beforeHash"]?.ToString())==1;
+ }
+ if(settleDirect&&(slot.Length==0&&model["directPropertySaveReceipt"]?["owner"]?.ToString()==input["id"]?.ToString()||detachedProof)){
+  directSettlement=new System.Text.Json.Nodes.JsonObject{["id"]=input["id"]!.DeepClone(),["uiSurface"]=slot.Length==0?"":"view:"+slot,["rows"]=new System.Text.Json.Nodes.JsonArray(),["declaration"]=input["declaration"]!.DeepClone()};
   if(!DirectSettled())directSettlement=null;
  }
  if(operation is not ("verifyNativePreview" or "nativePreview" or "readNative" or "previewNodeInternal" or "read" or "list" or "readFeature" or "readImplementation" or "callables" or "implementationCallables" or "readCall" or "readConversion" or "readContract" or "readProperty" or "propertyCatalog" or "implementationSources" or "readImplementationCopy" or "readSlotRemoval" or "slotAssignments" or "readSlotAssignment")){string refresh=slot.Length>0?"open":operation is "createFeature" or "createImplementation" or "convertBody"?"open":model["workspace"]?["schemaView"] is not null?"schema-view":model["workspace"]?["inspection"] is not null?"inspect":"open";var request=new System.Text.Json.Nodes.JsonObject{["context"]=context,["action"]=refresh};if(slot.Length>0){request["view"]=slot;request["id"]=detachedOwner is null?input["id"]!.DeepClone():System.Text.Json.Nodes.JsonValue.Create(detachedOwner);}calls.Command.Invoke(session,"workspace",request.ToJsonString());}
- if(directSettlement is not null&&model["workspace"]?["unit"]?["id"]?.ToString()==input["id"]?.ToString()&&model["workspace"]?["schemaView"]?["id"]?.ToString()==input["id"]?.ToString()&&model["workspace"]?["inspectionRevision"]?.ToString()==model["workspace"]?["unit"]?["revision"]?.ToString()&&DirectSettled()){
+ var refreshedDirectRow=slot.Length==0?null:model["workspaceViews"]?[context]?[slot];
+ var refreshedDirectWorkspace=slot.Length==0?model["workspace"]:refreshedDirectRow?["workspace"];
+ if(directSettlement is not null&&(slot.Length==0||detachedDirectBinding is not null&&refreshedDirectRow?["authorBinding"]?.ToString()==detachedDirectBinding&&refreshedDirectRow?["projectId"]?.ToString()==selected["projectId"]?.ToString()&&refreshedDirectRow?["context"]?.ToString()==context)&&refreshedDirectWorkspace?["unit"]?["id"]?.ToString()==input["id"]?.ToString()&&refreshedDirectWorkspace?["schemaView"]?["id"]?.ToString()==input["id"]?.ToString()&&refreshedDirectWorkspace?["inspectionRevision"]?.ToString()==refreshedDirectWorkspace?["unit"]?["revision"]?.ToString()&&DirectSettled()){
   var response=System.Text.Json.Nodes.JsonNode.Parse(result)!;
   response["ownerSettled"]=true;result=response.ToJsonString();
  }

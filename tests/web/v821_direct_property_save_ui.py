@@ -25,7 +25,10 @@ def commit(page, window):
     expect(page.locator('.window[data-key="review"]')).to_be_hidden()
     expect(page.get_by_role("dialog", name="관련 변경 검토")).to_have_count(0)
     calls = [row["endpoint"] for row in fixture.requests[mark:]]
-    assert calls.count("reviewGroup") == calls.count("confirmGroup") == 1, calls
+    if "directPropertyConfirm" in calls:
+        assert calls.count("directPropertyConfirm") == 1 and not ({"reviewGroup", "confirmGroup"} & set(calls)), calls
+    else:
+        assert calls.count("reviewGroup") == calls.count("confirmGroup") == 1, calls
 
 
 def close(window):
