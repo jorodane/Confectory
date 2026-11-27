@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_11");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_12");Console.Out.Flush();
     string? owner=null, projectionTransaction=null;
     OwnedGraphReadModel? projectionModel=null;
     for(int count=0;count<128;count++)
@@ -37,6 +37,12 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool SingleLongData(JsonNode? changes)=>changes is JsonArray rows&&rows.Count==1&&rows[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray pathRow&&pathRow.Count==1&&pathRow[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&JsonNode.DeepEquals(row["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"});
         bool preparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleLongData(request["changes"])||
             operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject declaration&&declaration["raw"] is null&&declaration["id"] is JsonValue id&&id.TryGetValue<string>(out var ownerId)&&request["units"]?[ownerId]?["kind"]?.ToString()=="object"&&SingleLongData(declaration["changes"]);
+        // Exact existing root reference data preparation is read-only too. Unlike
+        // the scalar repeat proof, this runs all current reference/candidate checks
+        // on every invocation; only the CLR process is reused.
+        bool SingleReferenceData(JsonNode? changes)=>changes is JsonArray refs&&refs.Count==1&&refs[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray path&&path.Count==1&&path[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&row["contract"] is JsonObject contract&&contract.Count==3&&contract["kind"]?.ToString()=="reference"&&contract["cardinality"]?.ToString()=="single"&&contract["type"] is JsonValue type&&type.TryGetValue<string>(out var target)&&target.Contains("::",StringComparison.Ordinal);
+        bool referencePreparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleReferenceData(request["changes"])||
+         operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject referenceDeclaration&&referenceDeclaration["raw"] is null&&referenceDeclaration["id"] is JsonValue referenceOwner&&referenceOwner.TryGetValue<string>(out var referenceId)&&request["units"]?[referenceId]?["kind"]?.ToString()=="object"&&SingleReferenceData(referenceDeclaration["changes"]);
         // The final overlay is read-only and carries the original project
         // identity, not a candidate directory. Its full proof is regenerated.
         bool finalOverlay=operation=="validateLongDataOverlay"&&request.Count==6&&new[]{"originalProject","id","relative","baseline","after"}.All(key=>request[key] is JsonValue v&&v.TryGetValue<string>(out _));
@@ -48,7 +54,7 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool blueprintValue=blueprintProposal||operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
         bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
         bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!preparation&&!finalOverlay&&!connectionProposal&&!connectionSchema&&!settingsData)return 2;
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!preparation&&!referencePreparation&&!finalOverlay&&!connectionProposal&&!connectionSchema&&!settingsData)return 2;
         bool payloadOnly=blueprintValue||guardValue||settingsData;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
         if((payloadOnly?request["_streamProject"]:connectionProposal?request["settingsProject"]:finalOverlay?request["originalProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;

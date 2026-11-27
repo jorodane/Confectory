@@ -12,7 +12,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 
 HOST = [os.environ['CONFECTORY_DOTNET'], os.environ['CONFECTORY_ELEMENT_AUTHORING_HOST']]
-READY = 'CONFECTORY_INSPECT_STREAM_11'
+READY = 'CONFECTORY_INSPECT_STREAM_12'
 
 
 def exercise(root):

@@ -25,3 +25,5 @@ Direct schema field/data declarations and actual revisioned EditorHome commands 
 
 
 Layout-independent schema View rows, explicit nested/list path replacement, signature-driven inputs and read-only function preflight now continue this milestone. Actual function invocation remains unavailable and no layout was changed. See [completed contracts, exact product actions and remaining connection points](../../docs/SCHEMA_VIEW_AND_CALL_PREFLIGHT.md).
+
+Protocol 12 additionally admits the exact existing single root reference-data candidate and its three read-only preparation guards into the same project-bound stream. This is CLR/process reuse only: the reference candidate still runs every existing metadata validation, and the final reference overlay proof and durable receipt are unchanged. Protocol 11 and older use the existing one-request path for reference preparation; multi-field, raw, schema and other unsupported inputs are not admitted. Regression: `tests/packs/reference_preparation_stream.py` and `tests/web/v821_reference_save_profile_ui.py`.
