@@ -22,8 +22,8 @@ class Program {
  static string Hash(string text)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
  static void Check(bool value,string message){if(!value)throw new Exception(message);}
  static int Main(){
-  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact"}){
-   if((mode is "retained-reference" or "detached-compact")&&!compact)continue;
+  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact","string-fallback","non-direct"}){
+   if((mode is "retained-reference" or "detached-compact")&&!compact||mode=="non-direct"&&compact)continue;
    string handle=Guid.NewGuid().ToString("N"),key="Confectory.EditWorkspace."+handle,root=Path.Combine(Path.GetTempPath(),"cf-context-"+handle);
    Directory.CreateDirectory(root);string project=Path.Combine(root,"project.cpack"),dep=Path.Combine(root,"dependency.cpack"),owner="Owned::Owner",manifest="Owned::ProjectManifest";
    File.WriteAllText(dep,"registered context");
@@ -37,7 +37,9 @@ class Program {
    var declaration=new JsonObject{["id"]=owner,["hash"]=Hash(owner),["changes"]=new JsonArray(new JsonObject{["type"]="data",["path"]=new JsonArray("Phase"),["contract"]=new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"},["valueJson"]="6000"})};
    var plans=new JsonArray(new JsonObject{["kind"]="owner-edit",["id"]=owner,["function"]=owner,["context"]=context.DeepClone(),["declaration"]=declaration,["directPropertySave"]=true});
    if(mode=="detached-compact")plans[0]!["uiSurface"]="view:1";
-   int callsContext=0,captures=0,mixed=0,effective=0;
+   if(mode=="string-fallback"){declaration["changes"]![0]!["contract"]!["type"]="string";declaration["changes"]![0]!["valueJson"]="\"hello\"";}
+   if(mode=="non-direct")plans[0]!["directPropertySave"]=false;
+   int callsContext=0,captures=0,mixed=0,effective=0,inspect=0;
    var calls=new Calls {
     Context=(h,o)=>{callsContext++;return context.ToJsonString();},
     Capture=(h,o)=>{
@@ -48,22 +50,29 @@ class Program {
      return new JsonObject{["units"]=captured,["project"]=project,["namespace"]="Owned",["manifest"]=manifest,["checkpointHash"]=mode=="checkpoint"?"changed":"checkpoint"}.ToJsonString();
     },
     Metadata=(op,input)=>{
-     if(op=="effective"){effective++;return new JsonObject{["status"]="available",["schemaModel"]=new JsonObject{["validation"]=new JsonObject{["status"]="valid"}}}.ToJsonString();}
+     if(op is "effective" or "inspectEffective"){
+      var req=JsonNode.Parse(input)!;Check(req["project"]?.ToString()==project&&req["id"]?.ToString()==owner&&req["text"]?.ToString()=="new owner"&&req["schemaView"]?.GetValue<bool>()==true&&req["validateObjects"]?.GetValue<bool>()==true&&req["observeSources"]?.GetValue<bool>()==true,"complete final validation flags");
+      var model=new JsonObject{["status"]="available",["schemaModel"]=new JsonObject{["validation"]=new JsonObject{["status"]="valid"}}};
+      if(op=="inspectEffective"){inspect++;Check(req["kind"]?.ToString()=="object","exact object identity");return new JsonObject{["effective"]=model}.ToJsonString();}
+      effective++;return model.ToJsonString();
+     }
      Check(op=="mixedOwnerCopyEdits","unexpected metadata "+op);mixed++;
      var result=new JsonObject{["text"]="new owner",["manifest"]=manifest,["additions"]=new JsonArray(),["updates"]=new JsonArray()};
-     if(mode!="ordinary-fallback")result["repeatProof"]=new JsonObject{["observations"]=observations.DeepClone(),["ownershipPaths"]=new JsonArray(dep)};
+     if(mode is not ("ordinary-fallback" or "string-fallback" or "non-direct"))result["repeatProof"]=new JsonObject{["observations"]=observations.DeepClone(),["ownershipPaths"]=new JsonArray(dep)};
      return result.ToJsonString();
     }
    };
    try{
     Exception? failure=null;try{Batch(handle,plans.ToJsonString(),calls);}catch(Exception ex){failure=ex;}
-    bool success=mode is "success" or "ordinary-fallback" or "retained-reference" or "detached-compact";
+    bool success=mode is "success" or "ordinary-fallback" or "retained-reference" or "detached-compact" or "string-fallback" or "non-direct";
     Check(success?failure is null:failure is InvalidOperationException,mode+": "+failure);
     if(success)Check(state["units"]![owner]!["draft"]!.ToString()=="new owner","missing candidate");
     else Check(JsonNode.DeepEquals(original,state["units"]),"partial mutation");
-    if(mode=="ordinary-fallback")Check(callsContext==3&&effective==1&&mixed==2&&captures==0,"ordinary checks lost");
-    else if(mode is "retained-reference" or "detached-compact")Check(callsContext==3&&effective==1&&mixed==1&&captures==0,"retained draft or detached compact path must keep full context validation");
-    else Check(callsContext==1&&effective==0&&mixed==1&&captures>=1,"expected one semantic context");
+    if(mode is "ordinary-fallback" or "string-fallback")Check(callsContext==3&&effective==1&&inspect==0&&mixed==2&&captures==0,"ordinary fallback checks lost");
+    else if(mode=="non-direct")Check(callsContext==3&&effective==1&&inspect==0&&mixed==2&&captures==0,"non-direct exact path changed");
+    else if(mode=="retained-reference")Check(callsContext==3&&effective==1&&inspect==0&&mixed==1&&captures==0,"retained draft must keep existing full context validation");
+    else if(mode=="detached-compact")Check(callsContext==3&&effective==0&&inspect==1&&mixed==1&&captures==0,"compact detached proof must keep all semantic checks on the warm route");
+    else Check(callsContext==1&&effective==0&&inspect==0&&mixed==1&&captures>=1,"expected one semantic context");
     Console.WriteLine("PASS "+mode+(compact?" compact":" ordinary"));
    }finally{AppDomain.CurrentDomain.SetData(key,null);Directory.Delete(root,true);}
   }

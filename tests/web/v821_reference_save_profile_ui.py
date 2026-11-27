@@ -1,6 +1,6 @@
 """Alternating scalar/reference direct-save timing on disposable 40/400-object packs.
 
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status].
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status] [--include-string].
 Run one fixture at a time, without compiler/build/regression jobs. The default
 runs three scalar and three reference saves; --diagnostic captures operation
 names and process count separately, so its timing is not comparable. The
@@ -20,12 +20,14 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status"}
+assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status","--include-string"}
 assert "--malformed" not in flags or "--pick" in flags
 assert not flags.intersection({"--expect-single-detached-status","--stale-detached-status"}) or {"--timeline","--detached"} <= flags
 FIRST, SECOND = "Reference First", "Reference Second"
 TARGETS = {"TargetZero": "Zero label", "TargetNonzero": "Nonzero label", "TargetAbsent": "Absent label"}
 prefix = NS + "::"
+NAMES={"scalar":"ScalarObject","reference":"SourceLink","string":"StringObject"}
+KINDS=["scalar","reference"]+(["string"] if "--include-string" in flags else [])
 for manifest, peer in zip(f.projects, (False, True)):
     label = lambda name: ("Peer " if peer else "") + TARGETS[name]
     declarations = {
@@ -38,7 +40,10 @@ for manifest, peer in zip(f.projects, (False, True)):
         "ScalarObject": ("object", f'use schema {prefix}TargetInfo; data Count = 10;'),
         "SourceLink": ("object", f'use schema {prefix}LinkInfo; data Target = {prefix}TargetZero; data Note = "Keep note";'),
     }
-    for i in range(count - 6):
+    if "--include-string" in flags:
+        declarations["TextInfo"]=("schema","field Note single general string;")
+        declarations["StringObject"]=("object",f'use schema {prefix}TextInfo; data Note = "old";')
+    for i in range(count - 6 - (1 if "--include-string" in flags else 0)):
         declarations[f"Extra{i:04}"] = ("object", f'value editorName = "Extra {i:04}";')
     entries = []
     for name, (kind, body) in declarations.items():
@@ -112,7 +117,7 @@ def rows():
         except ValueError:pass
     return result
 def sample(page,editor,kind,i):
-    name="SourceLink" if kind=="reference" else "ScalarObject"
+    name=NAMES[kind]
     file=f.projects[0].parent/(name+".celem")
     if kind=="reference":
         old="TargetZero" if i%2==0 else "TargetNonzero"
@@ -127,6 +132,10 @@ def sample(page,editor,kind,i):
         expect(ref).to_have_text(TARGETS[new])
         pick_ms=(time.monotonic()-pick_start)*1000
         marker=f"data Target = {prefix}{new}"
+    elif kind=="string":
+        field=editor.get_by_label("Note 기본값",exact=True)
+        old="old" if i%2==0 else "한글 · café";new="한글 · café" if i%2==0 else "old"
+        expect(field).to_have_value(old);field.fill(new);marker="data Note = "+json.dumps(new,ensure_ascii=False)+";";pick_ms=None
     else:
         field=editor.get_by_label("Count 기본값",exact=True)
         expect(field).to_have_value(str(10+i%2))
@@ -134,7 +143,8 @@ def sample(page,editor,kind,i):
     button=editor.locator('[data-element-action="confirm"]')
     expect(button).to_have_text("저장");expect(button).to_be_enabled()
     assert marker not in file.read_text()
-    # Measure wall clock file persistence independently from browser polling.
+    # Measure actual source-file replacement independently from browser polling.
+    # This is not a power-loss durability claim about the existing writer.
     click=[];stop=threading.Event();persist=[]
     def watch():
         while not stop.is_set():
@@ -153,7 +163,7 @@ def sample(page,editor,kind,i):
             a=req.post_data_json
             if req.method!="POST" or a.get("op") not in ("invoke","update","observe"):return
             key=req._impl_obj._guid
-            event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId"),"idsCount":len(a.get("input",{}).get("ids") or []),"view":bool(a.get("input",{}).get("view")),"savedOwner":a.get("input",{}).get("id")==prefix+("SourceLink" if kind=="reference" else "ScalarObject")}
+            event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId"),"idsCount":len(a.get("input",{}).get("ids") or []),"view":bool(a.get("input",{}).get("view")),"savedOwner":a.get("input",{}).get("id")==prefix+NAMES[kind]}
             pending[key]=event;events.append(event)
         except Exception:pass
     def on_response(resp):
@@ -230,11 +240,11 @@ try:
         page=f.setup(browser);page.set_viewport_size({"width":2000,"height":1200})
         samples=[]
         for i in range(1 if "--diagnostic" in flags or "--timeline" in flags else 3):
-            order=["scalar","reference"] if (i+("--reverse" in flags))%2==0 else ["reference","scalar"]
+            order=KINDS if (i+("--reverse" in flags))%2==0 else list(reversed(KINDS))
             for kind in order:
-                editor=owner(page,"SourceLink" if kind=="reference" else "ScalarObject")
+                editor=owner(page,NAMES[kind])
                 samples.append(sample(page,editor,kind,i))
-        for kind in ("scalar","reference"):
+        for kind in KINDS:
             selected=[s for s in samples if s["kind"]==kind]
             print("MEDIAN",kind,statistics.median(s["diskMs"] for s in selected),statistics.median(s["uiMs"] for s in selected),flush=True)
         f.original();assert not f.errors and not f.external

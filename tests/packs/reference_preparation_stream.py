@@ -1,4 +1,4 @@
-"""Exact reference preparation over project-scoped read-only stream 12."""
+"""Exact data preparation and final graph validation over the scoped read-only stream."""
 import hashlib
 import json
 import os
@@ -21,6 +21,8 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
         "One": ("object", 'object Alpha::One { use schema Alpha::TargetInfo; data Count = 0; }'),
         "Two": ("object", 'object Alpha::Two { use schema Alpha::TargetInfo; data Count = 7; value editorName = "Two"; }'),
         "Wrong": ("object", 'object Alpha::Wrong {}'),
+        "TextInfo": ("schema", 'schema Alpha::TextInfo { field Note single general string; }'),
+        "Text": ("object", 'object Alpha::Text { use schema Alpha::TextInfo; data Note = "old"; }'),
     }
     manifest.write_text('project Alpha version "1" { ' + " ".join(
         f'element {key} {kind} "{key}.celem";' for key, (kind, _) in contents.items()) + " }")
@@ -79,6 +81,39 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
         actual = send(process, dict(payload, operation="inspectEffective", kind="object"))
         assert expected["ok"] and actual["ok"] and actual["result"]["effective"] == expected["result"], (expected, actual)
         return expected["result"]
+
+    # Long and string use the same final full graph/schema validation as a
+    # standalone effective request. A warm process is not a cached decision.
+    def scalar_final(process, name, after, overlay=False):
+        drafts=[{"id":"Alpha::"+n,"text":(project/(n+".celem")).read_text()} for n in contents if n!=name] if overlay else []
+        payload=dict(operation="effective",project=str(manifest),manifest=manifest.read_text(),
+                     id="Alpha::"+name,text=after,drafts=drafts,schemaView=True,validateObjects=True,observeSources=True)
+        expected=ordinary(payload)
+        actual=send(process,dict(payload,operation="inspectEffective",kind="object"))
+        assert expected["ok"] and actual["ok"] and actual["result"]["effective"]==expected["result"],(expected,actual)
+        return expected["result"]
+    def scalar_valid(result):
+        return result["status"]=="available" and result["schemaModel"]["validation"]["status"]=="valid"
+
+    proc=start()
+    try:
+        for overlay in (False,True):
+            assert scalar_valid(scalar_final(proc,"One",contents["One"][1].replace("= 0","= 123"),overlay))
+            assert scalar_valid(scalar_final(proc,"Text",contents["Text"][1].replace('"old"','"한글 · café"'),overlay))
+            assert not scalar_valid(scalar_final(proc,"One",contents["One"][1].replace("= 0",'= "bad"'),overlay))
+            assert not scalar_valid(scalar_final(proc,"Text",contents["Text"][1].replace('"old"','12'),overlay))
+        schema=project/"TargetInfo.celem";raw=schema.read_bytes()
+        schema.write_text(raw.decode().replace("general long","general bool"))
+        assert not scalar_valid(scalar_final(proc,"One",contents["One"][1].replace("= 0","= 123")))
+        schema.write_bytes(raw)
+        unrelated=project/"Wrong.celem";raw=unrelated.read_bytes()
+        unrelated.write_text('object Alpha::Wrong { use schema Alpha::TargetInfo; data Count = "invalid"; }')
+        assert not scalar_valid(scalar_final(proc,"One",contents["One"][1].replace("= 0","= 123")))
+        unrelated.write_bytes(raw)
+        assert scalar_valid(scalar_final(proc,"One",contents["One"][1].replace("= 0","= 123")))
+    finally:
+        if proc.poll() is None:proc.kill()
+        proc.wait()
 
     proc = start()
     try:
@@ -147,4 +182,4 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             proc.wait()
     assert (project / "Link.celem").read_text() == contents["Link"][1]
     assert (peer / "Link.celem").read_text() == contents["Link"][1]
-print("PASS preparation and final graph one-shot equivalence, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
+print("PASS scalar/string/reference final graph and preparation one-shot equivalence, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
