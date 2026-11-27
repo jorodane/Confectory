@@ -1,4 +1,4 @@
-"""The exact existing-long proof uses captured source bytes, not a copied project."""
+"""The exact existing-long/string proof uses captured source bytes, not a copied project."""
 import hashlib,json,os,subprocess,sys,tempfile
 from pathlib import Path
 host=[os.environ['CONFECTORY_DOTNET'],sys.argv[1]]
@@ -21,5 +21,23 @@ with tempfile.TemporaryDirectory(prefix='cf-data-overlay-') as folder:
     refused(call(baseline='0'*64));refused(call(id='Other::Rules'));refused(call(relative='../rules.celem'))
     (root/'fields.celem').write_text(schema.replace('long','int'));refused(call());(root/'fields.celem').write_text(schema)
     dep.write_text('pack Other version "1" {}');refused(call())
+    assert (root/'rules.celem').read_text()==old
+    # The old operation name remains a compatibility boundary. An existing
+    # simple string uses the same schema/manifest/source/registry proof.
+    dep.write_text('pack Dependency version "1" {}')
+    old='object Alpha::Rules { use schema Alpha::Fields; data Phase = "old"; }'
+    (root/'rules.celem').write_text(old)
+    (root/'fields.celem').write_text(schema.replace('long','string'))
+    for value in ('','한글 · café'):
+        changed=old.replace('"old"',json.dumps(value,ensure_ascii=False))
+        result=call(changed)
+        assert result['ok'] and result['result']['eligible'],result
+        assert {x['path'] for x in result['result']['checks']}=={'project.cpack','fields.celem'}
+    refused(call(old))
+    refused(call(old.replace('"old"','1')))
+    refused(call(old.replace('"old"','"new"').replace('use schema','description "changed"; use schema')))
+    refused(call(old.replace('"old"','"new"'),baseline='0'*64))
+    (root/'fields.celem').write_text(schema)
+    refused(call(old.replace('"old"','"new"')))
     assert (root/'rules.celem').read_text()==old
 print('PASS exact overlay, owned manifest/schema and registered dependency observations, stale/foreign/unsupported refusal, no copied or written sources')

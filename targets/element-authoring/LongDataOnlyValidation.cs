@@ -2,7 +2,7 @@ using Confectory.Core;
 using System.Text;
 using System.Text.Json.Nodes;
 
-// The conservative fast path for one existing, directly owned long value.
+// The conservative fast path for one existing, directly owned long or string value.
 // Other changes keep the normal candidate compile/link validation.
 internal static class LongDataOnlyValidation
 {
@@ -30,12 +30,16 @@ internal static class LongDataOnlyValidation
             var differences=before.Data.Keys.Where(k=>!next.Data.TryGetValue(k,out var n)||before.Data[k].Kind!=n.Kind||before.Data[k].Scalar?.GetRawText()!=n.Scalar?.GetRawText()).ToArray();
             if(differences.Length!=1||!next.Data.TryGetValue(differences[0],out var newDatum))return No();
             string field=differences[0];var oldDatum=before.Data[field];
-            if(oldDatum.Kind!="general"||newDatum.Kind!="general"||oldDatum.Scalar is not System.Text.Json.JsonElement oldScalar||newDatum.Scalar is not System.Text.Json.JsonElement newScalar||oldScalar.ValueKind!=System.Text.Json.JsonValueKind.Number||newScalar.ValueKind!=System.Text.Json.JsonValueKind.Number||!oldScalar.TryGetInt64(out long oldValue)||!newScalar.TryGetInt64(out long newValue)||oldValue==newValue)return No();
+            if(oldDatum.Kind!="general"||newDatum.Kind!="general"||oldDatum.Scalar is not System.Text.Json.JsonElement oldScalar||newDatum.Scalar is not System.Text.Json.JsonElement newScalar)return No();
+            string scalarType;
+            if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&newScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&oldScalar.TryGetInt64(out long oldValue)&&newScalar.TryGetInt64(out long newValue)&&oldValue!=newValue)scalarType="long";
+            else if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.String&&newScalar.ValueKind==System.Text.Json.JsonValueKind.String&&oldScalar.GetString()!=newScalar.GetString())scalarType="string";
+            else return No();
             before.Data[field]=newDatum;if(format(before)!=format(next))return No();
             string schemaId=before.Uses[0].Id;if(!schemaId.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||!manifest.Elements.TryGetValue(schemaId[(manifest.Namespace.Length+2)..],out var schemaLoc)||schemaLoc.Kind!="schema")return No();
             string schemaPath=Owned(root,schemaLoc.Path);
             var originalSchema=Read(schemaPath);if(!overlay&&originalSchema.Hash!=Read(Owned(candidateRoot,schemaLoc.Path)).Hash)throw new InvalidOperationException("Schema changed during candidate copy");
-            var schema=new Parser(originalSchema.Text,"<data-schema>").ParseElement();if(schema.Id!=schemaId||schema.Kind!="schema"||schema.Parent is not null||schema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single")||!schema.Fields.TryGetValue(field,out var contract)||contract.Type!="long")return No();
+            var schema=new Parser(originalSchema.Text,"<data-schema>").ParseElement();if(schema.Id!=schemaId||schema.Kind!="schema"||schema.Parent is not null||schema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single")||!schema.Fields.TryGetValue(field,out var contract)||contract.Type!=scalarType)return No();
             var stats=new BuildStatistics();Registry registry;
             if(overlay){
                 // Registry and SchemaContracts operate on the same captured manifest
