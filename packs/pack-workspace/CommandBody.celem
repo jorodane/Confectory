@@ -2,6 +2,7 @@ implementation Confectory.PackWorkspace::CommandBody for Confectory.PackWorkspac
 import Confectory.PackWorkspace::Snapshot as Snapshot (string) -> string;
 import Confectory.EditWorkspace::List as List (string) -> string[];
 import Confectory.EditWorkspace::Status as Status (string, string) -> string[];
+import Confectory.EditWorkspace::History as History (string,string,string) -> string;
 import Confectory.EditWorkspace::Read as Read (string, string) -> string[];
 import Confectory.EditWorkspace::RefreshClean as RefreshClean (string, string[]) -> string[];
 import Confectory.EditWorkspace::SetTextIfRevision as Edit (string, string, string, long) -> bool;

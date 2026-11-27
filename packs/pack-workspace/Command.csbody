@@ -4,12 +4,13 @@ lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedExcept
 bool RelationKind(string kind)=>kind is "category" or "concept" or "function" or "module" or "object" or "schema" or "implementation" or "enum";
 string RelationHash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 string RelationEvidence(System.Collections.Generic.Dictionary<string,string[]> versions)=>RelationHash(System.Text.Json.JsonSerializer.Serialize(versions));
-void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode version,bool append=false){
+bool PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode version,bool append=false){
+  bool publicationChanged=false;
   var prior=state["propertyModels"]?.DeepClone();
   try{
    var ids=calls.List.Invoke(draft);
    if(owners.Length is >=1 and <=32&&System.Linq.Enumerable.Count(System.Linq.Enumerable.Distinct(owners,StringComparer.Ordinal))==owners.Length&&System.Linq.Enumerable.All(owners,id=>Array.Exists(ids,known=>known==id)&&calls.Status.Invoke(draft,id)[1]=="object")&&calls.Changes.Invoke(draft,ids).Length==0){
-    var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));if(manifestId.StartsWith("Confectory.AISettings::",StringComparison.Ordinal))return;var manifest=calls.Read.Invoke(draft,manifestId);
+    var identity=calls.Identity.Invoke(draft);string manifestId=System.Linq.Enumerable.FirstOrDefault(ids,id=>id.EndsWith("::ProjectManifest",StringComparison.Ordinal))??System.Linq.Enumerable.First(ids,id=>id.EndsWith("::PackManifest",StringComparison.Ordinal));if(manifestId.StartsWith("Confectory.AISettings::",StringComparison.Ordinal))return false;var manifest=calls.Read.Invoke(draft,manifestId);
     var preparedSeed=calls.Read.Invoke(draft,owners[0]);var prepared=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("preparePropertyModels",System.Text.Json.JsonSerializer.Serialize(new{project=identity[0],manifest=manifest[3],id=preparedSeed[0],kind=preparedSeed[1],text=preparedSeed[3],ids=owners,schemaView=true,schemaReuseProof=true})))!["effective"]!;
     if(prepared["observations"] is System.Text.Json.Nodes.JsonArray observed&&observed.Count<=32&&prepared["ownershipPaths"] is System.Text.Json.Nodes.JsonArray paths&&paths.Count<=128&&prepared["rows"] is System.Text.Json.Nodes.JsonArray results&&results.Count==owners.Length){
      var models=new System.Text.Json.Nodes.JsonArray();
@@ -36,6 +37,7 @@ void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode versi
 
      }
      if(models.Count>0&&models.ToJsonString().Length+dependencies.ToJsonString().Length<=524288&&calls.Changes.Invoke(draft,ids).Length==0){
+      publicationChanged=true; // Conservatively mark before any cache/backlog mutation.
       if(append&&prior?["models"] is System.Text.Json.Nodes.JsonArray priorRows&&prior["draftVersion"]?["epoch"]?.ToString()==version["epoch"]?.ToString()){
        var backlog=state["propertyModelBacklog"] as System.Text.Json.Nodes.JsonArray??new();if(backlog.Parent is null)state["propertyModelBacklog"]=backlog;backlog.Add(prior);
        int CountRows()=>models.Count+System.Linq.Enumerable.Sum(backlog,group=>group?["models"]?.AsArray().Count??0);
@@ -46,13 +48,23 @@ void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode versi
     }
    }
   }catch{/* An unsupported or changed model retains the normal verified opening path. */}
+  return publicationChanged;
 }
 switch(operation){
 case "prepare-property-models":{
  if(request["ids"] is not System.Text.Json.Nodes.JsonArray requested||requested.Count is <1 or >12)throw new ArgumentException("Bounded property model selection required");
  var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();
  var owners=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(requested,id=>id!.GetValue<string>()));
- PreparePropertyModels(owners,reply["draftVersion"]!,true);
+ // For an optional unpublished projection, establish that even lazy source
+ // materialization and the shared draft version have not changed.
+ bool optional=request["restoreStatuses"]?.GetValue<bool>()!=true&&(reply["ownedTotal"]?.GetValue<int>() is >128 and <=2048)&&reply["draftVersion"]?["available"]?.GetValue<bool>()==true;
+ var initialUnits=optional?calls.List.Invoke(draft):Array.Empty<string>();Array.Sort(initialUnits,StringComparer.Ordinal);
+ string Proof(string[] units)=>System.Text.Json.JsonSerializer.Serialize(System.Linq.Enumerable.Select(units,id=>calls.Status.Invoke(draft,id)));
+ string initialProof=optional?Proof(initialUnits):"";
+ bool published=PreparePropertyModels(owners,reply["draftVersion"]!,true);
+ var latestUnits=optional&&!published?calls.List.Invoke(draft):Array.Empty<string>();Array.Sort(latestUnits,StringComparer.Ordinal);
+ bool unchanged=optional&&!published&&System.Linq.Enumerable.SequenceEqual(initialUnits,latestUnits,StringComparer.Ordinal)&&initialProof==Proof(latestUnits)&&System.Text.Json.Nodes.JsonNode.DeepEquals(reply["draftVersion"],System.Text.Json.Nodes.JsonNode.Parse(calls.History.Invoke(draft,"version","{}")));
+ reply["propertyModelPublicationChanged"]=!unchanged;
  // Restore already requested these owners. Return independently verified
  // singleton checkpoint statuses in the same read; never split a grouped proof.
  if(request["restoreStatuses"]?.GetValue<bool>()==true){
