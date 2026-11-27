@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_10");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_11");Console.Out.Flush();
     string? owner=null, projectionTransaction=null;
     OwnedGraphReadModel? projectionModel=null;
     for(int count=0;count<128;count++)
@@ -42,12 +42,14 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool finalOverlay=operation=="validateLongDataOverlay"&&request.Count==6&&new[]{"originalProject","id","relative","baseline","after"}.All(key=>request[key] is JsonValue v&&v.TryGetValue<string>(out _));
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
         bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
+        bool settingsData=operation=="setDataPath"&&request["_streamProject"] is JsonValue settingsScope&&settingsScope.TryGetValue<string>(out _)&&request["path"] is JsonArray singlePath&&singlePath.Count==1&&singlePath[0] is JsonValue fieldValue&&fieldValue.TryGetValue<string>(out _)&&request["value"] is JsonValue scalar&&scalar.TryGetValue<string>(out _)&&request["text"] is JsonValue sourceText&&sourceText.TryGetValue<string>(out _);
+        if(settingsData){string full=Path.GetFullPath(request["_streamProject"]!.ToString()),folder=Path.GetDirectoryName(full)!;if(!Path.GetFileName(full).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)||!string.Equals(Path.GetFileName(Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase)||!System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(folder),"^[0-9a-fA-F]{16}$"))return 2;}
         bool blueprintProposal=operation is "blueprintNodeFlow" or "blueprintEnumPreview" or "blueprintPrepareCall" or "blueprintPrepareFeature";
         bool blueprintValue=blueprintProposal||operation is "inspect" or "inspectManifest" or "blueprintSourceValidate" or "blueprintSourceValidateBatch" or "blueprintCellRegion" or "blueprintAsyncCandidates" or "blueprintPropertyObservations" or "blueprintRootExecutionCandidates"||operation=="blueprintCellRemovalHistory"&&request["action"]?.ToString()=="options";
         bool overrideProject=operation=="blueprintOverrideContracts"&&request["project"] is not null&&request["action"]?.ToString() is ("read" or "verify" or "readRootImports" or "verifyRootImports" or "validateRootImports" or "readReturnContract" or "verifyReturnContract" or "validateReturnContract" or "validateGroup" or "verifyGroup");
         bool blueprintProject=overrideProject||operation is "blueprintDescribeOwned" or "bodyUnits" or "blueprintCallableContracts" or "reviewSummary";
-        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!preparation&&!finalOverlay&&!connectionProposal&&!connectionSchema)return 2;
-        bool payloadOnly=blueprintValue||guardValue;
+        if(operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintValue&&!blueprintProject&&!guardValue&&!guardProject&&!preparation&&!finalOverlay&&!connectionProposal&&!connectionSchema&&!settingsData)return 2;
+        bool payloadOnly=blueprintValue||guardValue||settingsData;
         if(payloadOnly&&request["project"] is not null||!payloadOnly&&request.ContainsKey("_streamProject"))return 2;
         if((payloadOnly?request["_streamProject"]:connectionProposal?request["settingsProject"]:finalOverlay?request["originalProject"]:request["project"]) is not JsonValue scope||!scope.TryGetValue<string>(out var path)||string.IsNullOrEmpty(path))return 2;
         var project=Path.GetFullPath(path);if(operation=="blueprintNodeFlow"&&(request["ownerRequest"]?["project"] is not JsonValue nested||!nested.TryGetValue<string>(out var nestedPath)||!string.Equals(project,Path.GetFullPath(nestedPath),OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal)))return 2;request.Remove("_streamProject");
@@ -60,13 +62,13 @@ if(args.Length==1&&args[0]=="--inspect-stream")
             if(projectionTransaction!=token){projectionTransaction=token;projectionModel=new OwnedGraphReadModel(project);}
             model=projectionModel;
         }else if(operation=="blueprintDescribeOwned"){projectionTransaction=null;projectionModel=null;}
-        Console.WriteLine(Dispatch(request.ToJsonString(),model));Console.Out.Flush();
+        Console.WriteLine(Dispatch(request.ToJsonString(),model,settingsData));Console.Out.Flush();
     }
     return 0;
 }
 Console.Write(Dispatch(Console.In.ReadToEnd()));return 0;
 
-static string Dispatch(string message, OwnedGraphReadModel? model=null)
+static string Dispatch(string message, OwnedGraphReadModel? model=null, bool settingsData=false)
 {
 try
 {
@@ -273,7 +275,7 @@ try
         case "editDeclaration":reply=JsonValue.Create(EditDeclaration(S("text"),request["edit"]?.AsObject()??throw new ArgumentException("Declaration edit required")));break;
         case "setDataPath": case "setField": case "setData":
         {
-            var element=new Parser(S("text"),"<draft>").ParseElement();if(S("operation")=="setDataPath")SchemaContracts.SetDataPath(element,JsonSerializer.SerializeToElement(request["path"]),JsonSerializer.SerializeToElement(request["value"]));else if(S("operation")=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string formatted=Format(element);new Parser(formatted,"<draft>").ParseElement();reply=JsonValue.Create(formatted);break;
+            var element=new Parser(S("text"),"<draft>").ParseElement();if(settingsData&&(element.Id!="Confectory.AISettings::Settings"||element.Kind!="object"))throw new ArgumentException("Owned connection settings object required");if(S("operation")=="setDataPath")SchemaContracts.SetDataPath(element,JsonSerializer.SerializeToElement(request["path"]),JsonSerializer.SerializeToElement(request["value"]));else if(S("operation")=="setField")SchemaContracts.SetField(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));else SchemaContracts.SetData(element,S("field"),JsonSerializer.SerializeToElement(request["value"]));string formatted=Format(element);new Parser(formatted,"<draft>").ParseElement();reply=JsonValue.Create(formatted);break;
         }
         case "setDescription":
         {

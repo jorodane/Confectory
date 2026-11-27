@@ -743,7 +743,9 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  CancelPreparation();
  if(connectionPreviews[connection] is System.Text.Json.Nodes.JsonNode preview){
   string settingsManifest=SettingsManifest(connection);if(!VerifyPreview(connection,preview,settingsManifest)||preview["revision"]!.GetValue<long>()!=args["revision"]!.GetValue<long>())throw new InvalidOperationException("Connection settings changed; refresh before applying");
-  string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("setDataPath",new System.Text.Json.Nodes.JsonObject{["text"]=preview["text"]!.DeepClone(),["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone()}.ToJsonString()))!;
+  var valueEdit=new System.Text.Json.Nodes.JsonObject{["text"]=preview["text"]!.DeepClone(),["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone()};
+  if(args["path"] is System.Text.Json.Nodes.JsonArray singlePath&&singlePath.Count==1&&args["value"] is System.Text.Json.Nodes.JsonValue scalar&&scalar.TryGetValue<string>(out _))valueEdit["_streamProject"]=settingsManifest;
+  string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("setDataPath",valueEdit.ToJsonString()))!;
   calls.CheckSettings.Invoke(formatted);var effective=ReadPreviewSchema(settingsManifest,preview["manifest"]!.ToString(),formatted);
   if(!VerifyPreview(connection,preview,settingsManifest))throw new InvalidOperationException("Connection declarations changed; retain local input");
   preview["text"]=formatted;preview["revision"]=preview["revision"]!.GetValue<long>()+1;preview["effective"]=effective;InvalidateCheck(connection);connectionSetupMode="new";PublishPreview(connection,preview);model["status"]="Connection field staged in memory; no settings saved";
