@@ -116,7 +116,10 @@ try:
   expect(page.locator('#project-menu')).to_be_enabled(timeout=120000)
   attempted=[x['endpoint'] for x in f.requests[mark:]]
   print('external attempted endpoints',attempted,'status',page.locator('#status').text_content(),flush=True)
-  assert 'openEditorView' in attempted and not any(x in attempted for x in ('blueprint','editViewField','saveEditorView','reviewGroup','confirmGroup'))
+  # A stale owner may reach the read-only admission check after its local
+  # prepared view is refreshed. It must never reach a source-writing action.
+  assert 'openEditorView' in attempted and not any(x in attempted for x in ('editViewField','saveEditorView','reviewGroup','confirmGroup'))
+  assert all(req.get('input',{}).get('action')=='readOwnerEdits' for req in f.requests[mark:] if req['endpoint']=='blueprint')
   expect(second.locator('[data-element-error]')).not_to_have_text('')
   expect(d.value(second,'Note')).to_have_value('second peer local input');expect(d.value(first,'Note')).to_have_value('second project local input');assert peer.read_text()==external
   print('PASS external conflict, same-ID project isolation and retained independent input',flush=True)
