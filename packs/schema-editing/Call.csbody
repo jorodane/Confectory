@@ -79,8 +79,12 @@ string? ReadWarm(){
    // a closing pipe, which would repeat it through the slow one-shot path.
    // The finite process lifetime and the older protocol fallback stay intact.
    bool exhausted=(pool[3] as string is "CONFECTORY_INSPECT_STREAM_10" or "CONFECTORY_INSPECT_STREAM_11" or "CONFECTORY_INSPECT_STREAM_12")&&pool[4] is int frames&&frames>=128;
-   // Auxiliary read projections must not switch or start the selected project's stream.
-   if((inventory||viewCatalog||relations)&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)||exhausted))return null;
+   // Auxiliary projections cannot switch the active reader. The synchronous
+   // EditorHome active-inventory boundary may start only its own project,
+   // allowing the immediately following relation/schema reads to use it.
+   var activeInventoryOwner=(AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ActiveInventoryOwner") as System.Threading.AsyncLocal<string?>)?.Value;
+   bool activeInventory=inventory&&activeInventoryOwner is not null&&string.Equals(System.IO.Path.GetFullPath(activeInventoryOwner),projectKey,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);
+   if((inventory||viewCatalog||relations)&&!activeInventory&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)||exhausted))return null;
    if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)||exhausted))Retire();
    if(object.Equals(pool[2],hostKey))return null;
    if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}

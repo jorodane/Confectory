@@ -922,7 +922,17 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
  }
  else if(operation=="local-inventory"){
  string project=model["selected"]?["path"]?.ToString()??ConnectionProject();
- model["localInventory"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=model["selected"]?["projectId"]?.DeepClone(),["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(project,"{\"action\":\"inventory\"}"))};
+ // Only the explicitly active project can initiate its ordinary scoped
+ // reader here. Home summaries and unrelated catalog requests remain auxiliary.
+ System.Threading.AsyncLocal<string?>? activeInventory=null;
+ string? previousInventoryOwner=null;
+ if(model["selected"]?["kind"]?.ToString()=="project"&&model["selected"]?["namespace"]?.ToString()!="Confectory.AISettings"){
+  _=Active();
+  lock(AppDomain.CurrentDomain){activeInventory=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ActiveInventoryOwner") as System.Threading.AsyncLocal<string?>??new();AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ActiveInventoryOwner",activeInventory);}
+  previousInventoryOwner=activeInventory.Value;activeInventory.Value=System.IO.Path.GetFullPath(project);
+ }
+ try{model["localInventory"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=model["selected"]?["projectId"]?.DeepClone(),["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(project,"{\"action\":\"inventory\"}"))};}
+ finally{if(activeInventory is not null)activeInventory.Value=previousInventoryOwner;}
  }
  else if(operation=="catalog"){
  string context=Active();string query=new System.Text.Json.Nodes.JsonObject{["action"]=Value("action","list"),["query"]=Value("query"),["kind"]=Value("kind"),["page"]=args["page"]?.DeepClone()??System.Text.Json.Nodes.JsonValue.Create(0),["id"]=Value("id")}.ToJsonString();
