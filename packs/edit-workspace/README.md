@@ -127,3 +127,24 @@ Unchanged value routes varied: 400 primary long 1,608/2,416 → 1,884/2,693 ms, 
 A six-pair follow-up without any string edit measured 400-object primary long 1,262/2,046 → 1,419/2,304 ms and reference 1,691/2,576 → 1,759/2,598 ms (disk/UI). Paired long disk differences were +233, -101, -314, +46, +787, -117 ms (positive = time saved); the ranges overlap and no consistent change to these unchanged paths was established. The string gain is not a claim of zero variance elsewhere.
 
 The actual scoped proof equivalence, missing-proof fallback with the prior installed authoring tool, dirty-peer decline, external hash and checkpoint rechecks passed. Real Chromium verified 400-object string schema/owner/permission changes, lost staging and final responses with restart, primary Unicode/independent empty value, independent dirty input and unrelated unreadable source; tracing confirmed compiler and project DLL opens zero. Mixed recovered conflict, Worker Review, reference reply loss, explicit Run, and the independent ordinary object retirement Review/always-reference guards passed. The loss fixture now recognizes the existing string checkpoint response (not the long owner-settled result); both modes were rerun successfully. No product recovery policy changed.
+
+### Compact detached string snapshot reuse
+
+An isolated temporary hash-only diagnostic of 90e817f7 (no real project data, no instrumentation retained in the product) observed 400-object detached string save at 3,096/3,887 ms disk/UI. Its separate full candidate query was 578 ms, and three groups of identical inspectEffective requests occurred 7, 12, and 7 times (157, 251, and 148 ms respectively, all display reads without validateObjects). Those groups span distinct state/read commands, so their results are not cached or reused by this change.
+
+Only the newly proved clean single-root string route may now use the same exact candidate snapshot equivalence on a compact detached view (view:1–3); all other draft, owner, source, overlay, and observation comparison requirements remain. Both full candidate validations still run in the authoring preparation, exact before/after observation/ownership proof is required, and staged/original resources plus latest physical source content hashes and lexical ownership are independently rechecked. The final authoritative Review/Confirm, recovery checkpoint, and atomic commit are unchanged. Long/reference and unsupported or unproved inputs retain the previous route. This is not the previously rejected unrestricted compact detached-long experiment.
+
+Six isolated alternating real Chromium runs per surface/size/variant (48 editor processes, each with actual int/string/ref Save) produced these disk/UI-stable medians (ms):
+
+| Objects / surface | Long before → after | Reference before → after | String before → after |
+| --- | ---: | ---: | ---: |
+| 40 primary | 1,191/1,756 → 1,212/1,884 | 719/1,334 → 689/1,339 | 1,312/1,870 → 1,208/1,868 |
+| 40 detached | 1,151/1,873 → 1,135/1,865 | 1,590/2,920 → 1,498/2,881 | 1,733/2,379 → 1,637/2,368 |
+| 400 primary | 2,033/2,797 → 2,172/3,025 | 1,445/2,371 → 1,476/2,363 | 1,982/2,714 → 1,877/2,834 |
+| 400 detached | 2,127/2,882 → 2,124/2,931 | 2,552/3,957 → 2,654/4,216 | 3,234/3,949 → 2,696/3,426 |
+
+All six changed-route pairs improved for both disk and UI. 400 detached string ranges: disk 3,081–3,552 → 2,437–2,878; UI 3,915–4,194 → 3,077–3,553. Its authoring timings were mixedOwnerCopyEdits 329 → 331 ms, separate effective 407 → 0 ms, inspectEffective 696 → 690 ms; the last collection remains a separate bottleneck. Non-targeted paths are unchanged and show noise (notably 400 primary long and 400 detached reference UI rise); no speedup is claimed there. Native Windows and power-cut durability are not measured.
+
+To isolate the non-targeted paths, six additional alternating detached 400-object int/reference-only runs (no string edit) observed long 3,111/4,120 → 3,153/4,267 ms and reference 3,088/5,215 → 3,230/4,829 ms. The scattered individual differences and overlapping ranges do not establish a consistent UI regression on the unchanged paths; these are not claimed gains. The absolute timings were noisier in this separate session.
+
+The controlled candidate/source recheck suite passed, including compact detached string external hash guard and retained dirty fallback. Real Chromium passed string external schema/owner/permission changes, staged and final response loss/restart, Unicode and empty string with independent unsaved input, unreadable source, mixed recovered conflict, Worker review, reference loss, actual selected-reference Run, ordinary retirement plus always-reference refusal, prior authoring tool missing-proof fallback, stream owner/idle/128-frame rotation. Ordinary Save file tracing observed compiler and project DLL opens zero. No real projects/accounts or native Windows were exercised.

@@ -90,7 +90,12 @@ try{
   if(supplied.Count!=retained.Length)sameOverlays=false;
   else foreach(var row in retained)if(!System.Linq.Enumerable.Any(supplied,d=>d?["id"]?.ToString()==row.Key&&System.Text.Json.Nodes.JsonNode.DeepEquals(d["text"],row.Value!["draft"])))sameOverlays=false;
   bool observed=System.Linq.Enumerable.All(context["observations"]!.AsArray(),read=>System.Linq.Enumerable.Any(repeatProof["observations"]!.AsArray(),proof=>System.Text.Json.Nodes.JsonNode.DeepEquals(read,proof)));
-  reuseContext=sameOverlays&&observed&&(!compactClean||retained.Length==0&&string.IsNullOrEmpty(rows[0]?["uiSurface"]?.ToString()))&&System.Text.Json.Nodes.JsonNode.DeepEquals(expected,candidate["units"]);
+  // The newly proved clean single-string route can also use the exact
+  // compact detached snapshot. Keep the measured detached long/reference
+  // routes unchanged; no other draft or unsupported surface is admitted.
+  bool compactDetachedString=declarationRequest?["reuseStringPreparation"]?.GetValue<bool>()==true&&rows[0]?["uiSurface"]?.ToString() is ("view:1" or "view:2" or "view:3")&&
+      System.Linq.Enumerable.All(before,row=>row.Key==owner||System.Text.Json.Nodes.JsonNode.DeepEquals(row.Value?["draft"],row.Value?["original"]));
+  reuseContext=sameOverlays&&observed&&(!compactClean||retained.Length==0&&(string.IsNullOrEmpty(rows[0]?["uiSurface"]?.ToString())||compactDetachedString))&&System.Text.Json.Nodes.JsonNode.DeepEquals(expected,candidate["units"]);
  }
  void VerifyRepeatSources(){
    var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
