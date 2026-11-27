@@ -136,6 +136,9 @@ lock(state){
     "typed-definition"=>change["contract"]?["kind"]?.ToString()=="general"&&change["contract"]?["cardinality"]?.ToString()=="single"&&Primitive(change["contract"]?["type"]?.ToString()),
     _=>false};
    bool eligible=directReferenceOverlay is not null||System.Linq.Enumerable.All(directChanges,Ordinary);
+   // A retained large-context overlay belongs to its existing Review. A new
+   // local gesture cannot silently confirm another owner's saved draft.
+   if(rows[0]?["context"]?["compactClean"]?.GetValue<bool>()==true&&System.Linq.Enumerable.Any(before.AsObject(),row=>row.Key!=owner&&row.Value?["draft"] is not null&&!System.Text.Json.Nodes.JsonNode.DeepEquals(row.Value["draft"],row.Value["original"])))eligible=false;
    var directProof=new System.Text.Json.Nodes.JsonArray();
    foreach(var member in proof){
     var prior=before[member.Key];var after=candidate["units"]![member.Key]!;

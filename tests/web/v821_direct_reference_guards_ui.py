@@ -1,12 +1,12 @@
 """Actual direct reference guard scenarios on disposable project profiles.
-Usage: REPO BUILD_REPORT 40|400 fallback|mixed|rename|retype|permission|missing|owner|lost-final|lost-owner|mixed-recovered|dirty|stale.
+Usage: REPO BUILD_REPORT 40|400 fallback|mixed|rename|retype|permission|missing|owner|lost-final|lost-owner|mixed-recovered|mixed-recovered-conflict|dirty|stale.
 """
 import json,sys,time
 from playwright.sync_api import expect,sync_playwright
 import v666_workspace_finder_fixture as f
 from v821_project_browser_search_labels import NS,browser_window
 count=int(sys.argv[3]);assert count in (40,400)
-mode=sys.argv[4];assert mode in ("fallback","mixed","rename","retype","permission","missing","owner","lost-final","lost-owner","mixed-recovered","dirty","stale")
+mode=sys.argv[4];assert mode in ("fallback","mixed","rename","retype","permission","missing","owner","lost-final","lost-owner","mixed-recovered","mixed-recovered-conflict","dirty","stale")
 semantics={
  "TargetInfo":("schema","field Count single general long;"),
  "LinkInfo":("schema",f"field Target single reference {NS}::TargetInfo; field Note single general string;"),
@@ -90,12 +90,12 @@ try:
       elif mode=="missing":target.unlink()
       elif mode=="owner":source.write_bytes(original+b"\n// external owner change\n")
     if endpoint=="blueprint" and body.get("input",{}).get("action")=="applySlots":applies.append(rid)
-   if mode not in ("lost-final","lost-owner","mixed-recovered"):
+   if mode not in ("lost-final","lost-owner","mixed-recovered","mixed-recovered-conflict"):
     route.fallback();return
    response=route.fetch();payload=response.json()
    for row in payload.get("results",[]):
     rid=row.get("requestId")
-    if (mode=="lost-final" and rid in hits or mode in ("lost-owner","mixed-recovered") and rid in applies) and rid not in masked:
+    if (mode=="lost-final" and rid in hits or mode in ("lost-owner","mixed-recovered","mixed-recovered-conflict") and rid in applies) and rid not in masked:
      assert row.get("ok"),row
      if mode=="lost-final":
       assert row.get("result",{}).get("sourceConfirmed") is True,row
@@ -111,6 +111,27 @@ try:
    expect(group).to_be_visible();assert source.read_bytes()==original
    assert not hits
    print("PASS unproved or mixed reference requires explicit Review",mode,flush=True)
+   if mode=="mixed":
+    group.locator("#review-creation").click()
+    expect(review).to_be_visible()
+    assert source.read_bytes()==original
+    review.locator("[data-reject]").click()
+    expect(review).to_be_hidden()
+    assert source.read_bytes()==original
+    save.click()
+    expect(group).to_be_visible()
+    group.locator("#review-creation").click()
+    expect(review.locator("#confirm")).to_be_enabled()
+    assert source.read_bytes()==original
+    review.locator("#confirm").click()
+    expect(review).to_be_hidden()
+    assert b"TargetNonzero" in source.read_bytes() and b"Mixed change" in source.read_bytes()
+    assert not hits
+    page.unroute_all(behavior="wait");page.close();f.stop();f.start(1)
+    page=f.setup(b);editor=open_owner(page)
+    expect(editor.get_by_role("button",name="Target 기본값 선택",exact=True)).to_have_text("Nonzero label")
+    expect(editor.get_by_label("Note 기본값",exact=True)).to_have_value("Mixed change")
+    print("PASS mixed Review rejection, explicit Confirm and restart",flush=True)
   elif mode in ("rename","retype","permission","missing","owner"):
    expected=original+b"\n// external owner change\n" if mode=="owner" else original
    assert len(hits)==1 and source.read_bytes()==expected,(hits,source.read_text())
@@ -124,12 +145,12 @@ try:
    expect(editor.get_by_role("button",name="Target 기본값 선택",exact=True)).to_have_text("Nonzero label")
    assert source.read_bytes()==final_bytes
    print("PASS final response loss commits once; restart reads exact saved value",flush=True)
-  elif mode in ("lost-owner","mixed-recovered"):
+  elif mode in ("lost-owner","mixed-recovered","mixed-recovered-conflict"):
    assert len(applies)==len(masked)==1 and not hits and source.read_bytes()==original
    # The recovered staged receipt is not authorization to reissue Confirm.
    assert any("TargetNonzero" in saved.read_text() for saved in f.projects[0].parent.glob(".confectory/edit-workspaces/*/draft.json"))
    print("PASS lost staging response retained unconfirmed draft",flush=True)
-   if mode=="mixed-recovered":
+   if mode in ("mixed-recovered","mixed-recovered-conflict"):
     # Actual UI staged both values. Use the normal explicit host Review
     # request to exercise a recovered receipt in a multi-owner selection.
     page.unroute_all(behavior="wait")
@@ -141,9 +162,19 @@ try:
     page.locator(".context-menu").get_by_role("button",name="스키마 열기",exact=True).click()
     peer=page.locator('.window[data-key="schema"]')
     peer.get_by_label("Count 기본값",exact=True).fill("12")
+    if mode=="mixed-recovered-conflict":source.write_bytes(original+b"\n// external change after staging\n")
     peer.locator('[data-element-action="save"]').click()
     expect(page.locator("#project-menu")).to_be_enabled()
-    assert source.read_bytes()==original
+    assert source.read_bytes()==(original+b"\n// external change after staging\n" if mode=="mixed-recovered-conflict" else original)
+    assert b"data Count = 0;" in (f.projects[0].parent/"TargetZero.celem").read_bytes()
+    staged=[row for saved in f.projects[0].parent.glob(".confectory/edit-workspaces/*/draft.json") for row in json.loads(saved.read_text())["changes"]]
+    scalar_staged=any(row["id"]==f"{NS}::TargetZero" and "data Count = 12;" in row["draft"] for row in staged)
+    if mode=="mixed-recovered-conflict":
+     assert not scalar_staged and any(row["id"]==f"{NS}::SourceLink" and "TargetNonzero" in row["draft"] for row in staged)
+     expect(peer.get_by_label("Count 기본값",exact=True)).to_have_value("12")
+     print("PASS external prior owner edit blocks later staging; both inputs retained",flush=True)
+     raise SystemExit(0)
+    assert scalar_staged, page.locator("#status").inner_text()
     ids=[f"{NS}::SourceLink",f"{NS}::TargetZero",f"{NS}::ProjectManifest"]
     f.call("reviewGroup",{"ids":ids,"target":"linux"})
     reviewed=f.state()["review"];assert reviewed["status"]=="ready",reviewed

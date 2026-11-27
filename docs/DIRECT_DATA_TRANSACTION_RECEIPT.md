@@ -104,3 +104,18 @@ It checks historical completion, no inference from identical bytes/ABA,
 missing/corrupt/mismatched records, denial, project/owner isolation,
 independent input preservation, and concurrent admissions. The synthetic
 source writer exists only in the probe.
+
+### Commit boundary inspection (378cb590 follow-up)
+
+The existing `ConfirmReviewed` calls `FileStream.CommitPlan` or `Commit`,
+then separately accepts and acknowledges the selected draft. Both commit
+functions return only the string `applied` after their source-lease write
+loop, not a durable operation-bound attestation. `WriteAtomic` uses
+`File.WriteAllText` followed by `File.Move` and does not flush the file or its
+parent directory. Consequently an adapter calling completion after the
+current `applied` result would not establish the required durable transaction
+identity. No receipt is connected to this lifecycle, no faster Save route is
+enabled, and identical file bytes are still insufficient to infer success.
+A future opt-in integration needs a commit-authority operation binding and a
+verified durable replacement/publication protocol before UI recovery testing;
+Windows still requires its own durability adapter.

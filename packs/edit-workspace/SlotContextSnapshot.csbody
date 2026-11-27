@@ -6,9 +6,22 @@ if(compactClean&&(declarations.Length>1024||state["units"]?[owner]?["kind"]?.ToS
  // Keep all original guard rows. Omit only unchanged declarations from the
  // bounded semantic overlay, after checking their actual owned source bytes.
  string root=state["root"]!.ToString();var cmp=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
- foreach(var row in state["units"]!.AsObject()){
+ int retainedOverlays=0;foreach(var row in state["units"]!.AsObject()){
   var unit=row.Value!;if(unit["draft"] is null)continue;
-  if(row.Key!=owner&&(unit["baseline"]?.ToString()=="missing"||!System.Text.Json.Nodes.JsonNode.DeepEquals(unit["draft"],unit["original"])))throw new InvalidOperationException("Large owner edit requires unchanged other declarations; retain existing drafts");
+  if(row.Key!=owner&&(unit["baseline"]?.ToString()=="missing"||!System.Text.Json.Nodes.JsonNode.DeepEquals(unit["draft"],unit["original"]))){
+   // A previously staged, existing reference-only value may be retained as
+   // an explicit overlay for a later mixed Review. Never omit dirty text.
+   var receipt=unit["slotSaveReceipt"];var proof=receipt?["sources"]?[row.Key];
+   var changes=receipt?["declaration"]?["changes"] as System.Text.Json.Nodes.JsonArray;
+   var change=changes?.Count==1?changes[0]:null;
+   if(++retainedOverlays>16||unit["baseline"]?.ToString()=="missing"||unit["kind"]?.ToString()!="object"||
+      receipt?["owner"]?.ToString()!=row.Key||receipt?["version"]?.GetValue<int>()!=3||
+      receipt?["declaration"]?["id"]?.ToString()!=row.Key||receipt?["declaration"]?["raw"] is not null||
+      change?["type"]?.ToString()!="data"||change["path"] is not System.Text.Json.Nodes.JsonArray{Count:1}||
+      change["contract"]?["kind"]?.ToString()!="reference"||change["contract"]?["cardinality"]?.ToString()!="single"||
+      proof?["hash"]?.ToString()!=Hash(unit["draft"]!.ToString())||proof?["path"]?.ToString()!=unit["path"]?.ToString()||proof?["kind"]?.ToString()!="object")
+    throw new InvalidOperationException("Large owner edit requires unchanged other declarations or a retained reference receipt; retain existing drafts");
+  }
   string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,unit["path"]!.ToString()));
   if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,cmp))throw new UnauthorizedAccessException("Large owner source outside project");
   for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new UnauthorizedAccessException("Large owner source cannot traverse links");if(node.FullName.Equals(root,cmp))break;}
