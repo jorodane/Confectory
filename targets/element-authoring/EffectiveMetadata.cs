@@ -126,6 +126,12 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    }
    if(modelIds is null)return Project(id,text,selected);
    if(modelIds.Count is <1 or >32||drafts?.Count>0||!schemaView||!schemaReuseProof||!observeSources||validateObjects||definitionTypes||nativeTypes)throw new ArgumentException("Bounded clean property model required");
+   // The workspace only accepts a prepared model with the complete bounded
+   // ownership proof (128 paths). Construct that exact canonical proof before
+   // the optional per-owner projections, after Registry has validated the scope.
+   // An oversized proof never produces a model; ordinary opening still uses
+   // the existing full schema path, and no authorization result is cached.
+   if(registry.Packs.Values.Sum(pack=>(long)pack.Elements.Count+1)>128&&OwnershipPaths().AsArray().Count>128)throw new ArgumentException("Prepared ownership proof exceeds workspace budget");
    var output=new System.Text.Json.Nodes.JsonArray();var ids=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 
    var commonPaths=observed.Keys.ToArray();

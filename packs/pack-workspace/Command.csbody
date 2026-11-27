@@ -110,9 +110,35 @@ case "refresh-activation":{
 }
 case "relations-map":{
  var mapNodes=new System.Text.Json.Nodes.JsonArray();var mapEdges=new System.Text.Json.Nodes.JsonArray();var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);var batch=new System.Text.Json.Nodes.JsonArray();
- void Collect(){if(batch.Count==0)return;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["project"]=calls.Identity.Invoke(draft)[0],["units"]=batch.DeepClone()}.ToJsonString()))!;foreach(var node in result["nodes"]!.AsArray())mapNodes.Add(node!.DeepClone());foreach(var edge in result["edges"]!.AsArray())mapEdges.Add(edge!.DeepClone());batch.Clear();}
  var ids=calls.List.Invoke(draft);Array.Sort(ids,StringComparer.Ordinal);
- foreach(string mapId in ids){var status=calls.Status.Invoke(draft,mapId);if(!RelationKind(status[1]))continue;var unit=calls.Read.Invoke(draft,mapId);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant();versions[mapId]=new[]{unit[4],hash,unit[1],unit[6]};batch.Add(new System.Text.Json.Nodes.JsonObject{["id"]=mapId,["kind"]=unit[1],["text"]=unit[3],["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["dirty"]=unit[6]=="dirty"});if(batch.Count==32)Collect();}Collect();
+ string mapProject=calls.Identity.Invoke(draft)[0];var batches=new System.Text.Json.Nodes.JsonArray();int groupBytes=2;bool groupUnsupported=false;
+ // Keep the original immediate single-batch path for small workspaces.
+ bool groupEnabled=ids.Length>64&&!OperatingSystem.IsBrowser()&&!OperatingSystem.IsAndroid();
+ void Append(System.Text.Json.Nodes.JsonNode result){foreach(var node in result["nodes"]!.AsArray())mapNodes.Add(node!.DeepClone());foreach(var edge in result["edges"]!.AsArray())mapEdges.Add(edge!.DeepClone());}
+ void Single(System.Text.Json.Nodes.JsonArray units)=>Append(System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["project"]=mapProject,["units"]=units.DeepClone()}.ToJsonString()))!);
+ void Flush(){
+  if(batches.Count>=2&&!groupUnsupported){
+   // Older tools interpret the empty legacy units array as an empty map.
+   // Accept a group only with its explicit capability marker and full exact order.
+   var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["project"]=mapProject,["units"]=new System.Text.Json.Nodes.JsonArray(),["batches"]=batches.DeepClone()}.ToJsonString()))!;
+   if(result["grouped"]?.GetValue<bool>()==true){
+    var expected=System.Linq.Enumerable.SelectMany(batches,b=>System.Linq.Enumerable.Select(b!.AsArray(),u=>u!["id"]!.ToString()));
+    var actual=System.Linq.Enumerable.Select(result["nodes"]!.AsArray(),u=>u!["id"]!.ToString());
+    if(!System.Linq.Enumerable.SequenceEqual(expected,actual,StringComparer.Ordinal))throw new InvalidOperationException("Grouped map response does not match owned sources");
+    Append(result);
+   }else if(result["nodes"]!.AsArray().Count==0&&result["edges"]!.AsArray().Count==0){groupUnsupported=true;foreach(var group in batches)Single(group!.AsArray());}
+   else throw new InvalidOperationException("Unsupported grouped map response");
+  }else foreach(var group in batches)Single(group!.AsArray());
+  batches.Clear();groupBytes=2;
+ }
+ void Collect(){if(batch.Count==0)return;
+  if(!groupEnabled||groupUnsupported){Single(batch);batch.Clear();return;}
+  int bytes=System.Text.Encoding.UTF8.GetByteCount(batch.ToJsonString());
+  if(bytes>1048573){Flush();Single(batch);}
+  else{if(batches.Count>=16||groupBytes+bytes+1>1048576)Flush();if(groupUnsupported)Single(batch);else{batches.Add(batch.DeepClone());groupBytes+=bytes+1;}}
+  batch.Clear();
+ }
+ foreach(string mapId in ids){var status=calls.Status.Invoke(draft,mapId);if(!RelationKind(status[1]))continue;var unit=calls.Read.Invoke(draft,mapId);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant();versions[mapId]=new[]{unit[4],hash,unit[1],unit[6]};batch.Add(new System.Text.Json.Nodes.JsonObject{["id"]=mapId,["kind"]=unit[1],["text"]=unit[3],["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["dirty"]=unit[6]=="dirty"});if(batch.Count==32)Collect();}Collect();Flush();
  foreach(var observed in versions){var current=calls.Read.Invoke(draft,observed.Key);if(current[4]!=observed.Value[0]||RelationHash(current[3])!=observed.Value[1]||current[1]!=observed.Value[2]||current[6]!=observed.Value[3])throw new InvalidOperationException("Map source changed during projection; read again");}
  var known=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(mapNodes,n=>n!["id"]!.ToString()),StringComparer.Ordinal);var outside=new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);foreach(var edge in mapEdges)foreach(string field in new[]{"target","function","scope"})if(edge![field] is not null&&!known.Contains(edge[field]!.ToString()))outside.Add(edge[field]!.ToString());foreach(string externalId in outside)mapNodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=externalId,["title"]=externalId.Split("::")[^1],["kind"]="reference",["owned"]=false,["valid"]=true,["availability"]="outside-owned-view"});
  var grouped=new System.Text.Json.Nodes.JsonArray();foreach(var group in System.Linq.Enumerable.GroupBy(mapEdges,e=>e!.ToJsonString())){var edge=System.Linq.Enumerable.First(group)!.DeepClone().AsObject();edge["count"]=System.Linq.Enumerable.Count(group);edge["key"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(group.Key))).ToLowerInvariant();grouped.Add(edge);}

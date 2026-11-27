@@ -6,6 +6,26 @@ internal static class RelationMapBatch
 {
     public static JsonObject Query(JsonObject request)
     {
+        // Transport grouping only: each batch still uses the exact existing
+        // projection (including identity and malformed declaration diagnostics).
+        if (request.ContainsKey("batches"))
+        {
+            if (request["batches"] is not JsonArray batches || request["units"] is not JsonArray empty || empty.Count != 0 ||
+                batches.Count is < 2 or > 16 ||
+                System.Text.Encoding.UTF8.GetByteCount(batches.ToJsonString()) > 1048576)
+                throw new ArgumentException("Map source group budget");
+            var groupedNodes = new JsonArray(); var groupedEdges = new JsonArray();
+            foreach (var batch in batches)
+            {
+                if (batch is not JsonArray group || group.Count is < 1 or > 32)
+                    throw new ArgumentException("Map source batch budget");
+                var result = Query(new JsonObject { ["units"] = group.DeepClone() });
+                foreach (var node in result["nodes"]!.AsArray()) groupedNodes.Add(node!.DeepClone());
+                foreach (var edge in result["edges"]!.AsArray()) groupedEdges.Add(edge!.DeepClone());
+            }
+            return new JsonObject { ["nodes"] = groupedNodes, ["edges"] = groupedEdges,
+                ["sourceWritten"] = false, ["executed"] = false, ["grouped"] = true };
+        }
         var units = request["units"]?.AsArray() ?? throw new ArgumentException("Owned map source batch required");
         if (units.Count > 32) throw new ArgumentException("Map source batch budget");
         var nodes = new JsonArray(); var edges = new JsonArray();
