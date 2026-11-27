@@ -40,12 +40,12 @@ def exact_read(expected, success):
         assert rows
         if success:
             assert rows[0]["ok"],rows[0]
-            # The existing registered-command scan rejects this large fixture;
-            # transport must not erase that explicit consumer diagnostic.
             outcome=rows[0]["result"]
-            if outcome.get("status")=="failed":
-                assert count==400 and "Menu object scan bound" in outcome.get("message",""),outcome
-                print("PASS existing registered-menu scan bound remains explicit",flush=True)
+            if baseline and count==400:
+                assert outcome.get("status")=="failed" and "Menu object scan bound" in outcome.get("message",""),outcome
+                print("PASS baseline registered-menu scan bound",flush=True)
+            else:
+                assert outcome.get("status")!="failed",outcome
         else:
             assert rows[0]["error"]["code"]=="stale_revision",rows[0]
     finally:

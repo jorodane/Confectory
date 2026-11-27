@@ -15,21 +15,26 @@ internal static class EditorMenuDeclarations
         {
             path=Path.GetFullPath(path);var file=new FileInfo(path);
             if(!file.Exists||file.LinkTarget is not null||file.Length>1048576)throw new ArgumentException("Menu declaration unavailable or over budget");
-            byte[] raw=File.ReadAllBytes(path);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(raw));
+            byte[] raw=File.ReadAllBytes(path);if(raw.Length>1048576)throw new ArgumentException("Menu declaration unavailable or over budget");string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(raw));
             if(observed.TryGetValue(path,out string? before)&&before!=hash)throw new InvalidOperationException("Menu source changed during discovery");
             if(!observed.ContainsKey(path)){bytes+=raw.Length;if(observed.Count>=512||bytes>4194304)throw new ArgumentException("Menu discovery budget");observed[path]=hash;}
             return new UTF8Encoding(false,true).GetString(raw);
         }
         var stats=new BuildStatistics();var docs=new Documents(Path.Combine(Path.GetTempPath(),"confectory-menu-metadata"),stats,path=>Encoding.UTF8.GetBytes(Read(path)));
         var registry=new Registry(project,docs,stats);if(registry.Packs.Count>64)throw new ArgumentException("Menu registry bound");
-        var rows=new JsonArray();int objects=0;
+        var rows=new JsonArray();
+        // Complete, ordered discovery in bounded pages. Only the owner pack
+        // and its explicit direct dependencies contribute object locators.
+        // The one query still retains the existing global observed-file/byte
+        // and action budgets, and rechecks every observed file at the end.
+        const int ObjectPageSize=256;
         foreach(var pack in registry.Packs.OrderBy(p=>p.Key,StringComparer.Ordinal))
         {
             // Explicit direct dependencies only; registry entries alone grant no discovery scope.
             if(pack.Key!=registry.Project.Namespace&&!registry.Project.Dependencies.ContainsKey(pack.Key))continue;
-            foreach(var locator in pack.Value.Elements.OrderBy(p=>p.Key,StringComparer.Ordinal))
+            foreach(var page in pack.Value.Elements.Where(p=>p.Value.Kind=="object").OrderBy(p=>p.Key,StringComparer.Ordinal).Chunk(ObjectPageSize))
+            foreach(var locator in page)
             {
-                if(locator.Value.Kind!="object")continue;if(++objects>256)throw new ArgumentException("Menu object scan bound");
                 var action=registry.Get(pack.Key+"::"+locator.Key);
                 if(!action.Values.TryGetValue("editorContextMenu",out var marker)||marker.Value.ValueKind!=JsonValueKind.True)continue;
                 if(rows.Count>=32)throw new ArgumentException("Menu action bound");

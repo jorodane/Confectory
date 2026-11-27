@@ -2,8 +2,9 @@
 Run with the normal EditorHome build report and current authoring host:
   python tests/web/editor_menu_current_route_ui.py REPO BUILD_REPORT
 Pass base as an optional third argument only to reproduce the old stale admission failure.
+Pass candidate 40|257|400 to exercise real registered menus after a bounded scan page.
 """
-import json,sys,shutil
+import json,sys,shutil,re
 from pathlib import Path
 from playwright.sync_api import sync_playwright,expect
 import v821_property_window_reopen_ui as r
@@ -13,7 +14,20 @@ r.seed();mode=sys.argv[3] if len(sys.argv)>3 else "candidate";library=f.root/'sc
 for manifest in f.projects:
  action=manifest.parent/'Menu.celem';action.write_text((f.repo/'examples/editor-context-actions/MetadataProposal.celem').read_text().replace('Example.EditorContextActions::MetadataProposal',d.NS+'::Menu'))
  manifest.write_text(manifest.read_text().rstrip()[:-1]+' registry Confectory.SchemaEditing '+json.dumps(str(library/'pack.cpack'))+'; dependency Confectory.SchemaEditing version "0.1.0"; element Menu object "Menu.celem"; }\n')
+ # Sort filler objects before Menu so a 400-object declaration is genuinely
+ # beyond the first 256-object page (not a lucky early match).
+ if len(sys.argv)>4:
+  count=int(sys.argv[4]);assert count in (40,255,256,257,400)
+  current=len(re.findall(r'\belement\s+\S+\s+object\s+',manifest.read_text()))
+  entries=[]
+  for i in range(count-current):
+   name=f"AAAA{i:04}";path=manifest.parent/(name+".celem")
+   path.write_text(f"object {d.NS}::{name} {{}}\n")
+   f.before[str(path)]=path.read_bytes();entries.append(f'element {name} object "{path.name}";')
+  assert len(entries)==count-current
+  manifest.write_text(manifest.read_text().rstrip()[:-1]+"\n"+"\n".join(entries)+"\n}\n")
  for file in (manifest,action):f.before[str(file)]=file.read_bytes()
+expect.set_options(timeout=90000)
 try:
  with sync_playwright() as p,p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as b:
   f.start(0);page=b.new_page(viewport={'width':2000,'height':1200});page.route('**/*',lambda route:route.continue_() if route.request.url.startswith(f.origin+'/') else route.abort());goto_editor(page,f.url)
