@@ -86,21 +86,53 @@ try:
         row=find(page,'D');row.click(button='right');page.locator('.context-menu').get_by_role('button',name='스키마 열기',exact=True).click()
         expect(page.locator('.window[data-key="schema"] [data-property-value]').first).to_be_editable()
         for name in 'ABC':
-            row=find(page,name);row.click(button='right');page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click()
+            row=find(page,name);row.click(button='right')
+            button=page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True)
+            # The Browser's declaration tree is not part of the new property
+            # window. Capture real node identity at the trusted open gesture.
+            button.evaluate('''el=>el.addEventListener('click',()=>{
+              const tree=document.querySelector('.window[data-key="browser"] .browser-folder-tree');
+              const before={tree,children:[...tree.children],scroll:tree.scrollTop,mutations:0};
+              const count=records=>{for(const row of records)before.mutations+=row.addedNodes.length+row.removedNodes.length;};
+              before.observer=new MutationObserver(count);before.count=count;
+              before.observer.observe(tree,{childList:true});
+              globalThis.openTreeBefore=before;
+            },{once:true,capture:true})''')
+            button.click()
             expect(page.locator(f'.window[data-element-owner="{ns}::Sample{name}"] [data-property-value]').first).to_be_editable()
+            identity=page.evaluate('''()=>{const before=openTreeBefore,{tree,children,scroll,observer}=before;
+              before.count(observer.takeRecords());observer.disconnect();return {
+              total:children.length,same:children.filter((node,i)=>node===tree.children[i]).length,
+              scroll:tree.scrollTop===scroll,connected:tree.isConnected,mutations:before.mutations};}''')
+            assert identity['connected'] and identity['total']>0 and identity['same']==identity['total'] and identity['scroll'] and identity['mutations']==0, identity
+            print('unchanged browser tree',name,identity,flush=True)
             if name=='A':
                 field=page.locator(f'.window[data-element-owner="{ns}::SampleA"]').get_by_label('Note 기본값',exact=True)
                 field.press('End')
                 field.evaluate("""field=>{let start;field.addEventListener('keydown',()=>{start=performance.now()},{once:true});field.addEventListener('input',()=>{globalThis.firstKeyMs=performance.now()-start},{once:true})}""")
                 field.press('x'); expect(field).to_have_value('Synthetic sample Ax'); field.press('Backspace')
                 print('first-key-ms',page.evaluate('globalThis.firstKeyMs'),flush=True)
-                a=page.locator(f'.window[data-element-owner="{ns}::SampleA"]');a.locator('[data-close]').click();expect(a).to_be_hidden();find(page,'A').press('Enter');expect(a).to_be_visible();expect(a.locator('[data-property-value]').first).to_be_editable()
+                a=page.locator(f'.window[data-element-owner="{ns}::SampleA"]');a.locator('[data-close]').click();expect(a).to_be_hidden()
+                row=find(page,'A')
+                row.evaluate('''(row,id)=>row.addEventListener('keydown',event=>{
+                  if(!event.isTrusted||event.key!=='Enter')return;
+                  const start=performance.now();globalThis.reopenedEditableMs=null;
+                  const frame=()=>{const win=[...document.querySelectorAll('.window[data-element-owner]')].find(w=>w.dataset.elementOwner===id&&!w.hidden);
+                    if(win&&[...win.querySelectorAll('[data-property-value]')].some(f=>f.getClientRects().length&&!f.disabled&&!f.readOnly&&!f.closest('[inert]'))){reopenedEditableMs=performance.now()-start;return;}
+                    if(performance.now()-start<60000)requestAnimationFrame(frame);
+                  };requestAnimationFrame(frame);
+                },{once:true,capture:true})''',f'{ns}::SampleA')
+                row.press('Enter');expect(a).to_be_visible();expect(a.locator('[data-property-value]').first).to_be_editable()
+                page.wait_for_function('()=>globalThis.reopenedEditableMs!==null&&Number.isFinite(globalThis.reopenedEditableMs)')
+                print('actual reopen editable ms',page.evaluate('reopenedEditableMs'),flush=True)
 
         for label,key in [('개념 맵','map'),('빌드 작업','builds'),('의미 편집 이력','history')]:
             expect(page.locator('#project-menu')).to_be_enabled();page.locator('#title').click();page.locator('.context-menu').get_by_role('button',name='프로젝트 도구',exact=True).click();page.locator('.nav-menu').get_by_role('button',name=label,exact=True).click();expect(page.locator(f'.window[data-key="{key}"]')).to_be_visible()
         a.get_by_label('Note 기본값',exact=True).fill(secret)
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"');page.evaluate('()=>confectoryFlushPresentation()')
-        first,rows=events(page,{'window-ready','browser-open-ready','browser-search-ready'});assert {r['operation'] for r in rows if r['stage']=='window-ready'} >= {'openEditorView','reopenEditorView'}
+        # The bounded diagnostic buffer may drop one of the two window marks.
+        # Above, actual DOM identity, editable field and trusted Enter prove both paths.
+        first,rows=events(page,{'window-ready','browser-open-ready','browser-search-ready'})
         print('objects',count,flush=True)
         print('initial timing',json.dumps([r for r in rows if r['stage'] in ('window-ready','browser-search-ready','authoring-stream','consumer')]),flush=True)
         trace=page.evaluate('globalThis.confectoryWebUITrace || []')

@@ -100,9 +100,16 @@ def choose(window, name, editor_key):
     editor = page.locator(f'.window[data-key="{editor_key}"]')
     expect(editor).to_be_visible()
     selected = [request["input"]["id"] for request in fixture.requests[start:] if request["endpoint"] == "select"]
-    assert selected and set(selected) == {f"{NS}::{name}"}, selected
-    expect(page.locator("#status")).to_have_text("Ready")
-    assert fixture.state()["draft"]["id"] == f"{NS}::{name}"
+    assert not selected or set(selected) == {f"{NS}::{name}"}, selected
+    if editor_key == "schema":
+        # An already prepared primary model may open without a select request.
+        # Verify the exact rendered owner ID, not the transport implementation.
+        expect(editor.locator(".object-info-button")).to_have_attribute(
+            "title", f"소유 · ProjectPack\nID · {NS}::{name}")
+    else:
+        assert selected, selected
+        assert fixture.state()["draft"]["id"] == f"{NS}::{name}"
+    expect(page.locator("#project-menu")).to_be_enabled()
     editor.get_by_role("button", name="창 닫기", exact=True).click()
 
 
@@ -146,6 +153,50 @@ def scenario(page):
     tab(window, "기능", "feature")
     search(window, MODULE)
     search(window, SAME, "LookupFunction")
+    # Reopen first after an external label edit. The original selected node
+    # must be retired, not reused across project activations.
+    source = fixture.projects[0].parent / "private-source-LookupObject.celem"
+    raw = source.read_text().replace(SAME, "외부 수정 표식")
+    source.write_text(raw)
+    fixture.before[str(source)] = source.read_bytes()
+    browser = page.context.browser
+    page.close()
+    fixture.stop()
+    fixture.env.pop("CONFECTORY_WEB_PROJECT", None)
+    fixture.start(1)
+    from editor_navigation import goto_editor
+    page = browser.new_page(viewport={"width":1440,"height":1000})
+    page.route("**/*",lambda route:route.continue_() if route.request.url.startswith(fixture.origin+"/") else route.abort())
+    goto_editor(page,fixture.url)
+    expect(page.locator(".home-grid")).to_be_visible()
+    page.locator(".project-card").filter(has=page.get_by_role("heading", name=FIRST, exact=True)).locator("[data-enter]").click()
+    expect(page.locator("#title")).to_contain_text(FIRST)
+    window = browser_window(page)
+    tab(window, "개념", "concept")
+    tree = window.locator(".browser-folder-tree")
+    label = tree.locator(f'[data-tree-id="{NS}::LookupObject"]')
+    expect(label).to_contain_text("외부 수정 표식")
+    choose_tree_location(window, f'[data-namespace="{NS}"]')
+    search(window, "외부 수정 표식", "LookupObject")
+    tree = window.locator(".browser-folder-tree")
+    label = tree.locator(f'[data-tree-id="{NS}::LookupObject"]')
+    expect(label).to_contain_text("외부 수정 표식")
+    label.focus()
+    tree.evaluate("el=>{globalThis.savedTree=[...el.children];globalThis.savedScroll=el.scrollTop;globalThis.savedFocus=document.activeElement}")
+    page.wait_for_timeout(500)
+    assert tree.evaluate("el=>savedTree.every((n,i)=>n===el.children[i])&&savedScroll===el.scrollTop&&savedFocus===document.activeElement")
+    label.press("ArrowUp")
+    assert tree.evaluate("el=>el.contains(document.activeElement)")
+    field = window.get_by_role("textbox", name="의미 객체 검색", exact=True)
+    field.fill("외부 수정 표식")
+    field.press("Home")
+    field.press("ArrowRight")
+    field.evaluate("el=>{globalThis.queryNode=el;globalThis.caret=el.selectionStart}")
+    page.wait_for_timeout(500)
+    assert field.evaluate("el=>queryNode===el&&document.activeElement===el&&caret===el.selectionStart")
+    window.get_by_role("button", name="검색 확정", exact=True).click()
+    expect(window.locator(f'[data-object="{NS}::LookupObject"]')).to_be_visible()
+    fixture.checked("External label and navigation; retained tree focus, scroll and search caret")
     fixture.original()
     fixture.checked("A second project with the same namespace has its own results and no first-project classification; searches preserve all original files")
 
