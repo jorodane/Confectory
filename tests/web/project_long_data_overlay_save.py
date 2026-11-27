@@ -5,7 +5,7 @@ Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
 The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
-import os,sys,shutil,tempfile,subprocess,signal,time,json,re
+import os,sys,shutil,tempfile,subprocess,signal,time,json,re,threading
 from pathlib import Path
 from contextlib import contextmanager
 from playwright.sync_api import sync_playwright,expect
@@ -97,13 +97,27 @@ def save_existing_rule(page,window,new):
   poll_rows.append(dict(busy=reply.get('busy') is True,changed=reply.get('changed') is True,fresh=len(fresh),revision=reply.get('revision')))
  page.on('request',observe)
  if '--poll-timeline' in sys.argv:page.on('response',observe_update)
- button.evaluate('''b=>{window.__saveFirstFrame=null;b.addEventListener('click',()=>{const start=performance.now();requestAnimationFrame(()=>{window.__saveFirstFrame={ms:performance.now()-start,disabled:!!document.querySelector('.window[data-key=schema] [data-element-action=confirm]')?.disabled}})},{capture:true,once:true})}''')
+ button.evaluate('''b=>{window.__saveFirstFrame=null;window.__saveClickWall=null;window.__saveUiMs=null;window.__saveUiObserver?.disconnect();window.__saveUiObserver=new MutationObserver(()=>{if(window.__saveClickWall!==null&&window.__saveUiMs===null&&document.querySelector('#status')?.textContent==='저장했습니다.')window.__saveUiMs=performance.timeOrigin+performance.now()-window.__saveClickWall});window.__saveUiObserver.observe(document.querySelector('#status'),{subtree:true,childList:true,characterData:true});b.addEventListener('click',e=>{if(!e.isTrusted)return;const start=performance.now();window.__saveClickWall=performance.timeOrigin+start;requestAnimationFrame(()=>{window.__saveFirstFrame={ms:performance.now()-start,disabled:!!document.querySelector('.window[data-key=schema] [data-element-action=confirm]')?.disabled}})},{capture:true,once:true})}''')
  page.evaluate("""()=>{window.__directRuleReviewSeen=false;const visible=()=>[...document.querySelectorAll('#review-creation,.window[data-key=review]')].some(e=>e.getClientRects().length>0);const check=()=>{if(visible())window.__directRuleReviewSeen=true};check();window.__directRuleObserver=new MutationObserver(check);window.__directRuleObserver.observe(document.body,{subtree:true,childList:true,attributes:true});}""")
+ # Observe the actual file independently of Chromium response polling.
+ stop=threading.Event();file_times=[]
+ def observe_file():
+  while not stop.is_set():
+   try:
+    if f'data OpenMilliseconds = {new};' in source_file.read_text():
+     file_times.append(time.time()*1000);return
+   except FileNotFoundError:pass
+   stop.wait(.002)
+ monitor=threading.Thread(target=observe_file,daemon=True)
  try:
-  started=time.monotonic();button.click()
-  deadline=time.monotonic()+120
-  while time.monotonic()<deadline and (not any(c in calls for c in ('confirmGroup','directPropertyConfirm')) or f'data OpenMilliseconds = {new};' not in source_file.read_text()):page.wait_for_timeout(50)
-  print('durable ms',round((time.monotonic()-started)*1000),flush=True)
+  monitor.start();button.click()
+  page.wait_for_function('()=>window.__saveUiMs!==null',timeout=120000)
+  monitor.join(2)
+  assert file_times,'Final source was not observed'
+  click_wall,ui=page.evaluate('()=>[window.__saveClickWall,window.__saveUiMs]')
+  assert click_wall is not None and file_times[0]>=click_wall
+  print('durable ms',round(file_times[0]-click_wall),flush=True)
+  print('UI completion ms',round(ui),flush=True)
   expect(page.locator('#status')).to_have_text('저장했습니다.',timeout=120000)
   expect(page.locator('#review-creation')).to_be_hidden();expect(page.locator('.window[data-key=review]')).to_be_hidden()
   assert not page.evaluate('()=>window.__directRuleReviewSeen'), 'A Review was displayed during direct Save'
@@ -121,6 +135,7 @@ def save_existing_rule(page,window,new):
   if '--poll-timeline' in sys.argv:
    print('combined presentation replies',len(combined),'update replies',len(poll_rows),'busy',sum(row['busy'] for row in poll_rows),'changed',sum(row['changed'] for row in poll_rows),'result-bearing',sum(row['fresh']>0 for row in poll_rows),'unchanged-no-new-result',sum(not row['busy'] and not row['changed'] and not row['fresh'] for row in poll_rows),flush=True)
  finally:
+  stop.set();monitor.join(1);page.evaluate('()=>window.__saveUiObserver?.disconnect()')
   if '--poll-timeline' in sys.argv:page.remove_listener('response',observe_update)
   page.remove_listener('request',observe);page.evaluate('()=>window.__directRuleObserver?.disconnect()')
   if '--timeline' in sys.argv:print('RENDERER',json.dumps(page.evaluate('()=>globalThis.confectoryWebUITrace')),flush=True)
