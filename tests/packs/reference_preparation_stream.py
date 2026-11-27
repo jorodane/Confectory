@@ -188,6 +188,14 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
                 expected=ordinary(request)
                 assert expected["ok"] and send(proc,request)==expected
                 assert not expected.get("result",{}).get("repeatProof")
+        # New caller can request the exact repeat proof only for its clean
+        # existing root string. The same full before/after graph is verified.
+        for value in ("","한글 · café"):
+            request=dict(next(string_requests(value)),reuseStringPreparation=True)
+            expected=ordinary(request)
+            assert expected["ok"] and send(proc,request)==expected
+            proof=expected["result"]["repeatProof"]
+            assert proof["observations"] and proof["ownershipPaths"]
         schema=project/"TextInfo.celem";raw=schema.read_bytes()
         schema.write_bytes(raw.replace(b"general string",b"general long"))
         for request in string_requests("invalid"):

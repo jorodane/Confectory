@@ -29,13 +29,15 @@ internal static class MixedOwnerCopyEdits
   if(element.Kind!="object"||element.Id!=id||!id.StartsWith(ns+"::",StringComparison.Ordinal)||registration.Kind!="project"||changes.Count is <1 or >64)throw new ArgumentException("Bounded same-owner object changes required");
   var drafts=request["drafts"]!.AsArray();if(drafts.Count>255)throw new ArgumentException("Mixed source graph budget");
   string Read(string path){var file=new FileInfo(path);if(!file.Exists||file.Length>1048576)throw new IOException("Mixed declaration source budget");return File.ReadAllText(path);}
-  // Only the exact direct single-long change can carry a repeat proof.
+  // Exact existing direct single-long, or explicitly requested single-string, can carry a repeat proof.
   // Both full metadata validations still run; no model is shared across edits.
   var single=changes.Count==1?changes[0]:null;
   bool repeat=request["reuseLongPreparation"]?.GetValue<bool>()==true&&single?["type"]?.ToString()=="data"&&
    single["path"] is JsonArray singlePath&&singlePath.Count==1&&singlePath[0] is JsonValue fieldName&&fieldName.TryGetValue<string>(out var repeatField)&&
-   element.Data.TryGetValue(repeatField,out var oldDatum)&&oldDatum.Kind=="general"&&oldDatum.Scalar is JsonElement oldScalar&&oldScalar.ValueKind==JsonValueKind.Number&&oldScalar.TryGetInt64(out _)&&
-   JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"})&&
+   element.Data.TryGetValue(repeatField,out var oldDatum)&&oldDatum.Kind=="general"&&oldDatum.Scalar is JsonElement oldScalar&&((oldScalar.ValueKind==JsonValueKind.Number&&oldScalar.TryGetInt64(out _)&&
+     JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"}))||
+    (request["reuseStringPreparation"]?.GetValue<bool>()==true&&oldScalar.ValueKind==JsonValueKind.String&&
+     JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="string"})))&&
    element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&
    element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0;
   JsonObject Inspect(string source,string currentManifest,JsonArray overlays,bool types=false){
