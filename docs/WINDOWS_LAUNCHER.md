@@ -370,6 +370,13 @@ Confectory 창을 모두 닫고, 체크아웃 또는 설치한 Windows 묶음의
 남아 직접 삭제할 수 있습니다. 강제 종료 시 마지막 약 1초 분량은 유실될 수 있습니다.
 새 시각의 폴더가 없다면 기존 창이 남아 있거나 기록 폴더 생성에 실패한 것입니다.
 
+#### 여러 창 냉간 복원 전용 샘플
+
+기존 `Confectory-performance-sample.bat`는 그대로 유지됩니다. 여러 창 복원만 비교하려면
+`Confectory-performance-restore-sample.bat`를 사용하세요. 별도 PerformanceRestoreSample-v1
+프로필과 40개 합성 객체로, 0/1/8창을 직접 구성하고 재시작할 수 있습니다.
+[정확한 클릭 순서와 개인정보 없는 이벤트 해석](../examples/performance-restore-sample/README.md)을 참고하세요.
+
 ### 설정 화면의 내장 읽기 모델 및 부분 설정 업그레이드 재검증
 
 이 항목은 실제 Windows WebView2에서 아직 실행하지 않은 후속 수락 시험입니다. 패키지의

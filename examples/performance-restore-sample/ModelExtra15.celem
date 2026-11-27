@@ -1,0 +1,6 @@
+object Confectory.PerformanceRestoreSample::ModelExtra15 {
+  use schema Confectory.PerformanceRestoreSample::SampleInfo;
+  value editorName = "Model Extra 15";
+  data Count = 15;
+  data Note = "Synthetic extra";
+}

@@ -1,0 +1,4 @@
+schema Confectory.PerformanceRestoreSample::SampleInfo {
+  field Count single general long;
+  field Note single general string;
+}

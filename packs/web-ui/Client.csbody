@@ -23,7 +23,7 @@ export class WebView {
   if(stage==='renderer-update')return;
   // A burst of renderer/status rows must not erase the few measurements
   // that tell whether an actual window, restoration or direct save finished.
-  const priority=name=>['window-ready','property-save-ready','restore-view','restore-total','restore-layout','workspace-attach'].includes(name)?2:name==='input-delay'||name==='input-frame'?1:0;
+  const priority=name=>['window-ready','property-save-ready','restore-view','restore-total','restore-layout','workspace-attach','restore-workspace-ready','restore-first-editable','restore-last-editable','restore-commands-ready','browser-open-ready','browser-search-ready'].includes(name)?2:name==='input-delay'||name==='input-frame'?1:0;
   const idle=this.performanceRows.findIndex(row=>row.stage==='renderer-update');let replace=idle;
   if(replace<0){replace=0;for(let i=1;i<this.performanceRows.length;i++)if(priority(this.performanceRows[i].stage)<priority(this.performanceRows[replace].stage))replace=i;if(priority(stage)<priority(this.performanceRows[replace].stage))return;}
   this.performanceRows.splice(replace,1);

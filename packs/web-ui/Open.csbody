@@ -120,7 +120,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
    if(op=="performance"){
     // Narrow, bounded diagnostic ingress: no state read, command, or arbitrary text.
     if(performanceRecord is null||req.Count!=4||req["rows"] is not System.Text.Json.Nodes.JsonArray samples||samples.Count is <1 or >32)return Error("performance_denied").ToJsonString();
-    foreach(var sample in samples){if(sample is not System.Text.Json.Nodes.JsonObject row||row.Count!=4||row["stage"]?.GetValue<string>() is not ("renderer-call" or "renderer-render" or "renderer-update" or "input-delay" or "input-frame" or "restore-view" or "restore-total" or "restore-layout" or "workspace-attach" or "window-ready" or "property-save-ready" or "foreground"))return Error("performance_fields").ToJsonString();
+    foreach(var sample in samples){if(sample is not System.Text.Json.Nodes.JsonObject row||row.Count!=4||row["stage"]?.GetValue<string>() is not ("renderer-call" or "renderer-render" or "renderer-update" or "input-delay" or "input-frame" or "restore-view" or "restore-total" or "restore-layout" or "workspace-attach" or "restore-workspace-ready" or "restore-first-editable" or "restore-last-editable" or "restore-commands-ready" or "browser-open-ready" or "browser-search-ready" or "window-ready" or "property-save-ready" or "foreground"))return Error("performance_fields").ToJsonString();
      string stage=row["stage"]!.GetValue<string>(),operation=row["operation"]!.GetValue<string>();double elapsed=row["elapsedMs"]!.GetValue<double>(),pageMs=row["pageMs"]!.GetValue<double>();performanceRecord(stage,operation,elapsed,pageMs);
     }return "{\"ok\":true}";
    }

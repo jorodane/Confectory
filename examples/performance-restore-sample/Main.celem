@@ -1,0 +1,3 @@
+function Confectory.PerformanceRestoreSample::Main () -> int {
+  provide Confectory.PerformanceRestoreSample::Main with Confectory.PerformanceRestoreSample::MainBody;
+}

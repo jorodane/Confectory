@@ -1,0 +1,6 @@
+object Confectory.PerformanceRestoreSample::SampleB {
+  use schema Confectory.PerformanceRestoreSample::SampleInfo;
+  value editorName = "Sample B";
+  data Count = 10;
+  data Note = "Synthetic sample B";
+}

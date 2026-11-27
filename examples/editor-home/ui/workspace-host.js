@@ -218,6 +218,25 @@ export function createActualWorkspace(api) {
       return closed.retained?[{...structuredClone(row),hidden:true}]:[];
     });
   }
+  // Diagnostic only: observe actual visible, editable fields, not a placeholder,
+  // and never count a missing/closed owner as a successfully restored editor.
+  function observeRestoreReadiness(state,layouts,bindings,selected){
+    const started=api.takeProjectOpenPerformance?.(state);if(started==null)return;
+    const owner=project,ownerScope=scope,expected=layouts.filter(row=>!row.hidden&&!row.folded).flatMap(row=>{
+      if(row.key==='schema')return [{key:row.key,id:row.meta?.id||selected}];
+      const binding=bindings.find(b=>row.key==='editor-'+b.view&&b.mode==='properties');return binding?[{key:row.key,id:binding.id}]:[];
+    });let first=false,last=false,commands=false,workspace=false;
+    const visible=e=>!!e&&e.getClientRects().length>0&&!e.closest('[hidden]');
+    const editable=e=>visible(e)&&!e.disabled&&!e.readOnly&&!e.closest('[inert]');
+    const frame=()=>{if(project!==owner||scope!==ownerScope||api.current?.projectId!==ownerScope||performance.now()-started>30000)return;
+      const count=expected.filter(row=>{const w=runtime.state.windows.get(row.key);return row.id&&w?.elementSchema?.id===row.id&&visible(w.el)&&[...w.el.querySelectorAll('[data-property-value]')].some(editable);}).length;
+      if(!workspace&&editable(api.$('#chat-input'))){workspace=true;api.performanceMark?.('restore-workspace-ready',started);}
+      if(!first&&count>0){first=true;api.performanceMark?.('restore-first-editable',started);}
+      if(!last&&expected.length>0&&count===expected.length){last=true;api.performanceMark?.('restore-last-editable',started);}
+      const menu=api.$('#project-menu');if(!commands&&visible(menu)&&!menu.disabled){commands=true;api.performanceMark?.('restore-commands-ready',started);}
+      if(!workspace||!commands||(expected.length>0&&!last))requestAnimationFrame(frame);
+    };requestAnimationFrame(frame);
+  }
   function attach(state){
     const performanceStarted=api.performanceStart?.()??null;restoreFlight?.primaryPlan?.finish(null);restoreFlight=null;partialRecovery=null;loading=true;
     if(project){capture();projects.set(scope,project);}
@@ -235,6 +254,7 @@ export function createActualWorkspace(api) {
     const bindings=project.editorBindings||[],selected=project.selectedObjectId;
     const missing=bindings.filter(binding=>!state.editorViews.some(row=>row.view===binding.view&&row.id===binding.id&&row.mode===binding.mode));
     const primaryPlan=api.beginRestorePrimaryStatus?.(state,missing,layouts);
+    observeRestoreReadiness(state,layouts,bindings,selected);
     for(const layout of layouts)runtime.restoreWindow(layout);windowDocuments.restore();
     runtime.setWorkspaceNodeSelection((project.selectedNodeKeys||[]).map(key=>runtime.state.workspaceNodes.get(key)).filter(Boolean));
     // Rendering the saved Pack Manager may capture before domain views reopen.
