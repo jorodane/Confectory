@@ -455,19 +455,37 @@ const filter=async()=>{
  const query=field.value,diagnosticStart=view.performanceEnabled?performance.now():null;if(!w.meta.catalogue&&dirty){toast('Apply local input before changing selection');return;}
  w.browserCommitStamp=null;
  if(w.meta.catalogue){w.meta.query=query;renderObjects(key);actualWorkspace.schedule();if(diagnosticStart!==null)observeBrowserReady(w,'browser-search-ready',diagnosticStart,query);return;}
- const scope=current.projectId,generation=view.generation,group=w.meta.group,search={confirmed:false,failed:false};
+ const scope=current.projectId,generation=view.generation,activation=view.scope?.projectActivation,group=w.meta.group,search={scope,generation,activation,confirmed:false,failed:false};
  w.browserSearch=search;
  const ownsSearch=()=>w.browserSearch===search&&current.projectId===scope&&view.generation===generation&&
-  windows.get(key)===w&&field.isConnected&&w.meta.group===group&&!w.meta.catalogue;
- // Browser reads share the serialized view. Keep only the newest explicit search
- // when Enter is pressed while another read is settling.
+  windows.get(key)===w&&field.isConnected&&view.scope?.projectActivation===activation&&w.meta.group===group&&!w.meta.catalogue;
+ // A complete owned search is a read-only observation, not a cursor or
+ // editor mutation. The view generation, relation proof and exact draft
+ // version must still match when the response is consumed.
+ const finish=()=>{w.meta.query=query;w.browserFilterRestored=true;w.browserFilterError=false;
+  search.confirmed=true;renderObjects(key);actualWorkspace.schedule();if(diagnosticStart!==null)observeBrowserReady(w,'browser-search-ready',diagnosticStart,query);};
+ while(busy)await whenIdle();
+ if(ownsSearch()&&!w.el.hidden&&!dirty){
+  const projection=browserProjection.snapshot(),version=projection.relationVersion;
+  if(group==='concept'&&query&&projection.complete&&version&&!browserProjection.needsRead()&&current.inventory?.status==='available'){
+   try{
+    const answer=await observeProjectWindow('verifiedConceptSearch',{query,version},ownsSearch);
+    if(!ownsSearch()||w.el.hidden)return;
+    if(answer.status==='stale'){browserProjection.invalidate(version);search.failed=true;renderObjects();toast('프로젝트 원본이 변경되었습니다. 프로젝트를 다시 열어 검색하세요.');return;}
+    if(answer.status==='ready'&&answer.version===version&&Array.isArray(answer.units)&&!dirty&&!busy&&browserProjection.snapshot().relationVersion===version&&JSON.stringify(answer.draftVersion)===JSON.stringify(current.draftVersion)){
+     const wasInvalid=browserProjection.invalid();browserProjection.verified(version);
+     search.verifiedUnits=answer.units;search.verifiedVersion=version;search.verifiedDraft=JSON.stringify(answer.draftVersion);
+     search.verifiedScope=scope;search.verifiedGeneration=generation;search.verifiedActivation=activation;finish();if(wasInvalid)renderObjects();return;
+    }
+   }catch(error){if(!ownsSearch())return;if(error.message!=='endpoint_denied'){search.failed=true;renderObjects(key);toast('검증된 검색에 실패했습니다. 검색을 다시 적용하세요.');return;}}
+  }
+ }
  while(busy)await whenIdle();
  if(ownsSearch()&&!w.el.hidden)await work(async()=>{
   if(!ownsSearch()||w.el.hidden||dirty)return false;
   await readBrowserObjects(w,{kind:{concept:'object',info:'schema',feature:'function',module:'module'}[group],query});
   if(!ownsSearch()||w.el.hidden)return false;
-  w.meta.query=query;w.browserFilterRestored=true;w.browserFilterError=false;
-  search.confirmed=true;renderObjects(key);actualWorkspace.schedule();if(diagnosticStart!==null)observeBrowserReady(w,'browser-search-ready',diagnosticStart,query);
+  finish();
  },'Ready');
  if(ownsSearch()&&!search.confirmed){search.failed=true;renderObjects(key);}
 };
@@ -787,15 +805,31 @@ function prepareVisiblePropertyModels(w,items){
  };setTimeout(load,0);
 }
 function renderObjects(key){if(!key){for(const w of windows.values())if(w.key==='browser'||w.key.startsWith('browser:')||w.key.startsWith('browser-tree:'))renderObjects(w.key);return;}const w=windows.get(key);if(w?.meta.group==='resource'){if(w.resourceGeneration!==view.generation||!w.resourceLifetime)resourceBrowser.mount(w);else resourceBrowser.render(w);return;}const root=w&&$('[data-browser-control=objects]',w.body);if(!root||!w||!current)return;
-const scope=current.projectId,generation=view.generation,group=w.meta.group,search=w.meta.catalogue?null:w.browserSearch;
+const scope=current.projectId,generation=view.generation,group=w.meta.group;let search=w.meta.catalogue?null:w.browserSearch;
 if(w.browserScope===scope&&deferPointerPresentation(w.body,()=>{if(current.projectId===scope&&view.generation===generation&&windows.get(w.key)===w)renderObjects(w.key);}))return;
+// A retained browser's query text is presentation state, but its previous
+// search result belongs to the old mounted activation. Allow the existing
+// filter restoration to publish the new owned working-copy result.
+if(search&&(search.scope!==scope||search.generation!==generation||search.activation!==view.scope?.projectActivation)){
+ w.browserSearch=null;search=null;
+ if(w.key==='browser'&&w.browserScope===scope){w.browserFilterRestored=false;w.browserFilterError=false;restoreBrowserFilter(w);}
+}
 // The transport can deliver units before work() finishes. Do not make an
 // earlier result current while the last submitted query is unresolved.
+if(search?.verifiedUnits&&(search.verifiedScope!==scope||search.verifiedGeneration!==generation||search.verifiedActivation!==view.scope?.projectActivation||search.verifiedVersion!==browserProjection.snapshot().relationVersion||search.verifiedDraft!==JSON.stringify(current.draftVersion))){search.verifiedUnits=null;search.confirmed=false;search.failed=true;}
+// Tree data belongs to the accepted project snapshot, not to the independent
+// working-copy search result. A pending or invalid query must never block a
+// fresh tree on reentry, particularly while dirty property inputs survive.
+inventoryUI.tree(w);
+if(browserProjection.invalid()){
+ if(!root.querySelector('[data-browser-source-invalid]'))root.innerHTML='<div class="empty" data-browser-source-invalid>원본이 변경되었습니다. 검색을 다시 적용하세요.</div>';
+ updateBrowserCommitActions(w,null);return;
+}
 if(search&&!search.confirmed){
  if(search.failed){root.innerHTML='<div class="empty">그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.</div>';updateBrowserCommitActions(w,null);}
  return;
 }
-const selected=reviewSelections.get(scope)||new Set(),items=inventoryUI.items(w)||[...current.units],mode=w.meta.density<=0?'Compact':w.meta.density>=100?'Data':'Preview';if(w.meta.sort?.startsWith('name'))items.sort((a,b)=>a.id.localeCompare(b.id)*(w.meta.sort==='name-desc'?-1:1));$('[data-browser-control=density-label]',w.body).textContent=mode;$('[data-total]',w.body).textContent=items.length+' 객체 · '+mode;inventoryUI.tree(w);if(w.key==='browser'&&!w.meta.catalogue&&!w.browserFilterRestored){root.innerHTML='<div class="empty">'+(dirty?'미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다.':w.browserFilterError?'그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.':'그룹과 검색을 복원하는 중입니다.')+'</div>';return;}refreshBrowserCommitStatus(w,items);const iconSize=24+Math.max(0,Math.min(98,w.meta.density-1))*24/98;root.style.setProperty('--browser-icon-size',iconSize+'px');root.style.setProperty('--browser-tile-size',(iconSize+56)+'px');if(!items.length&&mode!=='Data'){root.innerHTML='<div class="empty">'+(w.meta.catalogue&&current.inventory?.status!=='available'?'실제 registry 목록을 먼저 불러오세요.':'검색 결과가 없습니다.')+'</div>';return;}
+const selected=reviewSelections.get(scope)||new Set(),items=inventoryUI.items(w)||[...current.units],mode=w.meta.density<=0?'Compact':w.meta.density>=100?'Data':'Preview';if(w.meta.sort?.startsWith('name'))items.sort((a,b)=>a.id.localeCompare(b.id)*(w.meta.sort==='name-desc'?-1:1));$('[data-browser-control=density-label]',w.body).textContent=mode;$('[data-total]',w.body).textContent=items.length+' 객체 · '+mode;if(w.key==='browser'&&!w.meta.catalogue&&!w.browserFilterRestored){root.innerHTML='<div class="empty">'+(dirty?'미적용 소스 입력을 먼저 적용하세요. 그룹·검색 입력은 유지됩니다.':w.browserFilterError?'그룹과 검색을 다시 적용하세요. 입력은 유지됩니다.':'그룹과 검색을 복원하는 중입니다.')+'</div>';return;}refreshBrowserCommitStatus(w,items);const iconSize=24+Math.max(0,Math.min(98,w.meta.density-1))*24/98;root.style.setProperty('--browser-icon-size',iconSize+'px');root.style.setProperty('--browser-tile-size',(iconSize+56)+'px');if(!items.length&&mode!=='Data'){root.innerHTML='<div class="empty">'+(w.meta.catalogue&&current.inventory?.status!=='available'?'실제 registry 목록을 먼저 불러오세요.':'검색 결과가 없습니다.')+'</div>';return;}
 prepareVisiblePropertyModels(w,items);
 const focusedObject=document.activeElement,focusId=mode!=='Data'&&root.contains(focusedObject)&&focusedObject.matches('[data-object]')?focusedObject.dataset.object:null;
 // Read-only status updates must not replace a live browser row under a

@@ -120,6 +120,54 @@ case "refresh-activation":{
  }
  return System.Text.Json.JsonSerializer.Serialize(new{refreshed=notices.Length,validatedRelationsVersion});
 }
+case "verified-concept-search":{
+ // A read-only query of the exact current owned relation observation. No
+ // cursor change, draft materialization, schema refresh or write authority.
+ const string fallback="{\"status\":\"fallback\"}",stale="{\"status\":\"stale\"}";
+ if(request.Count!=2||request["query"] is not System.Text.Json.Nodes.JsonValue q||!q.TryGetValue<string>(out string? query)||query.Length is <1 or >256||
+    state["relationObservation"] is not System.Text.Json.Nodes.JsonObject observed||observed["version"]?.ToString()!=request["version"]?.ToString())return fallback;
+ if(AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) is not System.Text.Json.Nodes.JsonObject editState)return fallback;
+ lock(editState){
+  var identity=calls.Identity.Invoke(draft);var ids=calls.List.Invoke(draft);Array.Sort(ids,StringComparer.Ordinal);
+  if(ids.Length>2048)return fallback;
+  var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);
+  var checkedPaths=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+  var rows=new System.Text.Json.Nodes.JsonArray();var sources=new System.Collections.Generic.Dictionary<string,string>(StringComparer.Ordinal);
+  string root=System.IO.Path.GetFullPath(identity[3]);
+  try{
+   foreach(string searchId in ids){
+    var status=calls.Status.Invoke(draft,searchId);
+    if(status[6]!="clean")return fallback;
+    bool declaration=RelationKind(status[1]),manifest=status[1] is "project" or "pack";
+    if(!declaration&&!manifest)continue;
+    if(status[7]!="loaded"||status[5]=="missing")return fallback;
+    string path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,status[2]));
+    if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))return stale;
+    for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){
+     if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return stale;
+    }
+    _=System.IO.File.GetAttributes(path);
+    if(new System.IO.FileInfo(path).Length>1048576||calls.FileSnapshot.Invoke(path)[2]!=status[5])return stale;
+    sources[path]=status[5];
+    if(!declaration)continue;
+    var unit=calls.Read.Invoke(draft,searchId);
+    versions[searchId]=new[]{unit[4],RelationHash(unit[3]),unit[1],unit[6]};
+    if(rows.Count<32&&status[1]=="object"&&searchId.Contains(query,StringComparison.OrdinalIgnoreCase))
+     rows.Add(new System.Text.Json.Nodes.JsonObject{["id"]=searchId,["kind"]=status[1],["path"]=status[2],["revision"]=long.Parse(status[4],System.Globalization.CultureInfo.InvariantCulture),["dirty"]=false,["materialization"]=status[7]});
+   }
+   if(RelationEvidence(versions)!=observed["proof"]?.ToString())return stale;
+   checkedPaths.Clear();
+   foreach(var (path,hash) in sources){
+    for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){
+     if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)return stale;
+    }
+    _=System.IO.File.GetAttributes(path);
+    if(new System.IO.FileInfo(path).Length>1048576||calls.FileSnapshot.Invoke(path)[2]!=hash)return stale;
+   }
+  }catch{return stale;}
+  return new System.Text.Json.Nodes.JsonObject{["status"]="ready",["version"]=observed["version"]!.DeepClone(),["units"]=rows,["draftVersion"]=System.Text.Json.Nodes.JsonNode.Parse(calls.History.Invoke(draft,"version","{}"))}.ToJsonString();
+ }
+}
 case "relations-map":{
  var mapNodes=new System.Text.Json.Nodes.JsonArray();var mapEdges=new System.Text.Json.Nodes.JsonArray();var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);var batch=new System.Text.Json.Nodes.JsonArray();
  var ids=calls.List.Invoke(draft);Array.Sort(ids,StringComparer.Ordinal);

@@ -61,7 +61,7 @@ export function createInventoryUI(api){
   if(!catalogue&&(!q||!workingKind))return null;
   if(catalogue&&api.current.inventory?.status!=='available')return [];
   const snapshot=api.projection.snapshot(),matchesLabel=q&&workingKind?labelMatcher(snapshot,group,q):()=>false;
-  const units=new Map(api.current.units.map(unit=>[unit.id,unit]));
+  const units=new Map((w.browserSearch?.verifiedUnits||api.current.units).map(unit=>[unit.id,unit]));
   if(!catalogue){
    // Keep the owned working-copy ID filter and supplement it with metadata
    // already available in this project's declaration projection.
@@ -78,7 +78,9 @@ export function createInventoryUI(api){
    return row.id.toLocaleLowerCase().includes(q)||matchesLabel(row);
   }).map(row=>({...row,...units.get(row.id)}));
  }
- function tree(w){const root=$('.browser-folder-tree',w.body);if(!root)return;const create=$('[data-new]',w.body);if(create){const supported=!w.meta.catalogue||(!w.meta.parent&&(!w.meta.namespace||w.meta.namespace===api.current.namespace));create.dataset.supported=String(supported);create.disabled=!supported;create.title=supported?'현재 소유 namespace에 선언 생성':'다른 namespace와 상속 계층의 생성 계약은 연결되지 않았습니다.';}
+ function tree(w){const root=$('.browser-folder-tree',w.body);if(!root)return;
+  if(api.projection.invalid()){if(!root.querySelector('[data-tree-source-invalid]'))root.innerHTML='<p class="small" data-tree-source-invalid>원본이 변경되어 트리 정보가 검증되지 않았습니다. 프로젝트를 다시 열거나 검색을 다시 확인하세요.</p>';const create=$('[data-new]',w.body);if(create){create.disabled=true;create.title='프로젝트 원본을 다시 확인하세요.';}return;}
+  const create=$('[data-new]',w.body);if(create){const supported=!w.meta.catalogue||(!w.meta.parent&&(!w.meta.namespace||w.meta.namespace===api.current.namespace));create.dataset.supported=String(supported);create.disabled=!supported;create.title=supported?'현재 소유 namespace에 선언 생성':'다른 namespace와 상속 계층의 생성 계약은 연결되지 않았습니다.';}
   declarationTree.render(w);
   const crumbs=$('.crumbs',w.el);if(crumbs){const chain=[],seen=new Set();let at=w.meta.parent;while(at&&!seen.has(at)&&chain.length<64){seen.add(at);chain.unshift(at);at=(api.projection.browserParent||api.projection.parent)(at);} crumbs.innerHTML='<button data-catalog-root>ProjectPack</button>'+String(w.meta.namespace||'').split('.').filter(Boolean).map((part,n,parts)=>`<span>›</span><button data-crumb="${esc(parts.slice(0,n+1).join('.'))}">${esc(part)}</button>`).join('')+chain.map(id=>'<span>›</span><button data-ancestor="'+esc(id)+'">'+esc(api.projection.rows().find(row=>row.id===id)?.title||id.split('::').at(-1))+'</button>').join('');for(const b of $$('[data-ancestor]',crumbs))b.onclick=()=>api.enter(w,b.dataset.ancestor);$('[data-catalog-root]',crumbs).onclick=()=>{if(w.key==='browser'){api.workingCopy(w);return;}w.meta.catalogue=true;w.meta.namespace=api.current.namespace;w.meta.parent=null;api.render(w.key);api.persist()};for(const b of $$('[data-crumb]',crumbs))b.onclick=()=>{w.meta.catalogue=true;w.meta.namespace=b.dataset.crumb;w.meta.parent=null;api.render(w.key);api.persist()}}
   api.path?.(w);

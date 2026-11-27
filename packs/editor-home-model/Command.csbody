@@ -100,6 +100,11 @@ System.Text.Json.Nodes.JsonNode ProjectWindowSetting(string context){
  return result;
 }
 if(operation=="installed-pack-options"){string context=Active();return calls.Metadata.Invoke("installedPackOptions",new System.Text.Json.Nodes.JsonObject{["installation"]=ConnectionProject(),["project"]=calls.Context.Invoke(manager,context)[1]}.ToJsonString());}
+if(operation=="verified-concept-search"){
+ string context=Active();
+ if(!workspaces.TryGetValue(context,out string? handle))return "{\"status\":\"fallback\"}";
+ return calls.PackCommand.Invoke(handle,"verified-concept-search",new System.Text.Json.Nodes.JsonObject{["query"]=args["query"]?.DeepClone(),["version"]=args["version"]?.DeepClone()}.ToJsonString());
+}
 if(operation=="project-window-setting-read")return ProjectWindowSetting(Active()).ToJsonString();
 if(operation is "project-window-read" or "project-main-view-read"){
  bool main=operation=="project-main-view-read";

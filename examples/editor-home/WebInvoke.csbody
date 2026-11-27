@@ -230,6 +230,10 @@ if(endpoint=="helperProfiles"){Command("helper-display-list",new());return "{\"a
 if(endpoint=="globalHelpers"){Command("helper-list",new());return "{\"accepted\":true}";}
 if(endpoint=="recruitGlobalHelper"){if(before["selected"] is not null)throw new InvalidOperationException("Global recruitment uses Home");Command("helper-recruit",new(){["kind"]="global"});return "{\"accepted\":true}";}
 if(endpoint=="installedPackOptions"){if(args.Count!=0||before["selected"]?["context"] is null)throw new UnauthorizedAccessException("Explicit project required");return Command("installed-pack-options",new()).ToJsonString();}
+if(endpoint=="verifiedConceptSearch"){
+ if(args.Count!=2||args["query"] is null||args["version"] is null||before["selected"]?["context"] is null)throw new UnauthorizedAccessException("verified search fields");
+ return Command("verified-concept-search",new(){["context"]=before["selected"]!["context"]!.DeepClone(),["query"]=args["query"]!.DeepClone(),["version"]=args["version"]!.DeepClone()}).ToJsonString();
+}
 if(endpoint=="localInventory"){
  bool relations=args["relations"]?.GetValue<bool>()==true;
  if(relations&&before["selected"]?["context"] is null)throw new InvalidOperationException("Open project first");
