@@ -44,9 +44,10 @@ string? ReadWarm(){
  // Keep the settings workspace's read stream separate from the active editor
  // project. Generation/repair read the installed declaration registry but return only
  // a proposed pair; subsequent operations have the exact settings file owner.
- string? connectionPath=connectionProposal?request["settingsProject"]?.GetValue<string>():request["project"]?.GetValue<string>();
+ bool connectionIdentity=operation=="inspect"&&streamProject is not null;
+ string? connectionPath=connectionProposal?request["settingsProject"]?.GetValue<string>():connectionIdentity?streamProject:request["project"]?.GetValue<string>();
  bool ConnectionOwner(string? path){if(string.IsNullOrEmpty(path))return false;string full=System.IO.Path.GetFullPath(path);var folder=System.IO.Path.GetDirectoryName(full)!;return System.IO.Path.GetFileName(full).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)&&string.Equals(System.IO.Path.GetFileName(System.IO.Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase)&&System.Text.RegularExpressions.Regex.IsMatch(System.IO.Path.GetFileName(folder),"^[0-9a-fA-F]{16}$");}
- bool connectionWarm=ConnectionOwner(connectionPath)&&(connectionProposal||metadata||operation is ("inspectEffective" or "connectionRepairSchema"));
+ bool connectionWarm=ConnectionOwner(connectionPath)&&(connectionProposal||connectionIdentity||metadata||operation is ("inspectEffective" or "connectionRepairSchema"));
  if(connectionProposal&&!connectionWarm)return null;
  if(owner!="unscoped"||operation is not ("inspectEffective" or "editorMenuDeclarations" or "preparePropertyModels")&&!metadata&&!inventory&&!viewCatalog&&!relations&&!blueprintWarm&&!guardWarm&&!preparation&&!finalOverlay&&!connectionWarm||!finalOverlay&&request["project"] is null&&(!blueprintValue&&!guardValue||streamProject is null))return null;
  var file=new System.IO.FileInfo(host);var hostKey=(file.FullName,dotnet,file.Length,file.LastWriteTimeUtc);
