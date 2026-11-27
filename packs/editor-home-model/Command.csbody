@@ -489,22 +489,30 @@ string[] SummaryPaths()=>System.Linq.Enumerable.ToArray(System.Linq.Enumerable.S
 void StartHomeSummary(){
  var paths=SummaryPaths();var cancel=new System.Threading.CancellationTokenSource();
  var task=System.Threading.Tasks.Task.Run(()=>{calls.BeginHomeSummaryScope.Invoke(summaryKey);try{return ReadHomeSummaries(paths,cancel.Token);}finally{calls.EndHomeSummaryScope.Invoke();}});
- AppDomain.CurrentDomain.SetData(summaryKey,new object[]{paths,task,cancel,true});
+ AppDomain.CurrentDomain.SetData(summaryKey,new object?[]{paths,task,cancel,true,null});
 }
-void RetireHomeSummary(){if(AppDomain.CurrentDomain.GetData(summaryKey) is object[] summaryJob){((System.Threading.CancellationTokenSource)summaryJob[2]).Cancel();summaryJob[3]=false;calls.CancelHomeSummaryScope.Invoke(summaryKey);}}
+void RetireHomeSummary(){if(AppDomain.CurrentDomain.GetData(summaryKey) is object[] summaryJob){
+ var cancel=(System.Threading.CancellationTokenSource)summaryJob[2];summaryJob[3]=false;
+ if(!cancel.IsCancellationRequested){
+  // Retire the read immediately. Process-tree termination can be slow on the
+  // desktop; never make foreground activation wait for it. The collector must
+  // observe both tasks before it can reuse this same summary owner.
+  cancel.Cancel();summaryJob[4]=System.Threading.Tasks.Task.Run(()=>calls.CancelHomeSummaryScope.Invoke(summaryKey));
+ }
+}}
 if(operation is "open" or "open-request" or "create" or "leave" or "close-project")RetireHomeSummary();
 if(operation is "home-summaries-start" or "home-summaries-collect"){
  var old=AppDomain.CurrentDomain.GetData(summaryKey) as object[];
  if(operation=="home-summaries-start"){
   if(model["selected"] is not null)return (string)state[4];
   if(old is null)StartHomeSummary();else old[3]=true;
- }else if(old is not null&&((System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>)old[1]).IsCompleted){
+ }else if(old is not null&&((System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>)old[1]).IsCompleted&&(old[4] is not System.Threading.Tasks.Task terminating||terminating.IsCompleted)){
   var task=(System.Threading.Tasks.Task<System.Text.Json.Nodes.JsonObject>)old[1];var cancel=(System.Threading.CancellationTokenSource)old[2];
   AppDomain.CurrentDomain.SetData(summaryKey,null);bool valid=!cancel.IsCancellationRequested&&System.Linq.Enumerable.SequenceEqual((string[])old[0],SummaryPaths());cancel.Dispose();
   if(model["selected"] is null&&(bool)old[3]){
    if(!valid)StartHomeSummary();else if(task.IsCompletedSuccessfully){model["homeSummaries"]=task.Result;model["revision"]=model["revision"]!.GetValue<int>()+1;System.Threading.Volatile.Write(ref state[4],model.ToJsonString());}
   }
-  if(task.IsFaulted)_=task.Exception;
+  if(task.IsFaulted)_=task.Exception;if(old[4] is System.Threading.Tasks.Task termination&&termination.IsFaulted)_=termination.Exception;
  }
  return (string)state[4];
 }
