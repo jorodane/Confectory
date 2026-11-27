@@ -350,7 +350,17 @@ string SetupView(string connection){
    if(proposal["state"]?.ToString()=="unchanged"&&FreshConnectionModel(proposal["connectionModelProof"],InstallProject())&&PreviewFresh(pendingPreview,manifest,true))initialPairProof=proposal["connectionModelProof"]!.DeepClone();
   }catch{/* Preserve ordinary diagnostic and repair behavior. */}
  }
- connectionStage="declarations";if(!reuseModel&&!validateWithRepair&&!validateWithCreation&&initialPairProof is null)DeclaredConnection(connection);connectionStage="settings-files";
+ connectionStage="declarations";
+ if(!reuseModel&&!validateWithRepair&&!validateWithCreation&&initialPairProof is null){
+  // The selected read-only proposal executes the same current installed
+  // catalogue validation, on the already-owned settings authoring stream.
+  // Do not retain its semantic result or allow authentication to use this path.
+  if(operation is ("connection-setup-field" or "connection-setup-save")&&pendingPreview is null&&manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&workspaces.ContainsKey(viewKey)){
+   var currentDeclaration=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettings",System.Text.Json.JsonSerializer.Serialize(new{project=InstallProject(),id=connection,settingsProject=manifest})))!;
+   if(currentDeclaration["connection"]?.ToString()!=connection||currentDeclaration["credentialRead"]?.GetValue<bool>()!=false||currentDeclaration["executionPerformed"]?.GetValue<bool>()!=false)throw new InvalidOperationException("Current installed connection declaration required");
+  }else DeclaredConnection(connection);
+ }
+ connectionStage="settings-files";
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
   System.Text.Json.Nodes.JsonNode generated;

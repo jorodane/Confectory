@@ -113,6 +113,77 @@ with sync_playwright() as playwright, playwright.chromium.launch(executable_path
                     # the installed catalog twice on this fresh admission.
                     assert saved_trace.count('"operation":"connectionSettingsRepair"')==1, saved_trace
                     assert '"operation":"connectionCatalog"' not in saved_trace, saved_trace
+                    # Already admitted Settings: each edit and save must freshly
+                    # validate the selected connection, not retain the old result.
+                    workspace=settings(responses)
+                    original_source=(workspace/'Settings.celem').read_bytes()
+                    checkpoint=next((workspace/'.confectory/edit-workspaces').glob('*/draft.json'))
+                    original_draft=checkpoint.read_bytes()
+                    pack=install/'packs/agent-responses/pack.cpack';original_pack=pack.read_bytes()
+                    invalid=original_pack.replace(b'element Connection object "Connection.celem";',b'')
+                    assert invalid!=original_pack
+                    field.fill('repeat-linked-fixture')
+                    pack.write_bytes(invalid)
+                    try:
+                        dialog.locator('[data-connection-save]').click()
+                        expect(dialog.locator('[data-connection-error]')).to_be_visible()
+                        expect(field).to_have_value('repeat-linked-fixture')
+                        assert checkpoint.read_bytes()==original_draft
+                        assert (workspace/'Settings.celem').read_bytes()==original_source
+                    finally:pack.write_bytes(original_pack)
+                    before=len(log.read_text());dialog.locator('[data-connection-save]').click()
+                    expect(dialog.locator('[data-connection-save]')).to_be_enabled()
+                    expect(field).to_have_value('repeat-linked-fixture')
+                    expect(dialog.locator('[data-connection-error]')).to_be_hidden()
+                    repeated_trace=trace(log,before)
+                    assert repeated_trace.count('"operation":"connectionSettings"')==2, repeated_trace
+                    assert '"operation":"connectionCatalog"' not in repeated_trace, repeated_trace
+                    assert b'repeat-linked-fixture' in checkpoint.read_bytes()
+                    assert (workspace/'Settings.celem').read_bytes()==original_source
+                    # Change the selected installed declaration after the field
+                    # edit, at the actual Save admission, not before both reads.
+                    durable=checkpoint.read_bytes();field.fill('between-edit-and-save')
+                    injected=[]
+                    def change_at_save(route):
+                        try:body=route.request.post_data_json
+                        except Exception:body=None
+                        if isinstance(body,dict) and body.get('op')=='invoke' and body.get('endpoint')=='saveConnectionSetup' and not injected:
+                            pack.write_bytes(invalid);injected.append(True)
+                        route.fallback()
+                    page.route('**/api/request',change_at_save)
+                    try:
+                        dialog.locator('[data-connection-save]').click()
+                        expect(dialog.locator('[data-connection-error]')).to_be_visible()
+                        assert injected
+                        expect(field).to_have_value('between-edit-and-save')
+                        assert checkpoint.read_bytes()==durable
+                        assert (workspace/'Settings.celem').read_bytes()==original_source
+                    finally:
+                        page.unroute('**/api/request',change_at_save)
+                        pack.write_bytes(original_pack)
+                    dialog.locator('[data-connection-save]').click()
+                    expect(dialog.locator('[data-connection-save]')).to_be_enabled()
+                    expect(dialog.locator('[data-connection-error]')).to_be_hidden()
+                    assert b'between-edit-and-save' in checkpoint.read_bytes()
+                    assert (workspace/'Settings.celem').read_bytes()==original_source
+                    # Read-only mode is meaningful only for a non-root POSIX host.
+                    if os.name=='posix' and os.geteuid()!=0:
+                        durable=checkpoint.read_bytes()
+                        field.fill('permission-linked-fixture')
+                        directory=checkpoint.parent;mode=directory.stat().st_mode&0o777
+                        directory.chmod(0o500)
+                        try:
+                            dialog.locator('[data-connection-save]').click()
+                            expect(dialog.locator('[data-connection-error]')).to_be_visible()
+                            expect(field).to_have_value('permission-linked-fixture')
+                            assert checkpoint.read_bytes()==durable
+                            assert (workspace/'Settings.celem').read_bytes()==original_source
+                        finally:directory.chmod(mode)
+                        dialog.locator('[data-connection-save]').click()
+                        expect(dialog.locator('[data-connection-save]')).to_be_enabled()
+                        expect(dialog.locator('[data-connection-error]')).to_be_hidden()
+                        assert b'permission-linked-fixture' in checkpoint.read_bytes()
+                        assert (workspace/'Settings.celem').read_bytes()==original_source
                     close(dialog)
             finally:
                 page.close()
