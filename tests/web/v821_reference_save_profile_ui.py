@@ -1,9 +1,11 @@
 """Alternating scalar/reference direct-save timing on disposable 40/400-object packs.
 
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic].
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline].
 Run one fixture at a time, without compiler/build/regression jobs. The default
 runs three scalar and three reference saves; --diagnostic captures operation
-names and process count separately, so its timing is not comparable.
+names and process count separately, so its timing is not comparable. The
+--timeline flag captures one instrumented scalar/reference pair without strace;
+run separate isolated alternating processes for comparison.
 """
 import json
 import sys
@@ -18,7 +20,7 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--detached","--trace-files","--reverse","--diagnostic"}
+assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline"}
 assert "--malformed" not in flags or "--pick" in flags
 FIRST, SECOND = "Reference First", "Reference Second"
 TARGETS = {"TargetZero": "Zero label", "TargetNonzero": "Nonzero label", "TargetAbsent": "Absent label"}
@@ -95,6 +97,7 @@ def owner(page,name="SourceLink"):
 
 local=f.root/"local-appdata";local.mkdir()
 f.env.update(XDG_DATA_HOME=str(local),CONFECTORY_PERFORMANCE="1")
+if "--timeline" in flags:f.env["CONFECTORY_UI_TRACE"]="1"
 if "--diagnostic" in flags:
     f.env["CONFECTORY_UI_TRACE"]="1"
     f.report["run"]=["strace","-f","-ttt","-s","256","-e","trace=execve","-o",str(trace),*f.report["run"]]
@@ -143,6 +146,25 @@ def sample(page,editor,kind,i):
     log_path=f.root/"host-0.log";host_offset=log_path.stat().st_size
     trace_offset=trace.stat().st_size if trace.exists() else 0
     started=time.monotonic();thread.start()
+    events=[];pending={}
+    def on_request(req):
+        try:
+            a=req.post_data_json
+            if req.method!="POST" or a.get("op") not in ("invoke","update","observe"):return
+            key=req._impl_obj._guid
+            event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId")}
+            pending[key]=event;events.append(event)
+        except Exception:pass
+    def on_response(resp):
+        try:
+            key=resp.request._impl_obj._guid;event=pending.pop(key,None)
+            if event is None:return
+            event["endMs"]=round((time.monotonic()-started)*1000,1)
+            body=resp.json()
+            if event["op"]=="update":event["completed"]=[{"id":r.get("requestId"),"code":r.get("error",{}).get("code","ok")} for r in body.get("results",[])]
+            else:event["code"]=body.get("error",{}).get("code",body.get("status","ok"))
+        except Exception:pass
+    if "--timeline" in flags:page.on("request",on_request);page.on("response",on_response)
     try:
         button.click()
         expect(page.locator("#status")).to_have_text("저장했습니다.")
@@ -151,23 +173,26 @@ def sample(page,editor,kind,i):
         elapsed=(time.monotonic()-started)*1000
         expect(page.get_by_role("dialog",name="관련 변경 검토",exact=True)).to_be_hidden()
         expect(page.locator('.window[data-key="review"]')).to_be_hidden()
-    finally:stop.set();thread.join(1)
+    finally:
+        stop.set();thread.join(1)
+        if "--timeline" in flags:page.remove_listener("request",on_request);page.remove_listener("response",on_response)
     records=rows()[before:]
     tool_trace=[];process_starts=[]
-    if "--diagnostic" in flags:
+    if "--diagnostic" in flags or "--timeline" in flags:
         with log_path.open("rb") as stream:
             stream.seek(host_offset)
             for line in stream.read().decode(errors="replace").splitlines():
                 if line.startswith("CONFECTORY_UI_TRACE "):
                     try:tool_trace.append(json.loads(line.split(" ",1)[1]))
                     except ValueError:pass
-        with trace.open("rb") as stream:
+        if trace.exists():
+          with trace.open("rb") as stream:
             stream.seek(trace_offset)
             process_starts=[line for line in stream.read().decode(errors="replace").splitlines() if "execve(" in line and ".dll" in line]
 
     invocations=[(r.get("endpoint"),r.get("input",{}).get("action")) for r in f.requests[req_before:]]
     browser=page.evaluate("()=>globalThis.confectoryWebUITrace||[]")
-    sample={"kind":kind,"count":count,"surface":"detached" if "--detached" in flags else "primary","pickerMs":pick_ms,"diskMs":(persist[0]-started)*1000,"uiMs":elapsed,"operations":invocations,"host":records,"browser":browser,"toolTrace":tool_trace,"processStarts":len(process_starts)}
+    sample={"kind":kind,"count":count,"surface":"detached" if "--detached" in flags else "primary","pickerMs":pick_ms,"diskMs":(persist[0]-started)*1000,"uiMs":elapsed,"operations":invocations,"host":records,"browser":browser,"toolTrace":tool_trace,"processStarts":len(process_starts),"timeline":events}
     print("SAMPLE",json.dumps(sample,separators=(",",":")),flush=True)
     f.before[str(file)]=file.read_bytes()
     editor.get_by_role("button",name="창 닫기",exact=True).click()
@@ -179,7 +204,7 @@ try:
     with sync_playwright() as p,p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox"]) as browser:
         page=f.setup(browser);page.set_viewport_size({"width":2000,"height":1200})
         samples=[]
-        for i in range(1 if "--diagnostic" in flags else 3):
+        for i in range(1 if "--diagnostic" in flags or "--timeline" in flags else 3):
             order=["scalar","reference"] if (i+("--reverse" in flags))%2==0 else ["reference","scalar"]
             for kind in order:
                 editor=owner(page,"SourceLink" if kind=="reference" else "ScalarObject")

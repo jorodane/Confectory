@@ -74,11 +74,17 @@ try{
   var expected=before.DeepClone();expected[owner]!["draft"]=declarationPrepared!["text"]!.DeepClone();expected[owner]!["revision"]=before[owner]!["revision"]!.GetValue<long>()+1;
   bool sameOverlays=true;
   var supplied=declarationRequest["drafts"]!.AsArray();
-  var retained=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(candidate["units"]!.AsObject(),row=>row.Key!=owner&&row.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&row.Value!["kind"]!.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum")));
+  // Match the exact semantic overlay construction above. For a compact
+  // context the omitted clean declarations are still in expected/captured
+  // units, and Capture rechecks their original path and bytes. A retained
+  // dirty reference overlay deliberately keeps the full validation path.
+  // Independent large-window end-to-end timings did not show a robust gain;
+  // retain their existing path rather than extending this primary-window cut.
+  var retained=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(candidate["units"]!.AsObject(),row=>(!compactClean||!System.Text.Json.Nodes.JsonNode.DeepEquals(row.Value!["draft"],row.Value["original"]))&&row.Key!=owner&&row.Key.StartsWith(ns+"::",StringComparison.Ordinal)&&row.Value!["kind"]!.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum")));
   if(supplied.Count!=retained.Length)sameOverlays=false;
   else foreach(var row in retained)if(!System.Linq.Enumerable.Any(supplied,d=>d?["id"]?.ToString()==row.Key&&System.Text.Json.Nodes.JsonNode.DeepEquals(d["text"],row.Value!["draft"])))sameOverlays=false;
   bool observed=System.Linq.Enumerable.All(context["observations"]!.AsArray(),read=>System.Linq.Enumerable.Any(repeatProof["observations"]!.AsArray(),proof=>System.Text.Json.Nodes.JsonNode.DeepEquals(read,proof)));
-  reuseContext=sameOverlays&&observed&&System.Text.Json.Nodes.JsonNode.DeepEquals(expected,candidate["units"]);
+  reuseContext=sameOverlays&&observed&&(!compactClean||retained.Length==0&&string.IsNullOrEmpty(rows[0]?["uiSurface"]?.ToString()))&&System.Text.Json.Nodes.JsonNode.DeepEquals(expected,candidate["units"]);
  }
  void VerifyRepeatSources(){
    var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);

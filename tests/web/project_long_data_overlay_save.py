@@ -1,7 +1,7 @@
 """Measure one existing long setting through the normal Chromium Save.
 
 Arguments: BUILD_REPORT OVERLAY UI_CREATED_EVIDENCE_ROOT [--trace] [--baseline]
-[--assets] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response|--lost-final-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema|--guard-final-permission] [--run] [--timeline] [--poll-timeline] [--legacy-presentation-ack] [--stale-presentation] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
+[--assets] [--large] [--legacy-finalization] [--legacy-settlement] [--lost-owner-response|--lost-final-response] [--guard-object|--guard-schema|--guard-final-object|--guard-final-schema|--guard-final-permission] [--run] [--timeline] [--poll-timeline] [--legacy-presentation-ack] [--stale-presentation] [--context-batch|--context-baseline|--warm-context]. Every invocation makes a disposable copy.
 The final guards introduce external changes only after the normal UI has checkpointed the candidate.
 The optional assets are 32 MiB of inert synthetic files, never real user data.
 """
@@ -18,6 +18,14 @@ root=Path(tempfile.mkdtemp(prefix='confectory-data-value-copy-'));print('fixture
 project=root/'project';peer=root/'peer'
 for dest in (project,peer):shutil.copytree(source,dest,ignore=shutil.ignore_patterns('.confectory','.build'))
 manifest=project/'project.cproj';ns=manifest.read_text().split()[1]
+if '--large' in sys.argv:
+ for folder in (project,peer):
+  registration=folder/'project.cproj';entries=[]
+  for i in range(400):
+   name=f"Extra{i:04}";relative=f"elements/{name}.celem"
+   (folder/relative).write_text(f"object {ns}::{name} {{}}\n")
+   entries.append(f'element {name} object "{relative}";')
+  registration.write_text(registration.read_text().rstrip()[:-1]+"\n"+"\n".join(entries)+"\n}\n")
 if '--assets' in sys.argv:
  folder=project/'assets';folder.mkdir()
  for i in range(128):(folder/f'fixture-{i:03}.txt').write_bytes(bytes([65+i%26])*262144)

@@ -1,6 +1,6 @@
 """Disposable Chromium detached long save guards.
 
-Usage: python tests/web/detached_long_data_save_guards.py OVERLAY BUILD_REPORT MODE
+Usage: python tests/web/detached_long_data_save_guards.py OVERLAY BUILD_REPORT MODE [400]
 MODE: invalid | guard-schema | guard-permission | guard-object | lost | lost-final.
 Uses the existing performance sample and workspace finder host fixture.
 """
@@ -13,6 +13,14 @@ from editor_navigation import goto_editor
 from playwright.sync_api import sync_playwright,expect
 mode=sys.argv[3]
 sample=f.root/'performance-sample';shutil.copytree(Path(__file__).resolve().parents[2]/'examples/performance-sample',sample)
+if len(sys.argv)>4:
+ assert sys.argv[4]=="400" and len(sys.argv)==5
+ manifest=sample/'project.cpack';entries=[]
+ for i in range(400):
+  name=f"Extra{i:04}";source=sample/f"{name}.celem"
+  source.write_text(f"object Confectory.PerformanceSample::{name} {{}}\n")
+  entries.append(f'element {name} object "{source.name}";')
+ manifest.write_text(manifest.read_text().rstrip()[:-1]+"\n"+"\n".join(entries)+"\n}\n")
 f.env['CONFECTORY_WEB_PROJECT']=str(sample/'project.cpack');expect.set_options(timeout=60000)
 source=sample/'SampleC.celem';schema=sample/'SampleInfo.celem';original=source.read_bytes();schema_original=schema.read_bytes()
 def open_window(page):
