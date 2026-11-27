@@ -84,16 +84,11 @@ def scenario(page):
     linked=page.locator('.window[data-key="schema"]')
     ref=linked.get_by_role("button",name="Target 기본값 선택",exact=True)
     expect(ref).to_have_text(SAME)
-    # The large reference-choice query is already rejected on a5041023
-    # before any external edit; verify its exact-ID selector at 40 and
-    # the actual reference value/hover at both sizes.
-    if count==40:
-        ref.click()
-        picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
-        choice=picker.locator(f'[data-reference-choice="{NS}::LookupObject"]')
-        expect(choice).to_be_visible()
-        original_choice=choice.inner_text()
-        choice.click()
+    ref.click()
+    picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
+    choice=picker.locator(f'[data-reference-choice="{NS}::LookupObject"]')
+    expect(choice).to_contain_text(SAME)
+    choice.click()
     linked.get_by_role("button",name="창 닫기",exact=True).click()
     enter(page,SECOND)
     window=browser_window(page)
@@ -128,14 +123,11 @@ def scenario(page):
     expect(linked.locator(".object-title-name")).to_have_text("LinkedObject")
     ref=linked.get_by_role("button",name="Target 기본값 선택",exact=True)
     expect(ref).to_have_text("외부 수정 표식")
-    if count==40:
-        ref.click()
-        picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
-        choice=picker.locator(f'[data-reference-choice="{NS}::LookupObject"]')
-        # Existing reference candidates use their qualified contract's short ID;
-        # the selected value and hover use the current Browser display label.
-        assert choice.inner_text()==original_choice, (original_choice,choice.inner_text())
-        choice.click()
+    ref.click()
+    picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
+    choice=picker.locator(f'[data-reference-choice="{NS}::LookupObject"]')
+    expect(choice).to_contain_text("외부 수정 표식")
+    choice.click()
     linked.get_by_role("button",name="창 닫기",exact=True).click()
     print("PASS warm rename updates Browser search, exact property title, reference hover and value",flush=True)
 

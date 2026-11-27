@@ -30,7 +30,13 @@ internal static class FieldTypes
        try{
         if(kind=="function")registry.Implementation(item.Id,candidate.Id,owner,new());
         else{var target=registry.Effective(candidate.Id);bool matches=false;foreach(var use in target.Uses.Where(u=>u.Kind=="schema")){var visited=new HashSet<string>(StringComparer.Ordinal);for(string? current=use.Id;current is not null&&visited.Add(current);current=registry.Get(current,"schema").Parent)if(current==item.Id){matches=true;break;}}if(!matches)continue;SchemaContracts.Validate(registry,candidate.Id);}
-        if(++targets>1024)throw new ArgumentException("Field reference choice budget");Observe(candidate.Id);choices.Add(new JsonObject{["id"]=candidate.Id,["name"]=candidate.Id.Split("::")[1]});
+        if(++targets>1024)throw new ArgumentException("Field reference choice budget");Observe(candidate.Id);
+        var display=candidate.Id.Split("::")[1];
+        // A reference choice carries its exact qualified ID; its label is
+        // the same explicit declaration display name used by Browser rows.
+        if(kind=="reference"&&registry.Get(candidate.Id,"object").Values.TryGetValue("editorName",out var candidateLabel)&&candidateLabel.Value.ValueKind==JsonValueKind.String)
+         display=candidateLabel.Value.GetString()??display;
+        choices.Add(new JsonObject{["id"]=candidate.Id,["name"]=display});
        }catch(BuildError){/* An incompatible target is not a choice. */}
       }row["targets"]=choices;
      }
