@@ -115,7 +115,20 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    }
    if(schemaModel is not null)schemaModel["ownedDefinitions"]=OwnedInformationDefinitions.Project(registry,selected,schemaFields,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    if(schemaModel is not null)schemaModel["ownedArchives"]=OwnedInformationDefinitions.Archives(registry,selected,schemaFields,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
-   var result=new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["fieldSources"]=fieldSources,["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=registry.Statistics.ReadDocuments.Count(path=>registry.Elements.Values.Any(e=>e.Bodies.Values.Any(b=>Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(e.Loc.File)!,b.Path)==path))),["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
+   // The diagnostic is a count of actual read-document entries which
+   // coincide with declared body paths, not a count of body declarations.
+   // Resolve/check each body locator once against its actual owner; the
+   // old nested scan repeated that same ownership check for every read
+   // file. Retain ordinal path comparison and duplicate read multiplicity.
+   int bodyReads=0;
+   if(registry.Statistics.ReadDocuments.Count!=0){
+    var bodyPaths=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+    foreach(var element in registry.Elements.Values)
+     foreach(var body in element.Bodies.Values)
+      bodyPaths.Add(Confectory.Core.PackPaths.Owned(System.IO.Path.GetDirectoryName(element.Loc.File)!,body.Path));
+    bodyReads=registry.Statistics.ReadDocuments.Count(bodyPaths.Contains);
+   }
+   var result=new System.Text.Json.Nodes.JsonObject{["scope"]="effective-metadata",["status"]="available",["id"]=id,["description"]=effective.Description,["descriptionOrigin"]=descriptionSource.DescriptionPresent?descriptionSource.Id:null,["sourceKind"]=sourceKind,["fields"]=System.Text.Json.JsonSerializer.SerializeToNode(schemaFields),["fieldSources"]=fieldSources,["functionContracts"]=functionContracts,["schemaModel"]=schemaModel,["data"]=System.Text.Json.JsonSerializer.SerializeToNode(effective.Data),["values"]=values,["modules"]=modules,["requirements"]=requirements,["providers"]=providers,["providerSelection"]="not-performed",["declarationsLoaded"]=System.Text.Json.JsonSerializer.SerializeToNode(registry.Elements.Keys.Order(StringComparer.Ordinal).ToArray()),["registeredManifests"]=registry.Packs.Count,["bodyReads"]=bodyReads,["draftOverlayIDs"]=System.Text.Json.JsonSerializer.SerializeToNode(overlayIds.Order(StringComparer.Ordinal).ToArray()),["dependencySource"]="root-owned-drafts-and-confirmed-registered-files"};
    result["ownFunctions"]=ownFunctions;
    if(definitionTypes)result["definitionTypes"]=FieldTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File));
    if(nativeTypes)result["nativeTypes"]=FunctionNativeTypes.Project(registry,id,sourceId=>sourceId==id?text:drafts?.FirstOrDefault(row=>row?["id"]?.ToString()==sourceId)?["text"]?.GetValue<string>()??Observe(registry.Get(sourceId).Loc.File),Observe);
