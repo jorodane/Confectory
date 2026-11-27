@@ -1,0 +1,1 @@
+function Confectory.AIConnection::ValidateSettingsForOwner (string text, string project) -> void {provide Confectory.AIConnection::ValidateSettingsForOwner with Confectory.AIConnection::ValidateSettingsForOwnerBody;}

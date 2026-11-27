@@ -324,7 +324,7 @@ string SetupView(string connection){
    if(!VerifyPreview(connection,pendingPreview,manifest,true))throw new InvalidOperationException("Connection declarations changed outside the open draft; retain local input");
    var verified=ReadPreviewSchema(manifest,pendingPreview["manifest"]!.ToString(),pendingPreview["text"]!.ToString());
    if(verified["schemaModel"]?["validation"]?["status"]?.ToString()!="valid")throw new ArgumentException("Connection schema validation failed");
-   calls.CheckSettings.Invoke(pendingPreview["text"]!.ToString());
+   if(operation=="connection-setup-save")calls.CheckScopedSettings.Invoke(pendingPreview["text"]!.ToString(),manifest);else calls.CheckSettings.Invoke(pendingPreview["text"]!.ToString());
    if(!VerifyPreview(connection,pendingPreview,manifest,true))throw new InvalidOperationException("Connection settings changed during validation; original retained");
   }
  }
@@ -746,14 +746,14 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
   var valueEdit=new System.Text.Json.Nodes.JsonObject{["text"]=preview["text"]!.DeepClone(),["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone()};
   if(args["path"] is System.Text.Json.Nodes.JsonArray singlePath&&singlePath.Count==1&&args["value"] is System.Text.Json.Nodes.JsonValue scalar&&scalar.TryGetValue<string>(out _))valueEdit["_streamProject"]=settingsManifest;
   string formatted=System.Text.Json.JsonSerializer.Deserialize<string>(calls.Metadata.Invoke("setDataPath",valueEdit.ToJsonString()))!;
-  calls.CheckSettings.Invoke(formatted);var effective=ReadPreviewSchema(settingsManifest,preview["manifest"]!.ToString(),formatted);
+  calls.CheckScopedSettings.Invoke(formatted,settingsManifest);var effective=ReadPreviewSchema(settingsManifest,preview["manifest"]!.ToString(),formatted);
   if(!VerifyPreview(connection,preview,settingsManifest))throw new InvalidOperationException("Connection declarations changed; retain local input");
   preview["text"]=formatted;preview["revision"]=preview["revision"]!.GetValue<long>()+1;preview["effective"]=effective;InvalidateCheck(connection);connectionSetupMode="new";PublishPreview(connection,preview);model["status"]="Connection field staged in memory; no settings saved";
  }else{
  string view=SetupView(connection);var edited=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"data-path",new System.Text.Json.Nodes.JsonObject{["id"]="Confectory.AISettings::Settings",["path"]=args["path"]!.DeepClone(),["value"]=args["value"]!.DeepClone(),["expectedRevision"]=args["revision"]!.DeepClone()}.ToJsonString()))!;if(edited["conflict"]?.GetValue<bool>()==true)throw new InvalidOperationException("Connection settings changed; refresh before applying");InvalidateCheck(connection);SetupSnapshot(connection,view);model["status"]="Connection field staged through ordinary schema path editing; source project untouched";
  }
  }
- else if(operation=="connection-setup-save"){string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string view=SetupView(connection);calls.CheckSettings.Invoke(System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(view))!["unit"]!["text"]!.ToString());calls.PackCommand.Invoke(view,"save","{}");model["connectionSetupModes"]![connection]="existing";connectionSetupMode="existing";SetupSnapshot(connection,view,new System.Text.Json.Nodes.JsonObject{["state"]="saved",["code"]="settings_saved",["message"]="설정 초안을 저장했습니다. 계정 인증이나 실제 요청은 수행하지 않았습니다.",["authenticated"]=false,["networkContacted"]=false});}
+ else if(operation=="connection-setup-save"){string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string view=SetupView(connection);calls.CheckScopedSettings.Invoke(System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(view))!["unit"]!["text"]!.ToString(),SettingsManifest(connection));calls.PackCommand.Invoke(view,"save","{}");model["connectionSetupModes"]![connection]="existing";connectionSetupMode="existing";SetupSnapshot(connection,view,new System.Text.Json.Nodes.JsonObject{["state"]="saved",["code"]="settings_saved",["message"]="설정 초안을 저장했습니다. 계정 인증이나 실제 요청은 수행하지 않았습니다.",["authenticated"]=false,["networkContacted"]=false});}
  else if(operation=="connection-setup-attempt"){
  string connection=Value("connection");if(model["connectionSetup"]?["connection"]?.ToString()!=connection)throw new InvalidOperationException("Connection form changed");string view=SetupView(connection);var snapshot=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(view,"schema-view","{}"))!;System.Text.Json.Nodes.JsonNode outcome;
  try{string config=SetupConfig(connection,view);var policy=System.Text.Json.Nodes.JsonNode.Parse(calls.AIPermission.Invoke(connection,config))!;bool supported=policy["supported"]?.GetValue<bool>()==true;

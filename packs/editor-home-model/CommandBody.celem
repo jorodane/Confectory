@@ -54,6 +54,7 @@ import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.SchemaEditing::DescribeView as DescribeConnectionView (string) -> string;
 import Confectory.AIConnection::MaterializeMetadata as ConnectionMetadata (string) -> string;
 import Confectory.AIConnection::ValidateSettings as CheckSettings (string) -> void;
+import Confectory.AIConnection::ValidateSettingsForOwner as CheckScopedSettings (string,string) -> void;
 import Confectory.AIConnection::ValidateReference as CheckReference (string) -> void;
 import Confectory.Helper::Open as HelperOpen (string) -> string;
 import Confectory.Helper::List as HelperList (string,string) -> string;

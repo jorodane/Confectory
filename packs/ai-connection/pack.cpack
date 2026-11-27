@@ -4,6 +4,8 @@ element ValidateReference function "ValidateReference.celem";
 element ValidateReferenceBody implementation "ValidateReferenceBody.celem";
 element ValidateSettings function "ValidateSettings.celem";
 element ValidateSettingsBody implementation "ValidateSettingsBody.celem";
+element ValidateSettingsForOwner function "ValidateSettingsForOwner.celem";
+element ValidateSettingsForOwnerBody implementation "ValidateSettingsForOwnerBody.celem";
 element MaterializeMetadata function "MaterializeMetadata.celem";
 element MaterializeMetadataBody implementation "MaterializeMetadataBody.celem";
 dependency Confectory.SchemaEditing version "0.1.0";
