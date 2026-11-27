@@ -52,6 +52,18 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             yield dict(operation=operation, action="prepare", project=str(path), namespace="Alpha",
                        units=units, declaration=declaration)
 
+    def string_requests(value,folder=project):
+        path=folder/"project.cpack"
+        units={"Alpha::ProjectManifest":unit(path,"project")}
+        units.update({"Alpha::"+name:unit(folder/(name+".celem"),kind)
+                      for name,(kind,_) in contents.items()})
+        change=dict(type="data",path=["Note"],contract=dict(kind="general",cardinality="single",type="string"),valueJson=json.dumps(value))
+        declaration=dict(id="Alpha::Text",hash=units["Alpha::Text"]["baseline"],changes=[change])
+        yield dict(operation="mixedOwnerCopyEdits",project=str(path),manifest=path.read_text(),
+                   id="Alpha::Text",text=units["Alpha::Text"]["draft"],changes=[change],drafts=[],units=units,reuseLongPreparation=True)
+        for operation in ("informationBodyGroupGuards","informationPropertyGroupGuards","informationTypeGuards"):
+            yield dict(operation=operation,action="prepare",project=str(path),namespace="Alpha",units=units,declaration=declaration)
+
     def ordinary(request):
         return json.loads(subprocess.run(host, input=json.dumps(request), text=True,
                                          capture_output=True, timeout=20, check=True).stdout)
@@ -59,7 +71,7 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
     def start():
         process = subprocess.Popen(host + ["--inspect-stream"], stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_12"
+        assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_13"
         return process
 
     def send(process, request):
@@ -167,6 +179,39 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
         if proc.poll() is None:
             proc.kill()
         proc.wait()
+
+    # String preparation uses the full ordinary dispatch, never a repeat proof.
+    proc=start()
+    try:
+        for value in ("", "한글 · café", "line\nquote\""):
+            for request in string_requests(value):
+                expected=ordinary(request)
+                assert expected["ok"] and send(proc,request)==expected
+                assert not expected.get("result",{}).get("repeatProof")
+        schema=project/"TextInfo.celem";raw=schema.read_bytes()
+        schema.write_bytes(raw.replace(b"general string",b"general long"))
+        for request in string_requests("invalid"):
+            expected=ordinary(request)
+            assert send(proc,request)==expected
+        schema.write_bytes(raw)
+        request=next(string_requests(123))
+        expected=ordinary(request)
+        assert not expected["ok"] and send(proc,request)==expected
+        assert send(proc,next(string_requests("peer",peer))) is None and proc.wait(timeout=5)==2
+    finally:
+        if proc.poll() is None:proc.kill()
+        proc.wait()
+    exact_string=next(string_requests("valid"))
+    for edit in ({"rawText":contents["Text"][1]},
+                 {"changes":[exact_string["changes"][0],dict(type="description",text="mixed")]}):
+        proc=start()
+        try:
+            assert send(proc,dict(exact_string,**edit)) is None and proc.wait(timeout=5)==2
+        finally:
+            if proc.poll() is None:proc.kill()
+            proc.wait()
+    assert (project/"Text.celem").read_text()==contents["Text"][1]
+    assert (peer/"Text.celem").read_text()==contents["Text"][1]
 
     # A multi-field or raw edit retains ordinary one-shot handling. The
     # read-only reference stream must not expand its accepted shape.
