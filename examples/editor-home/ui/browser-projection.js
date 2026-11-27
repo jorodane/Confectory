@@ -5,7 +5,10 @@ export function createBrowserProjection(api){
  const declaration=kind=>['object','schema','category','concept','function','module','implementation','enum'].includes(kind);
  const observed=()=>[...(api.current?.units||[]),...(api.current?.draft?[api.current.draft]:[]),...(api.current?.editorViews||[]).map(row=>row.draft).filter(Boolean)].filter(row=>declaration(row.kind)&&row.id.startsWith(api.current.namespace+'::'));
  const stateKey=()=>JSON.stringify(observed().map(row=>[row.id,row.revision]).sort());
- function entry(){const id=api.current?.projectId;if(!id)return null;if(!caches.has(id))caches.set(id,{});const cache=caches.get(id),incoming=api.current.relationsMap;if(incoming&&incoming.version!==cache.map?.version){cache.map=incoming;cache.failed=null;}return cache;}
+ function entry(){const id=api.current?.projectId;if(!id)return null;const activation=api.activation;if(!caches.has(id))caches.set(id,{activation});else if(caches.get(id).activation!==activation){
+  const prior=caches.get(id),proved=api.current.validatedRelationsVersion;
+  if(proved&&prior.map?.version===proved){prior.activation=activation;prior.failed=null;}else caches.set(id,{activation});
+ }const cache=caches.get(id),incoming=api.current.relationsMap;if(incoming&&incoming.version!==cache.map?.version){cache.map=incoming;cache.failed=null;}return cache;}
  function needsRead(){const cache=entry();if(!cache||cache.failed===stateKey())return false;if(!cache.map)return true;return observed().some(row=>!cache.map.nodes.some(node=>node.owned&&node.id===row.id&&node.revision===row.revision));}
  function failed(){const cache=entry();if(cache)cache.failed=stateKey();}
  function retry(){const cache=entry();if(cache)cache.failed=null;}

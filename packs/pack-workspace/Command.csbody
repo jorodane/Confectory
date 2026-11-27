@@ -1,6 +1,9 @@
 var state=AppDomain.CurrentDomain.GetData("Confectory.PackWorkspace."+handle) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("PackWorkspace");
 var request=System.Text.Json.Nodes.JsonNode.Parse(payload)?.AsObject()??throw new ArgumentException("Object payload required.");
 lock(state){if(state["closing"]!.GetValue<bool>())throw new ObjectDisposedException("PackWorkspace");string draft=state["draft"]!.GetValue<string>();bool conflict=false;
+bool RelationKind(string kind)=>kind is "category" or "concept" or "function" or "module" or "object" or "schema" or "implementation" or "enum";
+string RelationHash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
+string RelationEvidence(System.Collections.Generic.Dictionary<string,string[]> versions)=>RelationHash(System.Text.Json.JsonSerializer.Serialize(versions));
 void PreparePropertyModels(string[] owners,System.Text.Json.Nodes.JsonNode version,bool append=false){
   var prior=state["propertyModels"]?.DeepClone();
   try{
@@ -70,15 +73,50 @@ if(!System.Linq.Enumerable.Contains(calls.List.Invoke(draft),state["selected"]!.
 case "plan-removal":{string removalResult=calls.PlanRemoval.Invoke(draft,request.ToJsonString());var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["removalPlan"]=System.Text.Json.Nodes.JsonNode.Parse(removalResult);return reply.ToJsonString();}
 case "move-folders":{var folderResult=System.Text.Json.Nodes.JsonNode.Parse(calls.MoveFolders.Invoke(draft,request["plan"]!.ToJsonString()));state["review"]=null;var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["folderMoveResult"]=folderResult;return reply.ToJsonString();}
 case "move-objects":{calls.MoveObjects.Invoke(draft,request["plan"]!.ToJsonString());state["review"]=null;break;}
+case "refresh-activation":{
+ // Warm activation retains shared drafts. Only refresh already materialized,
+ // clean declaration sources under their existing exact manifest ownership.
+ if(request.Count!=0)throw new ArgumentException("Activation refresh has no caller-selected locators");
+ var identity=calls.Identity.Invoke(draft);var ids=calls.List.Invoke(draft);
+ var manifest=System.Linq.Enumerable.Single(System.Linq.Enumerable.Where(System.Linq.Enumerable.Select(ids,id=>calls.Status.Invoke(draft,id)),row=>row[1] is "project" or "pack"));
+ string root=identity[3],path=System.IO.Path.GetFullPath(System.IO.Path.Combine(root,manifest[2]));
+ if(!path.StartsWith(root+System.IO.Path.DirectorySeparatorChar,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))throw new ArgumentException("Activation manifest escapes owner");
+ for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(path);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(node.LinkTarget is not null)throw new ArgumentException("Activation manifest symbolic link");if(node.FullName==root)break;}
+ _=System.IO.File.GetAttributes(path);
+ if(calls.FileSnapshot.Invoke(path)[2]!=manifest[5])throw new InvalidOperationException("ACTIVATION_MANIFEST_CHANGED");
+ Array.Sort(ids,StringComparer.Ordinal);
+ var loaded=System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(System.Linq.Enumerable.Select(ids,id=>calls.Status.Invoke(draft,id)),row=>row[7]=="loaded"&&row[5]!="missing"&&RelationKind(row[1])),row=>row[0]));
+ var notices=calls.RefreshClean.Invoke(draft,loaded);
+ for(int i=1;i<notices.Length;i+=2){
+  if(notices[i]=="missing")throw new System.IO.FileNotFoundException("ACTIVATION_SOURCE_MISSING");
+  if(notices[i]=="identity-changed")throw new InvalidOperationException("ACTIVATION_SOURCE_IDENTITY_CHANGED");
+  if(notices[i]=="baseline-changed"&&calls.Status.Invoke(draft,notices[i-1])[6]=="clean")throw new InvalidOperationException("ACTIVATION_SOURCE_CHANGED");
+ }
+ // Dirty conflicts remain unchanged; the existing source hash CAS rejects
+ // any stale Save/Confirm. No new source or registration is adopted here.
+ if(calls.FileSnapshot.Invoke(path)[2]!=manifest[5])throw new InvalidOperationException("ACTIVATION_MANIFEST_CHANGED");
+ if(notices.Length>0)state["review"]=null;
+ // A map only describes the exact owned draft texts it parsed. Reuse its
+ // browser projection across activation only if every declaration still
+ // matches that complete observation, after the disk refresh above.
+ string? validatedRelationsVersion=null;
+ if(notices.Length==0&&state["relationObservation"] is System.Text.Json.Nodes.JsonObject observed&&AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+draft) is System.Text.Json.Nodes.JsonObject editState)lock(editState){
+  var currentIds=calls.List.Invoke(draft);Array.Sort(currentIds,StringComparer.Ordinal);
+  var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);bool complete=System.Linq.Enumerable.SequenceEqual(ids,currentIds,StringComparer.Ordinal);
+  foreach(string observedId in currentIds){var status=calls.Status.Invoke(draft,observedId);if(!RelationKind(status[1]))continue;if(status[7]!="loaded"){complete=false;break;}var unit=calls.Read.Invoke(draft,observedId);versions[observedId]=new[]{unit[4],RelationHash(unit[3]),unit[1],unit[6]};}
+  if(complete&&RelationEvidence(versions)==observed["proof"]?.ToString())validatedRelationsVersion=observed["version"]?.ToString();
+ }
+ return System.Text.Json.JsonSerializer.Serialize(new{refreshed=notices.Length,validatedRelationsVersion});
+}
 case "relations-map":{
  var mapNodes=new System.Text.Json.Nodes.JsonArray();var mapEdges=new System.Text.Json.Nodes.JsonArray();var versions=new System.Collections.Generic.Dictionary<string,string[]>(StringComparer.Ordinal);var batch=new System.Text.Json.Nodes.JsonArray();
  void Collect(){if(batch.Count==0)return;var result=System.Text.Json.Nodes.JsonNode.Parse(calls.Locate.Invoke("relationsMap",new System.Text.Json.Nodes.JsonObject{["project"]=calls.Identity.Invoke(draft)[0],["units"]=batch.DeepClone()}.ToJsonString()))!;foreach(var node in result["nodes"]!.AsArray())mapNodes.Add(node!.DeepClone());foreach(var edge in result["edges"]!.AsArray())mapEdges.Add(edge!.DeepClone());batch.Clear();}
  var ids=calls.List.Invoke(draft);Array.Sort(ids,StringComparer.Ordinal);
- foreach(string mapId in ids){var status=calls.Status.Invoke(draft,mapId);if(status[1] is not ("category" or "concept" or "function" or "module" or "object" or "schema" or "implementation" or "enum"))continue;var unit=calls.Read.Invoke(draft,mapId);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant();versions[mapId]=new[]{unit[4],hash};batch.Add(new System.Text.Json.Nodes.JsonObject{["id"]=mapId,["kind"]=unit[1],["text"]=unit[3],["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["dirty"]=unit[6]=="dirty"});if(batch.Count==32)Collect();}Collect();
- foreach(var observed in versions){var current=calls.Read.Invoke(draft,observed.Key);if(current[4]!=observed.Value[0]||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(current[3]))).ToLowerInvariant()!=observed.Value[1])throw new InvalidOperationException("Map source changed during projection; read again");}
+ foreach(string mapId in ids){var status=calls.Status.Invoke(draft,mapId);if(!RelationKind(status[1]))continue;var unit=calls.Read.Invoke(draft,mapId);string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(unit[3]))).ToLowerInvariant();versions[mapId]=new[]{unit[4],hash,unit[1],unit[6]};batch.Add(new System.Text.Json.Nodes.JsonObject{["id"]=mapId,["kind"]=unit[1],["text"]=unit[3],["revision"]=long.Parse(unit[4],System.Globalization.CultureInfo.InvariantCulture),["textHash"]=hash,["dirty"]=unit[6]=="dirty"});if(batch.Count==32)Collect();}Collect();
+ foreach(var observed in versions){var current=calls.Read.Invoke(draft,observed.Key);if(current[4]!=observed.Value[0]||RelationHash(current[3])!=observed.Value[1]||current[1]!=observed.Value[2]||current[6]!=observed.Value[3])throw new InvalidOperationException("Map source changed during projection; read again");}
  var known=new System.Collections.Generic.HashSet<string>(System.Linq.Enumerable.Select(mapNodes,n=>n!["id"]!.ToString()),StringComparer.Ordinal);var outside=new System.Collections.Generic.SortedSet<string>(StringComparer.Ordinal);foreach(var edge in mapEdges)foreach(string field in new[]{"target","function","scope"})if(edge![field] is not null&&!known.Contains(edge[field]!.ToString()))outside.Add(edge[field]!.ToString());foreach(string externalId in outside)mapNodes.Add(new System.Text.Json.Nodes.JsonObject{["id"]=externalId,["title"]=externalId.Split("::")[^1],["kind"]="reference",["owned"]=false,["valid"]=true,["availability"]="outside-owned-view"});
  var grouped=new System.Text.Json.Nodes.JsonArray();foreach(var group in System.Linq.Enumerable.GroupBy(mapEdges,e=>e!.ToJsonString())){var edge=System.Linq.Enumerable.First(group)!.DeepClone().AsObject();edge["count"]=System.Linq.Enumerable.Count(group);edge["key"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(group.Key))).ToLowerInvariant();grouped.Add(edge);}
- var map=new System.Text.Json.Nodes.JsonObject{["scope"]="owned-workspace-declarations",["status"]=System.Linq.Enumerable.Any(mapNodes,n=>n!["valid"]?.GetValue<bool>()==false)?"partial":"snapshot",["nodes"]=mapNodes,["edges"]=grouped,["sourceWritten"]=false,["executed"]=false};map["version"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(map.ToJsonString()))).ToLowerInvariant();var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["relationsMap"]=map;
+ var map=new System.Text.Json.Nodes.JsonObject{["scope"]="owned-workspace-declarations",["status"]=System.Linq.Enumerable.Any(mapNodes,n=>n!["valid"]?.GetValue<bool>()==false)?"partial":"snapshot",["nodes"]=mapNodes,["edges"]=grouped,["sourceWritten"]=false,["executed"]=false};map["version"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(map.ToJsonString()))).ToLowerInvariant();state["relationObservation"]=new System.Text.Json.Nodes.JsonObject{["version"]=map["version"]!.DeepClone(),["proof"]=RelationEvidence(versions)};var reply=System.Text.Json.Nodes.JsonNode.Parse(calls.Snapshot.Invoke(handle))!.AsObject();reply["relationsMap"]=map;
  // An optional bounded model for the active Browser projection. This is one
  // shared owner/Registry preparation, not a set of opened edit workspaces.
  if(request["prepareProperties"]?.GetValue<bool>()==true){

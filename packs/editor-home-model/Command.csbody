@@ -837,7 +837,17 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
   try{proved=calls.ReadIdentity.Invoke(manager,context);if(proved!=expected)throw new InvalidOperationException("The project changed before it could be reopened");}
   catch{if(model["selected"]?["context"]?.ToString()!=context)calls.ContextClose.Invoke(manager,context);throw;}
  }
- Register(context,"","",proved);model["status"]="Pack opened";}
+ // A retained context is not a fresh project read. Refresh existing owned
+ // clean snapshots before publishing the new activation, never on window clicks.
+ string? validatedRelationsVersion=null;
+ if(operation=="open-request"&&model["selected"] is null&&workspaces.TryGetValue(context,out string? retainedWorkspace)){
+  try{validatedRelationsVersion=System.Text.Json.Nodes.JsonNode.Parse(calls.PackCommand.Invoke(retainedWorkspace,"refresh-activation","{}"))?["validatedRelationsVersion"]?.ToString();}
+  catch(UnauthorizedAccessException){throw new InvalidOperationException("ACTIVATION_SOURCE_UNREADABLE");}
+  catch(System.IO.FileNotFoundException){throw new InvalidOperationException("ACTIVATION_SOURCE_MISSING");}
+  catch(System.IO.DirectoryNotFoundException){throw new InvalidOperationException("ACTIVATION_SOURCE_MISSING");}
+  model["localInventory"]=null;
+ }
+ Register(context,"","",proved);if(validatedRelationsVersion is not null)model["selected"]!["validatedRelationsVersion"]=validatedRelationsVersion;model["status"]="Pack opened";}
  else if(operation=="create"){string title=Value("title").Trim(),description=Value("description");if(title.Length==0)throw new ArgumentException("Project name is required");if(title.Length>128||description.Length>4096)throw new ArgumentException("Project information is too long");if(cards.Count>=32)throw new InvalidOperationException("Project list is full; remove a listing first");string[] plan=calls.PlanCreation.Invoke(title,Value("directory"));string slug=plan[1],directory=plan[2];string context=calls.CreateProject.Invoke(manager,slug,directory,Value("targetPack",System.IO.Path.Combine((string)state[1],"targets","dotnet","pack.cpack")));var info=calls.Context.Invoke(manager,context);string workspace=calls.WorkspaceOpen.Invoke(info[1],"local-user","editor");((System.Collections.Generic.List<string>)state[5]).Add(workspace);string id=info[2]+"::ProjectInfo";calls.Create.Invoke(workspace,"object",id);calls.SetValue.Invoke(workspace,id,"title",System.Text.Json.JsonSerializer.Serialize(title));calls.SetValue.Invoke(workspace,id,"description",System.Text.Json.JsonSerializer.Serialize(description));calls.Save.Invoke(workspace);Register(context,title,description);
  calls.RecordCreator.Invoke(manager, context, System.IO.Path.GetDirectoryName((string)state[2])!, true);
  model["status"]="Project created: "+directory;}
