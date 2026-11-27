@@ -56,19 +56,24 @@ string? ReadWarm(){
  var key=(projectKey,hostKey);
  object[] pool;
  string poolName=connectionWarm?"Confectory.SchemaEditing.ConnectionReadPool":"Confectory.SchemaEditing.ReadPool";
- lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData(poolName) as object[]??new object[4];AppDomain.CurrentDomain.SetData(poolName,pool);}
+ lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData(poolName) as object[]??new object[5];AppDomain.CurrentDomain.SetData(poolName,pool);}
  lock(pool){
   var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
   System.Diagnostics.Process? warm=pool[0] as System.Diagnostics.Process;
-  void Retire(){if(warm is not null){try{if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;pool[3]=null!;warm=null;}
+  void Retire(){if(warm is not null){try{if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;pool[3]=null!;pool[4]=0;warm=null;}
   void CheckedOwner(){if(((System.Collections.Generic.HashSet<string>)registry[2]).Contains(owner))throw new OperationCanceledException("Authoring owner canceled.");}
   T Await<T>(System.Threading.Tasks.Task<T> task,int milliseconds){if(!task.Wait(milliseconds)){_ = task.ContinueWith(t=>{_ = t.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);throw new TimeoutException("Authoring tool timeout.");}return task.GetAwaiter().GetResult();}
   bool starting=false;
   try{
    lock(registry)CheckedOwner();
+   // Protocol 10 retires after 128 framed replies. Observe that boundary
+   // ourselves instead of racing HasExited and sending the next query into
+   // a closing pipe, which would repeat it through the slow one-shot path.
+   // The finite process lifetime and the older protocol fallback stay intact.
+   bool exhausted=pool[3] as string=="CONFECTORY_INSPECT_STREAM_10"&&pool[4] is int frames&&frames>=128;
    // Auxiliary read projections must not switch or start the selected project's stream.
-   if((inventory||viewCatalog||relations)&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)))return null;
-   if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)))Retire();
+   if((inventory||viewCatalog||relations)&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)||exhausted))return null;
+   if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)||exhausted))Retire();
    if(object.Equals(pool[2],hostKey))return null;
    if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}
    var active=warm;
@@ -87,7 +92,9 @@ string? ReadWarm(){
     if(finalOverlay&&!object.Equals(pool[3],"CONFECTORY_INSPECT_STREAM_10"))return null;
     var framed=request.DeepClone().AsObject();if(projectionTransaction is not null&&(pool[3] as string is "CONFECTORY_INSPECT_STREAM_8" or "CONFECTORY_INSPECT_STREAM_9" or "CONFECTORY_INSPECT_STREAM_10"))framed["_projectionTransaction"]=projectionTransaction;if((blueprintValue||guardValue)&&streamProject is not null)framed["_streamProject"]=streamProject;
     var io=System.Threading.Tasks.Task.Run(async()=>{await active.StandardInput.WriteLineAsync(framed.ToJsonString());await active.StandardInput.FlushAsync();return await active.StandardOutput.ReadLineAsync();});
-    var reply=Await(io,timeout);return reply??throw new System.IO.IOException("Read-only authoring stream closed.");
+    var reply=Await(io,timeout)??throw new System.IO.IOException("Read-only authoring stream closed.");
+    if(pool[3] as string=="CONFECTORY_INSPECT_STREAM_10")pool[4]=(pool[4] is int completed?completed:0)+1;
+    return reply;
    }finally{lock(registry){if(jobs.TryGetValue(owner,out var set)){set.Remove(active);if(set.Count==0)jobs.Remove(owner);}}}
   }catch(Exception error) when(error is System.IO.IOException or AggregateException or System.ComponentModel.Win32Exception||starting&&error is TimeoutException){if(starting)pool[2]=hostKey;Retire();lock(registry)CheckedOwner();return null;}
   catch{Retire();throw;}
