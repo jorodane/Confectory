@@ -1,12 +1,13 @@
-"""Actual generic reference chooser and explicit Review/Confirm on clean large packs.
+"""Actual generic reference chooser and direct Save on clean large packs.
 
-Run with REPO BUILD_REPORT 40|249|250|400 [--pick] [--malformed] [--trace-files].
-For final Confirm use the built .NET target and SDK; --pick needs no compiler.
+Run with REPO BUILD_REPORT 40|249|250|400 [--pick] [--malformed] [--trace-files] [--detached].
+The eligible direct Save remains a data-only operation; --pick only opens the selector.
 The fixture has six extra semantic declarations beyond the object-count parameter,
 so 249/250 exercise the existing 255/256 declaration context boundary.
 """
 import json
 import sys
+import time
 from playwright.sync_api import expect, sync_playwright
 import v666_workspace_finder_fixture as f
 from v821_project_browser_search_labels import NS, browser_window
@@ -14,7 +15,7 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--pick", "--malformed", "--trace-files"}
+assert flags <= {"--pick", "--malformed", "--trace-files", "--detached"}
 assert "--malformed" not in flags or "--pick" in flags
 FIRST, SECOND = "Reference First", "Reference Second"
 TARGETS = {"TargetZero": "Zero label", "TargetNonzero": "Nonzero label", "TargetAbsent": "Absent label"}
@@ -63,15 +64,27 @@ def enter(page, title):
 
 def owner(page):
     idle(page)
+    if "--detached" in flags:
+        restored = page.locator(f'.window[data-element-owner="{prefix}SourceLink"][data-element-mode="properties"]:visible')
+        if restored.count():
+            expect(restored).to_have_count(1)
+            expect(restored.locator(".object-title-name")).to_have_text("SourceLink")
+            return restored
     w = browser_window(page)
+    if "--detached" in flags:
+        # A restored independent window may overlap the Browser. Raise the
+        # Browser by the user's ordinary title gesture before searching.
+        heading = page.locator('.window[data-key="browser"] .window-title')
+        if heading.is_visible():
+            heading.click(position={"x":20,"y":10})
     w.get_by_role("textbox", name="의미 객체 검색", exact=True).fill("SourceLink")
     w.get_by_role("button", name="검색 확정", exact=True).click()
     row = w.locator(f'[data-object="{prefix}SourceLink"]')
     expect(row).to_be_visible()
     idle(page)
     row.click(button="right")
-    page.locator(".context-menu").get_by_role("button", name="스키마 열기", exact=True).click()
-    editor = page.locator('.window[data-key="schema"]')
+    page.locator(".context-menu").get_by_role("button", name="새 창으로 열기" if "--detached" in flags else "스키마 열기", exact=True).click()
+    editor = page.locator(f'.window[data-element-owner="{prefix}SourceLink"][data-element-mode="properties"]:visible' if "--detached" in flags else '.window[data-key="schema"]')
     expect(editor.locator(".object-title-name")).to_have_text("SourceLink")
     return editor
 
@@ -92,24 +105,24 @@ def choose(dialog, name):
 
 def confirm(page, editor, old, new):
     button = editor.locator('[data-element-action="confirm"]')
-    # References must remain in the existing explicit review policy.
-    expect(button).to_have_text("확정")
+    expect(button).to_have_text("저장")
     expect(button).to_be_enabled()
+    assert f"data Target = {prefix}{old}" in source.read_text()
+    started = time.monotonic()
     button.click()
     group = page.get_by_role("dialog", name="관련 변경 검토", exact=True)
-    expect(group).to_be_visible()
-    assert f"data Target = {prefix}{old}" in source.read_text()
-    group.locator("#review-creation").click()
     review = page.locator('.window[data-key="review"]')
-    expect(review).to_be_visible()
-    assert f"data Target = {prefix}{old}" in source.read_text()
-    if review.locator("[data-review-advanced]").count():
-        review.locator("[data-review-advanced]").click()
-        if review.locator("[data-advanced-reviewed]").count():
-            review.locator("[data-advanced-reviewed]").check()
-    review.locator("#confirm").click()
-    expect(review).to_be_hidden()
+    while f"data Target = {prefix}{new}" not in source.read_text():
+        assert not group.is_visible() and not review.is_visible(), page.locator("#status").inner_text()
+        if time.monotonic() > started + 90:
+            raise AssertionError(page.locator("#status").inner_text())
+        page.wait_for_timeout(5)
+    durable = (time.monotonic() - started) * 1000
     idle(page)
+    expect(group).to_be_hidden()
+    expect(review).to_be_hidden()
+    print("direct reference save", count, "detached" if "--detached" in flags else "primary",
+          "persist-ms", round(durable, 1), "UI-ms", round((time.monotonic() - started) * 1000, 1), flush=True)
     assert f"data Target = {prefix}{new}" in source.read_text(), page.locator("#status").inner_text()
     assert 'data Note = "Keep note"' in source.read_text()
     f.before[str(source)] = source.read_bytes()
@@ -165,7 +178,7 @@ try:
                 if "--trace-files" in flags:
                     assert trace_counts() == (0, 0), trace_counts()
                     print("confirmed pure leaf references: compiler and project DLL opens 0", flush=True)
-                print("PASS explicit Review/Confirm for all three targets and reopened exact value", count, flush=True)
+                print("PASS one-click Save for all three targets and reopened exact value", count, flush=True)
                 enter(page, SECOND)
                 peer = owner(page)
                 peer_labels = {name: "Peer " + label for name, label in TARGETS.items()}

@@ -10,10 +10,26 @@ try
  string project=System.IO.Path.Combine(candidate,System.IO.Path.GetFileName(identity[0]));
  bool candidatePrepared=false,retirementValidatedWithoutBuild=false;
  System.Text.Json.Nodes.JsonNode? dataOnly=null;
+ var stagedReferenceProofs=new System.Collections.Generic.List<System.Text.Json.Nodes.JsonNode>();
  var overlayState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
  if(changes.Length==4&&Array.IndexOf(selected,changes[0])>=0&&overlayState?["units"]?[changes[0]]?["kind"]?.ToString()=="object"){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOverlay",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["id"]=changes[0],["relative"]=changes[1],["baseline"]=changes[2],["after"]=changes[3]}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
+ }
+ // A one-click reference receipt cannot silently fall through to compilation
+ // or a different read set after selection, response loss, or external edits.
+ foreach(string selectedId in selected)if(overlayState?["units"]?[selectedId]?["slotSaveReceipt"]?["directReferenceOverlay"] is System.Text.Json.Nodes.JsonObject stagedReference){
+  var verified=dataOnly;
+  // A recovered draft may be included in a later explicit mixed Review.
+  // Recheck its saved read proof, but keep the normal full validation for
+  // the mixed candidate rather than identifying it as an ordinary direct save.
+  if(changes.Length!=4){
+   int row=-1;for(int i=0;i<changes.Length;i+=4)if(changes[i]==selectedId){row=i;break;}
+   if(row>=0)verified=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateLongDataOverlay",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["id"]=changes[row],["relative"]=changes[row+1],["baseline"]=changes[row+2],["after"]=changes[row+3]}.ToJsonString()))!;
+  }
+  if(verified is null||verified["reference"]?.GetValue<bool>()!=true||!System.Text.Json.Nodes.JsonNode.DeepEquals(verified,stagedReference))
+   throw new InvalidOperationException("Reference data source changed after Save; review the retained draft after refreshing the source");
+  if(changes.Length!=4)stagedReferenceProofs.Add(verified);
  }
  var retirementState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
  bool singleRetirement=changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="pending"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
@@ -144,11 +160,12 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
   }
  }
  // Merge data-only semantic observations into the existing atomic CAS.
- if(dataOnly is not null)foreach(var check in dataOnly["checks"]!.AsArray()){
+ if(dataOnly is not null)stagedReferenceProofs.Add(dataOnly);
+ foreach(var dataProof in stagedReferenceProofs)foreach(var check in dataProof["checks"]!.AsArray()){
   string path=check!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),item=>string.Equals(item!["path"]!.ToString(),path,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)checks.Add(check.DeepClone());else if(prior["hash"]!.ToString()!=check["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
- if(dataOnly?["reads"] is System.Text.Json.Nodes.JsonArray dataReads)foreach(var guard in dataReads){
+ foreach(var dataProof in stagedReferenceProofs)if(dataProof["reads"] is System.Text.Json.Nodes.JsonArray dataReads)foreach(var guard in dataReads){
   string full=guard!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),row=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))??System.Linq.Enumerable.FirstOrDefault(reads,row=>string.Equals(row!["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }

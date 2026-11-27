@@ -49,6 +49,9 @@ lock(state){
   else throw new UnauthorizedAccessException("Explicit bound source surface required");
  }
  input["uiSurface"]=slot.Length==0?"":"view:"+slot;var workspaces=(System.Collections.Generic.Dictionary<string,string>)state[9];if(!workspaces.TryGetValue(workspaceKey,out string? view))throw new InvalidOperationException("Open this project's source workspace first");string? restoreSelection=slot.Length==0&&input["declaration"]?["raw"] is not null&&model["workspace"]?["unit"]?["id"]?.ToString()!=input["id"]?.ToString()?model["workspace"]?["unit"]?["id"]?.ToString():null;
+ bool referenceRequest=operation=="applySlots"&&input["directPropertySave"]?.GetValue<bool>()==true&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray requestedReference&&requestedReference.Count==1&&requestedReference[0]?["type"]?.ToString()=="data"&&requestedReference[0]?["contract"]?["kind"]?.ToString()=="reference";
+ bool localDirectScope=selected["kind"]?.ToString()=="project"&&selected["namespace"]?.ToString()!="Confectory.AISettings"&&state[17] is null&&!((System.Collections.Generic.Dictionary<string,string>)state[11]).ContainsKey(context)&&(model["aiRuns"]?[context]?["workers"]?.AsObject().Count is null or 0)&&model["aiPreview"]?["context"]?.ToString()!=context;
+ if(referenceRequest&&!localDirectScope){input.Remove("directPropertySave");input.Remove("settleDirectOwner");}
  bool settleDirect=input["settleDirectOwner"]?.GetValue<bool>()==true;
  input.Remove("settleDirectOwner");
  // The detached fast return is only a receipt reconciliation, not a new
@@ -62,11 +65,11 @@ lock(state){
  try{string result=calls.Blueprint.Invoke(view,operation,input.ToJsonString());
  // Only the just-saved, single existing object and its unchanged manifest with ordinary data changes can
  // enter the combined path. The receipt is session-owned, not a client claim.
- if(operation=="applySlots"&&slot.Length==0&&selected["kind"]?.ToString()=="project"&&selected["namespace"]?.ToString()!="Confectory.AISettings"&&state[17] is null&&!((System.Collections.Generic.Dictionary<string,string>)state[11]).ContainsKey(context)&&(model["aiRuns"]?[context]?["workers"]?.AsObject().Count is null or 0)&&model["aiPreview"]?["context"]?.ToString()!=context&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray changes&&changes.Count>0&&System.Linq.Enumerable.All(changes,c=>c?["type"]?.ToString()=="data")){
+ if(operation=="applySlots"&&(slot.Length==0||referenceRequest)&&selected["kind"]?.ToString()=="project"&&selected["namespace"]?.ToString()!="Confectory.AISettings"&&state[17] is null&&!((System.Collections.Generic.Dictionary<string,string>)state[11]).ContainsKey(context)&&(model["aiRuns"]?[context]?["workers"]?.AsObject().Count is null or 0)&&model["aiPreview"]?["context"]?.ToString()!=context&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray changes&&changes.Count>0&&System.Linq.Enumerable.All(changes,c=>c?["type"]?.ToString()=="data")){
   var receipt=System.Text.Json.Nodes.JsonNode.Parse(result)!;
-  if(receipt["directSaveProof"] is System.Text.Json.Nodes.JsonArray proof&&proof.Count==2&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==input["id"]?.ToString())==1&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==selected["namespace"]!.ToString()+"::ProjectManifest"&&r?["hash"]?.ToString()==r?["beforeHash"]?.ToString())==1){
+  if(receipt["directSaveProof"] is System.Text.Json.Nodes.JsonArray proof&&proof.Count==2&&(!referenceRequest||proof[0]?["reference"]?.GetValue<bool>()==true)&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==input["id"]?.ToString())==1&&System.Linq.Enumerable.Count(proof,r=>r?["id"]?.ToString()==selected["namespace"]!.ToString()+"::ProjectManifest"&&r?["hash"]?.ToString()==r?["beforeHash"]?.ToString())==1){
    proof[0]!["combined"]=true;
-   model["directPropertySaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=selected["activation"]!.DeepClone(),["owner"]=input["id"]!.DeepClone(),["proof"]=proof.DeepClone()};
+   model["directPropertySaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=selected["activation"]!.DeepClone(),["owner"]=input["id"]!.DeepClone(),["proof"]=proof.DeepClone(),["referenceView"]=referenceRequest&&slot.Length>0?System.Text.Json.Nodes.JsonValue.Create(slot):null,["referenceBinding"]=referenceRequest&&slot.Length>0?System.Text.Json.Nodes.JsonValue.Create(requestedViewBinding):null};
    result=receipt.ToJsonString();
   }
  }

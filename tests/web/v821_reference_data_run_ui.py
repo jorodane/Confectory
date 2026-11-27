@@ -1,5 +1,5 @@
-"""Actual reviewed reference save without build, followed by explicit Run consuming new data.
-Usage: REPO BUILD_REPORT 40|400. Requires SDK and strace.
+"""Actual direct reference save without build, followed by explicit Run consuming new data.
+Usage: REPO BUILD_REPORT 40|400 [--detached]. Requires SDK and strace.
 Synthetic FrameLoop copies only.
 """
 import json,sys,time
@@ -39,8 +39,8 @@ def open_owner(page):
  w.get_by_role("button",name="검색 확정",exact=True).click()
  row=w.locator(f'[data-object="{NS}::SourceLink"]');expect(row).to_be_visible()
  expect(page.locator("#project-menu")).to_be_enabled()
- row.click(button="right");page.locator(".context-menu").get_by_role("button",name="스키마 열기",exact=True).click()
- editor=page.locator('.window[data-key="schema"]');expect(editor.locator(".object-title-name")).to_have_text("SourceLink");return editor
+ row.click(button="right");page.locator(".context-menu").get_by_role("button",name="새 창으로 열기" if "--detached" in sys.argv else "스키마 열기",exact=True).click()
+ editor=page.locator(f'.window[data-element-owner="{NS}::SourceLink"][data-element-mode="properties"]:visible' if "--detached" in sys.argv else '.window[data-key="schema"]');expect(editor.locator(".object-title-name")).to_have_text("SourceLink");return editor
 try:
  f.start(0)
  with sync_playwright() as p,p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox"]) as b:
@@ -55,18 +55,10 @@ try:
   picker.locator(f'[data-reference-choice="{NS}::TargetNonzero"]').click()
   expect(ref).to_have_text("Nonzero label");expect(editor.get_by_label("Note 기본값",exact=True)).to_have_value("Keep note")
   print("PICKER PASS",count,"compiler and DLL",counts(),flush=True);assert counts()==(0,0)
-  save=editor.locator('[data-element-action="confirm"]');expect(save).to_be_enabled();print("save label",save.inner_text(),flush=True);save.click()
+  save=editor.locator('[data-element-action="confirm"]');expect(save).to_have_text("저장");expect(save).to_be_enabled();save.click()
   expect(page.locator("#project-menu")).to_be_enabled()
-  group=page.get_by_role("dialog",name="관련 변경 검토",exact=True)
-  if group.is_visible():
-   assert f'{NS}::TargetZero' in source.read_text()
-   group.locator("#review-creation").click()
-   review=page.locator('.window[data-key="review"]');expect(review).to_be_visible()
-   if review.locator('[data-review-advanced]').count():
-    review.locator('[data-review-advanced]').click()
-    if review.locator('[data-advanced-reviewed]').count():review.locator('[data-advanced-reviewed]').check()
-   review.locator("#confirm").click();expect(review).to_be_hidden(timeout=120000)
-   expect(page.locator("#project-menu")).to_be_enabled()
+  expect(page.get_by_role("dialog",name="관련 변경 검토",exact=True)).to_be_hidden()
+  expect(page.locator('.window[data-key="review"]')).to_be_hidden()
   print("save status",page.locator("#status").inner_text(),flush=True)
   print("save error",editor.locator("[data-element-error]").inner_text(),flush=True)
   print("persisted",source.read_text(),flush=True)

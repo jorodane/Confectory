@@ -92,6 +92,7 @@ internal static class LongDataOnlyValidation
             if(reference)foreach(string target in new[]{oldDatum.Reference!,newDatum.Reference!})SchemaContracts.Validate(registry,target);
             if(Read(originalProject).Hash!=ownerManifest.Hash||Read(Owned(root,relative)).Hash!=original.Hash||Read(Owned(root,schemaLoc.Path)).Hash!=originalSchema.Hash)throw new InvalidOperationException("Data validation sources changed");
             var proof=new JsonObject{["eligible"]=true,["checks"]=new JsonArray(new JsonObject{["path"]=Path.GetFileName(originalProject),["hash"]=ownerManifest.Hash},new JsonObject{["path"]=schemaLoc.Path,["hash"]=originalSchema.Hash})};
+            if(reference)proof["reference"]=true;
             if(overlay){
                 foreach(var source in observed)if(Read(source.Key).Hash!=source.Value.Hash)throw new InvalidOperationException("Data overlay source changed");
                 proof["reads"]=new JsonArray(observed.Where(p=>!string.Equals(p.Key,originalProject,comparison)&&!string.Equals(p.Key,schemaPath,comparison)).Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=p.Value.Hash}).ToArray());

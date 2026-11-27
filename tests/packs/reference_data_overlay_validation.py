@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory(prefix='reference-overlay-proof-') as d:
   req.update(kw)
   return json.loads(subprocess.check_output(host,input=json.dumps(req),text=True))
  def eligible(v):return v.get('ok') and v.get('result',{}).get('eligible')
- good=call();assert eligible(good),good
+ good=call();assert eligible(good) and good["result"]["reference"] is True,good
  assert {pathlib.Path(x['path']).name for x in good['result']['reads']}=={'TargetInfo.celem','One.celem','Two.celem'}
  for name in ['Wrong','Missing','Link']: assert not eligible(call(name)),name
  for changed in ['object Alpha::Two extends Alpha::One {}','object Alpha::Two { use schema Alpha::TargetInfo; use implementation Alpha::PotentialCode; }','object Alpha::Two { use schema Alpha::LinkInfo; }','object Alpha::Two { use schema Alpha::TargetInfo; value always = true; }']:

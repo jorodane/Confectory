@@ -13,12 +13,12 @@ System.Text.Json.Nodes.JsonNode? declaration=rows[0]?["declaration"];
 if(compactClean){
  // A proved large clean-source context can stage one existing root data
  // value. Keep primitive direct-save policy unchanged; a single reference
- // follows the ordinary typed validation and explicit Review/Confirm path.
+ // uses the same typed validation; direct eligibility is proved after staging.
  // No raw source, copy, schema or slot expansion.
  var change=declaration?["changes"] is System.Text.Json.Nodes.JsonArray edits&&edits.Count==1?edits[0]:null;
  bool direct=rows[0]?["directPropertySave"]?.GetValue<bool>()==true;
  bool scalar=direct&&change?["contract"]?["kind"]?.ToString()=="general"&&change["contract"]?["type"]?.ToString() is ("long" or "string");
- bool reference=!direct&&change?["contract"]?["kind"]?.ToString()=="reference"&&change["contract"]?["type"]?.ToString() is string targetType&&targetType.Length>0;
+ bool reference=change?["contract"]?["kind"]?.ToString()=="reference"&&change["contract"]?["type"]?.ToString() is string targetType&&targetType.Length>0;
  if(!declarationOnly||declaration?["raw"] is not null||change?["type"]?.ToString()!="data"||change["path"] is not System.Text.Json.Nodes.JsonArray path||path.Count!=1||change["contract"]?["cardinality"]?.ToString()!="single"||!scalar&&!reference)throw new InvalidOperationException("Large owner edit supports one existing scalar or reviewed reference value; retain input");
 }
 System.Text.Json.Nodes.JsonNode? declarationPrepared=null,declarationRequest=null;
