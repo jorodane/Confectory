@@ -2,8 +2,9 @@ using Confectory.Core;
 using System.Text;
 using System.Text.Json.Nodes;
 
-// The conservative fast path for one existing, directly owned long or string value.
-// Other changes keep the normal candidate compile/link validation.
+// Conservative proof for one existing, directly owned data value.
+// Reference overlay is limited to exact local leaf objects; all other changes
+// keep the usual compile/link validation. The operation names stay compatible.
 internal static class LongDataOnlyValidation
 {
     internal static JsonObject Check(string originalProject,string? candidateProject,string id,string relative,string baseline,string after,Func<Element,string> format)
@@ -27,19 +28,44 @@ internal static class LongDataOnlyValidation
             if(original.Hash!=baseline||(!overlay&&Read(Owned(candidateRoot,relative)).Text!=after))throw new InvalidOperationException("Reviewed data source changed");
             var before=new Parser(original.Text,"<old-data>").ParseElement();var next=new Parser(after,"<new-data>").ParseElement();
             if(before.Id!=id||next.Id!=id||before.Kind!="object"||next.Kind!="object"||before.Parent is not null||before.Uses.Count!=1||before.Uses[0].Kind!="schema"||before.Data.Count!=next.Data.Count||before.Contains.Count!=0||before.Modules.Count!=0||before.Provides.Count!=0)return No();
-            var differences=before.Data.Keys.Where(k=>!next.Data.TryGetValue(k,out var n)||before.Data[k].Kind!=n.Kind||before.Data[k].Scalar?.GetRawText()!=n.Scalar?.GetRawText()).ToArray();
+            var differences=before.Data.Keys.Where(k=>!next.Data.TryGetValue(k,out var n)||before.Data[k].Kind!=n.Kind||before.Data[k].Scalar?.GetRawText()!=n.Scalar?.GetRawText()||before.Data[k].Reference!=n.Reference).ToArray();
             if(differences.Length!=1||!next.Data.TryGetValue(differences[0],out var newDatum))return No();
             string field=differences[0];var oldDatum=before.Data[field];
-            if(oldDatum.Kind!="general"||newDatum.Kind!="general"||oldDatum.Scalar is not System.Text.Json.JsonElement oldScalar||newDatum.Scalar is not System.Text.Json.JsonElement newScalar)return No();
-            string scalarType;
-            if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&newScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&oldScalar.TryGetInt64(out long oldValue)&&newScalar.TryGetInt64(out long newValue)&&oldValue!=newValue)scalarType="long";
-            else if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.String&&newScalar.ValueKind==System.Text.Json.JsonValueKind.String&&oldScalar.GetString()!=newScalar.GetString())scalarType="string";
-            else return No();
+            bool reference=overlay&&oldDatum.Kind=="reference"&&newDatum.Kind=="reference"&&oldDatum.Reference is string oldTarget&&newDatum.Reference is string nextTarget&&oldTarget!=nextTarget;
+            string scalarType="";
+            if(!reference){
+                if(oldDatum.Kind!="general"||newDatum.Kind!="general"||oldDatum.Scalar is not System.Text.Json.JsonElement oldScalar||newDatum.Scalar is not System.Text.Json.JsonElement newScalar)return No();
+                if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&newScalar.ValueKind==System.Text.Json.JsonValueKind.Number&&oldScalar.TryGetInt64(out long oldValue)&&newScalar.TryGetInt64(out long newValue)&&oldValue!=newValue)scalarType="long";
+                else if(oldScalar.ValueKind==System.Text.Json.JsonValueKind.String&&newScalar.ValueKind==System.Text.Json.JsonValueKind.String&&oldScalar.GetString()!=newScalar.GetString())scalarType="string";
+                else return No();
+            }
             before.Data[field]=newDatum;if(format(before)!=format(next))return No();
             string schemaId=before.Uses[0].Id;if(!schemaId.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||!manifest.Elements.TryGetValue(schemaId[(manifest.Namespace.Length+2)..],out var schemaLoc)||schemaLoc.Kind!="schema")return No();
             string schemaPath=Owned(root,schemaLoc.Path);
             var originalSchema=Read(schemaPath);if(!overlay&&originalSchema.Hash!=Read(Owned(candidateRoot,schemaLoc.Path)).Hash)throw new InvalidOperationException("Schema changed during candidate copy");
-            var schema=new Parser(originalSchema.Text,"<data-schema>").ParseElement();if(schema.Id!=schemaId||schema.Kind!="schema"||schema.Parent is not null||schema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single")||!schema.Fields.TryGetValue(field,out var contract)||contract.Type!=scalarType)return No();
+            var schema=new Parser(originalSchema.Text,"<data-schema>").ParseElement();
+            if(schema.Id!=schemaId||schema.Kind!="schema"||schema.Parent is not null||!schema.Fields.TryGetValue(field,out var contract)||contract.Cardinality!="single")return No();
+            if(!reference&&(schema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single")||contract.Type!=scalarType))return No();
+            if(reference){
+                // A reference edge is traversed even for inactive metadata by Planner.Visit.
+                // Only exact local leaf objects with the same primitive schema may change here;
+                // no executable, inherited, imported, nested-reference or provider edge.
+                bool Pure(Element e)=>format(e)==format(new Element{Kind=e.Kind,Id=e.Id,Uses=e.Uses,Fields=e.Fields,Data=e.Data,Values=e.Values,Description=e.Description,DescriptionPresent=e.DescriptionPresent})&&e.Values.Keys.All(k=>k is "editorName" or "editorIcon");
+                if(contract.Kind!="reference"||!Pure(before)||!Pure(schema)||schema.Uses.Count!=0||schema.Fields.Any(p=>p.Value.Cardinality!="single"||(p.Key!=field&&p.Value.Kind!="general"))||before.Data.Any(p=>p.Key!=field&&p.Value.Kind!="general"))return No();
+                if(!contract.Type.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||contract.Type==schemaId)return No();
+                (string Text,string Hash) Capture(string target,string kind){
+                    if(target==id||!target.StartsWith(manifest.Namespace+"::",StringComparison.Ordinal)||!manifest.Elements.TryGetValue(target[(manifest.Namespace.Length+2)..],out var targetLoc)||targetLoc.Kind!=kind)throw new ArgumentException("Local registered reference leaf required");
+                    string path=Owned(root,targetLoc.Path);
+                    if(path==objectPath||path==schemaPath||observed.ContainsKey(path))throw new ArgumentException("Distinct reference source required");
+                    var raw=Read(path);observed.Add(path,raw);return raw;
+                }
+                var leafSchema=new Parser(Capture(contract.Type,"schema").Text,"<reference-schema>").ParseElement();
+                if(leafSchema.Id!=contract.Type||leafSchema.Kind!="schema"||!Pure(leafSchema)||leafSchema.Uses.Count!=0||leafSchema.Data.Count!=0||leafSchema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single"))return No();
+                foreach(string target in new[]{oldDatum.Reference!,newDatum.Reference!}){
+                    var leaf=new Parser(Capture(target,"object").Text,"<reference-leaf>").ParseElement();
+                    if(leaf.Id!=target||leaf.Kind!="object"||!Pure(leaf)||leaf.Fields.Count!=0||leaf.Uses.Count!=1||leaf.Uses[0].Kind!="schema"||leaf.Uses[0].Id!=contract.Type||leaf.Data.Values.Any(d=>d.Kind!="general"))return No();
+                }
+            }
             var stats=new BuildStatistics();Registry registry;
             if(overlay){
                 // Registry and SchemaContracts operate on the same captured manifest
@@ -47,7 +73,7 @@ internal static class LongDataOnlyValidation
                 // substituted. No candidate directory or persistent parser cache.
                 if(!string.Equals(PackPaths.Resolve(originalProject),originalProject,comparison))return No();
                 observed.Add(originalProject,ownerManifest);observed.Add(schemaPath,originalSchema);
-                int bytes=Encoding.UTF8.GetByteCount(ownerManifest.Text)+Encoding.UTF8.GetByteCount(originalSchema.Text);
+                int bytes=observed.Values.Sum(v=>Encoding.UTF8.GetByteCount(v.Text));
                 foreach(var entry in manifest.Registry.Values){
                     string path=Path.GetFullPath(Path.Combine(root,entry.Path));
                     if(!string.Equals(PackPaths.Resolve(path),path,comparison)||observed.ContainsKey(path)||string.Equals(path,objectPath,comparison)||observed.Count>=235)return No();
@@ -63,6 +89,7 @@ internal static class LongDataOnlyValidation
             }else registry=new Registry(candidateProject!,new Documents(Path.Combine(Path.GetTempPath(),"confectory-data-validation",JsonData.Digest(candidateProject)),stats),stats);
             if(registry.Project.Namespace!=manifest.Namespace||!registry.Project.Elements.TryGetValue(id[(manifest.Namespace.Length+2)..],out var candidateObject)||candidateObject.Path!=relative||candidateObject.Kind!="object"||!registry.Project.Elements.TryGetValue(schemaId[(manifest.Namespace.Length+2)..],out var candidateSchema)||candidateSchema.Path!=schemaLoc.Path||candidateSchema.Kind!="schema"||registry.Get(id,"object").Id!=id)return No();
             SchemaContracts.Validate(registry,id);
+            if(reference)foreach(string target in new[]{oldDatum.Reference!,newDatum.Reference!})SchemaContracts.Validate(registry,target);
             if(Read(originalProject).Hash!=ownerManifest.Hash||Read(Owned(root,relative)).Hash!=original.Hash||Read(Owned(root,schemaLoc.Path)).Hash!=originalSchema.Hash)throw new InvalidOperationException("Data validation sources changed");
             var proof=new JsonObject{["eligible"]=true,["checks"]=new JsonArray(new JsonObject{["path"]=Path.GetFileName(originalProject),["hash"]=ownerManifest.Hash},new JsonObject{["path"]=schemaLoc.Path,["hash"]=originalSchema.Hash})};
             if(overlay){

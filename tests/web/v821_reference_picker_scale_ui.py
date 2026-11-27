@@ -162,6 +162,9 @@ try:
                 choose(picker(editor, TARGETS), "TargetZero")
                 expect(ref).to_have_text(TARGETS["TargetZero"])
                 confirm(page, editor, "TargetAbsent", "TargetZero")
+                if "--trace-files" in flags:
+                    assert trace_counts() == (0, 0), trace_counts()
+                    print("confirmed pure leaf references: compiler and project DLL opens 0", flush=True)
                 print("PASS explicit Review/Confirm for all three targets and reopened exact value", count, flush=True)
                 enter(page, SECOND)
                 peer = owner(page)
