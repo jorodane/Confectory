@@ -5,7 +5,11 @@ Run on Linux with the ordinary EditorHome build report and authoring host:
 Repeat with 0 or 1, or repeat the same command for a no-op comparison.
 All projects, including the eight recent listings, are disposable synthetic copies.
 The default waits for Home summaries to finish before timing the actual tile click.
-Use --during-summary to measure contention instead. Optional --trace-files is a
+Use --during-summary to measure contention instead. --exercise-command opens the
+real project Browser and verifies a search after the last editable property.
+--verify-restored-map additionally checks that the shared initial read renders
+the actual map and explicit reload observes an external schema edit (8 windows).
+Optional --trace-files is a
 separate diagnostic run (strace overhead makes its timings incomparable).
 """
 import json
@@ -20,7 +24,8 @@ f, d = r.fixture, r.fallback
 count = int(sys.argv[3])
 assert count in (0, 1, 8), 'Choose 0, 1, or 8 restored windows'
 flags = set(sys.argv[4:])
-assert flags <= {'--during-summary', '--trace-files'}, flags
+assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map'}, flags
+assert '--verify-restored-map' not in flags or count == 8
 expect.set_options(timeout=90000)
 f.env['CONFECTORY_UI_TRACE'] = '1'
 r.seed()
@@ -72,7 +77,7 @@ def measure(page, label, keys, expected):
     pending = page.locator('[data-stat=objects][data-status=pending]').count()
     tile = page.locator('.project-card').filter(has=page.get_by_role('heading', name=d.FIRST, exact=True)).locator('[data-enter]')
     tile.evaluate('''(button, keys)=>{globalThis.restoreMarks={};globalThis.confectoryWebUITrace=[];
-      button.addEventListener('click',()=>{const start=performance.now();function mark(name,ok){if(ok&&!(name in restoreMarks))restoreMarks[name]=performance.now()-start;}
+      button.addEventListener('click',()=>{const start=performance.now();globalThis.restoreClick=start;function mark(name,ok){if(ok&&!(name in restoreMarks))restoreMarks[name]=performance.now()-start;}
       const visible=e=>!!e&&e.getClientRects().length>0&&!e.closest('[hidden]');
       const editable=e=>visible(e)&&!e.disabled&&!e.readOnly&&!e.closest('[inert]');
       function frame(){mark('workspace',visible(document.querySelector('.work-body'))&&editable(document.querySelector('#chat-input')));
@@ -83,7 +88,23 @@ def measure(page, label, keys, expected):
       requestAnimationFrame(frame);},{once:true,capture:true});}''', keys)
     tile.click()
     expect(page.locator('.work-body')).to_be_visible()
-    expect(page.locator('#project-menu')).to_be_enabled()
+    if '--exercise-command' not in flags:
+        expect(page.locator('#project-menu')).to_be_enabled()
+    if '--exercise-command' in flags:
+        page.wait_for_function('keys=>["workspace",...keys.map(k=>k+"-editable")].every(k=>k in restoreMarks)', arg=list(expected))
+        page.evaluate("()=>{globalThis.commandAttempt=performance.now()-restoreClick;document.querySelector('#project-menu').addEventListener('click',()=>{globalThis.commandClick=performance.now()-restoreClick},{once:true,capture:true})}")
+        page.locator('#project-menu').click()
+        page.locator('.context-menu').get_by_role('button', name='프로젝트 브라우저', exact=True).click()
+        browser = page.get_by_role('region', name='프로젝트 브라우저', exact=True)
+        expect(browser).to_be_visible()
+        ready = page.evaluate('performance.now()-restoreClick')
+        r.choose_tree_location(browser, f'[data-tree-id="{d.NS}::StockFolder"]')
+        r.search(browser, d.LABEL, d.TARGET)
+        print('actual-command', json.dumps({'attemptMs': page.evaluate('commandAttempt'),
+              'clickMs': page.evaluate('commandClick'), 'browserReadyMs': ready,
+              'searchReadyMs': page.evaluate('performance.now()-restoreClick')}), flush=True)
+        if not any(k.startswith('browser') for k in keys):
+            browser.locator('[data-close]').click()
     for key in keys:
         window = page.locator(f'.window[data-key="{key}"]')
         expect(window).to_be_visible()
@@ -153,6 +174,26 @@ try:
         page = new_page(browser)
         expect(page.locator('.home-grid')).to_be_visible()
         measure(page, 'cold', keys, expected)
+        if '--verify-restored-map' in flags:
+            graph = page.locator('.window[data-key="map"]')
+            expect(graph.locator('[data-map-scene]')).to_be_visible()
+            # The common initial projection is an actual host response; no extra
+            # map read is necessary when it satisfies the pending restoration.
+            trace = page.evaluate('confectoryWebUITrace')
+            assert any(row.get('endpoint') == 'localInventory' and row.get('code') == 'completed' for row in trace), trace
+            assert not any(row.get('endpoint') == 'relationsMap' for row in trace), trace
+            schema = f.projects[0].parent / 'private-source-StockInfo.celem'
+            original = schema.read_bytes()
+            schema.write_text(schema.read_text().rstrip()[:-1] + ' field MapReloadProbe single general string;\n}\n')
+            try:
+                page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
+                graph.locator('[data-map-reload]').press('Enter')
+                page.wait_for_function("()=>confectoryWebUITrace.some(r=>r.endpoint==='relationsMap'&&r.code==='completed')")
+                expect(d.field(page.locator('.window[data-key="schema"]'), 'MapReloadProbe')).to_be_visible()
+                print('PASS shared initial map projection and explicit fresh external-schema reload', flush=True)
+            finally:
+                schema.write_bytes(original)
+            f.original()
 finally:
     f.stop()
     print('evidence', f.root, flush=True)
