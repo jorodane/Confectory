@@ -6,7 +6,7 @@ const {WebView}=await import('data:text/javascript;base64,'+Buffer.from(source).
 let mounts=0,reads=0;const waiting=[],invoked=[],rendered=[];
 const transport=async request=>{
  if(request.op==='mount'){const n=++mounts;return {ok:true,view:'v'+n,scope:{project:'p'+n},revision:n,state:{project:'p'+n}};}
- if(request.op==='update'){reads++;return new Promise(resolve=>waiting.push(resolve));}
+ if(request.op==='update'){assert(!('receivedRequestIds' in request));reads++;return new Promise(resolve=>waiting.push(resolve));}
  if(request.op==='invoke'){invoked.push(request);return {ok:true,status:'pending'};}
  if(request.op==='dispose')return {ok:true};
  throw Error('unexpected operation');
@@ -79,3 +79,33 @@ completionReads.shift()({ok:true,revision:3,state:{value:'fallback'},results:[{r
 const stale=completionView.call('connectionSetup',{}, {completion:true});const staleRow=completions.shift();staleRow.resolve({ok:true,status:'pending',completion:{ok:true,revision:4,state:{value:'newer'},results:[{requestId:staleRow.request.requestId,ok:false,error:{code:'stale_revision'}}]}});await assert.rejects(stale,/stale_revision/);assert.equal(completionView.revision,4);
 const retired=completionView.call('connectionSetup',{}, {completion:true});const retiredRow=completions.shift();const rejected=assert.rejects(retired,/view_closed/);await completionView.dispose();await rejected;retiredRow.resolve({ok:true,completion:{ok:true,revision:99,state:{value:'retired'},results:[]}});await new Promise(resolve=>setImmediate(resolve));assert(!completionRenders.includes('retired'));
 console.log('PASS bounded completion snapshot, fallback, stale admission and retired acknowledgement');
+
+// Result exclusion filters only rows actually received by this mounted view.
+// A read started before a new admission can still carry its completion;
+// lost reads acknowledge nothing and never trigger a second invocation.
+const selectedReads=[],selectedInvokes=[];
+const selective=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'selection',scope:{project:'fixture'},revision:1,state:{},receivedResultSelection:true};
+ if(request.op==='invoke'){selectedInvokes.push(request);return {ok:true,status:'pending'};}
+ if(request.op==='update')return new Promise((resolve,reject)=>selectedReads.push({request,resolve,reject}));
+ if(request.op==='dispose')return {ok:true};
+ throw Error('unexpected result selection operation');
+});
+await selective.mount();
+const initial=selective.update();assert.deepEqual(selectedReads[0].request.receivedRequestIds,[]);
+const first=selective.call('edit',{value:1});const firstId=first.requestId;
+await new Promise(resolve=>setImmediate(resolve));assert.equal(selectedReads.length,1);
+selectedReads.shift().reject(Error('transport_lost'));await assert.rejects(initial,/transport_lost/);
+const retried=selective.update();assert.deepEqual(selectedReads[0].request.receivedRequestIds,[]);
+const second=selective.call('edit',{value:2});const secondId=second.requestId;
+await new Promise(resolve=>setImmediate(resolve));
+// The second result was admitted after the request was sent, but is not
+// excluded. Both results can settle with the same old in-flight read.
+selectedReads.shift().resolve({ok:true,revision:2,state:{},results:[{requestId:firstId,ok:true,result:{accepted:1}},{requestId:secondId,ok:false,error:{code:'stale_revision'}}]});
+await assert.rejects(second,/stale_revision/);await retried;assert.deepEqual(await first,{accepted:1});
+const idle=selective.update();assert.deepEqual(selectedReads[0].request.receivedRequestIds,[firstId,secondId]);
+selectedReads.shift().resolve({ok:true,revision:2,state:{},results:[]});await idle;
+assert.equal(selectedInvokes.length,2);await selective.dispose();
+await selective.mount();const freshSelection=selective.update();assert.deepEqual(selectedReads[0].request.receivedRequestIds,[]);
+selectedReads.shift().resolve({ok:true,revision:1,state:{},results:[]});await freshSelection;await selective.dispose();
+console.log('PASS received-result exclusion, lost read, concurrent admission, stale rejection and no replay');

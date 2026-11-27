@@ -110,7 +110,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision"),new System.Threading.CancellationTokenSource()));
-    s["ok"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+    s["ok"]=true;s["receivedResultSelection"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
    }
    string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
    if(op=="dispose"){
@@ -131,9 +131,18 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
     row.Cancel.Cancel();return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["status"]="cancellation_requested",["requestId"]=id}.ToJsonString();
    }
    if(op=="update"){
+    // This is a response projection, never a journal acknowledgement or deletion.
+    // All invocation rows, including failed ones, retain their original
+    // replay/fingerprint and view lifetime. Legacy updates still receive all.
+    System.Collections.Generic.HashSet<string>? received=null;
+    if(req.ContainsKey("receivedRequestIds")){
+     if(req["receivedRequestIds"] is not System.Text.Json.Nodes.JsonArray ids||ids.Count>1024)return Error("result_selection").ToJsonString();
+     received=new(StringComparer.Ordinal);
+     foreach(var item in ids)if(item is not System.Text.Json.Nodes.JsonValue value||!value.TryGetValue<string>(out var requestId)||requestId.Length is <1 or >128||!received.Add(requestId))return Error("result_selection").ToJsonString();
+    }
     var s=Refresh();if(s is null)return "{\"ok\":true,\"busy\":true,\"results\":[]}";if(!System.Text.Json.Nodes.JsonNode.DeepEquals(s["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed").ToJsonString();
     s["changed"]=calls.Poll.Invoke(owner,mounted.Subscription).Length>0;s["ok"]=true;
-    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending")results.Add(row.Row.DeepClone());s["results"]=results;return s.ToJsonString();
+    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending"&&(received is null||!received.Contains(row.Row["requestId"]!.ToString())))results.Add(row.Row.DeepClone());s["results"]=results;return s.ToJsonString();
    }
    if(op!="invoke")return Error("unknown_operation",id).ToJsonString();
    string endpoint=req["endpoint"]!.ToString();if(!endpoints.Contains(endpoint))return Error("endpoint_denied",id).ToJsonString();

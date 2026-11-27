@@ -1,11 +1,12 @@
 """Alternating scalar/reference direct-save timing on disposable 40/400-object packs.
 
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status] [--include-string].
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status] [--include-string] [--single] [--result-sizes].
 Run one fixture at a time, without compiler/build/regression jobs. The default
 runs three scalar and three reference saves; --diagnostic captures operation
 names and process count separately, so its timing is not comparable. The
 --timeline flag captures one instrumented scalar/reference pair without strace;
-run separate isolated alternating processes for comparison.
+run separate isolated alternating processes for comparison. --single runs one
+uninstrumented operation sequence; --result-sizes adds diagnostic payload sizes.
 """
 import json
 import sys
@@ -20,7 +21,7 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status","--include-string"}
+assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status","--include-string","--single","--result-sizes"}
 assert "--malformed" not in flags or "--pick" in flags
 assert not flags.intersection({"--expect-single-detached-status","--stale-detached-status"}) or {"--timeline","--detached"} <= flags
 FIRST, SECOND = "Reference First", "Reference Second"
@@ -164,6 +165,7 @@ def sample(page,editor,kind,i):
             if req.method!="POST" or a.get("op") not in ("invoke","update","observe"):return
             key=req._impl_obj._guid
             event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId"),"idsCount":len(a.get("input",{}).get("ids") or []),"view":bool(a.get("input",{}).get("view")),"savedOwner":a.get("input",{}).get("id")==prefix+NAMES[kind]}
+            if a["op"]=="update" and "receivedRequestIds" in a:event["receivedCount"]=len(a["receivedRequestIds"])
             pending[key]=event;events.append(event)
         except Exception:pass
     def on_response(resp):
@@ -171,7 +173,10 @@ def sample(page,editor,kind,i):
             key=resp.request._impl_obj._guid;event=pending.pop(key,None)
             if event is None:return
             event["endMs"]=round((time.monotonic()-started)*1000,1)
-            body=resp.json()
+            if "--result-sizes" in flags:
+                raw=resp.body();event["responseBytes"]=len(raw);body=json.loads(raw)
+                if event["op"]=="update":event["resultBytes"]=len(json.dumps(body.get("results",[]),separators=(",",":"),ensure_ascii=False).encode())
+            else:body=resp.json()
             if event["op"]=="update":event["completed"]=[{"id":r.get("requestId"),"code":r.get("error",{}).get("code","ok")} for r in body.get("results",[])]
             else:event["code"]=body.get("error",{}).get("code",body.get("status","ok"))
         except Exception:pass
@@ -239,7 +244,7 @@ try:
     with sync_playwright() as p,p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox"]) as browser:
         page=f.setup(browser);page.set_viewport_size({"width":2000,"height":1200})
         samples=[]
-        for i in range(1 if "--diagnostic" in flags or "--timeline" in flags else 3):
+        for i in range(1 if flags.intersection({"--diagnostic","--timeline","--single"}) else 3):
             order=KINDS if (i+("--reverse" in flags))%2==0 else list(reversed(KINDS))
             for kind in order:
                 editor=owner(page,NAMES[kind])

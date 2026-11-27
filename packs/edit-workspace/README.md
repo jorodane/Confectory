@@ -195,3 +195,48 @@ Six alternating isolated real Chromium processes per variant, size and surface (
 The 400 detached sample had large outliers and differing totals, so a separate six-pair isolated reverse-order comparison was run: long 2,292/3,094 → 2,210/2,957, reference 2,584/3,496 → 2,409/3,445, string 2,799/3,422 → 2,749/3,523; sum 7,598/10,016 → 7,239/9,924. String UI had a 101 ms median increase with overlapping ranges; no consistent UI gain is claimed. The actual candidate-prepare medians in this repeat were long 349 → 231 ms, reference 425 → 297 ms, string 340 → 201 ms. In the first 400 detached series they were 312 → 251, 458 → 293 and 306 → 228 ms. The exact isolated diagnostic reduction is established; full workflow timings vary. No native Windows or power-cut durability measurement.
 
 The final clean-binary regressions passed: public reply equivalence, scalar/string/reference preparation and final graph stream equivalence, scoped reader and bounded rotation, external object/schema/permission conflicts, lost staging/final replies and restart, Unicode/empty string and independent input, unreadable unrelated source, mixed recovered conflict, Worker Review, reference lost-final and explicit Run, ordinary retirement and always-reference rejection, and prior protocol-13 tool fallback. Tracing ordinary Save observed zero compiler invocations and zero project DLL opens; explicit Run built and observed the selected data.
+
+### Received-result transport projection
+
+The data transaction boundary remains unchanged: the source commit and durable
+operation identity are not atomically attested by the current CommitPlan return,
+so the earlier combined/receipt experiments remain unpublished. The measured
+next independent bottleneck was repeated delivery of retained WebUI results.
+For example, 400-object detached string Save returned 1,451 completed rows
+across its update traffic, although each command has one retained outcome.
+Excluding only rows already consumed by the current mounted client reduced that
+diagnostic to 11 rows and result payload from 941,533 to 3,441 bytes; total
+update responses fell from 3,760,071 to 3,212,934 bytes. State snapshots and
+command verification are unchanged. A positive pending-ID filter was rejected
+because an update begun before an admission could omit the new completion;
+the final negative received-ID projection preserves that delivery.
+
+Six isolated alternating actual Chromium runs per variant/size/surface
+(48 total, reverse operation order, no timeline/strace instrumentation) gave
+the following median disk/UI milliseconds:
+
+| Objects / surface | Long before → after | Reference before → after | String before → after | Per-run sum before → after |
+| --- | ---: | ---: | ---: | ---: |
+| 40 primary | 826/1,463 → 738/1,344 | 633/1,225 → 575/1,179 | 806/1,346 → 819/1,344 | 2,275/4,249 → 2,159/3,735 |
+| 40 detached | 1,082/1,832 → 1,093/1,841 | 1,225/2,122 → 1,233/1,853 | 1,588/2,354 → 1,612/2,361 | 3,898/6,085 → 3,915/6,052 |
+| 400 primary | 1,577/2,511 → 1,619/2,200 | 1,362/2,249 → 1,425/1,962 | 1,495/2,395 → 1,543/2,139 | 4,492/6,876 → 4,541/6,513 |
+| 400 detached | 2,005/2,670 → 2,057/2,934 | 2,477/3,460 → 2,408/3,425 | 2,794/3,430 → 2,497/3,298 | 7,177/9,540 → 6,981/9,710 |
+
+A separate six-pair isolated reverse-order repeat on 400 detached, prompted
+by the higher initial long UI median, gave long 2,022/2,884 → 1,997/2,876,
+reference 2,316/3,423 → 2,029/2,912 (one candidate UI outlier 5,509 ms),
+string 2,831/3,512 → 2,479/3,209; per-run sum 7,181/9,791 → 6,606/9,229.
+This is a verified reduction in redundant transport and a modest repeated
+workflow gain, not a general millisecond Save guarantee. No native Windows
+or power-cut timings were measured.
+
+Final regression checks passed for actual scoped WebUI transport and JS
+lifecycle (legacy/full, selected exclusion, loss, concurrent admission,
+scope, stale, cancellation, disposal, no replay), external object/schema/
+permission conflicts, lost staging/final reply and restart, mixed recovered
+reference conflict, independent dirty input, Worker Review, Unicode/empty
+string/long, unreadable unrelated source, explicit reference Run, ordinary
+retirement/always refusal, 0/1/8 restored workspace with real command and
+closed/partially missing windows, bounded rotation and prior authoring tool.
+Ordinary Save tracing observed zero compiler invocations and project DLL opens.
+The restoration runs were functional checks, not a paired latency comparison.

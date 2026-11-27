@@ -124,3 +124,22 @@ for the dated validation results and remaining platform limits.
 File rows default to exact `size`/`sha256` bytes. A trusted consumer may instead declare `bytePolicy:"utf8-lf-v1"` with **`canonicalSize`/`canonicalSha256`** for HTML/CSS/JS/JSON/SVG. These pin strict UTF-8, no BOM/NUL/bare CR, with CRLF converted to LF in memory; served snapshots contain these canonical bytes. Mixed raw/canonical fields, unknown policy and canonical binary/inline rows are rejected. Raw physical reads and canonical snapshots independently retain 4 MiB per-resource and 32 MiB aggregate budgets. This never modifies the original file or accepts meaningful content changes. See [Windows checkout evidence](../../docs/WEB_RESOURCE_WINDOWS_CHECKOUT.md).
 
 Optional local performance capture is enabled by the owning desktop editor, not a renderer command. A mounted reply can advertise `performance: true`; only then may that view submit `op: performance` with the existing view/scope and at most 32 fixed-stage numeric rows. It does not advance the revision, read model state, or invoke a consumer. The local writer allowlists operation names, caps records and ignores arbitrary content. The browser sends bounded, best-effort batches with at most one in flight, when no foreground command is pending. No capture file or batch is created by default.
+
+### Received-result projection
+
+The mount reply may advertise `receivedResultSelection: true`. A capable
+client includes the bounded set of request IDs whose completed rows it has
+actually consumed as `receivedRequestIds` on an ordinary update. The server
+returns the same fresh revisioned state and every completed row for this view
+except those IDs. It never removes or acknowledges any retained journal row,
+changes request fingerprints, retries a mutation, or changes revision/scope
+admission. Unknown IDs omit nothing; a foreign view cannot read another view's
+rows. A lost response adds no IDs, and an invocation completed after an update
+began remains deliverable because only previously received rows are excluded.
+The old client and absent capability use the existing full-result response.
+Invalid or duplicate selections and sets over 1,024 are rejected; the bounded
+client falls back to the full update if its own set exceeds that budget.
+Mount/dispose and generation guards remain unchanged.
+
+This reduces repeated response bytes and cloning, not the retained operation
+budget or command cadence. It is unrelated to a durable data-save receipt.
