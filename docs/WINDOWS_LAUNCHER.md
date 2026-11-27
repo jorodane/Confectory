@@ -331,6 +331,39 @@ Confectory 창을 모두 닫고, 체크아웃 또는 설치한 Windows 묶음의
 두 파일의 `atMs`는 같은 머신의 단조 시계를 사용하며, 브라우저 기록은 작은 배치로
 전달되므로 엔진에서 받은 시점과 실제 브라우저 시점은 다를 수 있습니다.
 
+#### 실제 프로젝트 대신 합성 샘플로 재현
+
+1. 기존 Confectory 창을 정상 종료하고 `Confectory-performance-sample.bat`를
+   더블 클릭합니다. 첫 실행에만 `%LOCALAPPDATA%\Confectory\PerformanceSample-v1\project`
+   에 샘플을 복사합니다. 별도 `profile`, `entry`, `instances`를 사용하며 기존
+   사용자 프로필이나 프로젝트는 열지 않습니다. 이전 시험 사본은 덮어쓰지 않습니다.
+2. 첫 실행은 배치에 인쇄된 `project.cpack`을 Home의 기존 프로젝트 열기로
+   선택합니다. 이후에는 별도 시험 프로필의 같은 프로젝트 카드를 사용합니다.
+   로그인, Agent 추가, 채팅 및 Run/Build는 필요하지 않습니다.
+3. 프로젝트 Browser의 개념 목록에서 `Sample A`를 검색하고 우클릭 → 새 창으로
+   열기를 선택합니다. 실제 Count 입력칸을 클릭해 커서가 들어가는지 확인합니다.
+   창 닫기 후 목록에서 같은 객체를 Enter로 다시 열어 실제 입력이 가능한지 확인합니다.
+   (새 창으로 열기는 미적용 입력이 있는 경우 별개 창을 만들 수 있습니다.)
+4. `Sample B`, `Sample C`도 각각 새 창으로 열어 세 속성 창을 남깁니다.
+   한 창의 Count를 현재 값과 다른 정수로 바꾼 뒤 **저장**을 한 번 클릭하고
+   저장 완료 메시지를 기다립니다. 다시 읽어 변경된 값이 맞는지 확인합니다.
+5. 세 창이 실제로 열린 상태에서 앱을 정상 종료합니다. 같은 샘플 배치를
+   다시 더블 클릭하고 Home에서 같은 프로젝트를 재개방합니다. 세 창이 모두
+   편집 가능해지는지와 저장한 Count가 남아 있는지 확인합니다.
+6. 앱을 정상 종료하고 성능 기록 폴더에서 해당 두 세션의 파일을 직접 열어
+   검토합니다. 공유할 때는 `engine.jsonl`, `webview.jsonl`만 선택합니다.
+   샘플 프로젝트 파일, 프로필, launcher 일반 로그 또는 전체 앱 데이터 폴더는
+   공유하지 않습니다.
+
+기록의 `window-ready / openEditorView`는 최초 독립 속성 창,
+`window-ready / reopenEditorView`는 기존 숨은 창의 재열기,
+`restore-view`·`restore-total`·`restore-layout`은 복원 단계,
+`property-save-ready / direct-property-save`는 직접 저장이 실제 확정되고
+해당 작업이 완료된 시점입니다. `consumer / directPropertyConfirm` 또는
+`consumer / reviewGroup`·`consumer / confirmGroup`은 저장 내부 호스트 구간입니다.
+창 준비 이벤트와 저장 이벤트는 실제 동작에 성공했을 때만 기록되므로 누락을
+성공으로 간주하지 않습니다.
+
 원본 소스, 프로젝트 이름·경로·ID, 채팅, 입력값, 인증정보, URL, 오류 전문을 기록하지
 않으며 자동 업로드하지 않습니다. 파일당 기록 제한(엔진 8,192행, 네이티브 4,096행)이
 있으며 한도를 채우면 `capture-limit` 뒤에 추가 기록을 하지 않습니다. 기록은 로컬에

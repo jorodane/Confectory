@@ -1,0 +1,3 @@
+implementation Confectory.PerformanceSample::MainBody for Confectory.PerformanceSample::Main () -> int {
+  body common "Main.csbody";
+}

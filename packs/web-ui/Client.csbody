@@ -19,7 +19,15 @@ export class WebView {
  // Only fixed operation names and numbers reach the host; no DOM text or input.
  performanceMark(stage,operation,start){if(!this.performanceEnabled||!this.active)return;const now=performance.now(),elapsedMs=now-start;if(!Number.isFinite(elapsedMs)||elapsedMs<0||elapsedMs>3600000)return;// Frequent idle polls must not displace click, command, or ready events.
  if(stage==='renderer-update'){if(elapsedMs<20&&now-this.performanceLastUpdate<500)return;this.performanceLastUpdate=now;}
- if(this.performanceRows.length>=32){if(stage==='renderer-update')return;const idle=this.performanceRows.findIndex(row=>row.stage==='renderer-update');this.performanceRows.splice(idle>=0?idle:0,1);}
+ if(this.performanceRows.length>=32){
+  if(stage==='renderer-update')return;
+  // A burst of renderer/status rows must not erase the few measurements
+  // that tell whether an actual window, restoration or direct save finished.
+  const priority=name=>['window-ready','property-save-ready','restore-view','restore-total','restore-layout','workspace-attach'].includes(name)?2:name==='input-delay'||name==='input-frame'?1:0;
+  const idle=this.performanceRows.findIndex(row=>row.stage==='renderer-update');let replace=idle;
+  if(replace<0){replace=0;for(let i=1;i<this.performanceRows.length;i++)if(priority(this.performanceRows[i].stage)<priority(this.performanceRows[replace].stage))replace=i;if(priority(stage)<priority(this.performanceRows[replace].stage))return;}
+  this.performanceRows.splice(replace,1);
+ }
  this.performanceRows.push({stage,operation,elapsedMs,pageMs:now});this.schedulePerformance();}
  schedulePerformance(){if(this.performanceTimer===null&&this.performanceEnabled)this.performanceTimer=setTimeout(()=>{this.performanceTimer=null;this.flushPerformance();},500);}
  flushPerformance(){if(!this.performanceEnabled||!this.active||!this.performanceRows.length)return;if(this.performanceSending||this.pending.size||this.updating){this.schedulePerformance();return;}const rows=this.performanceRows.splice(0,32),generation=this.generation;this.performanceSending=true;void this.transport({op:'performance',view:this.view,scope:this.scope,rows}).catch(()=>{}).finally(()=>{if(this.generation===generation){this.performanceSending=false;if(this.performanceRows.length)this.schedulePerformance();}});}

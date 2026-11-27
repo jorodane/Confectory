@@ -1,0 +1,15 @@
+project Confectory.PerformanceSample version "1" {
+  standalone true;
+  entry Confectory.PerformanceSample::Main;
+  registry Confectory.Build.DotNet "build/pack.cpack";
+  dependency Confectory.Build.DotNet version "0.1.0";
+  target portable Confectory.Build.DotNet::Portable;
+  target windows Confectory.Build.DotNet::Portable;
+  target linux Confectory.Build.DotNet::Linux;
+  element Main function "Main.celem";
+  element MainBody implementation "MainBody.celem";
+  element SampleInfo schema "SampleInfo.celem";
+  element SampleA object "SampleA.celem";
+  element SampleB object "SampleB.celem";
+  element SampleC object "SampleC.celem";
+}

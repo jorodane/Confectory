@@ -1,0 +1,5 @@
+buildtarget Confectory.Build.DotNet::Linux {
+  description "Data-only performance sample; no runtime tool supplied";
+  tool "tools/Confectory.Build.DotNet.dll";
+  option mode "linux";
+}

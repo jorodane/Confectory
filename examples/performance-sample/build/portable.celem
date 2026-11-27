@@ -1,0 +1,5 @@
+buildtarget Confectory.Build.DotNet::Portable {
+  description "Data-only performance sample; no runtime tool supplied";
+  tool "tools/Confectory.Build.DotNet.dll";
+  option mode "portable";
+}

@@ -42,9 +42,15 @@ diagnostic.flushPerformance();
 assert.equal(batches.length,1);assert.equal(batches[0].rows.length,32);
 assert(batches[0].rows.some(row=>row.stage==='window-ready'));
 diagnostic.performanceMark('restore-total','restore',performance.now()-20);
+diagnostic.performanceMark('property-save-ready','direct-property-save',performance.now()-20);
+diagnostic.performanceMark('window-ready','reopenEditorView',performance.now()-20);
+for(let i=0;i<80;i++)diagnostic.performanceMark('renderer-call','browserDrafts',performance.now()-30);
 diagnostic.flushPerformance();assert.equal(batches.length,1);
 finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));diagnostic.flushPerformance();assert.equal(batches.length,2);
 assert.deepEqual(Object.keys(batches[1].rows[0]).sort(),['elapsedMs','operation','pageMs','stage']);
+assert(batches[1].rows.some(row=>row.stage==='restore-total'));
+assert(batches[1].rows.some(row=>row.stage==='property-save-ready'));
+assert(batches[1].rows.some(row=>row.stage==='window-ready'&&row.operation==='reopenEditorView'));
 finish.shift()({ok:true});await new Promise(resolve=>setImmediate(resolve));await diagnostic.dispose();
 console.log('PASS bounded performance batches keep ready events and at most one transport in flight');
 
