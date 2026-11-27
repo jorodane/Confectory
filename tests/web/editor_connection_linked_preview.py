@@ -104,7 +104,16 @@ with sync_playwright() as playwright, playwright.chromium.launch(executable_path
                     dialog=open_form(page,'OpenAI Responses');field=dialog.locator('[data-connection-field="model"]');expect(field).to_be_editable();field.fill('saved-linked-fixture')
                     source=install/'packs/agent-responses/Connection.celem';original=source.read_bytes();source.write_text(original.decode('utf-8').rstrip()[:-1]+' data model = "external-while-editing"; }')
                     dialog.locator('[data-connection-save]').click();expect(dialog.locator('[data-connection-error]')).to_be_visible();expect(field).to_have_value('saved-linked-fixture');assert not settings(responses).exists()
-                    source.write_bytes(original);before=len(log.read_text());dialog.locator('[data-connection-save]').click();expect(dialog.locator('[data-connection-save]')).to_be_enabled();expect(field).to_have_value('saved-linked-fixture');assert (settings(responses)/'project.cpack').is_file() and (settings(responses)/'Settings.celem').is_file();assert '"operation":"inspectEffective"' in trace(log,before);close(dialog)
+                    source.write_bytes(original);before=len(log.read_text());dialog.locator('[data-connection-save]').click();expect(dialog.locator('[data-connection-save]')).to_be_enabled();expect(field).to_have_value('saved-linked-fixture')
+                    assert (settings(responses)/'project.cpack').is_file() and (settings(responses)/'Settings.celem').is_file()
+                    saved_trace=trace(log,before)
+                    assert '"operation":"inspectEffective"' in saved_trace
+                    # The exact generated pair was checked before creation by the
+                    # same selected-connection repair reader. Do not enumerate
+                    # the installed catalog twice on this fresh admission.
+                    assert saved_trace.count('"operation":"connectionSettingsRepair"')==1, saved_trace
+                    assert '"operation":"connectionCatalog"' not in saved_trace, saved_trace
+                    close(dialog)
             finally:
                 page.close()
                 if host.poll() is None:os.killpg(host.pid,signal.SIGTERM)

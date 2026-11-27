@@ -340,7 +340,17 @@ string SetupView(string connection){
  bool validateWithRepair=manifestBefore[0]=="exists"&&sourceBefore[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey("connection-setup/"+connection));
  // Fresh creation already validates the selected descendant through the same catalogue query.
  bool validateWithCreation=operation=="connection-setup"&&manifestBefore[0]=="missing"&&sourceBefore[0]=="missing";
- connectionStage="declarations";if(!reuseModel&&!validateWithRepair&&!validateWithCreation)DeclaredConnection(connection);connectionStage="settings-files";
+ // A fresh, edited in-memory form already owns the generated pair. Validate
+ // that exact pair and the registered connection together before creating it.
+ // Retain the ordinary catalog/repair path if no current proof is available.
+ System.Text.Json.Nodes.JsonNode? initialPairProof=null;bool initialPairChecked=false;
+ if(operation=="connection-setup-save"&&pendingPreview is not null&&manifestBefore[0]=="missing"&&sourceBefore[0]=="missing"&&!workspaces.ContainsKey(viewKey)&&PreviewFresh(pendingPreview,manifest,true)){
+  try{
+   var proposal=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("connectionSettingsRepair",new System.Text.Json.Nodes.JsonObject{["project"]=InstallProject(),["id"]=connection,["manifest"]=pendingPreview["manifest"]!.DeepClone(),["text"]=pendingPreview["source"]!.DeepClone(),["settingsProject"]=manifest,["repository"]=(string)state[1]}.ToJsonString()))!;
+   if(proposal["state"]?.ToString()=="unchanged"&&FreshConnectionModel(proposal["connectionModelProof"],InstallProject())&&PreviewFresh(pendingPreview,manifest,true))initialPairProof=proposal["connectionModelProof"]!.DeepClone();
+  }catch{/* Preserve ordinary diagnostic and repair behavior. */}
+ }
+ connectionStage="declarations";if(!reuseModel&&!validateWithRepair&&!validateWithCreation&&initialPairProof is null)DeclaredConnection(connection);connectionStage="settings-files";
  if(manifestBefore[0]=="exists"&&sourceBefore[0]!="exists")throw new InvalidOperationException("CONNECTION_SETTINGS_SOURCE_MISSING");
  if(manifestBefore[0]!="exists"){if(sourceBefore[0]=="exists")throw new InvalidOperationException("Retain partial connection settings for recovery");
   System.Text.Json.Nodes.JsonNode generated;
@@ -348,13 +358,14 @@ string SetupView(string connection){
   catch{if(validateWithCreation){connectionStage="declarations";DeclaredConnection(connection);connectionStage="settings-files";}throw;}
   System.IO.Directory.CreateDirectory(folder);if(calls.CommitHome.Invoke(folder,new[]{"Settings.celem","project.cpack"},new[]{sourceBefore[2],manifestBefore[2]},new[]{generated["source"]!.ToString(),generated["manifest"]!.ToString()})[0]!="applied")throw new InvalidOperationException("Initial settings changed during creation; original retained");
   if(pendingPreview is not null){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(source);if(m[0]!="exists"||f[0]!="exists"||m[1]!=generated["manifest"]!.ToString()||f[1]!=generated["source"]!.ToString())throw new InvalidOperationException("Initial settings changed during creation; original retained");pendingPreview["admittedManifest"]=m[2];pendingPreview["admittedSource"]=f[2];}
+  if(initialPairProof is not null&&pendingPreview is not null&&AdmittedPreview(pendingPreview,manifest)&&FreshConnectionModel(initialPairProof,InstallProject())&&VerifyPreview(connection,pendingPreview,manifest,true))initialPairChecked=true;
   // The generated pair has just been constructed from the current complete
   // registry. A repair query would parse the same registry and the formerly
   // missing source; it cannot add any validation to this exact committed pair.
   if(opening){var m=calls.FileSnapshot.Invoke(manifest);var f=calls.FileSnapshot.Invoke(source);if(m[1]==generated["manifest"]!.ToString()&&f[1]==generated["source"]!.ToString()){RememberModel(generated["connectionModelProof"],m[2],f[2]);reuseModel=setupProofs.ContainsKey(connection);}}
  }
  var manifestFile=calls.FileSnapshot.Invoke(manifest);
- if(!reuseModel&&manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey(viewKey))){
+ if(!reuseModel&&!initialPairChecked&&manifestFile[0]=="exists"&&(operation=="connection-setup"||!workspaces.ContainsKey(viewKey))){
   var repairSource=calls.FileSnapshot.Invoke(source);
   var repairRequest=new System.Text.Json.Nodes.JsonObject{["project"]=InstallProject(),["id"]=connection,["manifest"]=manifestFile[1],["text"]=repairSource[1],["settingsProject"]=manifest,["repository"]=(string)state[1]};
   System.Text.Json.Nodes.JsonNode? repair=null;
