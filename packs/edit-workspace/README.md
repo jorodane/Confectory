@@ -148,3 +148,31 @@ All six changed-route pairs improved for both disk and UI. 400 detached string r
 To isolate the non-targeted paths, six additional alternating detached 400-object int/reference-only runs (no string edit) observed long 3,111/4,120 → 3,153/4,267 ms and reference 3,088/5,215 → 3,230/4,829 ms. The scattered individual differences and overlapping ranges do not establish a consistent UI regression on the unchanged paths; these are not claimed gains. The absolute timings were noisier in this separate session.
 
 The controlled candidate/source recheck suite passed, including compact detached string external hash guard and retained dirty fallback. Real Chromium passed string external schema/owner/permission changes, staged and final response loss/restart, Unicode and empty string with independent unsaved input, unreadable source, mixed recovered conflict, Worker review, reference loss, actual selected-reference Run, ordinary retirement plus always-reference refusal, prior authoring tool missing-proof fallback, stream owner/idle/128-frame rotation. Ordinary Save file tracing observed compiler and project DLL opens zero. No real projects/accounts or native Windows were exercised.
+
+### Eliminate unnecessary process-tree retirement at a completed boundary
+
+The prior rejected display-proof candidate established that removing query counts alone moved the 128-frame rotation cost to a later edit. Separate temporary phase diagnostics at 51e6aa93 identified the cost: two actual 400-object rotation events spent 1,101 and 1,232 ms in old-worker retirement, whereas process creation plus handshake was approximately 44–54 ms and the first dispatched operation itself was approximately 89–242 ms. The large synthetic Linux environment had 14,061 visible processes, 14,042 of them zombies from prior tests; the process-tree enumeration cost is therefore especially pronounced here, and cannot be treated as a representative native Windows measurement.
+
+Only an exhausted acknowledged-frame reader now has a bounded 75 ms natural-exit opportunity (see schema-editing README). The 128-frame limit is not raised, and the forced fallback remains. The same actual mixed-order UI diagnostic, with no prewarming, measured:
+
+| Objects/order | Old retirement before → after (ms) | Whole first frame before → after (ms) |
+| --- | ---: | ---: |
+| 40 scalar/ref/string | 761 → 8 | 1,011 → 260 |
+| 40 string/ref/scalar | 1,459 → 10 | 1,596 → 154 |
+| 400 scalar/ref/string | 1,063 → 26 | 1,344 → 363 |
+| 400 string/ref/scalar | 1,374 → 14 | 1,524 → 169 |
+
+All four sequences still rotated at the same 128-frame boundary, in the same reference-save stage; no delay was moved into another operation. Temporary diagnostic code was removed from product sources. Separate direct-tool probes measured initial handshake around 35–57 ms, cold dispatch entry/JIT around 19 ms, and ordinary cold inspectEffective operation around 161 ms; the large retirement delay was not a reason to change validation or introduce speculative prewarming. No native Windows execution or power-cut durability measurement.
+
+Six alternating isolated real Chromium runs per size, surface and variant (48 editor processes, each real int/reference/string save in alternating orders) measured the following file-replacement/UI-stable medians (ms):
+
+| Objects / surface | Long before → after | Reference before → after | String before → after | Three-operation sum before → after |
+| --- | ---: | ---: | ---: | ---: |
+| 40 primary | 1,413/2,132 → 849/1,387 | 616/1,104 → 623/1,040 | 1,097/1,831 → 865/1,511 | 3,529/5,285 → 2,447/4,266 |
+| 40 detached | 1,192/1,861 → 1,116/1,853 | 1,770/3,176 → 1,305/2,149 | 1,748/2,354 → 1,655/2,409 | 4,607/7,575 → 4,081/6,461 |
+| 400 primary | 2,653/3,821 → 1,824/2,531 | 1,662/2,631 → 1,513/2,392 | 2,714/3,716 → 1,718/2,648 | 6,938/9,787 → 4,924/7,402 |
+| 400 detached | 2,164/3,040 → 2,173/2,915 | 2,931/4,557 → 2,261/3,219 | 2,950/3,897 → 2,728/3,457 | 8,203/11,432 → 7,067/9,556 |
+
+All four full-workflow medians improved; the rotation-specific paired diagnostics show the actual work eliminated rather than a changed order. Nonrotation values remain noisy; this lifecycle fix does not change their graph or data work. For example, 40 detached string UI increased by 55 ms and 400 detached long disk by 9 ms in these samples. The three-operation sum is computed per run, not by adding independently computed medians.
+
+The actual rotation and scope tests passed for the current protocol-13 and prior protocol-11 authoring binaries; a prior protocol-13 tool also completed real ordinary int/string/reference UI Save with the new caller. Current strict menu declaration availability and tampering, same-ID project and late menu replies, actual string external schema/owner/permission conflict and staging/final response loss/restart, independent unsaved input, unreadable source, mixed recovered conflict, Worker Review, reference lost-final, explicit reference Run, and ordinary object retirement/always-reference refusal passed. Ordinary Save tracing found zero compiler invocations and project DLL opens. After the suite and the idle window there were no new running authoring streams; two pre-existing stopped dotnet streams dated approximately ten hours earlier were not modified. The controlled non-exiting exhausted worker was force-retired as intended; no process was prelaunched.

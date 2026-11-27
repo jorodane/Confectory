@@ -71,7 +71,10 @@ string? ReadWarm(){
  lock(pool){
   var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
   System.Diagnostics.Process? warm=pool[0] as System.Diagnostics.Process;
-  void Retire(){if(warm is not null){try{if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;pool[3]=null!;pool[4]=0;warm=null;}
+  // After the last acknowledged frame the bounded reader exits by contract.
+  // Give normal exit a short bounded chance before scanning/killing its
+  // process tree. Cancellation, faults and scope changes retain forced exit.
+  void Retire(bool completedFrames=false){if(warm is not null){try{if(completedFrames&&!warm.HasExited)warm.WaitForExit(75);if(!warm.HasExited){warm.Kill(true);warm.WaitForExit(5000);}}catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}warm.Dispose();}pool[0]=null!;pool[1]=null!;pool[3]=null!;pool[4]=0;warm=null;}
   void CheckedOwner(){if(((System.Collections.Generic.HashSet<string>)registry[2]).Contains(owner))throw new OperationCanceledException("Authoring owner canceled.");}
   T Await<T>(System.Threading.Tasks.Task<T> task,int milliseconds){if(!task.Wait(milliseconds)){_ = task.ContinueWith(t=>{_ = t.Exception;},System.Threading.Tasks.TaskContinuationOptions.OnlyOnFaulted);throw new TimeoutException("Authoring tool timeout.");}return task.GetAwaiter().GetResult();}
   bool starting=false;
@@ -88,7 +91,7 @@ string? ReadWarm(){
    var activeInventoryOwner=(AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ActiveInventoryOwner") as System.Threading.AsyncLocal<string?>)?.Value;
    bool activeInventory=inventory&&activeInventoryOwner is not null&&string.Equals(System.IO.Path.GetFullPath(activeInventoryOwner),projectKey,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal);
    if((inventory||viewCatalog||relations)&&!activeInventory&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)||exhausted))return null;
-   if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)||exhausted))Retire();
+   if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)||exhausted))Retire(exhausted);
    if(object.Equals(pool[2],hostKey))return null;
    if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}
    var active=warm;
