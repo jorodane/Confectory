@@ -1,6 +1,6 @@
 """Alternating scalar/reference direct-save timing on disposable 40/400-object packs.
 
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline].
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status].
 Run one fixture at a time, without compiler/build/regression jobs. The default
 runs three scalar and three reference saves; --diagnostic captures operation
 names and process count separately, so its timing is not comparable. The
@@ -20,8 +20,9 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline"}
+assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status"}
 assert "--malformed" not in flags or "--pick" in flags
+assert not flags.intersection({"--expect-single-detached-status","--stale-detached-status"}) or {"--timeline","--detached"} <= flags
 FIRST, SECOND = "Reference First", "Reference Second"
 TARGETS = {"TargetZero": "Zero label", "TargetNonzero": "Nonzero label", "TargetAbsent": "Absent label"}
 prefix = NS + "::"
@@ -152,7 +153,7 @@ def sample(page,editor,kind,i):
             a=req.post_data_json
             if req.method!="POST" or a.get("op") not in ("invoke","update","observe"):return
             key=req._impl_obj._guid
-            event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId")}
+            event={"startMs":round((time.monotonic()-started)*1000,1),"op":a["op"],"endpoint":a.get("endpoint"),"action":a.get("input",{}).get("action"),"id":a.get("requestId"),"idsCount":len(a.get("input",{}).get("ids") or []),"view":bool(a.get("input",{}).get("view")),"savedOwner":a.get("input",{}).get("id")==prefix+("SourceLink" if kind=="reference" else "ScalarObject")}
             pending[key]=event;events.append(event)
         except Exception:pass
     def on_response(resp):
@@ -165,6 +166,17 @@ def sample(page,editor,kind,i):
             else:event["code"]=body.get("error",{}).get("code",body.get("status","ok"))
         except Exception:pass
     if "--timeline" in flags:page.on("request",on_request);page.on("response",on_response)
+    stale=[]
+    def stale_status(route):
+        try:a=route.request.post_data_json
+        except Exception:a=None
+        if not stale and isinstance(a,dict) and a.get("op")=="invoke" and a.get("endpoint")=="browserDrafts" and a.get("input",{}).get("view") and a.get("input",{}).get("ids")==[prefix+name] and marker in file.read_text():
+            a["expectedRevision"]-=1
+            stale.append(a["requestId"])
+            route.continue_(post_data=json.dumps(a))
+            return
+        route.fallback()
+    if "--stale-detached-status" in flags:page.route("**/api/request",stale_status)
     try:
         button.click()
         expect(page.locator("#status")).to_have_text("저장했습니다.")
@@ -176,6 +188,7 @@ def sample(page,editor,kind,i):
     finally:
         stop.set();thread.join(1)
         if "--timeline" in flags:page.remove_listener("request",on_request);page.remove_listener("response",on_response)
+        if "--stale-detached-status" in flags:page.unroute("**/api/request",stale_status)
     records=rows()[before:]
     tool_trace=[];process_starts=[]
     if "--diagnostic" in flags or "--timeline" in flags:
@@ -194,6 +207,18 @@ def sample(page,editor,kind,i):
     browser=page.evaluate("()=>globalThis.confectoryWebUITrace||[]")
     sample={"kind":kind,"count":count,"surface":"detached" if "--detached" in flags else "primary","pickerMs":pick_ms,"diskMs":(persist[0]-started)*1000,"uiMs":elapsed,"operations":invocations,"host":records,"browser":browser,"toolTrace":tool_trace,"processStarts":len(process_starts),"timeline":events}
     print("SAMPLE",json.dumps(sample,separators=(",",":")),flush=True)
+    if "--expect-single-detached-status" in flags:
+        reads=[row for row in events if row["op"]=="invoke" and row["endpoint"]=="browserDrafts" and row["action"]=="status" and row["view"] and row["savedOwner"] and row["idsCount"]==1 and row["startMs"]>=sample["diskMs"]]
+        assert len(reads)==1,reads
+        print("PASS one status read for the confirmed detached owner, not its queued pre-confirm revision",flush=True)
+    if "--stale-detached-status" in flags:
+        assert len(stale)==1,stale
+        results={row["id"]:row.get("code") for row in events if row["op"]=="invoke"}
+        results.update({r["id"]:r["code"] for row in events for r in row.get("completed",[])})
+        assert results.get(stale[0])=="stale_revision",results
+        reads=[row for row in events if row["op"]=="invoke" and row["endpoint"]=="browserDrafts" and row["action"]=="status" and row["view"] and row["savedOwner"] and row["idsCount"]==1]
+        assert len(reads)==2 and results.get(reads[-1]["id"])=="ok",reads
+        print("PASS stale status admission rejected and freshly retried once; confirmed source retained",flush=True)
     f.before[str(file)]=file.read_bytes()
     editor.get_by_role("button",name="창 닫기",exact=True).click()
     expect(editor).to_be_hidden()
@@ -213,6 +238,12 @@ try:
             selected=[s for s in samples if s["kind"]==kind]
             print("MEDIAN",kind,statistics.median(s["diskMs"] for s in selected),statistics.median(s["uiMs"] for s in selected),flush=True)
         f.original();assert not f.errors and not f.external
+        if "--trace-files" in flags:
+            lines=trace.read_text(errors="replace").splitlines()
+            compiler=sum("execve(" in line and ("csc.dll" in line or '"-noconfig"' in line) for line in lines)
+            project_dll=sum("openat(" in line and any(str(project.parent) in line for project in f.projects) and '.dll"' in line for line in lines)
+            assert (compiler,project_dll)==(0,0),(compiler,project_dll)
+            print("PASS ordinary saves compiler 0, project DLL opens 0",flush=True)
 finally:
     f.stop()
     print("evidence",f.root,flush=True)
