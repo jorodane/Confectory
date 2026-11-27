@@ -66,6 +66,20 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
         line = process.stdout.readline()
         return None if not line else json.loads(line)
 
+    def final_graph(process, target="Two", overlay=False):
+        # The final SlotBatch query uses the same full graph/schema/reference
+        # validation flags and the same current draft bytes as one-shot effective.
+        after = contents["Link"][1].replace("Alpha::One", "Alpha::" + target)
+        drafts = [{"id": "Alpha::" + name, "text": (project / (name + ".celem")).read_text()}
+                  for name in contents if name != "Link"] if overlay else []
+        payload = dict(operation="effective", project=str(manifest), manifest=manifest.read_text(),
+                       id="Alpha::Link", text=after, drafts=drafts, schemaView=True,
+                       validateObjects=True, observeSources=True)
+        expected = ordinary(payload)
+        actual = send(process, dict(payload, operation="inspectEffective", kind="object"))
+        assert expected["ok"] and actual["ok"] and actual["result"]["effective"] == expected["result"], (expected, actual)
+        return expected["result"]
+
     proc = start()
     try:
         initial = list(requests())
@@ -73,6 +87,11 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             expected = ordinary(request)
             assert expected["ok"], expected
             assert send(proc, request) == expected
+        for overlay in (False, True):
+            valid = final_graph(proc, overlay=overlay)
+            assert valid["status"] == "available" and valid["schemaModel"]["validation"]["status"] == "valid", valid
+            invalid = final_graph(proc, "Wrong", overlay=overlay)
+            assert invalid["status"] != "available" or invalid["schemaModel"]["validation"]["status"] != "valid", invalid
         target = project / "Two.celem"
         raw = target.read_bytes()
         stamp = target.stat()
@@ -80,7 +99,11 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
         os.utime(target, ns=(stamp.st_atime_ns, stamp.st_mtime_ns))
         for request in requests():
             assert send(proc, request) == ordinary(request)
+        renamed = final_graph(proc)
+        assert renamed["status"] == "available"
         target.write_text('object Alpha::Two { use schema Alpha::LinkInfo; }')
+        invalid = final_graph(proc)
+        assert invalid["status"] != "available" or invalid["schemaModel"]["validation"]["status"] != "valid", invalid
         for request in requests():
             assert send(proc, request) == ordinary(request)
         target.write_bytes(raw)
@@ -92,6 +115,19 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             assert send(proc, request) == ordinary(request)
         assert send(proc, next(requests(folder=peer))) is None
         assert proc.wait(timeout=5) == 2
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+        proc.wait()
+
+    proc = start()
+    try:
+        assert final_graph(proc)["status"] == "available"
+        foreign_query = dict(operation="inspectEffective", project=str(peer / "project.cpack"),
+                             manifest=(peer / "project.cpack").read_text(), id="Alpha::Link",
+                             kind="object", text=contents["Link"][1], drafts=[],
+                             schemaView=True, validateObjects=True, observeSources=True)
+        assert send(proc, foreign_query) is None and proc.wait(timeout=5) == 2
     finally:
         if proc.poll() is None:
             proc.kill()
@@ -111,4 +147,4 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             proc.wait()
     assert (project / "Link.celem").read_text() == contents["Link"][1]
     assert (peer / "Link.celem").read_text() == contents["Link"][1]
-print("PASS full one-shot equivalence, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
+print("PASS preparation and final graph one-shot equivalence, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
