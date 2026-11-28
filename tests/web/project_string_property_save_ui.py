@@ -11,6 +11,8 @@ window and verifies an ordinary primary integer save.
 --continuous-integers measures five actual integer saves on both surfaces.
 --verify-card-reuse checks unchanged catalogue DOM identities after Save.
 --profile-ui-stages logs the actual browser calls/renders after the new success.
+--verify-primary-status-reuse checks that an exact post-confirm status is not
+read a second time for warm primary scalar saves.
 --verify-relation-delta checks changed owned rows in the 400-object host trace.
 """
 import json
@@ -29,12 +31,13 @@ import v666_workspace_finder_fixture as f
 count = int(sys.argv[3]) if len(sys.argv) > 3 else 40
 assert count in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages"}
+assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages", "--verify-primary-status-reuse"}
 assert "--verify-relation-delta" not in flags or (count == 400 and "--continuous" in flags)
 assert "--continuous-in-place" not in flags or "--continuous" in flags
 assert "--continuous-detached" not in flags or ("--continuous" in flags and "--continuous-in-place" not in flags)
 assert "--continuous-integers" not in flags or "--continuous" in flags
 assert "--profile-ui-stages" not in flags or "--continuous" in flags
+assert "--verify-primary-status-reuse" not in flags or {"--continuous-in-place", "--profile-ui-stages", "--continuous"} <= flags
 run = f.report["run"]
 ns = "Confectory.PerformanceRestoreSample"
 sample = f.root / "string-save"
@@ -136,6 +139,9 @@ def save(page, window, persisted):
             trace=page.evaluate("globalThis.confectoryWebUITrace")
             after=[dict(stage=row["stage"],endpoint=row.get("endpoint"),ms=round(row["elapsedMs"],1)) for row in trace if timing["start"]+timing["success"]<=row["observedAt"]<=timing["start"]+timing["ready"]]
             print("save-post-success-trace",json.dumps(after),flush=True)
+            if "--verify-primary-status-reuse" in flags and window.get_attribute("data-key") == "schema":
+                status_calls = [row for row in after if row["stage"] == "call" and row["endpoint"] == "browserDrafts"]
+                assert len(status_calls) <= 1, ("duplicate post-confirm status", after)
 
 
 try:
