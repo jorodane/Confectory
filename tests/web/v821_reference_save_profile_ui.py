@@ -1,6 +1,6 @@
 """Alternating scalar/reference direct-save timing on disposable 40/400-object packs.
 
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status] [--include-string] [--single] [--result-sizes].
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--reverse] [--diagnostic] [--timeline] [--expect-single-detached-status] [--stale-detached-status] [--include-string] [--single] [--result-sizes] [--expect-string-settlement].
 Run one fixture at a time, without compiler/build/regression jobs. The default
 runs three scalar and three reference saves; --diagnostic captures operation
 names and process count separately, so its timing is not comparable. The
@@ -21,9 +21,10 @@ from v821_project_browser_search_labels import NS, browser_window
 count = int(sys.argv[3])
 flags = set(sys.argv[4:])
 assert count in (40, 249, 250, 400)
-assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status","--include-string","--single","--result-sizes"}
+assert flags <= {"--detached","--trace-files","--reverse","--diagnostic","--timeline","--expect-single-detached-status","--stale-detached-status","--include-string","--single","--result-sizes","--expect-string-settlement"}
 assert "--malformed" not in flags or "--pick" in flags
 assert not flags.intersection({"--expect-single-detached-status","--stale-detached-status"}) or {"--timeline","--detached"} <= flags
+assert "--expect-string-settlement" not in flags or {"--detached","--include-string"} <= flags
 FIRST, SECOND = "Reference First", "Reference Second"
 TARGETS = {"TargetZero": "Zero label", "TargetNonzero": "Nonzero label", "TargetAbsent": "Absent label"}
 prefix = NS + "::"
@@ -222,6 +223,12 @@ def sample(page,editor,kind,i):
     browser=page.evaluate("()=>globalThis.confectoryWebUITrace||[]")
     sample={"kind":kind,"count":count,"surface":"detached" if "--detached" in flags else "primary","pickerMs":pick_ms,"diskMs":(persist[0]-started)*1000,"uiMs":elapsed,"operations":invocations,"host":records,"browser":browser,"toolTrace":tool_trace,"processStarts":len(process_starts),"timeline":events}
     print("SAMPLE",json.dumps(sample,separators=(",",":")),flush=True)
+    if "--expect-string-settlement" in flags and kind == "string":
+        assert invocations.count(("blueprint", "applySlots")) == 1, invocations
+        assert ("blueprint", "settledSlots") not in invocations, invocations
+        assert not any(endpoint == "openEditorView" for endpoint, _ in invocations), invocations
+        assert invocations.count(("confirmGroup", None)) == 1, invocations
+        print("PASS exact detached string checkpoint settled by apply response; no separate model lookup", flush=True)
     if "--expect-single-detached-status" in flags:
         reads=[row for row in events if row["op"]=="invoke" and row["endpoint"]=="browserDrafts" and row["action"]=="status" and row["view"] and row["savedOwner"] and row["idsCount"]==1 and row["startMs"]>=sample["diskMs"]]
         assert len(reads)==1,reads

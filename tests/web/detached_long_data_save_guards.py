@@ -1,7 +1,7 @@
 """Disposable Chromium detached long/string save guards.
 
 Usage: python tests/web/detached_long_data_save_guards.py OVERLAY BUILD_REPORT MODE [400] [--string]
-MODE: invalid | guard-schema | guard-permission | guard-object | lost | lost-final.
+MODE: invalid | dirty | guard-schema | guard-permission | guard-object | lost | lost-final.
 Uses the existing performance sample and workspace finder host fixture.
 """
 import sys,shutil
@@ -40,7 +40,26 @@ def open_window(page):
 try:
  with sync_playwright() as p,p.chromium.launch(executable_path='/usr/bin/chromium',args=['--no-sandbox']) as browser:
   f.start(0);page=f.setup(browser);page.set_viewport_size({'width':2000,'height':1200});w=open_window(page);field=d.value(w,field_name);button=w.locator('[data-element-action=confirm]')
-  if mode=='invalid':
+  if mode=='dirty':
+   peer_source=sample/'SampleB.celem';peer_original=peer_source.read_bytes()
+   bw=browser_window(page);bw.get_by_role('textbox',name='의미 객체 검색',exact=True).fill('Sample B');bw.get_by_role('button',name='검색 확정',exact=True).click()
+   bw.locator('[data-object="Confectory.PerformanceSample::SampleB"]').click(button='right')
+   page.locator('.context-menu').get_by_role('button',name='새 창으로 열기',exact=True).click()
+   other=page.locator('.window[data-element-owner="Confectory.PerformanceSample::SampleB"]:visible')
+   expect(d.value(other,'Count')).to_have_value('10')
+   d.value(other,'Count').fill('12')
+   title=other.locator('.window-title');box=title.bounding_box()
+   page.mouse.move(box['x']+min(180,box['width']/2),box['y']+box['height']/2);page.mouse.down()
+   page.mouse.move(1600,260,steps=12);page.mouse.up()
+   w.locator('.window-title').click()
+   field.fill(new_value);expect(button).to_have_text('저장')
+   button.click();expect(page.locator('#status')).to_have_text('저장했습니다.')
+   expect(page.locator('#project-menu')).to_be_enabled()
+   assert source.read_bytes()==original.replace(old_marker,new_marker)
+   expect(d.value(other,'Count')).to_have_value('12')
+   assert peer_source.read_bytes()==peer_original
+   print('PASS detached direct save retained independent unsaved input and peer source',flush=True)
+  elif mode=='invalid':
    field.fill('1.5');mark=len(f.requests)
    if button.is_enabled():button.click();expect(page.locator('#project-menu')).to_be_enabled()
    assert source.read_bytes()==original and not any(x['endpoint']=='confirmGroup' for x in f.requests[mark:])
