@@ -1,7 +1,7 @@
 using System.Linq;
 internal static class EffectiveMetadata
 {
- public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false,string? nativeFunction=null,bool schemaReuseProof=false,System.Text.Json.Nodes.JsonArray? modelIds=null,Confectory.Core.Registry? installation=null)
+ public static System.Text.Json.Nodes.JsonObject Query(string project,string manifestText,string id,string text,Func<Confectory.Core.Manifest,string> format,Func<string,string> read,System.Text.Json.Nodes.JsonArray? drafts=null,bool schemaView=false,bool validateObjects=false,bool observeSources=false,bool definitionTypes=false,bool nativeTypes=false,string? nativeFunction=null,bool schemaReuseProof=false,System.Text.Json.Nodes.JsonArray? modelIds=null,Confectory.Core.Registry? installation=null,ExactMetadataReadPass? readPass=null,bool reuseCaptured=false)
  {
   string temporary=System.IO.Path.Combine(System.IO.Path.GetTempPath(),"confectory-effective-"+Guid.NewGuid().ToString("N"));
   try
@@ -15,9 +15,10 @@ internal static class EffectiveMetadata
    if(selected.Id!=id||selected.Kind!=locator.Kind)throw new ArgumentException("Selected draft identity/kind mismatch.");
    long observationBytes=0;var observed=new System.Collections.Generic.Dictionary<string,string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
    System.Collections.Generic.HashSet<string>? rowPaths=null;
+   void NoLinks(string path,System.Collections.Generic.HashSet<string>? checkedPaths=null){if(observeSources)for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent){if(checkedPaths is not null&&!checkedPaths.Add(entry.FullName))break;if(entry.LinkTarget is not null)throw new System.ArgumentException("Slot context cannot traverse links");}}
    string Observe(string path){
-    path=System.IO.Path.GetFullPath(path);rowPaths?.Add(path);if(observeSources)for(System.IO.FileSystemInfo? entry=new System.IO.FileInfo(path);entry is not null;entry=entry is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)entry).Parent)if(entry.LinkTarget is not null)throw new System.ArgumentException("Slot context cannot traverse links");
-    string value=read(path);if(observeSources){if(observed.TryGetValue(path,out string? previous)&&previous!=value)throw new System.InvalidOperationException("Slot context changed during reading");if(!observed.ContainsKey(path)){observationBytes+=System.Text.Encoding.UTF8.GetByteCount(value);if(observed.Count>=2048||observationBytes>16777216)throw new System.ArgumentException("Slot context observation budget");}observed[path]=value;}return value;
+    path=System.IO.Path.GetFullPath(path);rowPaths?.Add(path);NoLinks(path);
+    string value=readPass is null?read(path):readPass.Read(path,read,reuseCaptured);if(observeSources){if(observed.TryGetValue(path,out string? previous)&&previous!=value)throw new System.InvalidOperationException("Slot context changed during reading");if(!observed.ContainsKey(path)){observationBytes+=System.Text.Encoding.UTF8.GetByteCount(value);if(observed.Count>=2048||observationBytes>16777216)throw new System.ArgumentException("Slot context observation budget");}observed[path]=value;}return value;
    }
    foreach(var ns in manifest.Registry.Keys.ToArray())
    {
@@ -30,7 +31,7 @@ internal static class EffectiveMetadata
    // no persistent document cache or project/permission result survives the request.
    long bytesRead=0;int filesRead=0;
    byte[] Read(string path){byte[] bytes=System.Text.Encoding.UTF8.GetBytes(path==candidate?read(path):Observe(path));bytesRead+=bytes.Length;if(bytes.Length>1048576||bytesRead>16777216||++filesRead>2048)throw new ArgumentException("Effective metadata read budget");return bytes;}
-   var statistics=new Confectory.Core.BuildStatistics();var registry=installation is null?new Confectory.Core.Registry(candidate,new Confectory.Core.Documents("",statistics,Read),statistics):installation.ProjectOverlay(project,manifest);
+   var statistics=new Confectory.Core.BuildStatistics();var registry=installation is null?new Confectory.Core.Registry(candidate,new Confectory.Core.Documents("",statistics,Read,readPass?.Parsed),statistics):installation.ProjectOverlay(project,manifest);
    registry.Paths[manifest.Namespace]=System.IO.Path.GetFullPath(project);
    // Public per-query declaration cache overlays only this explicitly owned draft.
    registry.Elements[id]=selected;var overlayIds=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal){id};int budget=text.Length;
@@ -46,7 +47,7 @@ internal static class EffectiveMetadata
    if(validateObjects)foreach(var declaration in manifest.Elements){string owned=manifest.Namespace+"::"+declaration.Key;if(declaration.Value.Kind is "object" or "schema"){Confectory.Core.SchemaContracts.Validate(registry,owned);if(declaration.Value.Kind=="schema")InformationDefaults.Stored(registry,owned);}else if(declaration.Value.Kind=="module")planner.Module(owned);else if(declaration.Value.Kind=="implementation"){var implementation=registry.Get(owned,"implementation");if(implementation.Function is not null)registry.Implementation(implementation.Function,owned,owned,implementation.Loc);}}
 
    System.Text.Json.Nodes.JsonArray Observations(){
-    var observations=new System.Text.Json.Nodes.JsonArray();foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}return observations;
+    var observations=new System.Text.Json.Nodes.JsonArray();var checkedPaths=reuseCaptured?new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal):null;foreach(var input in observed.OrderBy(p=>p.Key,StringComparer.Ordinal)){if(reuseCaptured)NoLinks(input.Key,checkedPaths);if(read(input.Key)!=input.Value)throw new System.InvalidOperationException("Slot context changed after validation");observations.Add(new System.Text.Json.Nodes.JsonObject{["path"]=input.Key,["hash"]=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(input.Value))).ToLowerInvariant()});}return observations;
    }
    System.Text.Json.Nodes.JsonNode OwnershipPaths(){
     // Registry.Register checks ownership even for declarations not loaded by
@@ -137,7 +138,7 @@ var module=effective.Kind=="module"?planner.Module(id):planner.ModulesFor(id);
    if(modelIds is null&&schemaReuseProof)result["ownershipPaths"]=OwnershipPaths();
    return result;
    }
-   if(modelIds is null)return Project(id,text,selected);
+   if(modelIds is null){var projection=Project(id,text,selected);registry.ValidateExactRegistration();return projection;}
    if(modelIds.Count is <1 or >32||drafts?.Count>0||!schemaView||!schemaReuseProof||!observeSources||validateObjects||definitionTypes||nativeTypes)throw new ArgumentException("Bounded clean property model required");
    // The workspace only accepts a prepared model with the complete bounded
    // ownership proof (128 paths). Construct that exact canonical proof before

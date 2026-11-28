@@ -1,18 +1,20 @@
 import {browserIconMarkup} from './browser-data.js';
 // Presentation over observed namespaces/explicit parent edges. No source reads or writes.
 export function createDeclarationTree(api,options={}){
- const {$,$$,esc}=api,limit=2048;
+ const {$,$$,esc}=api,limit=2048,forests=new Map();
  const labels={linked:'명시 parent',root:'parent 없음',unobserved:'관계 미조회',unresolved:'parent 미해결',cycle:'parent 순환','depth-limit':'parent 깊이 제한 64','group-boundary':'다른 탭의 parent','invalid-parent':'parent 선언 오류','invalid-source':'선언 오류','ancestor-unresolved':'상위 parent 미해결','ancestor-cycle':'상위 parent 순환','ancestor-boundary':'상위 parent 탭 경계','ancestor-invalid':'상위 parent 선언 오류'};
  function forest(w){
-  const snapshot=api.projection.snapshot(),rows=snapshot.rows.filter(row=>(row.group||api.projection.group(row.kind))===w.meta.group),nodes=new Map(),children=new Map();
+  const snapshot=api.projection.snapshot(),packs=api.current.inventory?.packs,prior=forests.get(w.meta.group);
+  if(prior?.snapshot===snapshot&&prior.packs===packs)return prior.forest;
+  const rows=snapshot.rows.filter(row=>(row.group||api.projection.group(row.kind))===w.meta.group),nodes=new Map(),children=new Map();
   nodes.set('root',{key:'root',label:'ProjectPack',kind:'root',parent:null});
   function namespace(name){if(!name)return 'root';const key='ns:'+name;if(nodes.has(key))return key;const parts=name.split('.'),parent=namespace(parts.slice(0,-1).join('.'));nodes.set(key,{key,label:parts.at(-1),namespace:name,kind:'namespace',parent});return key;}
-  const packs=api.current.inventory?.packs||[];for(const pack of packs){namespace(pack.namespace);nodes.get('ns:'+pack.namespace).pack=pack;}
+  for(const pack of packs||[]){namespace(pack.namespace);nodes.get('ns:'+pack.namespace).pack=pack;}
   for(const row of rows)namespace(row.namespace);
   const visible=new Set(rows.map(row=>row.id));for(const row of rows){const parent=(api.projection.browserParent||api.projection.parent)(row.id),issue=api.projection.issue(row.id);nodes.set('decl:'+row.id,{key:'decl:'+row.id,label:row.title||row.id.split('::').at(-1),kind:'declaration',row,issue,parent:parent&&visible.has(parent)?'decl:'+parent:'ns:'+row.namespace});}
   for(const node of nodes.values())if(node.parent){if(!children.has(node.parent))children.set(node.parent,[]);children.get(node.parent).push(node.key);}
   for(const keys of children.values())keys.sort((a,b)=>{const x=nodes.get(a),y=nodes.get(b);return Number(x.kind==='declaration')-Number(y.kind==='declaration')||a.localeCompare(b);});
-  return {nodes,children,version:snapshot.version};
+  const result={nodes,children,version:snapshot.version};forests.set(w.meta.group,{snapshot,packs,forest:result});return result;
  }
  function renderOriginal(w){
   const root=$('.browser-folder-tree',w.body);if(!root)return;const scope=api.current.projectId,{nodes,children}=forest(w),expanded=new Set(Array.isArray(w.meta.treeExpanded)?w.meta.treeExpanded:[...nodes.keys()]);const selected=w.meta.parent?'decl:'+w.meta.parent:w.meta.namespace?'ns:'+w.meta.namespace:'root',flat=[],stack=[['root',0]];

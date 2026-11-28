@@ -62,6 +62,19 @@ public sealed class Registry
                 Elements.Add(id, element);
         ValidateDependencies();
     }
+    private Dictionary<string,string>? exactRegistrationComponents;
+    private List<(string Root,string Path,SourceLocation Loc,string Resolved)>? exactRegistrations;
+    // An opt-in read transaction may share common path components within one
+    // registration pass. Independently re-resolve every locator before its
+    // projection is returned; no path evidence survives the Registry itself.
+    public void ValidateExactRegistration()
+    {
+        if(exactRegistrations is null)return;
+        var fresh=new Dictionary<string,string>(StringComparer.Ordinal);
+        foreach(var row in exactRegistrations)
+            if(!StringComparer.Ordinal.Equals(row.Resolved,PackPaths.Owned(row.Root,row.Path,row.Loc,fresh)))
+                throw new IOException("Owned registration changed during metadata projection");
+    }
     private void Register(string path, Manifest manifest, string expected)
     {
         string ns = manifest.Namespace;
@@ -69,7 +82,14 @@ public sealed class Registry
         if (ns != expected) throw new BuildError("REGISTRY_ID", $"Registry {expected} points to namespace {ns}", manifest.Loc);
         if (manifest.Kind == "project" && Packs.Count > 0) throw new BuildError("PROJECT_INPUT", "Nested ProjectPacks are not pack registry entries", manifest.Loc);
         Packs.Add(ns, manifest); Paths.Add(ns, path); ManifestDigests.Add(path, JsonData.Digest(manifest));
-        foreach (var locator in manifest.Elements.Values) PackPaths.Owned(Path.GetDirectoryName(path)!, locator.Path, locator.Loc);
+        foreach (var locator in manifest.Elements.Values){
+            string root=Path.GetDirectoryName(path)!;
+            if(Documents.ExactMemo&&(exactRegistrations?.Count??0)<2048){
+                exactRegistrationComponents??=new(StringComparer.Ordinal);exactRegistrations??=[];
+                string resolved=PackPaths.Owned(root,locator.Path,locator.Loc,exactRegistrationComponents);
+                exactRegistrations.Add((root,locator.Path,locator.Loc,resolved));
+            }else PackPaths.Owned(root,locator.Path,locator.Loc);
+        }
     }
     private Action<string>? projectionRead;
     // Keep parsed declarations, but traverse each projection’s effective dependencies.
@@ -114,7 +134,7 @@ public sealed class Registry
         stack ??= [];
         if (stack.Contains(id)) throw new BuildError("INHERITANCE_CYCLE", "Inheritance cycle: " + string.Join(" -> ", stack.Append(id)), Get(id).Loc);
         if (effectiveCache.TryGetValue(id, out var cached)) return cached;
-        var e = JsonData.Clone(Get(id));
+        var e = Documents.ExactMemo?ExactDocumentReadMemo.Copy(Get(id)):JsonData.Clone(Get(id));
         if (e.Parent is not null)
         {
             var parent = Get(e.Parent, e.Kind, id, e.Loc);

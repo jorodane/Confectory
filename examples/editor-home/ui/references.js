@@ -59,5 +59,5 @@ export function createBrowserReferenceHover(api){
    anchor.onmouseenter=e=>{close();shift=e.shiftKey;active={anchor,id,scope:api.projectId};draw();};anchor.onmouseleave=close;
   }
  }
- return {bind,close};
+ return {bind,close,refresh:()=>{if(active)draw();}};
 }

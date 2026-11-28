@@ -40,8 +40,13 @@ internal static class MixedOwnerCopyEdits
      JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="string"})))&&
    element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&
    element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0;
-  JsonObject Inspect(string source,string currentManifest,JsonArray overlays,bool types=false){
-   JsonObject Query(bool proof)=>EffectiveMetadata.Query(project,currentManifest,id,source,formatManifest,Read,overlays,schemaView:true,validateObjects:true,observeSources:true,definitionTypes:types,schemaReuseProof:proof);
+  // Single root data edits have identical registration/peer overlays before
+  // and after. Reuse only exact observed text and parsed declarations inside
+  // this call; all full semantic checks and physical rechecks still execute.
+  bool narrow=request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&single is JsonObject singleRow&&singleRow.Count==4&&single["type"]?.ToString()=="data"&&single["path"] is JsonArray rootPath&&rootPath.Count==1&&single["contract"]?["cardinality"]?.ToString()=="single"&&(single["contract"]?["kind"]?.ToString()=="general"&&single["contract"]?["type"]?.ToString() is ("long" or "string")||single["contract"]?["kind"]?.ToString()=="reference");
+  var readPass=narrow?new ExactMetadataReadPass():null;
+  JsonObject Inspect(string source,string currentManifest,JsonArray overlays,bool types=false,bool after=false){
+   JsonObject Query(bool proof)=>EffectiveMetadata.Query(project,currentManifest,id,source,formatManifest,Read,overlays,schemaView:true,validateObjects:true,observeSources:true,definitionTypes:types,schemaReuseProof:proof,readPass:readPass,reuseCaptured:after);
    var result=Query(repeat);
    if(repeat&&result["status"]?.ToString()!="available"){repeat=false;result=Query(false);}
    return result;
@@ -97,7 +102,8 @@ internal static class MixedOwnerCopyEdits
    foreach(var row in definitions){string field=row!["name"]!.GetValue<string>(),value=row["valueJson"]!.GetValue<string>();if(value.Length>65536)throw new ArgumentException("New property default budget");var contract=row["type"]!.ToString()=="typed-definition"?row["contract"]!.DeepClone():JsonSerializer.SerializeToNode(new{cardinality="single",kind=row["type"]!.ToString()=="information-definition"?"compound":"general",type=(row["nativeType"]??row["schema"])!.GetValue<string>()});SchemaContracts.SetField(schema,field,JsonSerializer.SerializeToElement(contract));if(row["icon"] is JsonValue glyph&&glyph.GetValue<string>() is {Length:>0} icon)schema.Values["editorFieldIcon_"+field]=new(JsonSerializer.SerializeToElement(icon),schema.Id,new());using var parsed=JsonDocument.Parse(value);SchemaContracts.SetData(element,field,parsed.RootElement);}
    element.Uses.Add(new(schemaId,new(),id,"schema"));registration.Elements.Add(name,new("schema",relative,new()));finalManifest=DeclarationTextMerge.MergeManifest(manifest,formatManifest(registration),formatManifest);string schemaText=format(schema);additions.Add(new JsonObject{["id"]=schemaId,["kind"]="schema",["path"]=relative,["text"]=schemaText});finalDrafts.Add(new JsonObject{["id"]=schemaId,["text"]=schemaText});
   }
-  string formatted=DeclarationTextMerge.Merge(text,format(element),text,format);if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");var after=Inspect(formatted,finalManifest,finalDrafts);Valid(after);
+  string formatted=DeclarationTextMerge.Merge(text,format(element),text,format);if(formatted.Length>1048576)throw new ArgumentException("Mixed owner budget");if(finalManifest!=manifest||!JsonNode.DeepEquals(drafts,finalDrafts))readPass=null;var after=Inspect(formatted,finalManifest,finalDrafts,after:readPass is not null);Valid(after);
+  if(readPass is not null&&Environment.GetEnvironmentVariable("CONFECTORY_METADATA_REUSE_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_METADATA_REUSE "+JsonSerializer.Serialize(new{captured=readPass.Captured,reused=readPass.Reused,parsed=readPass.Parsed.Parsed,parsedReused=readPass.Parsed.Reused}));
   var result=new JsonObject{["text"]=formatted,["manifest"]=finalManifest,["additions"]=additions,["updates"]=updates,["observations"]=before["observations"]!.DeepClone(),["sourceWritten"]=false,["compiled"]=false};
   if(repeat&&additions.Count==0&&updates.Count==0&&finalManifest==manifest&&
      before["observations"] is JsonArray observations&&after["observations"] is JsonArray afterObservations&&JsonNode.DeepEquals(observations,afterObservations)&&

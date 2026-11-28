@@ -78,9 +78,10 @@ public static class PackPaths
         }
         return current;
     }
-    public static string Owned(string root, string path, SourceLocation? loc = null)
+    public static string Owned(string root, string path, SourceLocation? loc = null) => Owned(root,path,loc,null);
+    internal static string Owned(string root, string path, SourceLocation? loc,Dictionary<string,string>? components)
     {
-        string resolvedRoot = Resolve(root), resolved = Resolve(Path.Combine(resolvedRoot, path));
+        string resolvedRoot = Resolve(root,components), resolved = Resolve(Path.Combine(resolvedRoot, path),components);
         string relative = Path.GetRelativePath(resolvedRoot, resolved);
         if (Path.IsPathRooted(relative) || relative == ".." || relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal))
             throw new BuildError("OWNERSHIP", $"Path escapes its owning pack: {path}", loc);
@@ -147,9 +148,11 @@ internal static class ChangeStamp
     }
 }
 
-public sealed class Documents(string cache, BuildStatistics statistics, Func<string, byte[]>? sourceReader)
+public sealed class Documents(string cache, BuildStatistics statistics, Func<string, byte[]>? sourceReader, ExactDocumentReadMemo? exactMemo)
 {
-    public Documents(string cache, BuildStatistics statistics) : this(cache, statistics, null) { }
+    public Documents(string cache, BuildStatistics statistics) : this(cache, statistics, null, null) { }
+    public Documents(string cache, BuildStatistics statistics, Func<string, byte[]>? sourceReader) : this(cache,statistics,sourceReader,null) { }
+    internal bool ExactMemo=>exactMemo is not null;
     private const string Format = "csharp-declarations-v4-utf8-bom";
     private static string Decode(byte[] bytes)
     {
@@ -165,6 +168,12 @@ public sealed class Documents(string cache, BuildStatistics statistics, Func<str
         {
             byte[] bytes = sourceReader(path);
             statistics.ReadDocuments.Add(path);
+            if(role=="element"&&exactMemo is not null){
+                int parsed=exactMemo.Parsed;
+                var element=exactMemo.Read(path,bytes,()=>new Parser(Decode(bytes),path).ParseElement());
+                if(exactMemo.Parsed!=parsed)statistics.ParsedDocuments.Add(path);
+                return (T)(object)element;
+            }
             var value = parse(Decode(bytes), path);
             if (role != "body") statistics.ParsedDocuments.Add(path);
             return value;

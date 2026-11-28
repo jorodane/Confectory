@@ -20,6 +20,35 @@ public sealed class CoreTests : TestCase
         File.WriteAllText(invalid, " \ufeffobject X::Invalid {}"); Error("SYNTAX", () => documents.Element(invalid));
     }
 
+    public void test_exact_document_memo_detaches_mutable_parses_and_rechecks_bytes()
+    {
+        string root=Path.Combine(f.Root,"exact-memo");Directory.CreateDirectory(root);
+        string path=Path.Combine(root,"Owner.celem");
+        const string original="object X::Owner { value label = \"한글\"; data Nested = { Items = [1,2]; }; }";
+        File.WriteAllText(path,original);
+        var memo=new ExactDocumentReadMemo();var docs=new Documents("",new BuildStatistics(),File.ReadAllBytes,memo);
+        var first=docs.Element(path);var expected=JsonData.Digest(first);
+        first.Values.Clear();first.Data["Nested"].Members!["Items"].Items!.Clear();
+        var next=docs.Element(path);Equal(expected,JsonData.Digest(next));Equal(1,memo.Parsed);Equal(1,memo.Reused);
+        next.Data.Clear();Equal(expected,JsonData.Digest(docs.Element(path)));
+        File.WriteAllText(path,original.Replace("[1,2]","[1,3]"));
+        True(expected!=JsonData.Digest(docs.Element(path)));Equal(2,memo.Parsed);
+        File.WriteAllText(path,original);Equal(expected,JsonData.Digest(docs.Element(path)));Equal(2,memo.Parsed);
+    }
+
+    public void test_exact_registration_revalidates_owned_locator_after_projection()
+    {
+        if(!OperatingSystem.IsLinux())return; // Linux symlink fixture; no Windows privilege assumption.
+        string root=Path.Combine(f.Root,"exact-registration");Directory.CreateDirectory(root);
+        string project=Path.Combine(root,"project.cpack"),path=Path.Combine(root,"Owner.celem"),alias=Path.Combine(root,"Alias.celem");
+        File.WriteAllText(project,"project X version \"1\" { element Owner object \"Owner.celem\"; }");
+        File.WriteAllText(path,"object X::Owner {}");File.WriteAllText(alias,"object X::Owner {}");
+        var stats=new BuildStatistics();var registry=new Registry(project,new Documents("",stats,File.ReadAllBytes,new ExactDocumentReadMemo()),stats);
+        registry.ValidateExactRegistration();File.Delete(path);File.CreateSymbolicLink(path,alias);
+        bool refused=false;try{registry.ValidateExactRegistration();}catch(IOException){refused=true;}
+        True(refused,"A different locator resolution cannot reuse the recorded projection");
+    }
+
     public void test_direct_schema_fields_data_inheritance_and_reference_cycles()
     {
         f.Add("App", "schema", "Shape", "schema App::Shape { field name single general string; field n single general int; field flags multiple general bool; field child single compound App::Leaf; field peer single reference App::Shape; field callback single function Api::Value; }");

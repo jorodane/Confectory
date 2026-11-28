@@ -8,6 +8,9 @@ need to compile or access project assemblies.
 keeps the same primary property window after ordinary commands are ready.
 --continuous-detached measures five additional saves in the same independent
 window and verifies an ordinary primary integer save.
+--continuous-integers measures five actual integer saves on both surfaces.
+--verify-card-reuse checks unchanged catalogue DOM identities after Save.
+--profile-ui-stages logs the actual browser calls/renders after the new success.
 --verify-relation-delta checks changed owned rows in the 400-object host trace.
 """
 import json
@@ -19,16 +22,19 @@ import time
 
 from playwright.sync_api import expect, sync_playwright
 from editor_navigation import goto_editor
-from v821_project_browser_search_labels import browser_window
+from v821_project_browser_search_labels import browser_window, choose_tree_location
+from save_timing import arm_save_timing, actual_save_timing
 import v666_workspace_finder_fixture as f
 
 count = int(sys.argv[3]) if len(sys.argv) > 3 else 40
 assert count in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached"}
+assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages"}
 assert "--verify-relation-delta" not in flags or (count == 400 and "--continuous" in flags)
 assert "--continuous-in-place" not in flags or "--continuous" in flags
 assert "--continuous-detached" not in flags or ("--continuous" in flags and "--continuous-in-place" not in flags)
+assert "--continuous-integers" not in flags or "--continuous" in flags
+assert "--profile-ui-stages" not in flags or "--continuous" in flags
 run = f.report["run"]
 ns = "Confectory.PerformanceRestoreSample"
 sample = f.root / "string-save"
@@ -103,28 +109,12 @@ def save(page, window, persisted):
     if "--continuous" in flags:
         # Timestamp the actual DOM click and readiness in the page rather than
         # interpreting Playwright's increasingly spaced assertion polls as UI latency.
-        button.evaluate("""el => {
-          globalThis.__saveTiming = null;
-          el.addEventListener('click', () => {
-            const start = performance.now(), timing = globalThis.__saveTiming = {start, success: null, ready: null};
-            const status = document.querySelector('#status');
-            let sawDisabled = false;
-            // The preceding save may still display the same text. Only a new
-            // status mutation after this click counts as this save's success.
-            const observer = new MutationObserver(() => {
-              if (status.textContent.trim() === '저장했습니다.' && timing.success === null) timing.success = performance.now() - start;
-            });
-            observer.observe(status, {childList: true, characterData: true, subtree: true});
-            const tick = () => {
-              if (globalThis.__saveTiming !== timing) { observer.disconnect(); return; }
-              const menu = document.querySelector('#project-menu');
-              if (menu?.disabled) sawDisabled = true;
-              if (sawDisabled && timing.success !== null && menu && !menu.disabled) { timing.ready = performance.now() - start; observer.disconnect(); return; }
-              if (performance.now() - start < 120000) requestAnimationFrame(tick); else observer.disconnect();
-            };
-            requestAnimationFrame(tick);
-          }, {capture: true, once: true});
-        }""")
+        arm_save_timing(button)
+        if "--profile-ui-stages" in flags:
+            page.evaluate("""() => {
+              const trace=globalThis.confectoryWebUITrace=[];
+              trace.push=function(...rows){return Array.prototype.push.apply(this,rows.map(row=>({...row,observedAt:performance.now()})));};
+            }""")
     started = time.monotonic()
     button.click()
     deadline = time.monotonic() + 120
@@ -139,19 +129,42 @@ def save(page, window, persisted):
         print("save-ui-ms", round((time.monotonic()-started)*1000,1), flush=True)
         expect(page.locator("#project-menu")).to_be_enabled()
         print("save-ready-ms", round((time.monotonic()-started)*1000,1), flush=True)
-        page.wait_for_function("() => globalThis.__saveTiming?.ready != null", timeout=120000)
-        timing = page.evaluate("globalThis.__saveTiming")
+        timing = actual_save_timing(page)
         print("save-browser-success-ms", round(timing["success"],1), flush=True)
         print("save-browser-ready-ms", round(timing["ready"],1), flush=True)
+        if "--profile-ui-stages" in flags:
+            trace=page.evaluate("globalThis.confectoryWebUITrace")
+            after=[dict(stage=row["stage"],endpoint=row.get("endpoint"),ms=round(row["elapsedMs"],1)) for row in trace if timing["start"]+timing["success"]<=row["observedAt"]<=timing["start"]+timing["ready"]]
+            print("save-post-success-trace",json.dumps(after),flush=True)
 
 
 try:
     with sync_playwright() as p, p.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
         page = page_for(browser, 0)
         primary = open_owner(page, "D", primary=True)
+        if {"--verify-card-reuse", "--observe-card-reuse"} & flags:
+            w=browser_window(page)
+            choose_tree_location(w, f'[data-namespace="{ns}"]')
+            w.get_by_role("textbox",name="의미 객체 검색",exact=True).fill("")
+            w.get_by_role("button",name="검색 확정",exact=True).click()
+            row=w.locator(f'[data-object="{ns}::SampleD"]')
+            expect(row).to_be_visible()
+            row.click(button="right")
+            page.locator(".context-menu").get_by_role("button",name="스키마 열기",exact=True).click()
+            expect(primary.get_by_label("Note 기본값",exact=True)).to_be_editable()
+            w.locator(f'[data-object="{ns}::SampleA"]').evaluate("el=>globalThis.__stablePeerCard=el")
+            w.locator(f'[data-object="{ns}::SampleD"]').evaluate("el=>globalThis.__stableSavedCard=el")
         unicode = "한글 문자열 · café"
         replace_input(page, primary.get_by_label("Note 기본값", exact=True), unicode)
         save(page, primary, lambda: note("D") == unicode)
+        if {"--verify-card-reuse", "--observe-card-reuse"} & flags:
+            expect(page.locator("#project-menu")).to_be_enabled()
+            same_peer=w.locator(f'[data-object="{ns}::SampleA"]').evaluate("el=>el===globalThis.__stablePeerCard")
+            same_saved=w.locator(f'[data-object="{ns}::SampleD"]').evaluate("el=>el===globalThis.__stableSavedCard")
+            print("retained-card-identities",same_peer,same_saved,flush=True)
+            if "--verify-card-reuse" in flags:
+                assert same_peer and same_saved
+                print("PASS scalar save retains exact unchanged visible Browser card nodes",flush=True)
         if "--continuous-detached" in flags:
             replace_input(page, primary.get_by_label("Count 기본값", exact=True), "77")
             save(page, primary, lambda: 'data Count = 77' in (sample / "SampleD.celem").read_text())
@@ -163,6 +176,12 @@ try:
                 replace_input(page, primary.get_by_label("Note 기본값", exact=True), value)
                 save(page, primary, lambda: note("D") == value)
 
+        if "--continuous-integers" in flags:
+            print("primary-integer-begin",flush=True)
+            for value in (91,92,93,94,77):
+                replace_input(page,primary.get_by_label("Count 기본값",exact=True),str(value))
+                save(page,primary,lambda: f'data Count = {value}' in (sample/"SampleD.celem").read_text())
+            print("primary-integer-end",flush=True)
         detached = open_owner(page, "A")
         replace_input(page, detached.get_by_label("Note 기본값", exact=True), "")
         save(page, detached, lambda: note("A") == "")
@@ -172,6 +191,12 @@ try:
                 replace_input(page, detached.get_by_label("Note 기본값", exact=True), value)
                 save(page, detached, lambda: note("A") == value)
             print("detached-repeated-end", flush=True)
+        if "--continuous-integers" in flags:
+            print("detached-integer-begin",flush=True)
+            for value in (21,22,23,24,25):
+                replace_input(page,detached.get_by_label("Count 기본값",exact=True),str(value))
+                save(page,detached,lambda: f'data Count = {value}' in (sample/"SampleA.celem").read_text())
+            print("detached-integer-end",flush=True)
         if "--verify-relation-delta" in flags:
             expect(page.locator("#project-menu")).to_be_enabled()
             deltas = [json.loads(line.split(' ', 1)[1]) for line in (f.root / 'host-0.log').read_text().splitlines() if line.startswith('CONFECTORY_RELATION_ROWS ')]
@@ -211,7 +236,7 @@ try:
         primary = open_owner(page, "D", primary=True)
         expect(primary.get_by_label("Note 기본값", exact=True)).to_have_value(unicode)
         assert note("D") == unicode and note("A") == "" and note("B") == "Synthetic sample B"
-        if "--continuous-detached" in flags:
+        if "--continuous-detached" in flags or "--continuous-integers" in flags:
             expect(primary.get_by_label("Count 기본값", exact=True)).to_have_value("77")
         print(f"PASS {count} objects: primary Unicode and detached empty string, integer save, independent input, restart", flush=True)
         if "--guards" in flags:
