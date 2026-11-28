@@ -20,6 +20,7 @@ filter before the explicit map reload, retaining detached local input.
 --repeat-map repeats the completed explicit reload and records UI latency.
 --verify-relation-delta checks unchanged 400-object owned draft rows are reused.
 --verify-state-reuse checks full, exact-reference and wrong-token host responses.
+--verify-warm-inventory-completion checks the single-window warm bounded inventory read.
 Resource Timing reports encoded API response bytes from the actual card click.
 Optional --trace-files or CONFECTORY_RESTORE_CPU_PROFILE=1 is a separate
 diagnostic run (tracing overhead makes its timings incomparable).
@@ -39,7 +40,7 @@ assert count in (0, 1, 8), 'Choose 0, 1, or 8 restored windows'
 objects = int(os.environ.get("CONFECTORY_RESTORE_OBJECTS", "40"))
 assert objects in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model', '--verify-filter-freshness', '--verify-restore-completion', '--repeat-map', '--verify-relation-delta', '--verify-state-reuse'}, flags
+assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model', '--verify-filter-freshness', '--verify-restore-completion', '--repeat-map', '--verify-relation-delta', '--verify-state-reuse', '--verify-warm-inventory-completion'}, flags
 assert not ({'--verify-restored-map', '--working-copy'} & flags) or count == 8
 assert '--verify-no-speculative-model' not in flags or objects == 400
 assert '--verify-filter-freshness' not in flags or {'--working-copy', '--verify-restored-map'} <= flags
@@ -106,7 +107,7 @@ def measure(page, label, keys, expected):
           if(key==='schema'||key.startsWith('editor-'))mark(key+'-editable',visible(w)&&editable(w.querySelector('[data-property-value]'))&&!w.textContent.includes('이 창의 실제 기능을 다시 연결해야 합니다'));}
         if(performance.now()-start<60000)requestAnimationFrame(frame);}
       requestAnimationFrame(frame);},{once:true,capture:true});}''', keys)
-    prepared_requests, opened_requests = [], []
+    prepared_requests, opened_requests, inventory_requests = [], [], []
     def capture_prepare(request):
         if request.method == 'POST' and request.url.startswith(f.origin + '/'):
             body = request.post_data_json
@@ -114,7 +115,9 @@ def measure(page, label, keys, expected):
                 prepared_requests.append(body['input'])
             if isinstance(body, dict) and body.get('op') == 'invoke' and body.get('endpoint') == 'openEditorView':
                 opened_requests.append(body)
-    if {'--verify-no-speculative-model', '--verify-restore-completion'} & flags:
+            if isinstance(body, dict) and body.get('op') == 'invoke' and body.get('endpoint') == 'localInventory':
+                inventory_requests.append(body)
+    if {'--verify-no-speculative-model', '--verify-restore-completion', '--verify-warm-inventory-completion'} & flags:
         page.on('request', capture_prepare)
     cdp = None
     if os.environ.get("CONFECTORY_RESTORE_CPU_PROFILE"):
@@ -206,8 +209,15 @@ def measure(page, label, keys, expected):
             print('PASS exact public metadata reuse; legacy/full, wrong token and project scope guards', flush=True)
         finally:
             f.raw({'op':'dispose','view':mounted['view']})
-    if {'--verify-no-speculative-model', '--verify-restore-completion'} & flags:
+    if {'--verify-no-speculative-model', '--verify-restore-completion', '--verify-warm-inventory-completion'} & flags:
         page.remove_listener('request', capture_prepare)
+    if '--verify-warm-inventory-completion' in flags:
+        completions = [row for row in inventory_requests if row.get('completion') is True]
+        if label == 'warm' and count == 1:
+            assert len(completions) == 1 and not completions[0]['input'].get('relations'), inventory_requests
+        else:
+            assert not completions, inventory_requests
+        print('PASS scoped warm inventory completion', label, count, len(completions), flush=True)
     if '--verify-restore-completion' in flags and label == 'cold':
         assert len(opened_requests) == 3 and all(row.get('completion') is True and row['input'].get('restoreSaved') is True for row in opened_requests), opened_requests
         print('PASS exact three ordinary restored owner admissions use bounded completion replies', flush=True)

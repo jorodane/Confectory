@@ -58,6 +58,7 @@ var stateReuseFields=new System.Collections.Generic.HashSet<string>(StringCompar
 bool projectionHints=bundle["stateProjectionHints"]?.GetValue<bool>()==true;
 bool baseStateReuse=bundle["baseStateReuse"]?.GetValue<bool>()==true;
 bool readCompletion=bundle["readCompletion"]?.GetValue<bool>()==true&&completionEndpoints.Contains("relationsMap")&&completionEndpoints.Contains("browserDrafts");
+bool inventoryCompletion=readCompletion&&completionEndpoints.Contains("localInventory");
 bool relationDeltas=bundle["relationMapDeltas"]?.GetValue<bool>()==true&&stateReuseFields.Contains("relationsMap");
 var relationBases=new System.Collections.Generic.Dictionary<string,(string Hash,System.Text.Json.Nodes.JsonObject Map)>(StringComparer.Ordinal);
 // A delta is derived only from the exact previous public map delivered to this
@@ -154,6 +155,7 @@ string Dispatch(string text){
  try{
   if(req["op"]?.ToString()!="invoke"||req["completion"]?.GetValue<bool>()!=true||!completionEndpoints.Contains(req["endpoint"]!.GetValue<string>()))return acknowledgement;
   if(readCompletion&&req["endpoint"]?.ToString()=="browserDrafts"&&req["input"]?["action"]?.ToString()!="status")return acknowledgement;
+  if(inventoryCompletion&&req["endpoint"]?.ToString()=="localInventory"&&req["input"]?["relations"]?.GetValue<bool>()==true)return acknowledgement;
   var ack=System.Text.Json.Nodes.JsonNode.Parse(acknowledgement)!.AsObject();if(ack["ok"]?.GetValue<bool>()!=true)return acknowledgement;
   string id=req["requestId"]!.GetValue<string>(),view=req["view"]!.GetValue<string>();System.Threading.Tasks.Task<bool> completed;
   lock(gate){if(closing||!views.ContainsKey(view)||!requests.TryGetValue(id,out var row)||row.View!=view)return acknowledgement;completed=row.Completion.Task;}
@@ -171,7 +173,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision"),new System.Threading.CancellationTokenSource()));
-    s["ok"]=true;s["receivedResultSelection"]=true;if(stateReuseFields.Count>0){s["stateReuseFields"]=System.Text.Json.JsonSerializer.SerializeToNode(stateReuseFields);ApplyStateReuse(s,view:view);if(relationDeltas)s["relationMapDeltas"]=true;}if(readCompletion)s["readCompletion"]=true;if(baseStateReuse)s["baseStateReuse"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+    s["ok"]=true;s["receivedResultSelection"]=true;if(stateReuseFields.Count>0){s["stateReuseFields"]=System.Text.Json.JsonSerializer.SerializeToNode(stateReuseFields);ApplyStateReuse(s,view:view);if(relationDeltas)s["relationMapDeltas"]=true;}if(readCompletion)s["readCompletion"]=true;if(inventoryCompletion)s["inventoryCompletion"]=true;if(baseStateReuse)s["baseStateReuse"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
    }
    string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
    if(op=="dispose"){

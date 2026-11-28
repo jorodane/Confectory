@@ -190,13 +190,13 @@ console.log('PASS exact ordinary-state reference, mutable UI isolation, same-rev
 // not ordinary restore reads or draft mutations.
 const postReads=[],postInvokes=[];
 const postSave=new WebView(async request=>{
- if(request.op==='mount')return {ok:true,view:'post-save',scope:{project:'p'},revision:1,state:{},readCompletion:true};
+ if(request.op==='mount')return {ok:true,view:'post-save',scope:{project:'p'},revision:1,state:{},readCompletion:true,inventoryCompletion:true};
  if(request.op==='update')return new Promise(resolve=>postReads.push({request,resolve}));
  if(request.op==='invoke')return new Promise(resolve=>postInvokes.push({request,resolve}));
  if(request.op==='dispose')return {ok:true};throw Error('unexpected post-save operation');
 });
-async function postResult(endpoint,input,result,completion){
- const call=postSave.call(endpoint,input),inv=postInvokes.shift();
+async function postResult(endpoint,input,result,completion,options={}){
+ const call=postSave.call(endpoint,input,options),inv=postInvokes.shift();
  assert.equal(inv.request.completion===true,completion);
  const state={ok:true,revision:postSave.revision+1,state:{},results:[{requestId:inv.request.requestId,ok:true,result}]};
  if(completion)inv.resolve({ok:true,completion:state});
@@ -204,6 +204,9 @@ async function postResult(endpoint,input,result,completion){
  assert.deepEqual(await call,result);
 }
 await postSave.mount();
+await postResult('localInventory',{}, {accepted:true},false);
+await postResult('localInventory',{}, {accepted:true},true,{completion:true});
+await postResult('localInventory',{relations:true}, {accepted:true},false);
 await postResult('browserDrafts',{action:'status'},{state:'ready'},false);
 await postResult('directPropertyConfirm',{}, {sourceConfirmed:true},false);
 await postResult('browserDrafts',{action:'save'},{state:'applied'},false);
