@@ -152,10 +152,38 @@ writers. A writer racing the final comparison can be displaced by the
 exchange; its bytes remain in the stage and recovery is required, not
 automatic rollback or success. The experiment assumes trusted private
 recovery and stable directory ancestry, rejects aliased sources, extended
-metadata/ACLs, and nonordinary files. Witness retirement is deliberately
-unspecified; retained links currently prevent another edit to that file.
+metadata/ACLs, and nonordinary files. Retained candidate links prevent
+another edit until the explicit release described below; full history
+retirement remains unspecified.
 The test proves process-crash recovery on the tested Linux filesystem, not
 physical power-loss behavior, Windows portability, or semantic validation.
 Do not connect this to product Save until these limitations, retention,
 authoritative graph validation, and actual editor recovery integration
 are resolved.
+
+### Explicit candidate pin release (standalone follow-up)
+
+Only an exact already-completed historical receipt authorizes the explicit
+retention operation. It archives the candidate bytes independently, flushes
+the archive and private directory, then releases the candidate hard link.
+It never writes the live source or removes the displaced original, prepared
+record, or receipt. A restart after either archive publication or pin
+release may explicitly finish this retention step; it never replays the
+source mutation. Pending or inconsistent evidence cannot authorize release.
+Changed bytes in the candidate pin are retained for recovery. The journal's
+64-operation cap and old inode/archive retention remain in force; there is
+no silent pruning. The probe demonstrates a second edit after explicit
+release, testing process death at both release boundaries.
+
+This is an API for exclusively cooperating writers, not a general external
+writer interlock. A separate process replacing the live file between the
+last check and the exchange can still be displaced; the conflict path
+attempts to flush the retained stage and both directories, returns recovery
+required, and never publishes completion or auto-restores either file.
+Even pin release cannot promise preservation of arbitrary same-user
+in-place writes racing their own replacement of the live path. Production
+admission must have a real writer coordination boundary or an alternative
+storage model with enforced conditional commit, not merely a narrower
+timing gap. Windows requires native verification of file identity,
+conditional replacement and preservation, share modes, directory/volume
+durability, crash recovery and retention; no Windows adapter is enabled.

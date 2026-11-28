@@ -14,7 +14,7 @@ public enum DurableLocalEditState
 {
     NoIntent, SourceConflict, PendingUncertain, PreparedNotExchanged,
     WitnessedExchange, CompletedHistorical, ConflictingIdentity,
-    BlockedByPending, RecoveryRequired, UnsupportedPlatform
+    BlockedByPending, RecoveryRequired, UnsupportedPlatform, CandidatePinReleased
 }
 
 public sealed record DurableLocalSource(string SourceIdentity, string BeforeHash);
@@ -192,10 +192,79 @@ public sealed class DurableLocalDataExchange
         });
     }
 
+    // Explicit post-completion retention action. Never touches the live source.
+    // Preserve a durable independent copy before dropping the candidate pin;
+    // unresolved operations are never eligible. Historical receipts remain.
+    public DurableLocalEditState ReleaseCompletedCandidatePin(DirectDataSaveIntent intent) =>
+        ReleaseCompletedCandidatePinCore(intent, null);
+
+    internal DurableLocalEditState ReleasePinForProbe(DirectDataSaveIntent intent, Action<string> boundary) =>
+        ReleaseCompletedCandidatePinCore(intent, boundary);
+
+    private DurableLocalEditState ReleaseCompletedCandidatePinCore(DirectDataSaveIntent intent, Action<string>? boundary)
+    {
+        ValidateIntent(intent);
+        if (!OperatingSystem.IsLinux()) return DurableLocalEditState.UnsupportedPlatform;
+        return FailClosed(() =>
+        {
+            VerifyPaths();
+            using var lease = AcquireLease(create: false);
+            var state = InspectLocked(intent, journal.Inspect(intent));
+            if (state != DurableLocalEditState.CompletedHistorical) return state;
+            var prepared = ReadPrepared(intent);
+            string pin = NewWitness(intent);
+            string archive = Path.Combine(Operation(intent), "candidate.archive");
+            if (!File.Exists(archive))
+            {
+                byte[] bytes = ReadBounded(pin, MaxBytes, out var stat);
+                if (FileIdentity(stat) != prepared.Candidate.Identity ||
+                    JsonData.HashBytes(bytes) != intent.CandidateHash)
+                    return DurableLocalEditState.RecoveryRequired;
+                // No overwrite: a torn temporary file is never authority.
+                string temp = archive + "." + Guid.NewGuid().ToString("N") + ".tmp";
+                using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    if (OperatingSystem.IsLinux()) File.SetUnixFileMode(temp, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+                    stream.Write(bytes);
+                    stream.Flush(true);
+                }
+                File.Move(temp, archive, false);
+            }
+            var archived = ReadFact(archive);
+            if (archived.Hash != intent.CandidateHash || archived.Links != 1 ||
+                archived.Uid != EffectiveUid() || (archived.Mode & 0x3f) != 0)
+                return DurableLocalEditState.RecoveryRequired;
+            FlushFile(archive);
+            FlushDirectory(Operation(intent));
+            boundary?.Invoke("after-archive");
+            // The private pin may have been mutated through its live alias.
+            // Never discard those bytes if they differ from the sealed intent.
+            // Stat failures other than an actual absent name must not look
+            // like successful retirement (including a broken symlink).
+            if (ExistsNamed(pin))
+            {
+                var pinned = ReadFact(pin);
+                if (pinned.Identity != prepared.Candidate.Identity || pinned.Hash != intent.CandidateHash)
+                    return DurableLocalEditState.RecoveryRequired;
+                File.Delete(pin);
+            }
+            boundary?.Invoke("after-unpin");
+            FlushDirectory(Operation(intent));
+            return DurableLocalEditState.CandidatePinReleased;
+        });
+    }
+
     private DurableLocalEditState SealLocked(DirectDataSaveIntent intent, Prepared prepared, Action<string>? boundary)
     {
         if (InspectPair(intent, prepared) != DurableLocalEditState.WitnessedExchange)
+        {
+            // An external replacement may have been displaced into the stage.
+            // Preserve it on disk, but never certify or roll back this conflict.
+            FlushFile(Stage(intent));
+            FlushDirectory(Operation(intent));
+            FlushDirectory(Path.GetDirectoryName(source)!);
             return DurableLocalEditState.RecoveryRequired;
+        }
         // The staged data was already flushed. Recheck and flush the exact
         // named files and both directories after atomic exchange, then
         // publish only the attestation bound to this prepared inode pair.
@@ -478,6 +547,13 @@ public sealed class DurableLocalDataExchange
         [FieldOffset(120)] public uint ModifyNanos;
         [FieldOffset(136)] public uint DeviceMajor;
         [FieldOffset(140)] public uint DeviceMinor;
+    }
+
+    private static bool ExistsNamed(string path)
+    {
+        if (Statx(AT_FDCWD, path, AT_SYMLINK_NOFOLLOW, STATX_BASIC_STATS, out _) == 0) return true;
+        if (Marshal.GetLastPInvokeError() == 2) return false; // ENOENT
+        throw Error("Read retention name");
     }
 
     private static LinuxStatx StatPath(string path) => Stat(AT_FDCWD, path, AT_SYMLINK_NOFOLLOW);

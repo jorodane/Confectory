@@ -44,9 +44,9 @@ State Child(string root, DirectDataSaveIntent i, string action)
     Check(p.WaitForExit(20000) && p.ExitCode == 0, "Worker failed: " + p.StandardError.ReadToEnd());
     return Enum.Parse<State>(line);
 }
-void KillAt(string root, DirectDataSaveIntent i, string cut)
+void KillAt(string root, DirectDataSaveIntent i, string cut, string action = "commit")
 {
-    using var p = Worker(root, i, "commit", cut);
+    using var p = Worker(root, i, action, cut);
     Check(Line(p) == "CUT " + cut, "Missing requested cut");
     p.Kill(true);
     Check(p.WaitForExit(20000) && p.ExitCode != 0, "Not killed");
@@ -58,6 +58,19 @@ if (args.Length == 4)
     var x = Exchange(args[0]);
     Console.WriteLine(args[2] switch {
         "inspect" => x.Inspect(i), "seal" => x.SealWitnessed(i),
+        "release" => x.ReleasePinForProbe(i, stage => {
+            if (stage != args[3]) return;
+            Console.WriteLine("CUT " + stage); Console.Out.Flush(); Thread.Sleep(Timeout.Infinite);
+        }),
+        "gated-commit" => x.CommitForProbe(i, candidate, stage => {
+            if (stage != args[3]) return;
+            Console.WriteLine("CUT " + stage); Console.Out.Flush();
+            var clock = Stopwatch.StartNew();
+            while (!File.Exists(Path.Combine(args[0], "continue"))) {
+                if (clock.Elapsed > TimeSpan.FromSeconds(20)) throw new TimeoutException("External writer gate");
+                Thread.Sleep(5);
+            }
+        }),
         "commit" => x.CommitForProbe(i, candidate, stage => {
             if (stage != args[3]) return;
             Console.WriteLine("CUT " + stage); Console.Out.Flush(); Thread.Sleep(Timeout.Infinite);
@@ -157,6 +170,58 @@ try
         Expect(Child(root, i, "seal"), State.RecoveryRequired);
         Bytes(Source(root), candidate); Bytes(Stage(root, i), original);
         Console.WriteLine("PASS corrupt " + corrupt);
+    }
+    foreach (string cut in new[] { "after-archive", "after-unpin" })
+    {
+        string root = Path.Combine(tmp, "release-" + cut); var i = Setup(root);
+        Expect(Child(root, i, "commit"), State.CompletedHistorical);
+        KillAt(root, i, cut, "release");
+        Expect(Child(root, i, "inspect"), State.CompletedHistorical);
+        Expect(Child(root, i, "release"), State.CandidatePinReleased);
+        string op = Path.GetDirectoryName(Stage(root, i))!;
+        Bytes(Path.Combine(op, "candidate.archive"), candidate);
+        Bytes(Stage(root, i), original);
+        Bytes(Source(root), candidate);
+        Check(!File.Exists(Path.Combine(op, "candidate.witness")), "Pin remained");
+        var captured = Exchange(root).Capture();
+        var next = i with { OperationId = Guid.NewGuid().ToString("N"), SourceIdentity = captured.SourceIdentity,
+            BeforeHash = captured.BeforeHash, CandidateHash = JsonData.HashBytes(original), RequestFingerprint = Hash("next") };
+        Expect(Exchange(root).Commit(next, original), State.CompletedHistorical);
+        Expect(Child(root, i, "inspect"), State.CompletedHistorical);
+        Bytes(Source(root), original); Bytes(Path.Combine(op, "candidate.archive"), candidate);
+        Console.WriteLine("PASS release crash " + cut + " and subsequent operation");
+    }
+    {
+        string root = Path.Combine(tmp, "release-pending"); var i = Setup(root);
+        KillAt(root, i, "after-exchange");
+        Expect(Child(root, i, "release"), State.WitnessedExchange);
+        Check(File.Exists(Path.Combine(Path.GetDirectoryName(Stage(root, i))!, "candidate.witness")), "Pending pin removed");
+        Console.WriteLine("PASS pending pin retention");
+    }
+    {
+        string root = Path.Combine(tmp, "release-external"); var i = Setup(root);
+        Expect(Child(root, i, "commit"), State.CompletedHistorical);
+        File.WriteAllText(Source(root), "external in-place edit");
+        Expect(Child(root, i, "release"), State.RecoveryRequired);
+        Check(File.ReadAllText(Source(root)) == "external in-place edit", "External edit lost");
+        Check(File.Exists(Path.Combine(Path.GetDirectoryName(Stage(root, i))!, "candidate.witness")), "Changed pin removed");
+        Console.WriteLine("PASS changed candidate retention");
+    }
+    {
+        string root = Path.Combine(tmp, "external-process-race"); var i = Setup(root);
+        using var p = Worker(root, i, "gated-commit", "before-exchange");
+        Check(Line(p) == "CUT before-exchange", "No final comparison gate");
+        byte[] external = Encoding.UTF8.GetBytes("separate process external writer");
+        Replace(Source(root), external);
+        File.WriteAllText(Path.Combine(root, "continue"), "");
+        Check(Line(p) == State.RecoveryRequired.ToString(), "External conflict incorrectly completed");
+        Check(p.WaitForExit(20000) && p.ExitCode == 0, "Gated worker failed");
+        Bytes(Stage(root, i), external); Bytes(Source(root), candidate);
+        Expect(Child(root, i, "inspect"), State.RecoveryRequired);
+        Expect(Child(root, i, "seal"), State.RecoveryRequired);
+        Expect(Child(root, i, "release"), State.RecoveryRequired);
+        Bytes(Stage(root, i), external); Bytes(Source(root), candidate);
+        Console.WriteLine("PASS external process final comparison race: displaced bytes retained without completion");
     }
     Console.WriteLine("ALL durable exchange cases passed");
 }
