@@ -1048,7 +1048,7 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
   if(receipt?["referenceView"]?.ToString() is string referenceView){
    var bound=model["workspaceViews"]?[context]?[referenceView];
    if(bound?["authorBinding"]?.ToString()!=receipt["referenceBinding"]?.ToString()||bound?["id"]?.ToString()!=receipt["owner"]?.ToString()||bound?["mode"]?.ToString()!="properties")
-    throw new InvalidOperationException("Direct reference view changed; review the retained draft.");
+    throw new InvalidOperationException("Direct property view changed; review the retained draft.");
   }
   string target=Value("target");
   if(!System.Linq.Enumerable.Any(active["targets"]!.AsArray(),t=>t?.ToString()==target))throw new InvalidOperationException("Direct save target changed");

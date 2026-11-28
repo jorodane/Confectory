@@ -53,10 +53,58 @@ foreach(var row in bundle["transientActions"]?.AsArray()??new System.Text.Json.N
 // A bundle may identify large, already-public state fields for exact content
 // reuse. This changes transport bytes only, never Refresh or revision checks.
 var stateReuseFields=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["stateReuseFields"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string field=row!.GetValue<string>();if(stateReuseFields.Count>=8||!System.Text.RegularExpressions.Regex.IsMatch(field,@"^[A-Za-z][A-Za-z0-9]{0,63}$")||!stateReuseFields.Add(field))throw new ArgumentException("Bounded state reuse fields required");}
-void ApplyStateReuse(System.Text.Json.Nodes.JsonObject reply,System.Text.Json.Nodes.JsonObject? known=null){
- var authoritative=reply["stateReferenceHashes"] as System.Text.Json.Nodes.JsonObject;reply.Remove("stateReferenceHashes");if(stateReuseFields.Count==0||reply["state"] is not System.Text.Json.Nodes.JsonObject publicState)return;
+// Consumer opt-in: an update can omit an exact, already-public projection
+// before constructing/serializing it. Admission still reads the full state.
+bool projectionHints=bundle["stateProjectionHints"]?.GetValue<bool>()==true;
+bool baseStateReuse=bundle["baseStateReuse"]?.GetValue<bool>()==true;
+bool readCompletion=bundle["readCompletion"]?.GetValue<bool>()==true&&completionEndpoints.Contains("relationsMap")&&completionEndpoints.Contains("browserDrafts");
+bool relationDeltas=bundle["relationMapDeltas"]?.GetValue<bool>()==true&&stateReuseFields.Contains("relationsMap");
+var relationBases=new System.Collections.Generic.Dictionary<string,(string Hash,System.Text.Json.Nodes.JsonObject Map)>(StringComparer.Ordinal);
+// A delta is derived only from the exact previous public map delivered to this
+// mounted view. Different length/large changes use the ordinary full response.
+System.Text.Json.Nodes.JsonObject? RelationDelta(string basis,string hash,System.Text.Json.Nodes.JsonObject oldMap,System.Text.Json.Nodes.JsonObject newMap){
+ if(oldMap["version"]?.ToString()!=basis||newMap["version"]?.ToString()!=hash||oldMap["scope"]?.ToString()!=newMap["scope"]?.ToString())return null;
+ var header=new System.Text.Json.Nodes.JsonObject();foreach(var pair in newMap)if(pair.Key is not ("nodes" or "edges"))header[pair.Key]=pair.Value?.DeepClone();
+ var delta=new System.Text.Json.Nodes.JsonObject{["basis"]=basis,["hash"]=hash,["header"]=header};int changes=0;
+ foreach(string field in new[]{"nodes","edges"}){
+  if(oldMap[field] is not System.Text.Json.Nodes.JsonArray before||newMap[field] is not System.Text.Json.Nodes.JsonArray after||before.Count!=after.Count)return null;
+  var edits=new System.Text.Json.Nodes.JsonArray();
+  for(int i=0;i<after.Count;i++)if(!System.Text.Json.Nodes.JsonNode.DeepEquals(before[i],after[i])){
+   if(++changes>64)return null;edits.Add(new System.Text.Json.Nodes.JsonArray(System.Text.Json.Nodes.JsonValue.Create(i),after[i]?.DeepClone()));
+  }
+  delta[field]=new System.Text.Json.Nodes.JsonObject{["length"]=after.Count,["edits"]=edits};
+ }
+ return delta.ToJsonString().Length<=65536?delta:null;
+}
+void ApplyStateReuse(System.Text.Json.Nodes.JsonObject reply,System.Text.Json.Nodes.JsonObject? known=null,string view="",bool allowDelta=false,string? knownBase=null){
+ var authoritative=reply["stateReferenceHashes"] as System.Text.Json.Nodes.JsonObject;reply.Remove("stateReferenceHashes");var omitted=reply["omittedStateFields"] as System.Text.Json.Nodes.JsonObject;reply.Remove("omittedStateFields");if(stateReuseFields.Count==0||reply["state"] is not System.Text.Json.Nodes.JsonObject publicState)return;
  var hashes=new System.Text.Json.Nodes.JsonObject();var reused=new System.Text.Json.Nodes.JsonObject();
+ if(omitted is not null)foreach(var pair in omitted){
+  string field=pair.Key,hash=pair.Value?.ToString()??"";
+  if(!projectionHints||!stateReuseFields.Contains(field)||!System.Text.RegularExpressions.Regex.IsMatch(hash,"\\A[0-9a-f]{64}\\z")||known?[field]?.ToString()!=hash||authoritative?[field]?.ToString()!=hash||publicState[field] is not null)throw new InvalidOperationException("Invalid omitted state projection");
+  publicState.Remove(field);hashes[field]=hash;reused[field]=hash;
+ }
  foreach(string field in stateReuseFields){if(publicState[field] is not System.Text.Json.Nodes.JsonNode value)continue;string hash=authoritative?[field]?.ToString()??"";if(!System.Text.RegularExpressions.Regex.IsMatch(hash,"\\A[0-9a-f]{64}\\z"))hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value.ToJsonString()))).ToLowerInvariant();hashes[field]=hash;if(known?[field] is System.Text.Json.Nodes.JsonValue v&&v.TryGetValue<string>(out var proof)&&proof==hash){publicState.Remove(field);reused[field]=hash;}}
+ if(relationDeltas&&view.Length>0){
+  if(publicState["relationsMap"] is System.Text.Json.Nodes.JsonObject map&&hashes["relationsMap"] is System.Text.Json.Nodes.JsonValue mapHash&&mapHash.TryGetValue<string>(out var targetHash)){
+   if(allowDelta&&relationBases.TryGetValue(view,out var prior)&&known?["relationsMap"]?.ToString()==prior.Hash&&prior.Hash!=targetHash&&RelationDelta(prior.Hash,targetHash,prior.Map,map) is System.Text.Json.Nodes.JsonObject patch){
+    publicState.Remove("relationsMap");reply["relationMapDelta"]=patch;
+   }
+   if(map.ToJsonString().Length<=1048576)relationBases[view]=(targetHash,(System.Text.Json.Nodes.JsonObject)map.DeepClone());else relationBases.Remove(view);
+  }
+ }
+ // Compare the exact ordinary public projection, not merely model revision:
+ // some presentation evidence can change without a revision increment.
+ if(baseStateReuse){
+  using var bytes=new System.IO.MemoryStream();
+  using(var writer=new System.Text.Json.Utf8JsonWriter(bytes)){
+   writer.WriteStartObject();foreach(var pair in publicState)if(!stateReuseFields.Contains(pair.Key)){writer.WritePropertyName(pair.Key);if(pair.Value is null)writer.WriteNullValue();else pair.Value.WriteTo(writer);}writer.WriteEndObject();writer.Flush();
+  }
+  if(bytes.Length>=4096){
+   string baseHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes.ToArray())).ToLowerInvariant();reply["stateBaseHash"]=baseHash;
+   if(knownBase==baseHash){foreach(string field in System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Where(System.Linq.Enumerable.Select(publicState,p=>p.Key),key=>!stateReuseFields.Contains(key))))publicState.Remove(field);reply["reusedStateBase"]=baseHash;}
+  }
+ }
  reply["stateFieldHashes"]=hashes;if(reused.Count>0)reply["reusedStateFields"]=reused;
 }
 string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;int observationsInFlight=0;
@@ -68,9 +116,12 @@ var requests=new System.Collections.Generic.Dictionary<string,(string Fingerprin
 bool trace=Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1";
 var performanceRecord=AppDomain.CurrentDomain.GetData("Confectory.Performance.Record") as Action<string,string,double,double>;
 void Trace(string stage,long start,string endpoint="",string code=""){if(performanceRecord is not null)performanceRecord(stage,endpoint,System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds,-1);if(trace)Console.Error.WriteLine("CONFECTORY_UI_TRACE "+System.Text.Json.JsonSerializer.Serialize(new{stage,endpoint,code,elapsedMs=System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds}));}
-System.Text.Json.Nodes.JsonObject State(string stage="snapshot"){long started=System.Diagnostics.Stopwatch.GetTimestamp();try{string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}finally{Trace(stage,started);}}
+System.Text.Json.Nodes.JsonObject State(string stage="snapshot",System.Text.Json.Nodes.JsonObject? known=null){long started=System.Diagnostics.Stopwatch.GetTimestamp();
+ string hintKey="Confectory.WebUI.StateProjection."+context+"."+Environment.CurrentManagedThreadId;object? previous=null;bool hint=projectionHints&&known is not null;
+ if(hint){previous=AppDomain.CurrentDomain.GetData(hintKey);AppDomain.CurrentDomain.SetData(hintKey,known);}
+ try{string text=calls.State.Invoke(context);if(text.Length>2097152)throw new InvalidOperationException("State budget exceeded");var s=System.Text.Json.Nodes.JsonNode.Parse(text)!.AsObject();if(s["scope"] is not System.Text.Json.Nodes.JsonObject||s["revision"]!.GetValue<long>()<0||s["state"] is null)throw new InvalidOperationException("Invalid consumer state");return s;}finally{if(hint)AppDomain.CurrentDomain.SetData(hintKey,previous);Trace(stage,started);}}
 System.Text.Json.Nodes.JsonObject Error(string code,string id="")=>new(){["ok"]=false,["requestId"]=id,["error"]=new System.Text.Json.Nodes.JsonObject{["code"]=code}};
-System.Text.Json.Nodes.JsonObject? Refresh(){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State();calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
+System.Text.Json.Nodes.JsonObject? Refresh(System.Text.Json.Nodes.JsonObject? known=null){if(!System.Threading.Monitor.TryEnter(execution))return null;try{var s=State("snapshot",known);calls.Write.Invoke(owner,revisionInstance,s["revision"]!.GetValue<long>());return s;}finally{System.Threading.Monitor.Exit(execution);}}
 void RetireLifetime(System.Threading.CancellationTokenSource lifetime){
  // Mark it cancelled before releasing the view; callbacks can acquire a consumer lock.
  _=lifetime.CancelAsync().ContinueWith(_=>lifetime.Dispose(),System.Threading.Tasks.TaskScheduler.Default);
@@ -102,11 +153,12 @@ string Dispatch(string text){
  // ordinary acknowledgement and remains governed by the existing update path.
  try{
   if(req["op"]?.ToString()!="invoke"||req["completion"]?.GetValue<bool>()!=true||!completionEndpoints.Contains(req["endpoint"]!.GetValue<string>()))return acknowledgement;
+  if(readCompletion&&req["endpoint"]?.ToString()=="browserDrafts"&&req["input"]?["action"]?.ToString()!="status")return acknowledgement;
   var ack=System.Text.Json.Nodes.JsonNode.Parse(acknowledgement)!.AsObject();if(ack["ok"]?.GetValue<bool>()!=true)return acknowledgement;
   string id=req["requestId"]!.GetValue<string>(),view=req["view"]!.GetValue<string>();System.Threading.Tasks.Task<bool> completed;
   lock(gate){if(closing||!views.ContainsKey(view)||!requests.TryGetValue(id,out var row)||row.View!=view)return acknowledgement;completed=row.Completion.Task;}
   if(!completed.Wait(100))return acknowledgement;
-  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(DispatchCore(new System.Text.Json.Nodes.JsonObject{["op"]="update",["view"]=view,["scope"]=req["scope"]!.DeepClone(),["knownStateFields"]=req["knownStateFields"]?.DeepClone()}))!;
+  var completionRequest=new System.Text.Json.Nodes.JsonObject{["op"]="update",["view"]=view,["scope"]=req["scope"]!.DeepClone(),["knownStateFields"]=req["knownStateFields"]?.DeepClone(),["relationMapDelta"]=req["relationMapDelta"]?.DeepClone(),["knownStateBase"]=req["knownStateBase"]?.DeepClone(),["receivedRequestIds"]=req["receivedRequestIds"]?.DeepClone()};if(completionRequest["receivedRequestIds"] is null)completionRequest.Remove("receivedRequestIds");var snapshot=System.Text.Json.Nodes.JsonNode.Parse(DispatchCore(completionRequest))!;
   if(snapshot["busy"]?.GetValue<bool>()==true)return acknowledgement;
   ack["completion"]=snapshot;return ack.ToJsonString();
  }catch{return acknowledgement;}
@@ -119,11 +171,11 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision"),new System.Threading.CancellationTokenSource()));
-    s["ok"]=true;s["receivedResultSelection"]=true;if(stateReuseFields.Count>0){s["stateReuseFields"]=System.Text.Json.JsonSerializer.SerializeToNode(stateReuseFields);ApplyStateReuse(s);}if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+    s["ok"]=true;s["receivedResultSelection"]=true;if(stateReuseFields.Count>0){s["stateReuseFields"]=System.Text.Json.JsonSerializer.SerializeToNode(stateReuseFields);ApplyStateReuse(s,view:view);if(relationDeltas)s["relationMapDeltas"]=true;}if(readCompletion)s["readCompletion"]=true;if(baseStateReuse)s["baseStateReuse"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
    }
    string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
    if(op=="dispose"){
-    calls.Unsubscribe.Invoke(mounted.Subscription);views.Remove(v);retiredViews.Add(v);RetireLifetime(mounted.Lifetime);foreach(var row in requests.Values)if(row.View==v)row.Cancel.Cancel();return "{\"ok\":true}";
+    calls.Unsubscribe.Invoke(mounted.Subscription);views.Remove(v);relationBases.Remove(v);retiredViews.Add(v);RetireLifetime(mounted.Lifetime);foreach(var row in requests.Values)if(row.View==v)row.Cancel.Cancel();return "{\"ok\":true}";
    }
    if(!System.Text.Json.Nodes.JsonNode.DeepEquals(req["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_mismatch").ToJsonString();
    if(op=="performance"){
@@ -149,9 +201,9 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
      received=new(StringComparer.Ordinal);
      foreach(var item in ids)if(item is not System.Text.Json.Nodes.JsonValue value||!value.TryGetValue<string>(out var requestId)||requestId.Length is <1 or >128||!received.Add(requestId))return Error("result_selection").ToJsonString();
     }
-    var s=Refresh();if(s is null)return "{\"ok\":true,\"busy\":true,\"results\":[]}";if(!System.Text.Json.Nodes.JsonNode.DeepEquals(s["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed").ToJsonString();
+    var s=Refresh(req["knownStateFields"] as System.Text.Json.Nodes.JsonObject);if(s is null)return "{\"ok\":true,\"busy\":true,\"results\":[]}";if(!System.Text.Json.Nodes.JsonNode.DeepEquals(s["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed").ToJsonString();
     s["changed"]=calls.Poll.Invoke(owner,mounted.Subscription).Length>0;s["ok"]=true;
-    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending"&&(received is null||!received.Contains(row.Row["requestId"]!.ToString())))results.Add(row.Row.DeepClone());s["results"]=results;ApplyStateReuse(s,req["knownStateFields"] as System.Text.Json.Nodes.JsonObject);return s.ToJsonString();
+    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending"&&(received is null||!received.Contains(row.Row["requestId"]!.ToString())))results.Add(row.Row.DeepClone());s["results"]=results;ApplyStateReuse(s,req["knownStateFields"] as System.Text.Json.Nodes.JsonObject,v,req["relationMapDelta"]?.GetValue<bool>()==true,req["knownStateBase"] is System.Text.Json.Nodes.JsonValue baseValue&&baseValue.TryGetValue<string>(out var baseProof)?baseProof:null);return s.ToJsonString();
    }
    if(op!="invoke")return Error("unknown_operation",id).ToJsonString();
    string endpoint=req["endpoint"]!.ToString();if(!endpoints.Contains(endpoint))return Error("endpoint_denied",id).ToJsonString();
@@ -184,7 +236,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
   }catch(Exception){return Error("invalid_request").ToJsonString();}
  }
 }
-bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values){calls.Unsubscribe.Invoke(v.Subscription);RetireLifetime(v.Lifetime);}views.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();if(observationsInFlight>0)return false;foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
+bool Close(){lock(gate){if(closed)return true;closing=true;foreach(var v in views.Values){calls.Unsubscribe.Invoke(v.Subscription);RetireLifetime(v.Lifetime);}views.Clear();relationBases.Clear();foreach(var row in requests.Values)row.Cancel.Cancel();if(observationsInFlight>0)return false;foreach(var row in requests.Values)if(row.Row["status"]!.ToString()=="pending")return false;calls.DisposeOwner.Invoke(owner);foreach(var row in requests.Values)row.Cancel.Dispose();closed=true;AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,null);return true;}}
 string Native(string action,string payload){if(payload.Length>(action=="site-relay"?1572864:16384)||!hostActions.Contains(action))return Error("host_action_denied").ToJsonString();lock(execution){lock(gate){if(closing)return Error("owner_closed").ToJsonString();}string cancellation=Guid.NewGuid().ToString("N");AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,(Func<bool>)(()=>closing));try{return new System.Text.Json.Nodes.JsonObject{["ok"]=true,["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Invoke.Invoke(context,"host."+action,payload,cancellation))}.ToJsonString();}catch(Exception){return Error("consumer_error").ToJsonString();}finally{AppDomain.CurrentDomain.SetData("Confectory.WebUI.Cancel."+cancellation,null);}}}
 AppDomain.CurrentDomain.SetData("Confectory.WebUI."+token,new object[]{(Func<string,string>)Dispatch,(Func<string,string[]>)(path=>{lock(gate){if(closing)throw new ObjectDisposedException("WebUI");return (string[])(assets.TryGetValue(path=="/"?entry:path.TrimStart('/'),out var asset)?asset.Clone():throw new ArgumentException("Unknown resource"));}}),(Func<bool>)Close,(Func<string,string,string>)Native});
 return token;

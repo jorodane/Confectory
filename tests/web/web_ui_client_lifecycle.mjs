@@ -125,3 +125,90 @@ const older=reuse.update();const edited=reuse.call('edit',{}, {completion:true})
 const wrong=reuse.update();reuseReads.shift().resolve({ok:true,revision:5,state:{},stateFieldHashes:{inventory:'a'},reusedStateFields:{inventory:'a'},results:[]});await assert.rejects(wrong,/state_reference_mismatch/);assert.equal(reuse.state.inventory.rows[0].id,'B');
 await reuse.dispose();await reuse.mount();assert.equal(reuse.state.inventory.rows[0].id,'A');await reuse.dispose();
 console.log('PASS exact immutable state references, stale completion ordering, mismatch refusal and remount isolation');
+
+// A relation patch is only accepted for the captured immutable public map and
+// exact version, even across an intervening state with no current map. An old
+// view cannot lend its basis to a new activation.
+const deltaReads=[],deltaInvokes=[];
+const mapA={version:'a',scope:'owned',status:'snapshot',nodes:[{id:'A',revision:1},{id:'B',revision:1}],edges:[{key:'e',source:'A',target:'B'}]};
+const delta=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'delta',scope:{project:'one'},revision:1,state:{relationsMap:structuredClone(mapA)},stateReuseFields:['relationsMap'],stateFieldHashes:{relationsMap:'a'},relationMapDeltas:true};
+ if(request.op==='update')return new Promise(resolve=>deltaReads.push({request,resolve}));
+ if(request.op==='invoke')return new Promise(resolve=>deltaInvokes.push({request,resolve}));
+ if(request.op==='dispose')return {ok:true};throw Error('unexpected delta operation');
+});
+await delta.mount();const initialMap=delta.state.relationsMap;
+const absent=delta.update();deltaReads.shift().resolve({ok:true,revision:2,state:{relationsMap:null},stateFieldHashes:{},results:[]});await absent;assert.equal(delta.state.relationsMap,null);
+const patch={basis:'a',hash:'b',header:{version:'b',scope:'owned',status:'snapshot'},nodes:{length:2,edits:[[0,{id:'A',revision:2}]]},edges:{length:1,edits:[]}};
+const changed=delta.update();assert.equal(deltaReads[0].request.relationMapDelta,true);assert.deepEqual(deltaReads[0].request.knownStateFields,{relationsMap:'a'});
+deltaReads.shift().resolve({ok:true,revision:3,state:{},stateFieldHashes:{relationsMap:'b'},relationMapDelta:patch,results:[]});await changed;
+assert.equal(delta.state.relationsMap.nodes[0].revision,2);assert.equal(delta.state.relationsMap.nodes[1],initialMap.nodes[1]);assert.equal(delta.state.relationsMap.edges[0],initialMap.edges[0]);assert(Object.isFrozen(delta.state.relationsMap.nodes[0]));
+const invalid=delta.update();deltaReads.shift().resolve({ok:true,revision:4,state:{},stateFieldHashes:{relationsMap:'b'},relationMapDelta:patch,results:[]});await assert.rejects(invalid,/state_delta_mismatch/);assert.equal(delta.state.relationsMap.version,'b');
+const fallback=delta.update();assert(!deltaReads[0].request.knownStateFields);deltaReads.shift().resolve({ok:true,revision:4,state:{relationsMap:structuredClone(mapA)},stateFieldHashes:{relationsMap:'a'},results:[]});await fallback;
+const olderDelta=delta.update(),newerDelta=delta.call('read',{}, {completion:true});const deltaInvocation=deltaInvokes.shift();deltaInvocation.resolve({ok:true,completion:{ok:true,revision:6,state:{relationsMap:{...mapA,version:'c'}},stateFieldHashes:{relationsMap:'c'},results:[{requestId:deltaInvocation.request.requestId,ok:true,result:{}}]}});await newerDelta;
+deltaReads.shift().resolve({ok:true,revision:5,state:{},stateFieldHashes:{relationsMap:'b'},relationMapDelta:patch,results:[]});await olderDelta;assert.equal(delta.state.relationsMap.version,'c');
+await delta.dispose();await delta.mount();assert.equal(delta.state.relationsMap.version,'a');await delta.dispose();
+console.log('PASS exact relation delta across absent state, unchanged row identity, wrong basis fallback, stale completion and remount isolation');
+
+await delta.mount();
+const recovery=delta.call('write',{}, {completion:true}), recoveryInvoke=deltaInvokes.shift();
+recoveryInvoke.resolve({ok:true,completion:{ok:true,revision:2,state:{},stateFieldHashes:{relationsMap:'b'},relationMapDelta:{...patch,basis:'wrong'},results:[{requestId:recoveryInvoke.request.requestId,ok:true,result:{saved:true}}]}});
+await new Promise(resolve=>setTimeout(resolve,0));
+assert.equal(deltaReads.length,1);assert(!deltaReads[0].request.knownStateFields);
+deltaReads.shift().resolve({ok:true,revision:2,state:{relationsMap:{...mapA,version:'b'}},stateFieldHashes:{relationsMap:'b'},results:[{requestId:recoveryInvoke.request.requestId,ok:true,result:{saved:true}}]});
+assert.deepEqual(await recovery,{saved:true});assert.equal(deltaInvokes.length,0);await delta.dispose();
+console.log('PASS invalid completion delta recovers retained result through full update without replay');
+
+// Ordinary state equality is content-bound, not revision-bound. The retained
+// base is an independent JSON value, so presentation mutations cannot corrupt
+// a later exact host reference. The relation field follows its own proof.
+const baseReads=[],baseInvokes=[];
+const simple=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'base',scope:{project:'p'},revision:1,state:{presentation:{label:'original'},counter:1,relationsMap:structuredClone(mapA)},stateReuseFields:['relationsMap'],stateFieldHashes:{relationsMap:'a'},relationMapDeltas:true,baseStateReuse:true,stateBaseHash:'base1'};
+ if(request.op==='update')return new Promise(resolve=>baseReads.push({request,resolve}));
+ if(request.op==='invoke')return new Promise(resolve=>baseInvokes.push({request,resolve}));
+ if(request.op==='dispose')return {ok:true};throw Error('unexpected base state operation');
+});
+await simple.mount();simple.state.presentation.label='local mutation';
+const sameBase=simple.update();assert.equal(baseReads[0].request.knownStateBase,'base1');
+baseReads.shift().resolve({ok:true,revision:2,state:{},stateBaseHash:'base1',reusedStateBase:'base1',stateFieldHashes:{relationsMap:'b'},relationMapDelta:patch,results:[]});await sameBase;
+assert.equal(simple.state.presentation.label,'original');assert.equal(simple.state.relationsMap.nodes[0].revision,2);
+const changedBase=simple.update();
+baseReads.shift().resolve({ok:true,revision:2,state:{presentation:{label:'fresh evidence'},counter:2},stateBaseHash:'base2',stateFieldHashes:{relationsMap:'b'},reusedStateFields:{relationsMap:'b'},results:[]});await changedBase;
+assert.equal(simple.state.presentation.label,'fresh evidence');assert.equal(simple.state.counter,2);
+const badBase=simple.update();baseReads.shift().resolve({ok:true,revision:3,state:{},stateBaseHash:'base1',reusedStateBase:'base1',results:[]});await assert.rejects(badBase,/state_base_mismatch/);
+const recoverBase=simple.update();assert(!baseReads[0].request.knownStateBase);baseReads.shift().resolve({ok:true,revision:3,state:{presentation:{label:'full fallback'},counter:3,relationsMap:null},stateBaseHash:'base3',results:[]});await recoverBase;
+assert.equal(simple.state.presentation.label,'full fallback');
+const baseCall=simple.call('save',{}, {completion:true}),baseInvocation=baseInvokes.shift();assert.equal(baseInvocation.request.knownStateBase,'base3');
+baseInvocation.resolve({ok:true,completion:{ok:true,revision:4,state:{},stateBaseHash:'wrong',reusedStateBase:'wrong',results:[{requestId:baseInvocation.request.requestId,ok:true,result:{saved:true}}]}});
+await new Promise(resolve=>setTimeout(resolve,0));assert.equal(baseReads.length,1);assert(!baseReads[0].request.knownStateBase);
+baseReads.shift().resolve({ok:true,revision:4,state:{presentation:{label:'committed'},counter:4,relationsMap:null},stateBaseHash:'base4',results:[{requestId:baseInvocation.request.requestId,ok:true,result:{saved:true}}]});assert.deepEqual(await baseCall,{saved:true});assert.equal(baseInvokes.length,0);
+await simple.dispose();await simple.mount();assert.equal(simple.state.presentation.label,'original');await simple.dispose();
+console.log('PASS exact ordinary-state reference, mutable UI isolation, same-revision changed content, full fallback and no replay');
+
+// Automatic short completion is scoped to a successful source confirmation,
+// not ordinary restore reads or draft mutations.
+const postReads=[],postInvokes=[];
+const postSave=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'post-save',scope:{project:'p'},revision:1,state:{},readCompletion:true};
+ if(request.op==='update')return new Promise(resolve=>postReads.push({request,resolve}));
+ if(request.op==='invoke')return new Promise(resolve=>postInvokes.push({request,resolve}));
+ if(request.op==='dispose')return {ok:true};throw Error('unexpected post-save operation');
+});
+async function postResult(endpoint,input,result,completion){
+ const call=postSave.call(endpoint,input),inv=postInvokes.shift();
+ assert.equal(inv.request.completion===true,completion);
+ const state={ok:true,revision:postSave.revision+1,state:{},results:[{requestId:inv.request.requestId,ok:true,result}]};
+ if(completion)inv.resolve({ok:true,completion:state});
+ else{inv.resolve({ok:true});await new Promise(resolve=>setTimeout(resolve,0));postReads.shift().resolve(state);}
+ assert.deepEqual(await call,result);
+}
+await postSave.mount();
+await postResult('browserDrafts',{action:'status'},{state:'ready'},false);
+await postResult('directPropertyConfirm',{}, {sourceConfirmed:true},false);
+await postResult('browserDrafts',{action:'save'},{state:'applied'},false);
+await postResult('browserDrafts',{action:'status'},{state:'ready'},true);
+await postResult('relationsMap',{}, {accepted:true},true);
+await postResult('browserDrafts',{action:'status'},{state:'ready'},false);
+await postSave.dispose();
+console.log('PASS bounded post-confirm read completion, ordinary restore and draft mutations retain fallback');

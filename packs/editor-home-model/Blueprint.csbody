@@ -91,7 +91,16 @@ lock(state){
  var refreshedDirectWorkspace=slot.Length==0?model["workspace"]:refreshedDirectRow?["workspace"];
  if(directSettlement is not null&&(slot.Length==0||detachedDirectBinding is not null&&refreshedDirectRow?["authorBinding"]?.ToString()==detachedDirectBinding&&refreshedDirectRow?["projectId"]?.ToString()==selected["projectId"]?.ToString()&&refreshedDirectRow?["context"]?.ToString()==context)&&refreshedDirectWorkspace?["unit"]?["id"]?.ToString()==input["id"]?.ToString()&&refreshedDirectWorkspace?["schemaView"]?["id"]?.ToString()==input["id"]?.ToString()&&refreshedDirectWorkspace?["inspectionRevision"]?.ToString()==refreshedDirectWorkspace?["unit"]?["revision"]?.ToString()&&DirectSettled()){
   var response=System.Text.Json.Nodes.JsonNode.Parse(result)!;
-  response["ownerSettled"]=true;result=response.ToJsonString();
+  response["ownerSettled"]=true;
+  // The detached primitive Save has the same exact two-row receipt as a
+  // primary local Save, but only after the bound view and both settlement
+  // checks succeeded. Confirm still uses the ordinary review token, physical
+  // source validation and the view binding check in Command.
+  if(detachedProof&&detachedDirect&&localDirectScope&&response["directSaveProof"] is System.Text.Json.Nodes.JsonArray detachedReceipt){
+   detachedReceipt[0]!["combined"]=true;
+   model["directPropertySaveReceipt"]=new System.Text.Json.Nodes.JsonObject{["context"]=context,["activation"]=selected["activation"]!.DeepClone(),["owner"]=input["id"]!.DeepClone(),["proof"]=detachedReceipt.DeepClone(),["referenceView"]=slot,["referenceBinding"]=detachedDirectBinding};
+  }
+  result=response.ToJsonString();
  }
  return result;}finally{if(restoreSelection is not null)calls.Command.Invoke(session,"workspace",new System.Text.Json.Nodes.JsonObject{["context"]=context,["action"]="select",["id"]=restoreSelection}.ToJsonString());}
 }

@@ -11,6 +11,10 @@ window and verifies an ordinary primary integer save.
 --continuous-integers measures five actual integer saves on both surfaces.
 --verify-card-reuse checks unchanged catalogue DOM identities after Save.
 --profile-ui-stages logs the actual browser calls/renders after the new success.
+--verify-wire-delta compares actual delta replies with a separate legacy full read.
+--verify-detached-confirm observes the combined scalar confirmation and an
+external write immediately before its final admission.
+--verify-detached-binding retires the exact view before final confirmation.
 --verify-primary-status-reuse checks that an exact post-confirm status is not
 read a second time for warm primary scalar saves.
 --verify-relation-delta checks changed owned rows in the 400-object host trace.
@@ -31,12 +35,15 @@ import v666_workspace_finder_fixture as f
 count = int(sys.argv[3]) if len(sys.argv) > 3 else 40
 assert count in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages", "--verify-primary-status-reuse"}
+assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages", "--verify-primary-status-reuse", "--verify-wire-delta", "--verify-detached-confirm", "--verify-detached-binding"}
 assert "--verify-relation-delta" not in flags or (count == 400 and "--continuous" in flags)
 assert "--continuous-in-place" not in flags or "--continuous" in flags
 assert "--continuous-detached" not in flags or ("--continuous" in flags and "--continuous-in-place" not in flags)
 assert "--continuous-integers" not in flags or "--continuous" in flags
 assert "--profile-ui-stages" not in flags or "--continuous" in flags
+assert "--verify-wire-delta" not in flags or "--continuous" in flags
+assert not ({"--verify-detached-confirm", "--verify-detached-binding"} <= flags)
+assert not ({"--verify-detached-confirm", "--verify-detached-binding"} & flags) or {"--continuous", "--continuous-detached"} <= flags
 assert "--verify-primary-status-reuse" not in flags or {"--continuous-in-place", "--profile-ui-stages", "--continuous"} <= flags
 run = f.report["run"]
 ns = "Confectory.PerformanceRestoreSample"
@@ -63,13 +70,47 @@ expect.set_options(timeout=120000)
 if "--continuous" in flags: f.env["CONFECTORY_UI_TRACE"] = "1"
 
 
+wire_maps = {}
+wire_patches = []
+wire_verified = set()
+def capture_wire(response):
+    if not response.url.endswith('/api/request') or response.request.method != 'POST':
+        return
+    reply = response.json()
+    reply = reply.get('completion', reply)
+    if not reply.get('ok'):
+        return
+    value = reply.get('state', {}).get('relationsMap')
+    if value:
+        wire_maps[value['version']] = value
+    patch = reply.get('relationMapDelta')
+    if patch:
+        assert patch['basis'] in wire_maps, patch.keys()
+        assert 'relationsMap' not in reply['state']
+        assert reply['stateFieldHashes']['relationsMap'] == patch['hash']
+        old = wire_maps[patch['basis']]
+        value = dict(patch['header'])
+        for field in ('nodes', 'edges'):
+            rows = list(old[field])
+            assert len(rows) == patch[field]['length']
+            for index, row in patch[field]['edits']:
+                rows[index] = row
+            value[field] = rows
+        wire_maps[patch['hash']] = value
+        wire_patches.append((patch, value))
+
 def page_for(browser, n):
     if "--trace-files" in flags:
         f.report["run"] = ["strace", "-f", "-e", "trace=execve,openat", "-o", str(f.root / f"files-{n}.log"), *run]
     f.start(n)
     page = browser.new_page(viewport={"width": 2000, "height": 1200})
+    if "--verify-wire-delta" in flags:
+        wire_maps.clear()
+        page.on("response", capture_wire)
     page.route("**/*", lambda route: route.continue_() if route.request.url.startswith(f.origin + "/") else route.abort())
     goto_editor(page, f.url)
+    if "--profile-ui-stages" in flags:
+        page.evaluate("performance.setResourceTimingBufferSize(4096)")
     card = page.locator(".project-card").filter(has=page.get_by_role("heading", name="String save", exact=True))
     expect(card.locator('[data-stat="objects"]')).to_have_text(str(count))
     card.locator("[data-enter]").click()
@@ -118,6 +159,15 @@ def save(page, window, persisted):
               const trace=globalThis.confectoryWebUITrace=[];
               trace.push=function(...rows){return Array.prototype.push.apply(this,rows.map(row=>({...row,observedAt:performance.now()})));};
             }""")
+    calls = []
+    def capture_confirmation(request):
+        if request.url.endswith('/api/request') and request.method == 'POST':
+            body = request.post_data_json
+            if body.get('op') == 'invoke' and body.get('endpoint') in ('reviewGroup', 'confirmGroup', 'directPropertyConfirm'):
+                calls.append(body['endpoint'])
+    verify_detached = "--verify-detached-confirm" in flags and window.get_attribute("data-key") != "schema"
+    if verify_detached:
+        page.on("request", capture_confirmation)
     started = time.monotonic()
     button.click()
     deadline = time.monotonic() + 120
@@ -128,10 +178,32 @@ def save(page, window, persisted):
     expect(page.locator("#status")).to_have_text("저장했습니다.")
     expect(page.locator('.window[data-key="review"]')).to_be_hidden()
     expect(page.get_by_role("dialog", name="관련 변경 검토")).to_have_count(0)
+    if verify_detached:
+        page.remove_listener("request", capture_confirmation)
+        assert calls == ["directPropertyConfirm"], calls
+        print("PASS bound detached scalar uses one exact combined confirmation", flush=True)
     if "--continuous" in flags:
         print("save-ui-ms", round((time.monotonic()-started)*1000,1), flush=True)
         expect(page.locator("#project-menu")).to_be_enabled()
         print("save-ready-ms", round((time.monotonic()-started)*1000,1), flush=True)
+        if "--verify-wire-delta" in flags and wire_patches:
+            mounted = f.mount()
+            try:
+                full = mounted.get("state", {}).get("relationsMap")
+                if full:
+                    for patch, expected in wire_patches:
+                        if full["version"] == patch["hash"]:
+                            assert full == expected
+                            if patch["hash"] not in wire_verified:
+                                wire_verified.add(patch["hash"])
+                                print("PASS relation wire delta matches legacy full", len(json.dumps(patch)), len(json.dumps(full)), flush=True)
+                    request = {"op":"update","view":mounted["view"],"scope":mounted["scope"],"relationMapDelta":True}
+                    wrong = f.raw(dict(request,knownStateFields={"relationsMap":"0"*64}))
+                    assert wrong["state"]["relationsMap"] == full and "relationMapDelta" not in wrong
+                    exact = f.raw(dict(request,knownStateFields={"relationsMap":full["version"]}))
+                    assert exact["reusedStateFields"]["relationsMap"] == full["version"]
+            finally:
+                f.raw({"op":"dispose","view":mounted["view"]})
         timing = actual_save_timing(page)
         print("save-browser-success-ms", round(timing["success"],1), flush=True)
         print("save-browser-ready-ms", round(timing["ready"],1), flush=True)
@@ -139,6 +211,12 @@ def save(page, window, persisted):
             trace=page.evaluate("globalThis.confectoryWebUITrace")
             after=[dict(stage=row["stage"],endpoint=row.get("endpoint"),ms=round(row["elapsedMs"],1)) for row in trace if timing["start"]+timing["success"]<=row["observedAt"]<=timing["start"]+timing["ready"]]
             print("save-post-success-trace",json.dumps(after),flush=True)
+            wire = page.evaluate("""timing => {
+              const rows = performance.getEntriesByType('resource').filter(r => r.name.endsWith('/api/request') && r.startTime >= timing.start && r.responseEnd <= timing.start+timing.ready);
+              const post = rows.filter(r => r.startTime >= timing.start+timing.success);
+              return {requests:rows.length,bytes:rows.reduce((n,r)=>n+r.encodedBodySize,0),postRequests:post.length,postBytes:post.reduce((n,r)=>n+r.encodedBodySize,0)};
+            }""", timing)
+            print("save-wire",json.dumps(wire),flush=True)
             if "--verify-primary-status-reuse" in flags and window.get_attribute("data-key") == "schema":
                 status_calls = [row for row in after if row["stage"] == "call" and row["endpoint"] == "browserDrafts"]
                 assert len(status_calls) <= 1, ("duplicate post-confirm status", after)
@@ -229,6 +307,8 @@ try:
         expect(peer.get_by_label("Note 기본값", exact=True)).to_have_value("Unsaved peer")
         assert all(path.read_bytes() == raw for path, raw in before.items()
                    if path.name not in ("SampleA.celem", "SampleD.celem"))
+        if "--verify-wire-delta" in flags:
+            assert len(wire_verified) >= 3, ("expected actual matching delta versions", len(wire_patches), len(wire_verified))
         page.evaluate("()=>confectoryFlushPresentation()")
         page.close()
         f.stop()
@@ -270,6 +350,45 @@ try:
             assert source.read_text() == external
             expect(field).to_have_value("Uncommitted local input")
             print("PASS external owner write refuses stale save and retains input", flush=True)
+        if {"--verify-detached-confirm", "--verify-detached-binding"} & flags:
+            guard_peer = page.locator(f'.window[data-element-owner="{ns}::SampleB"]')
+            if guard_peer.is_visible():
+                guard_peer.locator("[data-close]").click()
+                expect(guard_peer).to_be_hidden()
+                expect(page.locator("#project-menu")).to_be_enabled()
+            target = sample / "SampleA.celem"
+            old = target.read_bytes()
+            external = old + b"\n// externally changed after staged checkpoint\n"
+            field = a.get_by_label("Note 기본값", exact=True)
+            replace_input(page, field, "Pending external conflict")
+            hits = []
+            slot = a.get_attribute("data-key").removeprefix("editor-")
+            def conflict(route):
+                body = route.request.post_data_json
+                if body.get("endpoint") == "directPropertyConfirm" and not hits:
+                    hits.append(body["requestId"])
+                    if "--verify-detached-binding" in flags:
+                        f.call("closeEditorView", {"view":slot,"id":ns+"::SampleA"})
+                        result = f.call("directPropertyConfirm", body["input"], ok=False)
+                        assert result["error"]["code"] == "consumer_error", result
+                    else:
+                        target.write_bytes(external)
+                route.fallback()
+            page.route("**/api/request", conflict)
+            a.locator('[data-element-action="confirm"]').click()
+            expect(page.locator("#project-menu")).to_be_enabled()
+            assert hits
+            if "--verify-detached-binding" in flags:
+                assert target.read_bytes() == old
+                state = f.state()
+                assert state["draft"]["id"] == ns + "::SampleA" and "Pending external conflict" in state["draft"]["text"]
+                assert not any(row["view"] == slot for row in state["editorViews"])
+                print("PASS retired detached binding rejects exact receipt without final write; draft retained", flush=True)
+            else:
+                assert target.read_bytes() == external
+                expect(field).to_have_value("Pending external conflict")
+                print("PASS detached combined confirmation refuses intervening external write and retains draft", flush=True)
+            page.unroute_all(behavior="wait")
         page.close()
         f.stop()
         if "--trace-files" in flags:

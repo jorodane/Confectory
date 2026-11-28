@@ -186,6 +186,23 @@ def measure(page, label, keys, expected):
             assert exact['ok'] and 'inventory' not in exact['state'] and exact['reusedStateFields']['inventory']==hashes['inventory'], exact.keys()
             stale = f.raw(dict(request, scope=dict(mounted['scope'], projectActivation='invalid-activation'), knownStateFields=hashes))
             assert not stale['ok']
+            if mounted.get('baseStateReuse'):
+                assert full.get('stateBaseHash'), full.keys()
+                ordinary = {k:v for k,v in full['state'].items() if k not in mounted['stateReuseFields']}
+                exact_base = f.raw(dict(request, knownStateBase=full['stateBaseHash'], knownStateFields=full.get('stateFieldHashes', {})))
+                if exact_base.get('stateBaseHash') != full['stateBaseHash']:
+                    # A live presentation change must produce a new complete base.
+                    assert 'reusedStateBase' not in exact_base and 'projectId' in exact_base['state']
+                    full = f.raw(request)
+                    ordinary = {k:v for k,v in full['state'].items() if k not in mounted['stateReuseFields']}
+                    exact_base = f.raw(dict(request, knownStateBase=full['stateBaseHash'], knownStateFields=full.get('stateFieldHashes', {})))
+                assert exact_base['reusedStateBase'] == full['stateBaseHash']
+                assert all(k in mounted['stateReuseFields'] for k in exact_base['state']), exact_base['state'].keys()
+                wrong_base = f.raw(dict(request, knownStateBase='0'*64))
+                assert 'reusedStateBase' not in wrong_base and 'projectId' in wrong_base['state']
+                if wrong_base['stateBaseHash'] == full['stateBaseHash']:
+                    assert {k:v for k,v in wrong_base['state'].items() if k not in mounted['stateReuseFields']} == ordinary
+                print('PASS exact ordinary projection reuse, wrong content token and legacy full fallback', flush=True)
             print('PASS exact public metadata reuse; legacy/full, wrong token and project scope guards', flush=True)
         finally:
             f.raw({'op':'dispose','view':mounted['view']})
