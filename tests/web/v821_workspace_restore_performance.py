@@ -1,7 +1,7 @@
 """Measure actual restored workspace readiness; no latency threshold.
 
 Run on Linux with the ordinary EditorHome build report and authoring host:
-  python tests/web/v821_workspace_restore_performance.py REPO BUILD_REPORT 8
+  python tests/run_isolated_browser_test.py -- python tests/web/v821_workspace_restore_performance.py REPO BUILD_REPORT 8
 Repeat with 0 or 1, or repeat the same command for a no-op comparison.
 All projects, including the eight recent listings, are disposable synthetic copies.
 The default waits for Home summaries to finish before timing the actual tile click.

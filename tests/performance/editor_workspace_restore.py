@@ -1,6 +1,6 @@
 """Measure project card activation with 0, 1 or 3 restored property windows.
 
-Run: python tests/performance/editor_workspace_restore.py REPO BUILD_REPORT 3
+Run: python tests/run_isolated_browser_test.py -- python tests/performance/editor_workspace_restore.py REPO BUILD_REPORT 3
 The fixture creates an isolated profile, hides the project, reopens it, then
 restarts the editor and compares the real window and control milestones.
 """

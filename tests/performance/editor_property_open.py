@@ -1,6 +1,6 @@
 """Measure real mouse drag to editable property fields in one fresh profile.
 
-Run: python tests/performance/editor_property_open.py REPO BUILD_REPORT
+Run: python tests/run_isolated_browser_test.py -- python tests/performance/editor_property_open.py REPO BUILD_REPORT
 Set the same host/runtime environment as the ordinary web UI fixtures. Three
 independent invocations per build report permit an alternating A/B comparison.
 This measures, rather than asserts, latency on the actual test machine.
