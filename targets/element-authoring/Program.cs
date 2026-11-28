@@ -5,7 +5,7 @@ using System.Text.Json.Nodes;
 
 if(args.Length==1&&args[0]=="--inspect-stream")
 {
-    Console.WriteLine("CONFECTORY_INSPECT_STREAM_13");Console.Out.Flush();
+    Console.WriteLine("CONFECTORY_INSPECT_STREAM_14");Console.Out.Flush();
     string? owner=null, projectionTransaction=null;
     OwnedGraphReadModel? projectionModel=null;
     for(int count=0;count<128;count++)
@@ -37,20 +37,21 @@ if(args.Length==1&&args[0]=="--inspect-stream")
         bool SingleLongData(JsonNode? changes)=>changes is JsonArray rows&&rows.Count==1&&rows[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray pathRow&&pathRow.Count==1&&pathRow[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&JsonNode.DeepEquals(row["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="long"});
         bool SingleStringData(JsonNode? changes)=>changes is JsonArray rows&&rows.Count==1&&rows[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray pathRow&&pathRow.Count==1&&pathRow[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&JsonNode.DeepEquals(row["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="string"});
         bool preparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleLongData(request["changes"])||
-            operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject declaration&&declaration["raw"] is null&&declaration["id"] is JsonValue id&&id.TryGetValue<string>(out var ownerId)&&request["units"]?[ownerId]?["kind"]?.ToString()=="object"&&SingleLongData(declaration["changes"]);
+            operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards" or "informationGuardBatch")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject declaration&&declaration["raw"] is null&&declaration["id"] is JsonValue id&&id.TryGetValue<string>(out var ownerId)&&request["units"]?[ownerId]?["kind"]?.ToString()=="object"&&SingleLongData(declaration["changes"]);
         bool stringPreparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleStringData(request["changes"])||
-            operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject stringDeclaration&&stringDeclaration["raw"] is null&&stringDeclaration["id"] is JsonValue stringId&&stringId.TryGetValue<string>(out var stringOwner)&&request["units"]?[stringOwner]?["kind"]?.ToString()=="object"&&SingleStringData(stringDeclaration["changes"]);
+            operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards" or "informationGuardBatch")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject stringDeclaration&&stringDeclaration["raw"] is null&&stringDeclaration["id"] is JsonValue stringId&&stringId.TryGetValue<string>(out var stringOwner)&&request["units"]?[stringOwner]?["kind"]?.ToString()=="object"&&SingleStringData(stringDeclaration["changes"]);
         // Exact existing root reference data preparation is read-only too. Unlike
         // the scalar repeat proof, this runs all current reference/candidate checks
         // on every invocation; only the CLR process is reused.
         bool SingleReferenceData(JsonNode? changes)=>changes is JsonArray refs&&refs.Count==1&&refs[0] is JsonObject row&&row.Count==4&&row["type"]?.ToString()=="data"&&row["path"] is JsonArray path&&path.Count==1&&path[0] is JsonValue field&&field.TryGetValue<string>(out _)&&row["valueJson"] is JsonValue value&&value.TryGetValue<string>(out _)&&row["contract"] is JsonObject contract&&contract.Count==3&&contract["kind"]?.ToString()=="reference"&&contract["cardinality"]?.ToString()=="single"&&contract["type"] is JsonValue type&&type.TryGetValue<string>(out var target)&&target.Contains("::",StringComparison.Ordinal);
         bool referencePreparation=operation=="mixedOwnerCopyEdits"&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&SingleReferenceData(request["changes"])||
-         operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject referenceDeclaration&&referenceDeclaration["raw"] is null&&referenceDeclaration["id"] is JsonValue referenceOwner&&referenceOwner.TryGetValue<string>(out var referenceId)&&request["units"]?[referenceId]?["kind"]?.ToString()=="object"&&SingleReferenceData(referenceDeclaration["changes"]);
+         operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards" or "informationGuardBatch")&&request["action"]?.ToString()=="prepare"&&request["declaration"] is JsonObject referenceDeclaration&&referenceDeclaration["raw"] is null&&referenceDeclaration["id"] is JsonValue referenceOwner&&referenceOwner.TryGetValue<string>(out var referenceId)&&request["units"]?[referenceId]?["kind"]?.ToString()=="object"&&SingleReferenceData(referenceDeclaration["changes"]);
         // The final overlay is read-only and carries the original project
         // identity, not a candidate directory. Its full proof is regenerated.
         bool finalOverlay=operation=="validateLongDataOverlay"&&request.Count==6&&new[]{"originalProject","id","relative","baseline","after"}.All(key=>request[key] is JsonValue v&&v.TryGetValue<string>(out _));
         bool guardValue=operation=="informationBodyGroupGuards"&&request["action"]?.ToString() is ("headers" or "graphs");
-        bool guardProject=operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
+        bool guardBatch=operation=="informationGuardBatch"&&request["action"]?.ToString() is ("selection" or "observations" or "final" or "prepare");
+        bool guardProject=guardBatch&&request["action"]?.ToString()!="prepare"||operation is ("informationBodyGroupGuards" or "informationPropertyGroupGuards" or "informationTypeGuards")&&request["action"]?.ToString()=="validate";
         bool settingsData=operation=="setDataPath"&&request["_streamProject"] is JsonValue settingsScope&&settingsScope.TryGetValue<string>(out _)&&request["path"] is JsonArray singlePath&&singlePath.Count==1&&singlePath[0] is JsonValue fieldValue&&fieldValue.TryGetValue<string>(out _)&&request["value"] is JsonValue scalar&&scalar.TryGetValue<string>(out _)&&request["text"] is JsonValue sourceText&&sourceText.TryGetValue<string>(out _);
         if(settingsData){string full=Path.GetFullPath(request["_streamProject"]!.ToString()),folder=Path.GetDirectoryName(full)!;if(!Path.GetFileName(full).Equals("project.cpack",StringComparison.OrdinalIgnoreCase)||!string.Equals(Path.GetFileName(Path.GetDirectoryName(folder)),"ai-settings",StringComparison.OrdinalIgnoreCase)||!System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(folder),"^[0-9a-fA-F]{16}$"))return 2;}
         bool blueprintProposal=operation is "blueprintNodeFlow" or "blueprintEnumPreview" or "blueprintPrepareCall" or "blueprintPrepareFeature";
@@ -146,6 +147,7 @@ try
         case "informationFunctionInputs":reply=InformationFunctionContracts.Inputs(request);break;
         case "informationFunctionOutputs":reply=InformationFunctionOutputs.Read(request);break;
         case "informationFunctionOutputGraphs":reply=InformationFunctionOutputs.Graphs(request);break;
+        case "informationGuardBatch":reply=InformationGuardBatch.Execute(request,Format,FormatManifest);break;
         case "informationTypeGuards":reply=FunctionNativeTypes.Guards(request,FormatManifest);break;
         case "informationDefinitions":reply=InformationDefinitions.Prepare(request,Format,FormatManifest);break;
         case "informationPropertyGroupGuards":reply=InformationFunctionPropertyGuards.Execute(request);break;

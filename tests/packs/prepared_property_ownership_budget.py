@@ -20,7 +20,7 @@ with tempfile.TemporaryDirectory(prefix="cf-property-proof-") as tmp:
                        kind="object", text=source.read_text(), schemaView=True, schemaReuseProof=True)
         with subprocess.Popen(host+["--inspect-stream"], text=True, stdin=subprocess.PIPE,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
-            assert proc.stdout.readline().strip()=="CONFECTORY_INSPECT_STREAM_13"
+            assert proc.stdout.readline().strip()=="CONFECTORY_INSPECT_STREAM_14"
             def send(**values):
                 proc.stdin.write(json.dumps(request|values)+"\n");proc.stdin.flush()
                 return json.loads(proc.stdout.readline())

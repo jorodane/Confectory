@@ -59,7 +59,7 @@ internal static class EditorMenuDeclarations
                         string canonical=Read(path).Replace("\r\n","\n",StringComparison.Ordinal);
                         string hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
                         // The previous exact, already trusted Call body remains valid for installed packs.
-                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin or PreviousConnectionStreamCallPin or PreviousSettingsStreamCallPin or PreviousOverrideStreamCallPin or PreviousReviewStreamCallPin or PreviousProposalStreamCallPin or PreviousProjectionStreamCallPin or PreviousPreparationStreamCallPin or PreviousFinalOverlayStreamCallPin or PreviousRotationStreamCallPin or PreviousSettingsTransformStreamCallPin or PreviousActiveInventoryCallPin or PreviousReferenceStreamCallPin or PreviousStringPreparationCallPin))throw new ArgumentException("Editor route contract/body version changed");
+                        if(hash!=pin.Value&&!(pin.Key=="Call.csbody"&&hash is PreviousCallPin or PreviousStreamCallPin or PreviousActivationCallPin or PreviousPerformanceCallPin or PreviousRestoreCallPin or PreviousBlueprintStreamCallPin or PreviousGuardStreamCallPin or PreviousConnectionStreamCallPin or PreviousSettingsStreamCallPin or PreviousOverrideStreamCallPin or PreviousReviewStreamCallPin or PreviousProposalStreamCallPin or PreviousProjectionStreamCallPin or PreviousPreparationStreamCallPin or PreviousFinalOverlayStreamCallPin or PreviousRotationStreamCallPin or PreviousSettingsTransformStreamCallPin or PreviousActiveInventoryCallPin or PreviousReferenceStreamCallPin or PreviousStringPreparationCallPin or PreviousGuardBatchCallPin))throw new ArgumentException("Editor route contract/body version changed");
                     }
                     row["available"]=true;row["reason"]="";
                 }
@@ -91,6 +91,7 @@ internal static class EditorMenuDeclarations
     private const string PreviousSettingsTransformStreamCallPin="3C46E769399CFD923814A88BFBBA83E6ED20AA641BB2AD48C108B443A20EF2B9";
     private const string PreviousReferenceStreamCallPin="8ECAC0F53F64EDD4E743EB905316EA9FD32723E53C5E264B5A28AD404E911E01";
     private const string PreviousStringPreparationCallPin="0F16175BDE664AEC07F8661F5732C930BB4572B5D094B29E11170765F517DD0E";
+    private const string PreviousGuardBatchCallPin="1912487761AFFA5F461E40ADCB9B71F5B1D6B65D5D1D9D1538D12D9D9515F614";
     private static readonly Dictionary<string,string> Pins=new(StringComparer.Ordinal)
     {
         // Filled from the existing statically imported SchemaEditing route.
@@ -99,6 +100,6 @@ internal static class EditorMenuDeclarations
         ["SetValue.csbody"]="7F69A5F91F0D1A71FEBC02F37CA92893A654C62DE315548080CC2D1717A4E573",
         ["Call.celem"]="7D034575C18E1DED88DF8271C7AD182958E26160106DF66F169A53B6726F43A1",
         ["CallBody.celem"]="DC3B74410F8775273554A31AEE4BF21E609FE548B0858C5D9BC0FD8572919E98",
-        ["Call.csbody"]="1912487761AFFA5F461E40ADCB9B71F5B1D6B65D5D1D9D1538D12D9D9515F614"
+        ["Call.csbody"]="4113B50DEC7FC79723A37D2CC5AAF22EA47A90D9FEF8F48A6426F12586850A21"
     };
 }

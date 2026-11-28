@@ -12,7 +12,7 @@ HOST = [os.environ["CONFECTORY_DOTNET"], os.environ["CONFECTORY_ELEMENT_AUTHORIN
 def start():
     process = subprocess.Popen(HOST + ["--inspect-stream"], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_13"
+    assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_14"
     return process
 
 

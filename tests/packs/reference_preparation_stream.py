@@ -71,7 +71,7 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
     def start():
         process = subprocess.Popen(host + ["--inspect-stream"], stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_13"
+        assert process.stdout.readline().strip() == "CONFECTORY_INSPECT_STREAM_14"
         return process
 
     def send(process, request):
@@ -126,6 +126,69 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
     finally:
         if proc.poll() is None:proc.kill()
         proc.wait()
+
+    # Coalescing is transport only: compare all original per-operation results
+    # and error paths over the exact same source and draft snapshot.
+    proc=start()
+    try:
+        for generator in (requests(), string_requests("batch")):
+            individual=list(generator)[1:]
+            prepare=dict(individual[0],operation="informationGuardBatch")
+            old=[ordinary(request)["result"] for request in individual]
+            expected=dict(complete=True,body=old[0],property=old[1],types=old[2])
+            result=send(proc,prepare)
+            assert result==ordinary(prepare) and result["result"]==expected,result
+            validation={k:v for k,v in prepare.items() if k not in ("declaration","action")}
+            validation["selected"]=[prepare["declaration"]["id"]]
+            for mode in ("selection","observations","final"):
+                combined=dict(validation,action=mode)
+                result=send(proc,combined)
+                assert result==ordinary(combined),result
+                if mode=="final":
+                    reads=[]
+                    for op in ("informationTypeGuards","informationPropertyGroupGuards","informationBodyGroupGuards"):
+                        reads+=ordinary(dict(validation,operation=op,action="validate"))["result"]["reads"]
+                    assert result["result"]==dict(reads=reads)
+                else:assert result["result"]==dict(complete=True)
+            broken=dict(validation,action="observations",units=dict(validation["units"]))
+            broken["units"]["Alpha::Broken/body:common"]={"kind":"blueprint","draft":"{}","propertyObservations":{}}
+            old_error=ordinary(dict(broken,operation="blueprintPropertyObservations"))
+            assert not old_error["ok"] and send(proc,broken)==old_error
+        # An observation with actual required host file checks must not be
+        # collapsed into a no-intermediate-read result.
+        function="Alpha::Observed"
+        function_text=f"function {function} () -> long {{}}"
+        implementation=function+"Body";graph=implementation+"/body:common"
+        authored=ordinary(dict(operation="blueprintPrepareFeature",id=function,text=function_text,
+                               implementation=implementation,graphPath="Observed.graph.json",nodePath="Observed.node.json"))
+        assert authored["ok"],authored
+        def snapshot(kind,path,text):
+            return dict(kind=kind,path=path,draft=text,original=text,revision=1,baseline=hashlib.sha256(text.encode()).hexdigest())
+        observed_units=dict(validation["units"])
+        observed_units[function]=snapshot("function","Observed.celem",function_text)
+        observed_units[implementation]=snapshot("implementation","ObservedBody.celem",authored["result"]["implementation"])
+        observed_units[graph]=snapshot("blueprint","Observed.graph.json",json.dumps(dict(nodes=[])))
+        selected=["Alpha::ProjectManifest",function,implementation,graph]
+        observed_units[graph]["propertyObservations"]=dict(version=1,graph=graph,sources={
+            name:dict(path=observed_units[name]["path"],kind=observed_units[name]["kind"],hash=observed_units[name]["baseline"]) for name in selected})
+        observed=dict(validation,units=observed_units,selected=selected,action="observations")
+        old=ordinary(dict(observed,operation="blueprintPropertyObservations"))
+        assert old["ok"] and len(old["result"]["checks"])==4,old
+        assert send(proc,observed)==dict(ok=True,result=dict(complete=False))
+        foreign=list(requests(folder=peer))[1]
+        assert send(proc,dict(foreign,operation="informationGuardBatch")) is None and proc.wait(timeout=5)==2
+    finally:
+        if proc.poll() is None:proc.kill()
+        proc.wait()
+
+    for edit in ({"raw":"not a root data edit"}, {"changes":[list(requests())[1]["declaration"]["changes"][0],dict(type="description",text="mixed")]}):
+        proc=start()
+        try:
+            request=list(requests())[1];request["operation"]="informationGuardBatch";request["declaration"].update(edit)
+            assert send(proc,request) is None and proc.wait(timeout=5)==2
+        finally:
+            if proc.poll() is None:proc.kill()
+            proc.wait()
 
     proc = start()
     try:
@@ -235,4 +298,4 @@ with tempfile.TemporaryDirectory(prefix="cf-reference-prepare-") as tmp:
             proc.wait()
     assert (project / "Link.celem").read_text() == contents["Link"][1]
     assert (peer / "Link.celem").read_text() == contents["Link"][1]
-print("PASS scalar/string/reference final graph and preparation one-shot equivalence, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
+print("PASS scalar/string/reference final graph, preparation/guard batch one-shot equivalence, nonempty host-read fallback, fresh retype/rename, invalid targets, project scope and unsupported-shape refusal")
