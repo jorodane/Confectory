@@ -1109,7 +1109,9 @@ if((action is "description" or "value" or "data" or "data-path" or "field" or "d
  }catch{if(viewRow is not null)model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(handle));throw;}finally{if(viewRow is not null){viewRow["workspace"]=model["workspace"]?.DeepClone();model["workspace"]=primary;}}}
  if(action!="prepare-property-models"&&model["tableViews"]?[context]?.AsObject().Count>0)calls.Tables.Invoke(session,context,Workspace(context),"{\"action\":\"refresh-all\"}");
  // The read-only status query still checks every view, but may reuse a freshly verified schema.
- bool reuseReadSchema=openingNewProperties||action=="relations-map"||action=="browser-drafts"&&Value("draftAction","status")=="status";
+ // Filtering changes list navigation only. Keep the ordinary exact schema
+ // dependency/ownership proof and fall back to full inspection if any input changed.
+ bool reuseReadSchema=openingNewProperties||action=="relations-map"||action=="filter"||action=="browser-drafts"&&Value("draftAction","status")=="status";
  if(action!="prepare-property-models")RefreshViews(context,reuseReadSchema);
  if(view.Length>0&&primary is not null){string mainHandle=Workspace(context);try{model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(primary["schemaView"] is not null?calls.PackCommand.Invoke(mainHandle,"schema-view",reuseReadSchema?"{\"captureVerifiedSchema\":true,\"reuseVerifiedSchema\":true}":"{\"captureVerifiedSchema\":true}"):calls.PackSnapshot.Invoke(mainHandle));}catch(Exception error){model["workspace"]=System.Text.Json.Nodes.JsonNode.Parse(calls.PackSnapshot.Invoke(mainHandle));model["status"]="Error: "+error.Message;}}
  if(aiSessions.TryGetValue(context,out string? activeAI))aiRows[context]=System.Text.Json.Nodes.JsonNode.Parse(calls.AIPoll.Invoke(activeAI));

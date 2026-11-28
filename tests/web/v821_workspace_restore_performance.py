@@ -13,6 +13,10 @@ the actual map and explicit reload observes an external schema edit (8 windows).
 --working-copy saves an actual Browser working-copy query before restoring.
 --verify-no-speculative-model checks the 400-object Browser avoids optional
 model requests while the normal restore admission remains available.
+--verify-restore-completion verifies the three 400-object cold fallback
+open requests use the existing bounded completion protocol.
+--verify-filter-freshness checks an external schema edit through the working-copy
+filter before the explicit map reload, retaining detached local input.
 Optional --trace-files or CONFECTORY_RESTORE_CPU_PROFILE=1 is a separate
 diagnostic run (tracing overhead makes its timings incomparable).
 """
@@ -31,9 +35,11 @@ assert count in (0, 1, 8), 'Choose 0, 1, or 8 restored windows'
 objects = int(os.environ.get("CONFECTORY_RESTORE_OBJECTS", "40"))
 assert objects in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model'}, flags
+assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model', '--verify-filter-freshness', '--verify-restore-completion'}, flags
 assert not ({'--verify-restored-map', '--working-copy'} & flags) or count == 8
 assert '--verify-no-speculative-model' not in flags or objects == 400
+assert '--verify-filter-freshness' not in flags or {'--working-copy', '--verify-restored-map'} <= flags
+assert '--verify-restore-completion' not in flags or (objects == 400 and count == 8)
 expect.set_options(timeout=90000)
 f.env['CONFECTORY_UI_TRACE'] = '1'
 r.seed()
@@ -94,13 +100,15 @@ def measure(page, label, keys, expected):
           if(key==='schema'||key.startsWith('editor-'))mark(key+'-editable',visible(w)&&editable(w.querySelector('[data-property-value]'))&&!w.textContent.includes('이 창의 실제 기능을 다시 연결해야 합니다'));}
         if(performance.now()-start<60000)requestAnimationFrame(frame);}
       requestAnimationFrame(frame);},{once:true,capture:true});}''', keys)
-    prepared_requests = []
+    prepared_requests, opened_requests = [], []
     def capture_prepare(request):
         if request.method == 'POST' and request.url.startswith(f.origin + '/'):
             body = request.post_data_json
             if isinstance(body, dict) and body.get('op') == 'invoke' and body.get('endpoint') == 'preparePropertyModels':
                 prepared_requests.append(body['input'])
-    if '--verify-no-speculative-model' in flags:
+            if isinstance(body, dict) and body.get('op') == 'invoke' and body.get('endpoint') == 'openEditorView':
+                opened_requests.append(body)
+    if {'--verify-no-speculative-model', '--verify-restore-completion'} & flags:
         page.on('request', capture_prepare)
     cdp = None
     if os.environ.get("CONFECTORY_RESTORE_CPU_PROFILE"):
@@ -157,8 +165,12 @@ def measure(page, label, keys, expected):
         expect(field).to_have_value(original + ' ')
         field.press('Backspace'); expect(field).to_have_value(original)
     f.original()
-    if '--verify-no-speculative-model' in flags:
+    if {'--verify-no-speculative-model', '--verify-restore-completion'} & flags:
         page.remove_listener('request', capture_prepare)
+    if '--verify-restore-completion' in flags and label == 'cold':
+        assert len(opened_requests) == 3 and all(row.get('completion') is True and row['input'].get('restoreSaved') is True for row in opened_requests), opened_requests
+        print('PASS exact three ordinary restored owner admissions use bounded completion replies', flush=True)
+    if '--verify-no-speculative-model' in flags:
         assert all(row.get('restoreStatuses') is True for row in prepared_requests), prepared_requests
         if label == 'cold' and count == 8:
             assert len(prepared_requests) == 1, prepared_requests
@@ -236,6 +248,18 @@ try:
             r.floating.property_value(detached, 'Note').fill('Retained unsaved detached input')
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field MapReloadProbe single general string;\n}\n')
             try:
+                if '--verify-filter-freshness' in flags:
+                    filtered = r.browser_window(page)
+                    page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
+                    filtered.locator('[data-catalog-root]').click()
+                    page.wait_for_function("()=>confectoryWebUITrace.some(r=>r.endpoint==='objects'&&r.code==='completed')")
+                    expect(page.locator('#project-menu')).to_be_enabled()
+                    # The relation projection itself may correctly be stale until
+                    # explicit map reload. Here require the actual filtered view's
+                    # fresh schema, not a search result from the old projection.
+                    expect(d.field(detached, 'MapReloadProbe')).to_be_visible()
+                    expect(r.floating.property_value(detached, 'Note')).to_have_value('Retained unsaved detached input')
+                    print('PASS working-copy filter revalidates externally changed detached schema and retains local input', flush=True)
                 page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
                 graph.locator('[data-map-reload]').press('Enter')
                 page.wait_for_function("()=>confectoryWebUITrace.some(r=>r.endpoint==='relationsMap'&&r.code==='completed')")
