@@ -119,3 +119,43 @@ enabled, and identical file bytes are still insufficient to infer success.
 A future opt-in integration needs a commit-authority operation binding and a
 verified durable replacement/publication protocol before UI recovery testing;
 Windows still requires its own durability adapter.
+
+## Isolated Linux exchange proof (not enabled in the editor)
+
+The standalone `DurableLocalDataExchange` primitive exercises one existing
+owner-writable ordinary .celem file, with a private recovery directory on the
+same filesystem. It does not change the project format, editor Save, or
+Review semantics. Admission binds the exact intent, project/owner, original
+inode and content, candidate content, and request/checkpoint fingerprints.
+It holds the existing cooperative source transaction lease. A flushed
+prepared record binds two pinned hard-link witnesses. Linux
+`renameat2(RENAME_EXCHANGE)` swaps the candidate and source atomically,
+retaining the displaced inode. Both files and containing directories are
+flushed before publishing the receipt.
+
+After a process kill, the exact exchanged inode pair can be recognized even
+before the receipt exists, and an explicit seal can publish its attestation
+without writing the source again. A merely prepared pair never authorizes
+replay. Missing or inconsistent evidence remains uncertain; equal bytes on
+a replacement inode are not success. A completed receipt is historical,
+not evidence that the source is still unchanged.
+
+Run the isolated native child-process probe:
+`dotnet run -c Release --project tests/probes/direct-data-exchange`.
+It kills workers at eight boundaries, restarts classification and seal in
+fresh processes, races a duplicate cooperative writer, tests external
+replacement before/after the last check and same-byte/ABA replacement, and
+checks the independent file is preserved.
+
+**Limits:** this is not production compare-and-swap against noncooperating
+writers. A writer racing the final comparison can be displaced by the
+exchange; its bytes remain in the stage and recovery is required, not
+automatic rollback or success. The experiment assumes trusted private
+recovery and stable directory ancestry, rejects aliased sources, extended
+metadata/ACLs, and nonordinary files. Witness retirement is deliberately
+unspecified; retained links currently prevent another edit to that file.
+The test proves process-crash recovery on the tested Linux filesystem, not
+physical power-loss behavior, Windows portability, or semantic validation.
+Do not connect this to product Save until these limitations, retention,
+authoritative graph validation, and actual editor recovery integration
+are resolved.

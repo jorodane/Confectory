@@ -72,6 +72,26 @@ public sealed class DirectDataReceiptJournal
         });
     }
 
+    // A commit authority can inspect the exact expected attestation without
+    // publishing a receipt or changing the existing journal. This is also
+    // useful when a durable commit primitive has independently bound its
+    // prepared record to the authority fingerprint.
+    public DirectDataReceiptState InspectCompletion(DirectDataSaveIntent intent, DirectDataCommitEvidence expected)
+    {
+        Validate(intent);
+        if (!Matches(intent, expected)) return DirectDataReceiptState.ConflictingIdentity;
+        return FailClosed(() =>
+        {
+            VerifyDirectory();
+            if (!Exists(At(LockName)))
+                return HasRecords() ? DirectDataReceiptState.RecoveryRequired : DirectDataReceiptState.NoIntent;
+            using var guard = Acquire(false);
+            var status = Find(Scan(), intent, out var row);
+            return status == DirectDataReceiptState.CompletedHistorical && row!.Completion != expected
+                ? DirectDataReceiptState.ConflictingIdentity : status;
+        });
+    }
+
     // Only an explicitly new host admission can create an intent. Pending or
     // historical duplicates are observations and never return Admitted again.
     public DirectDataReceiptState Admit(DirectDataSaveIntent intent)
