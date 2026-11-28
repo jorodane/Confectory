@@ -14,6 +14,7 @@ using System.Text;
 using System.Security.Cryptography;
 class Calls {
  public Func<string,string,string> Context=null!,Capture=null!,Metadata=null!;
+ public Func<string,string[]> Snapshot=path=>new[]{"exists",File.ReadAllText(path),Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(File.ReadAllText(path)))).ToLowerInvariant()};
  public Func<string,string,string,string,string,string[],long[],string[],string> Create=(a,b,c,d,e,f,g,h)=>throw new Exception("unexpected slot");
  public Func<string,string,string> Copy=(h,p)=>throw new Exception("unexpected copy");
 }
@@ -22,8 +23,8 @@ class Program {
  static string Hash(string text)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
  static void Check(bool value,string message){if(!value)throw new Exception(message);}
  static int Main(){
-  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact","string-fallback","string-proof","string-external","string-detached","string-detached-external","string-dirty","non-direct"}){
-   if((mode is "retained-reference" or "detached-compact" or "string-detached" or "string-detached-external")&&!compact||mode=="non-direct"&&compact)continue;
+  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact","string-fallback","string-proof","string-external","string-detached","string-detached-external","string-dirty","non-direct","trusted","untrusted","wrong-stage","trusted-external","legacy-proof"}){
+   if((mode is "retained-reference" or "detached-compact" or "string-detached" or "string-detached-external" or "trusted" or "untrusted" or "wrong-stage" or "trusted-external" or "legacy-proof")&&!compact||mode=="non-direct"&&compact)continue;
    string handle=Guid.NewGuid().ToString("N"),key="Confectory.EditWorkspace."+handle,root=Path.Combine(Path.GetTempPath(),"cf-context-"+handle);
    Directory.CreateDirectory(root);string project=Path.Combine(root,"project.cpack"),dep=Path.Combine(root,"dependency.cpack"),owner="Owned::Owner",manifest="Owned::ProjectManifest";
    File.WriteAllText(dep,"registered context");
@@ -39,15 +40,29 @@ class Program {
    if(mode is "detached-compact" or "string-detached" or "string-detached-external")plans[0]!["uiSurface"]="view:1";
    if(mode is "string-fallback" or "string-proof" or "string-external" or "string-detached" or "string-detached-external" or "string-dirty"){declaration["changes"]![0]!["contract"]!["type"]="string";declaration["changes"]![0]!["valueJson"]="\"hello\"";}
    if(mode=="non-direct")plans[0]!["directPropertySave"]=false;
+   if(mode=="legacy-proof")context["ownershipPaths"]=new JsonArray(dep);
+   string? reuseKey=null,originalKey=null;
+   if(mode is "trusted" or "untrusted" or "wrong-stage" or "trusted-external"){
+    context["ownershipPaths"]=new JsonArray(dep);
+    plans[0]!["context"]=context.DeepClone();
+    reuseKey="Confectory.EditWorkspace.SlotContextReuse."+Guid.NewGuid().ToString("N");plans[0]!["contextReuse"]=reuseKey;
+    if(mode!="untrusted"){
+     string originalHandle=Guid.NewGuid().ToString("N");originalKey="Confectory.EditWorkspace."+originalHandle;
+     AppDomain.CurrentDomain.SetData(originalKey,state.DeepClone());
+     AppDomain.CurrentDomain.SetData(reuseKey,(originalHandle,owner,context.DeepClone(),Environment.CurrentManagedThreadId));
+     AppDomain.CurrentDomain.SetData(reuseKey+".stage",mode=="wrong-stage"?"different-stage":handle);
+    }
+    if(mode=="trusted-external")File.WriteAllText(dep,"changed reference");
+   }
    int callsContext=0,captures=0,mixed=0,effective=0,inspect=0;
    var calls=new Calls {
-    Context=(h,o)=>{callsContext++;return context.ToJsonString();},
+    Context=(h,o)=>{callsContext++;if(mode=="trusted-external"){var changed=context.DeepClone();changed["observations"]![0]!["hash"]=Hash(File.ReadAllText(dep));return changed.ToJsonString();}return context.ToJsonString();},
     Capture=(h,o)=>{
      captures++;var captured=((JsonObject)AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+h)!)["units"]!.DeepClone();
      if(mode=="staged-resource"&&h!=handle)captured["Owned::Owner/body:linux"]=new JsonObject{["kind"]="body",["path"]="new-resource.csbody",["draft"]="changed"};
      if(mode=="original-peer"&&h==handle)captured["Owned::Peer"]!["draft"]="changed";
      if(mode is ("external-hash" or "string-external" or "string-detached-external")&&h==handle)File.WriteAllText(dep,"changed reference");
-     return new JsonObject{["units"]=captured,["project"]=project,["namespace"]="Owned",["manifest"]=manifest,["checkpointHash"]=mode=="checkpoint"?"changed":"checkpoint"}.ToJsonString();
+     return new JsonObject{["units"]=captured,["compactClean"]=compact,["project"]=project,["namespace"]="Owned",["manifest"]=manifest,["checkpointHash"]=mode=="checkpoint"?"changed":"checkpoint"}.ToJsonString();
     },
     Metadata=(op,input)=>{
      if(op is "effective" or "inspectEffective"){
@@ -66,7 +81,7 @@ class Program {
    };
    try{
     Exception? failure=null;try{Batch(handle,plans.ToJsonString(),calls);}catch(Exception ex){failure=ex;}
-    bool success=mode is "string-proof" or "string-detached" or "string-dirty" or "success" or "ordinary-fallback" or "retained-reference" or "detached-compact" or "string-fallback" or "non-direct";
+    bool success=mode is "string-proof" or "string-detached" or "string-dirty" or "success" or "ordinary-fallback" or "retained-reference" or "detached-compact" or "string-fallback" or "non-direct" or "trusted" or "untrusted" or "wrong-stage" or "legacy-proof";
     Check(success?failure is null:failure is InvalidOperationException,mode+": "+failure);
     if(success)Check(state["units"]![owner]!["draft"]!.ToString()=="new owner","missing candidate");
     else Check(JsonNode.DeepEquals(original,state["units"]),"partial mutation");
@@ -75,9 +90,11 @@ class Program {
     else if(mode=="retained-reference")Check(callsContext==3&&effective==1&&inspect==0&&mixed==1&&captures==0,"retained draft must keep existing full context validation");
     else if(mode is "string-detached" or "string-detached-external")Check(callsContext==1&&effective==0&&inspect==0&&mixed==1&&captures>=1,"compact detached string must verify exact captured candidate and sources");
     else if(mode=="detached-compact")Check(callsContext==3&&effective==0&&inspect==1&&mixed==1&&captures==0,"compact detached proof must keep all semantic checks on the warm route");
+    else if(mode=="trusted")Check(callsContext==0&&effective==0&&inspect==0&&mixed==1&&captures>=2,"trusted basis must reuse only the original context and keep physical captures");
+    else if(mode=="trusted-external")Check(callsContext==1&&mixed==0,"changed external proof must fall back to full context and reject");
     else Check(callsContext==1&&effective==0&&inspect==0&&mixed==1&&captures>=1,"expected one semantic context");
     Console.WriteLine("PASS "+mode+(compact?" compact":" ordinary"));
-   }finally{AppDomain.CurrentDomain.SetData(key,null);Directory.Delete(root,true);}
+   }finally{if(reuseKey is not null){AppDomain.CurrentDomain.SetData(reuseKey,null);AppDomain.CurrentDomain.SetData(reuseKey+".stage",null);}if(originalKey is not null)AppDomain.CurrentDomain.SetData(originalKey,null);AppDomain.CurrentDomain.SetData(key,null);Directory.Delete(root,true);}
   }
   return 0;
  }

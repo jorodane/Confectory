@@ -71,7 +71,22 @@ string ProcessOwnerEdit(string targetHandle,string targetOperation,string target
    try{foreach(string graph in System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(System.Linq.Enumerable.Where(candidate["units"]!.AsObject(),row=>row.Value!["kind"]?.ToString()=="blueprint"),row=>row.Key))){var view=System.Text.Json.Nodes.JsonNode.Parse(Process(validationHandle,"read",new System.Text.Json.Nodes.JsonObject{["id"]=graph}.ToJsonString()))!;if(view["diagnostics"]?["state"]?.ToString() is not ("source-ready" or "source-assembled"))throw new InvalidOperationException("Schema edit invalidates a Blueprint contract; all input retained");}}
    finally{AppDomain.CurrentDomain.SetData(validationKey,null);}
   }));}
-  string outcome;try{outcome=calls.SaveSlots.Invoke(draft,plans.ToJsonString());}finally{AppDomain.CurrentDomain.SetData(validatorKey,null);}foreach(string token in tokens)state["blueprintBases"]!.AsObject().Remove(token);state["selected"]=slotOwner;state["review"]=null;return outcome;
+  // Only a server-owned basis created by readOwnerEdits may nominate
+  // an exact context reuse. The ephemeral marker never leaves this call.
+  string contextReuseKey="Confectory.EditWorkspace.SlotContextReuse."+Guid.NewGuid().ToString("N");
+  if(requested.Count==0&&plans[0]?["directPropertySave"]?.GetValue<bool>()==true&&plans[0]?["context"]?["compactClean"]?.GetValue<bool>()==true&&plans[0]?["context"]?["ownershipPaths"] is System.Text.Json.Nodes.JsonArray&&input["declaration"]?["raw"] is null&&input["declaration"]?["changes"] is System.Text.Json.Nodes.JsonArray scalarChanges&&scalarChanges.Count==1&&scalarChanges[0]?["type"]?.ToString()=="data"&&scalarChanges[0]?["path"] is System.Text.Json.Nodes.JsonArray{Count:1}&&scalarChanges[0]?["contract"]?["cardinality"]?.ToString()=="single"&&(scalarChanges[0]?["contract"]?["kind"]?.ToString()=="reference"||scalarChanges[0]?["contract"]?["kind"]?.ToString()=="general"&&scalarChanges[0]?["contract"]?["type"]?.ToString() is ("long" or "string"))){
+   plans[0]!["contextReuse"]=contextReuseKey;
+   AppDomain.CurrentDomain.SetData(contextReuseKey,(draft,slotOwner,plans[0]!["context"]!.DeepClone(),Environment.CurrentManagedThreadId));
+  }
+  string outcome;try{
+   string serialized=plans.ToJsonString();
+   // The optional acceleration proof must not consume the original plan
+   // budget. A legacy-size plan still runs the original full context path.
+   if(serialized.Length>2097152&&requested.Count==0&&plans[0]?["context"] is System.Text.Json.Nodes.JsonObject optionalContext&&optionalContext["ownershipPaths"] is not null){
+    optionalContext.Remove("ownershipPaths");plans[0]!.AsObject().Remove("contextReuse");AppDomain.CurrentDomain.SetData(contextReuseKey,null);serialized=plans.ToJsonString();
+   }
+   outcome=calls.SaveSlots.Invoke(draft,serialized);
+  }finally{AppDomain.CurrentDomain.SetData(validatorKey,null);AppDomain.CurrentDomain.SetData(contextReuseKey,null);}foreach(string token in tokens)state["blueprintBases"]!.AsObject().Remove(token);state["selected"]=slotOwner;state["review"]=null;return outcome;
  }
  throw new ArgumentException("Bounded owner edit operation required");
  }

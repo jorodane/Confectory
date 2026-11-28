@@ -1,5 +1,36 @@
 if(plans.Length>2097152)throw new ArgumentException("Slot plan budget");var rows=System.Text.Json.Nodes.JsonNode.Parse(plans)!.AsArray();if(rows.Count is <1 or >8)throw new ArgumentException("One to eight explicit slot changes required");
-string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");string owner=rows[0]!["id"]!.ToString();bool declarationOnly=rows.Count==1&&rows[0]?["kind"]?.ToString()=="owner-edit";var context=System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(handle,owner))!;var unique=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+string key="Confectory.EditWorkspace."+handle;var state=AppDomain.CurrentDomain.GetData(key) as System.Text.Json.Nodes.JsonObject??throw new ObjectDisposedException("EditWorkspace");string owner=rows[0]!["id"]!.ToString();bool declarationOnly=rows.Count==1&&rows[0]?["kind"]?.ToString()=="owner-edit";System.Text.Json.Nodes.JsonNode? ReuseContext(string phase){
+ try{
+  if(!declarationOnly||rows[0]?["contextReuse"]?.ToString() is not string proofKey||!proofKey.StartsWith("Confectory.EditWorkspace.SlotContextReuse.",StringComparison.Ordinal)||
+     AppDomain.CurrentDomain.GetData(proofKey) is not ValueTuple<string,string,System.Text.Json.Nodes.JsonNode,int> trusted||
+     trusted.Item2!=owner||trusted.Item4!=Environment.CurrentManagedThreadId||AppDomain.CurrentDomain.GetData(proofKey+".stage") is not string staged||staged!=handle||!System.Text.Json.Nodes.JsonNode.DeepEquals(trusted.Item3,rows[0]?["context"])||
+     trusted.Item3["compactClean"]?.GetValue<bool>()!=true||trusted.Item3["owner"]?.ToString()!=owner||
+     trusted.Item3["ownershipPaths"] is not System.Text.Json.Nodes.JsonArray paths||paths.Count>2048||
+     trusted.Item3["observations"] is not System.Text.Json.Nodes.JsonArray observations||observations.Count>2048||
+     AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+trusted.Item1) is not System.Text.Json.Nodes.JsonObject original)return null;
+  // This is the save-owned staged clone, not an arbitrary workspace. The
+  // capture still materializes and physically checks every compact source.
+  foreach(string field in new[]{"project","participant","context","root","namespace"})if(!System.Text.Json.Nodes.JsonNode.DeepEquals(original[field],state[field]))return null;
+  var captured=System.Text.Json.Nodes.JsonNode.Parse(calls.Capture.Invoke(handle,owner))!;
+  if(captured["compactClean"]?.GetValue<bool>()!=true||captured["checkpointHash"]?.ToString()!=trusted.Item3["checkpointHash"]?.ToString()||captured["units"] is not System.Text.Json.Nodes.JsonObject units||trusted.Item3["guards"] is not System.Text.Json.Nodes.JsonObject guards)return null;
+  int materialized=0;foreach(var row in units){if(row.Value?["draft"] is null)continue;materialized++;if(!System.Text.Json.Nodes.JsonNode.DeepEquals(row.Value,guards[row.Key]))return null;}if(materialized!=guards.Count)return null;
+  var checkedPaths=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);
+  void NoLinks(string full){if(!System.IO.Path.IsPathFullyQualified(full)||System.IO.Path.GetFullPath(full)!=full)throw new InvalidOperationException("Invalid exact context path");for(System.IO.FileSystemInfo? node=new System.IO.FileInfo(full);node is not null;node=node is System.IO.FileInfo file?file.Directory:((System.IO.DirectoryInfo)node).Parent){if(!checkedPaths.Add(node.FullName))break;if(node.LinkTarget is not null)throw new InvalidOperationException("Context ownership changed");}}
+  foreach(var path in paths)NoLinks(path!.GetValue<string>());
+  long bytes=0;foreach(var observation in observations){string full=observation!["path"]!.GetValue<string>();NoLinks(full);if(!System.IO.File.Exists(full)||new System.IO.FileInfo(full).Length>1048576)return null;var read=calls.Snapshot.Invoke(full);bytes+=System.Text.Encoding.UTF8.GetByteCount(read[1]);if(bytes>16777216||read[0]!="exists"||Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(read[1]))).ToLowerInvariant()!=observation["hash"]?.ToString())return null;}
+  lock(state){if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state)||!System.Text.Json.Nodes.JsonNode.DeepEquals(units,state["units"]))return null;}
+  if(Environment.GetEnvironmentVariable("CONFECTORY_UI_TRACE")=="1")Console.Error.WriteLine("CONFECTORY_SLOT_CONTEXT_REUSED "+phase);
+  return trusted.Item3.DeepClone();
+ }catch{return null;}
+}
+System.Text.Json.Nodes.JsonNode FullContext(){
+ var full=System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(handle,owner))!;
+ // A legacy or budget-fallback plan has no optional ownership projection.
+ // The full resolver just ran, so compare the unchanged semantic context.
+ if(rows[0]?["context"] is System.Text.Json.Nodes.JsonObject supplied&&!supplied.ContainsKey("ownershipPaths"))full.AsObject().Remove("ownershipPaths");
+ return full;
+}
+var context=ReuseContext("admission")??FullContext();var unique=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 string Hash(string text)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 bool Required(System.Text.Json.Nodes.JsonNode current,System.Text.Json.Nodes.JsonNode row)=>System.Linq.Enumerable.Any(current["requirements"]!.AsArray(),r=>r!["function"]!.ToString()==row["function"]!.ToString())||row["copy"] is not null&&current["guards"]?[owner]?["kind"]?.ToString()=="schema"&&System.Linq.Enumerable.Any(current["ownFunctions"]!.AsArray(),f=>f!["id"]!.ToString()==row["function"]!.ToString()&&f["origin"]?.ToString()==owner&&f["writable"]?.GetValue<bool>()==true);
 foreach(var row in rows){if(row!["id"]!.ToString()!=owner||!unique.Add(row["function"]!.ToString())||!System.Text.Json.Nodes.JsonNode.DeepEquals(row["context"],context))throw new InvalidOperationException("Slot plan context changed; all choices retained");if(!declarationOnly&&!Required(context,row))throw new InvalidOperationException("Selected module slot or directly owned copy function changed");}
@@ -145,7 +176,7 @@ try{
  if(System.Text.Encoding.UTF8.GetByteCount(candidate["units"]!.ToJsonString())>16777216)throw new ArgumentException("Slot result budget");
  // Revalidate the ORIGINAL context, never the staged registration or arbitrary refreshed donor data.
  if(reuseContext){VerifySnapshot(handle,before);VerifyRepeatSources();}
- else if(!System.Text.Json.Nodes.JsonNode.DeepEquals(context,System.Text.Json.Nodes.JsonNode.Parse(calls.Context.Invoke(handle,owner))))throw new InvalidOperationException("Slot dependencies changed during staging; no changes applied");
+ else if(!System.Text.Json.Nodes.JsonNode.DeepEquals(context,ReuseContext("final")??FullContext()))throw new InvalidOperationException("Slot dependencies changed during staging; no changes applied");
  lock(state){
   if(!ReferenceEquals(AppDomain.CurrentDomain.GetData(key),state)||!System.Text.Json.Nodes.JsonNode.DeepEquals(before,state["units"]))throw new InvalidOperationException("Concurrent draft edit; no slot changes applied");
   var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;var destinations=new System.Collections.Generic.HashSet<string>(OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal);

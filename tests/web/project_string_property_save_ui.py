@@ -12,6 +12,7 @@ window and verifies an ordinary primary integer save.
 --verify-card-reuse checks unchanged catalogue DOM identities after Save.
 --profile-ui-stages logs the actual browser calls/renders after the new success.
 --verify-wire-delta compares actual delta replies with a separate legacy full read.
+--verify-context-reuse checks actual compact staged context reuse and an intervening external write.
 --verify-detached-confirm observes the combined scalar confirmation and an
 external write immediately before its final admission.
 --verify-detached-binding retires the exact view before final confirmation.
@@ -35,13 +36,14 @@ import v666_workspace_finder_fixture as f
 count = int(sys.argv[3]) if len(sys.argv) > 3 else 40
 assert count in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages", "--verify-primary-status-reuse", "--verify-wire-delta", "--verify-detached-confirm", "--verify-detached-binding"}
+assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place", "--continuous-detached", "--continuous-integers", "--verify-card-reuse", "--observe-card-reuse", "--profile-ui-stages", "--verify-primary-status-reuse", "--verify-wire-delta", "--verify-detached-confirm", "--verify-detached-binding", "--verify-context-reuse"}
 assert "--verify-relation-delta" not in flags or (count == 400 and "--continuous" in flags)
 assert "--continuous-in-place" not in flags or "--continuous" in flags
 assert "--continuous-detached" not in flags or ("--continuous" in flags and "--continuous-in-place" not in flags)
 assert "--continuous-integers" not in flags or "--continuous" in flags
 assert "--profile-ui-stages" not in flags or "--continuous" in flags
 assert "--verify-wire-delta" not in flags or "--continuous" in flags
+assert "--verify-context-reuse" not in flags or (count == 400 and "--continuous-in-place" in flags)
 assert not ({"--verify-detached-confirm", "--verify-detached-binding"} <= flags)
 assert not ({"--verify-detached-confirm", "--verify-detached-binding"} & flags) or {"--continuous", "--continuous-detached"} <= flags
 assert "--verify-primary-status-reuse" not in flags or {"--continuous-in-place", "--profile-ui-stages", "--continuous"} <= flags
@@ -307,6 +309,10 @@ try:
         expect(peer.get_by_label("Note 기본값", exact=True)).to_have_value("Unsaved peer")
         assert all(path.read_bytes() == raw for path, raw in before.items()
                    if path.name not in ("SampleA.celem", "SampleD.celem"))
+        if "--verify-context-reuse" in flags:
+            traces = (f.root / "host-0.log").read_text().splitlines()
+            assert sum(line == "CONFECTORY_SLOT_CONTEXT_REUSED admission" for line in traces) >= 5
+            print("PASS actual compact staged context reuse", flush=True)
         if "--verify-wire-delta" in flags:
             assert len(wire_verified) >= 3, ("expected actual matching delta versions", len(wire_patches), len(wire_verified))
         page.evaluate("()=>confectoryFlushPresentation()")
@@ -350,6 +356,34 @@ try:
             assert source.read_text() == external
             expect(field).to_have_value("Uncommitted local input")
             print("PASS external owner write refuses stale save and retains input", flush=True)
+        if "--verify-context-reuse" in flags:
+            guard_peer = page.locator(f'.window[data-element-owner="{ns}::SampleB"]')
+            if guard_peer.is_visible():
+                guard_peer.locator("[data-close]").click()
+                expect(guard_peer).to_be_hidden()
+                expect(page.locator("#project-menu")).to_be_enabled()
+            unrelated = sample / "ModelExtra00.celem"
+            old = unrelated.read_bytes()
+            external = old + b"\n// external change between owner preparation and apply\n"
+            owner_file = sample / "SampleD.celem"
+            owner_before = owner_file.read_bytes()
+            field = primary.get_by_label("Note 기본값", exact=True)
+            replace_input(page, field, "Pending staged context conflict")
+            hits = []
+            def context_conflict(route):
+                body = route.request.post_data_json
+                if body.get("endpoint") == "blueprint" and body.get("input", {}).get("action") == "applySlots" and not hits:
+                    hits.append(body["requestId"])
+                    unrelated.write_bytes(external)
+                route.fallback()
+            page.route("**/api/request", context_conflict)
+            primary.locator('[data-element-action="confirm"]').click()
+            expect(page.locator("#project-menu")).to_be_enabled()
+            assert hits and unrelated.read_bytes() == external and owner_file.read_bytes() == owner_before
+            expect(field).to_have_value("Pending staged context conflict")
+            page.unroute_all(behavior="wait")
+            unrelated.write_bytes(old)
+            print("PASS intervening unrelated physical change rejects staged reuse and retains input", flush=True)
         if {"--verify-detached-confirm", "--verify-detached-binding"} & flags:
             guard_peer = page.locator(f'.window[data-element-owner="{ns}::SampleB"]')
             if guard_peer.is_visible():

@@ -2,6 +2,7 @@ implementation Confectory.EditWorkspace::SlotBatchBody for Confectory.EditWorksp
 import Confectory.EditWorkspace::Read as Read (string,string) -> string[];
 import Confectory.EditWorkspace::SlotContext as Context (string,string) -> string;
 import Confectory.EditWorkspace::SlotContextSnapshot as Capture (string,string) -> string;
+import Confectory.FileStream::Snapshot as Snapshot (string) -> string[];
 import Confectory.EditWorkspace::BlueprintImplementationContract as Create (string,string,string,string,string,string[],long[],string[]) -> string;
 import Confectory.SchemaEditing::Call as Metadata (string,string) -> string;
 import Confectory.EditWorkspace::CopyImplementation as Copy (string,string) -> string;
