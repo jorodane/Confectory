@@ -3,16 +3,21 @@
 Run on Linux with the ordinary EditorHome build report and authoring host:
   python tests/run_isolated_browser_test.py -- python tests/web/v821_workspace_restore_performance.py REPO BUILD_REPORT 8
 Repeat with 0 or 1, or repeat the same command for a no-op comparison.
+CONFECTORY_RESTORE_OBJECTS=400 selects the larger fixture (default: 40).
 All projects, including the eight recent listings, are disposable synthetic copies.
 The default waits for Home summaries to finish before timing the actual tile click.
 Use --during-summary to measure contention instead. --exercise-command opens the
 real project Browser and verifies a search after the last editable property.
 --verify-restored-map additionally checks that the shared initial read renders
 the actual map and explicit reload observes an external schema edit (8 windows).
-Optional --trace-files is a
-separate diagnostic run (strace overhead makes its timings incomparable).
+--working-copy saves an actual Browser working-copy query before restoring.
+--verify-no-speculative-model checks the 400-object Browser avoids optional
+model requests while the normal restore admission remains available.
+Optional --trace-files or CONFECTORY_RESTORE_CPU_PROFILE=1 is a separate
+diagnostic run (tracing overhead makes its timings incomparable).
 """
 import json
+import os
 import shutil
 import sys
 
@@ -23,15 +28,18 @@ import v821_property_window_reopen_ui as r
 f, d = r.fixture, r.fallback
 count = int(sys.argv[3])
 assert count in (0, 1, 8), 'Choose 0, 1, or 8 restored windows'
+objects = int(os.environ.get("CONFECTORY_RESTORE_OBJECTS", "40"))
+assert objects in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map'}, flags
-assert '--verify-restored-map' not in flags or count == 8
+assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model'}, flags
+assert not ({'--verify-restored-map', '--working-copy'} & flags) or count == 8
+assert '--verify-no-speculative-model' not in flags or objects == 400
 expect.set_options(timeout=90000)
 f.env['CONFECTORY_UI_TRACE'] = '1'
 r.seed()
 for manifest in f.projects:
     registrations = []
-    for i in range(36):
+    for i in range(objects - 4):
         name = f'ModelExtra{i}'
         source = manifest.parent / (name + '.celem')
         source.write_text(f'object {d.NS}::{name} {{ use schema {d.NS}::StockInfo; data Count = {i}; data Note = "Model Extra {i}"; }}\n')
@@ -86,6 +94,19 @@ def measure(page, label, keys, expected):
           if(key==='schema'||key.startsWith('editor-'))mark(key+'-editable',visible(w)&&editable(w.querySelector('[data-property-value]'))&&!w.textContent.includes('이 창의 실제 기능을 다시 연결해야 합니다'));}
         if(performance.now()-start<60000)requestAnimationFrame(frame);}
       requestAnimationFrame(frame);},{once:true,capture:true});}''', keys)
+    prepared_requests = []
+    def capture_prepare(request):
+        if request.method == 'POST' and request.url.startswith(f.origin + '/'):
+            body = request.post_data_json
+            if isinstance(body, dict) and body.get('op') == 'invoke' and body.get('endpoint') == 'preparePropertyModels':
+                prepared_requests.append(body['input'])
+    if '--verify-no-speculative-model' in flags:
+        page.on('request', capture_prepare)
+    cdp = None
+    if os.environ.get("CONFECTORY_RESTORE_CPU_PROFILE"):
+        cdp = page.context.new_cdp_session(page)
+        cdp.send("Profiler.enable")
+        cdp.send("Profiler.start")
     tile.click()
     expect(page.locator('.work-body')).to_be_visible()
     if '--exercise-command' not in flags:
@@ -98,6 +119,10 @@ def measure(page, label, keys, expected):
         browser = page.get_by_role('region', name='프로젝트 브라우저', exact=True)
         expect(browser).to_be_visible()
         ready = page.evaluate('performance.now()-restoreClick')
+        if '--working-copy' in flags:
+            expect(browser.get_by_role('textbox', name='의미 객체 검색', exact=True)).to_have_value(d.TARGET)
+            expect(browser.locator(f'[data-object="{d.NS}::{d.TARGET}"]')).to_be_visible()
+            print('PASS saved working-copy query and exact result restored', flush=True)
         r.choose_tree_location(browser, f'[data-tree-id="{d.NS}::StockFolder"]')
         r.search(browser, d.LABEL, d.TARGET)
         print('actual-command', json.dumps({'attemptMs': page.evaluate('commandAttempt'),
@@ -113,9 +138,12 @@ def measure(page, label, keys, expected):
             expect(window.locator('[data-property-value]').first).to_be_editable()
     assert property_snapshot(page, keys) == expected
     page.wait_for_function('keys=>["workspace","commands",...keys.map(k=>k+"-editable")].every(k=>k in restoreMarks)', arg=list(expected))
+    if cdp:
+        (f.root / f'{label}.cpuprofile').write_text(json.dumps(cdp.send('Profiler.stop')['profile']))
+        cdp.detach()
     marks = page.evaluate('restoreMarks')
     edits = [marks[key + '-editable'] for key in expected]
-    print(json.dumps({'run': label, 'windows': count, 'pendingSummaryCards': pending,
+    print(json.dumps({'run': label, 'windows': count, 'objects': objects, 'pendingSummaryCards': pending,
                       'workspaceMs': marks['workspace'], 'firstEditableMs': min(edits, default=None),
                       'lastEditableMs': max(edits, default=None), 'commandsMs': marks['commands'],
                       'marks': marks}), flush=True)
@@ -129,6 +157,12 @@ def measure(page, label, keys, expected):
         expect(field).to_have_value(original + ' ')
         field.press('Backspace'); expect(field).to_have_value(original)
     f.original()
+    if '--verify-no-speculative-model' in flags:
+        page.remove_listener('request', capture_prepare)
+        assert all(row.get('restoreStatuses') is True for row in prepared_requests), prepared_requests
+        if label == 'cold' and count == 8:
+            assert len(prepared_requests) == 1, prepared_requests
+        print('PASS large inventory avoids impossible speculative property preparation; restore still uses verified admission', flush=True)
 
 
 try:
@@ -157,6 +191,10 @@ try:
                 window = page.locator(f'.window[data-key="{key}"]:visible')
                 if not key.startswith('editor-') and window.count() and window.locator('[data-close]').count():
                     window.locator('[data-close]').first.click()
+        if '--working-copy' in flags:
+            restored_browser = r.browser_window(page)
+            restored_browser.locator('[data-catalog-root]').click()
+            r.search(restored_browser, d.TARGET, d.TARGET)
         keys = page.locator('.window:visible').evaluate_all('rows=>rows.map(w=>w.dataset.key).filter(Boolean)')
         keys = [key for key in keys if key.startswith('editor-') or count == 8 and (key.startswith('browser') or key in ('schema', 'map', 'builds', 'history'))]
         assert len(keys) == count, keys
@@ -167,6 +205,12 @@ try:
         page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
         d.leave_to_home(page)
         measure(page, 'warm', keys, expected)
+        if '--working-copy' in flags:
+            # The measured command navigates into catalogue mode. Restore the
+            # working-copy filter again so cold startup tests the same mode.
+            restored_browser = r.browser_window(page)
+            restored_browser.locator('[data-catalog-root]').click()
+            r.search(restored_browser, d.TARGET, d.TARGET)
         page.wait_for_function('()=>typeof globalThis.confectoryFlushPresentation==="function"')
         page.evaluate('()=>confectoryFlushPresentation()')
         page.close(); f.stop(); f.env.pop('CONFECTORY_WEB_PROJECT', None)

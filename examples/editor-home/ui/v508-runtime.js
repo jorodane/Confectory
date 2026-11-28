@@ -794,14 +794,24 @@ async function openContextProperty(id,owner,generation,activation){
 }
 function objectActions(e,unit){const menuOwner=current.projectId,menuGeneration=view.generation,menuActivation=view.scope?.projectActivation;const functions=unit.kind==='object'?['바리에이션 생성','미리보기','전투 테스트','컨셉 아트 생성','밸런스 검토']:unit.kind==='function'?['기능 Blueprint','계약 검토']:unit.kind==='module'?['모듈 검토']:[];const items=[...functions.map(name=>name==='기능 Blueprint'?[name,()=>blueprintUI.open(unit.id)]:name==='바리에이션 생성'?[name,()=>variationDialog(unit)]:['계약 검토','모듈 검토'].includes(name)?[name,()=>openDeclaration(unit.id)]:['예시 · '+name+' · 미지원',()=>unsupported(name,'메뉴 확장 예시이며 실행 기능은 등록되지 않았습니다.')]),...(['object','schema'].includes(unit.kind)&&unit.owned!==false?[['새 창으로 열기',()=>openContextProperty(unit.id,menuOwner,menuGeneration,menuActivation)]]:[]),['상세 편집',()=>['object','schema'].includes(unit.kind)?act('select',{id:unit.id}):openDeclaration(unit.id)],['스키마 열기',()=>work(async()=>{const alive=()=>current.projectId===menuOwner;if(dirty&&draft?.id!==unit.id)throw Error('소스 입력을 먼저 적용하거나 취소해 주세요. 입력은 유지됩니다.');await readCurrentView('select',{id:unit.id},alive);await readCurrentView('schema',{id:unit.id},()=>alive()&&current.draft?.id===unit.id);showSchema();const shown=windows.get('schema');if(shown)focusWindow(shown);},'실제 객체 스키마')],['EY로 담기',()=>work(async()=>{await view.call('yogi',{action:'exactly',id:unit.id});showYogi();},'의미 객체 담김')],['표시 이름·부모·설명 편집 · F2',()=>openDeclaration(unit.id)],['삭제',()=>requestBrowserRemoval([unit.id],()=>current.projectId===menuOwner)]];if(unit.kind==='object')contextActionsUI.open(e,unit,items);else contextMenu(e.clientX,e.clientY,items);}
 let partialPropertyFlight=null;
+// A successful inventory validates the identity of each owned object against
+// its declaration file. More than 128 distinct confirmed objects therefore
+// already exceed the complete ownership-path proof accepted by preparation.
+// Do not compete with user commands for an optional model that cannot publish.
+// Unknown inventory, explicit view opening, and restore use their ordinary checks.
+function visiblePropertyPreparationPossible(){
+ const inventory=current?.inventory;if(inventory?.status!=='available')return true;
+ let owned=0;for(const row of inventory.declarations||[])if(row.owned===true&&row.kind==='object'&&++owned>128)return false;
+ return true;
+}
 function prepareVisiblePropertyModels(w,items){
- if(!current?.projectId||!view.active||actualWorkspace.loading||w.el.hidden||w.folded||w.meta.group!=='concept'||browserProjection.loading)return;
+ if(!current?.projectId||!view.active||actualWorkspace.loading||w.el.hidden||w.folded||w.meta.group!=='concept'||browserProjection.loading||!visiblePropertyPreparationPossible())return;
  const projection=browserProjection.snapshot(),total=projection.rows.filter(row=>row.owned&&row.kind==='object').length;if(total<=32&&!(current.preparedPropertyModels||[]).length)return;
  const ids=items.filter(row=>row.owned===true&&row.kind==='object'&&row.valid!==false).slice(0,12).map(row=>row.id).filter(id=>!(current.preparedPropertyModels||[]).some(row=>row.id===id));
  if(!ids.length)return;
  const token=JSON.stringify([current.projectId,view.generation,projection.version,ids]);if(w.partialPropertyToken===token||partialPropertyFlight)return;
  const requested={token,scope:current.projectId,generation:view.generation,activation:view.scope?.projectActivation};w.partialPropertyToken=token;partialPropertyFlight=requested;
- const live=()=>partialPropertyFlight===requested&&current.projectId===requested.scope&&view.generation===requested.generation&&view.scope?.projectActivation===requested.activation&&windows.get(w.key)===w&&w.partialPropertyToken===token&&!w.el.hidden;
+ const live=()=>partialPropertyFlight===requested&&current.projectId===requested.scope&&view.generation===requested.generation&&view.scope?.projectActivation===requested.activation&&windows.get(w.key)===w&&w.partialPropertyToken===token&&!w.el.hidden&&visiblePropertyPreparationPossible();
  const load=async()=>{if(!live()){if(partialPropertyFlight===requested)partialPropertyFlight=null;return;}if(busy||actualWorkspace.loading){setTimeout(load,50);return;}
   try{for(let attempt=0;attempt<3&&live();attempt++){while(busy&&live())await whenIdle();if(!live())break;try{await readCurrentView('preparePropertyModels',{ids},live);break;}catch(error){if(error.message!=='busy'||attempt===2)throw error;}}}catch{/* Foreground or unsupported model retains ordinary opening. */}finally{if(partialPropertyFlight===requested){partialPropertyFlight=null;if(current.projectId===requested.scope&&windows.get(w.key)===w)queueMicrotask(()=>renderObjects(w.key));}}
  };setTimeout(load,0);
