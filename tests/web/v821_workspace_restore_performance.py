@@ -228,12 +228,21 @@ try:
             assert not any(row.get('endpoint') == 'relationsMap' for row in trace), trace
             schema = f.projects[0].parent / 'private-source-StockInfo.celem'
             original = schema.read_bytes()
+            primary = page.locator('.window[data-key="schema"]')
+            note = r.floating.property_value(primary, 'Note')
+            note.fill('Retained unsaved primary input')
+            detached_key = next(key for key in expected if key.startswith('editor-'))
+            detached = page.locator(f'.window[data-key="{detached_key}"]')
+            r.floating.property_value(detached, 'Note').fill('Retained unsaved detached input')
             schema.write_text(schema.read_text().rstrip()[:-1] + ' field MapReloadProbe single general string;\n}\n')
             try:
                 page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
                 graph.locator('[data-map-reload]').press('Enter')
                 page.wait_for_function("()=>confectoryWebUITrace.some(r=>r.endpoint==='relationsMap'&&r.code==='completed')")
                 expect(d.field(page.locator('.window[data-key="schema"]'), 'MapReloadProbe')).to_be_visible()
+                expect(r.floating.property_value(primary, 'Note')).to_have_value('Retained unsaved primary input')
+                expect(r.floating.property_value(detached, 'Note')).to_have_value('Retained unsaved detached input')
+                expect(d.field(detached, 'MapReloadProbe')).to_be_visible()
                 print('PASS shared initial map projection and explicit fresh external-schema reload', flush=True)
             finally:
                 schema.write_bytes(original)
