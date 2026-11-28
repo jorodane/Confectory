@@ -67,8 +67,35 @@ string? ReadWarm(){
  var key=(projectKey,hostKey);
  object[] pool;
  string poolName=connectionWarm?"Confectory.SchemaEditing.ConnectionReadPool":"Confectory.SchemaEditing.ReadPool";
- lock(AppDomain.CurrentDomain){pool=AppDomain.CurrentDomain.GetData(poolName) as object[]??new object[5];AppDomain.CurrentDomain.SetData(poolName,pool);}
+ lock(AppDomain.CurrentDomain){
+  if(AppDomain.CurrentDomain.GetData(poolName) is object[] existing)pool=existing;
+  else{
+   pool=new object[6];pool[5]=false;
+   AppDomain.CurrentDomain.SetData(poolName,pool);
+   // The read pool outlives individual editor views and project switches.
+   // On actual process exit, however, the engine must reap its own worker.
+   var ownedPool=pool;
+   AppDomain.CurrentDomain.ProcessExit+=(_,__)=>{
+    System.Threading.Volatile.Write(ref ownedPool[5],true);
+    bool locked=System.Threading.Monitor.TryEnter(ownedPool,250);
+    try{
+     var child=System.Threading.Volatile.Read(ref ownedPool[0]) as System.Diagnostics.Process;
+     if(child is null)return;
+     try{
+      if(locked&&!child.HasExited){
+       try{child.StandardInput.Close();}catch(System.IO.IOException){}catch(InvalidOperationException){}
+       child.WaitForExit(250);
+      }
+      if(!child.HasExited)child.Kill(true);
+      child.WaitForExit(5000);
+     }catch(InvalidOperationException){}catch(System.ComponentModel.Win32Exception){}
+     if(locked){child.Dispose();ownedPool[0]=null!;}
+    }finally{if(locked)System.Threading.Monitor.Exit(ownedPool);}
+   };
+  }
+ }
  lock(pool){
+  if(System.Threading.Volatile.Read(ref pool[5]) is true)throw new OperationCanceledException("Authoring process is exiting.");
   var jobs=(System.Collections.Generic.Dictionary<string,System.Collections.Generic.HashSet<System.Diagnostics.Process>>)registry[1];
   System.Diagnostics.Process? warm=pool[0] as System.Diagnostics.Process;
   // After the last acknowledged frame the bounded reader exits by contract.
@@ -93,7 +120,7 @@ string? ReadWarm(){
    if((inventory||viewCatalog||relations)&&!activeInventory&&(warm is null||warm.HasExited||!object.Equals(pool[1],key)||exhausted))return null;
    if(warm is not null&&(warm.HasExited||!object.Equals(pool[1],key)||exhausted))Retire(exhausted);
    if(object.Equals(pool[2],hostKey))return null;
-   if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();warm.BeginErrorReadLine();pool[0]=warm;pool[1]=key;}
+   if(warm is null){starting=true;var spec=new System.Diagnostics.ProcessStartInfo(dotnet){UseShellExecute=false,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};spec.ArgumentList.Add(file.FullName);spec.ArgumentList.Add("--inspect-stream");warm=new System.Diagnostics.Process{StartInfo=spec};warm.Start();pool[0]=warm;pool[1]=key;if(System.Threading.Volatile.Read(ref pool[5]) is true){Retire();throw new OperationCanceledException("Authoring process is exiting.");}warm.BeginErrorReadLine();}
    var active=warm;
    lock(registry){CheckedOwner();if(!jobs.TryGetValue(owner,out var set)){set=new();jobs.Add(owner,set);}set.Add(active);}
    try{
