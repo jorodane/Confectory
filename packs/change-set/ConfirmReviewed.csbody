@@ -33,6 +33,9 @@ try
  }
  var retirementState=AppDomain.CurrentDomain.GetData("Confectory.EditWorkspace."+handle) as System.Text.Json.Nodes.JsonObject;
  bool singleRetirement=changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="pending"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
+ bool singleRestore=changes.Length==8&&System.Linq.Enumerable.Any(retirementState?["retirements"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Value?["version"]?.GetValue<int>()==1&&row.Value?["state"]?.ToString()=="restoring"&&row.Value?["mode"] is null&&row.Value?["entries"] is System.Text.Json.Nodes.JsonObject entries&&entries.Count==1&&((row.Value["manifest"]!.ToString()==changes[0]&&entries.ContainsKey(changes[4]))||(row.Value["manifest"]!.ToString()==changes[4]&&entries.ContainsKey(changes[0]))));
+ int declarationCount=singleRetirement||singleRestore?System.Linq.Enumerable.Count(retirementState?["units"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),row=>row.Key.StartsWith(retirementState?["namespace"]?.ToString()+"::",StringComparison.Ordinal)&&row.Value?["kind"]?.ToString() is ("object" or "schema" or "module" or "function" or "implementation" or "category" or "concept" or "enum" or "project" or "pack")):0;
+ bool largeRegistration=(singleRetirement||singleRestore)&&declarationCount+(singleRetirement?1:0)>256;
  bool retirementCombined=false;
  if(dataOnly is null){
   calls.CopySources.Invoke(root,candidate);
@@ -40,8 +43,8 @@ try
   // A single existing retirement can prepare the candidate and prove it
   // against that same in-memory manifest. Older tools retain the separate path.
   System.Text.Json.Nodes.JsonObject? combined=null;
-  if(singleRetirement&&changes[2]!="missing"&&changes[6]!="missing"){
-   try{combined=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("prepareExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!.AsObject();}catch(InvalidOperationException){/* Unsupported or failed proposal: retain ordinary preparation and validation. */}
+  if((singleRetirement||singleRestore)&&changes[2]!="missing"&&changes[6]!="missing"){
+   try{combined=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("prepareExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes),["restore"]=singleRestore}.ToJsonString()))!.AsObject();}catch(InvalidOperationException){/* Unsupported or failed proposal: retain ordinary preparation and validation. */}
   }
   if(combined?["preparedManifest"] is System.Text.Json.Nodes.JsonValue prepared&&prepared.TryGetValue<string>(out var text)&&combined["proof"] is System.Text.Json.Nodes.JsonObject combinedProof){
    calls.WriteAtomic.Invoke(project,text);retirementCombined=true;
@@ -56,17 +59,20 @@ try
  }
 
  // A registration-only retirement has two existing baselines. The creation proof requires a missing object baseline; keep all retirement and fallback validation unchanged.
- if(dataOnly is null&&changes.Length==8&&(!singleRetirement||changes[2]=="missing"||changes[6]=="missing")){
+ if(dataOnly is null&&changes.Length==8&&(!(singleRetirement||singleRestore)||changes[2]=="missing"||changes[6]=="missing")){
   var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectCreation",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
   if(proof["eligible"]?.GetValue<bool>()==true)dataOnly=proof;
  }
 
- if(dataOnly is null&&singleRetirement&&!retirementCombined){
-  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes)}.ToJsonString()))!;
+ if(dataOnly is null&&(singleRetirement||singleRestore)&&!retirementCombined){
+  var proof=System.Text.Json.Nodes.JsonNode.Parse(calls.Metadata.Invoke("validateExistingSchemaObjectRetirement",new System.Text.Json.Nodes.JsonObject{["originalProject"]=identity[0],["candidateProject"]=project,["target"]=target,["changes"]=System.Text.Json.JsonSerializer.SerializeToNode(changes),["restore"]=singleRestore}.ToJsonString()))!;
   if(proof["invalid"]?.GetValue<bool>()==true)throw new InvalidOperationException(proof["message"]!.ToString());
   // CopySources excludes generated state; this exact read-only proof bypasses Validate/Build. There is no candidate link to retain.
   if(proof["eligible"]?.GetValue<bool>()==true){dataOnly=proof;retirementValidatedWithoutBuild=true;}
  }
+ // Large registration changes are only supported by the complete
+ // ordinary-object proof. No partial proof or compilation fallback.
+ if(largeRegistration&&!retirementValidatedWithoutBuild)return new[]{"invalid","Large object registration requires complete data-only reference and target proof; retained draft unchanged."};
  if(dataOnly is null)calls.Validate.Invoke(project,target);
 
  if(!System.Linq.Enumerable.SequenceEqual(changes,calls.Changes.Invoke(handle,selected)))return new[]{"stale","Selected draft changed during validation; review again."};
@@ -169,7 +175,16 @@ var guardedPaths=new System.Collections.Generic.HashSet<string>(paths,OperatingS
   string full=guard!["path"]!.ToString();var prior=System.Linq.Enumerable.FirstOrDefault(System.Linq.Enumerable.Concat(writes,checks),row=>string.Equals(System.IO.Path.GetFullPath(System.IO.Path.Combine(root,row!["path"]!.ToString())),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal))??System.Linq.Enumerable.FirstOrDefault(reads,row=>string.Equals(row!["path"]!.ToString(),full,OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal));
   if(prior is null)reads.Add(guard.DeepClone());else if(prior["hash"]!.ToString()!=guard["hash"]!.ToString())throw new InvalidOperationException("Data source observations disagree");
  }
- var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks,["reads"]=reads}.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{if(candidatePrepared&&!retirementValidatedWithoutBuild)calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
+ // Only the exact single existing-object registration proof opts into
+ // paged read-only evidence. All pages are verified in the same source lease.
+ var commitPlan=new System.Text.Json.Nodes.JsonObject{["writes"]=writes,["checks"]=checks};
+ if(retirementValidatedWithoutBuild&&dataOnly?["pagedReadProof"]?.GetValue<bool>()==true){
+  var pages=new System.Text.Json.Nodes.JsonArray();var page=new System.Text.Json.Nodes.JsonArray();
+  foreach(var observation in reads){page.Add(observation!.DeepClone());if(page.Count==64){pages.Add(page);page=new();}}
+  if(page.Count>0)pages.Add(page);
+  commitPlan["readPages"]=pages;
+ }else commitPlan["reads"]=reads;
+ var result=checks.Count>0||reads.Count>0?calls.CommitPlan.Invoke(root,commitPlan.ToJsonString()):calls.Commit.Invoke(root,paths,hashes,texts);if(result[0]!="applied")return result;committed=true;try{if(candidatePrepared&&!retirementValidatedWithoutBuild)calls.Metadata.Invoke("retainConfirmedLink",new System.Text.Json.Nodes.JsonObject{["original"]=identity[0],["candidate"]=project,["target"]=target}.ToJsonString());}catch{/* Optional generated build reuse never changes the confirmed result. */}calls.Accept.Invoke(handle,accepted);calls.Acknowledge.Invoke(handle,accepted);return new[]{"confirmed"};
 }
 catch(Exception error){return new[]{committed?"confirmed-with-warning":"invalid",error.Message};}
 finally{if(System.IO.Directory.Exists(candidate))System.IO.Directory.Delete(candidate,true);}

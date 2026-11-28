@@ -340,7 +340,7 @@ try
             if(raw.Length>1048576)throw new ArgumentException("Bounded candidate manifest required");
             string text=new UTF8Encoding(false,true).GetString(raw.AsSpan().StartsWith(new byte[]{239,187,191})?raw.AsSpan(3):raw.AsSpan());
             string prepared=PrepareCandidateManifest(original,candidate,text,new JsonArray());
-            var proof=ExistingSchemaObjectRetirementValidation.Check(original,candidate,request["changes"]!.AsArray(),S("target"),Format,FormatManifest,raw,prepared);
+            var proof=ExistingSchemaObjectRetirementValidation.Check(original,candidate,request["changes"]!.AsArray(),S("target"),Format,FormatManifest,raw,prepared,restore:request["restore"]?.GetValue<bool>()==true);
             reply=new JsonObject{["preparedManifest"]=prepared,["proof"]=proof};break;
         }
         case "run":
@@ -360,7 +360,7 @@ try
         {
             reply=new JsonObject{["retained"]=Builder.RetainConfirmedLink(S("original"),S("candidate"),S("target"))};break;
         }
-        case "validateExistingSchemaObjectRetirement":reply=ExistingSchemaObjectRetirementValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),S("target"),Format,FormatManifest);break;
+        case "validateExistingSchemaObjectRetirement":reply=ExistingSchemaObjectRetirementValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),S("target"),Format,FormatManifest,restore:request["restore"]?.GetValue<bool>()==true);break;
         case "validateExistingSchemaObjectCreation":reply=ExistingSchemaObjectCreationValidation.Check(S("originalProject"),S("candidateProject"),request["changes"]!.AsArray(),Format,FormatManifest);break;
         case "validateLongDataOverlay":reply=LongDataOnlyValidation.Check(S("originalProject"),null,S("id"),S("relative"),S("baseline"),S("after"),Format);break;
         case "validateLongDataOnly":reply=LongDataOnlyValidation.Check(S("originalProject"),S("candidateProject"),S("id"),S("relative"),S("baseline"),S("after"),Format);break;

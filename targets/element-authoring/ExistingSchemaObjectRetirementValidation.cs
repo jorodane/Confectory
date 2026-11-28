@@ -6,14 +6,14 @@ using System.Text.Json.Nodes;
 // checked, never deleted. Every observed declaration/body is tied to Confirm.
 internal static class ExistingSchemaObjectRetirementValidation
 {
-    internal static JsonObject Check(string originalProject,string candidateProject,JsonArray changes,string target,Func<Element,string> format,Func<Manifest,string> formatManifest,byte[]? candidateBefore=null,string? preparedManifest=null)
+    internal static JsonObject Check(string originalProject,string candidateProject,JsonArray changes,string target,Func<Element,string> format,Func<Manifest,string> formatManifest,byte[]? candidateBefore=null,string? preparedManifest=null,bool restore=false)
     {
         JsonObject No()=>new(){["eligible"]=false};
         var comparison=OperatingSystem.IsWindows()?StringComparison.OrdinalIgnoreCase:StringComparison.Ordinal;
         var comparer=OperatingSystem.IsWindows()?StringComparer.OrdinalIgnoreCase:StringComparer.Ordinal;
         string root=Path.GetDirectoryName(Path.GetFullPath(originalProject))!,copy=Path.GetDirectoryName(Path.GetFullPath(candidateProject))!;
         originalProject=Path.GetFullPath(originalProject);candidateProject=Path.GetFullPath(candidateProject);
-        var observed=new Dictionary<string,byte[]>(comparer);long bytes=0;
+        var observed=new Dictionary<string,byte[]>(comparer);long bytes=0;bool paged=false;
         string Owned(string directory,string relative){
             string full=Path.GetFullPath(Path.Combine(directory,relative));
             if(!string.Equals(PackPaths.Owned(directory,relative),full,comparison))throw new ArgumentException("Lexical owned source required");
@@ -29,7 +29,7 @@ internal static class ExistingSchemaObjectRetirementValidation
         byte[] Observe(string path){
             if(observed.TryGetValue(path,out var prior))return prior;
             byte[] value=Read(path);bytes+=value.Length;
-            if(observed.Count>=235||bytes>16*1048576)throw new ArgumentException("Retirement proof budget");
+            if(observed.Count>=(paged?1024:235)||bytes>16*1048576)throw new ArgumentException("Retirement proof budget");
             observed.Add(path,value);return value;
         }
         string Text(byte[] raw)=>new UTF8Encoding(false,true).GetString(raw,raw.AsSpan().StartsWith(new byte[]{239,187,191})?3:0,raw.Length-(raw.AsSpan().StartsWith(new byte[]{239,187,191})?3:0));
@@ -62,12 +62,22 @@ internal static class ExistingSchemaObjectRetirementValidation
             string id=S(c),path=S(c+1);
             if(S(m+1)!=Path.GetFileName(originalProject)||S(m+2)!=JsonData.HashBytes(oldManifest)||!id.StartsWith(prefix,StringComparison.Ordinal)||S(c+2)=="missing")return No();
             string local=id[prefix.Length..];
-            if(!manifest.Elements.TryGetValue(local,out var locator)||locator.Kind!="object"||locator.Path!=path)return No();
+            var next=new Parser(S(m+3),"<reviewed-registration>").ParseManifest();
+            // Same existing source in either direction. Recovery restores only
+            // the archived registration; it never synthesizes or overwrites data.
+            int declarationCount=restore?next.Elements.Count+1:manifest.Elements.Count+1;
+            if(declarationCount>1024)return No();
+            paged=true; // exact single existing registration proof, not a general graph budget
+            if(restore){
+                if(manifest.Elements.ContainsKey(local)||manifest.Elements.Values.Any(v=>string.Equals(v.Path,path,comparison))||!next.Elements.TryGetValue(local,out var locator)||locator.Kind!="object"||locator.Path!=path)return No();
+                manifest.Elements.Add(local,locator);
+            }else{
+                if(!manifest.Elements.TryGetValue(local,out var locator)||locator.Kind!="object"||locator.Path!=path)return No();
+                manifest.Elements.Remove(local);
+            }
+            if(formatManifest(manifest)!=formatManifest(next))return No();
             byte[] retained=Observe(Owned(root,path));
             if(JsonData.HashBytes(retained)!=S(c+2)||Text(retained)!=S(c+3)||!retained.AsSpan().SequenceEqual(CandidateRead(Owned(copy,path))))return No();
-            var next=new Parser(S(m+3),"<reviewed-registration>").ParseManifest();
-            manifest.Elements.Remove(local);
-            if(formatManifest(manifest)!=formatManifest(next))return No();
             var stats=new BuildStatistics();
             var original=new Registry(originalProject,new Documents("",stats,Observe),stats);
             var candidate=new Registry(candidateProject,new Documents("",stats,CandidateRead),stats);
@@ -77,7 +87,8 @@ internal static class ExistingSchemaObjectRetirementValidation
                 if(!string.Equals(Path.GetFullPath(Path.Combine(root,registration.Path)),original.Paths[ns],comparison))return No();
             candidate.Project.Registry=next.Registry;
             if(formatManifest(candidate.Project)!=formatManifest(next))return No();
-            var e=original.Get(id,"object");
+            var containing=restore?candidate:original;
+            var e=containing.Get(id,"object");
             var pure=new Element{Kind="object",Id=id,Parent=e.Parent,Uses=e.Uses,Data=e.Data,Description=e.Description,DescriptionPresent=e.DescriptionPresent};
             if(format(e)!=format(pure)||e.Data.Values.Any(d=>d.Kind!="general"))return No();
             // Direct primitive schema or one direct pure parent; no executable or
@@ -85,13 +96,13 @@ internal static class ExistingSchemaObjectRetirementValidation
             Element owner=e;
             if(e.Parent is string parent){
                 if(!parent.StartsWith(prefix,StringComparison.Ordinal)||e.Uses.Count!=0)return No();
-                owner=original.Get(parent,"object");
+                owner=containing.Get(parent,"object");
                 if(owner.Parent is not null||owner.Data.Values.Any(d=>d.Kind!="general")||format(owner)!=format(new Element{Kind="object",Id=owner.Id,Uses=owner.Uses,Data=owner.Data,Description=owner.Description,DescriptionPresent=owner.DescriptionPresent}))return No();
             }
             if(owner.Uses.Count!=1||owner.Uses[0].Kind!="schema"||!owner.Uses[0].Id.StartsWith(prefix,StringComparison.Ordinal))return No();
-            var schema=original.Get(owner.Uses[0].Id,"schema");
+            var schema=containing.Get(owner.Uses[0].Id,"schema");
             if(schema.Parent is not null||schema.Fields.Count==0||schema.Fields.Values.Any(f=>f.Kind!="general"||f.Cardinality!="single")||format(schema)!=format(new Element{Kind="schema",Id=schema.Id,Fields=schema.Fields,Description=schema.Description,DescriptionPresent=schema.DescriptionPresent}))return No();
-            SchemaContracts.Validate(original,id);
+            SchemaContracts.Validate(containing,id);
             if(!next.Targets.ContainsKey(target))return No();
             RegistryValidation.Validate(candidate,target);
             // Use the same Planner.Plan as Build for every declared target.
@@ -103,7 +114,7 @@ internal static class ExistingSchemaObjectRetirementValidation
                 catch(BuildError error) when(t==target&&before.Reached.Contains(id)&&error.Diagnostic.Code=="MISSING_ELEMENT"&&error.Diagnostic.Message=="No declaration for "+id){
                     return new JsonObject{["eligible"]=false,["invalid"]=true,["message"]=error.Diagnostic.Message};
                 }
-                if(before.Reached.Contains(id)||!before.Reached.SetEquals(after.Reached)||!before.Implementations.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(after.Implementations.Keys)||JsonData.Digest(before.Bindings.Values.OrderBy(b=>b.Owner).ThenBy(b=>b.Function).ToArray())!=JsonData.Digest(after.Bindings.Values.OrderBy(b=>b.Owner).ThenBy(b=>b.Function).ToArray()))return No();
+                if(before.Reached.Contains(id)||after.Reached.Contains(id)||!before.Reached.SetEquals(after.Reached)||!before.Implementations.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(after.Implementations.Keys)||JsonData.Digest(before.Bindings.Values.OrderBy(b=>b.Owner).ThenBy(b=>b.Function).ToArray())!=JsonData.Digest(after.Bindings.Values.OrderBy(b=>b.Owner).ThenBy(b=>b.Function).ToArray()))return No();
                 var selected=candidate.Get(next.Targets[t].Id,"buildtarget",next.Namespace+"::<project>");
                 new Planner(candidate,t).Structural(selected.Id);
             }
@@ -113,6 +124,7 @@ internal static class ExistingSchemaObjectRetirementValidation
             foreach(var (ns,pack) in candidate.Packs)
             foreach(var (key,loc) in pack.Elements){
                 string elementId=ns+"::"+key;
+                if(restore&&elementId==id)continue; // exact retained object was validated above
                 string directory=Path.GetDirectoryName(candidate.Paths[ns])!;
                 if(Mentions(CandidateRead(Owned(directory,loc.Path))))return No();
                 var declaration=candidate.Get(elementId);
@@ -132,7 +144,7 @@ internal static class ExistingSchemaObjectRetirementValidation
                 }
             }
             foreach(var row in observed)if(!row.Value.AsSpan().SequenceEqual(Read(row.Key)))throw new InvalidOperationException("Retirement proof source changed");
-            return new JsonObject{["eligible"]=true,["checks"]=new JsonArray(new JsonObject{["path"]=Path.GetFileName(originalProject),["hash"]=S(m+2)},new JsonObject{["path"]=path,["hash"]=S(c+2)}),["reads"]=new JsonArray(observed.Where(p=>!string.Equals(p.Key,originalProject,comparison)&&!string.Equals(p.Key,Owned(root,path),comparison)).Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=JsonData.HashBytes(p.Value)}).ToArray())};
+            return new JsonObject{["eligible"]=true,["pagedReadProof"]=observed.Count>235,["checks"]=new JsonArray(new JsonObject{["path"]=Path.GetFileName(originalProject),["hash"]=S(m+2)},new JsonObject{["path"]=path,["hash"]=S(c+2)}),["reads"]=new JsonArray(observed.Where(p=>!string.Equals(p.Key,originalProject,comparison)&&!string.Equals(p.Key,Owned(root,path),comparison)).Select(p=>(JsonNode)new JsonObject{["path"]=p.Key,["hash"]=JsonData.HashBytes(p.Value)}).ToArray())};
         }catch(Exception error) when(error is BuildError or ArgumentException or IOException or UnauthorizedAccessException or InvalidOperationException or System.Text.Json.JsonException or KeyNotFoundException){return No();}
     }
 }

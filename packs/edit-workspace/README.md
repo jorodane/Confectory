@@ -240,3 +240,44 @@ retirement/always refusal, 0/1/8 restored workspace with real command and
 closed/partially missing windows, bounded rotation and prior authoring tool.
 Ordinary Save tracing observed zero compiler invocations and project DLL opens.
 The restoration runs were functional checks, not a paired latency comparison.
+
+### Paged existing-object registration retirement
+
+The ordinary deletion planner previously refused any owned declaration graph
+above 256 entries, even for an independent data object. The larger path is
+limited to one existing local object in a ProjectPack, with at most 1,024
+owned declarations and a 16 MiB captured snapshot. Every retained declaration
+is parsed in bounded pages (32 declarations / 1 MiB per page); a missing,
+invalid, mismatched or incomplete page refuses the plan. Non-object and
+multi-object removal retain the old declaration bound.
+
+The final registration-only proof is still the exact existing-schema data
+object proof: retained source bytes, exact one-registration manifest change,
+schema/type identity, both source and candidate registries, all declared
+execution targets, unchanged reached declarations/implementations/bindings,
+and no ambiguous mentions in retained declarations or physical bodies. The
+inverse proof supports restoring the exact archived existing object source.
+The extended proof is bounded to 1,024 observed files and 16 MiB of content,
+and larger registration changes cannot silently fall back to compilation
+when the complete pure-data proof is unavailable.
+
+Read-only observations that exceed the legacy commit budget use an explicit
+paged commit representation (at most 16 pages of 64 observations). It permits
+only the one/two existing registration/activity writes and at most two
+ordinary checks; all unique observation paths and hashes are verified under
+the same existing source lease before any write. The legacy write/check/read
+budget remains unchanged. No physical retired object is deleted and no
+receipt, Review, permission, conflict or recovery check is bypassed.
+
+Linux Chromium tested declaration counts 255, 256, 257 and 400, including
+referenced-object refusal, cancel, explicit Review/Confirm, source retention,
+restart and recovery, separate same-ID project, and large non-object refusal.
+All four declaration-boundary traces (255/256/257/400), plus a fixture
+with exactly 400 object declarations, confirm compiler and project DLL
+access both zero during ordinary deletion/recovery. Late reference, always,
+and manifest write-permission changes are refused. Ordinary value saves
+retain zero compiler/DLL access; explicit Run still consumes the saved
+value with the actual build path. A direct extracted production-body probe verifies that a final-page
+hash conflict or duplicate page observation causes zero writes and that the
+legacy budget still rejects the large unpaged request. Native Windows and
+physical power-cut durability remain unmeasured.

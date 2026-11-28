@@ -1,6 +1,6 @@
 """Actual deletion UI for an unsupported large declared-reference graph.
 
-The existing proof limit is intentional; never stage a partial deletion.
+Non-object removal retains its existing bound; never stage a partial deletion.
 Run with REPO BUILD_REPORT on a disposable synthetic project.
 """
 import sys
@@ -13,10 +13,11 @@ for manifest in f.projects:
     entries = []
     for i in range(count):
         name = f"BudgetObject{i:04}"
+        kind = "schema" if i == 0 else "object"
         path = manifest.parent / f"{name}.celem"
-        path.write_text(f'object {NS}::{name} {{}}\n')
+        path.write_text(f'{kind} {NS}::{name} {{}}\n')
         f.before[str(path)] = path.read_bytes()
-        entries.append(f'element {name} object "{path.name}";')
+        entries.append(f'element {name} {kind} "{path.name}";')
     manifest.write_text(manifest.read_text().rstrip()[:-1]+"\n"+"\n".join(entries)+"\n}\n")
     f.before[str(manifest)] = manifest.read_bytes()
 try:
@@ -24,6 +25,7 @@ try:
     with sync_playwright() as play, play.chromium.launch(executable_path="/usr/bin/chromium", args=["--no-sandbox"]) as browser:
         page = f.setup(browser)
         b = browser_window(page)
+        b.get_by_role("button", name="정보", exact=True).click()
         b.get_by_role("textbox", name="의미 객체 검색", exact=True).fill("BudgetObject0000")
         b.get_by_role("button", name="검색 확정", exact=True).click()
         row = b.locator(f'[data-object="{NS}::BudgetObject0000"]')
