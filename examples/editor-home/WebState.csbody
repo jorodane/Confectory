@@ -175,10 +175,10 @@ if(project.Length>0&&publicHelperAgents is System.Text.Json.Nodes.JsonObject pro
 }
 var publicYogi=model["yogi"]?.DeepClone();foreach(var item in publicYogi?["items"]?.AsArray()??new System.Text.Json.Nodes.JsonArray())if(item?["capture"] is System.Text.Json.Nodes.JsonObject capture)capture.Remove("pixels");
 // Inventory publishes confirmed declaration identities and manifest metadata only.
-var inventory=model["localInventory"];System.Text.Json.Nodes.JsonObject? publicInventory=null;
+var inventory=model["localInventory"];System.Text.Json.Nodes.JsonObject? publicInventory=null;var referenceHashes=new System.Text.Json.Nodes.JsonObject();
 if(inventory?["projectId"]?.ToString()==selected?["projectId"]?.ToString()&&inventory?["result"] is System.Text.Json.Nodes.JsonNode catalog){
- publicInventory=new(){["status"]=catalog["status"]?.DeepClone(),["code"]=catalog["code"]?.DeepClone()};
- if(catalog["status"]?.ToString()=="available")foreach(string field in new[]{"namespace","scope","sourceScope","packs","declarations","warnings"})publicInventory[field]=catalog[field]?.DeepClone();
+ if(inventory["publicProjection"] is System.Text.Json.Nodes.JsonObject projection&&inventory["projectionHash"] is System.Text.Json.Nodes.JsonValue proof){publicInventory=(System.Text.Json.Nodes.JsonObject)projection.DeepClone();referenceHashes["inventory"]=proof.DeepClone();}
+ else{publicInventory=new(){["status"]=catalog["status"]?.DeepClone(),["code"]=catalog["code"]?.DeepClone()};if(catalog["status"]?.ToString()=="available")foreach(string field in new[]{"namespace","scope","sourceScope","packs","declarations","warnings"})publicInventory[field]=catalog[field]?.DeepClone();}
 }
 string? startupLogic=null;
 if(AppDomain.CurrentDomain.GetData("Confectory.EditorHome.StartupLogic."+context) is ValueTuple<string,string,string> intent&&intent.Item1==project&&intent.Item2==selected?["activation"]?.ToString())startupLogic=intent.Item3;
@@ -186,7 +186,10 @@ int logicReturnRequest=AppDomain.CurrentDomain.GetData("Confectory.EditorHome.Lo
 var buildJobs=new System.Text.Json.Nodes.JsonArray();foreach(var pair in model["buildJobs"]?.AsObject()??new System.Text.Json.Nodes.JsonObject())if(pair.Value!["projectId"]?.ToString()==project&&pair.Value["summary"] is not null)buildJobs.Add(pair.Value["summary"]!.DeepClone());
 bool hasActiveBuilds=System.Linq.Enumerable.Any(model["buildJobs"]?.AsObject()??new System.Text.Json.Nodes.JsonObject(),pair=>pair.Value!["summary"]?["state"]?.ToString() is "queued" or "building" or "stopping");
 bool buildProviderAvailable=System.Linq.Enumerable.Any(model["executionCapabilities"]?.AsArray()??new System.Text.Json.Nodes.JsonArray(),capability=>capability?.ToString()=="build-only");
+// The relation version covers the entire authoritative map. Public projection is deterministic.
+if(relationsMap?["version"] is System.Text.Json.Nodes.JsonValue mapVersion)referenceHashes["relationsMap"]=mapVersion.DeepClone();
 return new System.Text.Json.Nodes.JsonObject{
+ ["stateReferenceHashes"]=referenceHashes,
  // Only the capability flag is published. Invitations and guest inboxes use the transient view.
  ["scope"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=project,["projectActivation"]=selected?["activation"]?.ToString()??"",["helperId"]=helper?["helper"]?.ToString()??"",["allowCommon"]=helper?["allowCommon"]?.GetValue<bool>()??false},
  ["revision"]=model["revision"]!.DeepClone(),

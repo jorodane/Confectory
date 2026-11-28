@@ -212,7 +212,9 @@ with tempfile.TemporaryDirectory(prefix='confectory-web-ui-') as directory:
    assert send(envelope(first,'dispose'))['ok'];assert send(envelope(first,'update'))['error']['code']=='view_closed'
    with sync_playwright() as p,FailureEvidence():
     browser=p.chromium.launch(executable_path='/usr/bin/chromium',headless=True,args=['--no-sandbox','--disable-gpu']);page=browser.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
-    goto_editor(page,url);expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
+    if kind=='button':page.goto(url)
+    else:goto_editor(page,url)
+    expect(page.locator('#status')).to_have_text('Ready',timeout=30000)
     if kind=='button':
      expect(page.locator('#score')).to_have_text('1');page.locator('#increase').click();expect(page.locator('#score')).to_have_text('2');page.locator('#reconnect').click();expect(page.locator('#status')).to_have_text('Reconnected');expect(page.locator('#score')).to_have_text('2');page.locator('#reset').click();expect(page.locator('#score')).to_have_text('0')
     elif kind=='review-before':

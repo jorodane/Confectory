@@ -109,3 +109,19 @@ assert.equal(selectedInvokes.length,2);await selective.dispose();
 await selective.mount();const freshSelection=selective.update();assert.deepEqual(selectedReads[0].request.receivedRequestIds,[]);
 selectedReads.shift().resolve({ok:true,revision:1,state:{},results:[]});await freshSelection;await selective.dispose();
 console.log('PASS received-result exclusion, lost read, concurrent admission, stale rejection and no replay');
+
+// Exact public field references are tied to the request's captured state, not
+// the latest mutable UI. Old peers still receive the full ordinary state.
+const reuseReads=[],reuseInvokes=[];
+const reuse=new WebView(async request=>{
+ if(request.op==='mount')return {ok:true,view:'metadata',scope:{project:'same'},revision:1,state:{inventory:{rows:[{id:'A'}]}},stateReuseFields:['inventory'],stateFieldHashes:{inventory:'a'}};
+ if(request.op==='update')return new Promise(resolve=>reuseReads.push({request,resolve}));
+ if(request.op==='invoke')return new Promise(resolve=>reuseInvokes.push({request,resolve}));
+ if(request.op==='dispose')return {ok:true};throw Error('unexpected state reference operation');
+});
+await reuse.mount();const inventoryA=reuse.state.inventory;assert(Object.isFrozen(inventoryA.rows[0]));assert.throws(()=>{inventoryA.rows[0].id='modified';},TypeError);
+const same=reuse.update();assert.deepEqual(reuseReads[0].request.knownStateFields,{inventory:'a'});reuseReads.shift().resolve({ok:true,revision:2,state:{},stateFieldHashes:{inventory:'a'},reusedStateFields:{inventory:'a'},results:[]});await same;assert.equal(reuse.state.inventory,inventoryA);
+const older=reuse.update();const edited=reuse.call('edit',{}, {completion:true});assert.deepEqual(reuseInvokes[0].request.knownStateFields,{inventory:'a'});const invocation=reuseInvokes.shift();invocation.resolve({ok:true,completion:{ok:true,revision:4,state:{inventory:{rows:[{id:'B'}]}},stateFieldHashes:{inventory:'b'},results:[{requestId:invocation.request.requestId,ok:true,result:{accepted:true}}]}});assert.deepEqual(await edited,{accepted:true});reuseReads.shift().resolve({ok:true,revision:3,state:{},stateFieldHashes:{inventory:'a'},reusedStateFields:{inventory:'a'},results:[]});await older;assert.equal(reuse.state.inventory.rows[0].id,'B');
+const wrong=reuse.update();reuseReads.shift().resolve({ok:true,revision:5,state:{},stateFieldHashes:{inventory:'a'},reusedStateFields:{inventory:'a'},results:[]});await assert.rejects(wrong,/state_reference_mismatch/);assert.equal(reuse.state.inventory.rows[0].id,'B');
+await reuse.dispose();await reuse.mount();assert.equal(reuse.state.inventory.rows[0].id,'A');await reuse.dispose();
+console.log('PASS exact immutable state references, stale completion ordering, mismatch refusal and remount isolation');

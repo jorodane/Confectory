@@ -1,9 +1,12 @@
 """Ordinary local string saves on a build-capable synthetic project.
 
-Run with REPO BUILD_REPORT [40|400] [--trace-files] [--guards] and the built desktop target.
+Run with REPO BUILD_REPORT [40|400] [--trace-files] [--guards] [--continuous] [--continuous-in-place] and the built desktop target.
 Unlike performance-restore-sample's intentionally tool-free registry,
 this fixture has a real build target. The bounded single-scalar save must not
 need to compile or access project assemblies.
+--continuous performs five extra actual string saves; --continuous-in-place
+keeps the same primary property window after ordinary commands are ready.
+--verify-relation-delta checks changed owned rows in the 400-object host trace.
 """
 import json
 import os
@@ -20,7 +23,9 @@ import v666_workspace_finder_fixture as f
 count = int(sys.argv[3]) if len(sys.argv) > 3 else 40
 assert count in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {"--trace-files", "--guards"}
+assert flags <= {"--trace-files", "--guards", "--continuous", "--verify-relation-delta", "--continuous-in-place"}
+assert "--verify-relation-delta" not in flags or (count == 400 and "--continuous" in flags)
+assert "--continuous-in-place" not in flags or "--continuous" in flags
 run = f.report["run"]
 ns = "Confectory.PerformanceRestoreSample"
 sample = f.root / "string-save"
@@ -43,6 +48,7 @@ profile.mkdir()
 f.env.update(CONFECTORY_HOME_STORAGE=str(profile), CONFECTORY_ENTRY_STORAGE=str(f.root / "entry"))
 f.env.pop("CONFECTORY_WEB_PROJECT", None)
 expect.set_options(timeout=120000)
+if "--continuous" in flags: f.env["CONFECTORY_UI_TRACE"] = "1"
 
 
 def page_for(browser, n):
@@ -91,6 +97,7 @@ def replace_input(page, field, value):
 def save(page, window, persisted):
     button = window.locator('[data-element-action="confirm"]')
     expect(button).to_have_text("저장")
+    started = time.monotonic()
     button.click()
     deadline = time.monotonic() + 120
     while time.monotonic() < deadline and not persisted():
@@ -99,6 +106,7 @@ def save(page, window, persisted):
     expect(page.locator("#status")).to_have_text("저장했습니다.")
     expect(page.locator('.window[data-key="review"]')).to_be_hidden()
     expect(page.get_by_role("dialog", name="관련 변경 검토")).to_have_count(0)
+    if "--continuous" in flags: print("save-ui-ms", round((time.monotonic()-started)*1000,1), flush=True)
 
 
 try:
@@ -108,9 +116,22 @@ try:
         unicode = "한글 문자열 · café"
         replace_input(page, primary.get_by_label("Note 기본값", exact=True), unicode)
         save(page, primary, lambda: note("D") == unicode)
+        if "--continuous" in flags:
+            for value in ("Continuous 1", "Continuous 2", "Continuous 3", "Continuous 4", unicode):
+                expect(page.locator("#project-menu")).to_be_enabled()
+                if "--continuous-in-place" not in flags:
+                    primary = open_owner(page, "D", primary=True)
+                replace_input(page, primary.get_by_label("Note 기본값", exact=True), value)
+                save(page, primary, lambda: note("D") == value)
+
         detached = open_owner(page, "A")
         replace_input(page, detached.get_by_label("Note 기본값", exact=True), "")
         save(page, detached, lambda: note("A") == "")
+        if "--verify-relation-delta" in flags:
+            expect(page.locator("#project-menu")).to_be_enabled()
+            deltas = [json.loads(line.split(' ', 1)[1]) for line in (f.root / 'host-0.log').read_text().splitlines() if line.startswith('CONFECTORY_RELATION_ROWS ')]
+            assert sum(row['parsed']==1 and row['reused']>=400 for row in deltas)>=3, deltas
+            print('PASS repeated actual property saves reparse only changed owned row', deltas, flush=True)
         peer = open_owner(page, "B")
         replace_input(page, peer.get_by_label("Note 기본값", exact=True), "Unsaved peer")
         # The independently opened peer overlaps A's Save button. Close it
@@ -120,6 +141,7 @@ try:
         expect(page.locator("#project-menu")).to_be_enabled()
         replace_input(page, detached.get_by_label("Count 기본값", exact=True), "11")
         save(page, detached, lambda: 'data Count = 11' in (sample / "SampleA.celem").read_text())
+
         w = browser_window(page)
         w.get_by_role("textbox", name="의미 객체 검색", exact=True).fill("Sample B")
         w.get_by_role("button", name="검색 확정", exact=True).click()

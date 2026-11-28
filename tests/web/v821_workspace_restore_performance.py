@@ -17,6 +17,10 @@ model requests while the normal restore admission remains available.
 open requests use the existing bounded completion protocol.
 --verify-filter-freshness checks an external schema edit through the working-copy
 filter before the explicit map reload, retaining detached local input.
+--repeat-map repeats the completed explicit reload and records UI latency.
+--verify-relation-delta checks unchanged 400-object owned draft rows are reused.
+--verify-state-reuse checks full, exact-reference and wrong-token host responses.
+Resource Timing reports encoded API response bytes from the actual card click.
 Optional --trace-files or CONFECTORY_RESTORE_CPU_PROFILE=1 is a separate
 diagnostic run (tracing overhead makes its timings incomparable).
 """
@@ -35,11 +39,13 @@ assert count in (0, 1, 8), 'Choose 0, 1, or 8 restored windows'
 objects = int(os.environ.get("CONFECTORY_RESTORE_OBJECTS", "40"))
 assert objects in (40, 400)
 flags = set(sys.argv[4:])
-assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model', '--verify-filter-freshness', '--verify-restore-completion'}, flags
+assert flags <= {'--during-summary', '--trace-files', '--exercise-command', '--verify-restored-map', '--working-copy', '--verify-no-speculative-model', '--verify-filter-freshness', '--verify-restore-completion', '--repeat-map', '--verify-relation-delta', '--verify-state-reuse'}, flags
 assert not ({'--verify-restored-map', '--working-copy'} & flags) or count == 8
 assert '--verify-no-speculative-model' not in flags or objects == 400
 assert '--verify-filter-freshness' not in flags or {'--working-copy', '--verify-restored-map'} <= flags
 assert '--verify-restore-completion' not in flags or (objects == 400 and count == 8)
+assert '--repeat-map' not in flags or '--verify-restored-map' in flags
+assert '--verify-relation-delta' not in flags or (objects == 400 and '--repeat-map' in flags)
 expect.set_options(timeout=90000)
 f.env['CONFECTORY_UI_TRACE'] = '1'
 r.seed()
@@ -91,7 +97,7 @@ def measure(page, label, keys, expected):
     pending = page.locator('[data-stat=objects][data-status=pending]').count()
     tile = page.locator('.project-card').filter(has=page.get_by_role('heading', name=d.FIRST, exact=True)).locator('[data-enter]')
     tile.evaluate('''(button, keys)=>{globalThis.restoreMarks={};globalThis.confectoryWebUITrace=[];
-      button.addEventListener('click',()=>{const start=performance.now();globalThis.restoreClick=start;function mark(name,ok){if(ok&&!(name in restoreMarks))restoreMarks[name]=performance.now()-start;}
+      button.addEventListener('click',()=>{performance.setResourceTimingBufferSize(2000);performance.clearResourceTimings();const start=performance.now();globalThis.restoreClick=start;function mark(name,ok){if(ok&&!(name in restoreMarks))restoreMarks[name]=performance.now()-start;}
       const visible=e=>!!e&&e.getClientRects().length>0&&!e.closest('[hidden]');
       const editable=e=>visible(e)&&!e.disabled&&!e.readOnly&&!e.closest('[inert]');
       function frame(){mark('workspace',visible(document.querySelector('.work-body'))&&editable(document.querySelector('#chat-input')));
@@ -151,7 +157,8 @@ def measure(page, label, keys, expected):
         cdp.detach()
     marks = page.evaluate('restoreMarks')
     edits = [marks[key + '-editable'] for key in expected]
-    print(json.dumps({'run': label, 'windows': count, 'objects': objects, 'pendingSummaryCards': pending,
+    wire = page.evaluate("()=>{const rows=performance.getEntriesByType('resource').filter(r=>r.name.endsWith('/api/request'));return {wireRequests:rows.length,wireBytes:rows.reduce((n,r)=>n+r.encodedBodySize,0)}}")
+    print(json.dumps({'run': label, 'windows': count, 'objects': objects, 'pendingSummaryCards': pending, **wire,
                       'workspaceMs': marks['workspace'], 'firstEditableMs': min(edits, default=None),
                       'lastEditableMs': max(edits, default=None), 'commandsMs': marks['commands'],
                       'marks': marks}), flush=True)
@@ -165,6 +172,23 @@ def measure(page, label, keys, expected):
         expect(field).to_have_value(original + ' ')
         field.press('Backspace'); expect(field).to_have_value(original)
     f.original()
+    if '--verify-state-reuse' in flags:
+        mounted = f.mount()
+        try:
+            hashes = mounted.get('stateFieldHashes', {})
+            assert hashes.get('inventory') and mounted['state']['inventory']['status']=='available', mounted.keys()
+            request = {'op':'update','view':mounted['view'],'scope':mounted['scope']}
+            full = f.raw(request)
+            assert full['ok'] and full['state']['inventory'] == mounted['state']['inventory']
+            wrong = f.raw(dict(request, knownStateFields={'inventory':'0'*64}))
+            assert wrong['ok'] and wrong['state']['inventory']==full['state']['inventory']
+            exact = f.raw(dict(request, knownStateFields={'inventory':hashes['inventory']}))
+            assert exact['ok'] and 'inventory' not in exact['state'] and exact['reusedStateFields']['inventory']==hashes['inventory'], exact.keys()
+            stale = f.raw(dict(request, scope=dict(mounted['scope'], projectActivation='invalid-activation'), knownStateFields=hashes))
+            assert not stale['ok']
+            print('PASS exact public metadata reuse; legacy/full, wrong token and project scope guards', flush=True)
+        finally:
+            f.raw({'op':'dispose','view':mounted['view']})
     if {'--verify-no-speculative-model', '--verify-restore-completion'} & flags:
         page.remove_listener('request', capture_prepare)
     if '--verify-restore-completion' in flags and label == 'cold':
@@ -268,6 +292,26 @@ try:
                 expect(r.floating.property_value(detached, 'Note')).to_have_value('Retained unsaved detached input')
                 expect(d.field(detached, 'MapReloadProbe')).to_be_visible()
                 print('PASS shared initial map projection and explicit fresh external-schema reload', flush=True)
+                if '--repeat-map' in flags:
+                    expect(page.locator('#project-menu')).to_be_enabled()
+                    def delta_counts():
+                        rows = [json.loads(line.split(' ', 1)[1]) for line in (f.root / 'host-1.log').read_text().splitlines() if line.startswith('CONFECTORY_RELATION_ROWS ')]
+                        return rows[-1] if rows else None
+                    if '--verify-relation-delta' in flags:
+                        delta = delta_counts()
+                        assert delta and delta['parsed'] <= 1 and delta['reused'] >= 400, delta
+                        print('PASS unchanged draft rows retained; authoritative external schema reread separately', delta, flush=True)
+                    page.evaluate('()=>globalThis.confectoryWebUITrace=[]')
+                    graph.locator('[data-map-reload]').evaluate("el=>el.addEventListener('keydown',()=>globalThis.mapRepeatStart=performance.now(),{once:true,capture:true})")
+                    graph.locator('[data-map-reload]').press('Enter')
+                    page.wait_for_function("()=>confectoryWebUITrace.some(r=>r.endpoint==='relationsMap'&&r.code==='completed')")
+                    expect(page.locator('#project-menu')).to_be_enabled()
+                    print('repeat-map-ms', page.evaluate('performance.now()-mapRepeatStart'), flush=True)
+                    if '--verify-relation-delta' in flags:
+                        delta = delta_counts()
+                        assert delta and delta['parsed'] == 0 and delta['reused'] >= 400, delta
+                        print('PASS unchanged relation rows need no authoring request', delta, flush=True)
+
             finally:
                 schema.write_bytes(original)
             f.original()

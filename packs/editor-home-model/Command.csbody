@@ -936,7 +936,12 @@ model["chatHelperSelections"]??=new System.Text.Json.Nodes.JsonObject();if(ids.C
   lock(AppDomain.CurrentDomain){activeInventory=AppDomain.CurrentDomain.GetData("Confectory.SchemaEditing.ActiveInventoryOwner") as System.Threading.AsyncLocal<string?>??new();AppDomain.CurrentDomain.SetData("Confectory.SchemaEditing.ActiveInventoryOwner",activeInventory);}
   previousInventoryOwner=activeInventory.Value;activeInventory.Value=System.IO.Path.GetFullPath(project);
  }
- try{model["localInventory"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=model["selected"]?["projectId"]?.DeepClone(),["result"]=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(project,"{\"action\":\"inventory\"}"))};}
+ try{var catalog=System.Text.Json.Nodes.JsonNode.Parse(calls.Catalog.Invoke(project,"{\"action\":\"inventory\"}"))!;
+  // The public inventory is immutable until the next authoritative catalog read.
+  var projection=new System.Text.Json.Nodes.JsonObject{["status"]=catalog["status"]?.DeepClone(),["code"]=catalog["code"]?.DeepClone()};
+  if(catalog["status"]?.ToString()=="available")foreach(string field in new[]{"namespace","scope","sourceScope","packs","declarations","warnings"})projection[field]=catalog[field]?.DeepClone();
+  string projectionHash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(projection.ToJsonString()))).ToLowerInvariant();
+  model["localInventory"]=new System.Text.Json.Nodes.JsonObject{["projectId"]=model["selected"]?["projectId"]?.DeepClone(),["result"]=catalog,["publicProjection"]=projection,["projectionHash"]=projectionHash};}
  finally{if(activeInventory is not null)activeInventory.Value=previousInventoryOwner;}
  }
  else if(operation=="catalog"){

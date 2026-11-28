@@ -50,6 +50,15 @@ var hostActions=new System.Collections.Generic.HashSet<string>(StringComparer.Or
 var observations=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["observations"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=row!.GetValue<string>();if(observations.Count>=32||!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z][A-Za-z0-9]{0,63}$")||endpoints.Contains(name)||!observations.Add(name))throw new ArgumentException("Bounded distinct observation endpoints required");}
 var transientActions=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 foreach(var row in bundle["transientActions"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string name=row!.GetValue<string>();if(transientActions.Count>=8||!System.Text.RegularExpressions.Regex.IsMatch(name,"^[A-Za-z][A-Za-z0-9]{0,63}$")||endpoints.Contains(name)||observations.Contains(name)||!transientActions.Add(name))throw new ArgumentException("Bounded distinct transient actions required");}
+// A bundle may identify large, already-public state fields for exact content
+// reuse. This changes transport bytes only, never Refresh or revision checks.
+var stateReuseFields=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);foreach(var row in bundle["stateReuseFields"]?.AsArray()??new System.Text.Json.Nodes.JsonArray()){string field=row!.GetValue<string>();if(stateReuseFields.Count>=8||!System.Text.RegularExpressions.Regex.IsMatch(field,@"^[A-Za-z][A-Za-z0-9]{0,63}$")||!stateReuseFields.Add(field))throw new ArgumentException("Bounded state reuse fields required");}
+void ApplyStateReuse(System.Text.Json.Nodes.JsonObject reply,System.Text.Json.Nodes.JsonObject? known=null){
+ var authoritative=reply["stateReferenceHashes"] as System.Text.Json.Nodes.JsonObject;reply.Remove("stateReferenceHashes");if(stateReuseFields.Count==0||reply["state"] is not System.Text.Json.Nodes.JsonObject publicState)return;
+ var hashes=new System.Text.Json.Nodes.JsonObject();var reused=new System.Text.Json.Nodes.JsonObject();
+ foreach(string field in stateReuseFields){if(publicState[field] is not System.Text.Json.Nodes.JsonNode value)continue;string hash=authoritative?[field]?.ToString()??"";if(!System.Text.RegularExpressions.Regex.IsMatch(hash,"\\A[0-9a-f]{64}\\z"))hash=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value.ToJsonString()))).ToLowerInvariant();hashes[field]=hash;if(known?[field] is System.Text.Json.Nodes.JsonValue v&&v.TryGetValue<string>(out var proof)&&proof==hash){publicState.Remove(field);reused[field]=hash;}}
+ reply["stateFieldHashes"]=hashes;if(reused.Count>0)reply["reusedStateFields"]=reused;
+}
 string token=Guid.NewGuid().ToString("N");object gate=new(),execution=new();bool closing=false,closed=false;int observationsInFlight=0;
 var retiredViews=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
 var owner=calls.CreateOwner.Invoke(1);int revisionInstance=calls.CreateInstance.Invoke(owner,"Confectory.WebUI::Revision");
@@ -97,7 +106,7 @@ string Dispatch(string text){
   string id=req["requestId"]!.GetValue<string>(),view=req["view"]!.GetValue<string>();System.Threading.Tasks.Task<bool> completed;
   lock(gate){if(closing||!views.ContainsKey(view)||!requests.TryGetValue(id,out var row)||row.View!=view)return acknowledgement;completed=row.Completion.Task;}
   if(!completed.Wait(100))return acknowledgement;
-  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(DispatchCore(new System.Text.Json.Nodes.JsonObject{["op"]="update",["view"]=view,["scope"]=req["scope"]!.DeepClone()}))!;
+  var snapshot=System.Text.Json.Nodes.JsonNode.Parse(DispatchCore(new System.Text.Json.Nodes.JsonObject{["op"]="update",["view"]=view,["scope"]=req["scope"]!.DeepClone(),["knownStateFields"]=req["knownStateFields"]?.DeepClone()}))!;
   if(snapshot["busy"]?.GetValue<bool>()==true)return acknowledgement;
   ack["completion"]=snapshot;return ack.ToJsonString();
  }catch{return acknowledgement;}
@@ -110,7 +119,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
    if(op=="mount"){
     if(views.Count>=32||views.Count+retiredViews.Count>=1024)return Error("view_budget").ToJsonString();var s=Refresh();if(s is null)return Error("busy").ToJsonString();string view=Guid.NewGuid().ToString("N");
     views.Add(view,(s["scope"]!.ToJsonString(),calls.Subscribe.Invoke(owner,revisionInstance,"Confectory.WebUI::Revision"),new System.Threading.CancellationTokenSource()));
-    s["ok"]=true;s["receivedResultSelection"]=true;if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
+    s["ok"]=true;s["receivedResultSelection"]=true;if(stateReuseFields.Count>0){s["stateReuseFields"]=System.Text.Json.JsonSerializer.SerializeToNode(stateReuseFields);ApplyStateReuse(s);}if(performanceRecord is not null)s["performance"]=true;s["view"]=view;s["bundle"]=bundle["id"]!.DeepClone();s["version"]=bundle["version"]!.DeepClone();return s.ToJsonString();
    }
    string v=req["view"]!.ToString();if(op=="dispose"&&retiredViews.Contains(v))return "{\"ok\":true}";if(!views.TryGetValue(v,out var mounted))return Error("view_closed").ToJsonString();
    if(op=="dispose"){
@@ -142,7 +151,7 @@ string DispatchCore(System.Text.Json.Nodes.JsonObject req){
     }
     var s=Refresh();if(s is null)return "{\"ok\":true,\"busy\":true,\"results\":[]}";if(!System.Text.Json.Nodes.JsonNode.DeepEquals(s["scope"],System.Text.Json.Nodes.JsonNode.Parse(mounted.Scope)))return Error("scope_changed").ToJsonString();
     s["changed"]=calls.Poll.Invoke(owner,mounted.Subscription).Length>0;s["ok"]=true;
-    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending"&&(received is null||!received.Contains(row.Row["requestId"]!.ToString())))results.Add(row.Row.DeepClone());s["results"]=results;return s.ToJsonString();
+    var results=new System.Text.Json.Nodes.JsonArray();foreach(var row in requests.Values)if(row.View==v&&row.Row["status"]!.ToString()!="pending"&&(received is null||!received.Contains(row.Row["requestId"]!.ToString())))results.Add(row.Row.DeepClone());s["results"]=results;ApplyStateReuse(s,req["knownStateFields"] as System.Text.Json.Nodes.JsonObject);return s.ToJsonString();
    }
    if(op!="invoke")return Error("unknown_operation",id).ToJsonString();
    string endpoint=req["endpoint"]!.ToString();if(!endpoints.Contains(endpoint))return Error("endpoint_denied",id).ToJsonString();
