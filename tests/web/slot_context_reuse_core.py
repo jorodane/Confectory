@@ -23,14 +23,14 @@ class Program {
  static string Hash(string text)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
  static void Check(bool value,string message){if(!value)throw new Exception(message);}
  static int Main(){
-  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact","string-fallback","string-proof","string-external","string-detached","string-detached-external","string-dirty","non-direct","trusted","untrusted","wrong-stage","trusted-external","legacy-proof"}){
-   if((mode is "retained-reference" or "detached-compact" or "string-detached" or "string-detached-external" or "trusted" or "untrusted" or "wrong-stage" or "trusted-external" or "legacy-proof")&&!compact||mode=="non-direct"&&compact)continue;
+  foreach(bool compact in new[]{false,true})foreach(var mode in new[]{"success","staged-resource","original-peer","checkpoint","external-hash","ordinary-fallback","retained-reference","detached-compact","string-fallback","string-proof","string-external","string-detached","string-detached-external","string-dirty","non-direct","trusted","untrusted","wrong-stage","trusted-external","legacy-proof","reference-detached","reference-fallback","reference-external","reference-dirty"}){
+   if((mode is "retained-reference" or "detached-compact" or "string-detached" or "string-detached-external" or "trusted" or "untrusted" or "wrong-stage" or "trusted-external" or "legacy-proof" or "reference-detached" or "reference-fallback" or "reference-external" or "reference-dirty")&&!compact||mode=="non-direct"&&compact)continue;
    string handle=Guid.NewGuid().ToString("N"),key="Confectory.EditWorkspace."+handle,root=Path.Combine(Path.GetTempPath(),"cf-context-"+handle);
    Directory.CreateDirectory(root);string project=Path.Combine(root,"project.cpack"),dep=Path.Combine(root,"dependency.cpack"),owner="Owned::Owner",manifest="Owned::ProjectManifest";
    File.WriteAllText(dep,"registered context");
    var units=new JsonObject();
    foreach(var id in new[]{owner,manifest,"Owned::Schema","Owned::Peer"})units[id]=new JsonObject{["kind"]=id==manifest?"project":id.EndsWith("Schema")?"schema":"object",["path"]=id.Split("::")[1]+".celem",["draft"]=id,["original"]=id,["revision"]=1L,["baseline"]=Hash(id)};
-   if(mode is "retained-reference" or "string-dirty")units["Owned::Peer"]!["draft"]="retained prior draft";
+   if(mode is "retained-reference" or "string-dirty" or "reference-dirty")units["Owned::Peer"]!["draft"]="retained prior draft";
    var state=new JsonObject{["root"]=root,["project"]=project,["namespace"]="Owned",["units"]=units};AppDomain.CurrentDomain.SetData(key,state);
    var original=units.DeepClone();
    var observations=new JsonArray(new JsonObject{["path"]=dep,["hash"]=Hash("registered context")});
@@ -39,6 +39,9 @@ class Program {
    var plans=new JsonArray(new JsonObject{["kind"]="owner-edit",["id"]=owner,["function"]=owner,["context"]=context.DeepClone(),["declaration"]=declaration,["directPropertySave"]=true});
    if(mode is "detached-compact" or "string-detached" or "string-detached-external")plans[0]!["uiSurface"]="view:1";
    if(mode is "string-fallback" or "string-proof" or "string-external" or "string-detached" or "string-detached-external" or "string-dirty"){declaration["changes"]![0]!["contract"]!["type"]="string";declaration["changes"]![0]!["valueJson"]="\"hello\"";}
+   if(mode.StartsWith("reference-",StringComparison.Ordinal)){
+    plans[0]!["uiSurface"]="view:1";declaration["changes"]![0]!["contract"]!["type"]="Owned::Schema";declaration["changes"]![0]!["contract"]!["kind"]="reference";declaration["changes"]![0]!["valueJson"]="\"Owned::Peer\"";
+   }
    if(mode=="non-direct")plans[0]!["directPropertySave"]=false;
    if(mode=="legacy-proof")context["ownershipPaths"]=new JsonArray(dep);
    string? reuseKey=null,originalKey=null;
@@ -67,21 +70,23 @@ class Program {
     Metadata=(op,input)=>{
      if(op is "effective" or "inspectEffective"){
       var req=JsonNode.Parse(input)!;Check(req["project"]?.ToString()==project&&req["id"]?.ToString()==owner&&req["text"]?.ToString()=="new owner"&&req["schemaView"]?.GetValue<bool>()==true&&req["validateObjects"]?.GetValue<bool>()==true&&req["observeSources"]?.GetValue<bool>()==true,"complete final validation flags");
+      if(mode=="reference-external")File.WriteAllText(dep,"changed reference");
       var model=new JsonObject{["status"]="available",["schemaModel"]=new JsonObject{["validation"]=new JsonObject{["status"]="valid"}}};
       if(op=="inspectEffective"){inspect++;Check(req["kind"]?.ToString()=="object","exact object identity");return new JsonObject{["effective"]=model}.ToJsonString();}
       effective++;return model.ToJsonString();
      }
      Check(op=="mixedOwnerCopyEdits","unexpected metadata "+op);mixed++;
      if(mode is "string-fallback" or "string-proof" or "string-external" or "string-detached" or "string-detached-external")Check(JsonNode.Parse(input)?["reuseStringPreparation"]?.GetValue<bool>()==true,"missing exact string proof request");
+     if(mode.StartsWith("reference-",StringComparison.Ordinal))Check((JsonNode.Parse(input)?["reuseReferencePreparation"]?.GetValue<bool>()==true)==(mode!="reference-dirty"),"reference repeat proof must be restricted to a clean independent draft");
      var result=new JsonObject{["text"]="new owner",["manifest"]=manifest,["additions"]=new JsonArray(),["updates"]=new JsonArray()};
      if(mode=="string-dirty")Check(JsonNode.Parse(input)?["reuseStringPreparation"] is null,"dirty peer must not ask for proof");
-     if(mode is not ("ordinary-fallback" or "string-fallback" or "string-dirty" or "non-direct"))result["repeatProof"]=new JsonObject{["observations"]=observations.DeepClone(),["ownershipPaths"]=new JsonArray(dep)};
+     if(mode is not ("ordinary-fallback" or "string-fallback" or "string-dirty" or "non-direct" or "reference-fallback" or "reference-dirty"))result["repeatProof"]=new JsonObject{["observations"]=observations.DeepClone(),["ownershipPaths"]=new JsonArray(dep)};
      return result.ToJsonString();
     }
    };
    try{
     Exception? failure=null;try{Batch(handle,plans.ToJsonString(),calls);}catch(Exception ex){failure=ex;}
-    bool success=mode is "string-proof" or "string-detached" or "string-dirty" or "success" or "ordinary-fallback" or "retained-reference" or "detached-compact" or "string-fallback" or "non-direct" or "trusted" or "untrusted" or "wrong-stage" or "legacy-proof";
+    bool success=mode is "string-proof" or "string-detached" or "string-dirty" or "success" or "ordinary-fallback" or "retained-reference" or "detached-compact" or "string-fallback" or "non-direct" or "trusted" or "untrusted" or "wrong-stage" or "legacy-proof" or "reference-detached" or "reference-fallback" or "reference-dirty";
     Check(success?failure is null:failure is InvalidOperationException,mode+": "+failure);
     if(success)Check(state["units"]![owner]!["draft"]!.ToString()=="new owner","missing candidate");
     else Check(JsonNode.DeepEquals(original,state["units"]),"partial mutation");
@@ -89,6 +94,9 @@ class Program {
     else if(mode=="non-direct")Check(callsContext==3&&effective==1&&inspect==0&&mixed==2&&captures==0,"non-direct exact path changed");
     else if(mode=="retained-reference")Check(callsContext==3&&effective==1&&inspect==0&&mixed==1&&captures==0,"retained draft must keep existing full context validation");
     else if(mode is "string-detached" or "string-detached-external")Check(callsContext==1&&effective==0&&inspect==0&&mixed==1&&captures>=1,"compact detached string must verify exact captured candidate and sources");
+    else if(mode=="reference-detached")Check(callsContext==3&&effective==0&&inspect==1&&mixed==1&&captures==0,"reference repeat must keep full final semantic checks");
+    else if(mode is "reference-fallback" or "reference-dirty")Check(callsContext==3&&effective==0&&inspect==1&&mixed==2&&captures==0,"unsupported reference proof must repeat the proposal");
+    else if(mode=="reference-external")Check(callsContext==2&&effective==0&&inspect==1&&mixed==1&&captures==0,"reference sources changed after proposal must be rejected");
     else if(mode=="detached-compact")Check(callsContext==3&&effective==0&&inspect==1&&mixed==1&&captures==0,"compact detached proof must keep all semantic checks on the warm route");
     else if(mode=="trusted")Check(callsContext==0&&effective==0&&inspect==0&&mixed==1&&captures>=2,"trusted basis must reuse only the original context and keep physical captures");
     else if(mode=="trusted-external")Check(callsContext==1&&mixed==0,"changed external proof must fall back to full context and reject");

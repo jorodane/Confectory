@@ -1,12 +1,12 @@
 """Actual direct reference guard scenarios on disposable project profiles.
-Usage: REPO BUILD_REPORT 40|400 fallback|mixed|rename|retype|permission|missing|owner|lost-final|lost-owner|mixed-recovered|mixed-recovered-conflict|dirty|stale.
+Usage: REPO BUILD_REPORT 40|400 fallback|mixed|rename|retype|permission|missing|owner|lost-final|lost-owner|mixed-recovered|mixed-recovered-conflict|dirty|stale|stage-external [--detached].
 """
 import json,sys,time
 from playwright.sync_api import expect,sync_playwright
 import v666_workspace_finder_fixture as f
 from v821_project_browser_search_labels import NS,browser_window
 count=int(sys.argv[3]);assert count in (40,400)
-mode=sys.argv[4];assert mode in ("fallback","mixed","rename","retype","permission","missing","owner","lost-final","lost-owner","mixed-recovered","mixed-recovered-conflict","dirty","stale")
+mode=sys.argv[4];assert mode in ("fallback","mixed","rename","retype","permission","missing","owner","lost-final","lost-owner","mixed-recovered","mixed-recovered-conflict","dirty","stale","stage-external")
 semantics={
  "TargetInfo":("schema","field Count single general long;"),
  "LinkInfo":("schema",f"field Target single reference {NS}::TargetInfo; field Note single general string;"),
@@ -34,12 +34,15 @@ source=f.projects[0].parent/"SourceLink.celem";expect.set_options(timeout=120000
 trace=f.root/"files.log"
 
 def open_owner(page):
+ if "--detached" in sys.argv:
+  existing=page.locator(f'.window[data-element-owner="{NS}::SourceLink"][data-element-mode="properties"]:visible')
+  if existing.count()==1:return existing
  w=browser_window(page);w.get_by_role("textbox",name="의미 객체 검색",exact=True).fill("SourceLink")
  w.get_by_role("button",name="검색 확정",exact=True).click()
  row=w.locator(f'[data-object="{NS}::SourceLink"]');expect(row).to_be_visible()
  expect(page.locator("#project-menu")).to_be_enabled()
- row.click(button="right");page.locator(".context-menu").get_by_role("button",name="스키마 열기",exact=True).click()
- editor=page.locator('.window[data-key="schema"]');expect(editor.locator(".object-title-name")).to_have_text("SourceLink");return editor
+ row.click(button="right");page.locator(".context-menu").get_by_role("button",name="새 창으로 열기" if "--detached" in sys.argv else "스키마 열기",exact=True).click()
+ editor=page.locator(f'.window[data-element-owner="{NS}::SourceLink"][data-element-mode="properties"]:visible' if "--detached" in sys.argv else '.window[data-key="schema"]');expect(editor.locator(".object-title-name")).to_have_text("SourceLink");return editor
 
 target=f.projects[0].parent/"TargetNonzero.celem"
 original=source.read_bytes()
@@ -89,7 +92,9 @@ try:
       elif mode=="permission":target.chmod(0)
       elif mode=="missing":target.unlink()
       elif mode=="owner":source.write_bytes(original+b"\n// external owner change\n")
-    if endpoint=="blueprint" and body.get("input",{}).get("action")=="applySlots":applies.append(rid)
+    if endpoint=="blueprint" and body.get("input",{}).get("action")=="applySlots":
+     applies.append(rid)
+     if mode=="stage-external" and len(applies)==1:target.write_text(original_target.decode().replace("Nonzero label","External renamed"))
    if mode not in ("lost-final","lost-owner","mixed-recovered","mixed-recovered-conflict"):
     route.fallback();return
    response=route.fetch();payload=response.json()
@@ -132,6 +137,11 @@ try:
     expect(editor.get_by_role("button",name="Target 기본값 선택",exact=True)).to_have_text("Nonzero label")
     expect(editor.get_by_label("Note 기본값",exact=True)).to_have_value("Mixed change")
     print("PASS mixed Review rejection, explicit Confirm and restart",flush=True)
+  elif mode=="stage-external":
+   assert len(applies)==1 and not hits and source.read_bytes()==original
+   assert target.read_bytes()==original_target.replace(b"Nonzero label",b"External renamed")
+   assert ref.inner_text()=="Nonzero label" or review.is_visible()
+   print("PASS external reference source changed after basis; input retained and final write refused",flush=True)
   elif mode in ("rename","retype","permission","missing","owner"):
    expected=original+b"\n// external owner change\n" if mode=="owner" else original
    assert len(hits)==1 and source.read_bytes()==expected,(hits,source.read_text())

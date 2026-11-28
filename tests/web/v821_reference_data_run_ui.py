@@ -1,5 +1,5 @@
 """Actual direct reference save without build, followed by explicit Run consuming new data.
-Usage: REPO BUILD_REPORT 40|400 [--detached] [--continuous] [--profile]. Requires SDK and strace (except --profile).
+Usage: REPO BUILD_REPORT 40|400 [--detached] [--continuous] [--profile] [--verify-repeat-proof] [--verify-reference-settlement]. Requires SDK and strace (except --profile).
 Synthetic FrameLoop copies only.
 """
 import json,sys,time
@@ -68,6 +68,26 @@ try:
  f.start(0)
  with sync_playwright() as p,p.chromium.launch(executable_path="/usr/bin/chromium",args=["--no-sandbox"]) as b:
   page=f.setup(b);page.set_default_timeout(120000);editor=open_owner(page)
+  if "--verify-reference-settlement" in sys.argv:
+   assert continuous and "--detached" in sys.argv
+   settlements=set();settle_requests=[];apply_requests=set()
+   def verify_settlement(route):
+    try:body=route.request.post_data_json
+    except Exception:body=None
+    if isinstance(body,dict) and body.get("op")=="invoke" and body.get("endpoint")=="blueprint":
+     action=body.get("input",{}).get("action")
+     if action=="settledSlots":settle_requests.append(body["requestId"])
+     if action=="applySlots":
+      assert body["input"].get("settleDirectOwner") is True
+      apply_requests.add(body["requestId"])
+    response=route.fetch();payload=response.json()
+    for row in payload.get("results",[]):
+     if row.get("requestId") in apply_requests and row.get("ok"):
+      assert row["result"].get("ownerSettled") is True and row["result"]["directSaveProof"][0].get("reference") is True,row
+      settlements.add(row["requestId"])
+    route.fulfill(response=response)
+   page.route("**/api/request",verify_settlement)
+
   if "--verify-card-reference" in sys.argv:
    assert "--detached" not in sys.argv
    w=browser_window(page);choose_tree_location(w,f'[data-namespace="{NS}"]')
@@ -76,9 +96,10 @@ try:
    card.click(button="right");page.locator(".context-menu").get_by_role("button",name="스키마 열기",exact=True).click()
    card.evaluate("el=>globalThis.__referenceCard=el")
   ref=editor.get_by_role("button",name="Target 기본값 선택",exact=True);expect(ref).to_have_text("Zero label")
-  ref.click();picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
+  pick_start=time.perf_counter();ref.click();picker=page.get_by_role("dialog",name="기본값 선택",exact=True)
   expect(picker).to_be_visible()
   choices=picker.locator("[data-reference-choice]");expect(choices).to_have_count(3)
+  print("picker-ready-ms",round((time.perf_counter()-pick_start)*1000,1),flush=True)
   for name,label in [("TargetZero","Zero label"),("TargetNonzero","Nonzero label"),("TargetAbsent","Absent label")]:
    expect(picker.locator(f'[data-reference-choice="{NS}::{name}"]')).to_contain_text(label)
   expect(picker.locator(f'[data-reference-choice="{NS}::WrongTarget"]')).to_have_count(0)
@@ -95,9 +116,26 @@ try:
   if continuous:
    print("reference-repeated-begin",flush=True)
    for target,label in [("TargetZero","Zero label"),("TargetNonzero","Nonzero label"),("TargetAbsent","Absent label"),("TargetZero","Zero label"),("TargetNonzero","Nonzero label")]:
-    ref.click();picker=page.get_by_role("dialog",name="기본값 선택",exact=True);expect(picker).to_be_visible();picker.locator(f'[data-reference-choice="{NS}::{target}"]').click();expect(ref).to_have_text(label)
+    pick_start=time.perf_counter();ref.click();picker=page.get_by_role("dialog",name="기본값 선택",exact=True);expect(picker).to_be_visible()
+    choice=picker.locator(f'[data-reference-choice="{NS}::{target}"]');expect(choice).to_be_visible()
+    print("picker-ready-ms",round((time.perf_counter()-pick_start)*1000,1),flush=True)
+    choice.click();expect(ref).to_have_text(label)
     save_reference(page,editor,target)
    print("reference-repeated-end",flush=True)
+  if "--verify-reference-settlement" in sys.argv:
+   assert len(settlements)==6 and not settle_requests,(settlements,settle_requests)
+   page.unroute_all(behavior="wait")
+   print("PASS six server-bound reference settlements; no client reconciliation round trip",flush=True)
+  if "--verify-repeat-proof" in sys.argv:
+   assert count==400 and continuous and "--detached" in sys.argv
+   # Every clean independent direct reference Save consumes one exact
+   # before/after proposal. No second identical semantic proposal or
+   # cold definition catalogue request should be needed in this fixture.
+   events=[json.loads(line.split(" ",1)[1]) for line in (f.root/"host-0.log").read_text().splitlines() if line.startswith("CONFECTORY_UI_TRACE ")]
+   mixed=[event for event in events if event.get("stage")=="authoring-process" and event.get("operation")=="mixedOwnerCopyEdits"]
+   cold=[event for event in events if event.get("stage")=="authoring-process" and event.get("operation")=="effective"]
+   assert len(mixed)==6 and not cold,(mixed,cold)
+   print("PASS six exact reference proposals; no repeated proposal or cold catalogue",flush=True)
   print("save status",page.locator("#status").inner_text(),flush=True)
   print("save error",editor.locator("[data-element-error]").inner_text(),flush=True)
   print("persisted",source.read_text(),flush=True)

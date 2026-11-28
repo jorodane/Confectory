@@ -40,6 +40,11 @@ internal static class MixedOwnerCopyEdits
      JsonNode.DeepEquals(single["contract"],new JsonObject{["kind"]="general",["cardinality"]="single",["type"]="string"})))&&
    element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&
    element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0;
+  // A reference repeat proof is only possible for an existing direct local
+  // reference. The full before/after semantic checks and exact observation
+  // and ownership set equality below still decide whether it is returned.
+  bool referenceRepeat=request["reuseReferencePreparation"]?.GetValue<bool>()==true&&request["reuseLongPreparation"]?.GetValue<bool>()==true&&request["rawText"] is null&&single is JsonObject referenceRow&&referenceRow.Count==4&&single["type"]?.ToString()=="data"&&single["path"] is JsonArray referencePath&&referencePath.Count==1&&referencePath[0] is JsonValue referenceField&&referenceField.TryGetValue<string>(out var repeatReferenceField)&&element.Data.TryGetValue(repeatReferenceField,out var oldReference)&&oldReference.Kind=="reference"&&oldReference.Reference?.StartsWith(ns+"::",StringComparison.Ordinal)==true&&single["contract"] is JsonObject referenceContract&&referenceContract.Count==3&&referenceContract["kind"]?.ToString()=="reference"&&referenceContract["cardinality"]?.ToString()=="single"&&referenceContract["type"]?.ToString().StartsWith(ns+"::",StringComparison.Ordinal)==true&&element.Parent is null&&element.Uses.Count==1&&element.Uses[0].Kind=="schema"&&element.Uses[0].Id.StartsWith(ns+"::",StringComparison.Ordinal)&&element.Modules.Count==0&&element.Contains.Count==0&&element.Provides.Count==0&&drafts.Count==0;
+  repeat|=referenceRepeat;
   // Single root data edits have identical registration/peer overlays before
   // and after. Reuse only exact observed text and parsed declarations inside
   // this call; all full semantic checks and physical rechecks still execute.
